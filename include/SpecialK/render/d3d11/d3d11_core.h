@@ -170,6 +170,196 @@ protected:
     ( call_tally.is_whack () ||                           \
               (! bWrapped) );
 
+__forceinline
+bool
+SK_D3D11_IsDevCtxDeferred (ID3D11DeviceContext* ctx)
+{
+  // Ugly caching mechanism, but effective.
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck0;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck1;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck2;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck3;
+  static std::pair<ID3D11DeviceContext*,bool>*
+    _pLastDeferredCheck        = &_lastDeferredCheck0;
+
+  const bool bIsLastDevCtx     =
+    _pLastDeferredCheck->first == ctx;
+  const bool bIsDevCtxDeferred = bIsLastDevCtx ?
+    _pLastDeferredCheck->second               :
+    ctx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED;
+
+  _pLastDeferredCheck->second = bIsDevCtxDeferred;
+  _pLastDeferredCheck->first  = ctx;
+
+    if (      _pLastDeferredCheck == &_lastDeferredCheck0)
+              _pLastDeferredCheck  = &_lastDeferredCheck1;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck1)
+              _pLastDeferredCheck  = &_lastDeferredCheck2;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck2)
+              _pLastDeferredCheck  = &_lastDeferredCheck3;
+    else      _pLastDeferredCheck  = &_lastDeferredCheck0;
+
+  return bIsDevCtxDeferred;
+}
+
+bool
+SK_D3D11_EnsureMatchingDevices (ID3D11Device *pDevice0, ID3D11Device *pDevice1);
+
+inline
+bool
+SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
+                                   bool                 bDeferred,
+                                   ID3D11DeviceContext* pDevCtx )
+{
+  if (!config.render.dxgi.deferred_isolation) [[likely]]
+  {
+    if (bWrapped) [[likely]]
+      return true;
+
+    if (bDeferred) [[unlikely]]
+      return true;
+  }
+
+  // Ugly caching mechanism, but effective.
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict0;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict1;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict2;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict3;
+  static std::pair<ID3D11DeviceContext*,bool>* _pLastVerdict = &_lastVerdict0;
+
+  std::pair<ID3D11DeviceContext*,bool>* pLastVerdict = _pLastVerdict;
+
+  if (     pLastVerdict->first == pDevCtx)
+    return pLastVerdict->second;
+  else
+  {
+    if (      _pLastVerdict == &_lastVerdict0)
+              _pLastVerdict  = &_lastVerdict1;
+    else if ( _pLastVerdict == &_lastVerdict1)
+              _pLastVerdict  = &_lastVerdict2;
+    else if ( _pLastVerdict == &_lastVerdict2)
+              _pLastVerdict  = &_lastVerdict3;
+    else      _pLastVerdict  = &_lastVerdict0;
+
+    pLastVerdict = _pLastVerdict;
+  }
+
+  const SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if ((! bWrapped) && ( rb.d3d11.immediate_ctx == nullptr || (pDevCtx != rb.d3d11.immediate_ctx && !config.reshade.is_addon))) [[unlikely]]
+  {
+    if ( rb.d3d11.immediate_ctx == nullptr ||
+         rb.device.p            == nullptr )
+    {
+      if (config.system.log_level > 2)
+      {
+        SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
+      }
+
+      pLastVerdict->first = nullptr;
+
+      return true;
+    }
+
+#if 1
+    // Ugly, but effective, optimization
+           ID3D11Device*        pDev        = nullptr;
+    static ID3D11Device*        pLastDev    = nullptr;
+    static ID3D11DeviceContext* pLastDevCtx = nullptr;
+
+    if (pLastDevCtx == pDevCtx)
+            pDev = pLastDev;
+    else
+    {
+      SK_ComPtr <ID3D11Device>
+                           pDevice;
+      pDevCtx->GetDevice (&pDevice.p);
+                pLastDev = pDevice.p;
+                pDev     = pDevice.p;
+    }
+
+    pLastDevCtx = pDevCtx;
+#else
+    SK_ComPtr <ID3D11Device>
+                         pDev;
+    pDevCtx->GetDevice (&pDev.p);
+#endif
+
+    // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
+    //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
+    if (rb.device.p != pDev && (! config.reshade.is_addon))
+    {
+      if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDev))
+      {
+        if (config.system.log_level > 2)
+        {
+          SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
+        }
+
+        pLastVerdict->first  = pDevCtx;
+        pLastVerdict->second = true;
+
+        return true;
+      }
+    }
+  }
+
+
+  //
+  // Handle D3D11On12, but only if the active API is not already D3D11 :)
+  //
+  if (rb.api != SK_RenderAPI::D3D11)
+  {
+#if 1
+           ID3D11Device*        pDev        = nullptr;
+    static ID3D11Device*        pLastDev    = nullptr;
+    static ID3D11DeviceContext* pLastDevCtx = nullptr;
+
+    if (pLastDevCtx == pDevCtx)
+            pDev = pLastDev;
+    else
+    {
+      SK_ComPtr <ID3D11Device>
+                           pDevice;
+      pDevCtx->GetDevice (&pDevice.p);
+                pLastDev = pDevice.p;
+                pDev     = pDevice.p;
+    }
+
+    pLastDevCtx = pDevCtx;
+#else
+    SK_ComPtr <ID3D11Device>
+                         pDev;
+    pDevCtx->GetDevice (&pDev.p);
+#endif
+
+    SK_ComPtr <IUnknown> pD3D11On12Device;
+    if (pDev)
+        pDev->QueryInterface (
+          IID_ID3D11On12Device,
+    (void **)&pD3D11On12Device.p);
+
+    if (pD3D11On12Device.p != nullptr)
+    {
+    //SK_ReleaseAssert (!"D3D11On12");
+      pLastVerdict->first  = pDevCtx;
+      pLastVerdict->second = true;
+      return true;
+    }
+  }
+
+  pLastVerdict->first  = pDevCtx;
+  pLastVerdict->second = false;
+
+  return
+    false;
+}
+
 extern const GUID IID_ID3D11Device2;
 extern const GUID IID_ID3D11Device3;
 extern const GUID IID_ID3D11Device4;

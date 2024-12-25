@@ -761,11 +761,6 @@ SK_D3D11_SetShaderResources_Impl (
       ( hooked ?
           This : Wrapper );
 
-
-#define pDevCtx pDevContext
-  SK_WRAP_AND_HOOK
-#undef  pDevCtx
-
   if (! (hooked || _vftable))
     return;
 
@@ -864,9 +859,20 @@ SK_D3D11_SetShaderResources_Impl (
        pDevContext, StartSlot, NumViews, ppShaderResourceViews);
   };
 
+  if (! SK_D3D11_ShouldTrackSetShaderResources (pDevContext, dev_idx))
+  {
+    return
+      _Finish ();
+  }
+
+#define pDevCtx pDevContext
+  SK_WRAP_AND_HOOK
+#undef  pDevCtx
+
   bool early_out = (! bMustNotIgnore) || shader_base == nullptr ||
+  !SK_D3D11_ShouldTrackRenderOp           (pDevContext, dev_idx)||
     SK_D3D11_IgnoreWrappedOrDeferred (bWrapped,
-           SK_D3D11_IsDevCtxDeferred (pDevContext),
+                                      bIsDevCtxDeferred,
                                       pDevContext);
 
   if (early_out)
@@ -893,15 +899,6 @@ SK_D3D11_SetShaderResources_Impl (
 
   else
     ZeroMemory (shader_base->current.views [dev_idx], NumViews * sizeof (ID3D11ShaderResourceView));
-
-
-  //// ImGui gets to pass-through without invoking the hook
-  if ( (! SK_D3D11_ShouldTrackSetShaderResources (pDevContext, dev_idx)) ||
-       (! SK_D3D11_ShouldTrackRenderOp           (pDevContext, dev_idx)) )
-  {
-    return
-      _Finish ();
-  }
 
 
   if (ppShaderResourceViews != nullptr && NumViews > 0)
