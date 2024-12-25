@@ -2145,6 +2145,8 @@ public:
         SK_TLS* pTLS =
           SK_TLS_BottomEx (dwSelectedTid);
 
+        auto& thread_scheduler = *pTLS->scheduler;
+
         if (sysinfo.dwNumberOfProcessors > 1 && pTLS != nullptr)
         {
           ImGui::Separator ();
@@ -2154,7 +2156,7 @@ public:
             constexpr DWORD_PTR Processor0 = 0x1;
 
             bool affinity =
-              (pTLS->scheduler->affinity_mask & (Processor0 << j)) != 0;
+              (thread_scheduler.affinity_mask & (Processor0 << j)) != 0;
 
             UINT i =
               SK_SetThreadIdealProcessor (hSelectedThread, MAXIMUM_PROCESSORS);
@@ -2162,7 +2164,7 @@ public:
             bool ideal = (i == j);
 
             float c_scale =
-              pTLS->scheduler->lock_affinity ? 0.5f : 1.0f;
+              thread_scheduler.lock_affinity ? 0.5f : 1.0f;
 
             ImGui::TextColored ( ideal    ? ImColor (0.5f   * c_scale, 1.0f   * c_scale,   0.5f * c_scale):
                                  affinity ? ImColor (1.0f   * c_scale, 1.0f   * c_scale,   1.0f * c_scale) :
@@ -2170,12 +2172,12 @@ public:
                                    "CPU%lu",
                                      j );
 
-            if (ImGui::IsItemClicked () && (! pTLS->scheduler->lock_affinity))
+            if (ImGui::IsItemClicked () && (! thread_scheduler.lock_affinity))
             {
               affinity = (! affinity);
 
               DWORD_PTR dwAffinityMask =
-                pTLS->scheduler->affinity_mask;
+                thread_scheduler.affinity_mask;
 
                 if (affinity) dwAffinityMask |=  (Processor0 << j);
                 else          dwAffinityMask &= ~(Processor0 << j);
@@ -2190,7 +2192,7 @@ public:
             }
           }
 
-          ImGui::Checkbox ("Prevent changes to affinity", &pTLS->scheduler->lock_affinity);
+          ImGui::Checkbox ("Prevent changes to affinity", &thread_scheduler.lock_affinity);
         }
         ImGui::EndGroup ();
         ImGui::SameLine ();
