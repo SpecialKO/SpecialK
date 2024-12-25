@@ -141,6 +141,8 @@ SK_GetAudioMeterInfo (void)
     SK_WASAPI_GetAudioMeterInfo ();
 }
 
+SK_ISimpleAudioVolume SK_VolumeControl;
+
 SK_WASAPI_AudioLatency
 __stdcall
 SK_WASAPI_GetCurrentLatency (SK_IMMDevice pDevice)
@@ -945,8 +947,10 @@ void
 __stdcall
 SK_SetGameMute (bool bMute)
 {
-  SK_ISimpleAudioVolume pVolume =
-    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  if (SK_VolumeControl == nullptr)
+      SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+
+  SK_ComPtr<ISimpleAudioVolume> pVolume = SK_VolumeControl;
 
   if (             pVolume != nullptr)
   { if (SUCCEEDED (pVolume->SetMute (bMute, nullptr)))
@@ -967,10 +971,12 @@ BOOL
 __stdcall
 SK_IsGameMuted (void)
 {
-  SK_ISimpleAudioVolume pVolume =
-    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  if (SK_VolumeControl == nullptr)
+      SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
   BOOL bMuted = FALSE;
+
+  SK_ComPtr<ISimpleAudioVolume> pVolume = SK_VolumeControl;
 
   if ( pVolume != nullptr && SUCCEEDED (
        pVolume->GetMute ( &bMuted )    )
@@ -1015,10 +1021,10 @@ SK_WASAPI_Init (void)
     {
       if (val != nullptr && var != nullptr )
       {
-        auto pVolumeCtl =
+        SK_VolumeControl =
           SK_WASAPI_GetVolumeControl ();
 
-        if (pVolumeCtl != nullptr && var->getValuePointer () == &volume)
+        if (SK_VolumeControl != nullptr && var->getValuePointer () == &volume)
         {
           volume = *(float *)val;
 
@@ -1033,7 +1039,7 @@ SK_WASAPI_Init (void)
                                SK_ImGui_Toast::ShowNewest
           );
 
-          pVolumeCtl->SetMasterVolume (volume / 100.0f, nullptr);
+          SK_VolumeControl->SetMasterVolume (volume / 100.0f, nullptr);
 
           if (volume != 0.0f)
           {
@@ -1243,6 +1249,10 @@ HRESULT
 STDMETHODCALLTYPE
 SK_WASAPI_EndPointManager::OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState)
 {
+  SK_VolumeControl =
+    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+
+    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
   std::ignore = pwstrDeviceId;
   std::ignore = dwNewState;
 
@@ -1290,23 +1300,29 @@ SK_WASAPI_EndPointManager::OnDeviceRemoved (_In_ LPCWSTR pwstrDeviceId)
 HRESULT
 STDMETHODCALLTYPE
 SK_WASAPI_EndPointManager::OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId)
- {
-   std::ignore = role;
-   std::ignore = pwstrDefaultDeviceId;
+{
+  SK_VolumeControl =
+    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
-   if (flow == eAll || flow == eRender)
-   {
-     //SK_ImGui_Warning (pwstrDefaultDeviceId);
-     //resetSessionManager ();
-   }
+  std::ignore = role;
+  std::ignore = pwstrDefaultDeviceId;
 
-   return S_OK;
- }
+  if (flow == eAll || flow == eRender)
+  {
+    //SK_ImGui_Warning (pwstrDefaultDeviceId);
+    //resetSessionManager ();
+  }
+
+  return S_OK;
+}
 
 HRESULT
 STDMETHODCALLTYPE
 SK_WASAPI_EndPointManager::OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key)
 {
+  SK_VolumeControl =
+    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+
   std::ignore = pwstrDeviceId;
   std::ignore = key;
 

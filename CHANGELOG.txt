@@ -1,4 +1,17 @@
-﻿24.12.24
+﻿24.12.24.2
+==========
+ + Further reduce performance overhead in D3D11 across the board for CPU-bound
+     scenarios in games that make a lot of draw calls.
+ + Optimized Get/SetMute to avoid constructing a temporary ISimpleAudioVolume
+     COM object every time it is called.
+
+24.12.24.1
+==========
+ + Lowered CPU overhead in D3D11 games related to third-party overlay color
+     correction shader replacement when an HDR display is attached.
+    >> State tracking for them will only occur during Present (...) calls now.
+
+24.12.24
 ========
  + Avoid destroying the SwapChain that Special K creates during initialization
      to setup D3D11 hooks, because poorly written ReShade addons may crash.
