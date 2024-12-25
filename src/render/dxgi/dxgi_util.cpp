@@ -1936,6 +1936,13 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       _Return (false);
   }
 
+const D3D11_VIEWPORT vp = {         0.0f, 0.0f,
+  static_cast <float> (dstTexDesc.Width),
+  static_cast <float> (dstTexDesc.Height),
+                                    0.0f, 1.0f
+};
+
+#if 0
 #if 0
   SK_IMGUI_D3D11StateBlock
     sb;
@@ -1946,12 +1953,103 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   CreateStateblock (pDevCtx, sb);
 #endif
+#else
+  D3D11_PRIMITIVE_TOPOLOGY          topo;
+  pDevCtx->IAGetPrimitiveTopology (&topo);
 
-  const D3D11_VIEWPORT vp = {         0.0f, 0.0f,
-    static_cast <float> (dstTexDesc.Width),
-    static_cast <float> (dstTexDesc.Height),
-                                       0.0f, 1.0f
-  };
+  const auto ft_lvl =
+    pDev->GetFeatureLevel ();
+
+  const int max_vtx_input_slots =
+    ft_lvl >= D3D_FEATURE_LEVEL_11_0 ? D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT
+                                     : D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT;
+
+  SK_ComPtr<ID3D11InputLayout> IAInputLayout;
+  SK_ComPtrArray<ID3D11Buffer,                         D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT>
+                               vtx_buffers;
+  UINT                         IAVertexBufferStrides  [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT] = {};
+  UINT                         IAVertexBufferOffsets  [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT] = {};
+
+  SK_ComPtr<ID3D11Buffer>      IAIndexBuffer       = nullptr;
+  DXGI_FORMAT                  IAIndexBufferFormat = DXGI_FORMAT_UNKNOWN;
+  UINT                         IAIndexBufferOffset = 0;
+
+  pDevCtx->IAGetVertexBuffers (0, max_vtx_input_slots, &vtx_buffers [0].p, IAVertexBufferStrides, IAVertexBufferOffsets);
+  pDevCtx->IAGetInputLayout   (&IAInputLayout.p);
+  pDevCtx->IAGetIndexBuffer   (&IAIndexBuffer.p, &IAIndexBufferFormat, &IAIndexBufferOffset);
+
+  SK_ComPtrArray <ID3D11RenderTargetView,D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT>
+                                      OMRenderTargetViews;
+  SK_ComPtr <ID3D11DepthStencilView>  OMDepthStencilView;
+  SK_ComPtr <ID3D11DepthStencilState> OMDepthStencilState;
+  SK_ComPtr <ID3D11BlendState>        OMBlendState;
+  UINT                                OMStencilRef;
+  FLOAT                               OMBlendFactor[4] = {};
+  UINT                                OMSampleMask     = {};
+
+  pDevCtx->OMGetBlendState        (&OMBlendState.p, OMBlendFactor, &OMSampleMask);
+  pDevCtx->OMGetDepthStencilState (&OMDepthStencilState.p, &OMStencilRef);
+  pDevCtx->OMGetRenderTargets     (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,&OMRenderTargetViews [0].p,&OMDepthStencilView.p);
+
+  SK_ComPtr <ID3D11VertexShader>   vs;
+  SK_ComPtr <ID3D11ClassInstance>  vs_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                             vs_num_ifaces;
+  SK_ComPtr <ID3D11PixelShader>    ps;
+  SK_ComPtr <ID3D11ClassInstance>  ps_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                             ps_num_ifaces;
+  SK_ComPtr <ID3D11GeometryShader> gs;
+  SK_ComPtr <ID3D11ClassInstance>  gs_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                             gs_num_ifaces;
+  SK_ComPtr <ID3D11HullShader>     hs;
+  SK_ComPtr <ID3D11ClassInstance>  hs_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                             hs_num_ifaces;
+  SK_ComPtr <ID3D11DomainShader>   ds;
+  SK_ComPtr <ID3D11ClassInstance>  ds_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
+  UINT                             ds_num_ifaces;
+
+  SK_ComPtrArray <ID3D11Buffer, D3D11_SO_BUFFER_SLOT_COUNT> so_targets;
+
+  pDevCtx->VSGetShader (&vs.p, &vs_interfaces [0].p, &vs_num_ifaces);
+  pDevCtx->PSGetShader (&ps.p, &ps_interfaces [0].p, &ps_num_ifaces);
+
+  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
+  {
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
+    {
+      pDevCtx->HSGetShader          (&hs.p, &hs_interfaces [0].p, &hs_num_ifaces);
+      pDevCtx->DSGetShader          (&ds.p, &ds_interfaces [0].p, &ds_num_ifaces);
+    }
+    pDevCtx->GSGetShader          (&gs.p, &gs_interfaces [0].p, &gs_num_ifaces);
+    pDevCtx->SOGetTargets         (D3D11_SO_BUFFER_SLOT_COUNT, &so_targets [0].p);
+  }
+
+  pDevCtx->GSGetShader (&gs.p, &gs_interfaces [0].p, &gs_num_ifaces);
+  pDevCtx->DSGetShader (&ds.p, &ds_interfaces [0].p, &ds_num_ifaces);
+  pDevCtx->HSGetShader (&hs.p, &hs_interfaces [0].p, &hs_num_ifaces);
+
+  SK_ComPtrArray <ID3D11Buffer,            D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT> vs_cbuffers;
+  SK_ComPtrArray <ID3D11Buffer,            D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT> ps_cbuffers;
+  SK_ComPtrArray <ID3D11ShaderResourceView,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT>      ps_resources;
+  SK_ComPtrArray <ID3D11SamplerState,      D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT>             ps_samplers;
+
+  pDevCtx->VSGetConstantBuffers (0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,&vs_cbuffers  [0].p);
+  pDevCtx->PSGetConstantBuffers (0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,&ps_cbuffers  [0].p);
+  pDevCtx->PSGetShaderResources (0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,     &ps_resources [0].p);
+  pDevCtx->PSGetSamplers        (0,D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,            &ps_samplers  [0].p);
+
+  
+  SK_ComPtr <ID3D11RasterizerState> 
+                        rs_state;
+  pDevCtx->RSGetState (&rs_state.p);
+
+  D3D11_RECT scissor_rects [D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE] = {};
+  UINT         num_scissors=D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+  UINT        num_viewports=D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+  D3D11_VIEWPORT  viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE] = {};
+
+  pDevCtx->RSGetScissorRects (&num_scissors,  &scissor_rects [0]);
+  pDevCtx->RSGetViewports    (&num_viewports, &viewports     [0]);
+#endif
 
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
   pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
@@ -1978,9 +2076,9 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   pDevCtx->RSSetScissorRects      (0,         nullptr);
   pDevCtx->RSSetViewports         (1,             &vp);
 
-  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
+  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
   {
-    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
     {
       pDevCtx->HSSetShader        (nullptr, nullptr,       0);
       pDevCtx->DSSetShader        (nullptr, nullptr,       0);
@@ -2084,8 +2182,38 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   if (pDevCtx1 != nullptr && bUseDiscard)
       pDevCtx1->DiscardResource (pNewSrcTex);
 
+#if 0
   ApplyStateblock (pDevCtx, sb);
   //sb.Apply (pDevCtx.p);
+#else
+  pDevCtx->IASetPrimitiveTopology (topo);
+  pDevCtx->IASetInputLayout       (IAInputLayout);
+  pDevCtx->IASetVertexBuffers     (0, max_vtx_input_slots,
+                                         &vtx_buffers [0].p,
+                                                  IAVertexBufferStrides, IAVertexBufferOffsets);
+  pDevCtx->IASetIndexBuffer       (IAIndexBuffer, IAIndexBufferFormat,   IAIndexBufferOffset  );
+  pDevCtx->OMSetBlendState        (OMBlendState,        OMBlendFactor,   OMSampleMask);
+  pDevCtx->OMSetDepthStencilState (OMDepthStencilState, OMStencilRef);
+  pDevCtx->OMSetRenderTargets     (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,&OMRenderTargetViews [0].p,
+                                                                           OMDepthStencilView);
+  pDevCtx->PSSetShader            (ps, &ps_interfaces [0].p, ps_num_ifaces);
+  pDevCtx->VSSetShader            (vs, &vs_interfaces [0].p, vs_num_ifaces);
+  pDevCtx->VSSetConstantBuffers   (0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,&vs_cbuffers  [0].p);
+  pDevCtx->PSSetConstantBuffers   (0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,&ps_cbuffers  [0].p);
+  pDevCtx->PSSetShaderResources   (0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,     &ps_resources [0].p);
+  pDevCtx->PSSetSamplers          (0,D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,            &ps_samplers  [0].p);
+  pDevCtx->RSSetState             (rs_state);
+  pDevCtx->RSSetScissorRects      (num_scissors,  scissor_rects);
+  pDevCtx->RSSetViewports         (num_viewports,     viewports);
+
+  if (ft_lvl >= D3D_FEATURE_LEVEL_10_0) {
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0) {
+      pDevCtx->HSSetShader        (hs, &hs_interfaces [0].p, hs_num_ifaces);
+      pDevCtx->DSSetShader        (ds, &ds_interfaces [0].p, ds_num_ifaces);
+    } pDevCtx->GSSetShader        (gs, &gs_interfaces [0].p, gs_num_ifaces);
+      pDevCtx->SOSetTargets       (D3D11_SO_BUFFER_SLOT_COUNT, &so_targets [0].p, nullptr);
+  }
+#endif
 
   return
     _Return (true);

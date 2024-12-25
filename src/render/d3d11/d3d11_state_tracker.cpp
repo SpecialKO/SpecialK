@@ -133,12 +133,13 @@ SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
     return false;
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (pDevCtx), pDevCtx))
+  const bool                                   bIsDeferred = SK_D3D11_IsDevCtxDeferred (pDevCtx);
+  if (SK_D3D11_IgnoreWrappedOrDeferred (false, bIsDeferred, pDevCtx))
   {
     return false;
   }
 
-  if (SK_D3D11_IsDevCtxDeferred (pDevCtx))
+  if (bIsDeferred)
     return true;
 
 
@@ -174,10 +175,13 @@ bool& SK_D3D11_DontTrackUnlessModToolsAreOpen = config.render.dxgi.low_spec_mode
 
 bool SK_D3D11_IsTrackingRequired (void)
 {
+  static auto& _shaders =
+    SK_D3D11_Shaders.get();
+
   return
     ReadAcquire (&SK_D3D11_DrawTrackingReqs)    > 0 ||
     ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0 ||
-    (SK_D3D11_Shaders->hasReShadeTriggers () && (! SK_D3D11_Shaders->reshade_triggered));
+    (_shaders.hasReShadeTriggers () && (! _shaders.reshade_triggered));
 }
 
 bool
@@ -201,20 +205,6 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
 
     return false;
   }
-
-  //// Don't let D3D11On12 confuse things
-  //if (rb.api == SK_RenderAPI::D3D11)
-  //{
-  //  const auto frame_id =
-  //    SK_GetFramesDrawn ();
-  //
-  //  if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
-  //                                                        frame_id )
-  //  {
-  //    rb.setLatencyMarkerNV (SIMULATION_END);
-  //    rb.setLatencyMarkerNV (RENDERSUBMIT_START);
-  //  }
-  //}
 
   bool deferred =
     SK_D3D11_IsDevCtxDeferred (pDevCtx);
@@ -605,8 +595,8 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
     const auto frame_id =
       SK_GetFramesDrawn ();
 
-    if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
-                                                          frame_id )
+    static ULONG64     last_frame = 0;
+    if (std::exchange (last_frame, frame_id) < frame_id)
     {
       rb.setLatencyMarkerNV (SIMULATION_END);
       rb.setLatencyMarkerNV (RENDERSUBMIT_START);

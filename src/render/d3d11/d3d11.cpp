@@ -4209,6 +4209,30 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
       return true;
   }
 
+  // Ugly caching mechanism, but effective.
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict0;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict1;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict2;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict3;
+  static std::pair<ID3D11DeviceContext*,bool>* _pLastVerdict = &_lastVerdict3;
+
+  std::pair<ID3D11DeviceContext*,bool>* pLastVerdict = _pLastVerdict;
+
+  if (     pLastVerdict->first == pDevCtx)
+    return pLastVerdict->second;
+  else
+  {
+    if (      _pLastVerdict == &_lastVerdict0)
+              _pLastVerdict  = &_lastVerdict1;
+    else if ( _pLastVerdict == &_lastVerdict1)
+              _pLastVerdict  = &_lastVerdict2;
+    else if ( _pLastVerdict == &_lastVerdict2)
+              _pLastVerdict  = &_lastVerdict3;
+    else      _pLastVerdict  = &_lastVerdict0;
+
+    pLastVerdict = _pLastVerdict;
+  }
+
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -4221,6 +4245,8 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
       {
         SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
       }
+
+      pLastVerdict->first = nullptr;
 
       return true;
     }
@@ -4259,6 +4285,9 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
         {
           SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
         }
+
+        pLastVerdict->first  = pDevCtx;
+        pLastVerdict->second = true;
 
         return true;
       }
@@ -4303,10 +4332,14 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     if (pD3D11On12Device.p != nullptr)
     {
     //SK_ReleaseAssert (!"D3D11On12");
+      pLastVerdict->first  = pDevCtx;
+      pLastVerdict->second = true;
       return true;
     }
   }
 
+  pLastVerdict->first  = pDevCtx;
+  pLastVerdict->second = false;
 
   return
     false;
@@ -4777,8 +4810,8 @@ SK_D3D11_DrawIndexed_Impl (
     };
 
   bool early_out =
-    (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    (! bMustNotIgnore);// ||
+    //SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -9670,3 +9703,38 @@ const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c,
 const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 #endif
+
+
+bool SK_D3D11_IsDevCtxDeferred (ID3D11DeviceContext* ctx)
+{
+  // Ugly caching mechanism, but effective.
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck0;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck1;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck2;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck3;
+  static std::pair<ID3D11DeviceContext*,bool>*
+    _pLastDeferredCheck        = &_lastDeferredCheck0;
+
+  const bool bIsLastDevCtx     =
+    _pLastDeferredCheck->first == ctx;
+  const bool bIsDevCtxDeferred = bIsLastDevCtx ?
+    _pLastDeferredCheck->second               :
+    ctx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED;
+
+  _pLastDeferredCheck->second = bIsDevCtxDeferred;
+  _pLastDeferredCheck->first  = ctx;
+
+    if (      _pLastDeferredCheck == &_lastDeferredCheck0)
+              _pLastDeferredCheck  = &_lastDeferredCheck1;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck1)
+              _pLastDeferredCheck  = &_lastDeferredCheck2;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck2)
+              _pLastDeferredCheck  = &_lastDeferredCheck3;
+    else      _pLastDeferredCheck  = &_lastDeferredCheck0;
+
+  return bIsDevCtxDeferred;
+}

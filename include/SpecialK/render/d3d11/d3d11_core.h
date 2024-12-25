@@ -89,9 +89,7 @@ enum class SK_D3D11_ShaderType {
 };
 
 #if 1
-#define SK_D3D11_IsDevCtxDeferred(ctx)                \
-                                 (ctx)->GetType () == \
-                                        D3D11_DEVICE_CONTEXT_DEFERRED
+bool SK_D3D11_IsDevCtxDeferred(ID3D11DeviceContext* ctx);
 #else
 #define SK_D3D11_IsDevCtxDeferred(ctx) false
 #endif
@@ -132,9 +130,34 @@ protected:
 #define SK_WRAP_AND_HOOK                                  \
   static SK_D3D11_HookTallyWhacker                        \
                  call_tally;                              \
+  /* Ugly caching mechanism, but effective. */            \
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck0;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck1;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck2;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck3;\
+  static std::pair<ID3D11DeviceContext*,bool>*            \
+    _pLastDeferredCheck        = &_lastDeferredCheck0;    \
                                                           \
-  const bool bIsDevCtxDeferred =                          \
+  const bool bIsLastDevCtx     =                          \
+    _pLastDeferredCheck->first == pDevCtx;                \
+  const bool bIsDevCtxDeferred = bIsLastDevCtx ?          \
+    _pLastDeferredCheck->second                :          \
     SK_D3D11_IsDevCtxDeferred (pDevCtx);                  \
+                                                          \
+    _pLastDeferredCheck->second = bIsDevCtxDeferred;      \
+    _pLastDeferredCheck->first  = pDevCtx;                \
+                                                          \
+    if (      _pLastDeferredCheck == &_lastDeferredCheck0)\
+              _pLastDeferredCheck  = &_lastDeferredCheck1;\
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck1)\
+              _pLastDeferredCheck  = &_lastDeferredCheck2;\
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck2)\
+              _pLastDeferredCheck  = &_lastDeferredCheck3;\
+    else      _pLastDeferredCheck  = &_lastDeferredCheck0;\
                                                           \
   std::ignore = bIsDevCtxDeferred;                        \
   if (true)/*! bIsDevCtxDeferred)*/                       \

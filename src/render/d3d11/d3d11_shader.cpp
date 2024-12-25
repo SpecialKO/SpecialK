@@ -262,8 +262,8 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
 
   if (! ( implicit_track                                  ||
-          SK_D3D11_ShouldTrackDrawCall (pDevCtx,
-                     SK_D3D11DrawType::PrimList, dev_idx) ||
+        //SK_D3D11_ShouldTrackDrawCall (pDevCtx,
+        //           SK_D3D11DrawType::PrimList, dev_idx) ||
           SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx) ) )
   {
     return
