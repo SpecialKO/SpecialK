@@ -3307,6 +3307,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  rb.in_present_call = true;
+
   // Backup and restore the RTV bindings Before / After Present for games that
   //   are using Flip Model but weren't originally designed to use it
   //
@@ -3338,6 +3340,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   {
     pDevCtx->OMSetRenderTargets (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &pOrigRTVs [0].p, pOrigDSV.p);
   }
+
+  rb.in_present_call = false;
 
   return ret;
 }
@@ -9640,11 +9644,11 @@ SK_DXGI_InitHooksBeforePlugIn (void)
 {
   if (SK_Import_GetNumberOfPlugIns () > 0)
   {
-    bool  bEnable = SK_EnableApplyQueuedHooks ();
+    //bool  bEnable = SK_EnableApplyQueuedHooks ();
     {
       SK_ApplyQueuedHooks ();
     }
-    if (! bEnable)  SK_DisableApplyQueuedHooks ();
+    //if (! bEnable)  SK_DisableApplyQueuedHooks ();
   }
 }
 
@@ -11091,13 +11095,13 @@ SK_DXGI_QuickHook (void)
          state.hooks_loaded.from_game_ini   > 0 ||
          SK_D3D11_QuickHooked () )
     {
-      bool bEnable =
-        SK_EnableApplyQueuedHooks ();
+      //bool bEnable =
+      //  SK_EnableApplyQueuedHooks ();
 
       SK_ApplyQueuedHooks ();
 
-      if (! bEnable)
-        SK_DisableApplyQueuedHooks ();
+      //if (! bEnable)
+      //  SK_DisableApplyQueuedHooks ();
     }
 
     else

@@ -4972,6 +4972,9 @@ SK_Render_CountVBlanks ()
               pSwapChain->GetFrameStatistics (&frameStats);
         }              
 
+        rb.active_display =
+          std::clamp (rb.active_display, 0, SK_RenderBackend_V2::_MAX_DISPLAYS-1);
+
         if (pSwapChain.p != nullptr)
         {
           pSwapChain.Release ();
@@ -4995,8 +4998,6 @@ SK_Render_CountVBlanks ()
 
         else if (sk::NVAPI::nv_hardware)
         {
-          pSwapChain.Release ();
-
           //
           // Sample NVIDIA's VBlank counter from this thread, because that API
           //   has massive performance penalties and this thread runs constantly

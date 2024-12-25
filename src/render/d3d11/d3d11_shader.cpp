@@ -235,7 +235,8 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
   bool implicit_track = false;
 
-  if ( rb.isHDRCapable ()  &&
+  if ( rb.in_present_call  &&
+       rb.isHDRCapable ()  &&
        rb.isHDRActive  () )
   {
     if ( type == sk_shader_class::Vertex ||

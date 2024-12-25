@@ -187,6 +187,9 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
   if (pDevCtx == nullptr)
     return false;
 
+  if (SK_D3D11_DontTrackUnlessModToolsAreOpen && (! SK_D3D11_EnableTracking) && (! SK_D3D11_IsTrackingRequired ()))
+    return false;
+
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -199,22 +202,19 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
     return false;
   }
 
-  // Don't let D3D11On12 confuse things
-  if (rb.api == SK_RenderAPI::D3D11)
-  {
-    const auto frame_id =
-      SK_GetFramesDrawn ();
-
-    if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
-                                                          frame_id )
-    {
-      rb.setLatencyMarkerNV (SIMULATION_END);
-      rb.setLatencyMarkerNV (RENDERSUBMIT_START);
-    }
-  }
-
-  if (SK_D3D11_DontTrackUnlessModToolsAreOpen && (! SK_D3D11_EnableTracking) && (! SK_D3D11_IsTrackingRequired ()))
-    return false;
+  //// Don't let D3D11On12 confuse things
+  //if (rb.api == SK_RenderAPI::D3D11)
+  //{
+  //  const auto frame_id =
+  //    SK_GetFramesDrawn ();
+  //
+  //  if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
+  //                                                        frame_id )
+  //  {
+  //    rb.setLatencyMarkerNV (SIMULATION_END);
+  //    rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+  //  }
+  //}
 
   bool deferred =
     SK_D3D11_IsDevCtxDeferred (pDevCtx);
