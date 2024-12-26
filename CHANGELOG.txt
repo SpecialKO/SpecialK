@@ -1,4 +1,9 @@
-﻿24.12.26
+﻿24.12.26.1
+==========
+ + Fixed potential deadlock in RenoDX mods, the ones that do not check for
+     nullptr before dereferencing ptrs will simply have to crash until fixed.
+
+24.12.26
 ========
  + Added internal settings to control D3D11 state tracking for map/unmap and
      set shader resources API calls, and disabled them for a few high overhead

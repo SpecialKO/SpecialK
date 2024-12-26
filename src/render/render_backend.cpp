@@ -472,8 +472,7 @@ SK_BootDXGI (void)
     InterlockedIncrementRelease (&__booted);
   }
 
-  extern thread_local bool                     initializing_dxgi;
-  if (dwInitTid != GetCurrentThreadId () && (! initializing_dxgi))
+  if (dwInitTid != GetCurrentThreadId ())
     SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 

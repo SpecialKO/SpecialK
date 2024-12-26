@@ -2080,11 +2080,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (false, L"done!\n");
   }
 
-  auto suspended_threads =
-  SK_SuspendAllOtherThreads
-                       (                 );
-  SK_ReShadeAddOn_Init (                 );
-  SK_ResumeThreads     (suspended_threads);
+  SK_ReShadeAddOn_Init ();
 
   SK_RunOnce (
   {

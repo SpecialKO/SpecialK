@@ -6729,8 +6729,6 @@ volatile LONG SK_D3D11_initialized = FALSE;
 bool
 SK_D3D11_Init (void)
 {
-  extern thread_local bool initializing_dxgi;
-
   bool success = false;
 
   if (! InterlockedCompareExchangeAcquire (&SK_D3D11_initialized, TRUE, FALSE))
@@ -6913,8 +6911,8 @@ SK_D3D11_Init (void)
     LocalHook_D3D11CreateDevice.active      = TRUE;
   }
 
-  else if (! initializing_dxgi)
-    SK_Thread_SpinUntilAtomicMin (&SK_D3D11_initialized, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&SK_D3D11_initialized,  2);
 
   return
     success;

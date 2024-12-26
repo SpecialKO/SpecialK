@@ -78,7 +78,6 @@ void WINAPI SK_D3D11_PopulateResourceList (bool refresh = false) ;
 void
 SK_D3D11_InitTextures (void)
 {
-  extern thread_local bool initializing_dxgi;
   static volatile LONG SK_D3D11_tex_init = FALSE;
 
   SK_TLS* pTLS =
@@ -172,7 +171,7 @@ SK_D3D11_InitTextures (void)
     InterlockedIncrementRelease (&SK_D3D11_tex_init);
   }
 
-  else if (pTLS != nullptr && (! pTLS->render->d3d11->ctx_init_thread) && (! initializing_dxgi))
+  else if (pTLS != nullptr && (! pTLS->render->d3d11->ctx_init_thread))
     SK_Thread_SpinUntilAtomicMin (&SK_D3D11_tex_init, 2);
 }
 
