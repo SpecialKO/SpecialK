@@ -723,20 +723,24 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                     ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-          SK_D3D11_SetShaderResources_Impl (
-           SK_D3D11_ShaderType::Pixel,
-                       deferred_ ?
-                            TRUE : FALSE,
-                  nullptr, pReal,
-             StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_ );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+      return
+            SK_D3D11_SetShaderResources_Impl (
+             SK_D3D11_ShaderType::Pixel,
+                         deferred_ ?
+                              TRUE : FALSE,
+                    nullptr, pReal,
+               StartSlot, NumViews,
+             ppShaderResourceViews, dev_ctx_handle_ );
 #endif
-      pReal->PSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
+    }
+
+    pReal->PSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
   void STDMETHODCALLTYPE PSSetShader (
@@ -847,23 +851,25 @@ public:
     _In_      UINT                      MapFlags,
     _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_map_and_unmap)
+    {
+      TraceAPI
 
-    if (pResource == nullptr)
-      return E_INVALIDARG;
+      if (pResource == nullptr)
+        return E_INVALIDARG;
 
 #ifndef SK_D3D11_LAZY_WRAP
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-      return
-        SK_D3D11_Map_Impl         (pReal,
-            pResource,
-          Subresource,
-                 MapType,
-                 MapFlags,
-                pMappedResource, TRUE
-        );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+        return
+          SK_D3D11_Map_Impl         (pReal,
+              pResource,
+            Subresource,
+                   MapType,
+                   MapFlags,
+                  pMappedResource, TRUE
+          );
 #endif
+      }
       return
         pReal->Map (
             pResource,
@@ -877,18 +883,21 @@ public:
     _In_ ID3D11Resource *pResource,
     _In_ UINT          Subresource ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_map_and_unmap)
+    {
+      TraceAPI
 
-    if (pResource == nullptr)
-      return;
+      if (pResource == nullptr)
+        return;
 
 #ifndef SK_D3D11_LAZY_WRAP
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-          SK_D3D11_Unmap_Impl       (pReal,
-              pResource,
-            Subresource, TRUE       );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+        return
+            SK_D3D11_Unmap_Impl       (pReal,
+                pResource,
+              Subresource, TRUE       );
 #endif
+      }
       pReal->Unmap (pResource, Subresource);
   }
 
@@ -1040,21 +1049,25 @@ public:
     _In_range_     ( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot ) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                      ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-          SK_D3D11_SetShaderResources_Impl (
-             SK_D3D11_ShaderType::Vertex,
-                          deferred_ ?
-                               TRUE : FALSE,
-                          nullptr, pReal,
-               StartSlot, NumViews,
-             ppShaderResourceViews, dev_ctx_handle_
-                                           );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+      return
+            SK_D3D11_SetShaderResources_Impl (
+               SK_D3D11_ShaderType::Vertex,
+                            deferred_ ?
+                                 TRUE : FALSE,
+                            nullptr, pReal,
+                 StartSlot, NumViews,
+               ppShaderResourceViews, dev_ctx_handle_
+                                             );
 #endif
-      pReal->VSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
+    }
+
+    pReal->VSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
   void STDMETHODCALLTYPE VSSetSamplers (
@@ -1117,21 +1130,25 @@ public:
     _In_range_     ( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot ) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                      ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-          SK_D3D11_SetShaderResources_Impl (
-             SK_D3D11_ShaderType::Geometry,
-                                 deferred_ ?
-                                      TRUE : FALSE,
-                            nullptr, pReal,
-               StartSlot, NumViews,
-             ppShaderResourceViews, dev_ctx_handle_
-                                           );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+      return
+            SK_D3D11_SetShaderResources_Impl (
+               SK_D3D11_ShaderType::Geometry,
+                                   deferred_ ?
+                                        TRUE : FALSE,
+                              nullptr, pReal,
+                 StartSlot, NumViews,
+               ppShaderResourceViews, dev_ctx_handle_
+                                             );
 #endif
-      pReal->GSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
+    }
+
+    pReal->GSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
   void STDMETHODCALLTYPE GSSetSamplers (
@@ -1763,21 +1780,25 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                    ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-        SK_D3D11_SetShaderResources_Impl (
-           SK_D3D11_ShaderType::Hull,
-                           deferred_ ?
-                                TRUE : FALSE,
-                      nullptr, pReal,
-             StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_
-        );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+      return
+            SK_D3D11_SetShaderResources_Impl (
+               SK_D3D11_ShaderType::Hull,
+                               deferred_ ?
+                                    TRUE : FALSE,
+                          nullptr, pReal,
+                 StartSlot, NumViews,
+               ppShaderResourceViews, dev_ctx_handle_
+            );
 #endif
-      pReal->HSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
+    }
+
+    pReal->HSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
   void STDMETHODCALLTYPE HSSetShader (
@@ -1838,21 +1859,25 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                    ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-        SK_D3D11_SetShaderResources_Impl (
-           SK_D3D11_ShaderType::Domain,
-                             deferred_ ?
-                                  TRUE : FALSE,
-                        nullptr, pReal,
-             StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_
-        );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+      return
+            SK_D3D11_SetShaderResources_Impl (
+               SK_D3D11_ShaderType::Domain,
+                                 deferred_ ?
+                                      TRUE : FALSE,
+                            nullptr, pReal,
+                 StartSlot, NumViews,
+               ppShaderResourceViews, dev_ctx_handle_
+            );
 #endif
-      pReal->DSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
+    }
+
+    pReal->DSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
   void STDMETHODCALLTYPE DSSetShader (
@@ -1910,20 +1935,24 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                    ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
-    TraceAPI
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
-        SK_D3D11_SetShaderResources_Impl (
-           SK_D3D11_ShaderType::Compute,
-                              deferred_,
-                         nullptr, pReal,
-             StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_
-        );
-    else
+      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+      return
+            SK_D3D11_SetShaderResources_Impl (
+               SK_D3D11_ShaderType::Compute,
+                                  deferred_,
+                             nullptr, pReal,
+                 StartSlot, NumViews,
+               ppShaderResourceViews, dev_ctx_handle_
+            );
 #endif
-      pReal->CSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
+    }
+
+    pReal->CSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
   }
 
   void STDMETHODCALLTYPE CSSetUnorderedAccessViews (

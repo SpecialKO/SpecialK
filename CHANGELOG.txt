@@ -1,4 +1,12 @@
-﻿24.12.25.2
+﻿24.12.26
+========
+ + Added internal settings to control D3D11 state tracking for map/unmap and
+     set shader resources API calls, and disabled them for a few high overhead
+       games.
+ + Disabled wrapping of D3D11 device contexts for all games except for 
+     Tales of Vesperia.
+
+24.12.25.2
 ==========
  + Improved compatibility with RenoDX mods, even the ones that do not check for
      nullptr :grimacing:

@@ -937,17 +937,20 @@ D3D11_VSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  if (config.render.d3d11.track_set_shader_res)
   {
-    return
-      SK_D3D11_SetShaderResources_Impl(
-           SK_D3D11_ShaderType::Vertex,
-                                 FALSE,
-                                  This,
-                               nullptr,
-                             StartSlot,
-                              NumViews,
-                 ppShaderResourceViews);
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    {
+      return
+        SK_D3D11_SetShaderResources_Impl(
+             SK_D3D11_ShaderType::Vertex,
+                                   FALSE,
+                                    This,
+                                 nullptr,
+                               StartSlot,
+                                NumViews,
+                   ppShaderResourceViews);
+    }
   }
 
   D3D11_VSSetShaderResources_Original ( This,
@@ -965,17 +968,20 @@ D3D11_PSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  if (config.render.d3d11.track_set_shader_res)
   {
-    return
-      SK_D3D11_SetShaderResources_Impl(
-            SK_D3D11_ShaderType::Pixel,
-                                 FALSE,
-                                  This,
-                               nullptr,
-                             StartSlot,
-                              NumViews,
-                 ppShaderResourceViews);
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    {
+      return
+        SK_D3D11_SetShaderResources_Impl(
+              SK_D3D11_ShaderType::Pixel,
+                                   FALSE,
+                                    This,
+                                 nullptr,
+                               StartSlot,
+                                NumViews,
+                   ppShaderResourceViews);
+    }
   }
 
   D3D11_PSSetShaderResources_Original ( This,
@@ -993,17 +999,20 @@ D3D11_GSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  if (config.render.d3d11.track_set_shader_res)
   {
-    return
-      SK_D3D11_SetShaderResources_Impl(
-         SK_D3D11_ShaderType::Geometry,
-                                 FALSE,
-                                  This,
-                               nullptr,
-                             StartSlot,
-                              NumViews,
-                 ppShaderResourceViews);
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    {
+      return
+        SK_D3D11_SetShaderResources_Impl(
+           SK_D3D11_ShaderType::Geometry,
+                                   FALSE,
+                                    This,
+                                 nullptr,
+                               StartSlot,
+                                NumViews,
+                   ppShaderResourceViews);
+    }
   }
 
   D3D11_GSSetShaderResources_Original ( This,
@@ -1021,17 +1030,20 @@ D3D11_HSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  if (config.render.d3d11.track_set_shader_res)
   {
-    return
-      SK_D3D11_SetShaderResources_Impl(
-             SK_D3D11_ShaderType::Hull,
-                                 FALSE,
-                                  This,
-                               nullptr,
-                             StartSlot,
-                              NumViews,
-                 ppShaderResourceViews);
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    {
+      return
+        SK_D3D11_SetShaderResources_Impl(
+               SK_D3D11_ShaderType::Hull,
+                                   FALSE,
+                                    This,
+                                 nullptr,
+                               StartSlot,
+                                NumViews,
+                   ppShaderResourceViews);
+    }
   }
 
   D3D11_HSSetShaderResources_Original ( This,
@@ -1049,17 +1061,20 @@ D3D11_DSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  if (config.render.d3d11.track_set_shader_res)
   {
-    return
-      SK_D3D11_SetShaderResources_Impl(
-           SK_D3D11_ShaderType::Domain,
-                                 FALSE,
-                                  This,
-                               nullptr,
-                             StartSlot,
-                              NumViews,
-                 ppShaderResourceViews);
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    {
+      return
+        SK_D3D11_SetShaderResources_Impl(
+             SK_D3D11_ShaderType::Domain,
+                                   FALSE,
+                                    This,
+                                 nullptr,
+                               StartSlot,
+                                NumViews,
+                   ppShaderResourceViews);
+    }
   }
 
   D3D11_DSSetShaderResources_Original ( This,
@@ -1077,16 +1092,19 @@ D3D11_CSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  if (config.render.d3d11.track_set_shader_res)
   {
-    return
-      SK_D3D11_SetShaderResources_Impl (
-              SK_D3D11_ShaderType::Compute,
-        SK_D3D11_IsDevCtxDeferred (This),
-                                   This , nullptr,
-          StartSlot,
-            NumViews,
-              ppShaderResourceViews    );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    {
+      return
+        SK_D3D11_SetShaderResources_Impl (
+                SK_D3D11_ShaderType::Compute,
+          SK_D3D11_IsDevCtxDeferred (This),
+                                     This , nullptr,
+            StartSlot,
+              NumViews,
+                ppShaderResourceViews    );
+    }
   }
 
   D3D11_CSSetShaderResources_Original (

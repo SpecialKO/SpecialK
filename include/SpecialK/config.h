@@ -829,6 +829,12 @@ struct sk_config_t
     } dxgi;
 
     struct {
+      bool    wrap_d3d11_dev_ctx   = false;
+      bool    track_map_and_unmap  = true;
+      bool    track_set_shader_res = true; // Required for used texture determination in mod tools
+    } d3d11;
+
+    struct {
       bool    disable_bypass_io    = false;
       bool    disable_telemetry    = false;
       bool    disable_gpu_decomp   = false;
@@ -1691,6 +1697,7 @@ enum class SK_GAME_ID
   cemu,                         // cemu.exe
   RPCS3,                        // rpcs3.exe
   ForzaHorizon5,                // ForzaHorizon5.exe
+  ForzaMotorsport,              // forza_gaming.desktop.x64_release_final.exe
   HaloInfinite,                 // HaloInfinite.exe
   FinalFantasy7,                // ff7_en.exe, ff7_fr.exe, ... ff7_*.exe
   FinalFantasy7Remake,          // ff7remake*.exe

@@ -204,6 +204,8 @@ SK_GetCurrentGameID (void)
           { L"cemu.exe",                               SK_GAME_ID::cemu                         },
           { L"rpcs3.exe",                              SK_GAME_ID::RPCS3                        },
           { L"ForzaHorizon5.exe",                      SK_GAME_ID::ForzaHorizon5                },
+          { L"forza_gaming.desktop.x64_release_final"
+            L".exe",                                   SK_GAME_ID::ForzaMotorsport              },
           { L"HaloInfinite.exe",                       SK_GAME_ID::HaloInfinite                 },
           { L"start_protected_game.exe",               SK_GAME_ID::EasyAntiCheat                },
           { L"eldenring.exe",                          SK_GAME_ID::EldenRing                    },
@@ -2570,6 +2572,8 @@ auto DeclKeybind =
         config.system.trace_load_library    = true;
         config.system.strict_compliance     = false; // Uses Ansel
 
+        config.render.d3d11.track_map_and_unmap = false;
+
         // Game has mouselook problems without this
         config.input.ui.capture_mouse       = true;
         break;
@@ -2730,7 +2734,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DivinityOriginalSin:
-        config.textures.cache.ignore_nonmipped = true;
+        config.textures.cache.ignore_nonmipped  = true;
+        config.render.d3d11.track_map_and_unmap = false;
         break;
 #endif
 
@@ -3305,6 +3310,7 @@ auto DeclKeybind =
         config.input.ui.use_hw_cursor           = false;
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = true;
+        config.render.d3d11.wrap_d3d11_dev_ctx  = true;
         config.render.dxgi.deferred_isolation   = true; // For texture mods / HUD tracking
       } break;
 
@@ -3564,6 +3570,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::ForzaHorizon5:
+      case SK_GAME_ID::ForzaMotorsport:
       {
         config.input.gamepad.dualsense.trigger_effect_l = playstation_trigger_effect::Vibration;
         config.input.gamepad.dualsense.trigger_effect_r = playstation_trigger_effect::Vibration;

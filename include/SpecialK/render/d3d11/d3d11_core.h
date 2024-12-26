@@ -159,16 +159,21 @@ protected:
               _pLastDeferredCheck  = &_lastDeferredCheck3;\
     else      _pLastDeferredCheck  = &_lastDeferredCheck0;\
                                                           \
-  std::ignore = bIsDevCtxDeferred;                        \
-  if (true)/*! bIsDevCtxDeferred)*/                       \
-  {                                                       \
-    call_tally.hooked  ( bWrapped ? 0 : 1 );              \
-    call_tally.wrapped ( bWrapped ? 1 : 0 );              \
-  }                                                       \
+  bool bMustNotIgnore =                                   \
+    true;                                                 \
                                                           \
-  const bool bMustNotIgnore =                             \
-    ( call_tally.is_whack () ||                           \
-              (! bWrapped) );
+  if (config.render.d3d11.wrap_d3d11_dev_ctx) {           \
+    std::ignore = bIsDevCtxDeferred;                      \
+    if (true)/*! bIsDevCtxDeferred)*/                     \
+    {                                                     \
+      call_tally.hooked  ( bWrapped ? 0 : 1 );            \
+      call_tally.wrapped ( bWrapped ? 1 : 0 );            \
+    }                                                     \
+    bMustNotIgnore =                                      \
+      ( call_tally.is_whack () ||                         \
+              (! bWrapped) );                             \
+  }
+
 
 __forceinline
 bool

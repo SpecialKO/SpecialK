@@ -7042,27 +7042,20 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_Draw_Original,
                                           D3D11_Draw_pfn );
 
-    //
-    // Third-party software frequently causes these hooks to become corrupted, try installing a new
-    //   vFtable pointer instead of hooking the function.
-    //
-#if 0
-    DXGI_VIRTUAL_OVERRIDE ( pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
-                             D3D11_Map_Override, D3D11_Map_Original,
-                             D3D11_Map_pfn);
-#else
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   14,
-                          "ID3D11DeviceContext::Map",
-                                             D3D11_Map_Override,
-                                             D3D11_Map_Original,
-                                             D3D11_Map_pfn );
+    if (config.render.d3d11.track_map_and_unmap)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   14,
+                            "ID3D11DeviceContext::Map",
+                                               D3D11_Map_Override,
+                                               D3D11_Map_Original,
+                                               D3D11_Map_pfn );
 
-      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   15,
-                            "ID3D11DeviceContext::Unmap",
-                                            D3D11_Unmap_Override,
-                                            D3D11_Unmap_Original,
-                                            D3D11_Unmap_pfn );
-#endif
+        DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   15,
+                              "ID3D11DeviceContext::Unmap",
+                                              D3D11_Unmap_Override,
+                                              D3D11_Unmap_Original,
+                                              D3D11_Unmap_pfn );
+    }
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   16,
                           "ID3D11DeviceContext::PSSetConstantBuffers",
@@ -8796,7 +8789,7 @@ D3D11Dev_CreateDeferredContext_Override (
   }
 
 #ifdef SK_D3D11_WRAP_DEFERRED_CTX
-  if (config.render.dxgi.deferred_isolation)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && config.render.dxgi.deferred_isolation)
   {
     if (ppDeferredContext != nullptr)
     {
@@ -8999,7 +8992,7 @@ D3D11Dev_GetImmediateContext_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (ppImmediateContext != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && ppImmediateContext != nullptr)
   {
     ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
@@ -9043,7 +9036,7 @@ D3D11Dev_GetImmediateContext1_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (ppImmediateContext1 != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && ppImmediateContext1 != nullptr)
   {
     ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
@@ -9087,7 +9080,7 @@ D3D11Dev_GetImmediateContext2_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (ppImmediateContext2 != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && ppImmediateContext2 != nullptr)
   {
     ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
@@ -9131,7 +9124,7 @@ D3D11Dev_GetImmediateContext3_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (ppImmediateContext3 != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && ppImmediateContext3 != nullptr)
   {
     ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);

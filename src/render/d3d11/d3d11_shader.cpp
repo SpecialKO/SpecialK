@@ -229,9 +229,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     SK_GetCurrentRenderBackend ();
 
   bool early_out =
-    (! bMustNotIgnore) || rb.api == SK_RenderAPI::D3D12 || // Ignore D3D11On12 overlays
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, SK_D3D11_IsDevCtxDeferred (pDevCtx), pDevCtx);
-    
+    (! bMustNotIgnore) || rb.api == SK_RenderAPI::D3D12; // Ignore D3D11On12 overlays    
 
   bool implicit_track = false;
 
@@ -254,17 +252,11 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
   }
 
 
-  if (dev_idx == UINT_MAX)
-  {
-    dev_idx =
-      SK_D3D11_GetDeviceContextHandle (pDevCtx);
-  }
-
-
-  if (! ( implicit_track                                  ||
-        //SK_D3D11_ShouldTrackDrawCall (pDevCtx,
-        //           SK_D3D11DrawType::PrimList, dev_idx) ||
-          SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx) ) )
+  if (! ( implicit_track                           ||
+          // This has extra overhead from Reflex, avoid checking it for now
+          //SK_D3D11_ShouldTrackDrawCall (pDevCtx,
+                     //SK_D3D11DrawType::PrimList) ||
+          SK_D3D11_ShouldTrackRenderOp (pDevCtx) ) )
   {
     return
       _Finish ();
@@ -323,6 +315,11 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   };
 
+  if (dev_idx == UINT_MAX)
+  {
+    dev_idx =
+      SK_D3D11_GetDeviceContextHandle (pDevCtx);
+  }
 
   SK_Thread_CriticalSection*                        pCritical   = nullptr;
   SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepo = nullptr;
