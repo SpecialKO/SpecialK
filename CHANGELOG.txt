@@ -2,6 +2,8 @@
 ==========
  + Fixed potential deadlock in RenoDX mods, the ones that do not check for
      nullptr before dereferencing ptrs will simply have to crash until fixed.
+ + Disabled floating-point exception handling when ResizeTargets is called,
+     because it causes all CryTek games to crash.
 
 24.12.26
 ========

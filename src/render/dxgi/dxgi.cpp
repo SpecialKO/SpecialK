@@ -8451,11 +8451,11 @@ SK_HookDXGI (void)
     {
       SK_DXGI_DetermineHighestSupportedFactoryVersion ();
 
-      bool  bEnable = SK_EnableApplyQueuedHooks  ();
-      {
-        SK_ApplyQueuedHooks ();
-      }
-      if (! bEnable)  SK_DisableApplyQueuedHooks ();
+      //bool  bEnable = SK_EnableApplyQueuedHooks  ();
+      //{
+      //  SK_ApplyQueuedHooks ();
+      //}
+      //if (! bEnable)  SK_DisableApplyQueuedHooks ();
 
       static const IID iids [] = { IID_IDXGIFactory,  IID_IDXGIFactory1, IID_IDXGIFactory2,
                                    IID_IDXGIFactory3, IID_IDXGIFactory4, IID_IDXGIFactory5,
@@ -8480,9 +8480,6 @@ SK_HookDXGI (void)
 
     else
     {
-      auto suspended =
-        SK_SuspendAllOtherThreads ();
-
       // Thus we need to use a secondary thread
       HANDLE hSecondaryThread =
         SK_Thread_CreateEx ([](LPVOID)->DWORD
@@ -8497,11 +8494,9 @@ SK_HookDXGI (void)
       //   because this could deadlock otherwise.
       if (hSecondaryThread != 0)
       {
-        WaitForSingleObject (hSecondaryThread, 100UL);
+        WaitForSingleObject (hSecondaryThread, 500UL);
         SK_CloseHandle      (hSecondaryThread);
       }
-
-      SK_ResumeThreads (suspended);
     }
 
     initializing_dxgi = true;
