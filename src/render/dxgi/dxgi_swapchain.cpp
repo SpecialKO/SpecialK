@@ -2587,8 +2587,8 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
              BOOL            bWrapped )
 {
   // Fix for CryTek's stupid engine enabling floating-point exceptions
-  _control87 (0x0, _MCW_EM);
-  _controlfp (0x0, _MCW_EM);
+  _control87 (_EM_INVALID|_EM_DENORMAL|_EM_ZERODIVIDE|_EM_OVERFLOW|_EM_UNDERFLOW|_EM_INEXACT, _MCW_EM);
+  _controlfp (_EM_INVALID|_EM_DENORMAL|_EM_ZERODIVIDE|_EM_OVERFLOW|_EM_UNDERFLOW|_EM_INEXACT, _MCW_EM);
 
   const auto
   _Return =
