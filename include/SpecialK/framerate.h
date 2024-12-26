@@ -469,6 +469,13 @@ namespace SK
       SK::Framerate::Stats frame_history;
       SK::Framerate::Stats frame_history2;
 
+      struct cached_entry {
+        double val;
+        DWORD  last_update_time;
+      } cached_mean, cached_sd, cached_min,
+        cached_max,  cached_hitches,
+        cached_effective_mean;
+
       void reset (void);
     };
 

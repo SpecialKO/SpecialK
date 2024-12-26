@@ -832,22 +832,46 @@ SK_DrawOSD (void)
       SK_SpawnPresentMonWorker ();
     }
 
+    auto* snapshots = pLimiter->frame_history_snapshots.getPtr ();
+
     auto &history =
-      pLimiter->frame_history_snapshots->frame_history,
+      snapshots->frame_history,
          &history2 =
-      pLimiter->frame_history_snapshots->frame_history2;
+      snapshots->frame_history2;
 
-    const double mean    = history.calcMean     ();
-    const double sd      = history.calcSqStdDev (mean);
-    const double min     = history.calcMin      ();
-    const double max     = history.calcMax      ();
-    const int    hitches = history.calcHitches  (1.2, mean);
+    if (     snapshots->cached_mean.last_update_time < SK::ControlPanel::current_time - 10)
+    {        snapshots->cached_mean.last_update_time = SK::ControlPanel::current_time;
+             snapshots->cached_mean.val              = history.calcMean (); }
 
-    const double effective_mean = history2.calcMean ();
+    if ((! config.fps.compact) && config.fps.advanced)
+    {
+      if (snapshots->cached_sd.last_update_time                  < SK::ControlPanel::current_time - 150)
+      {        snapshots->cached_sd.last_update_time             = SK::ControlPanel::current_time;
+               snapshots->cached_sd.val                          = history.calcSqStdDev (snapshots->cached_mean.val); }
+      else if (snapshots->cached_min.last_update_time            < SK::ControlPanel::current_time - 150)
+      {        snapshots->cached_min.last_update_time            = SK::ControlPanel::current_time;
+               snapshots->cached_min.val                         = history.calcMin (); }
+      else if (snapshots->cached_max.last_update_time            < SK::ControlPanel::current_time - 150)
+      {        snapshots->cached_max.last_update_time            = SK::ControlPanel::current_time;
+               snapshots->cached_max.val                         = history.calcMax (); }
+      else if (snapshots->cached_hitches.last_update_time        < SK::ControlPanel::current_time - 150)
+      {        snapshots->cached_hitches.last_update_time        = SK::ControlPanel::current_time;
+               snapshots->cached_hitches.val                     = history.calcHitches (1.2, snapshots->cached_mean.val); }
+      else if (snapshots->cached_effective_mean.last_update_time < SK::ControlPanel::current_time - 150)
+      {        snapshots->cached_effective_mean.last_update_time = SK::ControlPanel::current_time;
+               snapshots->cached_effective_mean.val              = history2.calcMin (); }
+    }
+
+    const double mean           = snapshots->cached_mean.val;
+    const double sd             = snapshots->cached_sd.val;
+    const double min            = snapshots->cached_min.val;
+    const double max            = snapshots->cached_max.val;
+    const int    hitches        = (int)snapshots->cached_hitches.val;
+    const double effective_mean = snapshots->cached_effective_mean.val;
 
     static double fps           = 0.0;
-    static DWORD  last_fps_time = SK_timeGetTime ();
-    const  DWORD         dwTime = SK_timeGetTime ();
+    static DWORD  last_fps_time = SK::ControlPanel::current_time;
+    const  DWORD         dwTime = SK::ControlPanel::current_time;
 
     if (dwTime - last_fps_time > 666)
     {
@@ -1134,18 +1158,21 @@ SK_DrawOSD (void)
 
       if (gpu_stats->gpus [i].temps_c.gpu > 0.0f)
       {
-        static std::string temp ("", 16);
+        if (config.osd.show && config.gpu.show)
+        {
+          static std::string temp ("", 16);
 
-        temp.assign (
-          SK_FormatTemperature (
-            (double)gpu_stats->gpus [i].temps_c.gpu,
-              Celsius,
-                config.system.prefer_fahrenheit ? Fahrenheit :
-                                                  Celsius,     pTLS ).data () );
+          temp.assign (
+            SK_FormatTemperature (
+              (double)gpu_stats->gpus [i].temps_c.gpu,
+                Celsius,
+                  config.system.prefer_fahrenheit ? Fahrenheit :
+                                                    Celsius,     pTLS ).data () );
 
-        OSD_G_PRINTF ", (%hs)",
-          temp.c_str ()
-        OSD_END
+          OSD_G_PRINTF ", (%hs)",
+            temp.c_str ()
+          OSD_END
+        }
       }
 
       if (config.sli.show)
@@ -1551,6 +1578,7 @@ SK_DrawOSD (void)
   }
 
   OSD_M_PRINTF "" OSD_END
+  if (config.osd.show && config.mem.show)
   {
     static PROCESS_MEMORY_COUNTERS_EX
            pmcx    = {           };
