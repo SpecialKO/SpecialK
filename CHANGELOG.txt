@@ -1,4 +1,10 @@
-﻿24.12.26.1
+﻿24.12.26.2
+==========
+ + Small optimization to text OSD
+ + Optimized D3D11 state tracking for SetShaderResources and removed unnecessary
+     hooks on SetSamplers.
+
+24.12.26.1
 ==========
  + Fixed potential deadlock in RenoDX mods, the ones that do not check for
      nullptr before dereferencing ptrs will simply have to crash until fixed.

@@ -259,72 +259,7 @@ D3D11_GetData_Override (
       pData, DataSize,
           GetDataFlags     );
 
-#if 1
   return hr;
-#else
-  dll_log->Log (L"Query Type: %lu, Misc Flags: %x - Result: %x, Value: %llu", qDesc.Query,
-                qDesc.MiscFlags, hr, *(uint64_t *)pData);
-
-  dll_log->Log (L"Query - Size: %lu", DataSize);
-
-  if (pCounter)
-  {
-    dll_log->Log (L"Counter - Size: %lu", DataSize);
-  }
-  auto isDataReady =
-   [&](void)
-     -> bool
-        {
-          HRESULT hr =
-            D3D11_GetData_Original (
-              This, pAsync,
-                    nullptr, 0,
-                             GetDataFlags |
-                             D3D11_ASYNC_GETDATA_DONOTFLUSH
-                                   );
-          return
-            ( SUCCEEDED (hr) &&
-                         hr  != S_FALSE );
-        };
-
-
-  auto finishGetData =
-   [&](void)
-     -> HRESULT
-        {
-          return
-            D3D11_GetData_Original (
-              This,    pAsync,
-                pData, DataSize,
-                    GetDataFlags
-                                   );
-        };
-
-  extern bool
-         __SK_DQXI_MakeAsyncObjectsGreatAgain;
-  if ((! __SK_DQXI_MakeAsyncObjectsGreatAgain) ||
-       (pData == nullptr && DataSize == 0)     ||
-                           isDataReady ())
-  {
-    return
-      finishGetData ();
-  }
-
-  int spins = 0;
-
-  do
-  {
-    YieldProcessor ();
-
-    if (++spins > 3)
-    {
-      break;
-    }
-  } while (! isDataReady ());
-
-  return
-    finishGetData ();
-#endif
 }
 
 __declspec (noinline)
@@ -341,7 +276,8 @@ D3D11_VSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  else
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -395,7 +331,8 @@ D3D11_PSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  else
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -449,7 +386,8 @@ D3D11_GSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  else
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -503,7 +441,8 @@ D3D11_HSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  else
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -559,7 +498,8 @@ D3D11_DSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  else
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -612,7 +552,8 @@ D3D11_CSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  else
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -939,7 +880,7 @@ D3D11_VSSetShaderResources_Override (
 {
   if (config.render.d3d11.track_set_shader_res)
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+    //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
     {
       return
         SK_D3D11_SetShaderResources_Impl(
@@ -970,18 +911,15 @@ D3D11_PSSetShaderResources_Override (
 {
   if (config.render.d3d11.track_set_shader_res)
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-    {
-      return
-        SK_D3D11_SetShaderResources_Impl(
-              SK_D3D11_ShaderType::Pixel,
-                                   FALSE,
-                                    This,
-                                 nullptr,
-                               StartSlot,
-                                NumViews,
-                   ppShaderResourceViews);
-    }
+    return
+      SK_D3D11_SetShaderResources_Impl(
+            SK_D3D11_ShaderType::Pixel,
+                                 FALSE,
+                                  This,
+                               nullptr,
+                             StartSlot,
+                              NumViews,
+                 ppShaderResourceViews);
   }
 
   D3D11_PSSetShaderResources_Original ( This,
@@ -1001,18 +939,15 @@ D3D11_GSSetShaderResources_Override (
 {
   if (config.render.d3d11.track_set_shader_res)
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-    {
-      return
-        SK_D3D11_SetShaderResources_Impl(
-           SK_D3D11_ShaderType::Geometry,
-                                   FALSE,
-                                    This,
-                                 nullptr,
-                               StartSlot,
-                                NumViews,
-                   ppShaderResourceViews);
-    }
+    return
+      SK_D3D11_SetShaderResources_Impl(
+         SK_D3D11_ShaderType::Geometry,
+                                 FALSE,
+                                  This,
+                               nullptr,
+                             StartSlot,
+                              NumViews,
+                 ppShaderResourceViews);
   }
 
   D3D11_GSSetShaderResources_Original ( This,
@@ -1032,18 +967,15 @@ D3D11_HSSetShaderResources_Override (
 {
   if (config.render.d3d11.track_set_shader_res)
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-    {
-      return
-        SK_D3D11_SetShaderResources_Impl(
-               SK_D3D11_ShaderType::Hull,
-                                   FALSE,
-                                    This,
-                                 nullptr,
-                               StartSlot,
-                                NumViews,
-                   ppShaderResourceViews);
-    }
+    return
+      SK_D3D11_SetShaderResources_Impl(
+             SK_D3D11_ShaderType::Hull,
+                                 FALSE,
+                                  This,
+                               nullptr,
+                             StartSlot,
+                              NumViews,
+                 ppShaderResourceViews);
   }
 
   D3D11_HSSetShaderResources_Original ( This,
@@ -1063,18 +995,15 @@ D3D11_DSSetShaderResources_Override (
 {
   if (config.render.d3d11.track_set_shader_res)
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-    {
-      return
-        SK_D3D11_SetShaderResources_Impl(
-             SK_D3D11_ShaderType::Domain,
-                                   FALSE,
-                                    This,
-                                 nullptr,
-                               StartSlot,
-                                NumViews,
-                   ppShaderResourceViews);
-    }
+    return
+      SK_D3D11_SetShaderResources_Impl(
+           SK_D3D11_ShaderType::Domain,
+                                 FALSE,
+                                  This,
+                               nullptr,
+                             StartSlot,
+                              NumViews,
+                 ppShaderResourceViews);
   }
 
   D3D11_DSSetShaderResources_Original ( This,
@@ -1094,17 +1023,14 @@ D3D11_CSSetShaderResources_Override (
 {
   if (config.render.d3d11.track_set_shader_res)
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-    {
-      return
-        SK_D3D11_SetShaderResources_Impl (
-                SK_D3D11_ShaderType::Compute,
-          SK_D3D11_IsDevCtxDeferred (This),
-                                     This , nullptr,
-            StartSlot,
-              NumViews,
-                ppShaderResourceViews    );
-    }
+    return
+      SK_D3D11_SetShaderResources_Impl (
+              SK_D3D11_ShaderType::Compute,
+        SK_D3D11_IsDevCtxDeferred (This),
+                                   This , nullptr,
+          StartSlot,
+            NumViews,
+              ppShaderResourceViews    );
   }
 
   D3D11_CSSetShaderResources_Original (
@@ -1366,24 +1292,21 @@ D3D11_UpdateSubresource_Override (
   // Hack for Martha is Dead
   __try
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-    {
-      return
-        SK_D3D11_UpdateSubresource_Impl ( This,
-                                            pDstResource,
-                                             DstSubresource,
-                                            pDstBox,
-                                            pSrcData, SrcRowPitch,
-                                                      SrcDepthPitch,
-                                            FALSE, _ReturnAddress () );
-    }
+    return
+      SK_D3D11_UpdateSubresource_Impl ( This,
+                                          pDstResource,
+                                           DstSubresource,
+                                          pDstBox,
+                                          pSrcData, SrcRowPitch,
+                                                    SrcDepthPitch,
+                                          FALSE, _ReturnAddress () );
 
-    D3D11_UpdateSubresource_Original (
-      This,
-        pDstResource,
-         DstSubresource, pDstBox,
-                         pSrcData, SrcRowPitch,
-                                   SrcDepthPitch );
+    //D3D11_UpdateSubresource_Original (
+    //  This,
+    //    pDstResource,
+    //     DstSubresource, pDstBox,
+    //                     pSrcData, SrcRowPitch,
+    //                               SrcDepthPitch );
   }
 
   __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
@@ -1427,21 +1350,18 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   if (pResource == nullptr)
     return E_INVALIDARG;
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (This), This))
-  {
-    return
-      SK_D3D11_Map_Impl ( This,
-                            pResource, Subresource,
-                              MapType, MapFlags,
-                                pMappedResource, FALSE );
-  }
-
   return
-    D3D11_Map_Original (
-      This, pResource, Subresource,
-        MapType, MapFlags,
-          pMappedResource
-    );
+    SK_D3D11_Map_Impl ( This,
+                          pResource, Subresource,
+                            MapType, MapFlags,
+                              pMappedResource, FALSE );
+
+  //return
+  //  D3D11_Map_Original (
+  //    This, pResource, Subresource,
+  //      MapType, MapFlags,
+  //        pMappedResource
+  //  );
 }
 
 
@@ -1474,15 +1394,13 @@ D3D11_Unmap_Override (
   }
 #endif
 
-  if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (This), This)))
-  {
-    return
-      SK_D3D11_Unmap_Impl (This, pResource, Subresource, FALSE);
-  }
+  return
+    SK_D3D11_Unmap_Impl (This, pResource, Subresource, FALSE);
+  
 
-  D3D11_Unmap_Original (
-    This, pResource, Subresource
-  );
+  //D3D11_Unmap_Original (
+  //  This, pResource, Subresource
+  //);
 }
 
 
@@ -1668,7 +1586,7 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawAuto_Impl ( This, FALSE );
@@ -1690,7 +1608,7 @@ D3D11_DrawIndexed_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawIndexed_Impl ( This,
@@ -1717,7 +1635,7 @@ D3D11_Draw_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_Draw_Impl ( This,
@@ -1747,7 +1665,7 @@ D3D11_DrawIndexedInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawIndexedInstanced_Impl ( This,
@@ -1778,7 +1696,7 @@ D3D11_DrawIndexedInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawIndexedInstancedIndirect_Impl (
@@ -1805,7 +1723,7 @@ D3D11_DrawInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawInstanced_Impl (
@@ -1839,7 +1757,7 @@ D3D11_DrawInstancedIndirect_Override (
   if (pBufferForArgs == nullptr)
     return;
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawInstancedIndirect_Impl ( This,
@@ -1865,7 +1783,7 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     const UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (This);
@@ -1899,7 +1817,7 @@ D3D11_DispatchIndirect_Override (
   if (pBufferForArgs == nullptr)
     return;
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     const UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (This);
@@ -1927,7 +1845,7 @@ _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_OMSetRenderTargets_Impl ( This,
@@ -1958,7 +1876,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
   _In_opt_ const UINT                             *pUAVInitialCounts )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl ( This,
@@ -2078,166 +1996,8 @@ D3D11_RSSetViewports_Override (
         }
       }
     } break;
-
-    case SK_GAME_ID::ShinMegamiTensei3:
-    {
-      if (NumViewports > 1)
-      {
-        SK_LOGi0 ( L"VP Width: %4.1f, Height: %4.1f - [%4.1f, %4.1f]",
-                       pViewports->Width,    pViewports->Height,
-                       pViewports->TopLeftX, pViewports->TopLeftY );
-      }
-
-    if (NumViewports        == 1 &&
-          pViewports->Width == 1280)
-    {
-      const SK_RenderBackend& rb =
-        SK_GetCurrentRenderBackend ();
-    
-      SK_ComQIPtr <IDXGISwapChain>
-               pSwapChain (
-             rb.swapchain );
-      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-    
-      if (pSwapChain != nullptr)
-      {   pSwapChain->GetDesc (&swapDesc);
-    
-        D3D11_VIEWPORT vpNew = *pViewports;
-    
-        vpNew.Width  = static_cast <FLOAT> (swapDesc.BufferDesc.Width);
-        vpNew.Height = static_cast <FLOAT> (swapDesc.BufferDesc.Height);
-    
-        return
-          D3D11_RSSetViewports_Original (
-            This, NumViewports, &vpNew
-          );
-      }
-    }
-    //
-    //else
-    //if (NumViewports        == 1 &&
-    //      pViewports->Width == 1920)
-    //{
-    //  const SK_RenderBackend& rb =
-    //    SK_GetCurrentRenderBackend ();
-    //
-    //  SK_ComQIPtr <IDXGISwapChain>
-    //           pSwapChain (
-    //         rb.swapchain );
-    //  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-    //
-    //  if (pSwapChain != nullptr)
-    //  {   pSwapChain->GetDesc (&swapDesc);
-    //
-    //    D3D11_VIEWPORT vpNew = *pViewports;
-    //
-    //    vpNew.Width  = static_cast <FLOAT> (swapDesc.BufferDesc.Width);
-    //    vpNew.Height = static_cast <FLOAT> (swapDesc.BufferDesc.Height);
-    //
-    //    return
-    //      D3D11_RSSetViewports_Original (
-    //        This, NumViewports, &vpNew
-    //      );
-    //  }
-    //}
-
-      else
-      if (NumViewports         ==   1  &&
-            pViewports->Width  == 1080 &&
-            pViewports->Height ==  720)
-      {
-        D3D11_VIEWPORT vpNew = *pViewports;
-      
-        vpNew.Width  *= 2;
-        vpNew.Height *= 2;
-      
-        return
-          D3D11_RSSetViewports_Original (
-            This, NumViewports, &vpNew
-          );
-      }
-
-      else
-      if (NumViewports == 1 && pViewports->Width == 512.0f)
-      {
-      //  D3D11_VIEWPORT vpNew = *pViewports;
-      //
-      //  vpNew.Width  = 8192.0f;
-      //  vpNew.Height = 8192.0f;
-      //
-      //  return
-      //    D3D11_RSSetViewports_Original (
-      //      This, NumViewports, &vpNew
-      //    );
-      }
-
-//      else
-//      if (NumViewports == 1 && pViewports->Width <= 640.0f)
-//      {
-//        D3D11_VIEWPORT vpNew = *pViewports;
-//
-//        vpNew.Width  *= 3.0f;
-//        vpNew.Height *= 3.0f;
-//
-//        return
-//          D3D11_RSSetViewports_Original (
-//            This, NumViewports, &vpNew
-//          );
-//      }
-    } break;
   }
 #endif
-
-  ///if (NumViewports == 0 && pViewports != nullptr)
-  ///    NumViewports  = 1;
-  ///
-  ///if (NumViewports == 1)
-  ///{
-  ///  D3D11_VIEWPORT* pViewportsNew =
-  ///    (D3D11_VIEWPORT *)(
-  ///      SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (
-  ///        sizeof (D3D11_VIEWPORT) * NumViewports         )
-  ///    );
-  ///
-  ///  SK_ComPtr <ID3D11RenderTargetView> pRTV;
-  ///  SK_ComPtr <ID3D11DepthStencilView> pDSV;
-  ///
-  ///  This->OMGetRenderTargets (
-  ///    1, &pRTV.p, &pDSV.p
-  ///  );
-  ///
-  ///  if (pRTV.p != nullptr)
-  ///  {
-  ///    SK_ComPtr <ID3D11Resource> pRTV_Resource;
-  ///           pRTV->GetResource (&pRTV_Resource);
-  ///
-  ///    D3D11_RESOURCE_DIMENSION res_dim;
-  ///    pRTV_Resource->GetType (&res_dim);
-  ///
-  ///    if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-  ///    {
-  ///      SK_ComQIPtr <ID3D11Texture2D> pTex (pRTV_Resource);
-  ///
-  ///      D3D11_TEXTURE2D_DESC tex_desc = { };
-  ///      pTex->GetDesc      (&tex_desc);
-  ///
-  ///      if (tex_desc.Width  == pViewports [0].Width  * 2 &&
-  ///          tex_desc.Height == pViewports [0].Height * 2)
-  ///      {
-  ///        pViewportsNew [0] =
-  ///        pViewports    [0];
-  ///        pViewportsNew [0].Width  *= 2;
-  ///        pViewportsNew [0].Height *= 2;
-  ///
-  ///        return
-  ///          D3D11_RSSetViewports_Original ( This, NumViewports,
-  ///                                                  pViewportsNew );
-  ///      }
-  ///    }
-  ///  }
-  ///}
-  ///
-  ///else dll_log->Log (L"%lu viewports", NumViewports);
 
   D3D11_RSSetViewports_Original (
     This, NumViewports, pViewports

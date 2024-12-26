@@ -772,75 +772,29 @@ SK_D3D11_SetShaderResources_Impl (
   switch (ShaderType)
   {
     case SK_D3D11_ShaderType::Vertex:
-    { static auto vs_base =
-        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-                   (&shaders->vertex);
-      shader_base =  vs_base;
-      stage_id    = VERTEX_SHADER_STAGE;
-      cs_lock     = cs_shader_vs.get ();
       pTargetFn   = ( hooked ? D3D11_VSSetShaderResources_Original :
                                _vftable [25] );
-    } break;
-
+      break;
     case SK_D3D11_ShaderType::Pixel:
-    {
-      static auto ps_base =
-        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-                   (&shaders->pixel);
-      shader_base =  ps_base;
-      stage_id    = PIXEL_SHADER_STAGE;
-      cs_lock     = cs_shader_ps.get ();
       pTargetFn   = ( hooked ? D3D11_PSSetShaderResources_Original :
                                _vftable [8] );
-    } break;
-
+      break;
     case SK_D3D11_ShaderType::Geometry:
-    {
-      static auto gs_base =
-        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-                   (&shaders->geometry);
-      shader_base =  gs_base;
-      stage_id    = GEOMETRY_SHADER_STAGE;
-      cs_lock     = cs_shader_gs.get ();
       pTargetFn   = ( hooked ? D3D11_GSSetShaderResources_Original :
                                _vftable [31] );
-    } break;
-
+      break;
     case SK_D3D11_ShaderType::Hull:
-    {
-      static auto hs_base =
-        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-                   (&shaders->hull);
-      shader_base =  hs_base;
-      stage_id    = HULL_SHADER_STAGE;
-      cs_lock     = cs_shader_hs.get ();
       pTargetFn   = ( hooked ? D3D11_HSSetShaderResources_Original :
                                _vftable [59] );
-    } break;
-
+      break;
     case SK_D3D11_ShaderType::Domain:
-    {
-      static auto ds_base =
-        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-                   (&shaders->domain);
-      shader_base =  ds_base;
-      stage_id    = DOMAIN_SHADER_STAGE;
-      cs_lock     = cs_shader_ds.get ();
       pTargetFn   = ( hooked ? D3D11_DSSetShaderResources_Original :
                                _vftable [63] );
-    } break;
-
+      break;
     case SK_D3D11_ShaderType::Compute:
-    {
-      static auto cs_base =
-        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-                   (&shaders->compute);
-      shader_base =  cs_base;
-      stage_id    = COMPUTE_SHADER_STAGE;
-      cs_lock     = cs_shader_cs.get ();
       pTargetFn   = ( hooked ? D3D11_CSSetShaderResources_Original :
                                _vftable [67] );
-    } break;
+      break;
 
     default:
       break;
@@ -861,6 +815,74 @@ SK_D3D11_SetShaderResources_Impl (
     return
       _Finish ();
   }
+
+  switch (ShaderType)
+  {
+    case SK_D3D11_ShaderType::Vertex:
+    { static auto vs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->vertex);
+      shader_base =  vs_base;
+      stage_id    = VERTEX_SHADER_STAGE;
+      cs_lock     = cs_shader_vs.get ();
+    } break;
+
+    case SK_D3D11_ShaderType::Pixel:
+    {
+      static auto ps_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->pixel);
+      shader_base =  ps_base;
+      stage_id    = PIXEL_SHADER_STAGE;
+      cs_lock     = cs_shader_ps.get ();
+    } break;
+
+    case SK_D3D11_ShaderType::Geometry:
+    {
+      static auto gs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->geometry);
+      shader_base =  gs_base;
+      stage_id    = GEOMETRY_SHADER_STAGE;
+      cs_lock     = cs_shader_gs.get ();
+    } break;
+
+    case SK_D3D11_ShaderType::Hull:
+    {
+      static auto hs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->hull);
+      shader_base =  hs_base;
+      stage_id    = HULL_SHADER_STAGE;
+      cs_lock     = cs_shader_hs.get ();
+    } break;
+
+    case SK_D3D11_ShaderType::Domain:
+    {
+      static auto ds_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->domain);
+      shader_base =  ds_base;
+      stage_id    = DOMAIN_SHADER_STAGE;
+      cs_lock     = cs_shader_ds.get ();
+    } break;
+
+    case SK_D3D11_ShaderType::Compute:
+    {
+      static auto cs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->compute);
+      shader_base =  cs_base;
+      stage_id    = COMPUTE_SHADER_STAGE;
+      cs_lock     = cs_shader_cs.get ();
+    } break;
+
+    default:
+      break;
+  }
+
+  assert (shader_base != nullptr);
+  assert (cs_lock     != nullptr);
 
 #define pDevCtx pDevContext
   SK_WRAP_AND_HOOK

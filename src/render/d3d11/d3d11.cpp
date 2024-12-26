@@ -5213,10 +5213,14 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
 #endif
      (! SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx)))
   {
-    if (tracked_rtv->active_count [dev_idx] > 0)
+    // Clear the RTVs only if the render mod tools are open
+    if (SK::ControlPanel::D3D11::show_shader_mod_dlg)
     {
-      for (auto& rtv : tracked_rtv->active [dev_idx])
-                 rtv.store (false);
+      if (tracked_rtv->active_count [dev_idx] > 0)
+      {
+        for (auto& rtv : tracked_rtv->active [dev_idx])
+                   rtv.store (false);
+      }
 
       tracked_rtv->active_count [dev_idx] = 0;
     }
@@ -6979,17 +6983,11 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
     ///  return;
     ///}
 
-#if 0
-    DXGI_VIRTUAL_OVERRIDE ( pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
-                             D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
-                             D3D11_VSSetConstantBuffers_pfn);
-#else
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,    7,
                           "ID3D11DeviceContext::VSSetConstantBuffers",
                                           D3D11_VSSetConstantBuffers_Override,
                                           D3D11_VSSetConstantBuffers_Original,
                                           D3D11_VSSetConstantBuffers_pfn );
-#endif
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,    8,
                           "ID3D11DeviceContext::PSSetShaderResources",
@@ -6997,36 +6995,26 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_PSSetShaderResources_Original,
                                           D3D11_PSSetShaderResources_pfn );
 
-#if 0
-    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 9,
-                            "ID3D11DeviceContext::PSSetShader",
-                             D3D11_PSSetShader_Override, D3D11_PSSetShader_Original,
-                             D3D11_PSSetShader_pfn);
-#else
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,    9,
                           "ID3D11DeviceContext::PSSetShader",
                                           D3D11_PSSetShader_Override,
                                           D3D11_PSSetShader_Original,
                                           D3D11_PSSetShader_pfn );
-#endif
 
+    // Hook is unneeded currently
+#if 0
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   10,
                           "ID3D11DeviceContext::PSSetSamplers",
                                           D3D11_PSSetSamplers_Override,
                                           D3D11_PSSetSamplers_Original,
                                           D3D11_PSSetSamplers_pfn );
+#endif
 
-#if 0
-    DXGI_VIRTUAL_OVERRIDE ( pHooks->ppImmediateContext, 11, "ID3D11DeviceContext::VSSetShader",
-                             D3D11_VSSetShader_Override, D3D11_VSSetShader_Original,
-                             D3D11_VSSetShader_pfn);
-#else
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   11,
                           "ID3D11DeviceContext::VSSetShader",
                                           D3D11_VSSetShader_Override,
                                           D3D11_VSSetShader_Original,
                                           D3D11_VSSetShader_pfn );
-#endif
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   12,
                           "ID3D11DeviceContext::DrawIndexed",
@@ -7085,11 +7073,13 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_VSSetShaderResources_Original,
                                           D3D11_VSSetShaderResources_pfn );
 
+#ifdef INSTALL_UNNECESSARY_HOOKS
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext, 29,
                           "ID3D11DeviceContext::GetData",
                                           D3D11_GetData_Override,
                                           D3D11_GetData_Original,
                                           D3D11_GetData_pfn );
+#endif
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   31,
                           "ID3D11DeviceContext::GSSetShaderResources",
@@ -8838,7 +8828,7 @@ D3D11Dev_CreateDeferredContext1_Override (
                     L"ContextFlags=0x%x, **ppDeferredContext=%p",
                       ContextFlags,        ppDeferredContext1 );
 
-  if (ppDeferredContext1 != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && config.render.dxgi.deferred_isolation && ppDeferredContext1 != nullptr)
   {
           ID3D11DeviceContext1* pTemp = nullptr;
     const HRESULT               hr    =
@@ -8884,7 +8874,7 @@ D3D11Dev_CreateDeferredContext2_Override (
                     L"ContextFlags=0x%x, **ppDeferredContext=%p",
                       ContextFlags,        ppDeferredContext2 );
 
-  if (ppDeferredContext2 != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && config.render.dxgi.deferred_isolation && ppDeferredContext2 != nullptr)
   {
           ID3D11DeviceContext2* pTemp = nullptr;
     const HRESULT               hr    =
@@ -8929,7 +8919,7 @@ D3D11Dev_CreateDeferredContext3_Override (
                     L"ContextFlags=0x%x, **ppDeferredContext=%p",
                       ContextFlags,        ppDeferredContext3 );
 
-  if (ppDeferredContext3 != nullptr)
+  if (config.render.d3d11.wrap_d3d11_dev_ctx && config.render.dxgi.deferred_isolation && ppDeferredContext3 != nullptr)
   {
           ID3D11DeviceContext3* pTemp = nullptr;
     const HRESULT               hr    =
