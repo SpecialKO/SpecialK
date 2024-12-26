@@ -598,8 +598,12 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
     static ULONG64     last_frame = 0;
     if (std::exchange (last_frame, frame_id) < frame_id)
     {
-      rb.setLatencyMarkerNV (SIMULATION_END);
-      rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+      if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
+                                                            frame_id )
+      {
+        rb.setLatencyMarkerNV (SIMULATION_END);
+        rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+      }
     }
   }
 

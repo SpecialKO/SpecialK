@@ -4330,8 +4330,7 @@ SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT d
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
-
+    (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::Auto));
 
   if (early_out)
   {
@@ -4340,12 +4339,6 @@ SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT d
   }
 
   SK_TLS *pTLS = nullptr;
-
-  if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::Auto))
-  {
-    return
-      _Finish ();
-  }
 
   auto draw_action =
     SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::Auto, 0, &pTLS, dev_idx);
@@ -4481,7 +4474,8 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    (! SK_D3D11_ShouldTrackDrawCall ( pDevCtx,
+            SK_D3D11DrawType::PrimList, dev_idx ));
 
 
   if (early_out)
@@ -4537,13 +4531,6 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
         return;
       }
     }
-  }
-
-  if (! SK_D3D11_ShouldTrackDrawCall ( pDevCtx,
-            SK_D3D11DrawType::PrimList, dev_idx ))
-  {
-    return
-      _Finish ();
   }
 
   auto draw_action =
@@ -4662,7 +4649,7 @@ SK_D3D11_DrawIndexed_Impl (
     };
 
   bool early_out =
-    (! bMustNotIgnore);// ||
+    (! bMustNotIgnore) || (! SK_D3D11_ShouldTrackDrawCall  (pDevCtx, SK_D3D11DrawType::Indexed));// ||
     //SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
@@ -4755,11 +4742,6 @@ SK_D3D11_DrawIndexed_Impl (
     }
   }
 
-  if (! SK_D3D11_ShouldTrackDrawCall  (pDevCtx, SK_D3D11DrawType::Indexed))
-  {
-    return _Finish ();
-  }
-
   SK_TLS* pTLS = nullptr;
 
   auto draw_action =
@@ -4804,15 +4786,10 @@ SK_D3D11_DrawIndexedInstanced_Impl (
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    ! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced);
+    //SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
-  {
-    return
-      _Finish ();
-  }
-
-  if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced))
   {
     return
       _Finish ();
@@ -4857,15 +4834,10 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstancedIndirect));
+    //SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
-  {
-    return
-      _Finish ();
-  }
-
-  if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstancedIndirect))
   {
     return
       _Finish ();
@@ -4914,15 +4886,10 @@ SK_D3D11_DrawInstanced_Impl (
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::Instanced));
+    //SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
-  {
-    return
-      _Finish ();
-  }
-
-  if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::Instanced))
   {
     return
       _Finish ();
@@ -4966,15 +4933,10 @@ SK_D3D11_DrawInstancedIndirect_Impl (
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::InstancedIndirect));
+    //SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
-  {
-    return
-      _Finish ();
-  }
-
-  if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::InstancedIndirect))
   {
     return
       _Finish ();

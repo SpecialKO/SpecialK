@@ -1,4 +1,8 @@
-﻿24.12.26.2
+﻿24.12.26.3
+==========
+ + Added missing draw call information to Reflex latency markers in D3D11 games
+
+24.12.26.2
 ==========
  + Small optimization to text OSD
  + Optimized D3D11 state tracking for SetShaderResources and removed unnecessary
