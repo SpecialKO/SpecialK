@@ -410,6 +410,12 @@ SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
                     if (dwSizeRead < dwSizeAvailable)
                       break;
                   }
+
+                  else
+                  {
+                    steam_log->Log (L"InternetReadFile (...) failed, %d", GetLastError ());
+                    break;
+                  }
                 }
 
                 else
