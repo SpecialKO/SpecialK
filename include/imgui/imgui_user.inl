@@ -3495,10 +3495,28 @@ SK_ImGui_User_NewFrame (void)
 
   if (bActive && new_input)
   {
-    for (UINT i = 7 ; i < 255 ; ++i)
+    static BYTE last_keystate [255];
+           BYTE      keystate [255];
+
+    // GetKeyboardState (...) is much more efficient than
+    //   unnecessarily calling GetAsyncKeyState over and over
+    BOOL new_input_keyboard =
+      !SK_GetKeyboardState (keystate);
+
+    if (! new_input_keyboard)
     {
-      io.KeysDown [i] =
-        ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+      new_input_keyboard =
+        memcmp (keystate, last_keystate, 255);
+      memcpy (  keystate, last_keystate, 255);
+    }
+
+    if (new_input_keyboard)
+    {
+      for (UINT i = 7 ; i < 255 ; ++i)
+      {
+        io.KeysDown [i] =
+          ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+      }
     }
   }
 
