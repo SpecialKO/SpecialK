@@ -415,9 +415,17 @@ SK_RenderBackend_V2::isReflexSupported (void) const
 {
   // Interop and HW vendor never change...
   //   api -might-, but we'll just ignore that for perf.
-  static bool supported =
+  static BOOL _supported  = -1;
+  if (        _supported != -1)
+    return   (_supported != 0);
+
+  bool supported =
     sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api) && 
     SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE;
+
+  // By 100 frames, we should have a solid idea whether Reflex is supported
+  if (SK_GetFramesDrawn () > 100)
+    _supported = supported ? 1 : 0;
 
   return supported;
 }
@@ -446,8 +454,15 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
     SK_ComPtr <ID3D11Device> pDev11;
     SK_ComPtr <ID3D12Device> pDev12;
 
-    if      (d3d12.device != nullptr) pDev12 = d3d12.device.p;
-    else if (d3d11.device != nullptr) pDev11 = d3d11.device.p;
+    if      (api == SK_RenderAPI::D3D11)
+                             pDev11 = (ID3D11Device *)device.p;
+    else if (api == SK_RenderAPI::D3D12) 
+                             pDev12 = (ID3D12Device *)device.p;
+    else
+    {
+                    pDev11 = getDevice <ID3D11Device> ();
+      if (! pDev11) pDev12 = getDevice <ID3D12Device> ();
+    }
 
     if (! (pDev11 || pDev12))
       return false; // Uh... what?
@@ -475,7 +490,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || (bWantAccuratePresentTiming && (marker == PRESENT_START || marker == PRESENT_END))))
+    if ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || (bWantAccuratePresentTiming && (marker == PRESENT_START || marker == PRESENT_END)))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -540,9 +555,6 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 bool
 SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyParams) const
 {
-  if (! sk::NVAPI::nv_hardware)
-    return false;
-
   if (device.p == nullptr)
     return false;
 
@@ -560,9 +572,6 @@ SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyPa
 void
 SK_RenderBackend_V2::driverSleepNV (int site) const
 {
-  if (! sk::NVAPI::nv_hardware)
-    return;
-
   if (! device.p)
     return;
 
