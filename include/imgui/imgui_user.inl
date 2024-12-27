@@ -2931,7 +2931,7 @@ static int64_t g_TicksPerSecond = { };
 // Fallback mechanism if we do not have a working window message pump to
 //   receive WM_MOUSEMOVE and WM_MOUSELEAVE messages on
 void
-SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
+SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos, HWND hWndForeground = 0)
 {
   if (PtInRect (&game_window.actual.window,
                          cursor_pos))
@@ -2946,7 +2946,10 @@ SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
     if (cursor_pos.x != last.cursor_pos.x ||
         cursor_pos.y != last.cursor_pos.y)
     {
-      if (SK_GetForegroundWindow () != game_window.hWnd)
+      if (hWndForeground == 0)
+          hWndForeground = SK_GetForegroundWindow ();
+
+      if (hWndForeground != game_window.hWnd)
       {
         last.hWndTop =
           WindowFromPoint (cursor_pos);
@@ -3212,7 +3215,7 @@ SK_ImGui_User_NewFrame (void)
 
   __SK_EnableSetCursor = true;
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   // Setup time step
@@ -3402,7 +3405,7 @@ SK_ImGui_User_NewFrame (void)
     // While inside, we get WM_MOUSEMOVE, while outside we get ... nothing.
     if (new_input || game_window.mouse.inside)
     {
-      SK_ImGui_FallbackTrackMouseEvent (cursor_pos);
+      SK_ImGui_FallbackTrackMouseEvent (cursor_pos, hWndForeground);
     }
   }
 
@@ -3685,8 +3688,6 @@ SK_ImGui_User_NewFrame (void)
 
 
   // ImGui::NewFrame (...) may have changed the status of mouse capture...
-  SK_GetCursorPos (&cursor_pos);
-
   capture_mouse =
     SK_ImGui_WantMouseCapture (false, &cursor_pos);
 
