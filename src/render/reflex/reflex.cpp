@@ -413,9 +413,13 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 bool
 SK_RenderBackend_V2::isReflexSupported (void) const
 {
-  return 
+  // Interop and HW vendor never change...
+  //   api -might-, but we'll just ignore that for perf.
+  static bool supported =
     sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api) && 
     SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE;
+
+  return supported;
 }
 
 bool
@@ -439,20 +443,30 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
   {
     // Avert your eyes... time to check if Device and SwapChain are consistent
     //
-    auto pDev11 = getDevice <ID3D11Device> ();
-    auto pDev12 = getDevice <ID3D12Device> ();
+    SK_ComPtr <ID3D11Device> pDev11;
+    SK_ComPtr <ID3D12Device> pDev12;
+
+    if      (d3d12.device != nullptr) pDev12 = d3d12.device.p;
+    else if (d3d11.device != nullptr) pDev11 = d3d11.device.p;
 
     if (! (pDev11 || pDev12))
       return false; // Uh... what?
 
-    SK_ComQIPtr <IDXGISwapChain> pSwapChain (swapchain.p);
-
+#ifdef DEBUG
+    SK_ReleaseAssert (SK_ComQIPtr <IDXGISwapChain> (swapchain.p) != nullptr);
+#endif
+    SK_ComPtr <IDXGISwapChain1>
+        pSwapChain ((IDXGISwapChain1*)swapchain.p);
     if (pSwapChain.p != nullptr)
     {
-      SK_ComPtr                  <ID3D11Device>           pSwapDev11;
-      pSwapChain->GetDevice ( IID_ID3D11Device, (void **)&pSwapDev11.p );
-      SK_ComPtr                  <ID3D12Device>           pSwapDev12;
-      pSwapChain->GetDevice ( IID_ID3D12Device, (void **)&pSwapDev12.p );
+      SK_ComPtr                  <ID3D11Device>            pSwapDev11;
+      SK_ComPtr                  <ID3D12Device>            pSwapDev12;
+
+      if (                        pDev11.p != nullptr)
+      pSwapChain->GetDevice ( IID_ID3D11Device,  (void **)&pSwapDev11.p );
+      if (                        pDev12.p != nullptr)
+      pSwapChain->GetDevice ( IID_ID3D12Device,  (void **)&pSwapDev12.p );
+      
       if (! ((pDev11.p != nullptr && pDev11.IsEqualObject (pSwapDev11.p)) ||
              (pDev12.p != nullptr && pDev12.IsEqualObject (pSwapDev12.p))))
       {
@@ -515,9 +529,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 
     if (marker == RENDERSUBMIT_END)
     {
-      latency.submitQueuedFrame (
-        SK_ComQIPtr <IDXGISwapChain1> (pSwapChain)
-      );
+      latency.submitQueuedFrame (pSwapChain.p);
     }
   }
 
