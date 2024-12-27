@@ -1077,14 +1077,17 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     if ( LOWORD (lParam) == HTCLIENT ||
          LOWORD (lParam) == HTTRANSPARENT )
     {
-      static POINTS lastMouse =
+      static POINT lastMouse =
         { SHORT_MAX, SHORT_MAX };
 
+#if 0
       auto messagePos  = GetMessagePos  ();
-      auto messageTime = GetMessageTime ();
-
       POINTS mousePos =
         MAKEPOINTS (messagePos);
+#else
+      extern POINT     SK_ImGui_LastKnownCursorPos;
+      POINT mousePos = SK_ImGui_LastKnownCursorPos;
+#endif
 
       bool bRawCapture =
         ImGui::GetIO ().WantCaptureMouse;
@@ -1094,6 +1097,8 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
                                                                             mousePos.y != lastMouse.y ||
                                                                             bRawCapture ) )
       {
+        auto messageTime = GetMessageTime ();
+
         static LONG        lastTime = 0;
         if (std::exchange (lastTime, messageTime) != messageTime || bRawCapture)
         {
