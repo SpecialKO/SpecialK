@@ -3603,6 +3603,9 @@ auto DeclKeybind =
         config.compatibility.disable_debug_features =  true;
         config.window.dont_hook_wndproc             =  true;
 
+        // Prevent double-input
+        config.input.gamepad.dinput.blackout_gamepads
+                                                    =  true;
         config.input.gamepad.xinput.emulate         =  true;
         config.input.cursor.manage                  =  true; // Mouse cursor doesn't auto-hide
         config.input.gamepad.impulse_strength_r     =  0.3f; // Impulse triggers are a bit STRONG...
