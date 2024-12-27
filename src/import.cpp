@@ -1233,3 +1233,109 @@ SK_DLL_LoaderLockGuard (void) noexcept
   return
     loader_lock;
 }
+
+bool
+SK_Import_HasEarlyImport (const wchar_t* wszName)
+{
+  const std::wstring target_arch =
+    SK_RunLHIfBitness ( 64, SK_IMPORT_ARCH_X64,
+                            SK_IMPORT_ARCH_WIN32 );
+
+  for (auto & import : imports->imports)
+  {
+    if (import.name.empty ())
+      continue;
+
+    if (_IsArchSame (import.architecture->get_value_ref (), target_arch))
+    {
+      if (import.when->is_equal (SK_IMPORT_EARLY))
+      {
+        if (StrStrIW (import.name.c_str (), wszName))
+        {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_Import_HasLateImport (const wchar_t* wszName)
+{
+  const std::wstring target_arch =
+    SK_RunLHIfBitness ( 64, SK_IMPORT_ARCH_X64,
+                            SK_IMPORT_ARCH_WIN32 );
+
+  for (auto & import : imports->imports)
+  {
+    if (import.name.empty ())
+      continue;
+
+    if (_IsArchSame (import.architecture->get_value_ref (), target_arch))
+    {
+      if (import.when->is_equal (SK_IMPORT_LATE))
+      {
+        if (StrStrIW (import.name.c_str (), wszName))
+        {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_Import_HasPlugInImport (const wchar_t* wszName)
+{
+  const std::wstring target_arch =
+    SK_RunLHIfBitness ( 64, SK_IMPORT_ARCH_X64,
+                            SK_IMPORT_ARCH_WIN32 );
+
+  for (auto & import : imports->imports)
+  {
+    if (import.name.empty ())
+      continue;
+
+    if (_IsArchSame (import.architecture->get_value_ref (), target_arch))
+    {
+      if (import.when->is_equal (SK_IMPORT_PLUGIN))
+      {
+        if (StrStrIW (import.name.c_str (), wszName))
+        {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_Import_LoadImportNow (const wchar_t* wszName)
+{
+  const std::wstring target_arch =
+    SK_RunLHIfBitness ( 64, SK_IMPORT_ARCH_X64,
+                            SK_IMPORT_ARCH_WIN32 );
+
+  for (auto & import : imports->imports)
+  {
+    if (import.name.empty ())
+      continue;
+
+    if (_IsArchSame (import.architecture->get_value_ref (), target_arch))
+    {
+      if (StrStrIW (import.name.c_str (), wszName))
+      {
+        SK_LoadImportModule (import);
+        return true;
+      }
+    }
+  }
+
+  return false;
+}

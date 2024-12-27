@@ -77,6 +77,12 @@ void SK_LoadPlugIns32      (void);
 
 void SK_UnloadImports (void);
 
-int SK_Import_GetNumberOfPlugIns (void);
+int  SK_Import_GetNumberOfPlugIns (void);
+
+bool SK_Import_HasEarlyImport  (const wchar_t* wszName);
+bool SK_Import_HasLateImport   (const wchar_t* wszName);
+bool SK_Import_HasPlugInImport (const wchar_t* wszName);
+
+bool SK_Import_LoadImportNow   (const wchar_t* wszName);
 
 #endif /* __SK__IMPORT_H__ */

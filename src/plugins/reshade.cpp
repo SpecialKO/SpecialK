@@ -677,9 +677,7 @@ bool SK_ReShadeAddOn_IsOverlayActive (void)
 void
 SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 {
-  std::ignore = pSwapChain;
-
-  if (! pSwapChain)
+  if (pSwapChain == nullptr)
     return;
   
   HWND                  hWnd = 0;
@@ -963,7 +961,7 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 UINT64
 SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV, D3D12_CPU_DESCRIPTOR_HANDLE hRTV_sRGB)
 {
-  if (! _d3d12_rbk->_pReShadeRuntime)
+  if (_d3d12_rbk->_pReShadeRuntime == nullptr)
     return 0;
 
   static volatile LONG64 lLastFrame = 0;
@@ -1049,7 +1047,15 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
 
 void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::swapchain *swapchain, const reshade::api::rect *source_rect, const reshade::api::rect *dest_rect, uint32_t dirty_rect_count, const reshade::api::rect *dirty_rects)
 {
-  if (swapchain->get_device ()->get_api () == reshade::api::device_api::d3d12)
+  if (swapchain == nullptr)
+    return;
+
+  auto *device = swapchain->get_device ();
+
+  if (device == nullptr)
+    return;
+
+  if (device->get_api () == reshade::api::device_api::d3d12)
   {
     auto runtime =
       SK_ReShadeAddOn_GetRuntimeForHWND ((HWND)swapchain->get_hwnd ());
@@ -1102,6 +1108,18 @@ SK_ReShadeGetConfigPath (void)
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
+  // Load ReShade's early import even earlier than normal so that AddOns
+  //   initialize before third-party overlays do, helping to prevent them
+  //     from crashing if they do not do nullptr checks.
+  SK_RunOnce (
+    if (SK_Import_HasEarlyImport (SK_RunLHIfBitness (64, L"ReShade64",
+                                                         L"ReShade32")))
+    {
+      if (SK_GetBitness () == 32) SK_Import_LoadImportNow (L"ReShade32");
+      else                        SK_Import_LoadImportNow (L"ReShade64");
+    }
+  );
+
   if (reshade_module == nullptr)
       reshade_module = reshade::internal::get_reshade_module_handle (reshade_module);
 
@@ -1228,6 +1246,9 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 void
 SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime)
 {
+  if (runtime == nullptr)
+    return;
+
   SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1257,13 +1278,16 @@ SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *run
     runtime->set_color_space (reshade::api::color_space::srgb_nonlinear);
   }
 
-  if (config.reshade.is_addon_hookless)
+  //if (config.reshade.is_addon_hookless)
     reshade::update_and_present_effect_runtime (runtime);
 }
 
 void
 SK_ReShadeAddOn_DestroyEffectRuntime (reshade::api::effect_runtime *runtime)
 {
+  if (runtime == nullptr)
+    return;
+
   runtime->get_command_queue ()->wait_idle ();
 
   if (config.reshade.is_addon_hookless)
