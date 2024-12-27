@@ -791,39 +791,46 @@ SK_HDR_SnapshotSwapchain (void)
       return;
     }
 
-    if ( nullptr == SK_D3D11_HDRDisjointQuery.async )
-    {
-      D3D11_QUERY_DESC query_desc {
-        D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
-      };
 
-      SK_ComPtr <ID3D11Query>                         pQuery;
-      if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery.p)))
+    //
+    // Optimization: Only create timer queries when the HDR widget is open
+    //
+    if (SK_ImGui_Widgets->hdr_control->isVisible ())
+    {
+      if ( nullptr == SK_D3D11_HDRDisjointQuery.async )
       {
-        SK_D3D11_HDRDisjointQuery.async = pQuery;
-                          pDevCtx->Begin (pQuery);
+        D3D11_QUERY_DESC query_desc {
+          D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
+        };
 
-        SK_D3D11_HDRDisjointQuery.active = true;
+        SK_ComPtr <ID3D11Query>                         pQuery;
+        if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery.p)))
+        {
+          SK_D3D11_HDRDisjointQuery.async = pQuery;
+                            pDevCtx->Begin (pQuery);
+
+          SK_D3D11_HDRDisjointQuery.active = true;
+        }
       }
-    }
 
-    if (SK_D3D11_HDRDisjointQuery.active)
-    {
-      // Start a new query
-      D3D11_QUERY_DESC query_desc {
-        D3D11_QUERY_TIMESTAMP, 0x00
-      };
+      if (SK_D3D11_HDRDisjointQuery.active)
+      {
+        // Start a new query
+        D3D11_QUERY_DESC query_desc {
+          D3D11_QUERY_TIMESTAMP, 0x00
+        };
 
-      d3d11_shader_tracking_s::duration_s duration;
+        d3d11_shader_tracking_s::duration_s duration;
 
-      SK_ComPtr <ID3D11Query>                         pQuery;
-      if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
+        SK_ComPtr <ID3D11Query>                         pQuery;
+        if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
       {
         duration.start.dev_ctx = pDevCtx;
         duration.start.async   = pQuery;
                   pDevCtx->End ( pQuery);
 
         SK_D3D11_HDRTimers.emplace_back (duration);
+      }
       }
     }
 
@@ -1168,22 +1175,28 @@ SK_HDR_SnapshotSwapchain (void)
 #endif
     }
 
-    if ( pDev    != nullptr &&
-         pDevCtx != nullptr && SK_D3D11_HDRDisjointQuery.active )
+    //
+    // Optimization: Only create timer queries when the HDR widget is open
+    //
+    if (SK_ImGui_Widgets->hdr_control->isVisible ())
     {
-      D3D11_QUERY_DESC query_desc {
-        D3D11_QUERY_TIMESTAMP, 0x00
-      };
-
-      d3d11_shader_tracking_s::duration_s& duration =
-        SK_D3D11_HDRTimers.back ();
-
-      SK_ComPtr <ID3D11Query>                           pQuery;
-      if ( SUCCEEDED ( pDev->CreateQuery (&query_desc, &pQuery.p ) ) )
+      if ( pDev    != nullptr &&
+           pDevCtx != nullptr && SK_D3D11_HDRDisjointQuery.active )
       {
-        duration.end.dev_ctx = pDevCtx;
-        duration.end.async   = pQuery;
-        pDevCtx->End (         pQuery);
+        D3D11_QUERY_DESC query_desc {
+          D3D11_QUERY_TIMESTAMP, 0x00
+        };
+
+        d3d11_shader_tracking_s::duration_s& duration =
+          SK_D3D11_HDRTimers.back ();
+
+        SK_ComPtr <ID3D11Query>                           pQuery;
+        if ( SUCCEEDED ( pDev->CreateQuery (&query_desc, &pQuery.p ) ) )
+        {
+          duration.end.dev_ctx = pDevCtx;
+          duration.end.async   = pQuery;
+          pDevCtx->End (         pQuery);
+        }
       }
     }
   }
