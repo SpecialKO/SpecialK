@@ -923,6 +923,7 @@ SK_HID_PlayStationDevice::setVibration (
                     static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
 
   WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
+  WriteRelease      (&bNeedOutput, TRUE);
 }
 
 void
@@ -965,6 +966,7 @@ SK_HID_PlayStationDevice::setVibration (
   WriteULongRelease (&_vibration.trigger.right, 0);
 
   WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
+  WriteRelease      (&bNeedOutput, TRUE);
 }
 
 bool
@@ -3652,7 +3654,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       }, L"[SK] HID Output Report Producer", this);
     }
 
-    else
+    else if (ReadAcquire (&bNeedOutput))
       SetEvent (hOutputEnqueued);
 
     return true;
