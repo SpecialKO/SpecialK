@@ -108,23 +108,30 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   {
     dc->GSGetShader (&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
 
+#ifdef SK_USES_GEOMETRY_SHADERS
     dc->GSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->GSSamplers);
     dc->GSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->GSShaderResources);
     dc->GSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
+#endif
   }
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
   {
     dc->HSGetShader (&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
 
+#ifdef SK_USES_HULL_SHADERS
     dc->HSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->HSSamplers);
     dc->HSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->HSShaderResources);
     dc->HSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
+#endif
 
     dc->DSGetShader          (&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
+
+#ifdef SK_USES_DOMAIN_SHADERS
     dc->DSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->DSSamplers);
     dc->DSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->DSShaderResources);
     dc->DSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
+#endif
   }
 
   dc->PSGetShader (&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
@@ -137,8 +144,10 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   {
     dc->CSGetShader (&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
 
+#ifdef SK_USES_COMPUTE_SHADER_RESOURCES
     dc->CSGetSamplers             (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->CSSamplers);
     dc->CSGetShaderResources      (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->CSShaderResources);
+#endif
     dc->CSGetConstantBuffers      (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
     dc->CSGetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT,                    sb->CSUnorderedAccessViews);
   }
@@ -338,6 +347,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
           sb->GSInterfaces [i]->Release ();
     }
 
+#ifdef SK_USES_GEOMETRY_SHADERS
     const UINT GSSamplerCount =
       D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 
@@ -367,6 +377,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->GSConstantBuffers [i] != nullptr)
           sb->GSConstantBuffers [i]->Release ();
     }
+#endif
   }
 
 
@@ -382,6 +393,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
           sb->HSInterfaces [i]->Release ();
     }
 
+#ifdef SK_USES_HULL_SHADERS
     const UINT HSSamplerCount =
       D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 
@@ -412,6 +424,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->HSConstantBuffers [i] != nullptr)
           sb->HSConstantBuffers [i]->Release ();
     }
+#endif
 
 
 
@@ -425,6 +438,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
           sb->DSInterfaces [i]->Release ();
     }
 
+#ifdef SK_USES_DOMAIN_SHADERS
     const UINT DSSamplerCount =
       D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 
@@ -456,6 +470,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->DSConstantBuffers [i] != nullptr)
           sb->DSConstantBuffers [i]->Release ();
     }
+#endif
   }
 
 
@@ -513,6 +528,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
           sb->CSInterfaces [i]->Release ();
     }
 
+#ifdef SK_USES_COMPUTE_SHADER_RESOURCES
     const UINT CSSamplerCount =
       D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 
@@ -533,7 +549,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->CSShaderResources [i] != nullptr)
           sb->CSShaderResources [i]->Release ();
     }
-
+#endif
 
     const UINT CSConstantBufferCount =
       D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
