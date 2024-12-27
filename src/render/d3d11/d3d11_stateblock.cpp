@@ -30,6 +30,8 @@
 #define __SK_SUBSYSTEM__ L"D3D11State"
 
 
+thread_local bool SK_D3D11_ApplyingStateBlock = false;
+
 // This causes The Witness and possibly other games to crash when the
 //   Steam Overlay is enabled
 //#define SK_USE_D3D11_DEVICE_CTX_STATE
@@ -209,6 +211,8 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (pDev.p == nullptr)
     return;
+
+  SK_D3D11_ApplyingStateBlock = true;
 
   SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
   if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
@@ -616,4 +620,6 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (sb->Predication != nullptr)
       sb->Predication->Release ();
+
+  SK_D3D11_ApplyingStateBlock = false;
 }

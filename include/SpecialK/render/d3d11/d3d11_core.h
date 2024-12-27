@@ -456,6 +456,8 @@ SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 extern bool
 SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx);
 
+extern thread_local bool SK_D3D11_ApplyingStateBlock;
+
 
 struct shader_stage_s
 {

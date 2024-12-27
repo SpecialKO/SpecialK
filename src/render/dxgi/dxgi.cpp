@@ -2153,7 +2153,8 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
           once = false;
       }
       // Uh oh, try again?
-      else once = false;
+      else if (! IsWindow (swapDesc.OutputWindow))
+          once = false;
     }
   }
 

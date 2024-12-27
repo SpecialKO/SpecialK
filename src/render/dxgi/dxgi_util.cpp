@@ -1482,6 +1482,9 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pDevCtx = pUnwrapped.p;
   }
 
+  bool applying_stateblock =
+    std::exchange (SK_D3D11_ApplyingStateBlock, true);
+
   auto& codec        = srgb_codec->devices_ [pDev];
   auto& vs_hdr_util  = codec.VertexShader_Util;
   auto& ps_hdr_scrgb = codec.PixelShader_sRGB_NoMore;
@@ -1533,6 +1536,9 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
         );
       }
     }
+
+    SK_D3D11_ApplyingStateBlock =
+      applying_stateblock;
 
     return ret;
   };

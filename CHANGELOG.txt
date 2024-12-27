@@ -1,4 +1,15 @@
-﻿24.12.26.3
+﻿24.12.27
+========
+ + Optimized D3D11 state tracker to ignore set shader calls, and draw calls unless
+     specific combinations of render mods that actually need them are active.
+ + Optimized control panel's end-of-frame input polling and cursor status checks.
+ + Optimized shader tracker to avoid clearing active RTV cache at the end-of-frame
+     unless render mod tools window is open.
+ + Optimized D3D11 Stateblock Restore code to bypass invoking SK's state tracking
+     hooks.
+ + 
+
+24.12.26.3
 ==========
  + Added missing draw call information to Reflex latency markers in D3D11 games
 

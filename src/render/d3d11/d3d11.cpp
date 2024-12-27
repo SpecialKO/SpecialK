@@ -6951,11 +6951,14 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_VSSetConstantBuffers_Original,
                                           D3D11_VSSetConstantBuffers_pfn );
 
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,    8,
-                          "ID3D11DeviceContext::PSSetShaderResources",
-                                          D3D11_PSSetShaderResources_Override,
-                                          D3D11_PSSetShaderResources_Original,
-                                          D3D11_PSSetShaderResources_pfn );
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,    8,
+                            "ID3D11DeviceContext::PSSetShaderResources",
+                                            D3D11_PSSetShaderResources_Override,
+                                            D3D11_PSSetShaderResources_Original,
+                                            D3D11_PSSetShaderResources_pfn );
+    }
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,    9,
                           "ID3D11DeviceContext::PSSetShader",
@@ -7029,11 +7032,14 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_GSSetShader_Original,
                                           D3D11_GSSetShader_pfn );
 
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   25,
-                          "ID3D11DeviceContext::VSSetShaderResources",
-                                          D3D11_VSSetShaderResources_Override,
-                                          D3D11_VSSetShaderResources_Original,
-                                          D3D11_VSSetShaderResources_pfn );
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   25,
+                            "ID3D11DeviceContext::VSSetShaderResources",
+                                            D3D11_VSSetShaderResources_Override,
+                                            D3D11_VSSetShaderResources_Original,
+                                            D3D11_VSSetShaderResources_pfn );
+    }
 
 #ifdef INSTALL_UNNECESSARY_HOOKS
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext, 29,
@@ -7043,11 +7049,14 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_GetData_pfn );
 #endif
 
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   31,
-                          "ID3D11DeviceContext::GSSetShaderResources",
-                                          D3D11_GSSetShaderResources_Override,
-                                          D3D11_GSSetShaderResources_Original,
-                                          D3D11_GSSetShaderResources_pfn );
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   31,
+                            "ID3D11DeviceContext::GSSetShaderResources",
+                                            D3D11_GSSetShaderResources_Override,
+                                            D3D11_GSSetShaderResources_Original,
+                                            D3D11_GSSetShaderResources_pfn );
+    }
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   33,
                           "ID3D11DeviceContext::OMSetRenderTargets",
@@ -7139,11 +7148,14 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_ExecuteCommandList_Original,
                                           D3D11_ExecuteCommandList_pfn );
 
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   59,
-                          "ID3D11DeviceContext::HSSetShaderResources",
-                                          D3D11_HSSetShaderResources_Override,
-                                          D3D11_HSSetShaderResources_Original,
-                                          D3D11_HSSetShaderResources_pfn );
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   59,
+                            "ID3D11DeviceContext::HSSetShaderResources",
+                                            D3D11_HSSetShaderResources_Override,
+                                            D3D11_HSSetShaderResources_Original,
+                                            D3D11_HSSetShaderResources_pfn );
+    }
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   60,
                           "ID3D11DeviceContext::HSSetShader",
@@ -7151,11 +7163,14 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_HSSetShader_Original,
                                           D3D11_HSSetShader_pfn);
 
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   63,
-                          "ID3D11DeviceContext::DSSetShaderResources",
-                                          D3D11_DSSetShaderResources_Override,
-                                          D3D11_DSSetShaderResources_Original,
-                                          D3D11_DSSetShaderResources_pfn );
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   63,
+                            "ID3D11DeviceContext::DSSetShaderResources",
+                                            D3D11_DSSetShaderResources_Override,
+                                            D3D11_DSSetShaderResources_Original,
+                                            D3D11_DSSetShaderResources_pfn );
+    }
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   64,
                           "ID3D11DeviceContext::DSSetShader",
@@ -7163,11 +7178,14 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_DSSetShader_Original,
                                           D3D11_DSSetShader_pfn );
 
-    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   67,
-                          "ID3D11DeviceContext::CSSetShaderResources",
-                                          D3D11_CSSetShaderResources_Override,
-                                          D3D11_CSSetShaderResources_Original,
-                                          D3D11_CSSetShaderResources_pfn );
+    if (config.render.d3d11.track_set_shader_res)
+    {
+      DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   67,
+                            "ID3D11DeviceContext::CSSetShaderResources",
+                                            D3D11_CSSetShaderResources_Override,
+                                            D3D11_CSSetShaderResources_Original,
+                                            D3D11_CSSetShaderResources_pfn );
+    }
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   68,
                           "ID3D11DeviceContext::CSSetUnorderedAccessViews",
@@ -9177,22 +9195,27 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
   domain.tracked.deactivate   (nullptr, dev_idx);
   compute.tracked.deactivate  (nullptr, dev_idx);
 
-  if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
+  // Optimization: Skip clearing tracked state when the render mod tools are not open
+  //
+  if (SK::ControlPanel::D3D11::show_shader_mod_dlg)
   {
-    RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-    RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-    RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-    RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-    RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-    RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
+    {
+      RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    }
+
+    tracked_rtv->clear   ();
+
+    ////for ( auto& it : *used_textures ) it->Release ();
+
+    used_textures->clear ();
+    mem_map_stats->clear ();
   }
-
-  tracked_rtv->clear   ();
-
-  ////for ( auto& it : *used_textures ) it->Release ();
-
-  used_textures->clear ();
-  mem_map_stats->clear ();
 
   // True if the disjoint query is complete and we can get the results of
   //   each tracked shader's timing
@@ -9473,11 +9496,16 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
       it_ctx.used_textures.clear  ();
     }
 
-    SK_D3D11_RenderTargets [it_ctx.ctx_id_].clear ();
+    // These do not hold any references, so we can safely
+    //   defer clearing this until the render mod dialog is
+    //     active...
+    if (SK::ControlPanel::D3D11::show_shader_mod_dlg)
+      SK_D3D11_RenderTargets [it_ctx.ctx_id_].clear ();
 
     InterlockedExchange (&it_ctx.writing_, 0);
   }
 
+  // These must be released every frame!
   SK_D3D11_TempResources->clear ();
 
   SK_D3D11_Resampler_ProcessFinished (pDev, pDevCtx, pTLS);
