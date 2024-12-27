@@ -3625,7 +3625,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   {
     // Try without the SwapChain (FF7 Remake workaround)
     if (! _GetAdapter (nullptr, pAdapter))
+    {
+      stale_display_info = false;
       return;
+    }
   }
 
 
@@ -4279,10 +4282,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     SK_Display_ResolutionSelectUI (true);
   }
 
-  else
-  {
-    stale_display_info = false;
-  }
+  stale_display_info = false;
 }
 
 const SK_RenderBackend_V2::output_s*

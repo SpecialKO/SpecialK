@@ -5567,8 +5567,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        DefWindowProcA (hWnd, uMsg, wParam, lParam);
   }
 
-  dwLastWindowMessageProcessed =
-    SK_timeGetTime ();
+  dwLastWindowMessageProcessed = SK::ControlPanel::current_time;
 
   if (uMsg == WM_NULL)
   {
