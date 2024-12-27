@@ -1099,8 +1099,8 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
         {
           static HCURSOR hLastClassCursor = (HCURSOR)(-1);
 
-          if (bRawCapture || ( SK_ImGui_WantMouseCapture  () &&
-                               SK_ImGui_IsAnythingHovered () ) )
+          if (bRawCapture || ( SK_ImGui_IsAnythingHovered () &&
+                               SK_ImGui_WantMouseCapture  () ))
           {
             if (hLastClassCursor == (HCURSOR)(-1))
                 hLastClassCursor  = (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
@@ -3200,7 +3200,12 @@ SK_ImGui_User_NewFrame (void)
 
   SK_HID_ProcessGamepadButtonBindings ();
 
-  bool capture_mouse    = SK_ImGui_WantMouseCapture      ();
+  // Hacky solution for missed messages causing no change in cursor pos
+  //
+  POINT             cursor_pos = { };
+  SK_GetCursorPos (&cursor_pos);
+
+  bool capture_mouse    = SK_ImGui_WantMouseCapture      (false, &cursor_pos);
   bool anything_hovered = SK_ImGui_IsAnythingHovered     ();
   HWND hWndForeground   = SK_GetForegroundWindow         ();
   BOOL bHWCursorVisible = SK_InputUtil_IsHWCursorVisible ();
@@ -3391,11 +3396,6 @@ SK_ImGui_User_NewFrame (void)
           std::exchange ( lii.dwTime,
                           cii.dwTime ) != cii.dwTime );
 
-  // Hacky solution for missed messages causing no change in cursor pos
-  //
-  POINT             cursor_pos = { };
-  SK_GetCursorPos (&cursor_pos);
-
 
   if ((! game_window.mouse.can_track) || game_window.mouse.last_move_msg < SK::ControlPanel::current_time - _IdleCursorTimeout) // No Hover / Leave Tracking
   {
@@ -3530,7 +3530,7 @@ SK_ImGui_User_NewFrame (void)
   
   // Mouse input should be swallowed because it interacts with ImGui;
   //   regular mouse capture includes swallowing input for "Disabled to Game".
-  bool bWantMouseCaptureForUI = SK_ImGui_WantMouseCaptureEx (0x0) && (anything_hovered || ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel));
+  bool bWantMouseCaptureForUI = SK_ImGui_WantMouseCaptureEx (0x0, &cursor_pos) && (anything_hovered || ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel));
 
   if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 0 ||
        abs (last_y - SK_ImGui_Cursor.pos.y) > 0 ||
@@ -3684,9 +3684,11 @@ SK_ImGui_User_NewFrame (void)
   }
 
 
-  // ImGui::NewFrame (...) may have changed the status of mous capture...
+  // ImGui::NewFrame (...) may have changed the status of mouse capture...
+  SK_GetCursorPos (&cursor_pos);
+
   capture_mouse =
-    SK_ImGui_WantMouseCapture ();
+    SK_ImGui_WantMouseCapture (false, &cursor_pos);
 
   __SK_EnableSetCursor = false;
 
@@ -3749,9 +3751,6 @@ SK_ImGui_User_NewFrame (void)
     {
       if (! game_window.active)
       {
-        POINT             ptCursor = { };
-        SK_GetCursorPos (&ptCursor);
-
         if ( game_window.hWnd ==
                WindowFromPoint ( cursor_pos ) )
         {
@@ -3775,11 +3774,10 @@ SK_ImGui_User_NewFrame (void)
   // Update blocking status before proceeding to draw the next frame
   SK_ImGui_IsMouseRelevant     (true);
   SK_ImGui_WantKeyboardCapture (true);
-  SK_ImGui_WantMouseCapture    (true);
+  SK_ImGui_WantMouseCapture    (true, &cursor_pos);
   SK_ImGui_WantGamepadCapture  (true);
   SK_IsGameWindowActive        (true);
 
-  SK_GetCursorPos                 (&cursor_pos);
   SK_ImGui_Cursor.last_screen_pos = cursor_pos;
 }
 

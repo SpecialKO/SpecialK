@@ -544,13 +544,13 @@ sk_window_s::isCursorHovering (void)
 }
 
 bool
-SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
+SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
 {
   if (! SK_GImDefaultContext ())
     return false;
 
   // Block mouse input while snipping
-  auto& screenshot_mgr = SK_GetCurrentRenderBackend ().screenshot_mgr;
+  auto* screenshot_mgr = SK_GetCurrentRenderBackend ().screenshot_mgr.getPtr ();
   bool snipping        = (screenshot_mgr->getSnipState () != SK_ScreenshotManager::SnippingInactive &&
                           screenshot_mgr->getSnipState () != SK_ScreenshotManager::SnippingComplete);
   if ( snipping )
@@ -569,9 +569,13 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
   bool imgui_capture = false;
 
-  LRESULT           hit_test = 0;
-  POINT             ptCursor;
-  SK_GetCursorPos (&ptCursor);
+  LRESULT hit_test = 0;
+  POINT  ptCursor;
+
+  if (pptCursor != nullptr)
+       ptCursor = *pptCursor;
+  else
+    SK_GetCursorPos (&ptCursor);
 
   if (SK_ImGui_IsMouseRelevantEx (false))
   {
@@ -652,7 +656,7 @@ SK_ImGui_WantMouseButtonCapture (void)
 }
 
 bool
-SK_ImGui_WantMouseCapture (bool update)
+SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor)
 {
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
@@ -664,7 +668,7 @@ SK_ImGui_WantMouseCapture (bool update)
     return capture.load () || lastFrameCaptured > SK_GetFramesDrawn () - 2;
 
   capture.store (
-    SK_ImGui_WantMouseCaptureEx (0xFFFF)
+    SK_ImGui_WantMouseCaptureEx (0xFFFF, ptCursor)
   );
 
   bool bCapture =
