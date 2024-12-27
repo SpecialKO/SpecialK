@@ -277,7 +277,7 @@ D3D11_VSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if ((! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || SK_GetCurrentRenderBackend ().in_present_call || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  else if ((SK::ControlPanel::D3D11::show_shader_mod_dlg || SK_GetCurrentRenderBackend ().in_present_call || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
@@ -333,7 +333,7 @@ D3D11_PSSetShader_Override (
   }
 
   //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-  else if ((! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || SK_GetCurrentRenderBackend ().in_present_call || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  else if ((SK::ControlPanel::D3D11::show_shader_mod_dlg || SK_GetCurrentRenderBackend ().in_present_call || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -388,7 +388,7 @@ D3D11_GSSetShader_Override (
   }
 
   //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-  else if ((! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  else if ((SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -442,7 +442,7 @@ D3D11_HSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if ((! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  else if ((SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -499,7 +499,7 @@ D3D11_DSSetShader_Override (
   }
 
   //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-  else if ((! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  else if ((SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -553,7 +553,7 @@ D3D11_CSSetShader_Override (
   }
 
   //else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-  else if ((! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0))
+  else if ((SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -818,7 +818,7 @@ D3D11_VSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (config.render.d3d11.track_set_shader_res && (! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
     {
@@ -849,7 +849,7 @@ D3D11_PSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (config.render.d3d11.track_set_shader_res && (! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -877,7 +877,7 @@ D3D11_GSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (config.render.d3d11.track_set_shader_res && (! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -905,7 +905,7 @@ D3D11_HSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (config.render.d3d11.track_set_shader_res && (! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -933,7 +933,7 @@ D3D11_DSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (config.render.d3d11.track_set_shader_res && (! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -961,7 +961,7 @@ D3D11_CSSetShaderResources_Override (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (config.render.d3d11.track_set_shader_res && (! SK_D3D11_ApplyingStateBlock) && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0))
+  if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
     return
       SK_D3D11_SetShaderResources_Impl (

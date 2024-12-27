@@ -621,5 +621,5 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   if (sb->Predication != nullptr)
       sb->Predication->Release ();
 
-  SK_D3D11_ApplyingStateBlock = false;
+  SK_D3D11_ApplyingStateBlock = false; 
 }

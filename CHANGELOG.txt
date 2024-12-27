@@ -1,4 +1,10 @@
-﻿24.12.27.1
+﻿
+24.12.27.2
+==========
+ + Slight performance tweak for D3D11_**SetShader_Override (...) and 
+     D3D11_**SetShaderResources_Override (...).
+
+24.12.27.1
 ==========
  + Fixed incorrect Reflex eligibility checks introduced in 24.12.27
 

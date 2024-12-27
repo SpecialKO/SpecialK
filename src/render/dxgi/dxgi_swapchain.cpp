@@ -420,6 +420,9 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
 {
   std::scoped_lock lock (_backbufferLock);
 
+  //
+  // TODO: Optimize this to store SRV and RTVs persistently
+  //
   if (IsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) && _backbuffers.contains (0))
   {
     if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&

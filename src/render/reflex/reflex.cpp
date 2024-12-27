@@ -423,8 +423,8 @@ SK_RenderBackend_V2::isReflexSupported (void) const
     sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api) && 
     SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE;
 
-  // By 100 frames, we should have a solid idea whether Reflex is supported
-  if (SK_GetFramesDrawn () > 100)
+  // By 150 frames, we should have a solid idea whether Reflex is supported
+  if (SK_GetFramesDrawn () > SK_Reflex_MinimumFramesBeforeNative)
     _supported = supported ? 1 : 0;
 
   return supported;
