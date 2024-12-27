@@ -1,4 +1,8 @@
-﻿
+﻿24.12.27.3
+==========
+ + Load ReShade Early plug-ins as early as possible (after INI parse)
+ + Optimized various state block and UI code
+
 24.12.27.2
 ==========
  + Slight performance tweak for D3D11_**SetShader_Override (...) and 

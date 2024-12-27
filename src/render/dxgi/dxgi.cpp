@@ -1600,6 +1600,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 
         rb.monitor = outDesc.Monitor;
         rb.updateOutputTopology ();
+        rb.stale_display_info = false;
       }
     }
   }
