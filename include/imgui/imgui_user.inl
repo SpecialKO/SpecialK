@@ -1800,6 +1800,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     UINT64                  ullLastActiveTimestamp  = 0ULL;
     SK_HID_PlayStationDevice *pLastActiveController = nullptr;
 
+    const bool want_gamepad_capture_or_emulate_xinput =
+      (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate);
+
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
       if (ps_controller.bConnected)
@@ -1818,6 +1821,18 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             bHasPlayStation = true;
           }
         }
+
+        if (want_gamepad_capture_or_emulate_xinput)
+        {
+          if (ps_controller.bSimpleMode == false ||
+              ps_controller.bBluetooth  == false)
+          {
+            if (ReadAcquire (&ps_controller.bNeedOutput))
+            {
+              ps_controller.write_output_report ();
+            }
+          }
+        }
       }
     }
 
@@ -1833,16 +1848,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
            InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
       {
         hid_to_xi = latest_state;
-      }
-
-      if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
-      {
-        for ( auto& ps_controller : SK_HID_PlayStationControllers )
-        {
-          if (ps_controller.bConnected)// && (ps_controller.bSimpleMode == false || ps_controller.bBluetooth == false))
-              ps_controller.write_output_report ();
-        }
-        //pLastActiveController->write_output_report ();
       }
     }
 
