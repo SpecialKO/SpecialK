@@ -3120,14 +3120,14 @@ SteamAPI_RunCallbacks_Detour (void)
     if (try_me)
     { __try
       {
-        SK_Steam_SetNotifyCorner ();
-
-        DWORD dwNow = SK_timeGetTime ();
+        DWORD dwNow = SK::ControlPanel::current_time;
 
         static DWORD
             dwLastOnlineStateCheck = 0UL;
         if (dwLastOnlineStateCheck < dwNow - 666UL)
         {
+          SK_Steam_SetNotifyCorner ();
+
           const auto cfg_online_status =
             config.steam.online_status;
 
