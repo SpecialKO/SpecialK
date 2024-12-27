@@ -7172,6 +7172,8 @@ SK_Platform_GetUserName (char* pszName, int max_len = 512)
 }
 
 
+extern POINT SK_ImGui_LastKnownCursorPos;
+
 LRESULT
 CALLBACK
 SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
@@ -7186,6 +7188,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     (MOUSEHOOKSTRUCT*)lParam;
 
   bool bPassthrough = true;
+
+  SK_ImGui_LastKnownCursorPos = mhs->pt;
 
   if (mhs->hwnd != 0)
   if ( mhs->wHitTestCode == HTCLIENT ||
@@ -7384,6 +7388,8 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
                 static_cast <SHORT> (  511));
   auto& io =
     ImGui::GetIO ();
+
+  io.KeysDown [vKey] = isPressed;
 
   if (io.KeyAlt && vKey == VK_F4 && isPressed)
   {

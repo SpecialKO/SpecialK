@@ -3196,6 +3196,8 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
   return false;
 }
 
+POINT SK_ImGui_LastKnownCursorPos;
+
 void
 SK_ImGui_User_NewFrame (void)
 {
@@ -3203,9 +3205,7 @@ SK_ImGui_User_NewFrame (void)
 
   SK_HID_ProcessGamepadButtonBindings ();
 
-  // Hacky solution for missed messages causing no change in cursor pos
-  //
-  POINT             cursor_pos = { };
+  POINT             cursor_pos = {};
   SK_GetCursorPos (&cursor_pos);
 
   bool capture_mouse    = SK_ImGui_WantMouseCapture      (false, &cursor_pos);
@@ -3493,6 +3493,9 @@ SK_ImGui_User_NewFrame (void)
   const bool bActive =
     SK_IsGameWindowActive ();
 
+    // Avoid overhead from calling SK_GetAsyncKeyState (...)
+    //   repeatedly; we already have a low-level keyboard hook!
+#ifdef SK_DOES_NOT_TRUST_LOW_LEVEL_KEYBOARD_HOOK
   if (bActive && new_input)
   {
     for (UINT i = 7 ; i < 255 ; ++i)
@@ -3501,6 +3504,7 @@ SK_ImGui_User_NewFrame (void)
         ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
     }
   }
+#endif
 
   if (! bActive)
     RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
