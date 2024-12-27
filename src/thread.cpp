@@ -615,11 +615,14 @@ SetThreadAffinityMask_Detour (
     SK_GetSystemInfo (&sysinfo);
   }
 
+  const
+  DWORD     dwCurrentTid =
+ SK_Thread_GetCurrentId ();
   DWORD_PTR dwRet = 0;
   DWORD     dwTid = ( hThread ==
-    SK_GetCurrentThread (              ) ) ?
-        SK_Thread_GetCurrentId (       )   :
-                   GetThreadId (hThread);
+    SK_GetCurrentThread (    ) ) ?
+        dwCurrentTid             :
+         GetThreadId (hThread);
 
   if (dwTid == 0)
   {
@@ -630,8 +633,8 @@ SetThreadAffinityMask_Detour (
   }
 
   SK_TLS*   pTLS  =
-    (dwTid == SK_Thread_GetCurrentId ()) ?
-      SK_TLS_Bottom   (     )            :
+    (dwTid == dwCurrentTid)   ?
+      SK_TLS_Bottom   (     ) :
       SK_TLS_BottomEx (dwTid);
 
 
