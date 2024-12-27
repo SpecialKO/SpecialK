@@ -839,7 +839,7 @@ SK_DrawOSD (void)
          &history2 =
       snapshots->frame_history2;
 
-    if (     snapshots->cached_mean.last_update_time < SK::ControlPanel::current_time - 10)
+    if (     snapshots->cached_mean.last_update_time < SK::ControlPanel::current_time - 33)
     {        snapshots->cached_mean.last_update_time = SK::ControlPanel::current_time;
              snapshots->cached_mean.val              = history.calcMean (); }
 
@@ -881,7 +881,7 @@ SK_DrawOSD (void)
 
     float fVBlankHz = 0.0f;
 
-    if (gsync)
+    if (gsync && (config.fps.compact_vrr || (! config.fps.compact)))
     {
       auto& stats =
         rb.displays [rb.active_display].statistics;
