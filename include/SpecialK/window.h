@@ -554,7 +554,7 @@ class SK_TLS;
 
 bool
 __stdcall
-SK_IsGameWindowActive (bool activate_if_in_limbo = false);
+SK_IsGameWindowActive (bool activate_if_in_limbo = false, HWND hWndForeground = 0);
 
 bool
 __stdcall

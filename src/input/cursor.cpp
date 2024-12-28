@@ -422,6 +422,22 @@ sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
   ClientToLocal  (lpPoint);
 }
 
+bool
+SK_ImGui_IsImGuiCursor (HCURSOR hCursor)
+{
+  static const std::set <HCURSOR>
+    __cursors =
+    {
+      { LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_POINTER) },
+      { LoadCursor (nullptr,               IDC_IBEAM)          },
+      { LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_HORZ)    },
+      { LoadCursor (nullptr,               IDC_SIZENWSE)       }
+    };
+
+  return
+    __cursors.contains (hCursor);
+}
+
 HCURSOR
 ImGui_DesiredCursor (void)
 {
@@ -706,14 +722,15 @@ HCURSOR GetGameCursor (void)
 
 bool
 __stdcall
-SK_IsGameWindowActive (bool activate_if_in_limbo)
+SK_IsGameWindowActive (bool activate_if_in_limbo, HWND hWndForeground)
 {
   bool bActive =
     game_window.active;
 
   if ((! bActive) && activate_if_in_limbo)
   {
-    HWND hWndForeground = SK_GetForegroundWindow ();
+    if (hWndForeground == 0)
+        hWndForeground = SK_GetForegroundWindow ();
 
     bActive =
       (   game_window.hWnd        == hWndForeground ||
@@ -762,9 +779,9 @@ SK_IsGameWindowActive (bool activate_if_in_limbo)
     {
       // This only activates the window if performed on the same thread as the
       //   game's window, so don't do this if called from a different thread.
-      if (                         0 != SK_Win32_BackgroundHWND &&
-           SK_GetForegroundWindow () == SK_Win32_BackgroundHWND &&
-               GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr) )
+      if (                     0 != SK_Win32_BackgroundHWND &&
+                  hWndForeground == SK_Win32_BackgroundHWND &&
+           GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr) )
       {
         game_window.active = true;
 

@@ -1759,7 +1759,7 @@ ClipCursor_Detour (const RECT *lpRect)
 
             // Ensure the window really IS active, set active=false otherwise so that this
             //   clip rect is not repeatedly applied.
-            if (SK_IsGameWindowActive ())
+            if (SK_IsGameWindowActive (false, hWndForeground))
             {
               bool active =
                 (          game_window.hWnd==hWndForeground ||
@@ -6673,9 +6673,6 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   CopyRect (&game_window.actual.client, &game_window.game.client);
 
   SK_GetCursorPos  (      &game_window.cursor_pos);
-
-  game_window.real_cursor =
-    (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
 
 
   // Make sure any pending changes are finished before querying the

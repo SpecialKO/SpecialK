@@ -1077,7 +1077,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     if ( LOWORD (lParam) == HTCLIENT ||
          LOWORD (lParam) == HTTRANSPARENT )
     {
-      static POINT lastMouse =
+      static thread_local POINT lastMouse =
         { SHORT_MAX, SHORT_MAX };
 
 #if 0
@@ -1093,37 +1093,62 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
         ImGui::GetIO ().WantCaptureMouse;
 
       if ( ( hWnd == game_window.hWnd ||
-             hWnd == game_window.child ) && HIWORD (lParam) != WM_NULL && ( mousePos.x != lastMouse.x ||
-                                                                            mousePos.y != lastMouse.y ||
-                                                                            bRawCapture ) )
+             hWnd == game_window.child ) && HIWORD (lParam) != WM_NULL && (mousePos.x != lastMouse.x ||
+                                                                           mousePos.y != lastMouse.y ||
+                                                                           bRawCapture ) )
       {
+        lastMouse = mousePos;
+
         auto messageTime = GetMessageTime ();
 
         static LONG        lastTime = 0;
         if (std::exchange (lastTime, messageTime) != messageTime || bRawCapture)
         {
-          static HCURSOR hLastClassCursor = (HCURSOR)(-1);
-
           if (bRawCapture || ( SK_ImGui_IsAnythingHovered () &&
                                SK_ImGui_WantMouseCapture  () ))
           {
-            if (hLastClassCursor == (HCURSOR)(-1))
-                hLastClassCursor  = (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
-
             if (SK_ImGui_WantHWCursor ())
             {
-              SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)ImGui_DesiredCursor ());
-            }
+              auto desired_cursor     = ImGui_DesiredCursor ();
+              bool using_class_cursor = false;
 
-            lastMouse = mousePos;
+              // Set the class cursor so that we do not have to repeatedly
+              //   call SetCursor (...) every time this message is received...
+              //     but only if the game also uses a non-zero class cursor.
+              if ((intptr_t)game_window.real_cursor > 0)
+              {
+                using_class_cursor =
+                  (game_window.real_cursor == desired_cursor);
+
+                if ((! using_class_cursor) && (intptr_t)game_window.game_cursor > 0)
+                {
+                  game_window.game_cursor =
+                    (HCURSOR)SetClassLongPtrW (
+                      game_window.hWnd, GCLP_HCURSOR,
+                        (LONG_PTR)game_window.real_cursor );
+                }
+              }
+
+              // We have to manually call SetCursor (...), because the game
+              //   is not using class cursors.
+              if (! using_class_cursor)
+                SetCursor (desired_cursor);
+            }
 
             return TRUE;
           }
 
           else
           {
-            if (hLastClassCursor != (HCURSOR)(-1))
-                  SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)std::exchange (hLastClassCursor, (HCURSOR)(-1)));
+            // Reset the class cursor if necessary.
+            if ((intptr_t)game_window.game_cursor > 0 &&
+                          game_window.game_cursor != game_window.real_cursor)
+            {
+              game_window.real_cursor = game_window.game_cursor;
+
+              SetClassLongPtrW ( game_window.hWnd, GCLP_HCURSOR,
+                       (LONG_PTR)game_window.real_cursor );
+            }
 
             if (config.input.cursor.manage)
             {
@@ -1137,16 +1162,12 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
 
               if (! SK_Window_IsCursorActive ())
               {
-                lastMouse = mousePos;
-
                 SK_SetCursor (0);
 
                 return TRUE;
               }
             }
           }
-
-          lastMouse = mousePos;
         }
       }
     }
@@ -3204,11 +3225,28 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 POINT SK_ImGui_LastKnownCursorPos;
 
 void
+SK_ImGui_UpdateClassCursor (void)
+{
+  SK_RunOnce (
+    game_window.real_cursor =
+      (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR)
+  );
+
+  bool  SK_ImGui_IsImGuiCursor (HCURSOR hCursor);
+  if (! SK_ImGui_IsImGuiCursor (game_window.real_cursor))
+  {
+    game_window.game_cursor = game_window.real_cursor;
+  }
+}
+
+void
 SK_ImGui_User_NewFrame (void)
 {
   SK_Window_HandleOutOfBandMovement ();
 
   SK_HID_ProcessGamepadButtonBindings ();
+
+  SK_ImGui_UpdateClassCursor ();
 
   POINT             cursor_pos = {};
   SK_GetCursorPos (&cursor_pos);
@@ -3496,7 +3534,7 @@ SK_ImGui_User_NewFrame (void)
   }
 
   const bool bActive =
-    SK_IsGameWindowActive ();
+    SK_IsGameWindowActive (false, hWndForeground);
 
     // Avoid overhead from calling SK_GetAsyncKeyState (...)
     //   repeatedly; we already have a low-level keyboard hook!
@@ -3786,7 +3824,7 @@ SK_ImGui_User_NewFrame (void)
   SK_ImGui_WantKeyboardCapture (true);
   SK_ImGui_WantMouseCapture    (true, &cursor_pos);
   SK_ImGui_WantGamepadCapture  (true);
-  SK_IsGameWindowActive        (true);
+  SK_IsGameWindowActive        (true, hWndForeground);
 
   SK_ImGui_Cursor.last_screen_pos = cursor_pos;
 }

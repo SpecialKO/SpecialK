@@ -8768,7 +8768,7 @@ SK_ImGui_Toggle (void)
   if (SK::SteamAPI::AppID () != 0 && SK_ImGui_Visible)
       SK::SteamAPI::UpdateNumPlayers ();
 
-  if (config.input.ui.center_cursor)
+  //if (config.input.ui.center_cursor)
   {
     static SK_AutoHandle hMoveCursor (
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
