@@ -90,10 +90,14 @@ static SetWindowDisplayAffinity_pfn       SetWindowDisplayAffinity_Original     
        MoveWindow_pfn                     MoveWindow_Original                    = nullptr;
        SetWindowLong_pfn                  SetWindowLongW_Original                = nullptr;
        SetWindowLong_pfn                  SetWindowLongA_Original                = nullptr;
+       SetWindowLong_pfn                  SetClassLongW_Original                 = nullptr;
+       SetWindowLong_pfn                  SetClassLongA_Original                 = nullptr;
        GetWindowLong_pfn                  GetWindowLongW_Original                = nullptr;
        GetWindowLong_pfn                  GetWindowLongA_Original                = nullptr;
        SetWindowLongPtr_pfn               SetWindowLongPtrW_Original             = nullptr;
        SetWindowLongPtr_pfn               SetWindowLongPtrA_Original             = nullptr;
+       SetWindowLongPtr_pfn               SetClassLongPtrW_Original              = nullptr;
+       SetWindowLongPtr_pfn               SetClassLongPtrA_Original              = nullptr;
        GetWindowLongPtr_pfn               GetWindowLongPtrW_Original             = nullptr;
        GetWindowLongPtr_pfn               GetWindowLongPtrA_Original             = nullptr;
        AdjustWindowRect_pfn               AdjustWindowRect_Original              = nullptr;
@@ -3175,6 +3179,86 @@ GetWindowLongPtr_Marshall (
       pOrigFunc (hWnd, nIndex);
   else
     return -1;
+}
+
+DWORD
+WINAPI
+SetClassLongA_Detour (_In_ HWND  hWnd,
+                      _In_ int   nIndex,
+                      _In_ LONG dwNewLong)
+{
+  SK_LOG_FIRST_CALL
+
+  if (hWnd == game_window.hWnd)
+  {
+    if (nIndex == GCLP_HCURSOR)
+    {
+      game_window.real_cursor = (HCURSOR)(uintptr_t)dwNewLong;
+    }
+  }
+
+  return
+    SetClassLongA_Original (hWnd, nIndex, dwNewLong);
+}
+
+DWORD
+WINAPI
+SetClassLongW_Detour (_In_ HWND  hWnd,
+                      _In_ int   nIndex,
+                      _In_ LONG dwNewLong)
+{
+  SK_LOG_FIRST_CALL
+
+  if (hWnd == game_window.hWnd)
+  {
+    if (nIndex == GCLP_HCURSOR)
+    {
+      game_window.real_cursor = (HCURSOR)(uintptr_t)dwNewLong;
+    }
+  }
+
+  return
+    SetClassLongW_Original (hWnd, nIndex, dwNewLong);
+}
+
+LONG_PTR
+WINAPI
+SetClassLongPtrA_Detour (_In_ HWND      hWnd,
+                         _In_ int       nIndex,
+                         _In_ LONG_PTR dwNewLong)
+{
+  SK_LOG_FIRST_CALL
+
+  if (hWnd == game_window.hWnd)
+  {
+    if (nIndex == GCLP_HCURSOR)
+    {
+      game_window.real_cursor = (HCURSOR)dwNewLong;
+    }
+  }
+
+  return
+    SetClassLongPtrA_Original (hWnd, nIndex, dwNewLong);
+}
+
+LONG_PTR
+WINAPI
+SetClassLongPtrW_Detour (_In_ HWND      hWnd,
+                         _In_ int       nIndex,
+                         _In_ LONG_PTR dwNewLong)
+{
+  SK_LOG_FIRST_CALL
+
+  if (hWnd == game_window.hWnd)
+  {
+    if (nIndex == GCLP_HCURSOR)
+    {
+      game_window.real_cursor = (HCURSOR)dwNewLong;
+    }
+  }
+
+  return
+    SetClassLongPtrW_Original (hWnd, nIndex, dwNewLong);
 }
 
 LONG_PTR
@@ -6590,6 +6674,9 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
   SK_GetCursorPos  (      &game_window.cursor_pos);
 
+  game_window.real_cursor =
+    (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
+
 
   // Make sure any pending changes are finished before querying the
   //   actual value
@@ -7943,15 +8030,25 @@ SK_HookWinAPI (void)
                                ClipCursor_Detour,
       static_cast_p2p <void> (&ClipCursor_Original));
 
-    SK_CreateDLLHook2 (       L"user32",
-                       "SetWindowLongA",
-                       SetWindowLongA_Detour,
-                       static_cast_p2p <void> (&SetWindowLongA_Original) );
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetWindowLongA",
+                               SetWindowLongA_Detour,
+      static_cast_p2p <void> (&SetWindowLongA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32",
-                       "SetWindowLongW",
-                       SetWindowLongW_Detour,
-                       static_cast_p2p <void> (&SetWindowLongW_Original) );
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetWindowLongW",
+                               SetWindowLongW_Detour,
+      static_cast_p2p <void> (&SetWindowLongW_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetClassLongA",
+                               SetClassLongA_Detour,
+      static_cast_p2p <void> (&SetClassLongA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetClassLongW",
+                               SetClassLongW_Detour,
+      static_cast_p2p <void> (&SetClassLongW_Original) );
 
     /// These hooks are unnecessary unless trying to spoof window style
     ///
@@ -7965,15 +8062,25 @@ SK_HookWinAPI (void)
     ////                   GetWindowLongW_Detour,
     ////                   static_cast_p2p <void> (&GetWindowLongW_Original) );
 #ifdef _WIN64
-    SK_CreateDLLHook2 (       L"user32",
-                       "SetWindowLongPtrA",
-                       SetWindowLongPtrA_Detour,
-                       static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
-    
-    SK_CreateDLLHook2 (       L"user32",
-                       "SetWindowLongPtrW",
-                       SetWindowLongPtrW_Detour,
-                       static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetWindowLongPtrA",
+                               SetWindowLongPtrA_Detour,
+      static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetWindowLongPtrW",
+                               SetWindowLongPtrW_Detour,
+      static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetClassLongPtrA",
+                               SetClassLongPtrA_Detour,
+      static_cast_p2p <void> (&SetClassLongPtrA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "SetClassLongPtrW",
+                               SetClassLongPtrW_Detour,
+      static_cast_p2p <void> (&SetClassLongPtrW_Original) );
 
     ////SK_CreateDLLHook2 (       L"user32",
     ////                   "GetWindowLongPtrA",
@@ -8346,10 +8453,30 @@ SK_ClipCursor (const RECT *lpRect)
   if ((! game_window.active) || (game_window.size_move)) // Or being moved
     lpRect = nullptr;
 
-  return
-    ClipCursor_Original != nullptr ?
-    ClipCursor_Original (lpRect)   :
-    ClipCursor          (lpRect);
+  //
+  // Avoid unnecessary OS calls, since we have the base function hooked already
+  //
+  static thread_local RECT lastRect = {};
+  if (                  (nullptr == lpRect &&
+      !SK_IsRectInfinite(&lastRect)) ||
+                        (nullptr != lpRect &&
+                 memcmp (&lastRect, lpRect, sizeof (RECT)) != 0))
+  {
+    if (lpRect == nullptr)
+    {
+      lastRect.left   = LONG_MIN;
+      lastRect.top    = LONG_MIN;
+      lastRect.bottom = LONG_MAX;
+      lastRect.right  = LONG_MAX;
+    }
+
+    return
+      ClipCursor_Original != nullptr ?
+      ClipCursor_Original (lpRect)   :
+      ClipCursor          (lpRect);
+  }
+
+  return TRUE;
 }
 
 BOOL

@@ -461,6 +461,8 @@ struct sk_window_s {
 
   // Cursor position when window activation changed
   POINT       cursor_pos  { 0, 0 };
+  HCURSOR     game_cursor      = (HCURSOR)-1;
+  HCURSOR     real_cursor      = (HCURSOR)-1;
 
   // State to restore the cursor to
   //  (TODO: Should probably be a reference count to return to)
