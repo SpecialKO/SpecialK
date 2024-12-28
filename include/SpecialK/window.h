@@ -946,4 +946,9 @@ LRESULT WINAPI SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, 
 
 void SK_Window_UninitHooks (void);
 
+DWORD
+WINAPI
+SK_GetWindowThreadProcessId ( _In_      HWND       hWnd,
+                              _Out_opt_ LPDWORD lpdwProcessId );
+
 #endif /* __SK__WINDOW_H__ */

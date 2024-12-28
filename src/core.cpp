@@ -2673,8 +2673,8 @@ SK_Log_CleanupLogs (void)
 bool
 SK_Inject_IsWindowSKIF (HWND hWnd)
 {
-  DWORD                            dwPid = 0x0;
-  GetWindowThreadProcessId (hWnd, &dwPid);
+  DWORD                               dwPid = 0x0;
+  SK_GetWindowThreadProcessId (hWnd, &dwPid);
 
   if (dwPid == 0 ||
       dwPid == GetCurrentProcessId ())
@@ -2726,14 +2726,14 @@ SK_Inject_PostHeartbeatToSKIF (void)
     hWndSKIF =
       FindWindow (L"SKIF_ImGuiWindow", nullptr);
   
-    DWORD                                dwPidOfSKIF = 0;
-    GetWindowThreadProcessId (hWndSKIF, &dwPidOfSKIF);
+    DWORD                                   dwPidOfSKIF = 0;
+    SK_GetWindowThreadProcessId (hWndSKIF, &dwPidOfSKIF);
   
     EnumWindows ( []( HWND   hWnd,
                       LPARAM lParam ) -> BOOL
     {
-      DWORD                                dwPID = 0;
-      if (GetWindowThreadProcessId (hWnd, &dwPID))
+      DWORD                                   dwPID = 0;
+      if (SK_GetWindowThreadProcessId (hWnd, &dwPID))
       {
         if (dwPID != (DWORD)lParam)
           return TRUE;
@@ -2764,8 +2764,8 @@ SK_Inject_PostHeartbeatToSKIF (void)
     //   but alt-tab can still flicker.
     if (hWndSKIF != game_window.hWnd && IsWindow (hWndSKIF))
     {
-      DWORD                                dwPid = 0x0;
-      GetWindowThreadProcessId (hWndSKIF, &dwPid);
+      DWORD                                   dwPid = 0x0;
+      SK_GetWindowThreadProcessId (hWndSKIF, &dwPid);
     
       if ( dwPid != 0x0 &&
            dwPid != GetCurrentProcessId () )
@@ -2821,14 +2821,14 @@ SK_Inject_ReturnToSKIF (void)
     hWndExisting =
       FindWindow (L"SKIF_ImGuiWindow", nullptr);
   
-    DWORD                                    dwPidOfSKIF = 0;
-    GetWindowThreadProcessId (hWndExisting, &dwPidOfSKIF);
+    DWORD                                       dwPidOfSKIF = 0;
+    SK_GetWindowThreadProcessId (hWndExisting, &dwPidOfSKIF);
   
     EnumWindows ( []( HWND   hWnd,
                       LPARAM lParam ) -> BOOL
     {
-      DWORD                                dwPID = 0;
-      if (GetWindowThreadProcessId (hWnd, &dwPID))
+      DWORD                                   dwPID = 0;
+      if (SK_GetWindowThreadProcessId (hWnd, &dwPID))
       {
         if (dwPID != (DWORD)lParam)
           return TRUE;
@@ -2855,8 +2855,8 @@ SK_Inject_ReturnToSKIF (void)
   
   if (hWndExisting != nullptr && IsWindow (hWndExisting))
   {
-    DWORD                                    dwPid = 0x0;
-    GetWindowThreadProcessId (hWndExisting, &dwPid);
+    DWORD                                       dwPid = 0x0;
+    SK_GetWindowThreadProcessId (hWndExisting, &dwPid);
   
     if ( dwPid != 0x0 &&
          dwPid != GetCurrentProcessId () &&
@@ -3435,8 +3435,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               //   (workaround wonkiness from splash screens, etc.)
               SK_RunOnce (
               {
-                DWORD                                                                     dwProcId = 0x0;
-                if (GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, &dwProcId))
+                DWORD                                                                        dwProcId = 0x0;
+                if (GetCurrentThreadId () == SK_GetWindowThreadProcessId (game_window.hWnd, &dwProcId))
                 {
                   SK_SAFE_CALLWNDPROC (WM_ACTIVATEAPP,                      TRUE, 0);
                   SK_SAFE_CALLWNDPROC (WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
@@ -3872,9 +3872,9 @@ SK_BackgroundRender_EndFrame (void)
       if (cached_window.hWnd != hForegroundWnd)
       {
         cached_window.dwTid =
-          GetWindowThreadProcessId (hForegroundWnd, &dwForegroundPid);
-        cached_window.dwPid = dwForegroundPid;
-        cached_window.hWnd  = hForegroundWnd;
+          SK_GetWindowThreadProcessId (hForegroundWnd, &dwForegroundPid);
+        cached_window.hWnd  =          hForegroundWnd;
+        cached_window.dwPid =                           dwForegroundPid;
       }
       else
       {

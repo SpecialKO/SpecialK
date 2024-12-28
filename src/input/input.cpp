@@ -143,8 +143,8 @@ SK_ImGui_WantGamepadCapture (bool update)
         HWND hWndForeground =
           SK_GetForegroundWindow ();
 
-        DWORD                                      dwForegroundPid = 0x0;
-        GetWindowThreadProcessId (hWndForeground, &dwForegroundPid);
+        DWORD                                         dwForegroundPid = 0x0;
+        SK_GetWindowThreadProcessId (hWndForeground, &dwForegroundPid);
 
         for ( const auto pid : g_sHookedPIDs )
         {

@@ -750,6 +750,12 @@ SK_Inject_WinEventHookProc (
 
   if (event == EVENT_SYSTEM_FOREGROUND)
   {
+    extern HWND  SK_CachedForegroundWindow;
+    extern DWORD SK_CachedForegroundWindowTime;
+
+    SK_CachedForegroundWindow     = hwnd;
+    SK_CachedForegroundWindowTime = dwmsEventTime;
+
     bool is_smart_always_on_top =
       config.window.always_on_top == SmartAlwaysOnTop;
 
@@ -768,11 +774,11 @@ SK_Inject_WinEventHookProc (
         if (dwPidShell == 0 &&      hWndTaskSwitch == 0)
         {                           hWndTaskSwitch =
                 FindWindow (nullptr, L"Task Switching");
-          GetWindowThreadProcessId (hWndTaskSwitch, &dwPidShell);
+        SK_GetWindowThreadProcessId (hWndTaskSwitch, &dwPidShell);
         }
 
-        DWORD                            dwPidNewTarget;
-        GetWindowThreadProcessId (hwnd, &dwPidNewTarget);
+        DWORD                               dwPidNewTarget;
+        SK_GetWindowThreadProcessId (hwnd, &dwPidNewTarget);
 
         // Do not remove Smart Always On Top for the task switcher,
         //   it runs in a window band above this application...
@@ -2512,8 +2518,8 @@ void SK_Inject_WakeUpSKIF (void)
 
   if (hWndExisting != nullptr && IsWindow (hWndExisting))
   {
-    DWORD                                    dwPid = 0x0;
-    GetWindowThreadProcessId (hWndExisting, &dwPid);
+    DWORD                                       dwPid = 0x0;
+    SK_GetWindowThreadProcessId (hWndExisting, &dwPid);
   
     if ( dwPid != 0x0 &&
          dwPid != GetCurrentProcessId () )

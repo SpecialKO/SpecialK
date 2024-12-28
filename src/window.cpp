@@ -1260,8 +1260,8 @@ ActivateWindow ( HWND hWnd,
         rb.requestFullscreenMode (true);
       }
 
-      DWORD                                                 dwProcess;
-      GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwProcess);
+      DWORD                                                    dwProcess;
+      SK_GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwProcess);
 
       if (dwProcess != GetCurrentProcessId ())
       {
@@ -1361,7 +1361,7 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
 
   DWORD proc_id = 0;
 
-  GetWindowThreadProcessId (hWnd, &proc_id);
+  SK_GetWindowThreadProcessId (hWnd, &proc_id);
 
   if (win.proc_id == proc_id)
   {
@@ -2126,7 +2126,7 @@ SetWindowPos_Detour(
   {
     DWORD dwProcId   = 0x0,
           dwThreadId =
-      GetWindowThreadProcessId (hWnd, &dwProcId);
+      SK_GetWindowThreadProcessId (hWnd, &dwProcId);
 
     if (dwThreadId != SK_GetCurrentThreadId ())
     {
@@ -2935,7 +2935,7 @@ SK_SetWindowLongPtrA (
 
         DWORD dwPid;
   const DWORD dwOrigThreadId =
-    GetWindowThreadProcessId (hWnd, &dwPid);
+    SK_GetWindowThreadProcessId (hWnd, &dwPid);
 
   if (dwOrigThreadId == SK_GetCurrentThreadId ()/* || nIndex == GWL_EXSTYLE*/)
   {
@@ -3052,7 +3052,7 @@ SK_SetWindowLongPtrW (
 
         DWORD dwPid;
   const DWORD dwOrigThreadId =
-    GetWindowThreadProcessId (hWnd, &dwPid);
+    SK_GetWindowThreadProcessId (hWnd, &dwPid);
 
   if (dwOrigThreadId == SK_GetCurrentThreadId ()/*|| nIndex == GWL_EXSTYLE*/)
   {
@@ -5061,7 +5061,7 @@ GetFocus_Detour (void)
     {
       DWORD dwPid = 0x0;
       DWORD dwTid =
-        GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+        SK_GetWindowThreadProcessId (game_window.hWnd, &dwPid);
 
       if (GetCurrentThreadId () == dwTid)
       {
@@ -5070,7 +5070,7 @@ GetFocus_Detour (void)
 
       dwPid = 0x0;
       dwTid =
-        GetWindowThreadProcessId (SK_GetFocus (), &dwPid);
+        SK_GetWindowThreadProcessId (SK_GetFocus (), &dwPid);
 
       if (GetCurrentProcessId () != dwPid)
         return 0;
@@ -5129,7 +5129,7 @@ GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
     {
       DWORD dwPid = 0x0;
       DWORD dwTid =
-        GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+        SK_GetWindowThreadProcessId (game_window.hWnd, &dwPid);
 
       if (idThread == dwTid)
       {
@@ -5207,7 +5207,7 @@ GetActiveWindow_Detour (void)
     {
       DWORD dwPid = 0x0;
       DWORD dwTid =
-        GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+        SK_GetWindowThreadProcessId (game_window.hWnd, &dwPid);
 
       if (GetCurrentThreadId () == dwTid)
       {
@@ -5216,7 +5216,7 @@ GetActiveWindow_Detour (void)
 
       dwPid = 0x0;
       dwTid =
-        GetWindowThreadProcessId (SK_GetActiveWindow (nullptr), &dwPid);
+        SK_GetWindowThreadProcessId (SK_GetActiveWindow (nullptr), &dwPid);
 
       if (GetCurrentProcessId () != dwPid)
         return 0;
@@ -5291,14 +5291,30 @@ SetActiveWindow_Detour (HWND hWnd)
     SK_SetActiveWindow (hWnd);
 }
 
+HWND  SK_CachedForegroundWindow     = 0;
+DWORD SK_CachedForegroundWindowTime = 0;
+
 HWND
 WINAPI
 SK_GetForegroundWindow (void)
 {
-  return
+  const DWORD dwCurrentTime =
+    SK_GetFramesDrawn () > 5 ? SK::ControlPanel::current_time
+                             : SK_timeGetTime ();
+
+  if (SK_CachedForegroundWindowTime > dwCurrentTime - 33)
+  {
+    return SK_CachedForegroundWindow;
+  }
+
+  SK_CachedForegroundWindow =
     GetForegroundWindow_Original != nullptr ?
     GetForegroundWindow_Original ()         :
     GetForegroundWindow          ();
+
+  SK_CachedForegroundWindowTime = dwCurrentTime;
+
+  return SK_CachedForegroundWindow;
 }
 
 HWND
@@ -5386,7 +5402,7 @@ RealizeForegroundWindow_Impl (HWND hWndForeground)
   const DWORD dwThreadId     =
     SK_Thread_GetCurrentId  ();
   const DWORD dwOrigThreadId =
-    GetWindowThreadProcessId (hWndOrig, &dwPid);
+    SK_GetWindowThreadProcessId (hWndOrig, &dwPid);
 
   const bool show_hide =
             IsWindow (hWndOrig) &&
@@ -5451,7 +5467,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 
         DWORD dwPid;
   const DWORD dwOrigThreadId =
-    GetWindowThreadProcessId (hWndForeground, &dwPid);
+    SK_GetWindowThreadProcessId (hWndForeground, &dwPid);
 
 #if 0
   if (dwOrigThreadId != SK_GetCurrentThreadId ())
@@ -5618,6 +5634,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  
+  SK_RunOnce ( extern           void
+  SK_Win32_InstallWinEventHook (void);
+  SK_Win32_InstallWinEventHook (    ); );
+
   // @TODO: Allow PlugIns to install callbacks for window proc
   static bool bIgnoreKeyboardAndMouse =
     (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI);
@@ -5712,8 +5733,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (! ( game_window.hWnd == hWndFocus   ||
               game_window.hWnd == hWndForeground ) )
       {
-        GetWindowThreadProcessId (hWndFocus,      &dwFocus);
-        GetWindowThreadProcessId (hWndForeground, &dwForeground);
+        SK_GetWindowThreadProcessId (hWndFocus,      &dwFocus);
+        SK_GetWindowThreadProcessId (hWndForeground, &dwForeground);
 
         game_window.active = ( dwFocus      == GetCurrentProcessId () ||
                                dwForeground == GetCurrentProcessId () );
@@ -5816,9 +5837,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         HWND hWndStartMenu =
           FindWindow (L"Windows.UI.Core.CoreWindow", L"Start");
 
-        DWORD                                        dwPidFg, dwPidStart;
-        GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwPidFg);
-        GetWindowThreadProcessId (hWndStartMenu,             &dwPidStart);
+        DWORD                                                    dwPidFg, dwPidStart;
+        SK_GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwPidFg);
+        SK_GetWindowThreadProcessId (hWndStartMenu,             &dwPidStart);
 
         if (dwPidFg == dwPidStart)
         {
@@ -6538,8 +6559,8 @@ SK_Window_IsTopMost (HWND hWnd = game_window.hWnd)
 void
 SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 {
-  DWORD                            dwPid = 0x0;
-  GetWindowThreadProcessId (hWnd, &dwPid);
+  DWORD                               dwPid = 0x0;
+  SK_GetWindowThreadProcessId (hWnd, &dwPid);
 
   if (dwPid != GetCurrentProcessId ())
     return;
@@ -7093,8 +7114,8 @@ SK_InstallWindowHook (HWND hWnd)
     return false;
 
 
-  DWORD                            dwWindowPid = 0;
-  GetWindowThreadProcessId (hWnd, &dwWindowPid);
+  DWORD                               dwWindowPid = 0;
+  SK_GetWindowThreadProcessId (hWnd, &dwWindowPid);
 
   //
   // If our attempted target belongs to a different process,
@@ -8806,7 +8827,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
         {
           DWORD dwProcId,
                 dwThreadId =
-              GetWindowThreadProcessId (hWndForeground, &dwProcId);
+            SK_GetWindowThreadProcessId (hWndForeground, &dwProcId);
 
           GUITHREADINFO gti         =          {   };
                         gti.cbSize  =   sizeof (gti);
@@ -9178,3 +9199,41 @@ SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
 
 GetWindowBand_pfn GetWindowBand = nullptr;
 SetWindowBand_pfn SetWindowBand = nullptr;
+
+
+DWORD
+WINAPI
+SK_GetWindowThreadProcessId ( _In_      HWND       hWnd,
+                              _Out_opt_ LPDWORD lpdwProcessId )
+{
+  static
+    concurrency::concurrent_unordered_map <
+      HWND,                     std::pair <DWORD, DWORD>
+    > _WindowThreadProcessIdCache;
+
+  if (_WindowThreadProcessIdCache.count (hWnd) == 0)
+  {
+    DWORD      dwProcId;
+    DWORD    dwThreadId =
+      GetWindowThreadProcessId (hWnd, &dwProcId);
+
+    _WindowThreadProcessIdCache [hWnd] = std::make_pair (dwThreadId, dwProcId);
+
+    if (lpdwProcessId != nullptr)
+       *lpdwProcessId = dwProcId;
+
+    return dwThreadId;
+  }
+
+  else
+  {
+    auto thread_proc_id = _WindowThreadProcessIdCache [hWnd];
+
+    if (lpdwProcessId != nullptr)
+       *lpdwProcessId  = thread_proc_id.second;
+
+    return thread_proc_id.first;
+  }
+
+  return 0;
+}

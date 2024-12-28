@@ -3239,6 +3239,9 @@ SK_ImGui_UpdateClassCursor (void)
   }
 }
 
+extern HWND  SK_CachedForegroundWindow;
+extern DWORD SK_CachedForegroundWindowTime;
+
 void
 SK_ImGui_User_NewFrame (void)
 {
@@ -3255,6 +3258,9 @@ SK_ImGui_User_NewFrame (void)
   bool anything_hovered = SK_ImGui_IsAnythingHovered     ();
   HWND hWndForeground   = SK_GetForegroundWindow         ();
   BOOL bHWCursorVisible = SK_InputUtil_IsHWCursorVisible ();
+
+  SK_CachedForegroundWindow     = hWndForeground;
+  SK_CachedForegroundWindowTime = SK::ControlPanel::current_time;
 
   __SK_EnableSetCursor = true;
 

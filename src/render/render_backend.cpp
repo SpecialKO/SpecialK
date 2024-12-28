@@ -1863,7 +1863,7 @@ bool sk_hwnd_cache_s::update (HWND wnd)
   {
     hwnd      = wnd;
     owner.tid =
-      GetWindowThreadProcessId (hwnd, &owner.pid);
+      SK_GetWindowThreadProcessId (hwnd, &owner.pid);
 
     if ( 0 ==
            RealGetWindowClassW   (hwnd, class_name, 128) )

@@ -497,7 +497,7 @@ SK_Proxy_LLKeyboardProc (
     {
       DWORD dwProcId = 0x0;
 
-      GetWindowThreadProcessId (
+      SK_GetWindowThreadProcessId (
         SK_GetForegroundWindow (), &dwProcId
       );
 

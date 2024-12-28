@@ -626,8 +626,8 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
 
         else
         {
-          DWORD                                                                         dwProcId;
-          GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
+          DWORD                                                                            dwProcId;
+          SK_GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
 
           if (dwProcId != GetCurrentProcessId ())
             imgui_capture = true;
@@ -781,7 +781,7 @@ SK_IsGameWindowActive (bool activate_if_in_limbo, HWND hWndForeground)
       //   game's window, so don't do this if called from a different thread.
       if (                     0 != SK_Win32_BackgroundHWND &&
                   hWndForeground == SK_Win32_BackgroundHWND &&
-           GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr) )
+           GetCurrentThreadId () == SK_GetWindowThreadProcessId (game_window.hWnd, nullptr) )
       {
         game_window.active = true;
 

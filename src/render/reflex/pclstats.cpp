@@ -64,8 +64,8 @@ PCLStatsPingThreadProc (LPVOID)
 
     if (hWnd)
     {
-      DWORD                            dwProcessId = 0;
-      GetWindowThreadProcessId (hWnd, &dwProcessId);
+      DWORD                               dwProcessId = 0;
+      SK_GetWindowThreadProcessId (hWnd, &dwProcessId);
 
       if (GetCurrentProcessId () == dwProcessId)
       {

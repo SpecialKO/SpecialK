@@ -6031,7 +6031,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
     SK_RunOnce (
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
         HANDLE hWaitObjects [] = {
           __SK_DLL_TeardownEvent,
