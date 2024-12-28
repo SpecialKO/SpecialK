@@ -948,7 +948,7 @@ SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   DWORD  dwProcId   = 0x0,
          dwThreadId =
-  GetWindowThreadProcessId (hWnd, &dwProcId);
+  SK_GetWindowThreadProcessId (hWnd, &dwProcId);
 
   if (dwProcId != GetCurrentProcessId ())
     return;
@@ -993,7 +993,7 @@ SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   DWORD  dwProcId   = 0x0,
          dwThreadId =
-  GetWindowThreadProcessId (hWnd, &dwProcId);
+  SK_GetWindowThreadProcessId (hWnd, &dwProcId);
 
   if (dwProcId != GetCurrentProcessId ())
     return;
@@ -1152,8 +1152,8 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
       if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
         return TRUE;
 
-      DWORD                            dwPid = 0x0;
-      GetWindowThreadProcessId (hWnd, &dwPid);
+      DWORD                               dwPid = 0x0;
+      SK_GetWindowThreadProcessId (hWnd, &dwPid);
 
       if (dwPid != GetProcessId (SK_GetCurrentProcess ()))
         return TRUE;

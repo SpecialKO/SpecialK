@@ -137,6 +137,11 @@ struct SK_XInputContext
 
   bool preventHapticRecursion (DWORD dwUserIndex, bool enter)
   {
+#if 1
+    std::ignore = dwUserIndex;
+    std::ignore = enter;
+    return true;
+#else
     if (! config.input.gamepad.xinput.hook_setstate)
       return true;
 
@@ -169,6 +174,7 @@ struct SK_XInputContext
     InterlockedDecrement (&haptic_locks [dwUserIndex]);
 
     return false;
+#endif
   }
 
   volatile ULONG haptic_locks  [XUSER_MAX_COUNT+1] = {     0,     0,     0,     0,     0 };
@@ -2574,10 +2580,10 @@ SK_XInput_RehookIfNeeded (void)
     return;
 
 
-  std::scoped_lock < std::recursive_mutex, std::recursive_mutex,
-                     std::recursive_mutex, std::recursive_mutex >
-      hook_lock ( xinput_ctx.cs_hook [0], xinput_ctx.cs_hook [1],
-                  xinput_ctx.cs_hook [2], xinput_ctx.cs_hook [3] );
+  //std::scoped_lock < std::recursive_mutex, std::recursive_mutex,
+  //                   std::recursive_mutex, std::recursive_mutex >
+  //    hook_lock ( xinput_ctx.cs_hook [0], xinput_ctx.cs_hook [1],
+  //                xinput_ctx.cs_hook [2], xinput_ctx.cs_hook [3] );
 
 
   MH_STATUS ret =
@@ -3523,10 +3529,10 @@ SK_Input_PreHookXInput (void)
   xinput_ctx.XInput_SK.wszModuleName =
                      path_to_driver.c_str ();
 
-  std::scoped_lock < std::recursive_mutex, std::recursive_mutex,
-                     std::recursive_mutex, std::recursive_mutex >
-      hook_lock ( xinput_ctx.cs_hook [0], xinput_ctx.cs_hook [1],
-                  xinput_ctx.cs_hook [2], xinput_ctx.cs_hook [3] );
+  //std::scoped_lock < std::recursive_mutex, std::recursive_mutex,
+  //                   std::recursive_mutex, std::recursive_mutex >
+  //    hook_lock ( xinput_ctx.cs_hook [0], xinput_ctx.cs_hook [1],
+  //                xinput_ctx.cs_hook [2], xinput_ctx.cs_hook [3] );
 
   auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>

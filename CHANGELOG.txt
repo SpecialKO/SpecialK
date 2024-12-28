@@ -1,4 +1,10 @@
-﻿24.12.28
+﻿24.12.28.1
+==========
+ + Added caching for calls to GetForegroundWindow (...) and
+     GetWindowThreadProcessId (...)
+ + Removed locking code from XInput, it was already mostly lockless
+
+24.12.28
 ========
  + Fixed some games inheriting SK's hardware cursor after the cursor
      moves off of SK's UI.
