@@ -2,6 +2,7 @@
 ==========
  + Deferred Context Isolation now re-enables the Wrap -AND- Hook codepath
      required for some D3D11 games.
+ + Fixed NieR: Replicant setting changes not applying immediately
 
 24.12.28.2
 ==========

@@ -1364,11 +1364,17 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (d3d11 && !indirect)
     {
+      bool changed = false;
+
       if (ImGui::Button (" Render Mod Tools ")) show_shader_mod_dlg =
                                              (! show_shader_mod_dlg );
       ImGui::SameLine       ();
-      ImGui::Checkbox       ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
+      changed |=
+        ImGui::Checkbox     ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
       ImGui::SetItemTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
+
+      if (changed)
+        config.utility.save_async ();
     }
 
     if (! config.reshade.is_addon)
