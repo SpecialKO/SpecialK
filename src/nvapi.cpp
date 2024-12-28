@@ -1733,7 +1733,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   if (bLibInit != FALSE)
     return FALSE;
 
-  app_name      = wszAppName;
+  SK_NvAPI_SetAppName (wszAppName);
 
   if (              app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ()/*wszAppName*/))
     friendly_name = app_cache_mgr->getAppNameFromPath (SK_GetFullyQualifiedApp ()/*wszAppName*/);
@@ -4216,6 +4216,11 @@ __stdcall
 SK_NvAPI_SetAppName (const wchar_t* wszAppName)
 {
   app_name = wszAppName;
+
+  // Replace backslashes with forward slashes as-per NV's docs
+  std::replace ( app_name.begin (),
+                 app_name.end   (), L'\\',
+                                    L'/' );
 }
 
 void

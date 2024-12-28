@@ -1,4 +1,10 @@
-﻿24.12.28.1
+﻿24.12.28.2
+==========
+ + Fixed unintentional creation of empty NVIDIA driver profiles for
+     games whose .exe exists in multiple profiles when checking whether
+       ReBAR is enabled for a game during initialization.
+
+24.12.28.1
 ==========
  + Added caching for calls to GetForegroundWindow (...) and
      GetWindowThreadProcessId (...)

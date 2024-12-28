@@ -263,8 +263,13 @@ SK_LoadGPUVendorAPIs (void)
 
   dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API           (NvAPI)...");
 
+  SK_NvAPI_SetAppName         (       SK_GetFullyQualifiedApp () );
+  SK_NvAPI_SetAppFriendlyName (
+    app_cache_mgr->getAppNameFromID ( SK_Steam_GetAppID_NoAPI () ).c_str ()
+                              );
+
   nvapi_init =
-    sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
+    sk::NVAPI::InitializeLibrary (sk::NVAPI::app_name.c_str ());
 
   dll_log->Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
                                                      nvapi_init ? L"Success" :
@@ -335,11 +340,6 @@ SK_LoadGPUVendorAPIs (void)
         restart = true;
       }
     }
-
-    SK_NvAPI_SetAppName         (       SK_GetFullyQualifiedApp () );
-    SK_NvAPI_SetAppFriendlyName (
-      app_cache_mgr->getAppNameFromID ( SK_Steam_GetAppID_NoAPI () ).c_str ()
-                                );
 
     if (! config.nvidia.bugs.snuffed_ansel)
     {
@@ -2954,7 +2954,7 @@ SK_ShutdownCore (const wchar_t* backend)
     config_name = L"SpecialK";
   }
 
-  if (sk::NVAPI::app_name != L"ds3t.exe")
+  if (sk::NVAPI::app_name.find (L"ds3t.exe") != std::wstring::npos)
   {
     dll_log->LogEx       (true,  L"[ SpecialK ] Saving user preferences to"
                                  L" %10s.ini... ", config_name);
