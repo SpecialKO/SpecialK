@@ -117,6 +117,7 @@ protected:
 
 interface SK_IVariableListener
 {
+  virtual ~SK_IVariableListener (void) noexcept { };
   virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) = 0;
 };
 

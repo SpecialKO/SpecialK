@@ -137,7 +137,7 @@ struct sk_config_t
 #endif
 
       SK_TscFreq =
-        (1000ULL * 1000ULL * pwi [0].MaxMhz);
+        (1000LL * 1000LL * static_cast <int64_t> (pwi [0].MaxMhz));
 
       SK_QpcFreqInTsc = (DWORD)(SK_TscFreq / SK_QpcFreq);
       SK_TscInvariant =
@@ -182,7 +182,7 @@ struct sk_config_t
       std::max (1UL, std::min (cpu_pop, si.dwNumberOfProcessors));
 
     screenshots.avif.max_threads =
-      std::max (2UL, priority.available_cpu_cores / 3);
+      std::max (2, static_cast <int> (priority.available_cpu_cores) / 3);
 
 
     ZeroMemory (cpuid, sizeof (int) * 4);

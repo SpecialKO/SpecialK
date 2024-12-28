@@ -81,7 +81,7 @@ SK_CurrentPerf (void) noexcept
    if (SK_TscInvariant)
    {
      time.QuadPart =
-       __rdtsc ();
+       static_cast <LONGLONG> (__rdtsc ());
    }
    else
    {
@@ -492,8 +492,8 @@ namespace SK
       void        set_limit           (float& target);
       double      get_limit           (void) noexcept { return fps;  };
 
-      LONG64      get_ticks_per_frame (void) noexcept { return ticks_per_frame; };
-      LONG64      get_next_tick       (void) noexcept { return next; };
+      ULONG64     get_ticks_per_frame (void) noexcept { return ticks_per_frame; };
+       LONG64     get_next_tick       (void) noexcept { return next; };
       double      get_ms_to_next_tick (float ticks = 1.0f) noexcept;
 
       double      effective_frametime (void);
@@ -670,16 +670,16 @@ namespace SK
 
         struct
         {
-          volatile LONG deprived = 0ULL,
-                        allowed  = 0ULL;
+          volatile ULONG deprived = 0UL,
+                         allowed  = 0UL;
         } time;
 
 
-        void sleep (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
-                                            InterlockedAdd       (&time.allowed,  dwMilliseconds); }
-        void wake  (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
-                                            InterlockedIncrement (&rejections);
-                                            InterlockedAdd       (&time.deprived, dwMilliseconds); }
+        void sleep (ULONG dwMilliseconds) { InterlockedIncrement   (&attempts);
+                                            InterlockedExchangeAdd (&time.allowed,  dwMilliseconds); }
+        void wake  (ULONG dwMilliseconds) { InterlockedIncrement   (&attempts);
+                                            InterlockedIncrement   (&rejections);
+                                            InterlockedExchangeAdd (&time.deprived, dwMilliseconds); }
       };
 
       SleepStats& getMessagePumpStats  (void) noexcept { return message_pump;  }

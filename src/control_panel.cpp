@@ -6577,10 +6577,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               SK::Framerate::GetEvents ()->getRenderThreadStats ();
 
             ImGui::SetTooltip
-                           ( "(%li ms asleep, %li ms awake)",
+                           ( "(%lu ms asleep, %lu ms awake)",
                                /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                 ReadAcquire (&stats.time.allowed),
-                                 ReadAcquire (&stats.time.deprived) );
+                                 ReadULongAcquire (&stats.time.allowed),
+                                 ReadULongAcquire (&stats.time.deprived) );
           }
 
           changed |=
@@ -6593,10 +6593,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               SK::Framerate::GetEvents ()->getMessagePumpStats ();
 
             ImGui::SetTooltip
-                           ( "(%li ms asleep, %li ms awake)",
+                           ( "(%lu ms asleep, %lu ms awake)",
                                /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                 ReadAcquire (&stats.time.allowed),
-                                 ReadAcquire (&stats.time.deprived) );
+                                 ReadULongAcquire (&stats.time.allowed),
+                                 ReadULongAcquire (&stats.time.deprived) );
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   (0.0f, 20.0f);

@@ -701,7 +701,7 @@ public:
       SK_Steam_KeyValues::getKeys (input, sections, &values)
     );
 
-    int idx = 0;
+    size_t idx = 0;
 
     for ( auto& it : keys )
     {

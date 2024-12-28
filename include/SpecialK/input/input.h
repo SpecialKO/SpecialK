@@ -1081,7 +1081,7 @@ struct SK_HID_PlayStationDevice
   } output;
 
   struct latency_s {
-    UINT64 timestamp_epoch = SK_QueryPerf ().QuadPart;
+     INT64 timestamp_epoch = SK_QueryPerf ().QuadPart;
     UINT32 last_syn        = 0;
     UINT32 last_ack        = 0;
     UINT32 ping            = 0;

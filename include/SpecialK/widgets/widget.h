@@ -161,7 +161,7 @@ public:
   const ImVec2&      getSize          (void) const noexcept { return    size;                   }
   const ImVec2&      getPos           (void) const noexcept { return    pos;                    }
   const DockAnchor&  getDockingPoint  (void) const noexcept { return    docking;                }
-  const float        getAlpha         (void) const noexcept { return    alpha;                  }
+        float        getAlpha         (void) const noexcept { return    alpha;                  }
 
   const SK_Keybind&  getToggleKey     (void) const noexcept { return    toggle_key;             }
   const SK_Keybind&  getFocusKey      (void) const noexcept { return    focus_key;              }

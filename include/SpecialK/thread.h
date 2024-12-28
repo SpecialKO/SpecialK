@@ -171,7 +171,7 @@ protected:
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
 {
 public:
-  SK_Thread_HybridSpinlock (int spin_count = 3000) noexcept : SK_Thread_CriticalSection (&impl_cs_)
+  SK_Thread_HybridSpinlock (DWORD spin_count = 3000) noexcept : SK_Thread_CriticalSection (&impl_cs_)
   {
     InitializeCriticalSectionEx (cs_, spin_count, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
                                                    SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
