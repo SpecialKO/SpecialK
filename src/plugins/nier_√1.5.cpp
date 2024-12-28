@@ -881,7 +881,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
 
       if (! _SK_NIER_RAD_AutoCursorHide)
       {
-        changed =
+        changed |=
           ImGui::Checkbox ("Hide Inactive Mouse Cursor", &config.input.cursor.manage);
 
         if (ImGui::IsItemHovered ())
@@ -966,9 +966,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
 
     if (changed)
     {
-      SK_GetDLLConfig ()->write (
-        SK_GetDLLConfig ()->get_filename ()
-      );
+      config.utility.save_async ();
     }
   }
 
