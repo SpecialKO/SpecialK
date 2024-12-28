@@ -746,7 +746,18 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
 }
 
 
-#define __NIER_HACK
+//
+// In order to make DXGI Flip Model promotion work, sometimes it is necessary
+//   to reuse SwapChains because the game has not destroyed the original
+//     SwapChain before creating a new one...
+//
+//  It was never required in the original DXGI Blt Model that an HWND have
+//    only one SwapChain at a time, so games that do this are not necessarily
+//      broken.
+//
+//  * This compat hack is only needed in D3D11, and only rarely.
+//
+#define SK_DXGI_RECYCLE_SWAPCHAINS
 
 UINT SK_DXGI_FixUpLatencyWaitFlag (gsl::not_null <IDXGISwapChain*> pSwapChainRaw, UINT Flags, BOOL bCreation = FALSE);
 
@@ -1535,11 +1546,6 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 
   if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev.p))) )
   {
-    // These operations are not atomic / cache coherent in
-    //   ReShade (bug!!), so to avoid prematurely freeing
-    //     this stuff don't release and re-acquire a
-    //       reference to the same object.
-
     if (! pDev.IsEqualObject (rb.device))
     {
                               rb.d3d11.immediate_ctx = nullptr;
@@ -6325,7 +6331,7 @@ DXGIFactory_CreateSwapChain_Override (
      new_desc.OutputWindow, nullptr, pDevice, pDev12.p != nullptr
   );
 
-#ifdef  __NIER_HACK
+#ifdef SK_DXGI_RECYCLE_SWAPCHAINS
   static SK_ComPtr <IDXGISwapChain> pSwapToRecycle = nullptr;
 
   auto descCopy = *pDesc;
@@ -6499,7 +6505,7 @@ DXGIFactory_CreateSwapChain_Override (
         pTemp->GetDesc (pOrigDesc);
     }
 
-#ifdef  __NIER_HACK
+#ifdef  SK_DXGI_RECYCLE_SWAPCHAINS
     if ( SK_DXGI_IsFlipModelSwapChain (new_desc) &&
       (! SK_DXGI_IsFlipModelSwapChain (descCopy)) )
     {

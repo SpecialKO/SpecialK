@@ -1,4 +1,9 @@
-﻿24.12.27.3
+﻿24.12.28
+========
+ + Fixed some games inheriting SK's hardware cursor after the cursor
+     moves off of SK's UI.
+
+24.12.27.3
 ==========
  + Load ReShade Early plug-ins as early as possible (after INI parse)
  + Optimized various state block and UI code
