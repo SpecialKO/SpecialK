@@ -1,4 +1,9 @@
-﻿24.12.28.2
+﻿24.12.28.3
+==========
+ + Deferred Context Isolation now re-enables the Wrap -AND- Hook codepath
+     required for some D3D11 games.
+
+24.12.28.2
 ==========
  + Fixed unintentional creation of empty NVIDIA driver profiles for
      games whose .exe exists in multiple profiles when checking whether

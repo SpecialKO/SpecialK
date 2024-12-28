@@ -4625,6 +4625,11 @@ auto DeclKeybind =
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
   render.dxgi.warn_if_vram_exceeds->load (config.render.dxgi.warn_if_vram_exceeds);
 
+  // Tie wrapping device contexts to the costly Deferred Isolation setting, as
+  //   a last-ditch effort to get render mod tools working despite perf. overhead.
+  if (config.render.dxgi.deferred_isolation)
+    config.render.d3d11.wrap_d3d11_dev_ctx = true;
+
   render.d3d12.max_anisotropy->load      (config.render.d3d12.max_anisotropy);
   render.d3d12.force_anisotropic->load   (config.render.d3d12.force_anisotropic);
   render.d3d12.force_lod_bias->load      (config.render.d3d12.force_lod_bias);
