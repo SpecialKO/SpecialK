@@ -2232,7 +2232,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       &config.monitors.monitor_primary_keybind,
       &config.monitors.monitor_next_keybind,
       &config.monitors.monitor_prev_keybind,
-      &config.monitors.monitor_toggle_hdr
+      &config.monitors.monitor_toggle_hdr,
+      &config.monitors.multimonitor_focus_keybind,
     };
 
   if (ImGui::BeginMenu ("Display Management Keybinds###MonitorMenu"))

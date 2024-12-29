@@ -8,6 +8,8 @@
 
      Display.MultiMonitorFocus  {true|false}   Default: false
 
+ + Various minor optimizations for mouse (cursor) and window management.
+
 24.12.29
 ========
  + Improved input neutralization for games that use Overlapped IO to read
