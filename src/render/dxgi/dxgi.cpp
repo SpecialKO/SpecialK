@@ -10336,7 +10336,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)) && pAdapter3 != nullptr)
   {
     // We darn sure better not spawn multiple threads!
-    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*budget_mutex);
 
     if ( budget_thread->handle == INVALID_HANDLE_VALUE )
     {

@@ -81,8 +81,8 @@ SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
   setPollingFrequency (0);
   setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
 
-  latency.pollrate   = std::make_shared <SK::Framerate::Stats>     (     );
-  xinput.lock_report = std::make_shared <SK_Thread_HybridSpinlock> (0x400);
+  latency.pollrate   = std::make_shared <SK::Framerate::Stats>     (         );
+  xinput.lock_report = std::make_shared <SK_Thread_HybridSpinlock> (/*0x400*/);
 }
 
 SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)

@@ -2887,6 +2887,15 @@ bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
+  const auto
+  bNoCanWait =
+    RtlpWaitCouldDeadlock ();
+
+  if (bNoCanWait)
+  {
+    //SK_LOGi0 (L"Wait Could Deadlock!");
+  }
+
   SK_Inject_BroadcastExitNotify ();
   SK_DisableApplyQueuedHooks    ();
 

@@ -53,7 +53,7 @@ std::unique_ptr <SK_Thread_HybridSpinlock> SK_TextOverlayManager::lock_ = nullpt
 SK_TextOverlayManager::SK_TextOverlayManager (void)
 {
   lock_ =
-    std::make_unique <SK_Thread_HybridSpinlock> (104858);
+    std::make_unique <SK_Thread_HybridSpinlock> (/*104858*/);
 
   need_full_reset_ = false;
 

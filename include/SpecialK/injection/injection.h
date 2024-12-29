@@ -227,5 +227,7 @@ float SK_Inject_GetInjectionDelayInSeconds (void);
 void  SK_Inject_SetFocusWindow             (HWND hWndFocus);
 HWND  SK_Inject_GetFocusWindow             (void);
 
+BOOL NTAPI RtlpWaitCouldDeadlock (void);
+
 
 #endif /* __SK__INJECTION_H__ */

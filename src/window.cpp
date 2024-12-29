@@ -9351,7 +9351,7 @@ SK_GetWindowThreadProcessId ( _In_      HWND       hWnd,
 
   else
   {
-    auto thread_proc_id = _WindowThreadProcessIdCache [hWnd];
+    auto& thread_proc_id = _WindowThreadProcessIdCache [hWnd];
 
     if (lpdwProcessId != nullptr)
        *lpdwProcessId  = thread_proc_id.second;

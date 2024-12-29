@@ -50,6 +50,27 @@ NtUserUnhookWindowsHookEx_pfn NtUserUnhookWindowsHookEx = nullptr;
 
 HMODULE hModHookInstance = nullptr;
 
+using  RtlDllShutdownInProgress_pfn = BOOL (NTAPI *)(void);
+static RtlDllShutdownInProgress_pfn
+       RtlDllShutdownInProgress = nullptr;
+
+BOOL
+NTAPI
+RtlpWaitCouldDeadlock (void)
+{
+  if (RtlDllShutdownInProgress == nullptr)
+      RtlDllShutdownInProgress =
+     (RtlDllShutdownInProgress_pfn)GetProcAddress (
+                                 GetModuleHandleW (L"ntdll.dll"),
+     "RtlDllShutdownInProgress");
+ 
+  if (! RtlDllShutdownInProgress)
+    return TRUE;
+
+  return
+    RtlDllShutdownInProgress () != FALSE;
+}
+
 // It's not possible to store a structure in the shared data segment.
 //
 //   This struct will be filled-in when SK boots up using the loose mess of
@@ -1237,6 +1258,9 @@ SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
 void
 SK_Inject_SpawnUnloadListener (void)
 {
+  if (RtlpWaitCouldDeadlock ())
+    return;
+
   //if (SK_GetHostAppUtil ()->isBlacklisted ())
   //{
   //  return;
@@ -1326,12 +1350,23 @@ SK_Inject_SpawnUnloadListener (void)
             }
           }, nullptr, &app_state_cookie);
 
-          const DWORD dwTimeout   = INFINITE;
+          const DWORD dwTimeout   = 1500UL;
           const DWORD dwWaitState =
             WaitForMultipleObjects ( sizeof (signals) /
                                      sizeof (signals [0]),
                                              signals, FALSE,
                                                dwTimeout );
+
+          if (RtlpWaitCouldDeadlock ())
+          {
+            HMODULE this_module = (HMODULE)
+                    ReadPointerAcquire ((void **)&g_hModule_CBT);
+            InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
+            SK_FreeLibraryAndExitThread (this_module, 0x0);
+            InterlockedDecrement        (&injected_procs);
+
+            return 0;
+          }
 
           // Is Process Actively Using Special K (?)
           if ( dwWaitState      == WAIT_OBJECT_0+1 &&

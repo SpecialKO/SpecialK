@@ -168,6 +168,7 @@ protected:
   CRITICAL_SECTION* cs_;
 };
 
+#if 0
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
 {
 public:
@@ -186,6 +187,10 @@ public:
 private:
   CRITICAL_SECTION impl_cs_ = { };
 };
+#else
+#include <mutex>
+using SK_Thread_HybridSpinlock = std::recursive_mutex;
+#endif
 
 
 DWORD

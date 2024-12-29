@@ -114,9 +114,9 @@ struct memory_tracking_s
     //constant_buffers.reserve (2048);
     //}
 
-    void clear (SK_Thread_CriticalSection* /*cs*/)
+    void clear (SK_Thread_HybridSpinlock* /*cs*/)
     {
-      ///std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs);
+      ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs);
 
       for (int i = 0; i < __types; i++)
       {
@@ -341,7 +341,7 @@ struct SK_D3D11_KnownThreads
   SK_D3D11_KnownThreads (void) noexcept (false)///
   {
     _lock =
-      std::make_unique <SK_Thread_HybridSpinlock> (0x400);
+      std::make_unique <SK_Thread_HybridSpinlock> (/*0x400*/);
 
     //ids.reserve    (16);
     //active.reserve (16);
@@ -417,7 +417,7 @@ public:
 
     static
       std::map < std::type_index,
-                 std::pair < SK_Thread_CriticalSection*,
+                 std::pair < SK_Thread_HybridSpinlock*,
                              SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
                            >
                >
@@ -815,7 +815,7 @@ SK_D3D11_CreateShader_Impl (
     S_OK;
 
   const auto GetResources =
-  [&]( gsl::not_null <SK_Thread_CriticalSection**>                        ppCritical,
+  [&]( gsl::not_null <SK_Thread_HybridSpinlock**>                         ppCritical,
        gsl::not_null <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>**> ppShaderDomain ) noexcept
   {
     auto& shaders =
@@ -869,7 +869,7 @@ SK_D3D11_CreateShader_Impl (
     }
   };
 
-  SK_Thread_CriticalSection*                        pCritical   = nullptr;
+  SK_Thread_HybridSpinlock*                         pCritical   = nullptr;
   SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepo = nullptr;
 
   GetResources (

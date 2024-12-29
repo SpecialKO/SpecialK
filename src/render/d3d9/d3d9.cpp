@@ -9862,9 +9862,9 @@ SK_D3D9_InitShaderModTools (void)
   _Shaders.vertex.rev.reserve                  (8192);
   _Shaders.pixel.rev.reserve                   (8192);
 
-  lock_vs = std::make_unique <SK_Thread_HybridSpinlock> (1024);
-  lock_ps = std::make_unique <SK_Thread_HybridSpinlock> (512);
-  lock_vb = std::make_unique <SK_Thread_HybridSpinlock> (64);
+  lock_vs = std::make_unique <SK_Thread_HybridSpinlock> (/*1024*/);
+  lock_ps = std::make_unique <SK_Thread_HybridSpinlock> (/*512*/);
+  lock_vb = std::make_unique <SK_Thread_HybridSpinlock> (/*64*/);
 }
 
 

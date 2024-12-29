@@ -42,7 +42,7 @@ void
 SK_D3D11_ReleaseCachedShaders (ID3D11Device *This, sk_shader_class type)
 {
   const auto GetResources =
-  [&]( gsl::not_null <SK_Thread_CriticalSection**>                        ppCritical,
+  [&]( gsl::not_null <SK_Thread_HybridSpinlock**>                         ppCritical,
        gsl::not_null <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>**> ppShaderDomain ) noexcept
   {
     auto& shaders =
@@ -96,7 +96,7 @@ SK_D3D11_ReleaseCachedShaders (ID3D11Device *This, sk_shader_class type)
     }
   };
 
-  SK_Thread_CriticalSection*                        pCritical   = nullptr;
+  SK_Thread_HybridSpinlock*                         pCritical   = nullptr;
   SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepo = nullptr;
 
   GetResources (
@@ -264,7 +264,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
 
   const auto GetResources =
-  [&]( SK_Thread_CriticalSection**                         ppCritical,
+  [&]( SK_Thread_HybridSpinlock**                         ppCritical,
        SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>** ppShaderDomain )
   {
     switch (type)
@@ -321,7 +321,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       SK_D3D11_GetDeviceContextHandle (pDevCtx);
   }
 
-  SK_Thread_CriticalSection*                        pCritical   = nullptr;
+  SK_Thread_HybridSpinlock*                         pCritical   = nullptr;
   SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepo = nullptr;
 
   GetResources (&pCritical, &pShaderRepo);
@@ -405,7 +405,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
         //dll_log->Log (L"Shader not in cache, and no bytecode available, so ignoring!");
         //
-        //std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*pCritical);
+        //std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*pCritical);
         //
         //SK_D3D11_ShaderDesc pseudo_desc = { };
         //pseudo_desc.type    = SK_D3D11_ShaderType::Invalid;
@@ -2260,7 +2260,7 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
         {
           ImGui::TreePush ("");
 
-          std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_render_view);
 
           SK_ComPtr <ID3D11ShaderResourceView> pSRV2 = nullptr;
 
@@ -2430,7 +2430,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   ID3D11Device* pDevice =
     (ID3D11Device *)(SK_GetCurrentRenderBackend ().device.p);
 
-  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_shader);
 
   auto& io =
     ImGui::GetIO ();
@@ -3420,7 +3420,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       };
 
       {
-        std::scoped_lock <SK_Thread_CriticalSection>
+        std::scoped_lock <SK_Thread_HybridSpinlock>
              disasm_lock (*locks [sk_shader_state_s::ClassToIdx (shader_type)]);
 
         static SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* repos [6] = {

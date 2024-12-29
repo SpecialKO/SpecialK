@@ -266,6 +266,8 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
     return;
   }
 
+  pSwapChain->AddRef ();
+
   if (              latency.counters.lastFrame !=
      std::exchange (latency.counters.lastFrame, SK_GetFramesDrawn ()) )
   {
@@ -307,6 +309,7 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
     latency.stats.History [latency.counters.lastFrame % std::size (latency.stats.History)] =
       fabs (latency.delays.TotalMs);
   }
+  pSwapChain->Release ();
 }
 
 

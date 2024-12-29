@@ -144,13 +144,13 @@ private:
 SK_ICommandProcessor::SK_ICommandProcessor (void)
 {
   process_cmd_lock =
-    std::make_unique <SK_Thread_HybridSpinlock> (1024);
+    std::make_unique <SK_Thread_HybridSpinlock> (/*1024*/);
 
   add_remove_cmd_lock =
-    std::make_unique <SK_Thread_HybridSpinlock> (128);
+    std::make_unique <SK_Thread_HybridSpinlock> (/*128*/);
 
   add_remove_var_lock =
-    std::make_unique <SK_Thread_HybridSpinlock> (128);
+    std::make_unique <SK_Thread_HybridSpinlock> (/*128*/);
 
   AddCommand ("source", new SK_SourceCmd (this));
 }

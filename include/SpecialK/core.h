@@ -110,7 +110,7 @@ bool SK_API_IsLayeredOnD3D11 (SK_RenderAPI api);
 
 
 #ifdef  SK_BUILD_DLL
- class SK_Thread_HybridSpinlock;
+ 
 
 extern "C++" SK_Thread_HybridSpinlock* init_mutex;
 extern "C++" SK_Thread_HybridSpinlock* budget_mutex;

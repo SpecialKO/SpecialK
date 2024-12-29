@@ -180,7 +180,7 @@ SK_D3D11_Map_Impl (
 
           else if (pMappedResource != nullptr)
           {
-            std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_mmio);
+            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_mmio);
 
             auto& map_ctx = (*mapped_resources)[pDevCtx];
 
@@ -237,7 +237,7 @@ SK_D3D11_Map_Impl (
           D3D11_BUFFER_DESC  buf_desc = { };
           pBuffer->GetDesc (&buf_desc);
           {
-            ///std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+            ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (cs_mmio);
 
             // Extra memory allocation pressure for no good reason -- kill it.
             //
@@ -349,7 +349,7 @@ SK_D3D11_Unmap_Impl (
 
     if (SK_D3D11_IsStagingCacheable (rdim, pResource))
     {
-      std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_mmio);
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_mmio);
 
       auto& map_ctx = (*mapped_resources)[pDevCtx];
 

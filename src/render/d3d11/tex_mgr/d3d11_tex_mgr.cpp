@@ -94,12 +94,12 @@ SK_D3D11_InitTextures (void)
     if (bFFX)
       SK_D3D11_inject_textures_ffx = true;
 
-    preload_cs = std::make_unique <SK_Thread_HybridSpinlock> (0x01);
-    dump_cs    = std::make_unique <SK_Thread_HybridSpinlock> (0x02);
-    inject_cs  = std::make_unique <SK_Thread_HybridSpinlock> (0x10);
-    hash_cs    = std::make_unique <SK_Thread_HybridSpinlock> (0x40);
-    cache_cs   = std::make_unique <SK_Thread_HybridSpinlock> (0x80);
-    tex_cs     = std::make_unique <SK_Thread_HybridSpinlock> (0xFF);
+    preload_cs = std::make_unique <SK_Thread_HybridSpinlock> (/*0x01*/);
+    dump_cs    = std::make_unique <SK_Thread_HybridSpinlock> (/*0x02*/);
+    inject_cs  = std::make_unique <SK_Thread_HybridSpinlock> (/*0x10*/);
+    hash_cs    = std::make_unique <SK_Thread_HybridSpinlock> (/*0x40*/);
+    cache_cs   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x80*/);
+    tex_cs     = std::make_unique <SK_Thread_HybridSpinlock> (/*0xFF*/);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;
     cache_opts.min_entries       = config.textures.cache.min_entries;

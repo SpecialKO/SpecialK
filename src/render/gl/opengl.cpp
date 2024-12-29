@@ -2116,7 +2116,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
   bool need_init = false;
   {
-    std::scoped_lock <SK_Thread_CriticalSection> auto_lock0 (*cs_gl_ctx);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock0 (*cs_gl_ctx);
 
     if (init_->empty () && thread_hglrc == nullptr)
     {
@@ -2187,7 +2187,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
   if (! compatible_dc)
   {
-    std::scoped_lock <SK_Thread_CriticalSection> auto_lock1 (*cs_gl_ctx);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock1 (*cs_gl_ctx);
 
     if (__gl_shared_contexts->count (thread_hglrc))
     {
@@ -3581,7 +3581,7 @@ SK_HookGL (LPVOID)
     const wchar_t* wszBackendDLL (L"OpenGL32.dll");
 
     cs_gl_ctx =
-      new SK_Thread_HybridSpinlock (512);
+      new SK_Thread_HybridSpinlock (/*512*/);
 
     if ( StrStrIW ( SK_GetDLLName ().c_str (),
                       wszBackendDLL )
@@ -4881,7 +4881,7 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
     if (__gl_primary_context == nullptr)
         __gl_primary_context = ctx0;
 
-    std::scoped_lock <SK_Thread_CriticalSection>
+    std::scoped_lock <SK_Thread_HybridSpinlock>
            auto_lock (*cs_gl_ctx);
 
     // If sharing with a shared context, then follow the shared context

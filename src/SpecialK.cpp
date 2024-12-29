@@ -1629,20 +1629,20 @@ SK_Attach (DLL_ROLE role)
           void
           {
             cs_dbghelp =
-              new SK_Thread_HybridSpinlock (2048UL);
+              new SK_Thread_HybridSpinlock (/*2048UL*/);
             budget_mutex =
-              new SK_Thread_HybridSpinlock ( 100UL);
+              new SK_Thread_HybridSpinlock (/* 100UL*/);
             init_mutex   =
-              new SK_Thread_HybridSpinlock ( 768UL);
+              new SK_Thread_HybridSpinlock (/* 768UL*/);
             wmi_cs       =
-              new SK_Thread_HybridSpinlock ( 128UL);
+              new SK_Thread_HybridSpinlock (/* 128UL*/);
 
             steam_callback_cs =
-              new SK_Thread_HybridSpinlock ( 256UL);
+              new SK_Thread_HybridSpinlock (/* 256UL*/);
             platform_popup_cs =
-              new SK_Thread_HybridSpinlock ( 512UL);
+              new SK_Thread_HybridSpinlock (/* 512UL*/);
             steam_init_cs     =
-              new SK_Thread_HybridSpinlock ( 128UL);
+              new SK_Thread_HybridSpinlock (/* 128UL*/);
           };
 
     _InitMutexes ();

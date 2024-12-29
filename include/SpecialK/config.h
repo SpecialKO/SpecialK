@@ -38,9 +38,9 @@
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
 
-#define SK_NoPreference -1
-#define SK_Disabled      0
-#define SK_Enabled       1
+static constexpr int SK_NoPreference = -1;
+static constexpr int SK_Disabled     =  0;
+static constexpr int SK_Enabled      =  1;
 
 struct SK_Keybind
 {

@@ -180,7 +180,7 @@ struct lod_hash_table_s
   lod_hash_table_s (void) noexcept (false)
   {
     mutex =
-      std::make_shared <SK_Thread_HybridSpinlock> (120);
+      std::make_shared <SK_Thread_HybridSpinlock> (/*120*/);
   }
 
   lod_hash_table_s  (const lod_hash_table_s &) = default;

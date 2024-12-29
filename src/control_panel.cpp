@@ -7440,6 +7440,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     CallNextHookEx (0, code, wParam, lParam);
 }
 
+extern ULONG64 SK_ImGui_LastKeyboardInputFrame;
+
 LRESULT
 CALLBACK
 SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
@@ -7460,7 +7462,10 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
   auto& io =
     ImGui::GetIO ();
 
-  io.KeysDown [vKey] = isPressed;
+  if (           vKey > 7) {
+    io.KeysDown [vKey] = isPressed;
+    SK_ImGui_LastKeyboardInputFrame = SK_GetFramesDrawn ();
+  }
 
   if (io.KeyAlt && vKey == VK_F4 && isPressed)
   {
@@ -7598,7 +7603,7 @@ SK_ImGui_StageNextFrame (void)
 
   reset_frame_history = false;
 
-  if (config.render.framerate.latent_sync.show_fcat_bars)
+  if (config.render.framerate.latent_sync.show_fcat_bars) 
   {
     SK_ImGui_DrawFCAT ();
   }

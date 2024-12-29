@@ -541,17 +541,118 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       if (SK_Reflex_FixOutOfBandInput (markerParams, device.p))
         return true;
 
-      SK_PCL_Heartbeat (markerParams);
+      static HANDLE hSetMarkerSimStart =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+                      hSetMarkerSimEnd =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+           hSetMarkerRenderSubmitStart =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+             hSetMarkerRenderSubmitEnd =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+                hSetMarkerPresentStart =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+                  hSetMarkerPresentEnd =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+                 hSetMarkerInputSample =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr),
+                     hSetMarkerPCLPing =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+        static
+          NV_LATENCY_MARKER_PARAMS
+                     markerSimStart,
+                     markerSimEnd,
+                     markerRenderSubmitStart,
+                     markerRenderSubmitEnd,
+                     markerPresentStart,
+                     markerPresentEnd,
+                     markerInputSample,
+                     markerPCLPing;
+
+      switch (marker)
+      {
+        case SIMULATION_START:   markerSimStart          = markerParams; SetEvent (hSetMarkerSimStart);          break;
+        case SIMULATION_END:     markerSimEnd            = markerParams; SetEvent (hSetMarkerSimEnd);            break;
+        case RENDERSUBMIT_START: markerRenderSubmitStart = markerParams; SetEvent (hSetMarkerRenderSubmitStart); break;
+        case RENDERSUBMIT_END:   markerRenderSubmitEnd   = markerParams; SetEvent (hSetMarkerRenderSubmitEnd);
+                                 latency.submitQueuedFrame (SK_ComQIPtr <IDXGISwapChain1> (swapchain.p).p);      break;
+        case PRESENT_START:      markerPresentStart      = markerParams; SetEvent (hSetMarkerPresentStart);      break;
+        case PRESENT_END:        markerPresentEnd        = markerParams; SetEvent (hSetMarkerPresentEnd);        break;
+        case INPUT_SAMPLE:       markerInputSample       = markerParams; SetEvent (hSetMarkerInputSample);       break;
+        case PC_LATENCY_PING:    markerPCLPing           = markerParams; SetEvent (hSetMarkerPCLPing);           break;
+        default:
+          break;
+      }
+
+      static HANDLE hThread =
+      SK_Thread_CreateEx ([](LPVOID)->DWORD
+      {
+        auto events
+            = {__SK_DLL_TeardownEvent,
+                   hSetMarkerSimStart,
+                     hSetMarkerSimEnd,
+          hSetMarkerRenderSubmitStart,
+            hSetMarkerRenderSubmitEnd,
+               hSetMarkerPresentStart,
+                 hSetMarkerPresentEnd,
+                hSetMarkerInputSample,
+                    hSetMarkerPCLPing};
+
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+
+        DWORD  dwWaitState  = (DWORD)-1L;
+        while (dwWaitState != WAIT_OBJECT_0)
+        {
+          auto& rb =
+            SK_GetCurrentRenderBackend ();
+
+          switch (dwWaitState)
+          {
+            case WAIT_OBJECT_0+1:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK:
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerSimStart);
+              break;
+            case WAIT_OBJECT_0+2:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr?NVAPI_OK:
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerSimEnd);
+              break;
+            case WAIT_OBJECT_0+3:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerRenderSubmitStart);
+              break;
+            case WAIT_OBJECT_0+4:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerRenderSubmitEnd);
+              break;
+            case WAIT_OBJECT_0+5:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerPresentStart);
+            case WAIT_OBJECT_0+6:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerPresentEnd);
+            case WAIT_OBJECT_0+7:
+                 NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+              SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerInputSample);
+            case WAIT_OBJECT_0+8:
+                 SK_PCL_Heartbeat (markerPCLPing);
+              //   NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+              //SK_NvAPI_D3D_SetLatencyMarker (rb.device.p, &markerPCLPing);
+              break;
+          }
+
+          dwWaitState =
+            WaitForMultipleObjects (8, events.begin (), FALSE, INFINITE);
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] Reflex Offload Thread");
 
       // SetLatencyMarker is hooked on the simulation marker of the first frame,
       //   we may have gotten here out-of-order.
-      ret = NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
-         SK_NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
-    }
-
-    if (marker == RENDERSUBMIT_END)
-    {
-      latency.submitQueuedFrame (pSwapChain.p);
+      ret = NVAPI_OK;//NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+                     //SK_NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
     }
   }
 

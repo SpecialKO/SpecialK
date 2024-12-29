@@ -456,7 +456,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
     if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
     {
       SK_D3D11_EnableMMIOTracking = true;
-      ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+      ////std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (cs_mmio);
 
       ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false,
                           ImGuiWindowFlags_NoNavInputs |
@@ -676,7 +676,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
     {
       std::unordered_map < ID3D11RenderTargetView*, UINT > rt_indexes;
 
-      std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_render_view);
 
       //SK_AutoCriticalSection auto_cs_rv (&cs_render_view, true);
 

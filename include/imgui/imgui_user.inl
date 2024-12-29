@@ -2948,7 +2948,6 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 }
 
 
-#include <SpecialK/control_panel.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
 static int64_t g_Time           = { };
@@ -3222,8 +3221,9 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
   return false;
 }
 
-POINT   SK_ImGui_LastKnownCursorPos;
-HCURSOR SK_ImGui_LastKnownCursor;
+ULONG64 SK_ImGui_LastKeyboardInputFrame =  0 ;
+POINT   SK_ImGui_LastKnownCursorPos     = { };
+HCURSOR SK_ImGui_LastKnownCursor        =  0 ;
 
 void
 SK_ImGui_UpdateClassCursor (void)
@@ -3481,7 +3481,7 @@ SK_ImGui_User_NewFrame (void)
   bool new_input =
     ( !GetLastInputInfo (&cii) ||
           std::exchange ( lii.dwTime,
-                          cii.dwTime ) != cii.dwTime );
+                          cii.dwTime ) != cii.dwTime ) || SK_ImGui_LastKeyboardInputFrame >= SK_GetFramesDrawn () - 1;
 
 
   if ((! game_window.mouse.can_track) || game_window.mouse.last_move_msg < SK::ControlPanel::current_time - _IdleCursorTimeout) // No Hover / Leave Tracking
@@ -3578,17 +3578,17 @@ SK_ImGui_User_NewFrame (void)
     SK_IsGameWindowActive (false, hWndForeground);
 
     // Avoid overhead from calling SK_GetAsyncKeyState (...)
-    //   repeatedly; we already have a low-level keyboard hook!
-#ifdef SK_DOES_NOT_TRUST_LOW_LEVEL_KEYBOARD_HOOK
-  if (bActive && new_input)
-  {
+    //   repeatedly; we already have a keyboard hook!
+//#ifdef SK_DOES_NOT_TRUST_LOW_LEVEL_KEYBOARD_HOOK
+  if (bActive && new_input && SK_ImGui_LastKeyboardInputFrame < SK_GetFramesDrawn () - 5)
+  {                        // ^^^^ The last frame we saw any Keyboard input on the keyboard hook.
     for (UINT i = 7 ; i < 255 ; ++i)
     {
       io.KeysDown [i] =
         ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
     }
   }
-#endif
+//#endif
 
   if (! bActive)
     RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);

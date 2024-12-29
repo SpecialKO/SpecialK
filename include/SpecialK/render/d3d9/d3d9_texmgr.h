@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Windows.h>
 
@@ -37,7 +37,7 @@ class SK_ThreadSafe_HashSet
 public:
   SK_ThreadSafe_HashSet (void) {
     lock_ =
-      std::make_unique <SK_Thread_HybridSpinlock> (0x100);
+      std::make_unique <SK_Thread_HybridSpinlock> (/*0x100*/);
   }
 
   ~SK_ThreadSafe_HashSet (void) = default;
@@ -693,7 +693,7 @@ public:
     //SK_Thread_HybridSpinlock cs_jobs_    =
     //  SK_Thread_HybridSpinlock ( 100UL);
     SK_Thread_HybridSpinlock cs_results_ =
-      SK_Thread_HybridSpinlock (1000UL);
+      SK_Thread_HybridSpinlock (/*1000UL*/);
 
     HANDLE spool_thread_;
 

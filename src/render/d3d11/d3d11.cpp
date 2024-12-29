@@ -131,15 +131,15 @@ SK_D3D11_InitMutexes (void)
 
   if (0 == InterlockedCompareExchange (&_mutex_init, 1, 0))
   {
-    cs_shader      = std::make_unique <SK_Thread_HybridSpinlock> (0x666);
-    cs_shader_vs   = std::make_unique <SK_Thread_HybridSpinlock> (0x300);
-    cs_shader_ps   = std::make_unique <SK_Thread_HybridSpinlock> (0x200);
-    cs_shader_gs   = std::make_unique <SK_Thread_HybridSpinlock> (0x100);
-    cs_shader_hs   = std::make_unique <SK_Thread_HybridSpinlock> (0x100);
-    cs_shader_ds   = std::make_unique <SK_Thread_HybridSpinlock> (0x100);
-    cs_shader_cs   = std::make_unique <SK_Thread_HybridSpinlock> (0x300);
-    cs_mmio        = std::make_unique <SK_Thread_HybridSpinlock> (0xe0);
-    cs_render_view = std::make_unique <SK_Thread_HybridSpinlock> (0xb0);
+    cs_shader      = std::make_unique <SK_Thread_HybridSpinlock> (/*0x666*/);
+    cs_shader_vs   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x300*/);
+    cs_shader_ps   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x200*/);
+    cs_shader_gs   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x100*/);
+    cs_shader_hs   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x100*/);
+    cs_shader_ds   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x100*/);
+    cs_shader_cs   = std::make_unique <SK_Thread_HybridSpinlock> (/*0x300*/);
+    cs_mmio        = std::make_unique <SK_Thread_HybridSpinlock> (/*0xe0*/);
+    cs_render_view = std::make_unique <SK_Thread_HybridSpinlock> (/*0xb0*/);
 
     InterlockedIncrement (&_mutex_init);
   }
@@ -2158,7 +2158,7 @@ SK_D3D11_CopySubresourceRegion_Impl (
           D3D11_BUFFER_DESC  buf_desc = { };
           pBuffer->GetDesc (&buf_desc);
           {
-            ////std::scoped_lock <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+            ////std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (cs_mmio);
 
             if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
               mem_map_stats->last_frame.buffer_types [0]++;
@@ -7691,7 +7691,7 @@ SKX_ImGui_RegisterDiscardableResource (IUnknown* pRes)
   if (pRes == nullptr)
     return;
 
-  std::scoped_lock <SK_Thread_CriticalSection>
+  std::scoped_lock <SK_Thread_HybridSpinlock>
                   auto_lock (*cs_render_view);
 
   SK_ComQIPtr <ID3D11View>
