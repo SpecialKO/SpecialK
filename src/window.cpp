@@ -8462,6 +8462,8 @@ BOOL
 WINAPI
 SK_ClipCursor (const RECT *lpRect)
 {
+  BOOL bRet = TRUE;
+
   // Do not allow cursor clipping when the game's window is inactive
   if ((! game_window.active) || (game_window.size_move)) // Or being moved
     lpRect = nullptr;
@@ -8475,26 +8477,29 @@ SK_ClipCursor (const RECT *lpRect)
                         (nullptr != lpRect &&
                  memcmp (&lastRect, lpRect, sizeof (RECT)) != 0))
   {
-    if (lpRect == nullptr)
-    {
-      lastRect.left   = LONG_MIN;
-      lastRect.top    = LONG_MIN;
-      lastRect.bottom = LONG_MAX;
-      lastRect.right  = LONG_MAX;
-    }
-
-    else
-    {
-      lastRect = *lpRect;
-    }
-
-    return
+    bRet =
       ClipCursor_Original != nullptr ?
       ClipCursor_Original (lpRect)   :
       ClipCursor          (lpRect);
+
+    if (bRet)
+    {
+      if (lpRect == nullptr)
+      {
+        lastRect.left   = LONG_MIN;
+        lastRect.top    = LONG_MIN;
+        lastRect.bottom = LONG_MAX;
+        lastRect.right  = LONG_MAX;
+      }
+
+      else
+      {
+        lastRect = *lpRect;
+      }
+    }
   }
 
-  return TRUE;
+  return bRet;
 }
 
 BOOL
