@@ -632,17 +632,20 @@ SetThreadAffinityMask_Detour (
           dwThreadAffinityMask );
   }
 
-  SK_TLS*   pTLS  =
+  SK_TLS* pTLS  =
     (dwTid == dwCurrentTid)   ?
       SK_TLS_Bottom   (     ) :
       SK_TLS_BottomEx (dwTid);
 
+  SK_Sched_ThreadContext* scheduler =
+    pTLS != nullptr ? pTLS->scheduler.getPtr ()
+                    : nullptr;
 
-  if ( pTLS != nullptr &&
-       pTLS->scheduler->lock_affinity )
+  if ( scheduler != nullptr &&
+       scheduler->lock_affinity )
   {
     dwRet =
-      pTLS->scheduler->affinity_mask;
+      scheduler->affinity_mask;
   }
 
   else
@@ -654,15 +657,89 @@ SetThreadAffinityMask_Detour (
   }
 
 
-  if ( pTLS != nullptr && dwRet != 0 &&
-    (! pTLS->scheduler->lock_affinity) )
+  if ( scheduler != nullptr && dwRet != 0 &&
+    (! scheduler->lock_affinity) )
   {
-    pTLS->scheduler->affinity_mask =
+    scheduler->affinity_mask =
       dwThreadAffinityMask;
   }
 
   return dwRet;
 }
+
+#if 0
+DWORD_PTR
+WINAPI
+SetThreadAffinityMask_Detour (
+  _In_ HANDLE    hThread,
+  _In_ DWORD_PTR dwThreadAffinityMask )
+{
+  SK_LOG_FIRST_CALL
+
+  static SYSTEM_INFO
+             sysinfo = {   };
+
+  if (sysinfo.dwNumberOfProcessors == 0)
+  {
+    SK_GetSystemInfo (&sysinfo);
+  }
+
+  const
+  DWORD     dwCurrentTid =
+ SK_Thread_GetCurrentId ();
+  DWORD_PTR dwRet = 0;
+  DWORD     dwTid = ( hThread ==
+    SK_GetCurrentThread (    ) ) ?
+        dwCurrentTid             :
+         GetThreadId (hThread);
+
+  if (dwTid == 0)
+  {
+    return
+      SetThreadAffinityMask_Original (
+        hThread,
+          dwThreadAffinityMask );
+  }
+
+  SK_TLS*   pTLS  =
+    (dwTid == dwCurrentTid)   ?
+      SK_TLS_Bottom   (     ) :
+      SK_TLS_BottomEx (dwTid);
+
+  SK_Sched_ThreadContext* scheduler =
+    pTLS != nullptr ? pTLS->scheduler.getPtr ()
+                    : nullptr;
+
+
+  if ( scheduler != nullptr &&
+       scheduler->lock_affinity )
+  {
+    dwRet =
+      scheduler->affinity_mask;
+  }
+
+  else if ( scheduler != nullptr &&
+            scheduler->affinity_mask != 
+                dwThreadAffinityMask )
+  {
+    dwRet =
+      SetThreadAffinityMask_Original (
+              hThread,
+                dwThreadAffinityMask );
+  }
+
+
+  if ( dwRet != 0 && scheduler != nullptr &&
+                  (! scheduler->lock_affinity) )
+  {
+    dwRet =
+      scheduler->affinity_mask;
+      scheduler->affinity_mask =
+          dwThreadAffinityMask;
+  }
+
+  return dwRet;
+#endif
 
 DWORD_PTR
 WINAPI

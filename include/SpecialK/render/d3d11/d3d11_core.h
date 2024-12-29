@@ -1609,12 +1609,16 @@ struct d3d11_shader_tracking_s
 {
   void clear (void)
   {
-    for ( int i = 0 ; i < std::min ( SK_D3D11_AllocatedDevContexts + 1, SK_D3D11_MAX_DEV_CONTEXTS ); ++i )
+    const auto dev_contexts =
+      std::min ( SK_D3D11_AllocatedDevContexts + 1, SK_D3D11_MAX_DEV_CONTEXTS );
+
+    for ( int i = 0 ; i < dev_contexts ; ++i )
     {
       active.set (i, false);
-
-      RtlZeroMemory (current_->views [i], _MAX_VIEWS * sizeof (ID3D11ShaderResourceView*));
     }
+
+    RtlZeroMemory ( &current_->views [0],
+                      dev_contexts * sizeof (ID3D11ShaderResourceView*) );
 
     num_draws          = 0;
     num_deferred_draws = 0;
