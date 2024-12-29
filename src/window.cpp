@@ -5311,27 +5311,14 @@ SetActiveWindow_Detour (HWND hWnd)
     SK_SetActiveWindow (hWnd);
 }
 
-HWND  SK_CachedForegroundWindow     = 0;
-DWORD SK_CachedForegroundWindowTime = 0;
-
 HWND
 WINAPI
 SK_GetForegroundWindow (void)
 {
-  const DWORD dwCurrentTime =
-    SK_GetFramesDrawn () > 5 ? SK::ControlPanel::current_time
-                             : SK_timeGetTime ();
-
-  SK_CachedForegroundWindow =
+  return
     GetForegroundWindow_Original != nullptr ?
     GetForegroundWindow_Original ()         :
     GetForegroundWindow          ();
-
-  SK_CachedForegroundWindowTime =
-                  dwCurrentTime;
-
-  return
-    SK_CachedForegroundWindow;
 }
 
 HWND
