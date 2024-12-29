@@ -920,7 +920,7 @@ struct sk_config_t
     bool      allow_refresh_change =  true;
     bool      aspect_ratio_stretch = false;
     bool      focus_mode           = false;
-    bool      focus_mode_if_focused= false;
+    bool      focus_mode_if_focused=  true;
     bool      confirm_mode_changes =  true;
     bool      save_monitor_prefs   =  true;
     bool      warn_no_mpo_planes   = false;

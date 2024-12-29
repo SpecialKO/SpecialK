@@ -139,6 +139,14 @@ protected:
                                       _lastDeferredCheck2;\
   static std::pair<ID3D11DeviceContext*,bool>             \
                                       _lastDeferredCheck3;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck4;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck5;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck6;\
+  static std::pair<ID3D11DeviceContext*,bool>             \
+                                      _lastDeferredCheck7;\
   static std::pair<ID3D11DeviceContext*,bool>*            \
     _pLastDeferredCheck        = &_lastDeferredCheck0;    \
                                                           \
@@ -157,6 +165,14 @@ protected:
               _pLastDeferredCheck  = &_lastDeferredCheck2;\
     else if ( _pLastDeferredCheck == &_lastDeferredCheck2)\
               _pLastDeferredCheck  = &_lastDeferredCheck3;\
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck3)\
+              _pLastDeferredCheck  = &_lastDeferredCheck4;\
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck4)\
+              _pLastDeferredCheck  = &_lastDeferredCheck5;\
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck5)\
+              _pLastDeferredCheck  = &_lastDeferredCheck6;\
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck6)\
+              _pLastDeferredCheck  = &_lastDeferredCheck7;\
     else      _pLastDeferredCheck  = &_lastDeferredCheck0;\
                                                           \
   bool bMustNotIgnore =                                   \
@@ -188,6 +204,14 @@ SK_D3D11_IsDevCtxDeferred (ID3D11DeviceContext* ctx)
                                       _lastDeferredCheck2;
   static std::pair<ID3D11DeviceContext*,bool>
                                       _lastDeferredCheck3;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck4;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck5;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck6;
+  static std::pair<ID3D11DeviceContext*,bool>
+                                      _lastDeferredCheck7;
   static std::pair<ID3D11DeviceContext*,bool>*
     _pLastDeferredCheck        = &_lastDeferredCheck0;
 
@@ -206,6 +230,14 @@ SK_D3D11_IsDevCtxDeferred (ID3D11DeviceContext* ctx)
               _pLastDeferredCheck  = &_lastDeferredCheck2;
     else if ( _pLastDeferredCheck == &_lastDeferredCheck2)
               _pLastDeferredCheck  = &_lastDeferredCheck3;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck3)
+              _pLastDeferredCheck  = &_lastDeferredCheck4;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck4)
+              _pLastDeferredCheck  = &_lastDeferredCheck5;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck5)
+              _pLastDeferredCheck  = &_lastDeferredCheck6;
+    else if ( _pLastDeferredCheck == &_lastDeferredCheck6)
+              _pLastDeferredCheck  = &_lastDeferredCheck7;
     else      _pLastDeferredCheck  = &_lastDeferredCheck0;
 
   return bIsDevCtxDeferred;
@@ -234,6 +266,10 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
   static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict1;
   static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict2;
   static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict3;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict4;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict5;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict6;
+  static std::pair<ID3D11DeviceContext*,bool>  _lastVerdict7;
   static std::pair<ID3D11DeviceContext*,bool>* _pLastVerdict = &_lastVerdict0;
 
   std::pair<ID3D11DeviceContext*,bool>* pLastVerdict = _pLastVerdict;
@@ -248,6 +284,14 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
               _pLastVerdict  = &_lastVerdict2;
     else if ( _pLastVerdict == &_lastVerdict2)
               _pLastVerdict  = &_lastVerdict3;
+    else if ( _pLastVerdict == &_lastVerdict3)
+              _pLastVerdict  = &_lastVerdict4;
+    else if ( _pLastVerdict == &_lastVerdict4)
+              _pLastVerdict  = &_lastVerdict5;
+    else if ( _pLastVerdict == &_lastVerdict5)
+              _pLastVerdict  = &_lastVerdict6;
+    else if ( _pLastVerdict == &_lastVerdict6)
+              _pLastVerdict  = &_lastVerdict7;
     else      _pLastVerdict  = &_lastVerdict0;
 
     pLastVerdict = _pLastVerdict;
