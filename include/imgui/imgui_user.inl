@@ -3246,6 +3246,7 @@ extern DWORD SK_CachedForegroundWindowTime;
 HANDLE  hPollCursorEvent;
 
 DWORD
+WINAPI
 SK_ImGui_CursorPollingThread (LPVOID)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
