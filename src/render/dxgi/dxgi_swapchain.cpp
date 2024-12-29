@@ -418,17 +418,32 @@ IWrapDXGISwapChain::SetPrivateDataInterface (REFGUID Name, const IUnknown *pUnkn
 HRESULT
 STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataSize, void *pData)
 {
-  std::scoped_lock lock (_backbufferLock);
+  if (pDataSize == nullptr)
+    return E_INVALIDARG;
+
+  const bool custom_private_data =
+    InlineIsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) || 
+    InlineIsEqualGUID (Name, SKID_DXGI_SwapChainRealBackbuffer_D3D11);
+
+  if (! custom_private_data)
+  {
+    return
+      pReal->GetPrivateData (Name, pDataSize, pData);
+  }
+
 
   if (IsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) &&
-                                                _backbuffers.contains (0))
+                                               !_backbuffers.empty ())
   {
-    if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
-                                                  pDataSize != nullptr)
+    SK_ComQIPtr <ID3D11Device>                  pDev11;
+    if (_backbuffer_views.srv.p != nullptr || ((pDev11 = pDev) != nullptr &&
+                                                     pDataSize != nullptr))
     {
       if (                  pData != nullptr && *pDataSize >= sizeof (void*) &&
           _backbuffer_views.srv.p == nullptr)
       {
+        std::scoped_lock lock (_backbufferLock);
+
         D3D11_TEXTURE2D_DESC        texDesc = { };
         _backbuffers [0]->GetDesc (&texDesc);
 
@@ -467,8 +482,9 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
 
   else if (IsEqualGUID (Name, SKID_DXGI_SwapChainRealBackbuffer_D3D11))
   {
-    if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
-                                                  pDataSize != nullptr)
+    SK_ComQIPtr <ID3D11Device>                  pDev11;
+    if (_backbuffer_views.rtv.p != nullptr || ((pDev11 = pDev) != nullptr &&
+                                                     pDataSize != nullptr))
     {
       if (                  pData != nullptr && *pDataSize >= sizeof (void*) &&
           _backbuffer_views.rtv.p == nullptr)
@@ -510,8 +526,6 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
     }
   }
 
-  if (pDataSize == nullptr || pData == nullptr)
-    return E_INVALIDARG;
 
   return
     pReal->GetPrivateData (Name, pDataSize, pData);
