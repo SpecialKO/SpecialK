@@ -1,4 +1,16 @@
-﻿24.12.28.4
+﻿24.12.29
+========
+ + Improved input neutralization for games that use Overlapped IO to read
+     HID devices (i.e. SDL2) when blocking input to the game.
+ + Fixed problems with mouse cursor clipping caused by treading ClipRect
+     as thread-local instead of global.
+
+24.12.28.5
+==========
+ + Updated compiler version; anything broken between 24.12.28.4 and now is
+     probably a compiler bug.
+
+24.12.28.4
 ==========
  + Disable dynamic spinlocks feature accidentally enabled for all games
      in 24.12.28.1.

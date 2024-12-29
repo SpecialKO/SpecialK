@@ -8469,7 +8469,7 @@ SK_ClipCursor (const RECT *lpRect)
   //
   // Avoid unnecessary OS calls, since we have the base function hooked already
   //
-  static thread_local RECT lastRect = {};
+  static RECT             lastRect = {};
   if (                  (nullptr == lpRect &&
       !SK_IsRectInfinite(&lastRect)) ||
                         (nullptr != lpRect &&
