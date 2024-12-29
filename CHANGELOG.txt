@@ -1,4 +1,12 @@
-﻿24.12.29
+﻿24.12.29.1
+==========
++ Optimized D3D11 stateblock Create/Apply code when deferred D3D11 contexts
+    are not in use.
++ Optimized D3D11 state tracker clear operation.
++ Optimized use of mouse cursor image and position APIs.
++ Removed hook on CloseHandle (...) unless a debugger is present.
+
+24.12.29
 ========
  + Improved input neutralization for games that use Overlapped IO to read
      HID devices (i.e. SDL2) when blocking input to the game.
