@@ -351,7 +351,7 @@ public:
     } statistics;
   } displays [_MAX_DISPLAYS];
 
-  bool                    in_present_call      = false;
+  BOOL                    in_present_call      = FALSE;
   int                     active_display       =  0;
   uint32_t                display_crc
                            [_MAX_DISPLAYS]     = { };   // Quick detect for changing displays

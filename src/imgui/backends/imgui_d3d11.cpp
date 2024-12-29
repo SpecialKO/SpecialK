@@ -2069,10 +2069,13 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 {
   std::scoped_lock lock(_ctx_lock);
 
-  SK_ReleaseAssert (  _d3d11_rbk->_pSwapChain.IsEqualObject (pSwapChain));
-  SK_ReleaseAssert (! _d3d11_rbk->frames_.empty ());
+  auto *backend =
+    _d3d11_rbk.getPtr ();
 
-  if (_d3d11_rbk->frames_.empty ())
+  SK_ReleaseAssert (  backend->_pSwapChain.IsEqualObject (pSwapChain));
+  SK_ReleaseAssert (! backend->frames_.empty ());
+
+  if (backend->frames_.empty ())
     return;
 
   if (! _pDeviceCtx.p)
@@ -2081,7 +2084,12 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! SK_D3D11_EnsureMatchingDevices (pSwapChain, _d3d11_rbk->_pDevice))
+  // Do not state track our own activity during Present (...)
+  SK_ScopedBool
+    _(&rb.in_present_call);
+       rb.in_present_call = false;
+
+  if (! SK_D3D11_EnsureMatchingDevices (pSwapChain, backend->_pDevice))
     return;
 
   SK_TLS *pTLS =
@@ -2112,11 +2120,11 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   _pDeviceCtx->OMSetRenderTargetsAndUnorderedAccessViews (0, nullptr, nullptr, 0, 0, nullptr, nullptr);
 
   // Not necessarily having anything to do with HDR, this is a placeholder for now.
-  _pDeviceCtx->OMSetRenderTargets (1, &_d3d11_rbk->frames_ [0].hdr.pRTV.p,    nullptr);
-  _pDeviceCtx->OMSetBlendState    (    _d3d11_rbk->pGenericBlend, nullptr, 0xffffffff);
+  _pDeviceCtx->OMSetRenderTargets (1, &backend->frames_ [0].hdr.pRTV.p,    nullptr);
+  _pDeviceCtx->OMSetBlendState    (    backend->pGenericBlend, nullptr, 0xffffffff);
 
-  D3D11_TEXTURE2D_DESC                             tex2d_desc = { };
-  _d3d11_rbk->frames_ [0].pRenderOutput->GetDesc (&tex2d_desc);
+  D3D11_TEXTURE2D_DESC                          tex2d_desc = { };
+  backend->frames_ [0].pRenderOutput->GetDesc (&tex2d_desc);
 
   D3D11_VIEWPORT
     vp          = { };
