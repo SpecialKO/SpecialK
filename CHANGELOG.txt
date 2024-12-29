@@ -1,4 +1,10 @@
-﻿24.12.29.1
+﻿24.12.29.2
+==========
+ + Added option to have ADHD mode disengage when Alt-Tabbing to apps on
+     the same display as the game.
+ + ADHD mode disables Aspect Ratio Stretch now.
+
+24.12.29.1
 ==========
  + Added a new display mode to blackout secondary monitors while playing
      games (Refer to Display | ADHD Multi-Monitor Mode).

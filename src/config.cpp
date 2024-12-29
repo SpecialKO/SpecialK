@@ -973,6 +973,9 @@ struct {
 } render;
 
 struct {
+  sk::ParameterBool*
+                    multimonitor_focus_is_focused = nullptr;
+  sk::ParameterBool*      multimonitor_focus_mode = nullptr;
   sk::ParameterBool*      force_fullscreen        = nullptr;
   sk::ParameterBool*      force_windowed          = nullptr;
   sk::ParameterBool*      confirm_mode_changes    = nullptr;
@@ -984,7 +987,6 @@ struct {
   sk::ParameterFloat*     override_refresh        = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
   sk::ParameterBool*      aspect_ratio_stretch    = nullptr;
-  sk::ParameterBool*      multimonitor_focus_mode = nullptr;
 } display;
 
 struct {
@@ -1913,6 +1915,7 @@ auto DeclKeybind =
     ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
     ConfigEntry (display.aspect_ratio_stretch,           L"Fill monitor background (eg. black bars) in windowed mode", dll_ini,         L"Display.Output",        L"AspectRatioStretch"),
     ConfigEntry (display.multimonitor_focus_mode,        L"Displays black background on all except the game's monitor",dll_ini,         L"Display.Output",        L"MultiMonitorADHDRelief"),
+    ConfigEntry (display.multimonitor_focus_is_focused,  L"Whenever the game loses input focus, ADHD mode turns off",  osd_ini,         L"Display.Monitor",       L"MultiMonitorFocusIsFocused"),
     ConfigEntry (display.allow_refresh_change,           L"Allow Current Game to change Refresh Rate",                 dll_ini,         L"Display.Output",        L"AllowRefreshRateChanges"),
 
 
@@ -4176,6 +4179,8 @@ auto DeclKeybind =
   display.force_windowed->load              (config.display.force_windowed);
   display.force_10bpc_sdr->load             (config.render.output.force_10bpc);
   display.aspect_ratio_stretch->load        (config.display.aspect_ratio_stretch);
+  display.multimonitor_focus_is_focused
+                                     ->load (config.display.focus_mode_if_focused);
   display.multimonitor_focus_mode->load     (config.display.focus_mode);
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
   display.save_monitor_prefs->load          (config.display.save_monitor_prefs);
@@ -6417,20 +6422,21 @@ SK_SaveConfig ( std::wstring name,
   }
 
   window.override->store (
-                       std::format ( L"{}x{}", config.window.res.override.x,
-                                               config.window.res.override.y ) );
-  window.multi_monitor_mode->store            (config.window.multi_monitor_mode);
+                        std::format ( L"{}x{}", config.window.res.override.x,
+                                                config.window.res.override.y ) );
+  window.multi_monitor_mode->store             (config.window.multi_monitor_mode);
 
-  display.force_fullscreen->store             (config.display.force_fullscreen);
-  display.force_windowed->store               (config.display.force_windowed);
-  display.force_10bpc_sdr->store              (config.render.output.force_10bpc);
-  display.aspect_ratio_stretch->store         (config.display.aspect_ratio_stretch);
-  display.multimonitor_focus_mode->store      (config.display.focus_mode);
-  display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
-  display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
-  display.save_resolution->store              (config.display.resolution.save);
-  display.warn_no_mpo_planes->store           (config.display.warn_no_mpo_planes);
-  display.allow_refresh_change->store         (config.display.allow_refresh_change);
+  display.force_fullscreen->store              (config.display.force_fullscreen);
+  display.force_windowed->store                (config.display.force_windowed);
+  display.force_10bpc_sdr->store               (config.render.output.force_10bpc);
+  display.aspect_ratio_stretch->store          (config.display.aspect_ratio_stretch);
+  display.multimonitor_focus_is_focused->store (config.display.focus_mode_if_focused);
+  display.multimonitor_focus_mode->store       (config.display.focus_mode);
+  display.confirm_mode_changes->store          (config.display.confirm_mode_changes);
+  display.save_monitor_prefs->store            (config.display.save_monitor_prefs);
+  display.save_resolution->store               (config.display.resolution.save);
+  display.warn_no_mpo_planes->store            (config.display.warn_no_mpo_planes);
+  display.allow_refresh_change->store          (config.display.allow_refresh_change);
 
   if ((! config.display.resolution.override.isZero ()) || config.display.resolution.save)
   {

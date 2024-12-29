@@ -8604,8 +8604,10 @@ SK_Win32_DestroyBackgroundWindow (void)
 {
   if (SK_Win32_BackgroundHWND != HWND_DESKTOP)
   {
-    if (   IsWindow (SK_Win32_BackgroundHWND))
+    if (   IsWindow (SK_Win32_BackgroundHWND)) {
+         ShowWindow (SK_Win32_BackgroundHWND, SW_FORCEMINIMIZE);
       DestroyWindow (SK_Win32_BackgroundHWND);
+    }
 
     SK_Win32_BackgroundHWND = HWND_DESKTOP;
   }
@@ -8691,7 +8693,8 @@ SK_Win32_BringBackgroundWindowToTop (void)
     {
       HWND hWndAfter = hWndGame;
 
-      if (config.display.aspect_ratio_stretch || !(config.display.aspect_ratio_stretch || config.display.focus_mode))
+      if ( config.display.aspect_ratio_stretch ||
+         !(config.display.aspect_ratio_stretch || config.display.focus_mode) )
       {
         SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
                             mi.rcMonitor.left,
@@ -8757,6 +8760,15 @@ SK_Win32_BringBackgroundWindowToTop (void)
           const int totalWidth  = (maxX - minX);
           const int totalHeight = (maxY - minY);
 
+          DWORD dwVisibilityFlags = 
+            ( config.display.focus_mode ? SWP_SHOWWINDOW
+                                        : SWP_HIDEWINDOW );
+
+          if ((! game_window.active) && config.display.focus_mode_if_focused)
+          {
+            dwVisibilityFlags = SWP_HIDEWINDOW;
+          }
+
           SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
                             minX, minY,
                             totalWidth,
@@ -8764,9 +8776,7 @@ SK_Win32_BringBackgroundWindowToTop (void)
         (hWndAfter != hWndGame) ? SWP_NOREPOSITION
                                 : 0x0
                                 | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
-        
-        ( config.display.focus_mode ? SWP_SHOWWINDOW
-                                    : SWP_HIDEWINDOW ) );
+                                dwVisibilityFlags );
         }
       }
 

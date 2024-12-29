@@ -1799,11 +1799,16 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
   void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
   void SK_Display_ClearDPIAwareness               (bool bOnlyIfWin10);
 
+#if 0
   bool bDPIAwareBefore =
        bDPIAware;
+#endif
 
   ImGui::BeginGroup ();
 
+  // This has never been useful, default policy is the right
+  //   policy > 98% of the time.
+#if 0
   if (ImGui::Checkbox ("Ignore DPI Scaling",      &bDPIAware))
   {
     config.dpi.disable_scaling                  = (bDPIAware);
@@ -1841,6 +1846,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::BulletText     ("Game Restart Required");
     ImGui::PopStyleColor  ();
   }
+#endif
 
   if (display_list [0] != '\0')
   {
@@ -1897,6 +1903,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
   {
     config.window.center =
       config.display.aspect_ratio_stretch;
+
+    if (config.display.aspect_ratio_stretch)
+        config.display.focus_mode = false;
 
     if (config.display.aspect_ratio_stretch)
     {
@@ -2091,23 +2100,61 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::SetItemTooltip ("Some engines may require a game restart to adjust to new aspect ratio.");
   }
 
-  if (ImGui::Checkbox ("ADHD Multi-Monitor Mode", &config.display.focus_mode))
-  {
-    if (config.display.focus_mode)
-    {
-      config.window.background_render = true;             // Required for this to work reliably
-      config.window.always_on_top     = SmartAlwaysOnTop; // Needed to fix taskbar visibility
-    }
-
-    SK_Win32_BringBackgroundWindowToTop ();
-
-    config.utility.save_async ();
+  static int                   display_count = -1;
+  if (rb.stale_display_info || display_count <  0)
+  {            display_count = 0;
+    for (auto& display_ : rb.displays)
+           if (display_.attached)
+             ++display_count;
   }
 
-  ImGui::SetItemTooltip (
-    "Covers secondary monitors with a black window to reduce distractions "
-    "while playing games."
-  );
+  if (display_count > 1)
+  {
+    if (ImGui::Checkbox ("ADHD Multi-Monitor Mode", &config.display.focus_mode))
+    {
+      if (config.display.focus_mode)
+          config.display.aspect_ratio_stretch = false;
+
+      SK_Win32_BringBackgroundWindowToTop ();
+
+      config.utility.save_async ();
+    }
+
+    ImGui::SetItemTooltip (
+      "Covers secondary monitors with a black window to reduce distractions "
+      "while playing games."
+    );
+
+    if (config.display.focus_mode)
+    {
+      ImGui::TreePush ("");
+
+      if (ImGui::Checkbox ("Use Window Focus", &config.display.focus_mode_if_focused))
+      {
+        SK_Win32_BringBackgroundWindowToTop ();
+
+        config.utility.save_async ();    
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextUnformatted ("ADHD mode will disengage whenever you Alt-Tab, regardless what monitor the new application is on.");
+        ImGui::Separator       (  );
+        ImGui::Spacing         (  );
+        ImGui::Spacing         (  );
+        ImGui::TextUnformatted ("To have -ONLY- applications on other monitors "
+                                "disengage ADHD mode:");
+        ImGui::Spacing         (  );
+        ImGui::Spacing         (  );
+        ImGui::TreePush        ("");
+        ImGui::BulletText      ("Enable Multitasking-on-Top\t(Window Management | Style and Position)");
+        ImGui::BulletText      ("Turn off \"Use Window Focus\"");
+        ImGui::TreePop         (  );
+        ImGui::EndTooltip      (  );
+      }
+      ImGui::TreePop           (  );
+    }
+  }
 
   ImGui::EndGroup     ();
   fWhitePointSliderWidth =
