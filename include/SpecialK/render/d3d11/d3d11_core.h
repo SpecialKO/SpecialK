@@ -3122,4 +3122,9 @@ void SK_D3D11_InitMutexes (void);
 BOOL SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
                                            ID3D11DeviceContext *pDevCtx );
 
+void
+SK_DXGI_ReleaseCachedSwapChainViews ( IUnknown *pSwapChain_ImGui,
+                                      IUnknown *pSwapChain_Other,
+                                      IUnknown *pDevice_Unknown );
+
 extern bool SK_GL_OnD3D11;

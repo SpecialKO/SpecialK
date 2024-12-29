@@ -418,6 +418,17 @@ IWrapDXGISwapChain : IDXGISwapChain4
   std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
                         _backbuffers;
 
+  struct {
+    SK_ComPtr <ID3D11ShaderResourceView> srv;
+    SK_ComPtr <ID3D11RenderTargetView>   rtv;
+
+    void release (void) noexcept
+    {
+      srv = nullptr;
+      rtv = nullptr;
+    }
+  } _backbuffer_views;
+
   D3D11_FEATURE_DATA_D3D11_OPTIONS
                         _d3d11_feature_opts = { };
 
