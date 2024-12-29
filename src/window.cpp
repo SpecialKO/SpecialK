@@ -1076,8 +1076,8 @@ private:
 
 void
 ActivateWindow ( HWND hWnd,
-                 bool active          = false,
-                 HWND hWndDeactivated = 0 )
+                 bool active,
+                 HWND hWndDeactivated )
 {
   // Sticky Keys (alt-tab) :)
   //
@@ -5322,19 +5322,16 @@ SK_GetForegroundWindow (void)
     SK_GetFramesDrawn () > 5 ? SK::ControlPanel::current_time
                              : SK_timeGetTime ();
 
-  if (SK_CachedForegroundWindowTime > dwCurrentTime - 33)
-  {
-    return SK_CachedForegroundWindow;
-  }
-
   SK_CachedForegroundWindow =
     GetForegroundWindow_Original != nullptr ?
     GetForegroundWindow_Original ()         :
     GetForegroundWindow          ();
 
-  SK_CachedForegroundWindowTime = dwCurrentTime;
+  SK_CachedForegroundWindowTime =
+                  dwCurrentTime;
 
-  return SK_CachedForegroundWindow;
+  return
+    SK_CachedForegroundWindow;
 }
 
 HWND

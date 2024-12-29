@@ -3240,9 +3240,6 @@ SK_ImGui_UpdateClassCursor (void)
   }
 }
 
-extern HWND  SK_CachedForegroundWindow;
-extern DWORD SK_CachedForegroundWindowTime;
-
 HANDLE hPollCursorEvent;
 bool   SK_ImGui_IsHWCursorVisible = false;
 
@@ -3258,7 +3255,7 @@ SK_ImGui_CursorPollingThread (LPVOID)
 
   while (WaitForMultipleObjects (2, hEvents, FALSE, 1) != WAIT_OBJECT_0)
   {
-    SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
+    //SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
                       SK_ImGui_LastKnownCursor =
                                   SK_GetCursor ();
                       SK_ImGui_IsHWCursorVisible =
@@ -3293,9 +3290,6 @@ SK_ImGui_User_NewFrame (void)
   bool anything_hovered = SK_ImGui_IsAnythingHovered ();
   HWND hWndForeground   = SK_GetForegroundWindow     ();
   BOOL bHWCursorVisible = SK_ImGui_IsHWCursorVisible;
-
-  SK_CachedForegroundWindow     = hWndForeground;
-  SK_CachedForegroundWindowTime = SK::ControlPanel::current_time;
 
   __SK_EnableSetCursor = true;
 
@@ -3481,7 +3475,7 @@ SK_ImGui_User_NewFrame (void)
   bool new_input =
     ( !GetLastInputInfo (&cii) ||
           std::exchange ( lii.dwTime,
-                          cii.dwTime ) != cii.dwTime ) || SK_ImGui_LastKeyboardInputFrame >= SK_GetFramesDrawn () - 1;
+                          cii.dwTime ) != cii.dwTime );
 
 
   if ((! game_window.mouse.can_track) || game_window.mouse.last_move_msg < SK::ControlPanel::current_time - _IdleCursorTimeout) // No Hover / Leave Tracking
@@ -3579,8 +3573,8 @@ SK_ImGui_User_NewFrame (void)
 
     // Avoid overhead from calling SK_GetAsyncKeyState (...)
     //   repeatedly; we already have a keyboard hook!
-//#ifdef SK_DOES_NOT_TRUST_LOW_LEVEL_KEYBOARD_HOOK
-  if (bActive && new_input && SK_ImGui_LastKeyboardInputFrame < SK_GetFramesDrawn () - 5)
+#ifdef SK_DOES_NOT_TRUST_LOW_LEVEL_KEYBOARD_HOOK
+  if (bActive && new_input)
   {                        // ^^^^ The last frame we saw any Keyboard input on the keyboard hook.
     for (UINT i = 7 ; i < 255 ; ++i)
     {
@@ -3588,14 +3582,18 @@ SK_ImGui_User_NewFrame (void)
         ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
     }
   }
-//#endif
+#endif
 
   if (! bActive)
     RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
 
-  const bool any_button_down =
-  SK_ImGui_UpdateMouseButtons (bActive, io);
-  SK_ImGui_PollGamepad        (           );
+  const bool activatable =
+    ( bActive || (io.MousePos.x != -FLT_MAX &&
+                  io.MousePos.y != -FLT_MAX) );
+
+  bool any_button_down =
+  SK_ImGui_UpdateMouseButtons (activatable, io);
+  SK_ImGui_PollGamepad        (               );
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;

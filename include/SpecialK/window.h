@@ -566,6 +566,11 @@ bool
 __stdcall
 SK_IsGameWindowActive (bool activate_if_in_limbo = false, HWND hWndForeground = 0);
 
+void
+ActivateWindow ( HWND hWnd,
+                 bool active          = false,
+                 HWND hWndDeactivated = 0 );
+
 bool
 __stdcall
 SK_IsGameWindowFocused (void);
