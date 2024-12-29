@@ -8478,7 +8478,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   }
 
 
-  if (SUCCEEDED (res) && ppDevice != nullptr && ret_device != nullptr)
+  if (SUCCEEDED (res) && ppDevice != nullptr && ret_device != nullptr && ret_ctx != nullptr)
   {
     // Use a single device for NVIDIA interop, it saves a ton of memory in 32-bit games.
     if (bNvInterop)
