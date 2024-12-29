@@ -1,4 +1,11 @@
-﻿24.12.29.2
+﻿24.12.29.3
+==========
+ + Change SK_Thread_HybridSpinlock (Critical Section + Spinlock) w/
+     a recursive SRWLock implementation for testing.
+ + Switch to calling GetAsyncKeyState (...) if SK's thread-local
+     Keyboard Hook does not pickup any input for 5 frames.
+
+24.12.29.2
 ==========
  + Added option to have ADHD mode disengage when Alt-Tabbing to apps on
      the same display as the game.
