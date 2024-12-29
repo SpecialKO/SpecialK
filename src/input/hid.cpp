@@ -1699,16 +1699,16 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           {
             if (hid_file->neutralizeHidInput (report_id, dwSize))
             {
-              SK_UNTRUSTED_memcpy (
-                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-              );
               neutralized = true;
             }
+
+            SK_UNTRUSTED_memcpy (
+              overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+            );
           }
 
           if (! neutralized)
           {
-            memset (overlapped_request.lpBuffer, 0, dwSize);
             *lpNumberOfBytesTransferred = 0;
           }
         }
@@ -1765,16 +1765,16 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
             {
               if (hid_file->neutralizeHidInput (report_id, dwSize))
               {
-                SK_UNTRUSTED_memcpy (
-                  overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-                );
                 neutralized = true;
               }
+
+              SK_UNTRUSTED_memcpy (
+                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+              );
             }
 
             if (! neutralized)
             {
-              memset (overlapped_request.lpBuffer, 0, dwSize);
               dwSize = 0;
             }
           }
@@ -1865,16 +1865,16 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           {
             if (hid_file->neutralizeHidInput (report_id, dwSize))
             {
-              SK_UNTRUSTED_memcpy (
-                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-              );
               neutralized = true;
             }
+
+            SK_UNTRUSTED_memcpy (
+              overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+            );
           }
 
           if (! neutralized)
           {
-            memset (overlapped_request.lpBuffer, 0, dwSize);
             *lpNumberOfBytesTransferred = 0;
           }
         }
@@ -1931,16 +1931,16 @@ GetOverlappedResult_Detour (HANDLE       hFile,
             {
               if (hid_file->neutralizeHidInput (report_id, dwSize))
               {
-                SK_UNTRUSTED_memcpy (
-                  overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-                );
                 neutralized = true;
               }
+
+              SK_UNTRUSTED_memcpy (
+                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+              );
             }
 
             if (! neutralized)
             {
-              memset (overlapped_request.lpBuffer, 0, dwSize);
               dwSize = 0;
             }
           }
