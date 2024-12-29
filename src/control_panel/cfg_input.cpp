@@ -45,8 +45,10 @@ SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats_filtered;
 
 void SK_ImGui_UpdateCursor (void)
 {
-  POINT             orig_pos;
-  SK_GetCursorPos (&orig_pos);
+  extern
+  POINT                          SK_ImGui_LastKnownCursorPos;
+  POINT               orig_pos = SK_ImGui_LastKnownCursorPos;
+  //SK_GetCursorPos (&orig_pos);
 
   SK_SetCursorPos (game_window.actual.window.left + (game_window.actual.window.right  - game_window.actual.window.left) / 2,
                    game_window.actual.window.top  + (game_window.actual.window.bottom - game_window.actual.window.top)  / 2);

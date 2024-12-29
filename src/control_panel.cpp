@@ -7189,8 +7189,6 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
   bool bPassthrough = true;
 
-  SK_ImGui_LastKnownCursorPos = mhs->pt;
-
   if (mhs->hwnd != 0)
   if ( mhs->wHitTestCode == HTCLIENT ||
        mhs->wHitTestCode == HTTRANSPARENT )
@@ -8331,8 +8329,8 @@ SK_ImGui_StageNextFrame (void)
 
   if (io.WantSetMousePos && SK_IsGameWindowActive ())
   {
-    POINT                 ptCursor;
-    if (SK_GetCursorPos (&ptCursor))
+    POINT ptCursor = SK_ImGui_LastKnownCursorPos;
+    //if (  ptCursor )
     {
       // Ignore this if the cursor is in a different application
       GetWindowRect (game_window.hWnd,
@@ -8633,8 +8631,8 @@ SK_ImGui_BackupAndRestoreCursorPos (void)
   static POINT
     ptOriginalCursorPos = {};
 
-  POINT             ptCursorPos = {};
-  SK_GetCursorPos (&ptCursorPos);
+  POINT             ptCursorPos = SK_ImGui_LastKnownCursorPos;
+  //SK_GetCursorPos (&ptCursorPos);
 
   GetWindowRect (game_window.hWnd,
                 &game_window.actual.window);
@@ -8802,8 +8800,8 @@ SK_ImGui_Toggle (void)
             while (frames_drawn > SK_GetFramesDrawn () - 2)
               SwitchToThread ();
 
-            POINT                 ptCursor;
-            if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
+            POINT ptCursor = SK_ImGui_LastKnownCursorPos;
+            if (SK_GetForegroundWindow () == game_window.hWnd)
             {
               GetWindowRect (game_window.hWnd,
                             &game_window.actual.window);
@@ -8818,7 +8816,7 @@ SK_ImGui_Toggle (void)
                 while (frames_drawn > SK_GetFramesDrawn () - 2)
                   SwitchToThread ();
 
-                SK_GetCursorPos   (&ptCursor);
+                                    ptCursor = SK_ImGui_LastKnownCursorPos;
                 SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);
                 Send_WM_SETCURSOR (         );
               }

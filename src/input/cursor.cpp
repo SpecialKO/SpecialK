@@ -33,7 +33,9 @@
 bool
 SK_InputUtil_IsHWCursorVisible (void)
 {
-  if (SK_GetCursor () != nullptr)
+  extern HCURSOR
+      SK_ImGui_LastKnownCursor;
+  if (SK_ImGui_LastKnownCursor)//SK_GetCursor () != nullptr)
   {
     CURSORINFO cursor_info        = { };
                cursor_info.cbSize = sizeof (CURSORINFO);

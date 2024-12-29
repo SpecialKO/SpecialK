@@ -1926,7 +1926,9 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
       BOOL  remember_pos = (user != nullptr);
       POINT mouse        = { 0, 0 };
 
-      SK_GetCursorPos (&mouse);
+      extern
+      POINT   SK_ImGui_LastKnownCursorPos;
+      mouse = SK_ImGui_LastKnownCursorPos;
 
       struct {
         struct {
@@ -5849,8 +5851,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
 
 
-      POINT             orig = { };
-      SK_GetCursorPos (&orig);
+      extern
+      POINT        SK_ImGui_LastKnownCursorPos;
+      POINT orig = SK_ImGui_LastKnownCursorPos;
 
       POINT                              activation_pos = { 32, 32 };
       ClientToScreen (game_window.hWnd, &activation_pos);

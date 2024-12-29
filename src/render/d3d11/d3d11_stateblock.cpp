@@ -56,11 +56,15 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     return;
 
 
-  SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
-  if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
-                               (void **)&pUnwrapped.p)))
+  // This isn't needed if we haven't wrapped anything
+  if (config.render.d3d11.wrap_d3d11_dev_ctx)
   {
-    dc = pUnwrapped.p;
+    SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
+    if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
+                                 (void **)&pUnwrapped.p)))
+    {
+      dc = pUnwrapped.p;
+    }
   }
 
 
@@ -223,11 +227,15 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   SK_D3D11_ApplyingStateBlock = true;
 
-  SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
-  if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
-                               (void **)&pUnwrapped.p)))
+  // This isn't needed if we haven't wrapped anything
+  if (config.render.d3d11.wrap_d3d11_dev_ctx)
   {
-    dc = pUnwrapped.p;
+    SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
+    if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
+                                 (void **)&pUnwrapped.p)))
+    {
+      dc = pUnwrapped.p;
+    }
   }
 
   const D3D_FEATURE_LEVEL         ft_lvl   = pDev->GetFeatureLevel ();

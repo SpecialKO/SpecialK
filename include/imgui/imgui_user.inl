@@ -3222,7 +3222,8 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
   return false;
 }
 
-POINT SK_ImGui_LastKnownCursorPos;
+POINT   SK_ImGui_LastKnownCursorPos;
+HCURSOR SK_ImGui_LastKnownCursor;
 
 void
 SK_ImGui_UpdateClassCursor (void)
@@ -3242,6 +3243,29 @@ SK_ImGui_UpdateClassCursor (void)
 extern HWND  SK_CachedForegroundWindow;
 extern DWORD SK_CachedForegroundWindowTime;
 
+HANDLE  hPollCursorEvent;
+
+DWORD
+SK_ImGui_CursorPollingThread (LPVOID)
+{
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+
+  const HANDLE hEvents [] =
+    { __SK_DLL_TeardownEvent,
+            hPollCursorEvent };
+
+  while (WaitForMultipleObjects (2, hEvents, FALSE, 1) != WAIT_OBJECT_0)
+  {
+    SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
+                      SK_ImGui_LastKnownCursor =
+                                  SK_GetCursor ();
+  }
+
+  SK_Thread_CloseSelf ();
+
+  return 0;
+}
+
 void
 SK_ImGui_User_NewFrame (void)
 {
@@ -3251,8 +3275,15 @@ SK_ImGui_User_NewFrame (void)
 
   SK_ImGui_UpdateClassCursor ();
 
-  POINT             cursor_pos = {};
-  SK_GetCursorPos (&cursor_pos);
+  POINT             cursor_pos = SK_ImGui_LastKnownCursorPos;
+  SK_RunOnce (
+    hPollCursorEvent =
+      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    SK_Thread_CreateEx (SK_ImGui_CursorPollingThread,
+                          L"[SK] CursorPollingThread", nullptr);
+  );
+
+  SetEvent (hPollCursorEvent);
 
   bool capture_mouse    = SK_ImGui_WantMouseCapture      (false, &cursor_pos);
   bool anything_hovered = SK_ImGui_IsAnythingHovered     ();
