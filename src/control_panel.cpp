@@ -2142,10 +2142,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
         ImGui::Separator       (  );
         ImGui::Spacing         (  );
         ImGui::Spacing         (  );
+        ImGui::Spacing         (  );
+        ImGui::SameLine        (  );
         ImGui::TextUnformatted ("To have -ONLY- applications on other monitors "
                                 "disengage ADHD mode:");
         ImGui::Spacing         (  );
         ImGui::Spacing         (  );
+        ImGui::Spacing         (  );
+        ImGui::SameLine        (  );
         ImGui::TreePush        ("");
         ImGui::BulletText      ("Enable Multitasking-on-Top\t(Window Management | Style and Position)");
         ImGui::BulletText      ("Turn off \"Use Window Focus\"");
