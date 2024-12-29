@@ -3984,7 +3984,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     // Only hook if we actually have a debugger present, because
     //   hooking this will be detected by many DRM / anti-debug as
     //    the smoking gun that there is a debugger.
-    //if (IsDebuggerPresent ())
+    if (IsDebuggerPresent ())
     {
       SK_CreateDLLHook2 (    L"kernel32",
                               "CloseHandle",
