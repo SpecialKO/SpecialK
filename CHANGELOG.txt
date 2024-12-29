@@ -1,4 +1,11 @@
-﻿24.12.29.3
+﻿24.12.29.4
+==========
+ + Removed foreground window HWND caching, the WinEventHookProc does
+     not order the events it sends coherently.
+ + Added extra checks to ensure mouse cursor can activate games when
+     clicking on the control panel while the window is in the background.
+
+24.12.29.3
 ==========
  + Change SK_Thread_HybridSpinlock (Critical Section + Spinlock) w/
      a recursive SRWLock implementation for testing.

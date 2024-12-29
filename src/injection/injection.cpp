@@ -771,12 +771,6 @@ SK_Inject_WinEventHookProc (
 
   if (event == EVENT_SYSTEM_FOREGROUND)
   {
-    extern HWND  SK_CachedForegroundWindow;
-    extern DWORD SK_CachedForegroundWindowTime;
-
-    SK_CachedForegroundWindow     = hwnd;
-    SK_CachedForegroundWindowTime = dwmsEventTime;
-
     bool is_smart_always_on_top =
       config.window.always_on_top == SmartAlwaysOnTop;
 

@@ -7251,7 +7251,7 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 {
-  if (code < 0 || GImGui == nullptr || GImGui->CurrentWindow == nullptr) // We saw nothing (!!)
+  if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
   auto& io =
@@ -7276,8 +7276,26 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         bPassthrough = false;
 
+        SK_ImGui_LastKnownCursorPos = POINT (mhs->pt);
+
         io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
         io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+
+        SK_ImGui_Cursor.ClientToLocal (&pt);
+        SK_ImGui_Cursor.pos =           pt;
+
+        io.MousePos = {
+          (float)pt.x,
+          (float)pt.y
+        };
+
+        io.AddMousePosEvent ((float)pt.x, (float)pt.y);
+      }
+
+      else
+      {
+        io.MousePos    =    {-FLT_MAX, -FLT_MAX};
+        io.AddMousePosEvent (-FLT_MAX, -FLT_MAX);
       }
     }
   }
@@ -7293,7 +7311,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
         // Only capture mouse clicks when the window is in the foreground, failure to let
         //   left-clicks passthrough would prevent activating the game window.
         if ( game_window.active && SK_ImGui_WantMouseButtonCapture () &&
-             game_window.hWnd   == SK_GetForegroundWindow          () )
+             game_window.hWnd   == SK_GetForegroundWindow          ()  )
           return 1;
       }
       break;
@@ -7444,9 +7462,9 @@ extern ULONG64 SK_ImGui_LastKeyboardInputFrame;
 
 LRESULT
 CALLBACK
-SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
+SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
 {
-  if (code < 0 || (! SK_IsGameWindowActive ())) // We saw nothing (!!)
+  if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
   const bool keyboard_capture =
