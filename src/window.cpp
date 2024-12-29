@@ -8659,7 +8659,7 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 void
 SK_Win32_BringBackgroundWindowToTop (void)
 {
-  if (! config.display.aspect_ratio_stretch)
+  if (! (config.display.aspect_ratio_stretch || config.display.focus_mode))
     return;
 
   if (SK_Win32_BackgroundHWND == HWND_DESKTOP)
@@ -8686,17 +8686,84 @@ SK_Win32_BringBackgroundWindowToTop (void)
     {
       HWND hWndAfter = hWndGame;
 
-      SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
-                          mi.rcMonitor.left,
-                          mi.rcMonitor.top,
-                            mi.rcMonitor.right  - mi.rcMonitor.left,
-                            mi.rcMonitor.bottom - mi.rcMonitor.top,
-      (hWndAfter != hWndGame) ? SWP_NOREPOSITION
-                              : 0x0
-                              | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
-      
-      ( config.display.aspect_ratio_stretch ? SWP_SHOWWINDOW
-                                            : SWP_HIDEWINDOW ) );
+      if (config.display.aspect_ratio_stretch || !(config.display.aspect_ratio_stretch || config.display.focus_mode))
+      {
+        SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
+                            mi.rcMonitor.left,
+                            mi.rcMonitor.top,
+                              mi.rcMonitor.right  - mi.rcMonitor.left,
+                              mi.rcMonitor.bottom - mi.rcMonitor.top,
+        (hWndAfter != hWndGame) ? SWP_NOREPOSITION
+                                : 0x0
+                                | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
+        
+        ( config.display.aspect_ratio_stretch ? SWP_SHOWWINDOW
+                                              : SWP_HIDEWINDOW ) );
+      }
+
+      else
+      {
+        struct MonitorInfo {
+          int     x, y;
+          int width, height;
+        };
+
+        // Callback function to collect monitor information
+        auto MonitorEnumProc = [](HMONITOR, HDC, LPRECT lprcMonitor, LPARAM dwData)->BOOL
+        {
+          if (! dwData)
+            return TRUE;
+
+          std::vector <MonitorInfo>* monitors =
+            reinterpret_cast <std::vector <MonitorInfo>*> (dwData);
+    
+          MonitorInfo minfo;
+          minfo.x      = lprcMonitor->left;
+          minfo.y      = lprcMonitor->top;
+          minfo.width  = lprcMonitor->right  - lprcMonitor->left;
+          minfo.height = lprcMonitor->bottom - lprcMonitor->top;
+
+          monitors->push_back (minfo);
+
+          return TRUE;
+        };
+
+        std::vector <MonitorInfo> monitors;
+    
+        EnumDisplayMonitors (nullptr, nullptr,
+                   MonitorEnumProc, reinterpret_cast <LPARAM>
+                 (&monitors));
+
+        if (! monitors.empty ())
+        {
+          int minX = monitors [0].x;
+          int minY = monitors [0].y;
+          int maxX = monitors [0].x + monitors [0].width;
+          int maxY = monitors [0].y + monitors [0].height;
+
+          for ( const auto& monitor : monitors )
+          {
+            if (monitor.x < minX                 ) minX = monitor.x;
+            if (monitor.y < minY                 ) minY = monitor.y;
+            if (monitor.x + monitor.width  > maxX) maxX = monitor.x + monitor.width;
+            if (monitor.y + monitor.height > maxY) maxY = monitor.y + monitor.height;
+          }
+
+          const int totalWidth  = (maxX - minX);
+          const int totalHeight = (maxY - minY);
+
+          SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
+                            minX, minY,
+                            totalWidth,
+                            totalHeight,
+        (hWndAfter != hWndGame) ? SWP_NOREPOSITION
+                                : 0x0
+                                | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
+        
+        ( config.display.focus_mode ? SWP_SHOWWINDOW
+                                    : SWP_HIDEWINDOW ) );
+        }
+      }
 
       // Unreal Engine has bad window management during startup videos,
       //   so we need to raise the game above this secondary window.
@@ -8710,7 +8777,8 @@ SK_Win32_BringBackgroundWindowToTop (void)
 void
 SK_Win32_CreateBackgroundWindow (void)
 {
-  if (! config.display.aspect_ratio_stretch)
+  if (! ( config.display.aspect_ratio_stretch ||
+          config.display.focus_mode ) )
     return;
 
   static bool once = false;
@@ -8727,7 +8795,7 @@ SK_Win32_CreateBackgroundWindow (void)
   wc.hInstance     = SK_GetModuleHandle (nullptr);
   wc.hCursor       = LoadCursor         (nullptr, IDC_ARROW);
   wc.hbrBackground = (HBRUSH)GetStockObject (BLACK_BRUSH);
-  wc.lpszClassName = L"SK_AspectRatioWindow";
+  wc.lpszClassName = L"SK_BackgroundWindow";
 
   if (! RegisterClassExW (&wc))
   {
@@ -8741,8 +8809,8 @@ SK_Win32_CreateBackgroundWindow (void)
   { 
     SK_Win32_BackgroundHWND =
       CreateWindowExW ( WS_EX_NOACTIVATE,
-          L"SK_AspectRatioWindow",
-          L"Special K Aspect Ratio Background",
+          L"SK_BackgroundWindow",
+          L"Special K Background",
             SK_BORDERLESS,
             CW_USEDEFAULT, CW_USEDEFAULT,
                         0,             0,
@@ -8790,16 +8858,17 @@ SK_Win32_CreateBackgroundWindow (void)
         }
       }
 
-      static bool virtual_fullscreen = false;
-
-      if ( std::exchange (virtual_fullscreen, config.display.aspect_ratio_stretch) !=
-                                              config.display.aspect_ratio_stretch  ||
-                                              config.display.aspect_ratio_stretch )
+      static bool         virtual_fullscreen = false;
+      if ( std::exchange (virtual_fullscreen, config.display.aspect_ratio_stretch ||
+                                              config.display.focus_mode)          !=
+                                             (config.display.aspect_ratio_stretch ||
+                                              config.display.focus_mode)          ||
+                                             (config.display.aspect_ratio_stretch ||
+                                              config.display.focus_mode))
       {
         SK_Win32_BringBackgroundWindowToTop ();
 
-        static bool last_state = false;
-
+        static bool         last_state = false;
         if ( std::exchange (last_state, config.display.aspect_ratio_stretch) !=
                                         config.display.aspect_ratio_stretch )
         {
@@ -8807,13 +8876,22 @@ SK_Win32_CreateBackgroundWindow (void)
             config.display.aspect_ratio_stretch ? SW_SHOWNA
                                                 : SW_HIDE );
         }
+
+        static bool         last_state2 = false;
+        if ( std::exchange (last_state2, config.display.focus_mode) !=
+                                         config.display.focus_mode )
+        {
+          SK_ShowWindowAsync ( SK_Win32_BackgroundHWND,
+            config.display.focus_mode ? SW_SHOWNA
+                                      : SW_HIDE );
+        }
       }
     } while (true);
 
     SK_Thread_CloseSelf ();
 
     return 0;
-  }, L"[SK] Aspect Ratio Window");
+  }, L"[SK] Background Fill Window");
 }
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)

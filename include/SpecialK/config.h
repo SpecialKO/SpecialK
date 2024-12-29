@@ -912,6 +912,7 @@ struct sk_config_t
     bool      force_windowed       = false;
     bool      allow_refresh_change =  true;
     bool      aspect_ratio_stretch = false;
+    bool      focus_mode           = false;
     bool      confirm_mode_changes =  true;
     bool      save_monitor_prefs   =  true;
     bool      warn_no_mpo_planes   = false;

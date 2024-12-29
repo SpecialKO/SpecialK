@@ -639,7 +639,7 @@ SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::string display_name_, DEVMO
       dwInitiated  = DWORD_MAX;
       pDirty       = nullptr;
       orig_mode    = { };
-      display_name = "";
+      display_name.clear ();
 
       SK_ImGui_UnconfirmedDisplayChanges = false;
 
@@ -1791,9 +1791,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::PopItemWidth ();
   }
 
-  static bool bDPIAware  =
+  static BOOL bDPIAware  =
       IsProcessDPIAware (),
-              bImmutableDPI = false;
+              bImmutableDPI = FALSE;
 
   void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
   void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
@@ -2086,7 +2086,23 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       SK_ImGui_AdjustCursor ();
     }
 
+    config.utility.save_async ();
+
     ImGui::SetItemTooltip ("Some engines may require a game restart to adjust to new aspect ratio.");
+  }
+
+  if (ImGui::Checkbox ("Multi-Monitor Sleep", &config.display.focus_mode))
+  {
+    if (config.display.focus_mode)
+    {
+      config.window.background_render = true;             // Required for this to work reliably
+      config.window.always_on_top     = SmartAlwaysOnTop; // Needed to fix taskbar visibility
+    }
+
+    SK_Win32_BringBackgroundWindowToTop ();
+    SK_ImGui_AdjustCursor               ();
+
+    config.utility.save_async ();
   }
 
   ImGui::EndGroup     ();
@@ -8257,19 +8273,21 @@ SK_ImGui_StageNextFrame (void)
         config.display.force_fullscreen = false;
 
         _ClosePopup ();
-      } if (ImGui::BeginItemTooltip ())
-        {
-          ImGui::Text         ("Safest Option");
-          ImGui::Spacing      ();
-          ImGui::SameLine     ();
-          ImGui::Text         ("Prefer SK's Window Mode Optimizations except for...");
-          ImGui::Separator    ();
-          ImGui::Text         ("Scenarios not to Force Windowed Mode:");
-          ImGui::BulletText   ("Desktop and Game run at different Resolutions");
-          ImGui::BulletText   ("Desktop and Game run at different Refresh Rates");
-          ImGui::BulletText   ("Game is not giving you Hardware: Independent Flip");
-          ImGui::EndTooltip   ();
-        }
+      }
+      
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::Text         ("Safest Option");
+        ImGui::Spacing      ();
+        ImGui::SameLine     ();
+        ImGui::Text         ("Prefer SK's Window Mode Optimizations except for...");
+        ImGui::Separator    ();
+        ImGui::Text         ("Scenarios not to Force Windowed Mode:");
+        ImGui::BulletText   ("Desktop and Game run at different Resolutions");
+        ImGui::BulletText   ("Desktop and Game run at different Refresh Rates");
+        ImGui::BulletText   ("Game is not giving you Hardware: Independent Flip");
+        ImGui::EndTooltip   ();
+      }
 
       if (ImGui::IsWindowAppearing ())
       {
@@ -8301,16 +8319,18 @@ SK_ImGui_StageNextFrame (void)
         config.render.framerate.flip_discard = false;
 
         _ClosePopup ();
-      } if (ImGui::BeginItemTooltip ())
-        {
-          ImGui::Text         ("Not Recommended");
-          ImGui::Spacing      ();
-          ImGui::SameLine     ();
-          ImGui::Text         ("Task switching performance will suffer, HDR will not work");
-          ImGui::Separator    ();
-          ImGui::Text         ("Last-resort, if you really -must- have fullscreen exclusive");
-          ImGui::EndTooltip   ();
-        }
+      }
+      
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::Text         ("Not Recommended");
+        ImGui::Spacing      ();
+        ImGui::SameLine     ();
+        ImGui::Text         ("Task switching performance will suffer, HDR will not work");
+        ImGui::Separator    ();
+        ImGui::Text         ("Last-resort, if you really -must- have fullscreen exclusive");
+        ImGui::EndTooltip   ();
+      }
 
       ImGui::SameLine    ();
 

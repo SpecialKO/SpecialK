@@ -4115,7 +4115,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   rb.frame_delta.markFrame ();
 
-  if (config.display.aspect_ratio_stretch)
+  if (config.display.aspect_ratio_stretch || config.display.focus_mode)
   {
     SK_RunOnce (
       SK_Win32_CreateBackgroundWindow ()
