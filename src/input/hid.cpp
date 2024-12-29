@@ -1223,7 +1223,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SK_SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
         return FALSE;
       }
 
@@ -1316,7 +1316,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 
   if (lpFileName == nullptr)
   {
-    SK_SetLastError (ERROR_NO_SUCH_DEVICE);
+    SetLastError (ERROR_NO_SUCH_DEVICE);
   
     return INVALID_HANDLE_VALUE;
   }
@@ -1347,7 +1347,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SK_SetLastError (ERROR_NO_SUCH_DEVICE);
+        SetLastError (ERROR_NO_SUCH_DEVICE);
 
         CloseHandle (hRet);
 
@@ -1429,7 +1429,7 @@ CreateFile2_Detour (
 
   if (lpFileName == nullptr)
   {
-    SK_SetLastError (ERROR_NO_SUCH_DEVICE);
+    SetLastError (ERROR_NO_SUCH_DEVICE);
   
     return INVALID_HANDLE_VALUE;
   }
@@ -1453,7 +1453,7 @@ CreateFile2_Detour (
     {
       if (config.input.gamepad.disable_hid)
       {
-        SK_SetLastError (ERROR_NO_SUCH_DEVICE);
+        SetLastError (ERROR_NO_SUCH_DEVICE);
 
         if (nullptr != hRet)
           CloseHandle (hRet);
@@ -1542,7 +1542,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
   if (lpFileName == nullptr)
   {
-    SK_SetLastError (ERROR_NO_SUCH_DEVICE);
+    SetLastError (ERROR_NO_SUCH_DEVICE);
   
     return INVALID_HANDLE_VALUE;
   }
@@ -1567,7 +1567,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SK_SetLastError (ERROR_NO_SUCH_DEVICE);
+        SetLastError (ERROR_NO_SUCH_DEVICE);
 
         if (nullptr != hRet)
           CloseHandle (hRet);
@@ -1658,7 +1658,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SK_SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
 
         CancelIoEx (hFile, lpOverlapped);
 
@@ -1710,8 +1710,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           {
             memset (overlapped_request.lpBuffer, 0, dwSize);
             *lpNumberOfBytesTransferred = 0;
-            bRet = false;
-            SK_SetLastError (ERROR_NOT_READY);
           }
         }
 
@@ -1778,7 +1776,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
             {
               memset (overlapped_request.lpBuffer, 0, dwSize);
               dwSize = 0;
-              bRet = false;
             }
           }
 
@@ -1827,7 +1824,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SK_SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
 
         CancelIoEx (hFile, lpOverlapped);
 
@@ -1879,7 +1876,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           {
             memset (overlapped_request.lpBuffer, 0, dwSize);
             *lpNumberOfBytesTransferred = 0;
-            bRet = false;
           }
         }
 
@@ -1946,8 +1942,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
             {
               memset (overlapped_request.lpBuffer, 0, dwSize);
               dwSize = 0;
-              bRet = false;
-              SK_SetLastError (ERROR_NOT_READY);
             }
           }
 
