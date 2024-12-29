@@ -2091,7 +2091,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::SetItemTooltip ("Some engines may require a game restart to adjust to new aspect ratio.");
   }
 
-  if (ImGui::Checkbox ("Multi-Monitor Sleep", &config.display.focus_mode))
+  if (ImGui::Checkbox ("ADHD Multi-Monitor Mode", &config.display.focus_mode))
   {
     if (config.display.focus_mode)
     {
@@ -2100,10 +2100,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     }
 
     SK_Win32_BringBackgroundWindowToTop ();
-    SK_ImGui_AdjustCursor               ();
 
     config.utility.save_async ();
   }
+
+  ImGui::SetItemTooltip (
+    "Covers secondary monitors with a black window to reduce distractions "
+    "while playing games."
+  );
 
   ImGui::EndGroup     ();
   fWhitePointSliderWidth =
@@ -3209,7 +3213,8 @@ SK_ImGui_ControlPanel (void)
           &config.monitors.monitor_primary_keybind,
           &config.monitors.monitor_next_keybind,
           &config.monitors.monitor_prev_keybind,
-          &config.monitors.monitor_toggle_hdr
+          &config.monitors.monitor_toggle_hdr,
+          &config.monitors.multimonitor_focus_keybind,
       };
 
       // Keybinds made using a menu option must process their popups here

@@ -1,4 +1,12 @@
-﻿ 
+﻿24.12.29.1
+==========
+ + Added a new display mode to blackout secondary monitors while playing
+     games (Refer to Display | ADHD Multi-Monitor Mode).
+ + Added keybind for ADHD Multi-Monitor Mode to Monitor Management keys
+     in the Display menu.
+ + Added command console variable to toggle this mode:
+
+     Display.MultiMonitorFocus  {true|false}   Default: false
 
 24.12.29
 ========

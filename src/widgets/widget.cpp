@@ -948,7 +948,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 20>
+    std::array <SK_ConfigSerializedKeybind *, 21>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
@@ -961,6 +961,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           &config.monitors.monitor_next_keybind,
           &config.monitors.monitor_prev_keybind,
           &config.monitors.monitor_toggle_hdr,
+          &config.monitors.multimonitor_focus_keybind,
 
           &config.render.framerate.latent_sync.tearline_move_up_keybind,
           &config.render.framerate.latent_sync.tearline_move_down_keybind,
@@ -1071,6 +1072,17 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
             SK_ScreenshotStage::ClipboardOnly
           );
         }
+      }
+
+      else if (  keybind == &config.monitors.multimonitor_focus_keybind )
+      {
+        config.display.focus_mode       = !config.display.focus_mode;
+        config.window.background_render = true;             // Required for this to work reliably
+        config.window.always_on_top     = SmartAlwaysOnTop; // Needed to fix taskbar visibility
+
+        SK_Win32_BringBackgroundWindowToTop ();
+
+        config.utility.save_async ();
       }
 
       else if (  keybind == &config.monitors.monitor_primary_keybind )

@@ -658,6 +658,13 @@ struct sk_config_t
          false, false, false, 0
       }, L"ToggleHDR"
     };
+    SK_ConfigSerializedKeybind
+         multimonitor_focus_keybind = {
+      SK_Keybind {
+        "Toggle ADHD MultiMonitor Mode", L"<Not Bound>",
+         false, false, false, 0
+      }, L"ToggleADHDMultiMonitor"
+    };
   } monitors;
 
   struct widget_s {

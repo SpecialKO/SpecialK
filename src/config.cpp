@@ -1678,20 +1678,21 @@ auto DeclKeybind =
     ConfigEntry (screenshots.png.store_hdr,              L"Use HDR PNG file format for HDR screenshots",               osd_ini,         L"Screenshot.HDR",        L"StorePNG"),
     ConfigEntry (screenshots.allow_hdr_clipboard,        L"Use HDR for Windows Clipboard screenshots",                 osd_ini,         L"Screenshot.HDR",        L"AllowClipboardHDR"),
     ConfigEntry (screenshots.png.st2084_bits,            L"Use n-bit Quantization to save Disk Space",                 osd_ini,         L"Screenshot.HDR",        L"MaxST2084QuantizedBits"),
-    Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
-    Keybind ( &config.osd.keys.console_toggle,           L"Toggle SK's Command Console",                               osd_ini,         L"OSD.System"),
-    Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
-    Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
-    Keybind ( &config.screenshots.
+    Keybind (&config.render.keys.hud_toggle,             L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
+    Keybind (&config.osd.keys.console_toggle,            L"Toggle SK's Command Console",                               osd_ini,         L"OSD.System"),
+    Keybind (&config.screenshots.game_hud_free_keybind,  L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
+    Keybind (&config.screenshots.sk_osd_free_keybind,    L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
+    Keybind (&config.screenshots.
                                sk_osd_insertion_keybind, L"Take a screenshot and insert SK's OSD",                     osd_ini,         L"Screenshot.System"),
-    Keybind ( &config.screenshots.no_3rd_party_keybind,  L"Take a screenshot before third-party overlays",             osd_ini,         L"Screenshot.System"),
-    Keybind ( &config.screenshots.clipboard_only_keybind,L"Take a screenshot and copy it to the clipboard only",       osd_ini,         L"Screenshot.System"),
-    Keybind ( &config.screenshots.snipping_keybind,      L"Snip a screenshot and copy it to the clipboard",            osd_ini,         L"Screenshot.System"),
+    Keybind (&config.screenshots.no_3rd_party_keybind,   L"Take a screenshot before third-party overlays",             osd_ini,         L"Screenshot.System"),
+    Keybind (&config.screenshots.clipboard_only_keybind, L"Take a screenshot and copy it to the clipboard only",       osd_ini,         L"Screenshot.System"),
+    Keybind (&config.screenshots.snipping_keybind,       L"Snip a screenshot and copy it to the clipboard",            osd_ini,         L"Screenshot.System"),
 
-    Keybind ( &config.monitors.monitor_primary_keybind,  L"Move Game to Primary Monitor",                              osd_ini,         L"Display.Monitor"),
-    Keybind ( &config.monitors.monitor_next_keybind,     L"Move Game to Next Monitor",                                 osd_ini,         L"Display.Monitor"),
-    Keybind ( &config.monitors.monitor_prev_keybind,     L"Move Game to Previous Monitor",                             osd_ini,         L"Display.Monitor"),
-    Keybind ( &config.monitors.monitor_toggle_hdr,       L"Toggle HDR on Selected Monitor",                            osd_ini,         L"Display.Monitor"),
+    Keybind (&config.monitors.multimonitor_focus_keybind,L"Toggle Multi-Monitor Focus Mode",                           osd_ini,         L"Display.Monitor"),
+    Keybind (&config.monitors.monitor_primary_keybind,   L"Move Game to Primary Monitor",                              osd_ini,         L"Display.Monitor"),
+    Keybind (&config.monitors.monitor_next_keybind,      L"Move Game to Next Monitor",                                 osd_ini,         L"Display.Monitor"),
+    Keybind (&config.monitors.monitor_prev_keybind,      L"Move Game to Previous Monitor",                             osd_ini,         L"Display.Monitor"),
+    Keybind (&config.monitors.monitor_toggle_hdr,        L"Toggle HDR on Selected Monitor",                            osd_ini,         L"Display.Monitor"),
 
     Keybind ( &config.render.framerate.latent_sync.
                              tearline_move_down_keybind, L"Move Tear Location Down 1 Scanline",                        osd_ini,         L"LatentSync.Control"),
@@ -1911,7 +1912,7 @@ auto DeclKeybind =
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
     ConfigEntry (display.aspect_ratio_stretch,           L"Fill monitor background (eg. black bars) in windowed mode", dll_ini,         L"Display.Output",        L"AspectRatioStretch"),
-    ConfigEntry (display.multimonitor_focus_mode,        L"Displays black background on all except the game's monitor",dll_ini,         L"Display.Output",        L"BlackoutSecondaryDisplays"),
+    ConfigEntry (display.multimonitor_focus_mode,        L"Displays black background on all except the game's monitor",dll_ini,         L"Display.Output",        L"MultiMonitorADHDRelief"),
     ConfigEntry (display.allow_refresh_change,           L"Allow Current Game to change Refresh Rate",                 dll_ini,         L"Display.Output",        L"AllowRefreshRateChanges"),
 
 
@@ -5480,6 +5481,7 @@ auto DeclKeybind =
   LoadKeybind (&config.monitors.monitor_next_keybind);
   LoadKeybind (&config.monitors.monitor_prev_keybind);
   LoadKeybind (&config.monitors.monitor_toggle_hdr);
+  LoadKeybind (&config.monitors.multimonitor_focus_keybind);
 
   LoadKeybind (&config.render.framerate.latent_sync.tearline_move_up_keybind);
   LoadKeybind (&config.render.framerate.latent_sync.tearline_move_down_keybind);

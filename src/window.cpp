@@ -868,6 +868,11 @@ public:
       top_most_
     );
 
+    cmd->AddVariable (
+      "Display.MultiMonitorFocus",
+        SK_CreateVar (SK_IVariable::Boolean, &config.display.focus_mode)
+    );
+
     borderless_ =
       SK_CreateVar (SK_IVariable::Boolean, &config.window.borderless,      this);
 
