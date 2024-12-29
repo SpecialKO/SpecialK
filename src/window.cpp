@@ -8483,6 +8483,11 @@ SK_ClipCursor (const RECT *lpRect)
       lastRect.right  = LONG_MAX;
     }
 
+    else
+    {
+      lastRect = *lpRect;
+    }
+
     return
       ClipCursor_Original != nullptr ?
       ClipCursor_Original (lpRect)   :
