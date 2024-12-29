@@ -1223,7 +1223,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        SK_SetLastError (ERROR_DEVICE_NOT_CONNECTED);
         return FALSE;
       }
 
@@ -1316,7 +1316,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 
   if (lpFileName == nullptr)
   {
-    SetLastError (ERROR_NO_SUCH_DEVICE);
+    SK_SetLastError (ERROR_NO_SUCH_DEVICE);
   
     return INVALID_HANDLE_VALUE;
   }
@@ -1347,7 +1347,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SetLastError (ERROR_NO_SUCH_DEVICE);
+        SK_SetLastError (ERROR_NO_SUCH_DEVICE);
 
         CloseHandle (hRet);
 
@@ -1429,7 +1429,7 @@ CreateFile2_Detour (
 
   if (lpFileName == nullptr)
   {
-    SetLastError (ERROR_NO_SUCH_DEVICE);
+    SK_SetLastError (ERROR_NO_SUCH_DEVICE);
   
     return INVALID_HANDLE_VALUE;
   }
@@ -1453,7 +1453,7 @@ CreateFile2_Detour (
     {
       if (config.input.gamepad.disable_hid)
       {
-        SetLastError (ERROR_NO_SUCH_DEVICE);
+        SK_SetLastError (ERROR_NO_SUCH_DEVICE);
 
         if (nullptr != hRet)
           CloseHandle (hRet);
@@ -1542,7 +1542,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
   if (lpFileName == nullptr)
   {
-    SetLastError (ERROR_NO_SUCH_DEVICE);
+    SK_SetLastError (ERROR_NO_SUCH_DEVICE);
   
     return INVALID_HANDLE_VALUE;
   }
@@ -1567,7 +1567,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
     {
       if (config.input.gamepad.disable_hid)
       {
-        SetLastError (ERROR_NO_SUCH_DEVICE);
+        SK_SetLastError (ERROR_NO_SUCH_DEVICE);
 
         if (nullptr != hRet)
           CloseHandle (hRet);
@@ -1651,14 +1651,14 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
     SK_Input_GetDeviceFileAndState (hFile);
 
-  if (    dev_ptr != nullptr)
+  if (    dev_ptr != nullptr && lpNumberOfBytesTransferred != nullptr)
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
     {
       if (config.input.gamepad.disable_hid)
       {
-        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        SK_SetLastError (ERROR_DEVICE_NOT_CONNECTED);
 
         CancelIoEx (hFile, lpOverlapped);
 
@@ -1681,21 +1681,41 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
         );
 
-        DWORD dwSize = 
-          overlapped_request.dwNumberOfBytesToRead;
-
         uint8_t report_id = overlapped_request.lpBuffer != nullptr ?
                 ((uint8_t *)overlapped_request.lpBuffer) [0]       : 0x0;
 
-        if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+        bRet =
+          GetOverlappedResultEx_Original (
+            hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+          );
+
+        DWORD dwSize = *lpNumberOfBytesTransferred;
+
+        if (overlapped_request.lpBuffer != nullptr)
         {
-          if (hid_file->neutralizeHidInput (report_id, dwSize))
+          bool neutralized = false;
+
+          if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
           {
-            SK_UNTRUSTED_memcpy (
-              overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-            );
+            if (hid_file->neutralizeHidInput (report_id, dwSize))
+            {
+              SK_UNTRUSTED_memcpy (
+                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+              );
+              neutralized = true;
+            }
+          }
+
+          if (! neutralized)
+          {
+            memset (overlapped_request.lpBuffer, 0, dwSize);
+            *lpNumberOfBytesTransferred = 0;
+            bRet = false;
+            SK_SetLastError (ERROR_NOT_READY);
           }
         }
+
+        return bRet;
       }
 
       bRet =
@@ -1710,18 +1730,20 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
         if (dev_allowed)
         {
-          if (overlapped_request.dwNumberOfBytesToRead != 0)
+          if (*lpNumberOfBytesTransferred != 0)
           {
             auto& cached_report =
               hid_file->_cachedInputReportsByReportId [report_id];
 
-            if (              overlapped_request.lpBuffer != nullptr
-                                  && cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
+            if (cached_report.size () < *lpNumberOfBytesTransferred && *lpNumberOfBytesTransferred > 0)
+                cached_report.resize (  *lpNumberOfBytesTransferred);
+
+            if (overlapped_request.lpBuffer != nullptr && cached_report.size () >= *lpNumberOfBytesTransferred)
             {
-              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 || ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
+              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 ||
+                  ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
               {
-                                     cached_report.resize (                              overlapped_request.dwNumberOfBytesToRead);
-                SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, overlapped_request.dwNumberOfBytesToRead);
+                SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, *lpNumberOfBytesTransferred);
               }
             }
           }
@@ -1734,21 +1756,34 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
         else
         {
-          DWORD dwSize = 
-            overlapped_request.dwNumberOfBytesToRead;
+          DWORD dwSize =
+            *lpNumberOfBytesTransferred;
 
-          if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+          if (overlapped_request.lpBuffer != nullptr)
           {
-            if (hid_file->neutralizeHidInput (report_id, dwSize))
+            bool neutralized = false;
+
+            if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
             {
-              SK_UNTRUSTED_memcpy (
-                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-              );
+              if (hid_file->neutralizeHidInput (report_id, dwSize))
+              {
+                SK_UNTRUSTED_memcpy (
+                  overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+                );
+                neutralized = true;
+              }
+            }
+
+            if (! neutralized)
+            {
+              memset (overlapped_request.lpBuffer, 0, dwSize);
+              dwSize = 0;
+              bRet = false;
             }
           }
-        }
 
-        overlapped_request.dwNumberOfBytesToRead = 0;
+          *lpNumberOfBytesTransferred = dwSize;
+        }
       }
 
       return bRet;
@@ -1785,13 +1820,14 @@ GetOverlappedResult_Detour (HANDLE       hFile,
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
     SK_Input_GetDeviceFileAndState (hFile);
 
+  if (    dev_ptr != nullptr && lpNumberOfBytesTransferred != nullptr)
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
     {
       if (config.input.gamepad.disable_hid)
       {
-        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        SK_SetLastError (ERROR_DEVICE_NOT_CONNECTED);
 
         CancelIoEx (hFile, lpOverlapped);
 
@@ -1814,21 +1850,40 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
         );
 
-        DWORD dwSize = 
-          overlapped_request.dwNumberOfBytesToRead;
-
         uint8_t report_id = overlapped_request.lpBuffer != nullptr ?
                 ((uint8_t *)overlapped_request.lpBuffer) [0]       : 0x0;
 
-        if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+        bRet =
+          GetOverlappedResult_Original (
+            hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
+          );
+
+        DWORD dwSize = *lpNumberOfBytesTransferred;
+
+        if (overlapped_request.lpBuffer != nullptr)
         {
-          if (hid_file->neutralizeHidInput (report_id, dwSize))
+          bool neutralized = false;
+
+          if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
           {
-            SK_UNTRUSTED_memcpy (
-              overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-            );
+            if (hid_file->neutralizeHidInput (report_id, dwSize))
+            {
+              SK_UNTRUSTED_memcpy (
+                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+              );
+              neutralized = true;
+            }
+          }
+
+          if (! neutralized)
+          {
+            memset (overlapped_request.lpBuffer, 0, dwSize);
+            *lpNumberOfBytesTransferred = 0;
+            bRet = false;
           }
         }
+
+        return bRet;
       }
 
       bRet =
@@ -1843,18 +1898,20 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
         if (dev_allowed)
         {
-          if (overlapped_request.dwNumberOfBytesToRead != 0)
+          if (*lpNumberOfBytesTransferred != 0)
           {
             auto& cached_report =
               hid_file->_cachedInputReportsByReportId [report_id];
 
-            if (              overlapped_request.lpBuffer != nullptr 
-                                 &&  cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
+            if (cached_report.size () < *lpNumberOfBytesTransferred && *lpNumberOfBytesTransferred > 0)
+                cached_report.resize (  *lpNumberOfBytesTransferred);
+
+            if (overlapped_request.lpBuffer != nullptr && cached_report.size () >= *lpNumberOfBytesTransferred)
             {
-              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 || ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
+              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 ||
+                  ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
               {
-                                     cached_report.resize (                              overlapped_request.dwNumberOfBytesToRead);
-                SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, overlapped_request.dwNumberOfBytesToRead);
+                SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, *lpNumberOfBytesTransferred);
               }
             }
           }
@@ -1868,20 +1925,34 @@ GetOverlappedResult_Detour (HANDLE       hFile,
         else
         {
           DWORD dwSize = 
-            overlapped_request.dwNumberOfBytesToRead;
+            *lpNumberOfBytesTransferred;
 
-          if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+          if (overlapped_request.lpBuffer != nullptr)
           {
-            if (hid_file->neutralizeHidInput (report_id, dwSize))
+            bool neutralized = false;
+
+            if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
             {
-              SK_UNTRUSTED_memcpy (
-                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
-              );
+              if (hid_file->neutralizeHidInput (report_id, dwSize))
+              {
+                SK_UNTRUSTED_memcpy (
+                  overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+                );
+                neutralized = true;
+              }
+            }
+
+            if (! neutralized)
+            {
+              memset (overlapped_request.lpBuffer, 0, dwSize);
+              dwSize = 0;
+              bRet = false;
+              SK_SetLastError (ERROR_NOT_READY);
             }
           }
-        }
 
-        overlapped_request.dwNumberOfBytesToRead = 0;
+          *lpNumberOfBytesTransferred = dwSize;
+        }
       }
 
       return bRet;
