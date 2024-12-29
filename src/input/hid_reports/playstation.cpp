@@ -2560,8 +2560,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
           if (reset_finished) bFinished = false;
         };
 
-        DWORD  dwWaitState  = WAIT_FAILED;
-        while (dwWaitState != WAIT_OBJECT_0)
+        DWORD dwWaitState = WAIT_FAILED;
+        while (true)
         {
           if (bQuit)
             break;
@@ -3307,8 +3307,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
           if (reset_finished) bFinished = false;
         };
 
-        DWORD  dwWaitState  = WAIT_FAILED;
-        while (dwWaitState != WAIT_OBJECT_0)
+        DWORD dwWaitState = WAIT_FAILED;
+        while (true)
         {
           if (bQuit)
             break;

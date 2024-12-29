@@ -3,6 +3,7 @@
  + Added option to have ADHD mode disengage when Alt-Tabbing to apps on
      the same display as the game.
  + ADHD mode disables Aspect Ratio Stretch now.
+ + Fixed PlayStation controller rumble not being cleared at game exit.
 
 24.12.29.1
 ==========
