@@ -492,7 +492,7 @@ ImGuiCursor_Impl (void)
   if (SK_ImGui_WantHWCursor ())
   {
     io.MouseDrawCursor =
-      ( (! SK_ImGui_Cursor.idle) && SK_ImGui_IsMouseRelevant () && (! SK_InputUtil_IsHWCursorVisible ()));
+      ( (! SK_ImGui_Cursor.idle) && SK_ImGui_IsMouseRelevant () && (! SK_ImGui_IsHWCursorVisible));
   }
 
   //
@@ -505,7 +505,7 @@ ImGuiCursor_Impl (void)
       SK_SendMsgSetCursor (0);
     }
 
-    io.MouseDrawCursor = (! SK_ImGui_Cursor.idle) && (! SK_InputUtil_IsHWCursorVisible ());
+    io.MouseDrawCursor = (! SK_ImGui_Cursor.idle) && (! SK_ImGui_IsHWCursorVisible);
   }
 }
 
@@ -609,7 +609,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
     if (game_window.mouse.can_track && (! game_window.mouse.inside) && config.input.mouse.disabled_to_game == SK_InputEnablement::DisabledInBackground)
       imgui_capture = true;
 
-    else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
+    else if (config.input.ui.capture_hidden && (! SK_ImGui_IsHWCursorVisible))
       imgui_capture = true;
 
     if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 20)

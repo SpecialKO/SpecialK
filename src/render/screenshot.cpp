@@ -2243,7 +2243,7 @@ SK_ScreenshotManager::setSnipState (SK_ScreenshotManager::SnippingState state)
   else if (state == SnippingRequested ||
            state == SnippingActive)
   {
-    if (! SK_InputUtil_IsHWCursorVisible ())
+    if (! SK_ImGui_IsHWCursorVisible)
     {
       do
       {

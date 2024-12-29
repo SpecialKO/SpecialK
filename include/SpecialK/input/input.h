@@ -1334,6 +1334,8 @@ bool SK_Window_IsCursorActive                   (void);
 bool SK_ImGui_CursorWarpingCooledDown           (void);
 void SK_ImGui_UpdateLastCursorWarpTime          (void);
 
+extern bool SK_ImGui_IsHWCursorVisible;
+
 enum SK_InputEnablement {
   Enabled              = 0,
   Disabled             = 1,

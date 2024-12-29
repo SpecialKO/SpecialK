@@ -3136,7 +3136,7 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     {
       if (SK_ImGui_Cursor.force == sk_cursor_state::None)
       {
-        if (! SK_InputUtil_IsHWCursorVisible ())
+        if (! SK_ImGui_IsHWCursorVisible)
         {
           if (ImGui::Button (" Force Mouse Cursor Visible "))
           {

@@ -3243,7 +3243,8 @@ SK_ImGui_UpdateClassCursor (void)
 extern HWND  SK_CachedForegroundWindow;
 extern DWORD SK_CachedForegroundWindowTime;
 
-HANDLE  hPollCursorEvent;
+HANDLE hPollCursorEvent;
+bool   SK_ImGui_IsHWCursorVisible = false;
 
 DWORD
 WINAPI
@@ -3260,6 +3261,8 @@ SK_ImGui_CursorPollingThread (LPVOID)
     SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
                       SK_ImGui_LastKnownCursor =
                                   SK_GetCursor ();
+                      SK_ImGui_IsHWCursorVisible =
+                      SK_InputUtil_IsHWCursorVisible ();
   }
 
   SK_Thread_CloseSelf ();
@@ -3286,10 +3289,10 @@ SK_ImGui_User_NewFrame (void)
 
   SetEvent (hPollCursorEvent);
 
-  bool capture_mouse    = SK_ImGui_WantMouseCapture      (false, &cursor_pos);
-  bool anything_hovered = SK_ImGui_IsAnythingHovered     ();
-  HWND hWndForeground   = SK_GetForegroundWindow         ();
-  BOOL bHWCursorVisible = SK_InputUtil_IsHWCursorVisible ();
+  bool capture_mouse    = SK_ImGui_WantMouseCapture  (false, &cursor_pos);
+  bool anything_hovered = SK_ImGui_IsAnythingHovered ();
+  HWND hWndForeground   = SK_GetForegroundWindow     ();
+  BOOL bHWCursorVisible = SK_ImGui_IsHWCursorVisible;
 
   SK_CachedForegroundWindow     = hWndForeground;
   SK_CachedForegroundWindowTime = SK::ControlPanel::current_time;
@@ -3707,7 +3710,7 @@ SK_ImGui_User_NewFrame (void)
     }
 
     io.MouseDrawCursor =
-      (! SK_InputUtil_IsHWCursorVisible ());
+      (! SK_ImGui_IsHWCursorVisible);
   }
 
   else

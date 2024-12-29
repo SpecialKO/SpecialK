@@ -1791,7 +1791,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::PopItemWidth ();
   }
 
-  static BOOL bDPIAware  =
+  static bool bDPIAware  =
       IsProcessDPIAware (),
               bImmutableDPI = FALSE;
 
