@@ -306,44 +306,54 @@ using mouse_event_pfn       = void (WINAPI *)(
   _In_ ULONG_PTR dwExtraInfo
 );
 
+using GetWindowThreadProcessId_pfn = DWORD (WINAPI *)(
+  _In_      HWND       hWnd,
+  _Out_opt_ LPDWORD lpdwProcessId
+);
+
 using SetWindowsHookEx_pfn    = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
 using UnhookWindowsHookEx_pfn = BOOL  (WINAPI*)(HHOOK);
 
-extern ClipCursor_pfn              ClipCursor_Original;
-extern SetWindowPos_pfn            SetWindowPos_Original;
-extern MoveWindow_pfn              MoveWindow_Original;
-extern SetWindowLong_pfn           SetWindowLongW_Original;
-extern SetWindowLong_pfn           SetWindowLongA_Original;
-extern GetWindowLong_pfn           GetWindowLongW_Original;
-extern GetWindowLong_pfn           GetWindowLongA_Original;
-extern SetWindowLongPtr_pfn        SetWindowLongPtrW_Original;
-extern SetWindowLongPtr_pfn        SetWindowLongPtrA_Original;
-extern GetWindowLongPtr_pfn        GetWindowLongPtrW_Original;
-extern GetWindowLongPtr_pfn        GetWindowLongPtrA_Original;
-extern AdjustWindowRect_pfn        AdjustWindowRect_Original;
-extern AdjustWindowRectEx_pfn      AdjustWindowRectEx_Original;
+extern ClipCursor_pfn               ClipCursor_Original;
+extern SetWindowPos_pfn             SetWindowPos_Original;
+extern MoveWindow_pfn               MoveWindow_Original;
+extern SetWindowLong_pfn            SetClassLongW_Original;
+extern SetWindowLong_pfn            SetClassLongA_Original;
+extern SetWindowLongPtr_pfn         SetClassLongPtrW_Original;
+extern SetWindowLongPtr_pfn         SetClassLongPtrA_Original;
+extern SetWindowLong_pfn            SetWindowLongW_Original;
+extern SetWindowLong_pfn            SetWindowLongA_Original;
+extern GetWindowLong_pfn            GetWindowLongW_Original;
+extern GetWindowLong_pfn            GetWindowLongA_Original;
+extern SetWindowLongPtr_pfn         SetWindowLongPtrW_Original;
+extern SetWindowLongPtr_pfn         SetWindowLongPtrA_Original;
+extern GetWindowLongPtr_pfn         GetWindowLongPtrW_Original;
+extern GetWindowLongPtr_pfn         GetWindowLongPtrA_Original;
+extern GetWindowThreadProcessId_pfn GetWindowThreadProcessId_Original;
+extern AdjustWindowRect_pfn         AdjustWindowRect_Original;
+extern AdjustWindowRectEx_pfn       AdjustWindowRectEx_Original;
 
-extern GetSystemMetrics_pfn        GetSystemMetrics_Original;
-extern GetCursorPos_pfn            GetCursorPos_Original;
-extern SetCursorPos_pfn            SetCursorPos_Original;
-extern GetCursorPos_pfn            GetPhysicalCursorPos_Original;
-extern SetCursorPos_pfn            SetPhysicalCursorPos_Original;
-extern GetMessagePos_pfn           GetMessagePos_Original;
-extern GetCursorInfo_pfn           GetCursorInfo_Original;
+extern GetSystemMetrics_pfn         GetSystemMetrics_Original;
+extern GetCursorPos_pfn             GetCursorPos_Original;
+extern SetCursorPos_pfn             SetCursorPos_Original;
+extern GetCursorPos_pfn             GetPhysicalCursorPos_Original;
+extern SetCursorPos_pfn             SetPhysicalCursorPos_Original;
+extern GetMessagePos_pfn            GetMessagePos_Original;
+extern GetCursorInfo_pfn            GetCursorInfo_Original;
 
-extern SendInput_pfn               SendInput_Original;
-extern mouse_event_pfn             mouse_event_Original;
+extern SendInput_pfn                SendInput_Original;
+extern mouse_event_pfn              mouse_event_Original;
 
-extern GetKeyState_pfn             GetKeyState_Original;
-extern GetAsyncKeyState_pfn        GetAsyncKeyState_Original;
-extern GetKeyboardState_pfn        GetKeyboardState_Original;
-extern GetRawInputData_pfn         GetRawInputData_Original;
-extern GetRawInputBuffer_pfn       GetRawInputBuffer_Original;
-extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
+extern GetKeyState_pfn              GetKeyState_Original;
+extern GetAsyncKeyState_pfn         GetAsyncKeyState_Original;
+extern GetKeyboardState_pfn         GetKeyboardState_Original;
+extern GetRawInputData_pfn          GetRawInputData_Original;
+extern GetRawInputBuffer_pfn        GetRawInputBuffer_Original;
+extern RegisterRawInputDevices_pfn  RegisterRawInputDevices_Original;
 
-extern SetWindowsHookEx_pfn        SetWindowsHookExA_Original;
-extern SetWindowsHookEx_pfn        SetWindowsHookExW_Original;
-extern UnhookWindowsHookEx_pfn     UnhookWindowsHookEx_Original;
+extern SetWindowsHookEx_pfn         SetWindowsHookExA_Original;
+extern SetWindowsHookEx_pfn         SetWindowsHookExW_Original;
+extern UnhookWindowsHookEx_pfn      UnhookWindowsHookEx_Original;
 
 #define SK_HWND_DESKTOP                            nullptr
 #define SK_HWND_BOTTOM    reinterpret_cast <HWND> (   1   )

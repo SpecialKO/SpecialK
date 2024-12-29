@@ -2516,6 +2516,19 @@ AdjustWindowRectEx_Detour (
     SK_AdjustWindowRectEx (lpRect, dwStyle, bMenu, dwExStyle);
 }
 
+ GetWindowThreadProcessId_pfn GetWindowThreadProcessId_Original = nullptr;
+
+DWORD
+WINAPI
+GetWindowThreadProcessId_Detour ( _In_      HWND       hWnd,
+                                  _Out_opt_ LPDWORD lpdwProcessId )
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    SK_GetWindowThreadProcessId (hWnd, lpdwProcessId);
+}
+
 // Convenience function since there are so damn many
 //   variants of these functions that need to be hooked.
 LONG
@@ -8046,6 +8059,14 @@ SK_HookWinAPI (void)
                                ClipCursor_Detour,
       static_cast_p2p <void> (&ClipCursor_Original));
 
+    // This API has a bit of overhead and some overlays call it constantly,
+    //  we can improve game performance by giving other code in the game
+    //    SK's cached values rather than making a trip to the OS.
+    SK_CreateDLLHook2 (      L"user32",
+                              "GetWindowThreadProcessId",
+                               GetWindowThreadProcessId_Detour,
+      static_cast_p2p <void> (&GetWindowThreadProcessId_Original) );
+
     SK_CreateDLLHook2 (      L"user32",
                               "SetWindowLongA",
                                SetWindowLongA_Detour,
@@ -9223,7 +9244,9 @@ SK_GetWindowThreadProcessId ( _In_      HWND       hWnd,
   {
     DWORD      dwProcId;
     DWORD    dwThreadId =
-      GetWindowThreadProcessId (hWnd, &dwProcId);
+      GetWindowThreadProcessId_Original != nullptr        ?
+      GetWindowThreadProcessId_Original (hWnd, &dwProcId) :
+      GetWindowThreadProcessId          (hWnd, &dwProcId);
 
     _WindowThreadProcessIdCache [hWnd] = std::make_pair (dwThreadId, dwProcId);
 
@@ -9243,5 +9266,6 @@ SK_GetWindowThreadProcessId ( _In_      HWND       hWnd,
     return thread_proc_id.first;
   }
 
+  SK_ReleaseAssert (!L"Invalid Code Control Flow");
   return 0;
 }
