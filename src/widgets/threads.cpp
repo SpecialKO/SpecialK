@@ -2145,10 +2145,10 @@ public:
         SK_TLS* pTLS =
           SK_TLS_BottomEx (dwSelectedTid);
 
-        auto& thread_scheduler = *pTLS->scheduler;
-
         if (sysinfo.dwNumberOfProcessors > 1 && pTLS != nullptr)
         {
+          auto& thread_scheduler = *pTLS->scheduler;
+
           ImGui::Separator ();
 
           for (DWORD_PTR j = 0; j < sysinfo.dwNumberOfProcessors; j++)
