@@ -440,6 +440,13 @@ SK_RenderBackend_V2::isReflexSupported (void) const
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 {
+  if (marker == RENDERSUBMIT_START)
+  {
+    extern HANDLE SK_ImGui_SignalBackupInputThread;
+    if (          SK_ImGui_SignalBackupInputThread != 0)
+      SetEvent (  SK_ImGui_SignalBackupInputThread     );
+  }
+
   if (! isReflexSupported ())
     return false;
 

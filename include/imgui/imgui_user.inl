@@ -3235,15 +3235,11 @@ SK_ImGui_UpdateClassCursor (void)
 
   bool  SK_ImGui_IsImGuiCursor (HCURSOR hCursor);
   if (! SK_ImGui_IsImGuiCursor (game_window.real_cursor))
-  {
-    game_window.game_cursor = game_window.real_cursor;
-  }
+      game_window.game_cursor = game_window.real_cursor;
 }
 
-BOOL   bCursorThreadIsAttached = FALSE;
-HANDLE hPollCursorEvent;
-bool   SK_ImGui_IsHWCursorVisible = false;
-
+      HANDLE SK_ImGui_SignalBackupInputThread = 0;
+      bool   SK_ImGui_IsHWCursorVisible       = false;
 extern DWORD SK_ImGui_LastKeyboardProcMessageTime;
 extern DWORD SK_ImGui_LastMouseProcMessageTime;
 
@@ -3255,13 +3251,13 @@ SK_ImGui_BackupInputThread (LPVOID)
 
   const HANDLE hEvents [] =
     { __SK_DLL_TeardownEvent,
-            hPollCursorEvent };
+        SK_ImGui_SignalBackupInputThread };
 
   DWORD  dwWaitState  = WAIT_TIMEOUT;
   while (dwWaitState != WAIT_OBJECT_0)
   {
     dwWaitState = 
-      WaitForMultipleObjects (2, hEvents, FALSE, 2);
+      WaitForMultipleObjects (2, hEvents, FALSE, SK_ImGui_Active () ? 2 : 100);
 
     // Sometimes games stop processing their message loop for long periods
     //   of time (i.e. FMV playback or load screens), so we need to resort
@@ -3281,23 +3277,17 @@ SK_ImGui_BackupInputThread (LPVOID)
           last_keys [i];
         io.KeysDown [i] =
           ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
-
-        if (last_state != io.KeysDown [i])
-        {
-          if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
+        if (   last_state !=
+              io.KeysDown [i])
+        { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
           else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
         }
       }
     }
 
-    // Sometimes games stop processing their message loop for long periods
-    //   of time (i.e. FMV playback or load screens), so we need to resort
-    //     to an alternate means of getting cursor position.
-    if (SK_ImGui_LastMouseProcMessageTime < SK::ControlPanel::current_time - 250UL)
-    {
-      SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
-    }
-
+    if (! SK_ImGui_Active ())
+                SK_GetCursorPos
+  (&SK_ImGui_LastKnownCursorPos);
     SK_ImGui_LastKnownCursor =
                 SK_GetCursor ();
     SK_ImGui_IsHWCursorVisible =
@@ -3318,16 +3308,16 @@ SK_ImGui_User_NewFrame (void)
 
   SK_ImGui_UpdateClassCursor ();
 
-  POINT cursor_pos = SK_ImGui_LastKnownCursorPos;
-
   SK_RunOnce (
-    hPollCursorEvent =
+    SK_ImGui_SignalBackupInputThread =
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
     SK_Thread_CreateEx (SK_ImGui_BackupInputThread,
                           L"[SK] Backup Input Thread", nullptr);
   );
 
-  SetEvent (hPollCursorEvent);
+  if (SK_ImGui_Active ())
+  SK_GetCursorPos  (&SK_ImGui_LastKnownCursorPos);
+  POINT cursor_pos = SK_ImGui_LastKnownCursorPos;
 
   bool capture_mouse    = SK_ImGui_WantMouseCapture  (false, &cursor_pos);
   bool anything_hovered = SK_ImGui_IsAnythingHovered ();
