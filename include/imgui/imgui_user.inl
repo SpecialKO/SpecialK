@@ -3240,26 +3240,68 @@ SK_ImGui_UpdateClassCursor (void)
   }
 }
 
+BOOL   bCursorThreadIsAttached = FALSE;
 HANDLE hPollCursorEvent;
 bool   SK_ImGui_IsHWCursorVisible = false;
 
+extern DWORD SK_ImGui_LastKeyboardProcMessageTime;
+extern DWORD SK_ImGui_LastMouseProcMessageTime;
+
 DWORD
 WINAPI
-SK_ImGui_CursorPollingThread (LPVOID)
+SK_ImGui_BackupInputThread (LPVOID)
 {
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_NORMAL);
 
   const HANDLE hEvents [] =
     { __SK_DLL_TeardownEvent,
             hPollCursorEvent };
 
-  while (WaitForMultipleObjects (2, hEvents, FALSE, 1) != WAIT_OBJECT_0)
+  DWORD  dwWaitState  = WAIT_TIMEOUT;
+  while (dwWaitState != WAIT_OBJECT_0)
   {
-    //SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
-                      SK_ImGui_LastKnownCursor =
-                                  SK_GetCursor ();
-                      SK_ImGui_IsHWCursorVisible =
-                      SK_InputUtil_IsHWCursorVisible ();
+    dwWaitState = 
+      WaitForMultipleObjects (2, hEvents, FALSE, 2);
+
+    // Sometimes games stop processing their message loop for long periods
+    //   of time (i.e. FMV playback or load screens), so we need to resort
+    //     to an alternate means of getting keyboard state.
+    if (SK_ImGui_LastKeyboardProcMessageTime < SK::ControlPanel::current_time - 500UL &&
+         (dwWaitState == (WAIT_OBJECT_0 + 1)))
+    {
+      auto& io =
+        ImGui::GetIO ();
+
+      bool    last_keys              [256] = {};
+      memcpy (last_keys, io.KeysDown, 256);
+
+      for (UINT i = 7 ; i < 255 ; ++i)
+      {
+        bool last_state =
+          last_keys [i];
+        io.KeysDown [i] =
+          ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+
+        if (last_state != io.KeysDown [i])
+        {
+          if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
+          else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
+        }
+      }
+    }
+
+    // Sometimes games stop processing their message loop for long periods
+    //   of time (i.e. FMV playback or load screens), so we need to resort
+    //     to an alternate means of getting cursor position.
+    if (SK_ImGui_LastMouseProcMessageTime < SK::ControlPanel::current_time - 250UL)
+    {
+      SK_GetCursorPos (&SK_ImGui_LastKnownCursorPos);
+    }
+
+    SK_ImGui_LastKnownCursor =
+                SK_GetCursor ();
+    SK_ImGui_IsHWCursorVisible =
+    SK_InputUtil_IsHWCursorVisible ();
   }
 
   SK_Thread_CloseSelf ();
@@ -3276,12 +3318,13 @@ SK_ImGui_User_NewFrame (void)
 
   SK_ImGui_UpdateClassCursor ();
 
-  POINT             cursor_pos = SK_ImGui_LastKnownCursorPos;
+  POINT cursor_pos = SK_ImGui_LastKnownCursorPos;
+
   SK_RunOnce (
     hPollCursorEvent =
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-    SK_Thread_CreateEx (SK_ImGui_CursorPollingThread,
-                          L"[SK] CursorPollingThread", nullptr);
+    SK_Thread_CreateEx (SK_ImGui_BackupInputThread,
+                          L"[SK] Backup Input Thread", nullptr);
   );
 
   SetEvent (hPollCursorEvent);

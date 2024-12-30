@@ -7247,12 +7247,17 @@ SK_Platform_GetUserName (char* pszName, int max_len = 512)
 
 extern POINT SK_ImGui_LastKnownCursorPos;
 
+DWORD SK_ImGui_LastMouseProcMessageTime    = 0;
+DWORD SK_ImGui_LastKeyboardProcMessageTime = 0;
+
 LRESULT
 CALLBACK
 SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 {
   if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
+
+  SK_ImGui_LastMouseProcMessageTime = SK::ControlPanel::current_time;
 
   auto& io =
     ImGui::GetIO ();
@@ -7466,6 +7471,8 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
 {
   if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
+
+  SK_ImGui_LastKeyboardProcMessageTime = SK::ControlPanel::current_time;
 
   const bool keyboard_capture =
     SK_ImGui_WantKeyboardCapture ();

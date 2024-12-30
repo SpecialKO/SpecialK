@@ -1,4 +1,14 @@
-﻿24.12.29.4
+﻿24.12.29.5
+==========
+ + Add backup input thread for games that stop processing input on their
+     message queue for long periods of time (i.e. during FMV playback),
+       so that SK's keyboard macros and basic mouse input (no scrollwheel)
+         remain responsive.
+
+    * Or, in the worst-case, this backup thread handles all Keyboard & Mouse
+        because it wasn't possible to hook the game's window thread.
+
+24.12.29.4
 ==========
  + Removed foreground window HWND caching, the WinEventHookProc does
      not order the events it sends coherently.
