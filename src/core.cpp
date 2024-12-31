@@ -3829,6 +3829,14 @@ SK_BackgroundRender_EndFrame (void)
     }
   }
 
+  //if (config.display.aspect_ratio_stretch || config.display.focus_mode)
+  //{
+  //  if (SK_Win32_BackgroundHWND != 0 && IsIconic (game_window.hWnd) && !IsIconic (SK_Win32_BackgroundHWND))
+  //  {
+  //    ShowWindow (SK_Win32_BackgroundHWND, SW_FORCEMINIMIZE);
+  //  }
+  //}
+
 #if 0
   else
   {

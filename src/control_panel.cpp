@@ -7247,8 +7247,9 @@ SK_Platform_GetUserName (char* pszName, int max_len = 512)
 
 extern POINT SK_ImGui_LastKnownCursorPos;
 
-DWORD SK_ImGui_LastMouseProcMessageTime    = 0;
-DWORD SK_ImGui_LastKeyboardProcMessageTime = 0;
+volatile DWORD SK_ImGui_LastMouseProcMessageTime    = 0;
+volatile DWORD SK_ImGui_LastKeyboardProcMessageTime = 0;
+         BOOL  SK_ImGui_NewInput                    = FALSE;
 
 LRESULT
 CALLBACK
@@ -7257,7 +7258,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
   if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
-  SK_ImGui_LastMouseProcMessageTime = SK::ControlPanel::current_time;
+  WriteULongRelease (&SK_ImGui_LastMouseProcMessageTime, SK::ControlPanel::current_time);
+  SK_ImGui_NewInput = TRUE;
 
   auto& io =
     ImGui::GetIO ();
@@ -7267,41 +7269,34 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
   bool bPassthrough = true;
 
-  if (mhs->hwnd != 0)
-  if ( mhs->wHitTestCode == HTCLIENT ||
-       mhs->wHitTestCode == HTTRANSPARENT )
+  if ( ( mhs->hwnd == game_window.hWnd ||
+         mhs->hwnd == game_window.child ) && mhs->hwnd != 0 )
   {
-    if ( mhs->hwnd == game_window.hWnd ||
-         mhs->hwnd == game_window.child )
+    if ( mhs->wHitTestCode == HTCLIENT ||
+         mhs->wHitTestCode == HTTRANSPARENT )
     {
-      POINT                                          pt (mhs->pt);
-      ScreenToClient             (game_window.hWnd, &pt);
-      if (ChildWindowFromPointEx (game_window.hWnd,  pt, CWP_SKIPDISABLED  |
-                                                         CWP_SKIPINVISIBLE) == game_window.hWnd)
+      bPassthrough = false;
+
+      io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
+      io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+
+      if (wParam == WM_MOUSEMOVE)
       {
-        bPassthrough = false;
-
-        SK_ImGui_LastKnownCursorPos = POINT (mhs->pt);
-
-        io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
-        io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+        POINT                              pt (mhs->pt);
+        ScreenToClient (game_window.hWnd, &pt);
 
         SK_ImGui_Cursor.ClientToLocal (&pt);
         SK_ImGui_Cursor.pos =           pt;
 
-        io.MousePos = {
-          (float)pt.x,
-          (float)pt.y
-        };
-
+        io.MousePos       = {(float)pt.x, (float)pt.y};
         io.AddMousePosEvent ((float)pt.x, (float)pt.y);
       }
+    }
 
-      else
-      {
-        io.MousePos    =    {-FLT_MAX, -FLT_MAX};
-        io.AddMousePosEvent (-FLT_MAX, -FLT_MAX);
-      }
+    else if (wParam == WM_MOUSEMOVE)
+    {
+      io.MousePos       = {-FLT_MAX, -FLT_MAX};
+      io.AddMousePosEvent (-FLT_MAX, -FLT_MAX);
     }
   }
 
@@ -7313,11 +7308,16 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.AddMouseButtonEvent (ImGuiKey_MouseLeft, true);
 
-        // Only capture mouse clicks when the window is in the foreground, failure to let
-        //   left-clicks passthrough would prevent activating the game window.
-        if ( game_window.active && SK_ImGui_WantMouseButtonCapture () &&
-             game_window.hWnd   == SK_GetForegroundWindow          ()  )
-          return 1;
+        if (SK_ImGui_WantMouseButtonCapture () || (! game_window.active))
+        {
+          if (              !game_window.active) // Activate upon left-click
+            ShowWindowAsync (game_window.hWnd, SW_SHOWNORMAL);
+
+          // Block the game from getting the message, we handled
+          //   window activation immediately above.
+          if (SK_ImGui_WantMouseButtonCapture ())
+            return 1;
+        }
       }
       break;
 
@@ -7472,7 +7472,8 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
   if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
-  SK_ImGui_LastKeyboardProcMessageTime = SK::ControlPanel::current_time;
+  WriteULongRelease (&SK_ImGui_LastKeyboardProcMessageTime, SK::ControlPanel::current_time);
+  SK_ImGui_NewInput = TRUE;
 
   const bool keyboard_capture =
     SK_ImGui_WantKeyboardCapture ();

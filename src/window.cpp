@@ -8647,6 +8647,8 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     DefWindowProcW (hwnd, msg, wParam, lParam);
 }
 
+ULONG64 SK_ImGui_MinimizedOnFrame = 0;
+
 void
 SK_Win32_BringBackgroundWindowToTop (void)
 {
@@ -8654,6 +8656,14 @@ SK_Win32_BringBackgroundWindowToTop (void)
     return;
 
   if (SK_Win32_BackgroundHWND == HWND_DESKTOP)
+    return;
+
+  // Avoid immediately re-activating the window after minimizing the game
+  if (SK_ImGui_MinimizedOnFrame > SK_GetFramesDrawn () - 3)
+    return;
+
+  // The game is minimized, keep the background window invisible...
+  if (IsIconic (SK_GetGameWindow ()))
     return;
 
   HMONITOR hMonitor =

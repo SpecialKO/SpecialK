@@ -3238,10 +3238,11 @@ SK_ImGui_UpdateClassCursor (void)
       game_window.game_cursor = game_window.real_cursor;
 }
 
-      HANDLE SK_ImGui_SignalBackupInputThread = 0;
-      bool   SK_ImGui_IsHWCursorVisible       = false;
-extern DWORD SK_ImGui_LastKeyboardProcMessageTime;
-extern DWORD SK_ImGui_LastMouseProcMessageTime;
+                HANDLE SK_ImGui_SignalBackupInputThread = 0;
+                bool   SK_ImGui_IsHWCursorVisible       = false;
+extern          BOOL  SK_ImGui_NewInput;
+extern volatile DWORD SK_ImGui_LastKeyboardProcMessageTime;
+extern volatile DWORD SK_ImGui_LastMouseProcMessageTime;
 
 DWORD
 WINAPI
@@ -3257,30 +3258,39 @@ SK_ImGui_BackupInputThread (LPVOID)
   while (dwWaitState != WAIT_OBJECT_0)
   {
     dwWaitState = 
-      WaitForMultipleObjects (2, hEvents, FALSE, SK_ImGui_Active () ? 2 : 100);
+      WaitForMultipleObjects (2, hEvents, FALSE, SK_ImGui_Active () ? 3 : 100);
 
     // Sometimes games stop processing their message loop for long periods
     //   of time (i.e. FMV playback or load screens), so we need to resort
     //     to an alternate means of getting keyboard state.
-    if (SK_ImGui_LastKeyboardProcMessageTime < SK::ControlPanel::current_time - 500UL &&
+    if (ReadULongAcquire (&SK_ImGui_LastKeyboardProcMessageTime) < SK::ControlPanel::current_time - 500UL &&
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
-      auto& io =
-        ImGui::GetIO ();
+      static            LASTINPUTINFO
+        lii = { sizeof (LASTINPUTINFO), 1 };
 
-      bool    last_keys              [256] = {};
-      memcpy (last_keys, io.KeysDown, 256);
+      DWORD dwLastInput = lii.dwTime;
 
-      for (UINT i = 7 ; i < 255 ; ++i)
+      if (!GetLastInputInfo (&lii) ||
+                              lii.dwTime != dwLastInput)
       {
-        bool last_state =
-          last_keys [i];
-        io.KeysDown [i] =
-          ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
-        if (   last_state !=
-              io.KeysDown [i])
-        { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
-          else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
+        auto& io =
+          ImGui::GetIO ();
+
+        bool    last_keys              [256] = {};
+        memcpy (last_keys, io.KeysDown, 256);
+
+        for (UINT i = 7 ; i < 255 ; ++i)
+        {
+          bool last_state =
+            last_keys [i];
+          io.KeysDown [i] =
+            ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+          if (   last_state !=
+                io.KeysDown [i])
+          { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
+            else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
+          }
         }
       }
     }
@@ -3297,6 +3307,60 @@ SK_ImGui_BackupInputThread (LPVOID)
   SK_Thread_CloseSelf ();
 
   return 0;
+}
+
+void
+SK_ImGui_HandleBorderlessMinimizeMaximize (void)
+{
+  // Implement Minimizing/Restoring Borderless Games Using Windows+Down/Up
+  static bool last_down = (SK_GetAsyncKeyState (VK_DOWN) & 0x8000);
+  static bool last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
+  if (     (SK_GetAsyncKeyState (VK_DOWN) & 0x8000) && !last_down && !last_up && !SK_Window_HasBorder (game_window.hWnd))
+  {
+    if (!         IsIconic (game_window.hWnd))
+    {
+#ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
+        if (IsZoomed         (game_window.hWnd))
+          SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
+        else
+#endif
+        { SK_ShowWindowAsync (game_window.hWnd, SW_MINIMIZE);
+
+          if (config.display.aspect_ratio_stretch ||
+              config.display.focus_mode)
+          {
+            SK_SetWindowPos  (SK_Win32_BackgroundHWND,
+                              game_window.hWnd,
+                                0, 0,
+                                0, 0,
+                                  SWP_ASYNCWINDOWPOS |
+                                  SWP_NOSENDCHANGING |
+                                  SWP_NOACTIVATE     |
+                                  SWP_HIDEWINDOW);
+          }
+
+          extern ULONG64
+            SK_ImGui_MinimizedOnFrame;
+            SK_ImGui_MinimizedOnFrame = SK_GetFramesDrawn ();
+        }
+      }
+    }
+    else if ((SK_GetAsyncKeyState (VK_UP) & 0x8000)   && !last_down && !last_up && !SK_Window_HasBorder (game_window.hWnd))
+    {
+      if (! IsZoomed         (game_window.hWnd))
+      {
+        if (IsIconic         (game_window.hWnd))
+#ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
+          SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
+        else
+          SK_ShowWindowAsync (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
+#else
+          SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
+#endif
+      }
+    }
+    last_down = (SK_GetAsyncKeyState (VK_DOWN) & 0x8000);
+    last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
 }
 
 void
@@ -3505,7 +3569,7 @@ SK_ImGui_User_NewFrame (void)
                     LASTINPUTINFO
     cii = { sizeof (LASTINPUTINFO), 2 };
 
-  bool new_input =
+  bool new_input = std::exchange (SK_ImGui_NewInput, FALSE) != FALSE ||
     ( !GetLastInputInfo (&cii) ||
           std::exchange ( lii.dwTime,
                           cii.dwTime ) != cii.dwTime );
@@ -3767,41 +3831,17 @@ SK_ImGui_User_NewFrame (void)
 
   if (bActive)
   {
+    // Vulkan interop games will not work correctly if minimized
     static const bool
-        safely_minimizable = SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NV;
-    if (safely_minimizable && (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN])) // Vulkan interop games will not work correctly if minimized
+        safely_minimizable =
+          SK_Render_GetVulkanInteropSwapChainType (
+            SK_GetCurrentRenderBackend ().swapchain
+          ) != SK_DXGI_VK_INTEROP_TYPE_NV;
+
+    if (safely_minimizable && (io.KeysDown [VK_LWIN] || 
+                               io.KeysDown [VK_RWIN]))
     {
-      // Implement Minimizing/Restoring Borderless Games Using Windows+Down/Up
-      static bool last_down = (SK_GetAsyncKeyState (VK_DOWN) & 0x8000);
-      static bool last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
-      if (     (SK_GetAsyncKeyState (VK_DOWN) & 0x8000) && !last_down && !last_up && !SK_Window_HasBorder (game_window.hWnd))
-      {
-        if (!         IsIconic (game_window.hWnd))
-        {
-#ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
-          if (IsZoomed         (game_window.hWnd))
-            SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
-          else
-#endif
-            SK_ShowWindowAsync (game_window.hWnd, SW_MINIMIZE);
-        }
-      }
-      else if ((SK_GetAsyncKeyState (VK_UP) & 0x8000)   && !last_down && !last_up && !SK_Window_HasBorder (game_window.hWnd))
-      {
-        if (! IsZoomed         (game_window.hWnd))
-        {
-          if (IsIconic         (game_window.hWnd))
-#ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
-            SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
-          else
-            SK_ShowWindowAsync (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
-#else
-            SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
-#endif
-        }
-      }
-      last_down = (SK_GetAsyncKeyState (VK_DOWN) & 0x8000);
-      last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
+      SK_ImGui_HandleBorderlessMinimizeMaximize ();
     }
   }
 

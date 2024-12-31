@@ -1,4 +1,11 @@
-﻿24.12.29.5
+﻿24.12.31
+========
+ + Optimized SK's Mouse Window Hook to use the hit test code, rather than
+     performing hit testing of its own to see if the mouse is insie the window.
+ + The ADHD background window will now disappear when minimizing a game while
+     the feature is active.
+
+24.12.29.5
 ==========
  + Add backup input thread for games that stop processing input on their
      message queue for long periods of time (i.e. during FMV playback),
