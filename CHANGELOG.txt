@@ -1,4 +1,9 @@
-﻿25.1.1.1
+﻿25.1.1.2
+========
+ + HOTFIX to continue installing queued hooks even if one of them fails due to
+     anti-cheat memory protection.
+
+25.1.1.1
 ========
  + HOTFIX to install DXGI/D3D11 hooks immediately rather than deferring them.
 

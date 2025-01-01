@@ -1029,7 +1029,8 @@ static
 MH_STATUS
 EnableAllHooksLLEx (BOOL enable, UINT idx)
 {
-  MH_STATUS status = MH_OK;
+  MH_STATUS final_status = MH_OK;
+  MH_STATUS status       = MH_OK;
   UINT      i,
             first  = INVALID_HOOK_POS;
 
@@ -1058,14 +1059,16 @@ EnableAllHooksLLEx (BOOL enable, UINT idx)
                                          1 : 0, idx );
 
         if (status != MH_OK)
-          break;
+        {
+          final_status = status;
+        }
       }
     }
 
     Unfreeze (&threads);
   }
 
-  return status;
+  return final_status;
 }
 
 static

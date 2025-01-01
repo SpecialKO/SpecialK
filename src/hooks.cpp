@@ -1591,7 +1591,7 @@ SK_ApplyQueuedHooks (void)
 
   if (status != MH_OK)
   {
-    SK_LOG_MINHOOK_ ( status, L"Failed to Enable Deferred Hooks!" );
+    SK_LOG_MINHOOK_ ( status, L"Failed to Enable 1 or More Deferred Hooks!" );
   }
 
   const int lvl =
@@ -1599,7 +1599,8 @@ SK_ApplyQueuedHooks (void)
 
   SK_LOG ((L" >> %lu ms", SK_timeGetTime () - dwStart), lvl, L" Min Hook ");
 
-  if (status == MH_OK)
+  // Regardless the status, we're not going to try to re-install failed hooks...
+  //if (status == MH_OK)
   {
     auto enqueued =
       ReadULongAcquire (&SK_MinHook_HooksEnqueued);
