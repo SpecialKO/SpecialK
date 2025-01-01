@@ -645,6 +645,19 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         warned_invalid_ref_count = true;
       }
 
+      static bool warned_required_deferred_mode = false;
+
+      if ((! warned_required_deferred_mode) && (! config.render.dxgi.deferred_isolation))
+      {      warned_required_deferred_mode = true;
+        if (SK_IsCurrentGame (SK_GAME_ID::Metaphor))
+        {
+          SK_ImGui_Warning (
+            L"This game requires D3D11 Deferred Mode to be enabled for textures to show up.\r\n\r\n"
+            L"NOTE: There is a slight performance penalty for having it on, so turn it off during gameplay."
+          );
+        }
+      }
+
       SK_D3D11_LiveTextureView (can_scroll, pTLS);
     }
 
