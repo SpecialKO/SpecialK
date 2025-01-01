@@ -178,7 +178,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8W_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-          SK_QueueEnableHook (vftable [3]);
+          SK_EnableHook (vftable [3]);
         }
 
         if ((! IDirectInput8A_EnumDevices_Original) &&
@@ -191,7 +191,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8W_EnumDevices_Detour,
             static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
 
-          SK_QueueEnableHook (vftable [4]);
+          SK_EnableHook (vftable [4]);
         }
       }
     }
@@ -216,7 +216,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8A_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-          SK_QueueEnableHook (vftable [3]);
+          SK_EnableHook (vftable [3]);
         }
 
         if ((! IDirectInput8W_EnumDevices_Original) &&
@@ -229,7 +229,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8A_EnumDevices_Detour,
             static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
 
-          SK_QueueEnableHook (vftable [4]);
+          SK_EnableHook (vftable [4]);
         }
       }
     }
@@ -435,7 +435,7 @@ CoCreateInstance_DI8 (
         // Hook queuing drags in other input APIs we're not ready to hook yet,
         //   do this immediately instead.
         //
-        SK_QueueEnableHook (vftable [3]);
+        SK_EnableHook (vftable [3]);
       }
 
       if (! IDirectInput8A_EnumDevices_Original)
@@ -447,7 +447,7 @@ CoCreateInstance_DI8 (
                                    IDirectInput8A_EnumDevices_Detour,
           static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
 
-        SK_QueueEnableHook (vftable [4]);
+        SK_EnableHook (vftable [4]);
       }
     }
   }
@@ -471,7 +471,7 @@ CoCreateInstance_DI8 (
                                    IDirectInput8W_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-        SK_QueueEnableHook (vftable [3]);
+        SK_EnableHook (vftable [3]);
       }
 
       if (! IDirectInput8W_EnumDevices_Original)
@@ -483,7 +483,7 @@ CoCreateInstance_DI8 (
                                    IDirectInput8W_EnumDevices_Detour,
           static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
 
-        SK_QueueEnableHook (vftable [4]);
+        SK_EnableHook (vftable [4]);
       }
     }
   }
@@ -543,7 +543,7 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8A_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-            SK_QueueEnableHook (vftable [3]);
+            SK_EnableHook (vftable [3]);
           }
 
           if (! IDirectInput8A_EnumDevices_Original)
@@ -555,7 +555,7 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8A_EnumDevices_Detour,
               static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
 
-            SK_QueueEnableHook (vftable [4]);
+            SK_EnableHook (vftable [4]);
           }
         }
 
@@ -570,7 +570,7 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8W_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-            SK_QueueEnableHook (vftable [3]);
+            SK_EnableHook (vftable [3]);
           }
 
           if (! IDirectInput8W_EnumDevices_Original)
@@ -582,7 +582,7 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8W_EnumDevices_Detour,
               static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
 
-            SK_QueueEnableHook (vftable [4]);
+            SK_EnableHook (vftable [4]);
           }
         }
       }
@@ -1552,7 +1552,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                    IDirectInputDevice8W_GetDeviceState_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
 
-        SK_QueueEnableHook (vftable [9]);
+        SK_EnableHook (vftable [9]);
       }
 
       if (! IDirectInputDevice8W_SetCooperativeLevel_Original)
@@ -1562,7 +1562,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                    IDirectInputDevice8W_SetCooperativeLevel_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
 
-        SK_QueueEnableHook (vftable [13]);
+        SK_EnableHook (vftable [13]);
       }
 
       if (rguid == GUID_SysMouse)
@@ -1670,7 +1670,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                    IDirectInputDevice8A_GetDeviceState_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
 
-        SK_QueueEnableHook (vftable [9]);
+        SK_EnableHook (vftable [9]);
       }
 
       if (! IDirectInputDevice8A_SetCooperativeLevel_Original)
@@ -1680,7 +1680,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                    IDirectInputDevice8A_SetCooperativeLevel_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
 
-        SK_QueueEnableHook (vftable [13]);
+        SK_EnableHook (vftable [13]);
       }
 
       if (rguid == GUID_SysMouse)
