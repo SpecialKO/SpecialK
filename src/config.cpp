@@ -294,13 +294,9 @@ SK_GetCurrentGameID (void)
       if (app_id == 1382330)
         current_game = SK_GAME_ID::Persona5Strikers;
          
-      if (StrStrIW (SK_GetFullyQualifiedApp (), L"WutheringWaves"))
-      {
-        current_game = SK_GAME_ID::WutheringWaves;
-      }
 
-      else if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) ==
-                           SK_GetHostApp () )
+      if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) ==
+                      SK_GetHostApp () )
       {
         if ( StrStrIW ( SK_GetHostApp (), L"ffxv_" ) )
         {

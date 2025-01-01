@@ -1,6 +1,6 @@
 ﻿25.1.1.1
 ========
- + HOTFIX for games/overlays that use DirectInput 8
+ + HOTFIX to install DXGI/D3D11 hooks immediately rather than deferring them.
 
 25.1.1
 ======
