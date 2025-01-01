@@ -46,15 +46,15 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
-  static bool once = false;
-
   D3D12_COMMAND_QUEUE_DESC
     queueDesc = This->GetDesc ();
+
+  static volatile LONG once = FALSE;
 
   if ( pLazyD3D12Chain  != nullptr &&
        pLazyD3D12Device != nullptr && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT )
   {
-    if ((! std::exchange (once, true)) && rb.d3d12.command_queue.p == nullptr)
+    if (rb.d3d12.command_queue.p == nullptr && InterlockedCompareExchange (&once, 1, 0) == 0)
     {
       SK_ComPtr <ID3D12Device> pDevice12;
 
@@ -85,19 +85,25 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
         rb.d3d12.command_queue = pCmdQueue.p;
         rb.api                 = SK_RenderAPI::D3D12;
 
-        _d3d12_rbk->init (
-          (IDXGISwapChain3 *)pSwapChain.p,
-            pCmdQueue.p
-        );
+        bool success =
+          _d3d12_rbk->init (
+            (IDXGISwapChain3 *)pSwapChain.p,
+              pCmdQueue.p
+          );
+
+        WriteRelease (&once, success ? 2 : 0);
+
+        if (! success)
+          rb.releaseOwnedResources ();
       }
 
-      else once = false;
+      else WriteRelease (&once, 0);
     }
   }
 
   bool bDLSSG = false;
 
-  if (once && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && (This == rb.d3d12.command_queue || This == _d3d12_rbk->_pCommandQueue))
+  if (ReadAcquire (&once) == 2 && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && (This == rb.d3d12.command_queue || This == _d3d12_rbk->_pCommandQueue))
   {
     const auto frame_id =
       SK_GetFramesDrawn ();

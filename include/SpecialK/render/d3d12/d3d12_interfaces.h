@@ -507,6 +507,16 @@ struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
   { };
 };
 
+class SK_ScopedLock {
+public:
+   SK_ScopedLock (void);
+   SK_ScopedLock (SK_Thread_HybridSpinlock* lock);
+  ~SK_ScopedLock (void);
+
+protected:
+  SK_Thread_HybridSpinlock* _lock;
+};
+
 struct SK_D3D12_RenderCtx {
   struct GPUDuration {
     UINT64 Start;
@@ -529,6 +539,8 @@ struct SK_D3D12_RenderCtx {
   };
 
   SK_Thread_HybridSpinlock                _ctx_lock;
+
+  SK_ScopedLock                           acquireScopedLock (void);
 
   SK_ComPtr <ID3D12Device>                _pDevice            = nullptr;
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue      = nullptr;
