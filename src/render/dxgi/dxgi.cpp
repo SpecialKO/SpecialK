@@ -8109,6 +8109,10 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   if (ppFactory == nullptr)
     return E_INVALIDARG;
 
+  const bool silence =
+    ( SK_GetCallingDLL () == SK_GetDLL () ||
+      StrStrIW (SK_GetCallerName ().c_str (), L"d3d11.dll") );
+
   IID riid = riid_;
 
   // Upgrade everything to at least IDXGIFactory7 implicitly
@@ -8163,9 +8167,12 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
   UNREFERENCED_PARAMETER (iver);
 
-  DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
-                    L"0x%04X, %hs, %08" _L(PRIxPTR) L"h",
-                      Flags, iname.c_str (), (uintptr_t)ppFactory );
+  if (! silence)
+  {
+    DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
+                      L"0x%04X, %hs, %08" _L(PRIxPTR) L"h",
+                        Flags, iname.c_str (), (uintptr_t)ppFactory );
+  }
 
   *ppFactory = nullptr;
 
@@ -8173,6 +8180,11 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   {
     SK_RunOnce (SK_BootDXGI ());
             WaitForInitDXGI ();
+  }
+
+  if (! silence)
+  {
+    WaitForInitDXGI ();
   }
 
   void* pFactory_ = nullptr;
@@ -8190,7 +8202,9 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
   else
   {
-    DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, &pFactory_));
+    if (! silence) {
+      DXGI_CALL (ret,  CreateDXGIFactory2_Import (Flags, riid, &pFactory_));
+    } else       ret = CreateDXGIFactory2_Import (Flags, riid, &pFactory_);
   }
 
   if ( ppFactory == nullptr ||
@@ -8382,7 +8396,7 @@ SK_HookDXGI (void)
                  static_cast_p2p <void> (&CreateDXGIFactory_Import),
                                       &pfnCreateDXGIFactory ) )
         {
-          SK_QueueEnableHook (pfnCreateDXGIFactory);
+          SK_EnableHook (pfnCreateDXGIFactory);
         }
       }
       else if (LocalHook_CreateDXGIFactory.active) {
@@ -8399,7 +8413,7 @@ SK_HookDXGI (void)
                  static_cast_p2p <void> (&CreateDXGIFactory1_Import),
                                       &pfnCreateDXGIFactory1 ) )
         {
-          SK_QueueEnableHook (pfnCreateDXGIFactory1);
+          SK_EnableHook (pfnCreateDXGIFactory1);
         }
       }
       else if (LocalHook_CreateDXGIFactory1.active) {
@@ -8416,7 +8430,7 @@ SK_HookDXGI (void)
                  static_cast_p2p <void> (&CreateDXGIFactory2_Import),
                                       &pfnCreateDXGIFactory2 ) )
         {
-          SK_QueueEnableHook (pfnCreateDXGIFactory2);
+          SK_EnableHook (pfnCreateDXGIFactory2);
         }
       }
       else if (LocalHook_CreateDXGIFactory2.active) {
@@ -8458,12 +8472,6 @@ SK_HookDXGI (void)
     static auto _InitDXGIFactoryInterfaces = [&](void)
     {
       SK_DXGI_DetermineHighestSupportedFactoryVersion ();
-
-      bool  bEnable = SK_EnableApplyQueuedHooks  ();
-      {
-        SK_ApplyQueuedHooks ();
-      }
-      if (! bEnable)  SK_DisableApplyQueuedHooks ();
 
       static const IID iids [] = { IID_IDXGIFactory,  IID_IDXGIFactory1, IID_IDXGIFactory2,
                                    IID_IDXGIFactory3, IID_IDXGIFactory4, IID_IDXGIFactory5,
