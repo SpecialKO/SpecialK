@@ -2245,8 +2245,22 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             (     state.Gamepad.bRightTrigger >  XINPUT_GAMEPAD_TRIGGER_THRESHOLD) &&
             (last_state.Gamepad.bRightTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
         {
-          if (!       IsIconic (game_window.hWnd))
+          if (!       IsIconic (game_window.hWnd)) {
             SK_ShowWindowAsync (game_window.hWnd, SW_MINIMIZE);
+
+            if (config.display.aspect_ratio_stretch ||
+                config.display.focus_mode)
+            {
+              SK_SetWindowPos  (SK_Win32_BackgroundHWND,
+                                game_window.hWnd,
+                                  0, 0,
+                                  0, 0,
+                                    SWP_ASYNCWINDOWPOS |
+                                    SWP_NOSENDCHANGING |
+                                    SWP_NOACTIVATE     |
+                                    SWP_HIDEWINDOW);
+            }
+          }
 
           bChordActivated = true;
         }
