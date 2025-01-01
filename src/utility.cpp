@@ -3154,7 +3154,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   HANDLE
     hFind = FindFirstFileW (wszFindPattern, &fd);
 
-  if (hFind != INVALID_HANDLE_VALUE)
+  if (hFind != INVALID_HANDLE_VALUE && StrStrIW (fd.cFileName, L"SKI"))
   {
     if (config.system.log_level >= 0)
     {

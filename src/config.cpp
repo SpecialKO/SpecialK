@@ -293,9 +293,14 @@ SK_GetCurrentGameID (void)
 
       if (app_id == 1382330)
         current_game = SK_GAME_ID::Persona5Strikers;
+         
+      if (StrStrIW (SK_GetFullyQualifiedApp (), L"WutheringWaves"))
+      {
+        current_game = SK_GAME_ID::WutheringWaves;
+      }
 
-      if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) ==
-                      SK_GetHostApp () )
+      else if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) ==
+                           SK_GetHostApp () )
       {
         if ( StrStrIW ( SK_GetHostApp (), L"ffxv_" ) )
         {
@@ -3037,6 +3042,13 @@ auto DeclKeybind =
       } break;
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::WutheringWaves:
+      {
+        // Work-around anti-cheat
+        config.compatibility.disable_debug_features =  true;
+        config.system.handle_crashes                = false;
+      } break;
+
       case SK_GAME_ID::GenshinImpact:
       {
         // Work-around anti-cheat
@@ -5702,7 +5714,8 @@ auto DeclKeybind =
     static auto code_sig =
       SK_VerifyTrust_GetCodeSignature (SK_GetFullyQualifiedApp ());
 
-    if (StrStrIW (code_sig.subject.c_str (), L"COGNOSPHERE"))
+    if (StrStrIW (code_sig.subject.c_str (), L"COGNOSPHERE") ||
+        StrStrIW (code_sig.subject.c_str (), L"KURO TECHNOLOGY"))
     {
       config.compatibility.disable_debug_features = true;
     }

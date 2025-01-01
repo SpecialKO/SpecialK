@@ -1720,6 +1720,7 @@ enum class SK_GAME_ID
   ShinMegamiTensei3,            // smt3hd.exe
   TheQuarry,                    // TheQuarry-Win64-Shipping.exe
   GenshinImpact,                // GenshinImpact.exe
+  WutheringWaves,               // WutheringWaves*****\Client-Win64-Shipping.exe
   PathOfExile,                  // PathOfExileSteam.exe
   Disgaea5,                     // Disgaea5.exe
   SoulHackers2,                 // SOUL HACKERS2.exe
