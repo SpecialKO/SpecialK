@@ -1076,9 +1076,10 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
       else if (  keybind == &config.monitors.multimonitor_focus_keybind )
       {
-        config.display.focus_mode       = !config.display.focus_mode;
-        config.window.background_render = true;             // Required for this to work reliably
-        config.window.always_on_top     = SmartAlwaysOnTop; // Needed to fix taskbar visibility
+        config.display.aspect_ratio_stretch = false;
+        config.display.focus_mode           = !config.display.focus_mode;
+        config.window.background_render     = true;             // Required for this to work reliably
+        config.window.always_on_top         = SmartAlwaysOnTop; // Needed to fix taskbar visibility
 
         SK_Win32_BringBackgroundWindowToTop ();
 

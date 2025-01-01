@@ -1,4 +1,8 @@
-﻿24.12.31.1
+﻿24.12.31.2
+==========
+ + Sped up hook installation a little bit to reduce hook races.
+
+24.12.31.1
 ==========
  + Fixed the PlayStation/Xbox Button + Right Trigger to minimize game feature
      so that it also hides the ADHD Multi-Monitor background window.
