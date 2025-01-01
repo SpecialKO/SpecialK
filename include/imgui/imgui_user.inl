@@ -2260,6 +2260,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                                     SWP_NOACTIVATE     |
                                     SWP_HIDEWINDOW);
             }
+
+            SK_ImGui_MinimizedOnFrame = SK_GetFramesDrawn ();
           }
 
           bChordActivated = true;
@@ -3353,9 +3355,7 @@ SK_ImGui_HandleBorderlessMinimizeMaximize (void)
                                   SWP_HIDEWINDOW);
           }
 
-          extern ULONG64
-            SK_ImGui_MinimizedOnFrame;
-            SK_ImGui_MinimizedOnFrame = SK_GetFramesDrawn ();
+          SK_ImGui_MinimizedOnFrame = SK_GetFramesDrawn ();
         }
       }
     }

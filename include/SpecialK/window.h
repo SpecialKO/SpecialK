@@ -966,4 +966,6 @@ WINAPI
 SK_GetWindowThreadProcessId ( _In_      HWND       hWnd,
                               _Out_opt_ LPDWORD lpdwProcessId );
 
+extern ULONG64 SK_ImGui_MinimizedOnFrame;
+
 #endif /* __SK__WINDOW_H__ */
