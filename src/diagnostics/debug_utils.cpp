@@ -288,12 +288,17 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
         (pLdrEntry->FullDllName.Length / sizeof (wchar_t))
       );
 
-      SK_LOG0 ( ( LR"(Procedure: '%hs' located by NtLdr in '%ws')",
-                    lpProcName, ucs_full.c_str () ),
-                  L"DebugUtils" );
-      SK_LOG0 ( ( L"  >>  Expected Location:  '%ws'!",
-                    SK_GetModuleFullName (hModExpected).c_str () ),
-                  L"DebugUtils" );
+      // DefWindowProc{A|W} being located in ntdll.dll is
+      //   a known thing, we don't need log spam.
+      if (! StrStrIW (ucs_full.c_str (), L"DefWindowProc"))
+      {
+        SK_LOG0 ( ( LR"(Procedure: '%hs' located by NtLdr in '%ws')",
+                      lpProcName, ucs_full.c_str () ),
+                    L"DebugUtils" );
+        SK_LOG0 ( ( L"  >>  Expected Location:  '%ws'!",
+                      SK_GetModuleFullName (hModExpected).c_str () ),
+                    L"DebugUtils" );
+      }
 
       SK_Module_UnlockLoader (0x0, ldrCookie);
 
