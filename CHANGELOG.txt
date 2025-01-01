@@ -1,5 +1,5 @@
-﻿24.12.31.2
-==========
+﻿25.1.1
+======
  + Sped up hook installation a little bit to reduce hook races.
 
 24.12.31.1
