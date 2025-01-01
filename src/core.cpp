@@ -980,9 +980,6 @@ SK_InitFinishCallback (void)
   // SEH to handle Wine Stub functions
   SK_SEH_InitFinishCallback ();
 
-  SK_EnableApplyQueuedHooks ();
-  SK_ApplyQueuedHooks       ();
-
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
   dll_log->Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
@@ -991,6 +988,13 @@ SK_InitFinishCallback (void)
                  );
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
+
+  SK_EnableApplyQueuedHooks ();
+
+  if (ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied) > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  }
 
 #ifdef _M_IX86
   typedef BOOL (WINAPI* K32EmptyWorkingSet_pfn)(HANDLE hProcess);
@@ -1153,11 +1157,11 @@ void BasicInit (void)
   if (SK_COMPAT_IsFrapsPresent ())
       SK_COMPAT_UnloadFraps ();
 
-  bool bEnable = SK_EnableApplyQueuedHooks  ();
-  {
-    SK_ApplyQueuedHooks ();
-  }
-  if (! bEnable) SK_DisableApplyQueuedHooks ();
+  //bool bEnable = SK_EnableApplyQueuedHooks  ();
+  //{
+  //  SK_ApplyQueuedHooks ();
+  //}
+  //if (! bEnable) SK_DisableApplyQueuedHooks ();
 }
 
 DWORD
@@ -1167,8 +1171,8 @@ DllThread (LPVOID user)
   WriteULongNoFence (&dwInitThreadId, SK_Thread_GetCurrentId ());
 
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
-  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST       );
-  SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
+  SetThreadPriorityBoost      ( SK_GetCurrentThread (), FALSE                         );
 
   if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline))
                                                    //&& (! config.compatibility.init_sync_for_reshade))
@@ -2440,6 +2444,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_Thread_CreateEx ( DllThread, nullptr,
                                &init_ )
     ); // Avoid the temptation to wait on this thread
+
+    if (ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied) > 0)
+    {
+      SK_ApplyQueuedHooks ();
+    }
   }
 
   return true;
@@ -4124,6 +4133,11 @@ HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 {
+  if (ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied) > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  }
+
   auto qpcTimeOfSwap =
     SK_QueryPerf ();
 

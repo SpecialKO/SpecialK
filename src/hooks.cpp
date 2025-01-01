@@ -96,6 +96,19 @@ SK_GetModuleHandleW (PCWSTR lpModuleName)
     GetModuleHandleW (lpModuleName);
 }
 
+static volatile DWORD SK_MinHook_HooksActive   = 0;
+static volatile DWORD SK_MinHook_HooksEnqueued = 0;
+
+MH_STATUS
+WINAPI
+SK_QueueEnableHook (LPVOID pTarget)
+{
+  SK_MinHook_HooksEnqueued++;
+
+  return
+    MH_QueueEnableHookEx (pTarget, 0);
+}
+
 
 
 #define SK_LOG_MINHOOK_(status, msg)          \
@@ -422,7 +435,7 @@ SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
                                it->trampoline
                              ) == MH_OK )
           {
-            if (MH_QueueEnableHook (target_addr) == MH_OK)
+            if (SK_QueueEnableHook (target_addr) == MH_OK)
             {
               it->hits        = 1;
               it->active      = true;
@@ -474,7 +487,7 @@ SK_Hook_PreCacheModule ( const wchar_t             *wszModuleName,
                                it->trampoline
                              ) == MH_OK )
           {
-            if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+            if (SK_QueueEnableHook (it->target.addr) == MH_OK)
             {
               it->active = true;
               ++cache_state.hooks_loaded.from_game_ini;
@@ -1115,7 +1128,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     if (ppFuncAddr != nullptr)
        *ppFuncAddr  = pFuncAddr;
 
-    MH_QueueEnableHook (pFuncAddr);
+    SK_QueueEnableHook (pFuncAddr);
   }
 
   return status;
@@ -1240,7 +1253,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
 
-    MH_QueueEnableHook (pFuncAddr);
+    SK_QueueEnableHook (pFuncAddr);
   }
 
   return status;
@@ -1439,7 +1452,7 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
       SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
       status =
-        MH_QueueEnableHook (ppVFTable [dwOffset]);
+        SK_QueueEnableHook (ppVFTable [dwOffset]);
     }
   }
 
@@ -1486,7 +1499,7 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
       SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
       //status =
-      //  MH_QueueEnableHook (ppVFTable [dwOffset]);
+      //  SK_QueueEnableHook (ppVFTable [dwOffset]);
     }
   }
 
@@ -1535,18 +1548,28 @@ bool SK_EnableApplyQueuedHooks (void)
   return bBefore;
 }
 
+volatile DWORD SK_MinHook_HooksQueuedButNotApplied = 0;
+
 MH_STATUS
 __stdcall
 SK_ApplyQueuedHooks (void)
 {
   if (! SKinHookCtx.ApplyQueuedHooks.enabled)
+  {
+    InterlockedIncrement (&SK_MinHook_HooksQueuedButNotApplied);
+    SK_MinHook_HooksQueuedButNotApplied++;
     return MH_OK;
+  }
 
   if (   ReadAcquire (&__SK_DLL_Ending  ) ||
       (! ReadAcquire (&__SK_DLL_Attached))  )
   {
     return MH_ERROR_DISABLED;
   }
+
+  InterlockedDecrement (&SK_MinHook_HooksQueuedButNotApplied);
+  SK_MinHook_HooksActive +=
+    std::exchange (SK_MinHook_HooksEnqueued, 0);
 
 
   UINT                         uiHookCount = 0;

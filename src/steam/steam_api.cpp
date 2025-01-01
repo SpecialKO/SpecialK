@@ -772,7 +772,7 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
                                SteamInternal_CreateInterface_Detour,
       static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
                            &pfnSteamInternal_CreateInterface );
-    MH_QueueEnableHook (    pfnSteamInternal_CreateInterface );
+    SK_QueueEnableHook (    pfnSteamInternal_CreateInterface );
 #endif
 
     return TRUE;
@@ -4623,13 +4623,13 @@ SK_HookSteamAPI (void)
 
     if (hooks > 0)
     {
-      bool bEnableHooks =
-        SK_EnableApplyQueuedHooks ();
-      
+      //bool bEnableHooks =
+      //  SK_EnableApplyQueuedHooks ();
+
       SK_ApplyQueuedHooks ();
-      
-      if (! bEnableHooks)
-        SK_DisableApplyQueuedHooks ();
+
+      //if (! bEnableHooks)
+      //  SK_DisableApplyQueuedHooks ();
     }
 
     InterlockedIncrementRelease (&__SteamAPI_hook);
@@ -6943,8 +6943,8 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
 
   if (i != INTERNAL_STEAMUGC_INTERFACE_VERSION) ugc_ = nullptr;
 
-  MH_QueueEnableHook (SteamAPI_Shutdown);
-  MH_QueueEnableHook (SteamAPI_RunCallbacks);
+  SK_QueueEnableHook (SteamAPI_Shutdown);
+  SK_QueueEnableHook (SteamAPI_RunCallbacks);
 
   return true;
 }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -298,5 +298,8 @@ MH_STATUS __stdcall SK_MinHook_UnInit (void);
 
 extern bool SK_EnableApplyQueuedHooks  (void);
 extern bool SK_DisableApplyQueuedHooks (void);
+
+extern volatile DWORD SK_MinHook_HooksQueuedButNotApplied;
+MH_STATUS WINAPI SK_QueueEnableHook (LPVOID pTarget);
 
 #endif /* __SK__HOOKS_H__ */

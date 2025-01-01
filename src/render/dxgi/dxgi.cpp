@@ -8382,7 +8382,7 @@ SK_HookDXGI (void)
                  static_cast_p2p <void> (&CreateDXGIFactory_Import),
                                       &pfnCreateDXGIFactory ) )
         {
-          MH_QueueEnableHook (pfnCreateDXGIFactory);
+          SK_QueueEnableHook (pfnCreateDXGIFactory);
         }
       }
       else if (LocalHook_CreateDXGIFactory.active) {
@@ -8399,7 +8399,7 @@ SK_HookDXGI (void)
                  static_cast_p2p <void> (&CreateDXGIFactory1_Import),
                                       &pfnCreateDXGIFactory1 ) )
         {
-          MH_QueueEnableHook (pfnCreateDXGIFactory1);
+          SK_QueueEnableHook (pfnCreateDXGIFactory1);
         }
       }
       else if (LocalHook_CreateDXGIFactory1.active) {
@@ -8416,7 +8416,7 @@ SK_HookDXGI (void)
                  static_cast_p2p <void> (&CreateDXGIFactory2_Import),
                                       &pfnCreateDXGIFactory2 ) )
         {
-          MH_QueueEnableHook (pfnCreateDXGIFactory2);
+          SK_QueueEnableHook (pfnCreateDXGIFactory2);
         }
       }
       else if (LocalHook_CreateDXGIFactory2.active) {
@@ -10187,15 +10187,15 @@ HookDXGI (LPVOID user)
         SK_DXGI_HookSwapChain (pSwapChain);
       }
 
-      bool  bEnable = SK_EnableApplyQueuedHooks  ();
+      //bool  bEnable = SK_EnableApplyQueuedHooks  ();
       {
         SK_ApplyQueuedHooks ();
       }
-      if (! bEnable)  SK_DisableApplyQueuedHooks ();
+      //if (! bEnable)  SK_DisableApplyQueuedHooks ();
 
       InterlockedIncrementRelease (&SK_D3D11_initialized);
 
-      if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      //if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
       WriteRelease (&__dxgi_ready, TRUE);
     }

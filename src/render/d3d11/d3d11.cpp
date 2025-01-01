@@ -6842,18 +6842,18 @@ SK_D3D11_Init (void)
         }
 
         if ( ( LocalHook_D3D11CreateDevice.active             == TRUE  ||
-               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice) ) &&
+               MH_OK == SK_QueueEnableHook (pfnD3D11CreateDevice) ) &&
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active == TRUE  ||
-               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
+               MH_OK == SK_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
           InterlockedIncrementRelease (&SK_D3D11_initialized);
 
-          bool  bEnable = SK_EnableApplyQueuedHooks  ();
+          //bool  bEnable = SK_EnableApplyQueuedHooks  ();
           {
             success =
               ( MH_OK == SK_ApplyQueuedHooks () );
           }
-          if (! bEnable)  SK_DisableApplyQueuedHooks ();
+          //if (! bEnable)  SK_DisableApplyQueuedHooks ();
         }
       }
 
