@@ -991,7 +991,8 @@ SK_InitFinishCallback (void)
 
   SK_EnableApplyQueuedHooks ();
 
-  if (ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied) > 0)
+  if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);
+              hooks_queued > 0)
   {
     SK_ApplyQueuedHooks ();
   }
@@ -2445,7 +2446,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                                &init_ )
     ); // Avoid the temptation to wait on this thread
 
-    if (ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied) > 0)
+    if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);
+                hooks_queued > 0)
     {
       SK_ApplyQueuedHooks ();
     }
@@ -4133,11 +4135,6 @@ HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 {
-  if (ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied) > 0)
-  {
-    SK_ApplyQueuedHooks ();
-  }
-
   auto qpcTimeOfSwap =
     SK_QueryPerf ();
 
@@ -4238,6 +4235,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   );
 
   SK_StartPerfMonThreads ();
+
+  if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);
+              hooks_queued > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  }
 
 
   if (pTLS == nullptr)

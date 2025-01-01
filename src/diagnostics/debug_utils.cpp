@@ -290,7 +290,7 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
 
       // DefWindowProc{A|W} being located in ntdll.dll is
       //   a known thing, we don't need log spam.
-      if (! StrStrIW (ucs_full.c_str (), L"DefWindowProc"))
+      if (! StrStrIA (lpProcName, "DefWindowProc"))
       {
         SK_LOG0 ( ( LR"(Procedure: '%hs' located by NtLdr in '%ws')",
                       lpProcName, ucs_full.c_str () ),

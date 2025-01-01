@@ -5097,28 +5097,6 @@ GetFocus_Detour (void)
     }
   }
 
-  ///// Overriding this is not a great idea,
-  /////   it will enable input to slip through during Alt-Tab.
-  ///if (config.window.background_render)
-  ///{
-  ///  // Keep a cache of non-NULL focus HWNDs for this thread
-  ///  concurrency::concurrent_unordered_map <DWORD, HWND>
-  ///    focus_windows;
-  ///
-  ///  HWND hWndFocus =
-  ///    SK_GetFocus ( );
-  ///  DWORD dwTid    =
-  ///    SK_GetCurrentThreadId ();
-  ///
-  ///  if ( hWndFocus != nullptr )
-  ///           focus_windows       [dwTid] = hWndFocus;
-  ///  else if (focus_windows.count (dwTid) &&
-  ///           focus_windows       [dwTid] == SK_GetGameWindow ())
-  ///    return focus_windows       [dwTid];
-  ///  else
-  ///    return SK_GetGameWindow ();
-  ///}
-
   return
     SK_GetFocus ();
 }
@@ -5175,7 +5153,7 @@ BOOL
 WINAPI
 SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS)
 {
-  UNREFERENCED_PARAMETER (pTLS);
+  std::ignore = pTLS;
 
   // Faster
   if (hWnd == game_window.hWnd)
@@ -5189,23 +5167,7 @@ HWND
 WINAPI
 SK_GetActiveWindow (SK_TLS *pTLS)
 {
-  UNREFERENCED_PARAMETER (pTLS);
-  ////if (pTLS == nullptr)
-  ////    pTLS  = SK_TLS_Bottom ();
-  ////
-  ////if (pTLS != nullptr)
-  ////{
-  ////  if ((uintptr_t)pTLS->win32->active == (uintptr_t)-1)
-  ////  {
-  ////    pTLS->win32->active =
-  ////      GetActiveWindow_Original != nullptr ?
-  ////      GetActiveWindow_Original ()         :
-  ////      GetActiveWindow          ();
-  ////  }
-  ////
-  ////  return
-  ////    pTLS->win32->active;
-  ////}
+  std::ignore = pTLS;
 
   return
     GetActiveWindow_Original != nullptr ?
@@ -5219,6 +5181,7 @@ GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
+#if 0
   // This function is hooked before we actually know the game's HWND,
   //   this would be catastrophic.
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
@@ -5274,6 +5237,7 @@ GetActiveWindow_Detour (void)
   ///////  else
   ///////    return SK_GetGameWindow ();
   ///////}
+#endif
 
   return
     SK_GetActiveWindow (/*pTLS*/nullptr);

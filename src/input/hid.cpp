@@ -2273,10 +2273,10 @@ SK_Input_HookHID (void)
         static_cast_p2p <void> (&CreateFile2_Original) );
     }
 
-    SK_CreateDLLHook2 (      L"kernel32.dll",
-                              "DeviceIoControl",
-                               DeviceIoControl_Detour,
-      static_cast_p2p <void> (&DeviceIoControl_Original) );
+    //SK_CreateDLLHook2 (      L"kernel32.dll",
+    //                          "DeviceIoControl",
+    //                           DeviceIoControl_Detour,
+    //  static_cast_p2p <void> (&DeviceIoControl_Original) );
 
 #define _HOOK_READ_FILE
 #ifdef  _HOOK_READ_FILE

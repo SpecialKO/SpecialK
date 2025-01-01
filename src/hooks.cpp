@@ -103,7 +103,8 @@ MH_STATUS
 WINAPI
 SK_QueueEnableHook (LPVOID pTarget)
 {
-  SK_MinHook_HooksEnqueued++;
+  InterlockedIncrement (&SK_MinHook_HooksEnqueued);
+  InterlockedIncrement (&SK_MinHook_HooksQueuedButNotApplied);
 
   return
     MH_QueueEnableHookEx (pTarget, 0);
@@ -1556,8 +1557,6 @@ SK_ApplyQueuedHooks (void)
 {
   if (! SKinHookCtx.ApplyQueuedHooks.enabled)
   {
-    InterlockedIncrement (&SK_MinHook_HooksQueuedButNotApplied);
-    SK_MinHook_HooksQueuedButNotApplied++;
     return MH_OK;
   }
 
@@ -1566,10 +1565,6 @@ SK_ApplyQueuedHooks (void)
   {
     return MH_ERROR_DISABLED;
   }
-
-  InterlockedDecrement (&SK_MinHook_HooksQueuedButNotApplied);
-  SK_MinHook_HooksActive +=
-    std::exchange (SK_MinHook_HooksEnqueued, 0);
 
 
   UINT                         uiHookCount = 0;
@@ -1603,6 +1598,20 @@ SK_ApplyQueuedHooks (void)
     SK_IsDebug () ? 0 : 1;
 
   SK_LOG ((L" >> %lu ms", SK_timeGetTime () - dwStart), lvl, L" Min Hook ");
+
+  if (status == MH_OK)
+  {
+    auto enqueued =
+      ReadULongAcquire (&SK_MinHook_HooksEnqueued);
+
+    InterlockedExchangeSubtract (
+    &SK_MinHook_HooksQueuedButNotApplied,
+                                enqueued);
+    InterlockedExchangeAdd (
+    &SK_MinHook_HooksActive,    enqueued);
+    InterlockedExchangeSubtract (
+    &SK_MinHook_HooksEnqueued,  enqueued);
+  }
 
   return status;
 }

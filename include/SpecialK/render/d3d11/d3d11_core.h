@@ -297,7 +297,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     pLastVerdict = _pLastVerdict;
   }
 
-  const SK_RenderBackend& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ((! bWrapped) && ( rb.d3d11.immediate_ctx == nullptr || (pDevCtx != rb.d3d11.immediate_ctx && !config.reshade.is_addon))) [[unlikely]]
@@ -305,14 +305,17 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     if ( rb.d3d11.immediate_ctx == nullptr ||
          rb.device.p            == nullptr )
     {
-      if (config.system.log_level > 2)
+      if (rb.swapchain.p != nullptr)
       {
-        SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
+        if (config.system.log_level > 2)
+        {
+          SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
+        }
+
+        pLastVerdict->first = nullptr;
+
+        return true;
       }
-
-      pLastVerdict->first = nullptr;
-
-      return true;
     }
 
 #if 1
@@ -343,7 +346,12 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
     if (rb.device.p != pDev && (! config.reshade.is_addon))
     {
-      if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDev))
+      if (rb.device.p == nullptr)
+      {
+        rb.device = pDev;
+      }
+
+      else if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDev))
       {
         if (config.system.log_level > 2)
         {
