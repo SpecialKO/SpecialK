@@ -1,4 +1,9 @@
-﻿25.1.1.2
+﻿25.1.2
+======
+ + Add hack to workaround dgVoodoo thread sync wonkiness in 32-bit D3D12.
+ + Fixed local injection in D3D11 games not working.
+
+25.1.1.2
 ========
  + HOTFIX to continue installing queued hooks even if one of them fails due to
      anti-cheat memory protection.

@@ -511,6 +511,7 @@ class SK_ScopedLock {
 public:
    SK_ScopedLock (void);
    SK_ScopedLock (SK_Thread_HybridSpinlock* lock);
+   SK_ScopedLock (SK_ScopedLock&& in);
   ~SK_ScopedLock (void);
 
 protected:
@@ -540,7 +541,7 @@ struct SK_D3D12_RenderCtx {
 
   SK_Thread_HybridSpinlock                _ctx_lock;
 
-  SK_ScopedLock                           acquireScopedLock (void);
+  SK_ScopedLock                           acquireScopedLock (void) noexcept;
 
   SK_ComPtr <ID3D12Device>                _pDevice            = nullptr;
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue      = nullptr;
