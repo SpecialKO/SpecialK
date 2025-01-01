@@ -10203,7 +10203,7 @@ HookDXGI (LPVOID user)
 
       InterlockedIncrementRelease (&SK_D3D11_initialized);
 
-      //if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
       WriteRelease (&__dxgi_ready, TRUE);
     }
