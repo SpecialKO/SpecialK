@@ -148,223 +148,228 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::EndTooltip   ();
         }
 
-        if (! (config.window.center || config.window.multi_monitor_mode))
+        if (ImGui::TreeNode ("Advanced Window Position"))
         {
-          ImGui::TreePush    ("");
-          ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
-          ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
-          ImGui::Text        ("");
-          ImGui::TreePop     ();
-        }
-
-        bool pixel_perfect = ( config.window.offset.x.percent == 0.0 &&
-                               config.window.offset.y.percent == 0.0 );
-
-        if (ImGui::Checkbox ("Pixel-Aligned Placement", &pixel_perfect))
-        {
-          if (pixel_perfect) {
-            config.window.offset.x.absolute = 0;
-            config.window.offset.y.absolute = 0;
-            config.window.offset.x.percent  = 0.0f;
-            config.window.offset.y.percent  = 0.0f;
+          if (! (config.window.center || config.window.multi_monitor_mode))
+          {
+            ImGui::TreePush    ("");
+            ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
+            ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
+            ImGui::Text        ("");
+            ImGui::TreePop     ();
           }
 
-          else {
-            config.window.offset.x.percent  = 0.000001f;
-            config.window.offset.y.percent  = 0.000001f;
-            config.window.offset.x.absolute = 0;
-            config.window.offset.y.absolute = 0;
+          bool pixel_perfect = ( config.window.offset.x.percent == 0.0 &&
+                                 config.window.offset.y.percent == 0.0 );
+
+          if (ImGui::Checkbox ("Pixel-Aligned Placement", &pixel_perfect))
+          {
+            if (pixel_perfect) {
+              config.window.offset.x.absolute = 0;
+              config.window.offset.y.absolute = 0;
+              config.window.offset.x.percent  = 0.0f;
+              config.window.offset.y.percent  = 0.0f;
+            }
+
+            else {
+              config.window.offset.x.percent  = 0.000001f;
+              config.window.offset.y.percent  = 0.000001f;
+              config.window.offset.x.absolute = 0;
+              config.window.offset.y.absolute = 0;
+            }
           }
-        }
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ( "Pixel-Aligned Placement behaves inconsistently "
-                              "when Desktop Resolution changes");
-
-        if (! config.window.center)
-        {
-          ImGui::SameLine ();
-
-          ImGui::Checkbox   ("Remember Dragged Position", &config.window.persistent_drag);
 
           if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ( "Store the location of windows moved using "
-                                "Drag-Lock and apply at game startup" );
-        }
+            ImGui::SetTooltip ( "Pixel-Aligned Placement behaves inconsistently "
+                                "when Desktop Resolution changes");
 
-        bool moved = false;
+          if (! config.window.center)
+          {
+            ImGui::SameLine ();
 
-        HMONITOR hMonitor =
-          MonitorFromWindow ( rb.windows.device,
-                                /*config.display.monitor_default*/ MONITOR_DEFAULTTONEAREST );
+            ImGui::Checkbox   ("Remember Dragged Position", &config.window.persistent_drag);
 
-        MONITORINFO mi  = { };
-        mi.cbSize       = sizeof (mi);
-        GetMonitorInfo (hMonitor, &mi);
-
-        if (pixel_perfect)
-        {
-          int  x_pos        = std::abs (config.window.offset.x.absolute);
-          int  y_pos        = std::abs (config.window.offset.y.absolute);
-
-          bool right_align  = config.window.offset.x.absolute < 0;
-          bool bottom_align = config.window.offset.y.absolute < 0;
-
-          float extent_x    = sk::narrow_cast <float> (mi.rcMonitor.right  - mi.rcMonitor.left) / 2.0f + 1.0f;
-          float extent_y    = sk::narrow_cast <float> (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2.0f + 1.0f;
-
-          if (config.window.center) {
-            extent_x /= 2.0f;
-            extent_y /= 2.0;
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ( "Store the location of windows moved using "
+                                  "Drag-Lock and apply at game startup" );
           }
 
-          // Do NOT Apply Immediately or the Window Will Oscillate While
-          //   Adjusting the Slider
-          static bool queue_move = false;
+          bool moved = false;
 
-          float fx_pos =
-            sk::narrow_cast <float> (x_pos),
-                fy_pos =
-            sk::narrow_cast <float> (y_pos);
+          HMONITOR hMonitor =
+            MonitorFromWindow ( rb.windows.device,
+                                  /*config.display.monitor_default*/ MONITOR_DEFAULTTONEAREST );
 
-          moved  = ImGui::SliderFloat ("X Offset##WindowPix",       &fx_pos, 0.0f, extent_x, "%.0f pixels"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox    ("Right-aligned##WindowPix",  &right_align);
-          moved |= ImGui::SliderFloat ("Y Offset##WindowPix",       &fy_pos, 0.0f, extent_y, "%.0f pixels"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox    ("Bottom-aligned##WindowPix", &bottom_align);
+          MONITORINFO mi  = { };
+          mi.cbSize       = sizeof (mi);
+          GetMonitorInfo (hMonitor, &mi);
 
-          if (moved)
+          if (pixel_perfect)
           {
-            x_pos = sk::narrow_cast <int> (fx_pos);
-            y_pos = sk::narrow_cast <int> (fy_pos);
+            int  x_pos        = std::abs (config.window.offset.x.absolute);
+            int  y_pos        = std::abs (config.window.offset.y.absolute);
 
-            queue_move = true;
-          }
+            bool right_align  = config.window.offset.x.absolute < 0;
+            bool bottom_align = config.window.offset.y.absolute < 0;
 
-          // We need to set pixel offset to 1 to do what the user expects
-          //   these values to do... 0 = NO OFFSET, but the slider may move
-          //     from right-to-left skipping 1.
-          static bool reset_x_to_zero = false;
-          static bool reset_y_to_zero = false;
+            float extent_x    = sk::narrow_cast <float> (mi.rcMonitor.right  - mi.rcMonitor.left) / 2.0f + 1.0f;
+            float extent_y    = sk::narrow_cast <float> (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2.0f + 1.0f;
 
-          if (moved)
-          {
-            config.window.offset.x.absolute = x_pos * (right_align  ? -1 : 1);
-            config.window.offset.y.absolute = y_pos * (bottom_align ? -1 : 1);
-
-            if (right_align && config.window.offset.x.absolute >= 0)
-              config.window.offset.x.absolute = -1;
-
-            if (bottom_align && config.window.offset.y.absolute >= 0)
-              config.window.offset.y.absolute = -1;
-
-            if (config.window.offset.x.absolute == 0)
-            {
-              config.window.offset.x.absolute = 1;
-              reset_x_to_zero = true;
+            if (config.window.center) {
+              extent_x /= 2.0f;
+              extent_y /= 2.0;
             }
 
-            if (config.window.offset.y.absolute == 0)
+            // Do NOT Apply Immediately or the Window Will Oscillate While
+            //   Adjusting the Slider
+            static bool queue_move = false;
+
+            float fx_pos =
+              sk::narrow_cast <float> (x_pos),
+                  fy_pos =
+              sk::narrow_cast <float> (y_pos);
+
+            moved  = ImGui::SliderFloat ("X Offset##WindowPix",       &fx_pos, 0.0f, extent_x, "%.0f pixels"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Right-aligned##WindowPix",  &right_align);
+            moved |= ImGui::SliderFloat ("Y Offset##WindowPix",       &fy_pos, 0.0f, extent_y, "%.0f pixels"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Bottom-aligned##WindowPix", &bottom_align);
+
+            if (moved)
             {
-              config.window.offset.y.absolute = 1;
-              reset_y_to_zero = true;
+              x_pos = sk::narrow_cast <int> (fx_pos);
+              y_pos = sk::narrow_cast <int> (fy_pos);
+
+              queue_move = true;
             }
-          }
 
-          if (queue_move && (! ImGui::IsMouseDown (0)))
-          {
-            queue_move = false;
+            // We need to set pixel offset to 1 to do what the user expects
+            //   these values to do... 0 = NO OFFSET, but the slider may move
+            //     from right-to-left skipping 1.
+            static bool reset_x_to_zero = false;
+            static bool reset_y_to_zero = false;
 
-            SK_ImGui_AdjustCursor ();
+            if (moved)
+            {
+              config.window.offset.x.absolute = x_pos * (right_align  ? -1 : 1);
+              config.window.offset.y.absolute = y_pos * (bottom_align ? -1 : 1);
 
-            if (reset_x_to_zero) config.window.offset.x.absolute = 0;
-            if (reset_y_to_zero) config.window.offset.y.absolute = 0;
+              if (right_align && config.window.offset.x.absolute >= 0)
+                config.window.offset.x.absolute = -1;
 
-            if (reset_x_to_zero || reset_y_to_zero)
+              if (bottom_align && config.window.offset.y.absolute >= 0)
+                config.window.offset.y.absolute = -1;
+
+              if (config.window.offset.x.absolute == 0)
+              {
+                config.window.offset.x.absolute = 1;
+                reset_x_to_zero = true;
+              }
+
+              if (config.window.offset.y.absolute == 0)
+              {
+                config.window.offset.y.absolute = 1;
+                reset_y_to_zero = true;
+              }
+            }
+
+            if (queue_move && (! ImGui::IsMouseDown (0)))
+            {
+              queue_move = false;
+
               SK_ImGui_AdjustCursor ();
 
-            reset_x_to_zero = false; reset_y_to_zero = false;
-          }
-        }
+              if (reset_x_to_zero) config.window.offset.x.absolute = 0;
+              if (reset_y_to_zero) config.window.offset.y.absolute = 0;
 
-        else
-        {
-          float x_pos = std::abs (config.window.offset.x.percent);
-          float y_pos = std::abs (config.window.offset.y.percent);
+              if (reset_x_to_zero || reset_y_to_zero)
+                SK_ImGui_AdjustCursor ();
 
-          x_pos *= 100.0f;
-          y_pos *= 100.0f;
-
-          bool right_align  = config.window.offset.x.percent < 0.0f;
-          bool bottom_align = config.window.offset.y.percent < 0.0f;
-
-          float extent_x = 50.05f;
-          float extent_y = 50.05f;
-
-          if (config.window.center) {
-            extent_x /= 2.0f;
-            extent_y /= 2.0f;
-          }
-
-          // Do NOT Apply Immediately or the Window Will Oscillate While
-          //   Adjusting the Slider
-          static bool queue_move = false;
-
-          moved  = ImGui::SliderFloat ("X Offset##WindowRel",       &x_pos, 0.0f, extent_x, "%.3f %%"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox    ("Right-aligned##WindowRel",  &right_align);
-          moved |= ImGui::SliderFloat ("Y Offset##WindowRel",       &y_pos, 0.0f, extent_y, "%.3f %%"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox    ("Bottom-aligned##WindowRel", &bottom_align);
-
-          // We need to set pixel offset to 1 to do what the user expects
-          //   these values to do... 0 = NO OFFSET, but the slider may move
-          //     from right-to-left skipping 1.
-          static bool reset_x_to_zero = false;
-          static bool reset_y_to_zero = false;
-
-          if (moved)
-          {
-            queue_move = true;
-
-            x_pos /= 100.0f;
-            y_pos /= 100.0f;
-
-            config.window.offset.x.percent = x_pos * (right_align  ? -1.0f : 1.0f);
-            config.window.offset.y.percent = y_pos * (bottom_align ? -1.0f : 1.0f);
-
-            if (right_align && config.window.offset.x.percent >= 0.0f)
-              config.window.offset.x.percent = -0.01f;
-
-            if (bottom_align && config.window.offset.y.percent >= 0.0f)
-              config.window.offset.y.percent = -0.01f;
-
-            if ( config.window.offset.x.percent <  0.000001f &&
-                 config.window.offset.x.percent > -0.000001f )
-            {
-              config.window.offset.x.absolute = 1;
-              reset_x_to_zero = true;
-            }
-
-            if ( config.window.offset.y.percent <  0.000001f &&
-                 config.window.offset.y.percent > -0.000001f )
-            {
-              config.window.offset.y.absolute = 1;
-              reset_y_to_zero = true;
+              reset_x_to_zero = false; reset_y_to_zero = false;
             }
           }
 
-          if (queue_move && (! ImGui::IsMouseDown (0)))
+          else
           {
-            queue_move = false;
+            float x_pos = std::abs (config.window.offset.x.percent);
+            float y_pos = std::abs (config.window.offset.y.percent);
 
-            SK_ImGui_AdjustCursor ();
+            x_pos *= 100.0f;
+            y_pos *= 100.0f;
 
-            if (reset_x_to_zero) config.window.offset.x.absolute = 0;
-            if (reset_y_to_zero) config.window.offset.y.absolute = 0;
+            bool right_align  = config.window.offset.x.percent < 0.0f;
+            bool bottom_align = config.window.offset.y.percent < 0.0f;
 
-            if (reset_x_to_zero || reset_y_to_zero)
+            float extent_x = 50.05f;
+            float extent_y = 50.05f;
+
+            if (config.window.center) {
+              extent_x /= 2.0f;
+              extent_y /= 2.0f;
+            }
+
+            // Do NOT Apply Immediately or the Window Will Oscillate While
+            //   Adjusting the Slider
+            static bool queue_move = false;
+
+            moved  = ImGui::SliderFloat ("X Offset##WindowRel",       &x_pos, 0.0f, extent_x, "%.3f %%"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Right-aligned##WindowRel",  &right_align);
+            moved |= ImGui::SliderFloat ("Y Offset##WindowRel",       &y_pos, 0.0f, extent_y, "%.3f %%"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Bottom-aligned##WindowRel", &bottom_align);
+
+            // We need to set pixel offset to 1 to do what the user expects
+            //   these values to do... 0 = NO OFFSET, but the slider may move
+            //     from right-to-left skipping 1.
+            static bool reset_x_to_zero = false;
+            static bool reset_y_to_zero = false;
+
+            if (moved)
+            {
+              queue_move = true;
+
+              x_pos /= 100.0f;
+              y_pos /= 100.0f;
+
+              config.window.offset.x.percent = x_pos * (right_align  ? -1.0f : 1.0f);
+              config.window.offset.y.percent = y_pos * (bottom_align ? -1.0f : 1.0f);
+
+              if (right_align && config.window.offset.x.percent >= 0.0f)
+                config.window.offset.x.percent = -0.01f;
+
+              if (bottom_align && config.window.offset.y.percent >= 0.0f)
+                config.window.offset.y.percent = -0.01f;
+
+              if ( config.window.offset.x.percent <  0.000001f &&
+                   config.window.offset.x.percent > -0.000001f )
+              {
+                config.window.offset.x.absolute = 1;
+                reset_x_to_zero = true;
+              }
+
+              if ( config.window.offset.y.percent <  0.000001f &&
+                   config.window.offset.y.percent > -0.000001f )
+              {
+                config.window.offset.y.absolute = 1;
+                reset_y_to_zero = true;
+              }
+            }
+
+            if (queue_move && (! ImGui::IsMouseDown (0)))
+            {
+              queue_move = false;
+
               SK_ImGui_AdjustCursor ();
 
-            reset_x_to_zero = false; reset_y_to_zero = false;
+              if (reset_x_to_zero) config.window.offset.x.absolute = 0;
+              if (reset_y_to_zero) config.window.offset.y.absolute = 0;
+
+              if (reset_x_to_zero || reset_y_to_zero)
+                SK_ImGui_AdjustCursor ();
+
+              reset_x_to_zero = false; reset_y_to_zero = false;
+            }
           }
+
+          ImGui::TreePop ();
         }
       }
 

@@ -1185,7 +1185,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
   display_list += '\0';
 
-  ImGui::TreePush ("###MonitorSubMenu");
+  //ImGui::TreePush ("###MonitorSubMenu");
 
   int active_display = rb.active_display;
 
@@ -1685,111 +1685,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::SetItemTooltip ("Setting a monitor as primary gives it control of DWM composition rate and lowers latency when using mismatched refresh rates");
   }
 
-  ImVec2 vHDRPos;
-
-  auto& display =
-    rb.displays [rb.active_display];
-
-  static float fWhitePointSliderWidth = 0.0f;
-
-  if ( display.hdr.supported ||
-          rb.isHDRCapable () )
-  {
-    bool hdr_enable =
-      display.hdr.enabled;
-
-    if (ImGui::Checkbox ("Enable HDR", &hdr_enable))
-    {
-      DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
-        setHdrState                     = { };
-        setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
-        setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
-        setHdrState.header.adapterId    = rb.displays [rb.active_display].vidpn.targetInfo.adapterId;
-        setHdrState.header.id           = rb.displays [rb.active_display].vidpn.targetInfo.id;
-
-        setHdrState.enableAdvancedColor = hdr_enable;
-
-      if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
-      {
-        display.hdr.enabled = hdr_enable;
-      }
-    }
-
-    ImGui::SameLine ();
-    ImGui::TextUnformatted (" ");
-    ImGui::SameLine ();
-
-    vHDRPos.y =
-      ImGui::GetCursorPosY ();
-
-    switch (rb.displays [rb.active_display].hdr.encoding)
-    {
-      case DISPLAYCONFIG_COLOR_ENCODING_RGB:
-        ImGui::Text ("RGB (%lu-bpc)",         rb.displays [rb.active_display].bpc);
-        break;
-      case DISPLAYCONFIG_COLOR_ENCODING_YCBCR444:
-        ImGui::Text ("YCbCr 4:4:4 (%lu-bpc)", rb.displays [rb.active_display].bpc);
-        break;
-      case DISPLAYCONFIG_COLOR_ENCODING_YCBCR422:
-        ImGui::Text ("YCbCr 4:2:2 (%lu-bpc)", rb.displays [rb.active_display].bpc);
-        break;
-      case DISPLAYCONFIG_COLOR_ENCODING_YCBCR420:
-        ImGui::Text ("YCbCr 4:2:0 (%lu-bpc)", rb.displays [rb.active_display].bpc);
-        break;
-    }
-
-    ImGui::SameLine        ();
-    vHDRPos.x =
-      ImGui::GetCursorPosX ();
-    ImGui::Spacing         ();
-
-    // Display
-    if ( rb.displays [rb.active_display].hdr.supported ||
-         rb.isHDRCapable () )
-    {
-      ImGui::SetCursorPos (vHDRPos);
-
-      bool hdr =
-        SK_ImGui_Widgets->hdr_control->isVisible ();
-
-      ImGui::TextUnformatted ("\t");
-      ImGui::SameLine        (    );
-
-      if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
-      {
-        hdr = (! hdr);
-
-        SK_ImGui_Widgets->hdr_control->
-          setVisible (hdr).
-          setActive  (hdr);
-      }
-
-      ImGui::SetItemTooltip ("Right-click HDR Calibration to assign hotkeys");
-    }
-  }
+  ImGui::SeparatorText ("Misc. Settings");
 
   ImGui::BeginGroup ();
-
-  if (display.hdr.enabled)
-  {
-    float orig_lvl  = display.hdr.white_level;
-    float sdr_white =
-      display.hdr.white_level;
-
-    ImGui::PushItemWidth (fWhitePointSliderWidth);
-
-    if (ImGui::SliderFloat ("###SDR_WHITE_SLIDER", &sdr_white, 80.0f, 480.0f, "SDR White: %4.1f cd/m²"))
-    {
-      // Sanity checks because this API is somewhat expensive and triggers
-      //   a WM_DISPLAYCHANGE even if nothing changes
-      if (sdr_white >= 80.0f && sdr_white <= 480.0f && sdr_white != orig_lvl)
-      {
-        display.setSDRWhiteLevel (sdr_white);
-      }
-    }
-
-    ImGui::PopItemWidth ();
-  }
 
   static bool bDPIAware  =
       IsProcessDPIAware (),
@@ -1798,6 +1696,10 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
   void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
   void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
   void SK_Display_ClearDPIAwareness               (bool bOnlyIfWin10);
+
+  auto& display =
+    rb.displays [rb.active_display];
+
 
 #if 0
   bool bDPIAwareBefore =
@@ -2125,49 +2027,80 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       "while playing games."
     );
 
-    if (config.display.focus_mode)
+    if (! config.display.focus_mode)
+      ImGui::BeginDisabled ();
+
+    ImGui::TreePush ("");
+
+    if (ImGui::Checkbox ("Use Window Focus", &config.display.focus_mode_if_focused))
     {
-      ImGui::TreePush ("");
+      SK_Win32_BringBackgroundWindowToTop ();
 
-      if (ImGui::Checkbox ("Use Window Focus", &config.display.focus_mode_if_focused))
-      {
-        SK_Win32_BringBackgroundWindowToTop ();
-
-        config.utility.save_async ();    
-      }
-
-      if (ImGui::BeginItemTooltip ())
-      {
-        ImGui::TextUnformatted ("ADHD mode will disengage whenever you Alt-Tab, regardless what monitor the new application is on.");
-        ImGui::Separator       (  );
-        ImGui::Spacing         (  );
-        ImGui::Spacing         (  );
-        ImGui::Spacing         (  );
-        ImGui::SameLine        (  );
-        ImGui::TextUnformatted ("To have -ONLY- applications on other monitors "
-                                "disengage ADHD mode:");
-        ImGui::Spacing         (  );
-        ImGui::Spacing         (  );
-        ImGui::Spacing         (  );
-        ImGui::SameLine        (  );
-        ImGui::TreePush        ("");
-        ImGui::BulletText      ("Enable Multitasking-on-Top\t(Window Management | Style and Position)");
-        ImGui::BulletText      ("Turn off \"Use Window Focus\"");
-        ImGui::TreePop         (  );
-        ImGui::EndTooltip      (  );
-      }
-      ImGui::TreePop           (  );
+      config.utility.save_async ();
     }
+
+    if (ImGui::BeginItemTooltip ())
+    {
+      ImGui::TextUnformatted ("ADHD mode will disengage whenever you Alt-Tab, regardless what monitor the new application is on.");
+      ImGui::Separator       (  );
+      ImGui::Spacing         (  );
+      ImGui::Spacing         (  );
+      ImGui::Spacing         (  );
+      ImGui::SameLine        (  );
+      ImGui::TextUnformatted ("To have -ONLY- applications on other monitors "
+                              "disengage ADHD mode:");
+      ImGui::Spacing         (  );
+      ImGui::Spacing         (  );
+      ImGui::Spacing         (  );
+      ImGui::SameLine        (  );
+      ImGui::TreePush        ("");
+      ImGui::BulletText      ("Enable Multitasking-on-Top\t(Window Management | Style and Position)");
+      ImGui::BulletText      ("Turn off \"Use Window Focus\"");
+      ImGui::TreePop         (  );
+      ImGui::EndTooltip      (  );
+    }
+    ImGui::TreePop           (  );
+
+    if (! config.display.focus_mode)
+      ImGui::EndDisabled     (  );
   }
 
   ImGui::EndGroup     ();
-  fWhitePointSliderWidth =
-    ImGui::GetItemRectSize ().x;
+  //fWhitePointSliderWidth =
+  //  ImGui::GetItemRectSize ().x;
   ImGui::EndGroup     ();
   ImGui::SameLine     ();
   ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine     ();
   ImGui::BeginGroup   ();
+
+  static std::set <SK_ConfigSerializedKeybind *>
+    keybinds = {
+      &config.monitors.monitor_primary_keybind,
+      &config.monitors.monitor_next_keybind,
+      &config.monitors.monitor_prev_keybind,
+      &config.monitors.monitor_toggle_hdr,
+      &config.monitors.multimonitor_focus_keybind,
+    };
+
+  if (ImGui::BeginMenu ("Display Management Keybinds###MonitorMenu"))
+  {
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      ImGui::Text ( "%s:  ",
+                      keybind->bind_name );
+    }
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      Keybinding  (   keybind, keybind->param );
+    }
+    ImGui::EndGroup   ();
+    ImGui::EndMenu    ();
+  }
 
   static bool restart_required = false;
          bool hovering_rebar   = false;
@@ -2278,37 +2211,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     }
   }
   ImGui::EndGroup    ();
-  static std::set <SK_ConfigSerializedKeybind *>
-    keybinds = {
-      &config.monitors.monitor_primary_keybind,
-      &config.monitors.monitor_next_keybind,
-      &config.monitors.monitor_prev_keybind,
-      &config.monitors.monitor_toggle_hdr,
-      &config.monitors.multimonitor_focus_keybind,
-    };
 
-  if (ImGui::BeginMenu ("Display Management Keybinds###MonitorMenu"))
-  {
-    ImGui::BeginGroup ();
-    for ( auto& keybind : keybinds )
-    {
-      ImGui::Text ( "%s:  ",
-                      keybind->bind_name );
-    }
-    ImGui::EndGroup   ();
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
-    for ( auto& keybind : keybinds )
-    {
-      Keybinding  (   keybind, keybind->param );
-    }
-    ImGui::EndGroup   ();
-    ImGui::EndMenu    ();
-  }
   if (restart_required)
     ImGui::BulletText("Game Restart Required");
   ImGui::EndGroup    ();
-  ImGui::TreePop     ();
+//ImGui::TreePop     ();
 }
 
 void
@@ -3022,7 +2929,7 @@ DisplayModeMenu (bool windowed)
     }
 
     ImGui::SetItemTooltip ("Your game should be set to Windowed mode in its graphics settings if you intend to override this mode.");
-    ImGui::Separator      ();
+    ImGui::SeparatorText  ("Device Setup");
 
     SK_Display_ResolutionSelectUI ();
   }
@@ -3222,10 +3129,8 @@ SK_ImGui_ControlPanel (void)
   auto DisplayMenu =
     [&](void)
     {
-      //if (ImGui::MenuItem ("Force-Inject Steam Overlay", "", nullptr))
-        //SK_Steam_LoadOverlayEarly ();
-
-      //ImGui::Separator ();
+// Pending removal
+#if 0
       bool nav_moves_mouse =
         io.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos;
 
@@ -3240,20 +3145,24 @@ SK_ImGui_ControlPanel (void)
         config.input.ui.nav_moves_mouse = nav_moves_mouse;
         config.utility.save_async ();
       }
+#endif
 
-      ImGui::MenuItem ("Display Active Input APIs",       "", &config.imgui.show_input_apis);
+      ImGui::SeparatorText ("Window Mode");
+
+      DisplayModeMenu (windowed);
+
+      ImGui::SeparatorText ("UI Settings");
+      ImGui::MenuItem ("Display Mac-style Menu at Top", "", &config.imgui.use_mac_style_menu);
+      ImGui::MenuItem ("Display Playtime in Title",     "", &config.platform.show_playtime);
+#if 0 // Pending removal
+      ImGui::MenuItem ("Display Active Input APIs",     "", &config.imgui.show_input_apis);
+#endif
 
       if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
       {
         //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
-        ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
+        ImGui::MenuItem ("Display G-Sync Status",       "", &config.apis.NvAPI.gsync_status);
       }
-
-      ImGui::MenuItem  ("Display Playtime in Title",     "", &config.platform.show_playtime);
-      ImGui::MenuItem  ("Display Mac-style Menu at Top", "", &config.imgui.use_mac_style_menu);
-      ImGui::Separator ();
-
-      DisplayModeMenu (windowed);
     };
 
 
@@ -3453,15 +3362,6 @@ SK_ImGui_ControlPanel (void)
         }
 
         ImGui::Separator ();
-        //if (ImGui::MenuItem ("Unload Special K", "EXPERIMENTAL"))
-        //{
-        //  bool
-        //  __stdcall
-        //  SK_ShutdownCore (const wchar_t* backend);
-        //  extern const wchar_t* __SK_BootedCore;
-        //
-        //  SK_ShutdownCore (__SK_BootedCore);
-        //}
 
         if ((! SK_IsInjected ()) || SK_Inject_IsHookActive ())
         {
@@ -4210,20 +4110,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
           same_line = true;
 
-          ImGui::SetItemTooltip ("Right-click the HDR Calibration window for additional settings.");
+          ImGui::SetItemTooltip ("Right-click the HDR Configuration widget for additional settings.");
         }
 
-        static bool
-            hdr_toggled = false;
-        if (hdr_toggled)
-        {
-          if (    same_line)
-            ImGui::SameLine ();
-
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
-          ImGui::BulletText     ("Game Restart May Be Required");
-          ImGui::PopStyleColor  ();
-        }
+        static bool hdr_toggled = false;
 
         //
         // TODO: Put a button in this part of the control panel to control the
@@ -4260,6 +4150,60 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         else if (rb.displays [rb.active_display].hdr.enabled)
         {
+          ImGui::SameLine ();
+          ImGui::TextUnformatted (" ");
+          ImGui::SameLine ();
+
+          auto& display =
+            rb.displays [rb.active_display];
+
+          switch (display.hdr.encoding)
+          {
+            case DISPLAYCONFIG_COLOR_ENCODING_RGB:
+              ImGui::Text ("RGB (%lu-bpc)",         display.bpc);
+              break;
+            case DISPLAYCONFIG_COLOR_ENCODING_YCBCR444:
+              ImGui::Text ("YCbCr 4:4:4 (%lu-bpc)", display.bpc);
+              break;
+            case DISPLAYCONFIG_COLOR_ENCODING_YCBCR422:
+              ImGui::Text ("YCbCr 4:2:2 (%lu-bpc)", display.bpc);
+              break;
+            case DISPLAYCONFIG_COLOR_ENCODING_YCBCR420:
+              ImGui::Text ("YCbCr 4:2:0 (%lu-bpc)", display.bpc);
+              break;
+          }
+
+          if (display.hdr.enabled)
+          {
+            float orig_lvl  = display.hdr.white_level;
+            float sdr_white =
+              display.hdr.white_level;
+
+            ImGui::SameLine        (   );
+            ImGui::TextUnformatted (" ");
+            ImGui::SameLine        (   );
+
+            float fWhitePointSliderWidth =
+              ImGui::GetContentRegionAvail ().x;
+
+            fWhitePointSliderWidth -=
+              ImGui::GetStyle ().WindowPadding.x / 1.5f;
+
+            ImGui::PushItemWidth (fWhitePointSliderWidth);
+
+            if (ImGui::SliderFloat ("###SDR_WHITE_SLIDER", &sdr_white, 80.0f, 480.0f, "SDR White: %4.1f cd/m²"))
+            {
+              // Sanity checks because this API is somewhat expensive and triggers
+              //   a WM_DISPLAYCHANGE even if nothing changes
+              if (sdr_white >= 80.0f && sdr_white <= 480.0f && sdr_white != orig_lvl)
+              {
+                display.setSDRWhiteLevel (sdr_white);
+              }
+            }
+
+            ImGui::PopItemWidth ();
+          }
+
           if ( ImGui::Checkbox (
                  "Temporarily Enable HDR When Playing This Game",
                    &config.render.dxgi.temporary_dwm_hdr )
@@ -4324,6 +4268,13 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           ImGui::Separator       ();
           ImGui::TextUnformatted ("For best results, set the game to match your desktop resolution.");
           ImGui::EndTooltip      ();
+        }
+
+        if (hdr_toggled)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+          ImGui::BulletText     ("Game Restart May Be Required");
+          ImGui::PopStyleColor  ();
         }
       };
 

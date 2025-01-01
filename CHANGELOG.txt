@@ -1,4 +1,10 @@
-﻿24.12.31
+﻿24.12.31.1
+==========
+ + Fixed the PlayStation/Xbox Button + Right Trigger to minimize game feature
+     so that it also hides the ADHD Multi-Monitor background window.
+ + Organized Display and HDR menus better.
+
+24.12.31
 ========
  + Optimized SK's Mouse Window Hook to use the hit test code, rather than
      performing hit testing of its own to see if the mouse is insie the window.
