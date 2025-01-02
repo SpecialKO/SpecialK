@@ -45,22 +45,24 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   UINT                      NumCommandLists,
   ID3D12CommandList* const  *ppCommandLists )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) == 0)
+    return;
+
   SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   D3D12_COMMAND_QUEUE_DESC
     queueDesc = This->GetDesc ();
 
-  static volatile LONG once = FALSE;
+  static volatile LONG                    once = FALSE;
+  static          DWORD      search_start_time = SK_timeGetTime    ();
+  static          ULONG64 first_frame_examined = SK_GetFramesDrawn ();
 
   if (           queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT &&
        rb.d3d12.command_queue.p == nullptr &&
                pLazyD3D12Chain  != nullptr &&
-               pLazyD3D12Device != nullptr )
+               pLazyD3D12Device != nullptr && SK_GetFramesDrawn () < 50 )
   {
-    static DWORD      search_start_time = SK_timeGetTime    ();
-    static ULONG64 first_frame_examined = SK_GetFramesDrawn ();
-
     // Start marking all the backbuffers this command queue writes to,
     //   then after enough frames have been presented, check if it has
     //     written to every buffer... if it has, it's probably our queue.

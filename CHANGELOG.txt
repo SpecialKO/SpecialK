@@ -1,4 +1,8 @@
-﻿25.1.2.1
+﻿25.1.2.2
+========
+ + Fixed potential crash at exit in D3D12 games.
+
+25.1.2.1
 ========
  + Re-enable anti-cheat workarounds for various Asian gambling games.
 

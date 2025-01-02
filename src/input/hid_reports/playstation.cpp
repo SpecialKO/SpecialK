@@ -2435,8 +2435,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            if (ReadAcquire (&pDevice->bNeedOutput))
-              pDevice->write_output_report ();
+            pDevice->write_output_report ();
 
             for ( auto& button : pDevice->buttons )
             {

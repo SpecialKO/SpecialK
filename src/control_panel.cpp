@@ -2022,10 +2022,19 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       config.utility.save_async ();
     }
 
-    ImGui::SetItemTooltip (
-      "Covers secondary monitors with a black window to reduce distractions "
-      "while playing games."
-    );
+    if (ImGui::BeginItemTooltip ( ))
+    {
+      ImGui::TextUnformatted (
+        "Covers secondary monitors with a black window to reduce distractions "
+        "while playing this game.");
+      ImGui::Separator       (    );
+      ImGui::Spacing         (    );
+      ImGui::Spacing         (    );
+      ImGui::Spacing         (    );
+      ImGui::SameLine        (    );
+      ImGui::BulletText      ("This has a Display Management Keybind.");
+      ImGui::EndTooltip      (    );
+    }
 
     if (! config.display.focus_mode)
       ImGui::BeginDisabled ();
@@ -7651,13 +7660,13 @@ SK_ImGui_StageNextFrame (void)
         widget->setActive (true);
       }
 
-      extern bool SK_Tobii_IsCursorVisible (void);
-
-      if ( widget->isVisible () ||
-           // Tobii widget needs to be drawn to show its cursor
-           ( widget == SK_ImGui_Widgets->tobii &&
-             SK_Tobii_IsCursorVisible ()         )
-         )
+      //extern bool SK_Tobii_IsCursorVisible (void);
+      //
+      if ( widget->isVisible () )
+      //     // Tobii widget needs to be drawn to show its cursor
+      //     ( widget == SK_ImGui_Widgets->tobii &&
+      //       SK_Tobii_IsCursorVisible ()         )
+      //   )
       {
         widget->draw_base ();
       }

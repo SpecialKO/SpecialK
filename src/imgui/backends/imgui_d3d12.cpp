@@ -1863,7 +1863,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
   D3D12GraphicsCommandList_CopyResource_Original (
     This, pDstResource, pSrcResource
   );
-}
+ }
 
 //extern void
 //SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName = nullptr);

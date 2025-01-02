@@ -3285,11 +3285,14 @@ SK_ImGui_BackupInputThread (LPVOID)
       static            LASTINPUTINFO
         lii = { sizeof (LASTINPUTINFO), 1 };
 
-      DWORD dwLastInput = lii.dwTime;
-
+      static DWORD dwLastInput =
+                              lii.dwTime;
       if (!GetLastInputInfo (&lii) ||
                               lii.dwTime != dwLastInput)
       {
+        dwLastInput =
+          std::max (dwLastInput, lii.dwTime);
+
         auto& io =
           ImGui::GetIO ();
 
