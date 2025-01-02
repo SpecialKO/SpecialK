@@ -31,6 +31,8 @@
 #include <SpecialK/render/d3d12/d3d12_command_queue.h>
 #include <SpecialK/render/ngx/ngx_dlss.h>
 
+static constexpr GUID SKID_D3D12SwapChainBufferBitmap = { 0xbc53df3b, 0x956f, 0x47db, { 0xa6, 0x53, 0x5, 0xd7, 0xb8, 0x71, 0x53, 0x38 } };
+
 D3D12CommandQueue_ExecuteCommandLists_pfn
 D3D12CommandQueue_ExecuteCommandLists_Original = nullptr;
 
@@ -51,33 +53,53 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
   static volatile LONG once = FALSE;
 
-  if ( pLazyD3D12Chain  != nullptr &&
-       pLazyD3D12Device != nullptr && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT )
+  if (           queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT &&
+       rb.d3d12.command_queue.p == nullptr &&
+               pLazyD3D12Chain  != nullptr &&
+               pLazyD3D12Device != nullptr )
   {
-    if (rb.d3d12.command_queue.p == nullptr && InterlockedCompareExchange (&once, 1, 0) == 0)
-    {
-      SK_ComPtr <ID3D12Device> pDevice12;
+    static DWORD      search_start_time = SK_timeGetTime    ();
+    static ULONG64 first_frame_examined = SK_GetFramesDrawn ();
 
-      if ( SUCCEEDED (   This->GetDevice (
-                           IID_ID3D12Device,
-                          (void **)&pDevice12.p
-                                         ) // We are not holding a ref, so test pointers before using
-                     ) && SK_ValidatePointer                         (pLazyD3D12Device,      true) &&
-                          SK_IsAddressExecutable ((*(const void***)*(&pLazyD3D12Device))[0], true) &&
-                          pDevice12.IsEqualObject (
-                 pLazyD3D12Device                 )
-         )
+    // Start marking all the backbuffers this command queue writes to,
+    //   then after enough frames have been presented, check if it has
+    //     written to every buffer... if it has, it's probably our queue.
+    UINT     size   =   2;
+    uint16_t bitmap = 0x0;
+    This->GetPrivateData (SKID_D3D12SwapChainBufferBitmap, &size, &bitmap);
+             bitmap |= (1 << pLazyD3D12Chain->GetCurrentBackBufferIndex());
+    This->SetPrivateData (SKID_D3D12SwapChainBufferBitmap,sizeof(uint16_t), &bitmap);
+
+    DXGI_SWAP_CHAIN_DESC           swapDesc;
+    if (pLazyD3D12Chain->GetDesc (&swapDesc);
+          CountSetBits (bitmap) == swapDesc.BufferCount && SK_GetFramesDrawn () >
+            first_frame_examined + swapDesc.BufferCount && ReadAcquire (&once) == 0)
+    {
+      SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
+      SK_ComPtr <ID3D12Device>       pDevice12;
+
+      const bool bIsStreamline =
+        (SK_slGetNativeInterface (This, (void **)&pCmdQueue.p) == sl::Result::eOk);
+
+      if (! bIsStreamline)
+          pCmdQueue = This;
+
+      auto            name = SK_D3D12_GetDebugNameUTF8 (pCmdQueue);
+      bool compatible_name =
+           (StrStrIA (name.c_str (), "3D Queue (GPU") != nullptr);
+
+      // When Streamline is involved, we -DO NOT- want 3D Queue (GPU x)...
+      if (bIsStreamline)
+          compatible_name = !compatible_name;
+      if (compatible_name)
       {
-        SK_ComPtr <ID3D12Device>       pDevice;
-        SK_ComPtr <IDXGISwapChain>     pSwapChain;
-        SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
+        SK_ComPtr <ID3D12Device>   pDevice;
+        SK_ComPtr <IDXGISwapChain> pSwapChain;
 
         if (SK_slGetNativeInterface (pLazyD3D12Device, (void **)&pDevice.p   ) != sl::Result::eOk)
                            pDevice = pLazyD3D12Device;
         if (SK_slGetNativeInterface (pLazyD3D12Chain,  (void **)&pSwapChain.p) != sl::Result::eOk)
                         pSwapChain = pLazyD3D12Chain;
-        if (SK_slGetNativeInterface (This,             (void **)&pCmdQueue.p ) != sl::Result::eOk)
-                         pCmdQueue = This;
 
         // Now we are holding a ref...
         rb.setDevice            (pDevice.p);
@@ -95,15 +117,33 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
         if (! success)
           rb.releaseOwnedResources ();
+        else
+        {
+          SK_LOGi0 (
+            L"After %d frames drawn, a suitable candidate for Primary "
+            L"SwapChain Command Queue (%hs) was found...", SK_GetFramesDrawn () -
+                                    first_frame_examined, name.c_str ()
+          );
+        }
       }
 
       else WriteRelease (&once, 0);
+    }
+
+    // Give up
+    if (SK_timeGetTime () - search_start_time > 5000UL)
+    {
+      SK_LOGi0 (
+        L"Could not find the correct D3D12 Command Queue for late injection "
+        L"after 5 seconds, giving up..."
+      );
+      WriteRelease (&once, 3);
     }
   }
 
   bool bDLSSG = false;
 
-  if (ReadAcquire (&once) == 2 && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && (This == rb.d3d12.command_queue || This == _d3d12_rbk->_pCommandQueue))
+  if (rb.d3d12.command_queue.p != nullptr && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && (This == rb.d3d12.command_queue || This == _d3d12_rbk->_pCommandQueue))
   {
     const auto frame_id =
       SK_GetFramesDrawn ();
