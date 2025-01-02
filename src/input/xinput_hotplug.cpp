@@ -673,10 +673,14 @@ void SK_XInput_DeferredStatusChecks (void)
     }, L"[SK] XInput Polling Thread")
   );
 
+  static ULONG64 ullLastFrameChecked = SK_GetFramesDrawn ();
   // Always refresh at the beginning of a frame rather than the end,
   //   a failure event may cause a lengthy delay, missing VBLANK.
-  if ((intptr_t)hHotplugUnawareXInputRefresh.m_h > 0)
-    SetEvent (  hHotplugUnawareXInputRefresh);
+  if (ullLastFrameChecked < SK_GetFramesDrawn () - 30 &&
+      (intptr_t)hHotplugUnawareXInputRefresh.m_h > 0)
+  { SetEvent (  hHotplugUnawareXInputRefresh);
+    ullLastFrameChecked = SK_GetFramesDrawn ();
+  }
 }
 
 

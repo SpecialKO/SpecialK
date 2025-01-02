@@ -495,7 +495,7 @@ SK_GPUPollingThread (LPVOID user)
 
         SwitchToThreadMinPageFaults ();
 
-        if (stats.gpus [i].amortization.phase0++ % 3 == 0)
+        if (stats.gpus [i].amortization.phase0++ % 4 == 0)
         {
           NV_GPU_CLOCK_FREQUENCIES
             freq           = {                          };
