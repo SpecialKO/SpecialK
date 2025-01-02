@@ -1158,11 +1158,11 @@ void BasicInit (void)
   if (SK_COMPAT_IsFrapsPresent ())
       SK_COMPAT_UnloadFraps ();
 
-  //bool bEnable = SK_EnableApplyQueuedHooks  ();
-  //{
-  //  SK_ApplyQueuedHooks ();
-  //}
-  //if (! bEnable) SK_DisableApplyQueuedHooks ();
+  bool bEnable = SK_EnableApplyQueuedHooks  ();
+  {
+    SK_ApplyQueuedHooks ();
+  }
+  if (! bEnable) SK_DisableApplyQueuedHooks ();
 }
 
 DWORD

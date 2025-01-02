@@ -1205,9 +1205,6 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 void
 ImGui_ImplDX12_Shutdown (void)
 {
-  auto lock =
-    _d3d12_rbk->acquireScopedLock ();
-
   extern void SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage,              bool, bool);
               SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true,false); 
 
@@ -1254,9 +1251,6 @@ ImGui_ImplDX12_NewFrame (void)
   if ( _imgui_d3d12.pDevice                   == nullptr ||
        _imgui_d3d12.hFontSrvCpuDescHandle.ptr == 0       ||
        _imgui_d3d12.hFontSrvGpuDescHandle.ptr == 0 ) return;
-
-  auto lock =
-    _d3d12_rbk->acquireScopedLock ();
 
   if (! _imgui_d3d12.pPipelineState)
     ImGui_ImplDX12_CreateDeviceObjects ();
@@ -2109,9 +2103,6 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
                           ID3D12Resource            *pSrcResource,
                           ID3D12Resource            *pDstResource )
 {
-  auto lock =
-    _d3d12_rbk->acquireScopedLock ();
-
   if (pCommandList == nullptr || pSrcResource == nullptr || pDstResource == nullptr)
   {
     SK_RunOnce (SK_LOGi0 (L"Cannot perform HDR CopyBuffer because one or more parameters are nullptr..."));
@@ -2219,33 +2210,27 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
-  SK_ComPtr <ID3D12CommandQueue> pCommandQueue;
+#ifndef _M_IX86
+  std::scoped_lock lock(_ctx_lock);
+#endif
 
   if (! pSwapChain)
     return;
 
-  else
+  if ((! _pDevice.p || frames_.empty ()) || _pCommandQueue.p == nullptr)
   {
-    auto lock =
-      acquireScopedLock ();
-
-    if ((! _pDevice.p || frames_.empty ()) || _pCommandQueue.p == nullptr)
-    {
-      if (! init (pSwapChain, _pCommandQueue.p))
-        return;
-    }
-
-    if (! _pCommandQueue.p)
+    if (! init (pSwapChain, _pCommandQueue.p))
       return;
-
-    pCommandQueue = _pCommandQueue.p;
   }
 
-  if (! SK_D3D12_HasDebugName (pCommandQueue.p))
+  if (! _pCommandQueue.p)
+    return;
+
+  if (! SK_D3D12_HasDebugName (_pCommandQueue.p))
   {
     static UINT unique_d3d12_qid = 0UL;
   
-    SK_D3D12_SetDebugName (    pCommandQueue.p,
+    SK_D3D12_SetDebugName (    _pCommandQueue.p,
          SK_FormatStringW (
             L"[Game] D3D12 SwapChain CmdQueue%d",
                              unique_d3d12_qid++ )
@@ -2257,9 +2242,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   if (FAILED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D12Device.p))))
     return;
-
-  auto lock =
-    acquireScopedLock ();
 
   // This test for device equality will fail if there is a Streamline interposer; ignore it.
   if ((! pD3D12Device.IsEqualObject (_pDevice.p)) && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
@@ -2453,7 +2435,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
             D3D12_CPU_DESCRIPTOR_HANDLE rtv_srgb_handle =
               (D3D12_CPU_DESCRIPTOR_HANDLE)(uintptr_t)reshade.rtv_srgb.handle;
 
-            pD3D12Device->CopyDescriptorsSimple (
+            _pDevice->CopyDescriptorsSimple (
               1, stagingFrame.hBackBufferRTV_sRGB, rtv_srgb_handle,
               D3D12_DESCRIPTOR_HEAP_TYPE_RTV
             );   stagingFrame.hReShadeRTV_sRGB  =  rtv_srgb_handle;
@@ -2483,7 +2465,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
       if (uiFenceVal != 0)
       {
-        pCommandQueue->Wait ( stagingFrame.reshade_fence, uiFenceVal );
+        _pCommandQueue->Wait ( stagingFrame.reshade_fence, uiFenceVal );
       }
     }
   };
@@ -2738,11 +2720,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 bool
 SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineState>& state)
 {
-  SK_ScopedLock lock (
-    pRoot != nullptr                        ?
-    pRoot->acquireScopedLock () : nullptr
-  );
-
   if (pCmdList == nullptr)
     return false;
 
@@ -2770,11 +2747,6 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
-  SK_ScopedLock lock (
-    pRoot != nullptr            ?
-    pRoot->acquireScopedLock () : nullptr
-  );
-
   assert (bCmdListRecording);
 
   if (pCmdList == nullptr)
@@ -2835,11 +2807,6 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 {
-  SK_ScopedLock lock (
-    pRoot != nullptr            ?
-    pRoot->acquireScopedLock () : nullptr
-  );
-
   if (exec_cmd_list ()) // Implicit sync
   {
     if ( const UINT64 sync_value = fence.value + 1;
@@ -2862,9 +2829,6 @@ SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::drain_queue (void) noexcept
 {
-  auto lock =
-    acquireScopedLock ();
-
   if (frames_.empty ())
     return true;
 
@@ -2885,11 +2849,6 @@ SK_D3D12_RenderCtx::drain_queue (void) noexcept
 bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
-  SK_ScopedLock lock (
-    pRoot != nullptr            ?
-    pRoot->acquireScopedLock () : nullptr
-  );
-
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
   {
@@ -3001,11 +2960,6 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
     bCmdListRecording = false;
   }
 
-  SK_ScopedLock lock (
-    pRoot != nullptr            ?
-    pRoot->acquireScopedLock () : nullptr
-  );
-
   wait_for_gpu        (    );
   SK_SEH_FrameCtxDtor (this);
 
@@ -3032,50 +2986,12 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/plugin/reshade.h>
 
-SK_ScopedLock::SK_ScopedLock (void)
-{
-  _lock = nullptr;
-}
-
-SK_ScopedLock::SK_ScopedLock (SK_Thread_HybridSpinlock* pLock)
-{
-  if (! pLock)
-    return;
-
-#ifndef _M_IX86
-  _lock = pLock;
-  _lock->lock ();
-#endif
-}
-
-SK_ScopedLock::SK_ScopedLock (SK_ScopedLock&& in)
-{
-     _lock = in._lock;
-  in._lock = nullptr;
-}
-
-SK_ScopedLock::~SK_ScopedLock (void)
-{
-  if (! _lock)
-    return;
-
-#ifndef _M_IX86
-  _lock->unlock ();
-#endif
-}
-
-SK_ScopedLock
-SK_D3D12_RenderCtx::acquireScopedLock (void) noexcept
-{
-  return
-    SK_ScopedLock (&_ctx_lock);
-}
-
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-  auto lock =
-    acquireScopedLock ();
+#ifndef _M_IX86
+  std::scoped_lock lock(_ctx_lock);
+#endif
 
   drain_queue ();
 
@@ -3156,6 +3072,10 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
+#ifndef _M_IX86
+  std::scoped_lock lock(_ctx_lock);
+#endif
+
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
                                pSwapChain =          pNativeSwapChain.p;
@@ -3177,7 +3097,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   SK_ComPtr <ID3D12CommandQueue>                        pNativeQueue;
   if (SK_slGetNativeInterface (pCommandQueue, (void **)&pNativeQueue.p) == sl::Result::eOk)
   {
-    auto lock = acquireScopedLock ();
     if (                       _pCommandQueue != nullptr)
       _ExchangeProxyForNative (_pCommandQueue,          pNativeQueue)
     else                       _pCommandQueue         = pNativeQueue;
@@ -3206,9 +3125,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   if ( _pCommandQueue.p == nullptr &&
         pCommandQueue   != nullptr )
   {
-    auto lock =
-      acquireScopedLock ();
-
     _pCommandQueue =
      pCommandQueue;
   }
@@ -3221,9 +3137,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   if (_pDevice.p == nullptr || pNativeQueue.p != nullptr)
   {
-    auto lock =
-      acquireScopedLock ();
-
     // TODO: Figure out why 32-bit D3D12 crashes when
     // pNativeDev12 is placed below _pCommandQueue...
     SK_ComPtr <ID3D12Device> pNativeDev12;
@@ -3242,9 +3155,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   if (_pDevice.p != nullptr)
   {
-    auto lock =
-      acquireScopedLock ();
-
     _pSwapChain =
      pSwapChain;
 
@@ -3299,9 +3209,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   else if (_pDevice != nullptr && _pSwapChain != nullptr)
   {
-    auto lock =
-      acquireScopedLock ();
-
     frames_.clear ();
 
     DXGI_SWAP_CHAIN_DESC1   swapDesc1 = { };

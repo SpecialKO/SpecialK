@@ -1,4 +1,8 @@
-﻿25.1.2
+﻿25.1.2.1
+========
+ + Re-enable anti-cheat workarounds for various Asian gambling games.
+
+25.1.2
 ======
  + Add hack to workaround dgVoodoo thread sync wonkiness in 32-bit D3D12.
  + Fixed local injection in D3D11 games not working.
