@@ -45,7 +45,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   UINT                      NumCommandLists,
   ID3D12CommandList* const  *ppCommandLists )
 {
-  if (ReadAcquire (&__SK_DLL_Ending) == 0)
+  if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
 
   SK_RenderBackend_V2 &rb =

@@ -602,12 +602,7 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
     lastOverride = false;
 
   bool nativeSleepRecently =
-    SK_Reflex_LastNativeSleepFrame > SK_GetFramesDrawn () - 10 ||
-    // Handle scenarios where SK is injected late into a game and didn't see the creation of
-    //   the SwapChain... only if sl.reflex.dll is not loaded is it safe to use SK's
-    //     Reflex integration.
-    ( ( ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) +
-          ReadAcquire (&SK_DXGI_LiveWrappedSwapChains) ) == 0 && GetModuleHandleW (L"sl.reflex.dll") ) );
+    SK_Reflex_LastNativeSleepFrame > SK_GetFramesDrawn () - 10;
 
   bool applyOverride =
     (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
