@@ -217,6 +217,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("XAudio2_9"),
 
     SK_TEXT ("nvapi"), SK_TEXT ("NvCameraAllowlisting"),
+    SK_TEXT ("nvofapi64"),
 
     SK_TEXT ("kbd"), // Keyboard Layouts take > ~20 ms to load, leave 'em loaded
 
