@@ -980,6 +980,9 @@ SK_InitFinishCallback (void)
   // SEH to handle Wine Stub functions
   SK_SEH_InitFinishCallback ();
 
+  SK_EnableApplyQueuedHooks ();
+  SK_ApplyQueuedHooks       ();
+
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
   dll_log->Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
@@ -988,14 +991,6 @@ SK_InitFinishCallback (void)
                  );
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
-
-  SK_EnableApplyQueuedHooks ();
-
-  if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);
-              hooks_queued > 0)
-  {
-    SK_ApplyQueuedHooks ();
-  }
 
 #ifdef _M_IX86
   typedef BOOL (WINAPI* K32EmptyWorkingSet_pfn)(HANDLE hProcess);
@@ -2974,7 +2969,7 @@ SK_ShutdownCore (const wchar_t* backend)
     config_name = L"SpecialK";
   }
 
-  if (sk::NVAPI::app_name.find (L"ds3t.exe") != std::wstring::npos)
+  if (sk::NVAPI::app_name.find (L"ds3t.exe") == std::wstring::npos)
   {
     dll_log->LogEx       (true,  L"[ SpecialK ] Saving user preferences to"
                                  L" %10s.ini... ", config_name);
