@@ -418,32 +418,18 @@ IWrapDXGISwapChain::SetPrivateDataInterface (REFGUID Name, const IUnknown *pUnkn
 HRESULT
 STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataSize, void *pData)
 {
-  if (pDataSize == nullptr)
-    return E_INVALIDARG;
+  std::scoped_lock lock (_backbufferLock);
 
-  const bool custom_private_data =
-    InlineIsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) || 
-    InlineIsEqualGUID (Name, SKID_DXGI_SwapChainRealBackbuffer_D3D11);
-
-  if (! custom_private_data)
+  //
+  // TODO: Optimize this to store SRV and RTVs persistently
+  //
+  if (IsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) && _backbuffers.contains (0))
   {
-    return
-      pReal->GetPrivateData (Name, pDataSize, pData);
-  }
-
-
-  if (IsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) &&
-                                               !_backbuffers.empty ())
-  {
-    SK_ComQIPtr <ID3D11Device>                  pDev11;
-    if (_backbuffer_views.srv.p != nullptr || ((pDev11 = pDev) != nullptr &&
-                                                     pDataSize != nullptr))
+    if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
+                                                  pDataSize != nullptr)
     {
-      if (                  pData != nullptr && *pDataSize >= sizeof (void*) &&
-          _backbuffer_views.srv.p == nullptr)
+      if (pData != nullptr && *pDataSize >= sizeof (void *))
       {
-        std::scoped_lock lock (_backbufferLock);
-
         D3D11_TEXTURE2D_DESC        texDesc = { };
         _backbuffers [0]->GetDesc (&texDesc);
 
@@ -460,16 +446,16 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
             srvDesc.ViewDimension       = D3D_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = 1;
 
-          pDev11->CreateShaderResourceView (_backbuffers [0], &srvDesc,
-                                           &_backbuffer_views.srv.p);
-        }
-      }
+          SK_ComPtr <ID3D11ShaderResourceView>                           pSRV;
+          pDev11->CreateShaderResourceView (_backbuffers [0], &srvDesc, &pSRV.p);
 
-      if (pData != nullptr && *pDataSize >= sizeof (void *)
-                           &&   _backbuffer_views.srv.p != nullptr)
-      {                         _backbuffer_views.srv.p->AddRef ();
-        memcpy (pData, (void *)&_backbuffer_views.srv.p, sizeof (void *));
-        return S_OK;
+          if (pSRV.p != nullptr)
+          {
+                                    pSRV.p->AddRef ();
+            memcpy (pData, (void *)&pSRV.p, sizeof (void *));
+            return S_OK;
+          }
+        }
       }
 
       if (pData == nullptr)
@@ -482,12 +468,10 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
 
   else if (IsEqualGUID (Name, SKID_DXGI_SwapChainRealBackbuffer_D3D11))
   {
-    SK_ComQIPtr <ID3D11Device>                  pDev11;
-    if (_backbuffer_views.rtv.p != nullptr || ((pDev11 = pDev) != nullptr &&
-                                                     pDataSize != nullptr))
+    if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
+                                                  pDataSize != nullptr)
     {
-      if (                  pData != nullptr && *pDataSize >= sizeof (void*) &&
-          _backbuffer_views.rtv.p == nullptr)
+      if (pData != nullptr && *pDataSize >= sizeof (void *))
       {
         SK_ComPtr <ID3D11Texture2D>                         pBackBuffer;
         pReal->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBackBuffer.p);
@@ -506,15 +490,15 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
             rtvDesc.Format        = typed_format;
             rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-          pDev11->CreateRenderTargetView (pBackBuffer, &rtvDesc,
-                                         &_backbuffer_views.rtv.p);
-        }
+          SK_ComPtr <ID3D11RenderTargetView>                      pRTV;
+          pDev11->CreateRenderTargetView (pBackBuffer, &rtvDesc, &pRTV.p);
 
-        if (_backbuffer_views.rtv.p != nullptr && pData != nullptr && *pDataSize >= sizeof (void *))
-        {
-                                  _backbuffer_views.rtv.p->AddRef ();
-          memcpy (pData, (void *)&_backbuffer_views.rtv.p, sizeof (void *));
-          return S_OK;
+          if (pRTV.p != nullptr)
+          {
+                                    pRTV.p->AddRef ();
+            memcpy (pData, (void *)&pRTV.p, sizeof (void *));
+            return S_OK;
+          }
         }
       }
 
@@ -526,6 +510,8 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
     }
   }
 
+  if (pDataSize == nullptr || pData == nullptr)
+    return E_INVALIDARG;
 
   return
     pReal->GetPrivateData (Name, pDataSize, pData);
@@ -985,10 +971,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
-  SK_DXGI_ReleaseCachedSwapChainViews (
-    pReal, this, SK_GetCurrentRenderBackend ().device
-  );
-
   if (SK_DXGI_ZeroCopy == -1)
       SK_DXGI_ZeroCopy = (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap);
 
@@ -2905,32 +2887,4 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
 
   return
     _Return (ret);
-}
-
-void
-SK_DXGI_ReleaseCachedSwapChainViews ( IUnknown *pSwapChain_ImGui,
-                                      IUnknown *pSwapChain_Other,
-                                      IUnknown *pUnkDevice )
-{
-  SK_ComQIPtr <ID3D11Device>
-        pDevice (pUnkDevice);
-  if (! pDevice)
-    return;
-
-  SK_ComPtr<ID3D11DeviceContext>pImmediateCtx;
-  pDevice->GetImmediateContext(&pImmediateCtx);
-  
-  if (pImmediateCtx.p != nullptr)
-  {
-    pImmediateCtx->ClearState ();
-    pImmediateCtx->Flush      ();
-  }
-  
-  SK_ComQIPtr <IWrapDXGISwapChain>
-       pSwapChainWrapped_Other (pSwapChain_Other),
-       pSwapChainWrapped_ImGui (pSwapChain_ImGui);
-  if (pSwapChainWrapped_ImGui != nullptr)
-      pSwapChainWrapped_ImGui->_backbuffer_views.release ();
-  if (pSwapChainWrapped_Other != nullptr)
-      pSwapChainWrapped_Other->_backbuffer_views.release ();
 }

@@ -1992,10 +1992,6 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
                                         swapDesc.OutputWindow),
             L"D3D11BkEnd" );
 
-    SK_DXGI_ReleaseCachedSwapChainViews (
-       _pSwapChain, pSwapChain, _pDevice
-    );
-
     if (_pReShadeRuntime != nullptr)
     {
       SK_ReShadeAddOn_DestroyEffectRuntime (_pReShadeRuntime);

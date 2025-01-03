@@ -1263,9 +1263,6 @@ SK_RenderBackend_V2::getSwapWaitHandle (void) const
 
 void SK_HDR_ReleaseResources             (void);
 void SK_DXGI_ReleaseSRGBLinearizer       (void);
-void SK_DXGI_ReleaseCachedSwapChainViews (IUnknown *pSwapChain_ImGui,
-                                          IUnknown *pSwapChain_Other,
-                                          IUnknown *pDevice_Unknown);
 
 void
 SK_RenderBackend_V2::releaseOwnedResources (void)
@@ -1286,10 +1283,6 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
   {
     SK_LOG1 ( ( L"API: %x", api ),
                __SK_SUBSYSTEM__ );
-
-    SK_DXGI_ReleaseCachedSwapChainViews (
-       swapchain.p, nullptr, device.p
-    );
 
     SK_HDR_ReleaseResources       ();
     SK_DXGI_ReleaseSRGBLinearizer ();
