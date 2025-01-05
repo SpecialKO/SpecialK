@@ -37,19 +37,11 @@ UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original = nullptr;
 
 class SK_Win32_WindowHookManager {
 public:
-concurrency::concurrent_unordered_map <
-  DWORD, HOOKPROC > _RealMouseProcs;
-         HOOKPROC   _RealMouseProc    = nullptr;
-concurrency::concurrent_unordered_map <
-  DWORD, HHOOK >    _RealMouseHooks;
-         HHOOK      _RealMouseHook    = nullptr;
+  concurrency::concurrent_unordered_map <
+    UINT64, std::pair <HOOKPROC, HHOOK> > mouse;
 
-concurrency::concurrent_unordered_map <
-  DWORD, HOOKPROC > _RealKeyboardProcs;
-         HOOKPROC   _RealKeyboardProc = nullptr;
-concurrency::concurrent_unordered_map <
-  DWORD, HHOOK >    _RealKeyboardHooks;
-         HHOOK      _RealKeyboardHook = nullptr;
+  concurrency::concurrent_unordered_map <
+    UINT64, std::pair <HOOKPROC, HHOOK> > keyboard;
 } __hooks;
 
 static POINTS last_pos;
@@ -200,11 +192,13 @@ SK_Proxy_MouseProc   (
       DWORD dwTid =
         GetCurrentThreadId ();
 
-      auto hook_fn = __hooks._RealMouseProcs [dwTid];
-           hook_fn =
-           hook_fn != nullptr ?
-           hook_fn            :
-         __hooks._RealMouseProc;
+      auto local_hook_fn  = __hooks.mouse [dwTid|(WH_MOUSE<<31)].first;
+      auto global_hook_fn = __hooks.mouse [0ULL |(WH_MOUSE<<31)].first;
+
+      SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
+
+      auto hook_fn = local_hook_fn != nullptr ? local_hook_fn
+                                              : global_hook_fn;
                     
       if (hook_fn != nullptr)
         return hook_fn (nCode, wParam, lParam);
@@ -333,11 +327,13 @@ SK_Proxy_LLMouseProc   (
     DWORD dwTid =
       GetCurrentThreadId ();
 
-    auto hook_fn = __hooks._RealMouseProcs [dwTid];
-         hook_fn =
-         hook_fn != nullptr ?
-         hook_fn            :
-       __hooks._RealMouseProc;
+    auto local_hook_fn  = __hooks.mouse [dwTid|(WH_MOUSE_LL<<31)].first;
+    auto global_hook_fn = __hooks.mouse [0    |(WH_MOUSE_LL<<31)].first;
+
+    SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
+
+    auto hook_fn = local_hook_fn != nullptr ? local_hook_fn
+                                            : global_hook_fn;
                   
     if (hook_fn != nullptr)
       return hook_fn (nCode, wParam, lParam);
@@ -407,13 +403,15 @@ SK_Proxy_KeyboardProc (
 
     SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
-    auto hook_fn = __hooks._RealKeyboardProcs [dwTid];
-         hook_fn =
-         hook_fn != nullptr ?
-         hook_fn            :
-       __hooks._RealKeyboardProc;
+    auto local_hook_fn  = __hooks.keyboard [dwTid|(WH_KEYBOARD<<31)].first;
+    auto global_hook_fn = __hooks.keyboard [0    |(WH_KEYBOARD<<31)].first;
+
+    SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
     hide |= config.input.keyboard.disabled_to_game == 1;
+
+    auto hook_fn = local_hook_fn != nullptr ? local_hook_fn
+                                            : global_hook_fn;
 
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
@@ -533,11 +531,13 @@ SK_Proxy_LLKeyboardProc (
 
     SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
-    auto hook_fn = __hooks._RealKeyboardProcs [dwTid];
-         hook_fn =
-         hook_fn != nullptr ?
-         hook_fn            :
-       __hooks._RealKeyboardProc;
+    auto local_hook_fn  = __hooks.keyboard [dwTid|(WH_KEYBOARD_LL<<31)].first;
+    auto global_hook_fn = __hooks.keyboard [0ULL |(WH_KEYBOARD_LL<<31)].first;
+
+    SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
+
+    auto hook_fn = local_hook_fn != nullptr ? local_hook_fn
+                                            : global_hook_fn;
 
     hide |= config.input.keyboard.disabled_to_game == 1;
 
@@ -575,46 +575,28 @@ BOOL
 WINAPI
 UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
 {
-  for ( auto& hook : __hooks._RealMouseHooks )
+  for ( auto& hook : __hooks.mouse )
   {
-    if (hook.second == hhk)
+    if (hook.second.second == hhk)
     {
-      __hooks._RealMouseHooks [hook.first] = 0;
-      __hooks._RealMouseProcs [hook.first] = 0;
+      hook.second.first  = nullptr;
+      hook.second.second = (HHOOK)0;
 
       return
         UnhookWindowsHookEx_Original (hhk);
     }
   }
 
-  if (hhk == __hooks._RealMouseHook)
+  for ( auto& hook : __hooks.keyboard )
   {
-    __hooks._RealMouseProc = nullptr;
-    __hooks._RealMouseHook = nullptr;
-
-    return
-      UnhookWindowsHookEx_Original (hhk);
-  }
-
-  for ( auto& hook : __hooks._RealKeyboardHooks )
-  {
-    if (hook.second == hhk)
+    if (hook.second.second == hhk)
     {
-      __hooks._RealKeyboardHooks [hook.first] = 0;
-      __hooks._RealKeyboardProcs [hook.first] = 0;
+      hook.second.first  = nullptr;
+      hook.second.second = (HHOOK)0;
 
       return
         UnhookWindowsHookEx_Original (hhk);
     }
-  }
-
-  if (hhk == __hooks._RealKeyboardHook)
-  {
-    __hooks._RealKeyboardProc = nullptr;
-    __hooks._RealKeyboardHook = nullptr;
-
-    return
-      UnhookWindowsHookEx_Original (hhk);
   }
 
   return
@@ -647,28 +629,33 @@ SetWindowsHookExW_Detour (
 
       bool install = false;
 
-      if (dwThreadId != 0)
-      {
-        if (    !__hooks._RealKeyboardProcs.count (dwThreadId) ||
-                 __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
-        {        __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
-          hook =&__hooks._RealKeyboardHooks       [dwThreadId];
-                                                       install = true;
-        }
-
-        else
-          SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
-                       dwThreadId );
-      }
-
-      else if (__hooks._RealKeyboardProc == nullptr)
-      {        __hooks._RealKeyboardProc = lpfn;
-        hook =&__hooks._RealKeyboardHook;
-                                 install = true;
+      if (       !__hooks.keyboard.count (dwThreadId|(idHook<<31)) ||
+                  __hooks.keyboard       [dwThreadId|(idHook<<31)].first == nullptr)
+      {           __hooks.keyboard       [dwThreadId|(idHook<<31)].first = lpfn;
+        hook    =&__hooks.keyboard       [dwThreadId|(idHook<<31)].second;
+        install = true;
       }
 
       else
-        SK_LOGi0 (L" * A global keyboard hook already exists");
+      {
+        if (dwThreadId != 0)
+        {
+          if (idHook == WH_KEYBOARD_LL)
+            SK_LOGi0 ( L" * A low-level keyboard hook already exists for thread %d",
+                         dwThreadId );
+          else
+            SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
+                         dwThreadId );
+        }
+
+        else
+        {
+          if (idHook == WH_KEYBOARD_LL)
+            SK_LOGi0 (L" * A global low-level keyboard hook already exists");
+          else
+            SK_LOGi0 (L" * A global keyboard hook already exists");
+        }
+      }
 
       if (install)
         lpfn = (idHook == WH_KEYBOARD ? SK_Proxy_KeyboardProc
@@ -686,28 +673,33 @@ SetWindowsHookExW_Detour (
 
       bool install = false;
 
-      if (dwThreadId != 0)
-      {
-        if (    !__hooks._RealMouseProcs.count (dwThreadId) ||
-                 __hooks._RealMouseProcs       [dwThreadId] == nullptr)
-        {        __hooks._RealMouseProcs       [dwThreadId] = lpfn;
-          hook =&__hooks._RealMouseHooks       [dwThreadId];
-                                                    install = true;
-        }
-
-        else
-          SK_LOGi0 ( L" * A global mouse hook already exists for thread %d",
-                       dwThreadId );
-      }
-
-      else if (__hooks._RealMouseProc == nullptr)
-      {        __hooks._RealMouseProc = lpfn;
-        hook =&__hooks._RealMouseHook;
-                              install = true;
+      if (       !__hooks.mouse.count (dwThreadId|(idHook<<31)) ||
+                  __hooks.mouse       [dwThreadId|(idHook<<31)].first == nullptr)
+      {           __hooks.mouse       [dwThreadId|(idHook<<31)].first = lpfn;
+        hook    =&__hooks.mouse       [dwThreadId|(idHook<<31)].second;
+        install = true;
       }
 
       else
-        SK_LOGi0 (L" * A global mouse hook already exists");
+      {
+        if (dwThreadId != 0)
+        {
+          if (idHook == WH_MOUSE_LL)
+            SK_LOGi0 ( L" * A low-level mouse hook already exists for thread %d",
+                         dwThreadId );
+          else
+            SK_LOGi0 ( L" * A mouse hook already exists for thread %d",
+                         dwThreadId );
+        }
+
+        else
+        {
+          if (idHook == WH_MOUSE_LL)
+            SK_LOGi0 (L" * A global low-level mouse hook already exists");
+          else
+            SK_LOGi0 (L" * A global mouse hook already exists");
+        }
+      }
 
       if (install)
         lpfn = (idHook == WH_MOUSE ? SK_Proxy_MouseProc
@@ -753,28 +745,33 @@ SetWindowsHookExA_Detour (
 
       bool install = false;
 
-      if (dwThreadId != 0)
-      {
-        if (    !__hooks._RealKeyboardProcs.count (dwThreadId) ||
-                 __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
-        {        __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
-          hook =&__hooks._RealKeyboardHooks       [dwThreadId];
-                                                       install = true;
-        }
-
-        else
-          SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
-                       dwThreadId );
-      }
-
-      else if (__hooks._RealKeyboardProc == nullptr)
-      {        __hooks._RealKeyboardProc = lpfn;
-        hook =&__hooks._RealKeyboardHook;
-                                 install = true;
+      if (       !__hooks.keyboard.count (dwThreadId|(idHook<<31)) ||
+                  __hooks.keyboard       [dwThreadId|(idHook<<31)].first == nullptr)
+      {           __hooks.keyboard       [dwThreadId|(idHook<<31)].first = lpfn;
+        hook    =&__hooks.keyboard       [dwThreadId|(idHook<<31)].second;
+        install = true;
       }
 
       else
-        SK_LOGi0 (L" * A global keyboard hook already exists");
+      {
+        if (dwThreadId != 0)
+        {
+          if (idHook == WH_KEYBOARD_LL)
+            SK_LOGi0 ( L" * A low-level keyboard hook already exists for thread %d",
+                         dwThreadId );
+          else
+            SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
+                         dwThreadId );
+        }
+
+        else
+        {
+          if (idHook == WH_KEYBOARD_LL)
+            SK_LOGi0 (L" * A global low-level keyboard hook already exists");
+          else
+            SK_LOGi0 (L" * A global keyboard hook already exists");
+        }
+      }
 
       if (install)
         lpfn = (idHook == WH_KEYBOARD ? SK_Proxy_KeyboardProc
@@ -792,28 +789,33 @@ SetWindowsHookExA_Detour (
 
       bool install = false;
 
-      if (dwThreadId != 0)
-      {
-        if (    !__hooks._RealMouseProcs.count (dwThreadId) ||
-                 __hooks._RealMouseProcs       [dwThreadId] == nullptr)
-        {        __hooks._RealMouseProcs       [dwThreadId] = lpfn;
-          hook =&__hooks._RealMouseHooks       [dwThreadId];
-                                                    install = true;
-        }
-
-        else
-          SK_LOGi0 ( L" * A mouse hook already exists for thread %d",
-                       dwThreadId );
-      }
-
-      else if (__hooks._RealMouseProc == nullptr)
-      {        __hooks._RealMouseProc = lpfn;
-        hook =&__hooks._RealMouseHook;
-                              install = true;
+      if (       !__hooks.mouse.count (dwThreadId|(idHook<<31)) ||
+                  __hooks.mouse       [dwThreadId|(idHook<<31)].first == nullptr)
+      {           __hooks.mouse       [dwThreadId|(idHook<<31)].first = lpfn;
+        hook    =&__hooks.mouse       [dwThreadId|(idHook<<31)].second;
+        install = true;
       }
 
       else
-        SK_LOGi0 (L" * A global mouse hook already exists");
+      {
+        if (dwThreadId != 0)
+        {
+          if (idHook == WH_MOUSE_LL)
+            SK_LOGi0 ( L" * A low-level mouse hook already exists for thread %d",
+                         dwThreadId );
+          else
+            SK_LOGi0 ( L" * A mouse hook already exists for thread %d",
+                         dwThreadId );
+        }
+
+        else
+        {
+          if (idHook == WH_MOUSE_LL)
+            SK_LOGi0 (L" * A global low-level mouse hook already exists");
+          else
+            SK_LOGi0 (L" * A global mouse hook already exists");
+        }
+      }
 
       if (install)
         lpfn = (idHook == WH_MOUSE ? SK_Proxy_MouseProc
@@ -822,7 +824,7 @@ SetWindowsHookExA_Detour (
   }
 
   auto ret =
-    SetWindowsHookExA_Original (
+    SetWindowsHookExW_Original (
       idHook, lpfn,
               hmod, dwThreadId
     );
