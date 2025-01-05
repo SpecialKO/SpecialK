@@ -1038,6 +1038,13 @@ MessageProc ( const HWND&   hWnd,
   return false;
 };
 
+extern
+LONG_PTR
+WINAPI
+SK_SetClassLongPtrW (_In_ HWND      hWnd,
+                     _In_ int       nIndex,
+                     _In_ LONG_PTR dwNewLong);
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
@@ -1132,7 +1139,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
               // We have to manually call SetCursor (...), because the game
               //   is not using class cursors.
               if (! using_class_cursor)
-                SetCursor (desired_cursor);
+                SK_SetCursor (desired_cursor);
             }
 
             return TRUE;
@@ -1146,7 +1153,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
             {
               game_window.real_cursor = game_window.game_cursor;
 
-              SetClassLongPtrW ( game_window.hWnd, GCLP_HCURSOR,
+              SK_SetClassLongPtrW ( game_window.hWnd, GCLP_HCURSOR,
                        (LONG_PTR)game_window.real_cursor );
             }
 

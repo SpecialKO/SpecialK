@@ -3201,6 +3201,18 @@ GetWindowLongPtr_Marshall (
     return -1;
 }
 
+LONG_PTR
+WINAPI
+SK_SetClassLongPtrW (_In_ HWND      hWnd,
+                     _In_ int       nIndex,
+                     _In_ LONG_PTR dwNewLong)
+{
+  return
+    SetClassLongPtrW_Original != nullptr                ?
+    SetClassLongPtrW_Original (hWnd, nIndex, dwNewLong) :
+    SetClassLongPtrW          (hWnd, nIndex, dwNewLong);
+}
+
 DWORD
 WINAPI
 SetClassLongA_Detour (_In_ HWND  hWnd,

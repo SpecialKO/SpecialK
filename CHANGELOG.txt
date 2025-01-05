@@ -1,4 +1,9 @@
-﻿25.1.3.1
+﻿25.1.5
+======
+ + Improved handling of mouse cursor when background render is enabled and
+     the game window is in the background (for games that use GetCursorPos ()).
+
+25.1.3.1
 ========
  + Revert 24.12.29.1's optimizations that could cause incorrect game rendering.
 

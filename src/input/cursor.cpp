@@ -1113,33 +1113,19 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   //
   if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
-#if 0
     POINT             ptCursor = {};
     SK_GetCursorPos (&ptCursor);
 
-    static POINT lastCursorPt = ptCursor;
-    static HWND  lastFgWindow = SK_GetForegroundWindow ();
-           HWND      FgWindow = SK_GetForegroundWindow ();
-
-    if ((lastFgWindow != FgWindow || (ptCursor.x != lastCursorPt.x ||
-                                      ptCursor.y != lastCursorPt.y)) && (WindowFromPoint (ptCursor) != game_window.hWnd))
+    // Also prevent mouse look from spinning like mad while the cursor is outisde the game window :)
+    if (!SK_ImGui_CursorWarpingCooledDown () || WindowFromPoint (ptCursor) != game_window.hWnd)
     {
-      lastFgWindow = FgWindow;
-      lastCursorPt = ptCursor;
-#endif
-
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 
       *lpPoint = SK_ImGui_Cursor.orig_pos;
       SK_ImGui_Cursor.LocalToScreen (lpPoint);
 
       return TRUE;
-#if 0
     }
-
-    lastFgWindow = FgWindow;
-    lastCursorPt = ptCursor;
-#endif
   }
 
   if (!game_window.isCursorHovering () || SK_ImGui_IsMouseRelevant())
@@ -1147,7 +1133,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     //
     // Compute delta mouse coordinates for games that use cursor warping (i.e. mouselook)
     //
-    if (SK_ImGui_WantMouseCapture () || (SK_ImGui_Active () && s_GameSetCursorPosTime >= SK_timeGetTime () - kCursorWarpCooldown))
+    if (SK_ImGui_WantMouseCapture () || (SK_ImGui_Active () && !SK_ImGui_CursorWarpingCooledDown ()))
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 #if 0
@@ -1346,8 +1332,6 @@ struct SK_MouseTimer {
 
   int     init     =   FALSE;
   UINT    timer_id = 0x68993;
-  HCURSOR
-      class_cursor =       0;
 } static last_mouse;
 
 bool
@@ -1369,23 +1353,10 @@ SK_Window_ActivateCursor (bool changed)
       if (SK_ImGui_WantHWCursor ())
       {
         SK_SendMsgShowCursor (TRUE);
-
-        // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
-        //   activate the window using the game's cursor or our override
-        SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)last_mouse.class_cursor);
-        SK_SetCursor                                               (last_mouse.class_cursor);
-
-        SK_SendMsgSetCursor (last_mouse.class_cursor);
       }
 
       else
       {
-        // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
-        //   activate the window using the game's cursor or our override
-        SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)0);
-        SK_SetCursor                                               (0);
-
-        SK_SendMsgSetCursor  ((HCURSOR)0);
         SK_SendMsgShowCursor (FALSE);
       }
 
@@ -1419,18 +1390,6 @@ SK_Window_DeactivateCursor (bool ignore_imgui)
   {
     if ((! SK_IsSteamOverlayActive ()))
     {
-      if (was_active)
-      {
-        HCURSOR cursor = //SK_GetCursor ();
-          (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
-
-        if (cursor != 0)
-          last_mouse.class_cursor = cursor;
-      }
-
-      SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
-
-      SK_SendMsgSetCursor  (0);
       SK_SendMsgShowCursor (FALSE);
 
       last_mouse.cursor  = false;
