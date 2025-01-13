@@ -1,4 +1,11 @@
-﻿25.1.5
+﻿25.1.13
+=======
+ + Disable flip model upgrades for FarCry 4 because dxdiagn causes too many
+     SwapChains to be created on the same window.
+
+   * Windows 11 "Optimization for windowed games" can upgrade the game to flip.
+
+25.1.5
 ======
  + Improved handling of mouse cursor when background render is enabled and
      the game window is in the background (for games that use GetCursorPos ()).
