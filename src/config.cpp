@@ -143,6 +143,7 @@ SK_GetCurrentGameID (void)
           { L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            },
           { L"TOV_DE.exe",                             SK_GAME_ID::Tales_of_Vesperia            },
           { L"Tales of Arise.exe",                     SK_GAME_ID::Tales_of_Arise               },
+          { L"Tales of Graces f Remastered.exe",       SK_GAME_ID::Tales_of_Graces              },
           { L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
           { L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          },
           { L"Hob.exe",                                SK_GAME_ID::Hob                          },
@@ -3334,6 +3335,14 @@ auto DeclKeybind =
         config.textures.d3d11.cache_gen_mips    = true;
         config.render.d3d11.wrap_d3d11_dev_ctx  = true;
         config.render.dxgi.deferred_isolation   = true; // For texture mods / HUD tracking
+      } break;
+
+      case SK_GAME_ID::Tales_of_Graces:
+      {
+        // Avoid the game's native DualSense support so rumble will work
+        config.input.gamepad.xinput.emulate              = true;
+        config.input.gamepad.disable_hid                 = true;
+        config.input.gamepad.scepad.alias_trackpad_share = true;
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:

@@ -2094,6 +2094,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (pDevice->isButtonDown (SK_HID_PlayStationButton::Select  )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
               if (pDevice->isButtonDown (SK_HID_PlayStationButton::Start   )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
 
+              if (config.input.gamepad.scepad.alias_trackpad_share &&
+                  pDevice->isButtonDown (SK_HID_PlayStationButton::TrackPad)) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
               if (pDevice->isButtonDown (SK_HID_PlayStationButton::L3      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
               if (pDevice->isButtonDown (SK_HID_PlayStationButton::R3      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
             }

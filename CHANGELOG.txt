@@ -1,4 +1,22 @@
-﻿25.1.13
+﻿25.1.17
+=======
+ + Disable Tales of Graces' native DualSense support and translate
+     DualSense HID to Windows.Gaming.Input in order to add rumble support.
+ + Alias the Share and Trackpad Click buttons on DualShock4/DualSense
+     controllers in Tales of Graces f because various button prompts say to
+       use the trackpad but it normally maps to Share when SK does API
+         translation.
+
+  * For DualShock4 and DualSense users, download:
+
+      https://sk-data.special-k.info/addon/TalesOfGraces/DualShock4.dds
+        or
+      https://sk-data.special-k.info/addon/TalesOfGraces/DualSense.dds
+
+       and place it in SK_Res\inject\textures\8E9DD816.dds to ensure
+         button icons are correct.
+
+25.1.13
 =======
  + Disable flip model upgrades for FarCry 4 because dxdiagn causes too many
      SwapChains to be created on the same window.

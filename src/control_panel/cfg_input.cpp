@@ -2486,7 +2486,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::PopID         ( );
       };
 
-#if 0
+#if 1
       static DWORD dwLastCheck = current_time;
       static UINT  dwLastCount = SK_joyGetNumDevs ();
 

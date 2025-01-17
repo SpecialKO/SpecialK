@@ -1143,6 +1143,7 @@ struct sk_config_t
         int   hide_ds4_v2_pid      = SK_NoPreference;
         int   hide_ds_edge_pid     = SK_NoPreference;
         bool  enable_full_bluetooth=  false;
+        bool  alias_trackpad_share =  false;
         std::wstring
               touch_click          = L"<Not Bound>";
         std::wstring
@@ -1640,6 +1641,7 @@ enum class SK_GAME_ID
   Tales_of_Zestiria,            // Tales of Zestiria.exe
   Tales_of_Vesperia,            // TOV_DE.exe
   Tales_of_Arise,               // Tales of Arise.exe
+  Tales_of_Graces,              // Tales of Graces f Remastered.exe
   DivinityOriginalSin,          // EoCApp.exe
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe
