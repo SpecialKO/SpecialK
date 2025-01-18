@@ -3848,6 +3848,9 @@
     <ClCompile Include="src\input\game_input.cpp">
       <Filter>Source Files\Backends\Input\GameInput</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\tales_of_graces_f.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

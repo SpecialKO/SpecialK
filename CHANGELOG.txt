@@ -1,5 +1,9 @@
 ﻿25.1.18.1
 =========
+ + Added options to control native PlayStation vs. Xbox emulation in Graces.
+ + Added option to sharpen character and object outlines in Tales of Graces.
+ + Added options to disable Depth of Field and Bloom to Tales of Graces.
+
  + Allow monitor management keybinds to work on systems with over 16 monitors
 
   * Most likely, a system does not have 16 attached monitors, but it may have

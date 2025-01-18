@@ -3339,6 +3339,9 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Graces:
       {
+        extern void SK_TGFix_InitPlugin (void);
+                    SK_TGFix_InitPlugin ();
+
         // Avoid the game's native DualSense support so rumble will work
         config.input.gamepad.xinput.emulate              = true;
         config.input.gamepad.disable_hid                 = true;
