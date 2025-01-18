@@ -1,4 +1,15 @@
-﻿25.1.18
+﻿25.1.18.1
+=========
+ + Allow monitor management keybinds to work on systems with over 16 monitors
+
+  * Most likely, a system does not have 16 attached monitors, but it may have
+      been assigned \.\\DISPLAY<N> values as high as 128 following repeated
+        driver restarts / monitor power-cycles.
+
+    @ All the more reason to NEVER develop a game that stores user preference
+        for monitors using the GDI Display Name; always use VidPn DisplayPath!
+
+25.1.18
 =======
  + Upgrade games to use IDStorageQueue2 when possible to avoid a bug in
      DirectStorage that would prevent querying queue capabilities in some

@@ -203,12 +203,19 @@ public:
   } adapter;
 
   static auto constexpr
-    _MAX_DISPLAYS = 16;
+#ifdef _M_AMD64
+    _MAX_DISPLAYS = 128;
+#else
+    _MAX_DISPLAYS = 64;
+    // Save some memory in 32-bit builds by limiting support for
+    // \\.\DISPLAY<n> paths to only 64 unique displays; that many is
+    // already highly unlikely, but 32 is inadequate.
+#endif
 
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
-  int                     present_interval_orig = 0; // Application preference
+  int                     present_interval_orig= 0; // Application preference
   float                   ui_luminance         = 325.0_Nits;
   bool                    ui_srgb              = true;
   bool                    srgb_stripped        = false; // sRGB may be stripped from swapchains for advanced features to work
