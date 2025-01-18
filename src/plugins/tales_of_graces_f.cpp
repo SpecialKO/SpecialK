@@ -122,7 +122,7 @@ SK_TGFix_PlugInCfg (void)
         }
 
         __SK_TGFix_DisableBloom = (! enable);
-         _SK_TGFix_DisableBloom->store (__SK_TGFix_DisableDepthOfField);
+         _SK_TGFix_DisableBloom->store (__SK_TGFix_DisableBloom);
 
         cfg_changed = true;
       }

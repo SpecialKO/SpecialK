@@ -5676,14 +5676,6 @@ D3D11Dev_CreateTexture2DCore_Impl (
                 SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
-        if (SK_IsCurrentGame (SK_GAME_ID::Tales_of_Graces) && config.system.silent_crash)
-        {
-          if (pDesc->Width == 2560 && pDesc->Height == 1440)
-          {
-            pDesc->Width  *= 2;
-            pDesc->Height *= 2;
-          }
-        }
 
         bool is_uav =
           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) ==

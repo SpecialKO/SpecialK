@@ -1,4 +1,8 @@
-﻿25.1.18.1
+﻿25.1.18.2
+=========
+ + Correctly save settings for "Enable Atmospheric Bloom" in Tales of Graces f.
+
+25.1.18.1
 =========
  + Added options to control native PlayStation vs. Xbox emulation in Graces.
  + Added option to sharpen character and object outlines in Tales of Graces.
