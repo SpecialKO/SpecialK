@@ -145,13 +145,30 @@ SK_IWrapDStorageFactory::CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID ri
   }
 
   IDStorageQueue *pQueue = nullptr;
-  
-  HRESULT hr =
-    pReal->CreateQueue (&override_desc, riid, (void **)&pQueue);
+
+  HRESULT hr = E_NOTIMPL;
+
+  IID  iid_queue2 = __uuidof (IDStorageQueue2);
+  if (riid ==       __uuidof (IDStorageQueue)||
+      riid ==       __uuidof (IDStorageQueue1))
+  {
+    hr = 
+      pReal->CreateQueue (&override_desc, iid_queue2, (void **)&pQueue);
+  }
+
+  auto& _riid = iid_queue2;
+
+  if (hr != S_OK)
+  {
+    hr =
+      pReal->CreateQueue (&override_desc, riid, (void **)&pQueue);
+
+    _riid = riid;
+  }
   
   if (SUCCEEDED (hr))
   {
-    if (SK_DStorage_IsWrappableQueueType (riid))
+    if (SK_DStorage_IsWrappableQueueType (_riid))
     {
       *ppv =
         new SK_IWrapDStorageQueue (pQueue);

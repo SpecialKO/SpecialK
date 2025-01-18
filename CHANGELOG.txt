@@ -1,4 +1,10 @@
-﻿25.1.17
+﻿25.1.18
+=======
+ + Upgrade games to use IDStorageQueue2 when possible to avoid a bug in
+     DirectStorage that would prevent querying queue capabilities in some
+       poorly tested games.
+
+25.1.17
 =======
  + Disable Tales of Graces' native DualSense support and translate
      DualSense HID to Windows.Gaming.Input in order to add rumble support.
