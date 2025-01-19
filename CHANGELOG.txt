@@ -1,4 +1,8 @@
-﻿25.1.19
+﻿25.1.19.1
+=========
+ + Revert 25.1.19 because uncapped framerate support was added to TGFix 0.0.4.
+
+25.1.19
 =======
  + Automatically apply an appropriate maximum framerate limit based on display
      refresh rate (i.e. 119.5 for displays >= 120 Hz, 59.95 for 60 Hz displays)

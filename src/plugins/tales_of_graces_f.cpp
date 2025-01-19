@@ -315,6 +315,7 @@ SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
+#if 0
   const auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -345,6 +346,7 @@ SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
     config.utility.save_async ();
   }
+#endif
 
   return S_OK;
 }
