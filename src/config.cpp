@@ -3339,13 +3339,16 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Graces:
       {
-        extern void SK_TGFix_InitPlugin (void);
-                    SK_TGFix_InitPlugin ();
-
         // Avoid the game's native DualSense support so rumble will work
         config.input.gamepad.xinput.emulate              = true;
         config.input.gamepad.disable_hid                 = true;
         config.input.gamepad.scepad.alias_trackpad_share = true;
+        config.render.framerate.target_fps               = 0.0f;
+        config.render.framerate.buffer_count             = 3;
+        config.render.framerate.pre_render_limit         = 2;
+
+        extern void SK_TGFix_InitPlugin (void);
+                    SK_TGFix_InitPlugin ();
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:

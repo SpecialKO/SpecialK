@@ -1,4 +1,10 @@
-﻿25.1.18.2
+﻿25.1.19
+=======
+ + Automatically apply an appropriate maximum framerate limit based on display
+     refresh rate (i.e. 119.5 for displays >= 120 Hz, 59.95 for 60 Hz displays)
+       when launching Tales of Graces f for the first time.
+
+25.1.18.2
 =========
  + Correctly save settings for "Enable Atmospheric Bloom" in Tales of Graces f.
 

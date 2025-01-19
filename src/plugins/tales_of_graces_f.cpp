@@ -307,6 +307,48 @@ SK_TGFix_PlugInCfg (void)
   return true;
 }
 
+HRESULT
+STDMETHODCALLTYPE
+SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
+{
+  UNREFERENCED_PARAMETER (pSwapChain);
+  UNREFERENCED_PARAMETER (SyncInterval);
+  UNREFERENCED_PARAMETER (Flags);
+
+  const auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const float fDisplayHz =
+    static_cast   <float>  (
+      static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+      static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator)
+                           );
+
+  if (config.render.framerate.target_fps <=  0.0f ||
+      config.render.framerate.target_fps > 119.5f ||
+      config.render.framerate.target_fps > fDisplayHz)
+  {
+    if (config.render.framerate.target_fps <= 0.0f)
+        config.render.framerate.target_fps  = fDisplayHz;
+
+    config.render.framerate.target_fps =
+      std::min ( { std::max (config.render.framerate.target_fps, 29.95f),
+                                                     fDisplayHz, 119.5f } );
+
+    if (config.render.framerate.target_fps < 90.0f)
+        config.render.framerate.target_fps = std::min (config.render.framerate.target_fps, 59.95f);
+
+    if (config.render.framerate.target_fps < 40.0f)
+        config.render.framerate.target_fps = 29.95f;
+
+    __target_fps = config.render.framerate.target_fps;
+
+    config.utility.save_async ();
+  }
+
+  return S_OK;
+}
+
 void
 SK_TGFix_InitPlugin (void)
 {
@@ -315,6 +357,7 @@ SK_TGFix_InitPlugin (void)
     SK_D3D11_DeclHUDShader_Pix (0x171c9bf7);
 
     plugin_mgr->config_fns.emplace      (SK_TGFix_PlugInCfg);
+    plugin_mgr->first_frame_fns.emplace (SK_TGFix_PresentFirstFrame);
 
     _SK_TGFix_DisableDepthOfField =
       _CreateConfigParameterBool ( L"TGFix.Render",
@@ -326,13 +369,13 @@ SK_TGFix_InitPlugin (void)
                                    L"DisableBloom",  __SK_TGFix_DisableBloom,
                                    L"Disable Bloom Lighting" );
 
-    _SK_TGFix_DisableBlur =
-      _CreateConfigParameterBool ( L"TVFix.Render",
-                                   L"DisableBlur",  __SK_TGFix_DisableBlur,
-                                   L"Disable Blur" );
+    //_SK_TGFix_DisableBlur =
+    //  _CreateConfigParameterBool ( L"TGFix.Render",
+    //                               L"DisableBlur",  __SK_TGFix_DisableBlur,
+    //                               L"Disable Blur" );
 
     _SK_TGFix_SharpenOutlines =
-      _CreateConfigParameterBool ( L"TVFix.Render",
+      _CreateConfigParameterBool ( L"TGFix.Render",
                                    L"SharpenOutlines",  __SK_TGFix_SharpenOutlines,
                                    L"Sharpen Character Outlines" );
 
