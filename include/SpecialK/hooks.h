@@ -120,7 +120,7 @@ static
 void
 SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,
-                            int                      idx   )
+                            uintptr_t                idx   )
 {
   if (  base != nullptr &&
        *base != nullptr )

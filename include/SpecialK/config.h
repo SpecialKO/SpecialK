@@ -1209,13 +1209,13 @@ struct sk_config_t
       //      Synaptics touchpad.
       //
       bool    fix_synaptics       = false;
+      bool    ignore_small_clips  = false;// Ignore mouse clipping rects < 75% the
+                                          //   dimensions of the client window, so
+                                          //     that UI input works.
       int     disabled_to_game    =    0; //0 = Never, 1 = Always, 2 = In Background
       int     org_disabled_to_game=    0;
       UINT64  temporarily_allow   =    0; // Up until temporarily_allow + 1 frames,
                                           //   ignore "disabled_to_game"
-      bool    ignore_small_clips  = false;// Ignore mouse clipping rects < 75% the
-                                          //   dimensions of the client window, so
-                                          //     that UI input works.
     } mouse;
 
     // Avoids calling SK_Input_PreInit (...)
@@ -1408,10 +1408,10 @@ struct sk_config_t
     bool    raise_fg            =  true;
     bool    highest_priority    = false;
     bool    deny_foreign_change =  true;
+    bool    perf_cores_only     = false;
     int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
     DWORD   available_cpu_cores =   1UL;
     int64_t cpu_affinity_mask   = 0xFFFFFFFFFFFFFFFFULL;
-    bool    perf_cores_only     = false;
   } priority;
 
   struct skif_s {

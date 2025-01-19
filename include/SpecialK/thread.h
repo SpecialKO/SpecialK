@@ -467,17 +467,19 @@ SK_FAST_GetTLS (void)
 {
   extern volatile DWORD __SK_TLS_INDEX;
 
-  DWORD tls_idx =
-    ReadULongAcquire (&__SK_TLS_INDEX);
+  DWORD_PTR tls_idx =
+    static_cast <DWORD_PTR> (
+      ReadULongAcquire (&__SK_TLS_INDEX)
+                            );
 
   if (tls_idx == TLS_OUT_OF_INDEXES)
     return nullptr;
 
   return *(SK_TLS **)((uintptr_t *)NtCurrentTeb ()) [
 #ifdef _M_AMD64
-    0x290 + tls_idx
+    static_cast <DWORD_PTR> (0x290) + tls_idx
 #elif _M_IX86
-    0x384 + tls_idx
+    static_cast <DWORD_PTR> (0x384) + tls_idx
 #else
     static_assert (false, "Unsupported platform");
 #endif

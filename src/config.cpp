@@ -3346,6 +3346,8 @@ auto DeclKeybind =
         config.render.framerate.target_fps               = 0.0f;
         config.render.framerate.buffer_count             = 3;
         config.render.framerate.pre_render_limit         = 2;
+        config.render.framerate.sleepless_render         = true;
+        config.render.framerate.sleepless_window         = true;
 
         extern void SK_TGFix_InitPlugin (void);
                     SK_TGFix_InitPlugin ();
@@ -4225,7 +4227,7 @@ auto DeclKeybind =
 
     if ( 2 ==
            _snwscanf ( override_str.c_str  (),
-                       override_str.length (), L"%dx%d",
+                       override_str.length (), L"%ux%u",
                          &config.display.resolution.override.x,
                          &config.display.resolution.override.y ) )
     {
@@ -7085,7 +7087,7 @@ SK_Keybind::update (void)
   human_readable.clear ();
 
   wchar_t* key_name =
-    (*virtKeyCodeToHumanKeyName)[(BYTE)(vKey & 0xFF)];
+    (*virtKeyCodeToHumanKeyName)[static_cast <BYTE>(vKey & 0xFF)];
 
   if (*key_name == L'\0')
   {

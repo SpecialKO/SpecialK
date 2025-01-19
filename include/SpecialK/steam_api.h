@@ -583,12 +583,12 @@ public:
         std::string test;
       } heap;
 
-      void heapify (std::deque <std::string> const* sections = nullptr)
+      void heapify (std::deque <std::string> const* pSections = nullptr)
       {
         int i = 0;
 
-        auto& in  = (sections == nullptr) ? path        : *sections;
-        auto& out = (sections == nullptr) ? heap.actual : heap.test;
+        auto& in  = (pSections == nullptr) ? path        : *pSections;
+        auto& out = (pSections == nullptr) ? heap.actual :  heap.test;
 
         out.clear ();
 
