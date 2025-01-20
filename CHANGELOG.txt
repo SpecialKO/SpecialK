@@ -1,4 +1,8 @@
-﻿25.1.19.1
+﻿25.1.20
+=======
+ + Added options to disable Heat Haze and FXAA in Tales of Graces f
+
+25.1.19.1
 =========
  + Revert 25.1.19 because uncapped framerate support was added to TGFix 0.0.4.
 

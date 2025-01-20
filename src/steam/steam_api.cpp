@@ -2952,31 +2952,50 @@ SK_Steam_UpdateGlobalAchievements (void)
     SK_Steam_LogAllAchievements ();
 }
 
+static DWORD __SteamCallbacksFailed = 0;
 
-void TryRunCallbacksSEH (void)
+LONG
+NTAPI
+SteamAPI_RunCallbacksExceptionHandler (_EXCEPTION_POINTERS* ExceptionInfo)
 {
-  static bool failed = false;
+  if ( ExceptionInfo                  == nullptr ||
+       ExceptionInfo->ExceptionRecord == nullptr ||
+      (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_ILLEGAL_INSTRUCTION &&
+       ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT) )
+  {
+    __SteamCallbacksFailed =
+      ExceptionInfo                  != nullptr &&
+      ExceptionInfo->ExceptionRecord != nullptr     ?
+      ExceptionInfo->ExceptionRecord->ExceptionCode : EXCEPTION_ACCESS_VIOLATION;
 
-  if (failed)
-    return;
-
-  __try {
-    if (SteamAPI_RunCallbacks_Original != nullptr)
-        SteamAPI_RunCallbacks_Original ();
+    return EXCEPTION_CONTINUE_EXECUTION;
   }
-  __except ( EXCEPTION_EXECUTE_HANDLER ) {
-    failed = true;
 
-    SK_LOGi0 (
-      L"Caught a Structured Exception (%x) during SteamAPI_RunCallbacks; stopping callbacks!",
-        GetExceptionCode ()
-    );
-  }
+  return EXCEPTION_CONTINUE_SEARCH;
 }
 
 void TryRunCallbacks (void)
 {
-  TryRunCallbacksSEH ();
+  if (__SteamCallbacksFailed != 0)
+    return;
+
+  if (SteamAPI_RunCallbacks_Original != nullptr)
+  {
+    auto veh = AddVectoredExceptionHandler (1, &SteamAPI_RunCallbacksExceptionHandler);
+    if ( veh != 0 )
+    {
+      SteamAPI_RunCallbacks_Original (   );
+      RemoveVectoredExceptionHandler (veh);
+
+      if (__SteamCallbacksFailed != 0)
+      {
+        SK_LOGi0 (
+          L"Caught a Structured Exception (%x) during SteamAPI_RunCallbacks; stopping callbacks!",
+            __SteamCallbacksFailed
+        );
+      }
+    }
+  }
 }
 
 

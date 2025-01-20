@@ -24,6 +24,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <imgui/font_awesome.h>
 
 extern volatile LONG SK_D3D11_DrawTrackingReqs;
 
@@ -33,8 +34,11 @@ bool              __SK_TGFix_DisableDepthOfField = true;
 sk::ParameterBool* _SK_TGFix_DisableBloom;
 bool              __SK_TGFix_DisableBloom = false;
 
-sk::ParameterBool* _SK_TGFix_DisableBlur;
-bool              __SK_TGFix_DisableBlur = false;
+sk::ParameterBool* _SK_TGFix_DisableHeatHaze;
+bool              __SK_TGFix_DisableHeatHaze = false;
+
+sk::ParameterBool* _SK_TGFix_DisableFXAA;
+bool              __SK_TGFix_DisableFXAA = false;
 
 sk::ParameterBool* _SK_TGFix_SharpenOutlines;
 bool              __SK_TGFix_SharpenOutlines = false;
@@ -54,8 +58,8 @@ SK_TGFix_PlugInCfg (void)
     static int  restart_reqs = 0;
 
     ImGui::BeginGroup ();
-    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
-                                                    ImGuiTreeNodeFlags_AllowOverlap))
+    if (ImGui::CollapsingHeader (ICON_FA_PORTRAIT " Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
+                                                                      ImGuiTreeNodeFlags_AllowOverlap))
     {
       ImGui::TreePush ("");
 
@@ -156,6 +160,52 @@ SK_TGFix_PlugInCfg (void)
         cfg_changed = true;
       }
 
+      if (ImGui::Checkbox ("Disable FXAA", &__SK_TGFix_DisableFXAA))
+      {
+        if (__SK_TGFix_DisableFXAA)
+        {
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
+
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        else
+        {
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
+
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        _SK_TGFix_DisableFXAA->store (__SK_TGFix_DisableFXAA);
+
+        cfg_changed = true;
+      }
+
+      if (ImGui::Checkbox ("Disable Heat Haze", &__SK_TGFix_DisableHeatHaze))
+      {
+        if (__SK_TGFix_DisableHeatHaze)
+        {
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
+
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        else
+        {
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
+
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        _SK_TGFix_DisableHeatHaze->store (__SK_TGFix_DisableHeatHaze);
+
+        cfg_changed = true;
+      }
+
       if (cfg_changed)
       {
         config.utility.save_async ();
@@ -169,8 +219,8 @@ SK_TGFix_PlugInCfg (void)
       ImGui::SameLine   ();
       ImGui::BeginGroup ();
 
-      if (ImGui::CollapsingHeader ("PlayStation Controllers", ImGuiTreeNodeFlags_DefaultOpen |
-                                                              ImGuiTreeNodeFlags_AllowOverlap))
+      if (ImGui::CollapsingHeader (ICON_FA_PLAYSTATION " PlayStation Controllers", ImGuiTreeNodeFlags_DefaultOpen |
+                                                                                   ImGuiTreeNodeFlags_AllowOverlap))
       {
         ImGui::TreePush ("");
 
@@ -223,7 +273,7 @@ SK_TGFix_PlugInCfg (void)
           {
             if (! fetching_buttons)
             {
-              if (ImGui::Button ("Download DualShock 4 Icons"))
+              if (ImGui::Button ("Download " ICON_FA_PLAYSTATION " Icons\t\t DualShock 4 "))
               {
                 fetching_buttons = true;
 
@@ -245,7 +295,7 @@ SK_TGFix_PlugInCfg (void)
                      true);
               }
 
-              if (ImGui::Button ("Download DualSense Icons"))
+              if (ImGui::Button ("Download " ICON_FA_PLAYSTATION " Icons\t\t DualSense "))
               {
                 fetching_buttons = true;
 
@@ -276,7 +326,7 @@ SK_TGFix_PlugInCfg (void)
 
           else
           {
-            if (ImGui::Button ("Revert to Xbox Icons"))
+            if (ImGui::Button ("Revert to " ICON_FA_XBOX " Icons"))
             {
               if (std::filesystem::remove (pathPlayStation, ec))
               {
@@ -292,6 +342,31 @@ SK_TGFix_PlugInCfg (void)
 
       ImGui::EndGroup    ( );
     }
+
+#if 0
+    if (ImGui::CollapsingHeader (ICON_FA_MAGIC " ThirdParty AddOns", ImGuiTreeNodeFlags_DefaultOpen |
+                                                                     ImGuiTreeNodeFlags_AllowOverlap))
+    {
+      ImGui::TreePush ("");
+      
+      static bool bHasVersionDLL = 
+        PathFileExistsW (L"version.dll");
+
+      if (! bHasVersionDLL)
+      {
+        ImGui::Button ("Download Tales of Graces f \"Fix\"");
+      }
+
+      static bool bHasReShade64DLL = 
+        PathFileExistsW (L"ReShade64.dll");
+
+      if (! bHasReShade64DLL)
+      {
+        ImGui::Button ("Download RenoDX HDR AddOn for ReShade");
+      }
+      ImGui::TreePop  (  );
+    }
+#endif
 
     if (restart_reqs > 0)
     {
@@ -371,10 +446,15 @@ SK_TGFix_InitPlugin (void)
                                    L"DisableBloom",  __SK_TGFix_DisableBloom,
                                    L"Disable Bloom Lighting" );
 
-    //_SK_TGFix_DisableBlur =
-    //  _CreateConfigParameterBool ( L"TGFix.Render",
-    //                               L"DisableBlur",  __SK_TGFix_DisableBlur,
-    //                               L"Disable Blur" );
+    _SK_TGFix_DisableHeatHaze =
+      _CreateConfigParameterBool ( L"TGFix.Render",
+                                   L"DisableHeatHaze",  __SK_TGFix_DisableHeatHaze,
+                                   L"Disable Heat Haze" );
+
+    _SK_TGFix_DisableFXAA =
+      _CreateConfigParameterBool ( L"TGFix.Render",
+                                   L"DisableFXAA",  __SK_TGFix_DisableFXAA,
+                                   L"Disable FXAA" );
 
     _SK_TGFix_SharpenOutlines =
       _CreateConfigParameterBool ( L"TGFix.Render",
@@ -393,14 +473,19 @@ SK_TGFix_InitPlugin (void)
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xa9ca2e76);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xafcf335b);
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xd70959df);
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+    }
+
+    if (__SK_TGFix_DisableFXAA)
+    {
+      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
+      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
+
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
@@ -413,6 +498,13 @@ SK_TGFix_InitPlugin (void)
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+    }
+
+    if (__SK_TGFix_DisableHeatHaze)
+    {
+      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
+
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
   );
