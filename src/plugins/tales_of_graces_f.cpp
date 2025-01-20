@@ -94,12 +94,8 @@ SK_TGFix_PlugInCfg (void)
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xa9ca2e76);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xafcf335b);
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xd70959df);
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
 
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
@@ -113,12 +109,8 @@ SK_TGFix_PlugInCfg (void)
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xa9ca2e76);
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xafcf335b);
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xd70959df);
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
 
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
