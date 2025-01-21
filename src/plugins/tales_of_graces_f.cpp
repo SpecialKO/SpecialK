@@ -26,6 +26,14 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/font_awesome.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"Tales Plug"
+
+bool SK_TGFix_InitMono            (void);
+void SK_TGFix_SetupFramerateHooks (void);
+
 extern volatile LONG SK_D3D11_DrawTrackingReqs;
 
 sk::ParameterBool* _SK_TGFix_DisableDepthOfField;
@@ -379,38 +387,8 @@ SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-#if 0
-  const auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  const float fDisplayHz =
-    static_cast   <float>  (
-      static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
-      static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator)
-                           );
-
-  if (config.render.framerate.target_fps <=  0.0f ||
-      config.render.framerate.target_fps > 119.5f ||
-      config.render.framerate.target_fps > fDisplayHz)
-  {
-    if (config.render.framerate.target_fps <= 0.0f)
-        config.render.framerate.target_fps  = fDisplayHz;
-
-    config.render.framerate.target_fps =
-      std::min ( { std::max (config.render.framerate.target_fps, 29.95f),
-                                                     fDisplayHz, 119.5f } );
-
-    if (config.render.framerate.target_fps < 90.0f)
-        config.render.framerate.target_fps = std::min (config.render.framerate.target_fps, 59.95f);
-
-    if (config.render.framerate.target_fps < 40.0f)
-        config.render.framerate.target_fps = 29.95f;
-
-    __target_fps = config.render.framerate.target_fps;
-
-    config.utility.save_async ();
-  }
-#endif
+  SK_TGFix_InitMono            ();
+  SK_TGFix_SetupFramerateHooks ();
 
   return S_OK;
 }
@@ -497,4 +475,615 @@ SK_TGFix_InitPlugin (void)
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
   );
+}
+
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/threads.h>
+#include <mono/metadata/object.h>
+
+typedef MonoThread*     (*mono_thread_attach_pfn)(MonoDomain* domain);
+typedef MonoDomain*     (*mono_get_root_domain_pfn)(void);
+typedef MonoAssembly*   (*mono_domain_assembly_open_pfn)(MonoDomain* doamin, const char* name);
+typedef MonoImage*      (*mono_assembly_get_image_pfn)(MonoAssembly* assembly);
+typedef MonoClass*      (*mono_class_from_name_pfn)(MonoImage* image, const char* name_space, const char* name);
+typedef MonoMethod*     (*mono_class_get_method_from_name_pfn)(MonoClass* klass, const char* name, int param_count);
+typedef void*           (*mono_compile_method_pfn)(MonoMethod* method);
+typedef MonoObject*     (*mono_runtime_invoke_pfn)(MonoMethod* method, void* obj, void** params, MonoObject** exc);
+
+typedef MonoClassField* (*mono_class_get_field_from_name_pfn)(MonoClass* klass, const char* name);
+typedef void*           (*mono_field_get_value_pfn)(void* obj, MonoClassField* field, void* value);
+typedef void            (*mono_field_set_value_pfn)(MonoObject* obj, MonoClassField* field, void* value);
+typedef MonoClass*      (*mono_method_get_class_pfn)(MonoMethod* method);
+typedef MonoVTable*     (*mono_class_vtable_pfn)(MonoDomain* domain, MonoClass* klass);
+typedef void*           (*mono_vtable_get_static_field_data_pfn)(MonoVTable* vt);
+typedef uint32_t        (*mono_field_get_offset_pfn)(MonoClassField* field);
+
+typedef MonoObject*     (*mono_property_get_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
+typedef MonoProperty*   (*mono_class_get_property_from_name_pfn)(MonoClass *klass, const char *name);
+typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
+
+mono_thread_attach_pfn                SK_mono_thread_attach                = nullptr;
+mono_get_root_domain_pfn              SK_mono_get_root_domain              = nullptr;
+mono_domain_assembly_open_pfn         SK_mono_domain_assembly_open         = nullptr;
+mono_assembly_get_image_pfn           SK_mono_assembly_get_image           = nullptr;
+mono_class_from_name_pfn              SK_mono_class_from_name              = nullptr;
+mono_class_get_method_from_name_pfn   SK_mono_class_get_method_from_name   = nullptr;
+mono_compile_method_pfn               SK_mono_compile_method               = nullptr;
+mono_runtime_invoke_pfn               SK_mono_runtime_invoke               = nullptr;
+
+mono_property_get_value_pfn           SK_mono_property_get_value           = nullptr;
+mono_class_get_property_from_name_pfn SK_mono_class_get_property_from_name = nullptr;
+mono_image_loaded_pfn                 SK_mono_image_loaded                 = nullptr;
+
+mono_class_get_field_from_name_pfn    SK_mono_class_get_field_from_name    = nullptr;
+mono_field_get_value_pfn              SK_mono_field_get_value              = nullptr;
+mono_field_set_value_pfn              SK_mono_field_set_value              = nullptr;
+mono_method_get_class_pfn             SK_mono_method_get_class             = nullptr;
+mono_class_vtable_pfn                 SK_mono_class_vtable                 = nullptr;
+mono_vtable_get_static_field_data_pfn SK_mono_vtable_get_static_field_data = nullptr;
+mono_field_get_offset_pfn             SK_mono_field_get_offset             = nullptr;
+
+bool
+SK_TGFix_InitMono (void)
+{
+  HMODULE hMono =
+    GetModuleHandleW (L"mono-2.0-bdwgc.dll");
+
+  if (hMono == NULL)
+    return false;
+
+  // Necessary functions to get method addresses
+  SK_mono_domain_assembly_open         = reinterpret_cast <mono_domain_assembly_open_pfn>         (SK_GetProcAddress (hMono, "mono_domain_assembly_open"));
+  SK_mono_assembly_get_image           = reinterpret_cast <mono_assembly_get_image_pfn>           (SK_GetProcAddress (hMono, "mono_assembly_get_image"));
+  SK_mono_class_from_name              = reinterpret_cast <mono_class_from_name_pfn>              (SK_GetProcAddress (hMono, "mono_class_from_name"));
+  SK_mono_class_get_method_from_name   = reinterpret_cast <mono_class_get_method_from_name_pfn>   (SK_GetProcAddress (hMono, "mono_class_get_method_from_name"));
+  SK_mono_compile_method               = reinterpret_cast <mono_compile_method_pfn>               (SK_GetProcAddress (hMono, "mono_compile_method"));
+  SK_mono_runtime_invoke               = reinterpret_cast <mono_runtime_invoke_pfn>               (SK_GetProcAddress (hMono, "mono_runtime_invoke"));
+  
+  SK_mono_class_get_field_from_name    = reinterpret_cast <mono_class_get_field_from_name_pfn>    (SK_GetProcAddress (hMono, "mono_class_get_field_from_name"));
+  SK_mono_field_get_value              = reinterpret_cast <mono_field_get_value_pfn>              (SK_GetProcAddress (hMono, "mono_field_get_value"));
+  SK_mono_field_set_value              = reinterpret_cast <mono_field_set_value_pfn>              (SK_GetProcAddress (hMono, "mono_field_set_value"));
+  SK_mono_method_get_class             = reinterpret_cast <mono_method_get_class_pfn>             (SK_GetProcAddress (hMono, "mono_method_get_class"));
+  SK_mono_class_vtable                 = reinterpret_cast <mono_class_vtable_pfn>                 (SK_GetProcAddress (hMono, "mono_class_vtable"));
+  SK_mono_vtable_get_static_field_data = reinterpret_cast <mono_vtable_get_static_field_data_pfn> (SK_GetProcAddress (hMono, "mono_vtable_get_static_field_data"));
+  SK_mono_field_get_offset             = reinterpret_cast <mono_field_get_offset_pfn>             (SK_GetProcAddress (hMono, "mono_field_get_offset"));
+
+  SK_mono_property_get_value           = reinterpret_cast <mono_property_get_value_pfn>           (SK_GetProcAddress (hMono, "mono_property_get_value"));
+  SK_mono_class_get_property_from_name = reinterpret_cast <mono_class_get_property_from_name_pfn> (SK_GetProcAddress (hMono, "mono_class_get_property_from_name"));
+  SK_mono_image_loaded                 = reinterpret_cast <mono_image_loaded_pfn>                 (SK_GetProcAddress (hMono, "mono_image_loaded"));
+
+  // Attach thread to prevent crashes
+  SK_mono_thread_attach                = reinterpret_cast <mono_thread_attach_pfn>                (SK_GetProcAddress (hMono, "mono_thread_attach"));
+  SK_mono_get_root_domain              = reinterpret_cast <mono_get_root_domain_pfn>              (SK_GetProcAddress (hMono, "mono_get_root_domain"));
+
+  SK_mono_thread_attach (
+    SK_mono_get_root_domain ()
+  );
+
+  return true;
+}
+
+// Used to get the address of a game function for hooking
+void* GetCompiledMethod (const char* nameSpace, const char* className, const char* methodName, int param_count = 0, const char* assemblyName = "Assembly-CSharp")
+{
+  MonoDomain* pDomain =
+    SK_mono_get_root_domain ();
+
+  if (pDomain == nullptr)
+    return nullptr;
+ 
+  MonoAssembly* pAssembly =
+    SK_mono_domain_assembly_open (pDomain, assemblyName);
+
+  if (pAssembly == nullptr)
+    return nullptr;
+ 
+  MonoImage* pImage =
+    SK_mono_assembly_get_image (pAssembly);
+
+  if (pImage == nullptr)
+    return nullptr;
+ 
+  MonoClass* pKlass =
+    SK_mono_class_from_name (pImage, nameSpace != nullptr ? nameSpace : "", className);
+
+  if (pKlass == nullptr)
+    return nullptr;
+ 
+  MonoMethod* pMethod =
+    SK_mono_class_get_method_from_name (pKlass, methodName, param_count);
+
+  if (pMethod == nullptr)
+    return nullptr;
+ 
+  return
+    SK_mono_compile_method (pMethod);
+}
+
+// Get a game method to call using mono_runtime_invoke
+MonoMethod* GetMethod (const char* className, const char* methodName, int param_count = 0, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
+{
+  MonoDomain* pDomain =
+    SK_mono_get_root_domain ();
+
+  if (pDomain == nullptr)
+    return nullptr;
+ 
+  MonoAssembly* pAssembly =
+    SK_mono_domain_assembly_open (pDomain, assemblyName);
+
+  if (pAssembly == nullptr)
+    return nullptr;
+ 
+  MonoImage* pImage =
+    SK_mono_assembly_get_image (pAssembly);
+
+  if (pImage == nullptr)
+    return nullptr;
+ 
+  MonoClass* pKlass =
+    SK_mono_class_from_name (pImage, nameSpace, className);
+
+  if (pKlass == nullptr)
+    return nullptr;
+ 
+  return
+    SK_mono_class_get_method_from_name (pKlass, methodName, param_count);
+}
+
+// When you need to get a class pointer
+MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
+{
+  MonoDomain* pDomain =
+    SK_mono_get_root_domain ();
+
+  if (pDomain == nullptr)
+    return nullptr;
+ 
+  MonoAssembly* pAssembly =
+    SK_mono_domain_assembly_open (pDomain, assemblyName);
+
+  if (pAssembly == nullptr)
+    return nullptr;
+ 
+  MonoImage* pImage =
+    SK_mono_assembly_get_image (pAssembly);
+
+  if (pImage == nullptr)
+    return nullptr;
+ 
+  MonoClass* pKlass =
+    SK_mono_class_from_name (pImage, nameSpace, className);
+
+  return pKlass;
+}
+
+// When you need the class from a method*
+MonoClass* GetClassFromMethod (MonoMethod* method)
+{
+  return
+    SK_mono_method_get_class (method);
+}
+
+// When you need data from a class field like if something IsActive
+MonoClassField* GetField (const char* className, const char* fieldName, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
+{
+  MonoDomain* pDomain =
+    SK_mono_get_root_domain ();
+
+  if (pDomain == nullptr)
+    return nullptr;
+ 
+  MonoAssembly* pAssembly =
+    SK_mono_domain_assembly_open (pDomain, assemblyName);
+
+  if (pAssembly == nullptr)
+    return nullptr;
+ 
+  MonoImage* pImage =
+    SK_mono_assembly_get_image (pAssembly);
+
+  if (pImage == nullptr)
+    return nullptr;
+ 
+  MonoClass* pKlass =
+    SK_mono_class_from_name (pImage, nameSpace, className);
+
+  if (pKlass == nullptr)
+    return nullptr;
+ 
+  MonoClassField* pField =
+    SK_mono_class_get_field_from_name (pKlass, fieldName);
+
+  return pField;
+}
+
+// Helpers for GetStaticFieldValue
+MonoClassField* GetField (MonoClass* pKlass, const char* fieldName)
+{
+  MonoClassField* pField =
+    SK_mono_class_get_field_from_name (pKlass, fieldName);
+
+  return pField;
+}
+
+uint32_t GetFieldOffset (MonoClassField* field)
+{
+  return
+    SK_mono_field_get_offset (field);
+}
+
+void GetFieldValue (void* instance, MonoClassField* field, void* out)
+{
+  SK_mono_field_get_value (instance, field, out);
+}
+
+void SetFieldValue (MonoObject* obj, MonoClassField* field, void* value)
+{
+  SK_mono_field_set_value(obj, field, value);
+}
+
+MonoVTable* GetVTable (MonoClass* pKlass)
+{
+  return
+    SK_mono_class_vtable (SK_mono_get_root_domain (), pKlass);
+}
+
+void* GetStaticFieldData (MonoVTable* pVTable)
+{
+  return
+    SK_mono_vtable_get_static_field_data (pVTable);
+}
+
+void* GetStaticFieldData (MonoClass* pKlass)
+{
+  MonoVTable* pVTable =
+    GetVTable (pKlass);
+
+  if (pVTable == nullptr)
+    return nullptr;
+ 
+  return
+    SK_mono_vtable_get_static_field_data (pVTable);
+}
+// End helpers
+
+// Need to read a static field, its kind of a pain but thats why those helper function exist
+void* GetStaticFieldValue (const char* className, const char* fieldName)
+{
+  MonoClass* pKlass =
+    GetClass (className);
+
+  if (pKlass == nullptr)
+    return nullptr;
+ 
+  MonoClassField* pField =
+    GetField (pKlass, fieldName);
+
+  if (pField == nullptr)
+    return nullptr;
+ 
+  DWORD_PTR addr   = (DWORD_PTR)GetStaticFieldData (pKlass);
+  uint32_t  offset =            GetFieldOffset     (pField);
+ 
+  void* value = (void *)(addr + offset);
+
+  return value;
+}
+
+MonoImage* GetImage (const char* name)
+{
+  return
+    SK_mono_image_loaded (name);
+}
+
+MonoClass* GetClass (MonoImage* image, const char* _namespace, const char* _class)
+{
+  return
+    SK_mono_class_from_name (image, _namespace, _class);
+}
+
+MonoMethod* GetClassMethod (MonoClass* class_, const char* name, int params)
+{
+  return
+    SK_mono_class_get_method_from_name (class_, name, params);
+}
+
+MonoMethod* GetClassMethod (MonoImage* image, const char* namespace_, const char* class_, const char* name, int params)
+{
+  MonoClass* hClass =
+    GetClass (image, namespace_, class_);
+
+  return hClass ? GetClassMethod (hClass, name, params) : NULL;
+}
+
+MonoMethod* GetClassMethod (const char* namespace_, const char* class_, const char* name, int params, const char* image_ = "Assembly-CSharp")
+{
+  MonoClass* hClass = GetClass (GetImage (image_), namespace_, class_);
+  return     hClass ? GetClassMethod (hClass, name, params) : NULL;
+}
+
+MonoProperty* GetProperty (MonoImage* image, const char* namespace_, const char* class_, const char* name)
+{
+  return
+    SK_mono_class_get_property_from_name (GetClass (image, namespace_, class_), name);
+}
+ 
+MonoObject* GetPropertyValue (MonoProperty* property, uintptr_t instance = 0)
+{
+  return
+    SK_mono_property_get_value (property, reinterpret_cast <void *>(instance), nullptr, 0);
+}
+
+MonoObject* GetPropertyValue (MonoImage* image, const char* namespace_, const char* class_, const char* name, uintptr_t instance = 0)
+{
+  return
+    GetPropertyValue (GetProperty (image, namespace_, class_, name), instance);
+}
+ 
+MonoObject* InvokeMethod (const char* namespace_, const char* class_, const char* method, int paramsCount, void* instance, const char* image_ = "Assembly-CSharp", void** params = nullptr)
+{
+  return
+    SK_mono_runtime_invoke (GetClassMethod (GetImage (image_), namespace_, class_, method, paramsCount), instance, params, nullptr);
+}
+ 
+void* CompileMethod (MonoMethod* method)
+{
+  return
+    SK_mono_compile_method (method);
+}
+ 
+void* CompileMethod (const char* namespace_, const char* class_, const char* name, int params, const char* image_ = "Assembly-CSharp")
+{
+  return
+    CompileMethod (GetClassMethod (GetImage (image_), namespace_, class_, name, params));
+}
+
+// This is probably one of the most useful functions, for when you need to call one of the games functions easily
+MonoObject* Invoke (MonoMethod* method, void* obj, void** params)
+{
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+ 
+  MonoObject* exc;
+
+  return
+    SK_mono_runtime_invoke (method, obj, params, &exc);
+}
+
+using NobleFrameRateManager_SetQualitySettingFrameRate_pfn = void (*)(void*, float);
+using NobleFrameRateManager_SetTargetFrameRate_pfn         = void (*)(void*, float);
+
+NobleFrameRateManager_SetQualitySettingFrameRate_pfn NobleFrameRateManager_SetQualitySettingFrameRate_Original = nullptr;
+NobleFrameRateManager_SetTargetFrameRate_pfn         NobleFrameRateManager_SetTargetFrameRate_Original         = nullptr;
+
+void
+SK_TGFix_NobleFrameRateManager_SetQualitySettingFrameRate_Detour (void* __this, float rate)
+{
+  SK_LOG_FIRST_CALL
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const float fActiveRefresh =
+    static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+    static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+
+  if (config.render.framerate.target_fps > 0.0f || fActiveRefresh >= 120.0f)
+  {
+    if (config.render.framerate.target_fps <= 0.0f)
+    {
+      return
+        NobleFrameRateManager_SetQualitySettingFrameRate_Original (__this, fActiveRefresh * 1.003f);
+    }
+
+    return
+      NobleFrameRateManager_SetQualitySettingFrameRate_Original (__this, config.render.framerate.target_fps * 1.005f);
+  }
+
+  return
+    NobleFrameRateManager_SetQualitySettingFrameRate_Original (__this, rate);
+}
+
+void
+SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour (void* __this, float rate)
+{
+  SK_LOG_FIRST_CALL
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const float fActiveRefresh =
+    static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+    static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+
+  if (config.render.framerate.target_fps > 0.0f || fActiveRefresh >= 120.0f)
+  {
+    if (config.render.framerate.target_fps <= 0.0f)
+    {
+      return
+        NobleFrameRateManager_SetTargetFrameRate_Original (__this, fActiveRefresh * 1.003f);
+    }
+
+    return
+      NobleFrameRateManager_SetTargetFrameRate_Original (__this, config.render.framerate.target_fps * 1.005f);
+  }
+
+  if (config.render.framerate.target_fps > 0.0f)
+  {
+    return
+      NobleFrameRateManager_SetTargetFrameRate_Original (__this, config.render.framerate.target_fps * 1.005f);
+  }
+
+  return
+    NobleFrameRateManager_SetTargetFrameRate_Original (__this, rate);
+}
+
+constexpr
+float SK_TGFix_NativeAspect     = 16.0f / 9.0f;
+float SK_TGFix_AspectRatio      = 0.0f;
+float SK_TGFix_AspectMultiplier = 0.0f;
+
+using UnityEngine_Screen_SetResolution_pfn = void (*)(int, int, bool);
+      UnityEngine_Screen_SetResolution_pfn
+      UnityEngine_Screen_SetResolution_Original = nullptr;
+
+void
+SK_TGFix_UnityEngine_Screen_SetResolution_Detour (int width, int height, bool fullscreen)
+{
+  SK_LOG_FIRST_CALL
+
+  //width = 4865; height = 2036; fullscreen = false;
+
+  SK_TGFix_AspectRatio      = (float)width / (float)height;
+  SK_TGFix_AspectMultiplier = SK_TGFix_AspectRatio / SK_TGFix_NativeAspect;
+
+  SK_LOGi0 ("Current Resolution: %dx%d",                 width, height);
+  SK_LOGi0 ("Current Resolution: Aspect Ratio: %f",      SK_TGFix_AspectRatio);
+  SK_LOGi0 ("Current Resolution: Aspect Multiplier: %f", SK_TGFix_AspectMultiplier);
+
+  UnityEngine_Screen_SetResolution_Original (width, height, fullscreen);
+}
+
+struct Unity_Rect
+{
+  float x;
+  float y;
+  float width;
+  float height;
+};
+
+using Noble_CameraManager_SetCameraViewportRect_pfn = void (*)(void*, Unity_Rect*);
+using Noble_CameraManager_SetCameraAspect_pfn       = void (*)(void*, float aspect);
+
+Noble_CameraManager_SetCameraViewportRect_pfn Noble_CameraManager_SetCameraViewportRect_Original = nullptr;
+Noble_CameraManager_SetCameraAspect_pfn       Noble_CameraManager_SetCameraAspect_Original       = nullptr;
+
+void
+SK_TGFix_Noble_CameraManager_SetCameraViewportRect_Detour (void* __this, Unity_Rect* rect)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect)
+  {
+    rect->x      = 0.0f;
+    rect->y      = 0.0f;
+    rect->width  = 1.0f;
+    rect->height = 1.0f;
+  }
+
+  Noble_CameraManager_SetCameraViewportRect_Original (__this, rect);
+}
+
+void
+SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour (void* __this, float aspect)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect)
+  {
+    return
+      Noble_CameraManager_SetCameraAspect_Original (__this, SK_TGFix_AspectRatio);
+  }
+
+  Noble_CameraManager_SetCameraAspect_Original (__this, aspect);
+}
+
+void
+SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix (void* __this, bool forceproc)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix (__this, forceproc);
+
+#if 0
+  Unity_Rect* pViewport = nullptr;
+
+  if (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect)
+    *pViewport = { 0.0f, 0.0f, (float)Screen.width / SK_TGFix_AspectMultiplier, (float)Screen.height };
+  else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect)
+    *pViewport = { 0.0f, 0.0f, (float)Screen.width, (float)Screen.height * SK_TGFix_AspectMultiplier };
+#endif
+}
+
+#if 0
+            // Fix movies
+            [HarmonyPatch(typeof(NobleMovieRendereFeature), nameof(NobleMovieRendereFeature.Create))]
+            [HarmonyPostfix]
+            public static void FixMovies(NobleMovieRendereFeature __instance)
+            {
+                // TODO: There's probably a better way of fixing this.
+                if (__instance._pass != null)
+                {
+                    if (fAspectRatio > fNativeAspect)
+                        __instance._pass.cameraview.m33 = fAspectMultiplier;
+                    else if (fAspectRatio < fNativeAspect)
+                        __instance._pass.cameraview.m11 = fAspectMultiplier;
+                }
+            }
+        }
+#endif
+
+void
+SK_TGFix_SetupFramerateHooks (void)
+{
+  // Mono not init'd
+  if (SK_mono_thread_attach == nullptr)
+    return;
+
+  auto pfnNobleFrameRateManager_SetQualitySettingFrameRate =
+    CompileMethod ("Noble", "FrameRateManager",
+           "SetQualitySettingFrameRate", 1);
+
+  auto pfnNobleFrameRateManager_SetTargetFrameRate =
+    CompileMethod ("Noble", "FrameRateManager",
+                   "SetTargetFrameRate", 1);
+
+  SK_CreateFuncHook (             L"Noble.FrameRateManager::SetQualitySettingFrameRate",
+                                   pfnNobleFrameRateManager_SetQualitySettingFrameRate,
+                             SK_TGFix_NobleFrameRateManager_SetQualitySettingFrameRate_Detour,
+    static_cast_p2p <void> (&         NobleFrameRateManager_SetQualitySettingFrameRate_Original) );
+
+  SK_CreateFuncHook (             L"Noble.FrameRateManager::SetTargetFrameRate",
+                                   pfnNobleFrameRateManager_SetTargetFrameRate,
+                             SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour,
+    static_cast_p2p <void> (&         NobleFrameRateManager_SetTargetFrameRate_Original) );
+
+  SK_QueueEnableHook (pfnNobleFrameRateManager_SetQualitySettingFrameRate);
+  SK_QueueEnableHook (pfnNobleFrameRateManager_SetTargetFrameRate);
+
+#if 0
+  auto pfnUnityEngine_Screen_SetResolution =
+    CompileMethod ("UnityEngine", "Screen",
+                   "SetResolution", 3, "UnityEngine.CoreModule");
+
+  SK_CreateFuncHook (              L"UnityEngine.Screen::SetResolution",
+                                   pfnUnityEngine_Screen_SetResolution,
+                             SK_TGFix_UnityEngine_Screen_SetResolution_Detour,
+    static_cast_p2p <void> (&         UnityEngine_Screen_SetResolution_Original) );
+
+  SK_QueueEnableHook (pfnUnityEngine_Screen_SetResolution);
+
+  auto pfnNoble_CameraManager_SetCameraViewportRect =
+    CompileMethod ("Noble", "CameraManager",
+                   "SetCameraViewportRect", 1);
+
+  auto pfnNoble_CameraManager_SetCameraAspect =
+    CompileMethod ("Noble", "CameraManager",
+                   "SetCameraAspect", 1);
+
+  SK_CreateFuncHook (              L"Noble.CameraManager::SetCameraViewportRect",
+                                   pfnNoble_CameraManager_SetCameraViewportRect,
+                             SK_TGFix_Noble_CameraManager_SetCameraViewportRect_Detour,
+    static_cast_p2p <void> (&         Noble_CameraManager_SetCameraViewportRect_Original) );
+
+  SK_CreateFuncHook (              L"Noble.CameraManager::SetCameraAspect",
+                                   pfnNoble_CameraManager_SetCameraAspect,
+                             SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour,
+    static_cast_p2p <void> (&         Noble_CameraManager_SetCameraAspect_Original) );
+
+  SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraViewportRect);
+  SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraAspect);
+#endif
+
+  SK_ApplyQueuedHooks ();
 }

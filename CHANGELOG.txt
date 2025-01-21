@@ -1,4 +1,12 @@
-﻿25.1.20.1
+﻿25.1.21
+=======
+ + Added experimental support for hooking Mono (C#) code in order to port
+     Lyall's TGFFix mod to C++ and integrate directly into Special K.
+ + Whenever Special K's framerate limiter is enabled, it will override the
+     internal framerate limiter in Tales of Graces f, allowing > 120 fps
+       without any special configuration or third-party software.
+
+25.1.20.1
 =========
  + Change name of various Tales of Graces f graphics overrides and add
      tooltips explaining when to disable them.

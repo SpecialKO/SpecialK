@@ -142,6 +142,7 @@ extern void SK_DS3_InitPlugin    (void);
 extern void SK_REASON_InitPlugin (void);
 extern void SK_FAR_InitPlugin    (void);
 extern void SK_FAR_FirstFrame    (void);
+extern void SK_TGFix_InitPlugin  (void);
 
 extern BOOL                     nvapi_init;
 
