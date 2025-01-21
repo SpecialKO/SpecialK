@@ -63,11 +63,9 @@ SK_TGFix_PlugInCfg (void)
     {
       ImGui::TreePush ("");
 
-      bool enable = (! __SK_TGFix_DisableDepthOfField);
-
-      if ( ImGui::Checkbox ("Enable Depth of Field", &enable) )
+      if (ImGui::Checkbox ("Disable Depth of Field", &__SK_TGFix_DisableDepthOfField))
       {
-        if (enable)
+        if (! __SK_TGFix_DisableDepthOfField)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x54f44c1a);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
@@ -79,17 +77,63 @@ SK_TGFix_PlugInCfg (void)
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
         }
 
-        __SK_TGFix_DisableDepthOfField = (! enable);
-         _SK_TGFix_DisableDepthOfField->store (__SK_TGFix_DisableDepthOfField);
+        _SK_TGFix_DisableDepthOfField->store (__SK_TGFix_DisableDepthOfField);
 
-         cfg_changed = true;
+        cfg_changed = true;
       }
+      ImGui::SetItemTooltip ("Depth of Field may be unusually strong at DSR resolutions and when using MSAA.");
 
-      enable = (! __SK_TGFix_DisableBloom);
-
-      if (ImGui::Checkbox ("Enable Atmospheric Bloom", &enable))
+      if (ImGui::Checkbox ("Disable FXAA", &__SK_TGFix_DisableFXAA))
       {
-        if (! enable)
+        if (__SK_TGFix_DisableFXAA)
+        {
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
+
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        else
+        {
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
+
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        _SK_TGFix_DisableFXAA->store (__SK_TGFix_DisableFXAA);
+
+        cfg_changed = true;
+      }
+      ImGui::SetItemTooltip ("FXAA should be disabled when using MSAA or the minimap will break.");
+
+      if (ImGui::Checkbox ("Disable Heat Haze", &__SK_TGFix_DisableHeatHaze))
+      {
+        if (__SK_TGFix_DisableHeatHaze)
+        {
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
+
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        else
+        {
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
+
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
+
+        _SK_TGFix_DisableHeatHaze->store (__SK_TGFix_DisableHeatHaze);
+
+        cfg_changed = true;
+      }
+      ImGui::SetItemTooltip ("Heat Haze may be unusually strong at DSR resolutions and when using MSAA.");
+
+      if (ImGui::Checkbox ("Disable Atmospheric Bloom", &__SK_TGFix_DisableBloom))
+      {
+        if (__SK_TGFix_DisableBloom)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xa9ca2e76);
@@ -117,8 +161,7 @@ SK_TGFix_PlugInCfg (void)
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
         }
 
-        __SK_TGFix_DisableBloom = (! enable);
-         _SK_TGFix_DisableBloom->store (__SK_TGFix_DisableBloom);
+        _SK_TGFix_DisableBloom->store (__SK_TGFix_DisableBloom);
 
         cfg_changed = true;
       }
@@ -148,52 +191,6 @@ SK_TGFix_PlugInCfg (void)
         }
 
         _SK_TGFix_SharpenOutlines->store (__SK_TGFix_SharpenOutlines);
-
-        cfg_changed = true;
-      }
-
-      if (ImGui::Checkbox ("Disable FXAA", &__SK_TGFix_DisableFXAA))
-      {
-        if (__SK_TGFix_DisableFXAA)
-        {
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
-
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-        }
-
-        else
-        {
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
-
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-        }
-
-        _SK_TGFix_DisableFXAA->store (__SK_TGFix_DisableFXAA);
-
-        cfg_changed = true;
-      }
-
-      if (ImGui::Checkbox ("Disable Heat Haze", &__SK_TGFix_DisableHeatHaze))
-      {
-        if (__SK_TGFix_DisableHeatHaze)
-        {
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
-
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-        }
-
-        else
-        {
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
-
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-        }
-
-        _SK_TGFix_DisableHeatHaze->store (__SK_TGFix_DisableHeatHaze);
 
         cfg_changed = true;
       }

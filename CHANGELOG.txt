@@ -1,4 +1,9 @@
-﻿25.1.20
+﻿25.1.20.1
+=========
+ + Change name of various Tales of Graces f graphics overrides and add
+     tooltips explaining when to disable them.
+
+25.1.20
 =======
  + Added options to disable Heat Haze and FXAA in Tales of Graces f
 
