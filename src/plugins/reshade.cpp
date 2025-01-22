@@ -78,6 +78,17 @@ SK_ReShade_GetDLL (void)
     hModReShade;
 };
 
+bool
+SK_ReShade_IsLocalDLLPresent (void)
+{
+  const wchar_t *wszDLL =
+    SK_RunLHIfBitness (64, L"ReShade64.dll",
+                           L"ReShade32.dll");
+
+  return
+    PathFileExistsW (wszDLL);
+}
+
 void
 SK_ReShade_LoadIfPresent (void)
 {
