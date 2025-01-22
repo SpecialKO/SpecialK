@@ -5550,8 +5550,8 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
     }
   }
 
-  if ( max_latency < 16 &&
-       max_latency >  0 )
+  else if ( max_latency < 16 &&
+            max_latency >  0 )
   {
     SK_ComPtr <IDXGIDevice1> pDevice1;
 
@@ -11168,9 +11168,12 @@ SK_DXGI_QuickHook (void)
     __SK_DisableQuickHook = TRUE;
   }
 
-  if (config.compatibility.init_sync_for_reshade)
+  if (config.compatibility.init_sync_for_reshade || SK_ReShade_IsLocalDLLPresent ())
   {
     SK_LOGi0 (L" # DXGI QuickHook disabled because a ReShade Plug-In is present...");
+
+    // Implicitly load ReShade (ReShade{32|64}.dll) if it exists
+    SK_ReShade_LoadIfPresent ();
 
     __SK_DisableQuickHook = TRUE;
   }
