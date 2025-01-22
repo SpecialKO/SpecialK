@@ -1,4 +1,10 @@
-﻿25.1.22
+﻿25.1.22.1
+=========
+ + Rewrite Tales of Graces f framerate limiter override so that SK's slider now
+     immediately changes the game's internal limit, and no longer causes
+       conflicts when trying to use Latent Sync on a fixed-refresh display.
+
+25.1.22
 =======
  + Remove VectoredExceptionHandler from SteamAPI_RunCallbacks that was causing
      some games (Tales of Vesperia) to randomly fail to run.
