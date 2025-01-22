@@ -3348,9 +3348,6 @@ auto DeclKeybind =
         config.render.framerate.pre_render_limit         = 2;
         config.render.framerate.sleepless_render         = true;
         config.render.framerate.sleepless_window         = true;
-
-        extern void SK_TGFix_InitPlugin (void);
-                    SK_TGFix_InitPlugin ();
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:

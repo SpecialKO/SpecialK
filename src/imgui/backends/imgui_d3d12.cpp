@@ -2989,11 +2989,16 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
+return;
 #ifndef _M_IX86
   std::scoped_lock lock(_ctx_lock);
 #endif
 
   drain_queue ();
+
+  // Need to destroy any previous ReShade runtimes
+  bool has_old_data =
+    (! frames_.empty ());
 
   if (! ((_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
          (_pSwapChain.p == nullptr && pSwapChain != nullptr) ||
@@ -3005,7 +3010,8 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
                  _pSwapChain.p
     );
 
-    SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain.p), true);
+    if (has_old_data)
+      SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain.p), true);
   }
 
   if (_pSwapChain.p == nullptr && _pDevice.p == nullptr)
@@ -3013,7 +3019,8 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
     SK_LOGi1 (L"Releasing D3D12 Render Context that was never initialized!");
   }
 
-  SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
+  if (has_old_data)
+    SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
 
   if (SK_IsDebuggerPresent ())
   {
@@ -3030,8 +3037,11 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 
   if (_pReShadeRuntime != nullptr)
   {
-    SK_ReShadeAddOn_DestroyEffectRuntime (_pReShadeRuntime);
-                                          _pReShadeRuntime = nullptr;
+    if (has_old_data)
+    {
+      SK_ReShadeAddOn_DestroyEffectRuntime (_pReShadeRuntime);
+                                            _pReShadeRuntime = nullptr;
+    }
   }
 
   ImGui_ImplDX12_Shutdown ();

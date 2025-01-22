@@ -315,6 +315,8 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
 void
 SK_NvAPI_HookReflex (void)
 {
+  SK_LOGi0 (L"SK_NvAPI_HookReflex (...)");
+
   static bool          init = false;
   if (! std::exchange (init, true))
   {
@@ -485,10 +487,15 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 #ifdef DEBUG
     SK_ReleaseAssert (SK_ComQIPtr <IDXGISwapChain> (swapchain.p) != nullptr);
 #endif
+
     SK_ComPtr <IDXGISwapChain1>
         pSwapChain ((IDXGISwapChain1*)swapchain.p);
     if (pSwapChain.p != nullptr)
     {
+      // This fails in some ReShade setups, we need to write private data to
+      //   the SwapChain device and see if reading it back works... but for now,
+      //     just ignore the problem outright.
+#if 0
       SK_ComPtr                  <ID3D11Device>            pSwapDev11;
       SK_ComPtr                  <ID3D12Device>            pSwapDev12;
 
@@ -502,6 +509,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       {
         return false; // Nope, let's get the hell out of here!
       }
+#endif
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash

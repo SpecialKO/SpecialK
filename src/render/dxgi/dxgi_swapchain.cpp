@@ -2793,34 +2793,34 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
     SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format, FALSE, TRUE);
 
 
-  SK_ComPtr <IDXGIOutput>           pOutput;
-  pSwapChain->GetContainingOutput (&pOutput.p);
-
-  if (pOutput != nullptr)
-  {
-    DXGI_MODE_DESC                modeDescMatch = { };
-    if ( SUCCEEDED (
-      pOutput->FindClosestMatchingMode (
-                 &new_new_params,&modeDescMatch, nullptr )
-                   )
-       )
-    {
-      // Game will take whatever it can get
-      if (new_new_params.Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
-        modeDescMatch.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-      new_new_params = modeDescMatch;
-    }
-
-    // No match, better to remove the refresh rate and try again
-    else
-    {
-      SK_LOGi0 (L"Failed to find matching mode, removing refresh rate...");
-
-      new_new_params.RefreshRate.Denominator = 0;
-      new_new_params.RefreshRate.Numerator   = 0;
-    }
-  }
+  ////SK_ComPtr <IDXGIOutput>           pOutput;
+  ////pSwapChain->GetContainingOutput (&pOutput.p);
+  ////
+  ////if (pOutput != nullptr)
+  ////{
+  ////  DXGI_MODE_DESC                modeDescMatch = { };
+  ////  if ( SUCCEEDED (
+  ////    pOutput->FindClosestMatchingMode (
+  ////               &new_new_params,&modeDescMatch, nullptr )
+  ////                 )
+  ////     )
+  ////  {
+  ////    // Game will take whatever it can get
+  ////    if (new_new_params.Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
+  ////      modeDescMatch.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+  ////
+  ////    new_new_params = modeDescMatch;
+  ////  }
+  ////
+  ////  // No match, better to remove the refresh rate and try again
+  ////  else
+  ////  {
+  ////    SK_LOGi0 (L"Failed to find matching mode, removing refresh rate...");
+  ////
+  ////    new_new_params.RefreshRate.Denominator = 0;
+  ////    new_new_params.RefreshRate.Numerator   = 0;
+  ////  }
+  ////}
 
   static UINT           numModeChanges =  0 ;
   static DXGI_MODE_DESC lastModeSet    = { };

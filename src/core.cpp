@@ -550,6 +550,11 @@ extern void BasicInit (void);
       SK_IT_InitPlugin ();
       break;
 
+    case SK_GAME_ID::Tales_of_Graces:
+      extern void SK_TGFix_InitPlugin (void);
+                  SK_TGFix_InitPlugin ();
+      break;
+
     case SK_GAME_ID::DotHackGU:
       SK_DGPU_InitPlugin ();
       break;
