@@ -7266,7 +7266,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.AddMouseButtonEvent (ImGuiKey_MouseLeft, true);
+        io.AddMouseButtonEvent (ImGuiMouseButton_Left, true);
 
         if (SK_ImGui_WantMouseButtonCapture () || (! game_window.active))
         {
@@ -7284,7 +7284,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
       if (! bPassthrough)
       {
-        //io.AddMouseButtonEvent (ImGuiKey_MouseLeft, false);
+        //io.AddMouseButtonEvent (ImGuiMouseButton_Left, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7295,7 +7295,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.AddMouseButtonEvent (ImGuiKey_MouseRight, true);
+        io.AddMouseButtonEvent (ImGuiMouseButton_Right, true);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7305,7 +7305,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONUP:
       if (! bPassthrough)
       {
-        //io.AddMouseButtonEvent (ImGuiKey_MouseRight, false);
+        //io.AddMouseButtonEvent (ImGuiMouseButton_Right, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7316,7 +7316,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, true);
+        io.AddMouseButtonEvent (ImGuiMouseButton_Middle, true);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7326,7 +7326,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONUP:
       if (! bPassthrough)
       {
-        //io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
+        //io.AddMouseButtonEvent (ImGuiMouseButton_Middle, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7341,9 +7341,9 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
        (MOUSEHOOKSTRUCTEX*)lParam;
 
         if (((HIWORD (mhsx->mouseData)) == XBUTTON1))
-          io.AddMouseButtonEvent (ImGuiKey_MouseX1, true);
+          io.AddMouseButtonEvent (ImGuiMouseButton_Middle+1, true);
         if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
-          io.AddMouseButtonEvent (ImGuiKey_MouseX2, true);
+          io.AddMouseButtonEvent (ImGuiMouseButton_Middle+2, true);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7356,9 +7356,9 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
        //(MOUSEHOOKSTRUCTEX*)lParam;
 
         //if (((HIWORD (mhsx->mouseData)) == XBUTTON1))
-        //  io.AddMouseButtonEvent (ImGuiKey_MouseX1, false);
+        //  io.AddMouseButtonEvent (ImGuiMouseButton_Middle+1, false);
         //if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
-        //  io.AddMouseButtonEvent (ImGuiKey_MouseX2, false);
+        //  io.AddMouseButtonEvent (ImGuiMouseButton_Middle+2, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;

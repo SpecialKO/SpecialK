@@ -512,25 +512,25 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           if (self)
           {
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
-              io.AddMouseButtonEvent (ImGuiKey_MouseLeft,    true);
+              io.AddMouseButtonEvent (ImGuiMouseButton_Left,    true);
             //if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP     )
-            //  io.AddMouseButtonEvent (ImGuiKey_MouseLeft,   false);
+            //  io.AddMouseButtonEvent (ImGuiMouseButton_Left,   false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
-              io.AddMouseButtonEvent (ImGuiKey_MouseRight,   true);
+              io.AddMouseButtonEvent (ImGuiMouseButton_Right,   true);
             //if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP    )
-            //  io.AddMouseButtonEvent (ImGuiKey_MouseRight,  false);
+            //  io.AddMouseButtonEvent (ImGuiMouseButton_Right,  false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
-              io.AddMouseButtonEvent (ImGuiKey_MouseMiddle,  true);
+              io.AddMouseButtonEvent (ImGuiMouseButton_Middle,  true);
             //if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP   )
-            //  io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
+            //  io.AddMouseButtonEvent (ImGuiMouseButton_Middle, false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
-              io.AddMouseButtonEvent (ImGuiKey_MouseX1,      true);
+              io.AddMouseButtonEvent (ImGuiMouseButton_Middle+1,      true);
             //if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP        )
-            //  io.AddMouseButtonEvent (ImGuiKey_MouseX1,     false);
+            //  io.AddMouseButtonEvent (ImGuiMouseButton_Middle+1,     false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
-              io.AddMouseButtonEvent (ImGuiKey_MouseX2,      true);
+              io.AddMouseButtonEvent (ImGuiMouseButton_Middle+2,      true);
             //if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP        )
-            //  io.AddMouseButtonEvent (ImGuiKey_MouseX2,     false);
+            //  io.AddMouseButtonEvent (ImGuiMouseButton_Middle+2,     false);
 
             if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL )
             {
