@@ -546,10 +546,6 @@ extern void BasicInit (void);
       SK_FAR_InitPlugin ();
       break;
 
-    case SK_GAME_ID::Tales_of_Graces:
-      SK_TGFix_InitPlugin ();
-      break;
-
     case SK_GAME_ID::BlueReflection:
       SK_IT_InitPlugin ();
       break;

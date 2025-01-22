@@ -1,4 +1,16 @@
-﻿25.1.21
+﻿25.1.22
+=======
+ + Remove VectoredExceptionHandler from SteamAPI_RunCallbacks that was causing
+     some games (Tales of Vesperia) to randomly fail to run.
+ + Improved Mono embedded runtime hook initialization procedure to load various
+     Unity modules and compile their JIT code ahead of time.
+ + Improved compatibility with ReShade/RenoDX in Tales of Graces f -- for best
+     results load ReShade as a global plug-in using plug-in load order, rather
+       than using ReShade64.dll installed locally to the game directory.
+ + Avoid setting IDXGIDevice1's Device Latency for SwapChains created with
+     support for Latency Waitable Handles.
+
+25.1.21
 =======
  + Added experimental support for hooking Mono (C#) code in order to port
      Lyall's TGFFix mod to C++ and integrate directly into Special K.
