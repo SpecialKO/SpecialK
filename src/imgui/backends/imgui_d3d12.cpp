@@ -2989,7 +2989,6 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-return;
 #ifndef _M_IX86
   std::scoped_lock lock(_ctx_lock);
 #endif
