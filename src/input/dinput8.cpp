@@ -1949,16 +1949,16 @@ SK_Input_HookDI8 (void)
           static_cast_p2p <void> (&DirectInput8Create_Import) );
       }
 
+      if (SK_GetModuleHandle (L"dinput.dll"))
+      {
+        SK_Input_HookDI7 ();
+      }
+
       InterlockedIncrementRelease (&hooked);
     }
 
     else
       SK_Thread_SpinUntilAtomicMin (&hooked, 2);
-  }
-
-  if (SK_GetModuleHandle (L"dinput.dll"))
-  {
-    SK_Input_HookDI7 ();
   }
 }
 
