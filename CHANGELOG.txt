@@ -1,4 +1,11 @@
-﻿25.1.22.1
+﻿25.1.23
+=======
+ + Disable scissor rectangles in Tales of Graces f in order to fix screenspace
+     shadows being clipped incorrectly on non-16:9 displays
+ + Avoid potential recursive hook initialization in DirectInput 7 software
+ + Fixed accidentially disabled D3D12 device cleanup between 25.1.22 and .22.1
+
+25.1.22.1
 =========
  + Rewrite Tales of Graces f framerate limiter override so that SK's slider now
      immediately changes the game's internal limit, and no longer causes

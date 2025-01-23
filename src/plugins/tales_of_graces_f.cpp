@@ -544,7 +544,7 @@ mono_jit_init_Detour (const char *file)
 
   if (domain != nullptr)
   {
-    SK_TGFix_OnInitMono (domain);
+    //SK_TGFix_OnInitMono (domain);
   }
 
   return domain;
@@ -560,7 +560,7 @@ mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_
 
   if (domain != nullptr)
   {
-    SK_TGFix_OnInitMono (domain);
+    //SK_TGFix_OnInitMono (domain);
   }
 
   return domain;
@@ -627,8 +627,8 @@ SK_TGFix_HookMonoInit (void)
   // If this was pre-loaded, then the above hooks never run and we should initialize everything immediately...
   if (SK_GetModuleHandleW (L"BepInEx.Core.dll"))
   {
-    if ( nullptr !=        SK_mono_get_root_domain )
-      SK_TGFix_OnInitMono (SK_mono_get_root_domain ());
+    //if ( nullptr !=        SK_mono_get_root_domain )
+    //  SK_TGFix_OnInitMono (SK_mono_get_root_domain ());
   }
 
 
@@ -1290,31 +1290,31 @@ SK_TGFix_NobleMovieRendereFeature_Create_Detour (MonoObject* __this)
 
   NobleMovieRendereFeature_Create_Original (__this);
 
-  static auto _pass =
-    GetField ("NobleMovieRendereFeature", "_pass", "Assembly-CSharp", "Noble");
-
-  auto domain = SK_mono_object_get_domain                     (__this);
-  auto pass   = SK_mono_field_get_value_object (domain, _pass, __this);
-    
-  if (pass != nullptr)
-  {
-    static auto UnityEngine_Matrix4x4 =
-      GetClass (GetImage ("UnityEngine.CoreModule"), "UnityEngine", "Matrix4x4");
-
-    static auto cameraview =
-      GetField ("NobleMovieRendererPass", "cameraview", "Assembly-CSharp", "Noble");
-
-    auto view =
-      SK_mono_field_get_value_object (domain, cameraview, pass);
-
-    static auto m33 = GetField (UnityEngine_Matrix4x4, "m33");
-    static auto m11 = GetField (UnityEngine_Matrix4x4, "m11");
-
-    if (     SK_TGFix_AspectRatio > SK_TGFix_NativeAspect)
-      SetFieldValue (view, m33, &SK_TGFix_AspectMultiplier);
-    else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect)
-      SetFieldValue (view, m11, &SK_TGFix_AspectMultiplier);
-  }
+  //static auto _pass =
+  //  GetField ("NobleMovieRendereFeature", "_pass", "Assembly-CSharp", "Noble");
+  //
+  //auto domain = SK_mono_object_get_domain                     (__this);
+  //auto pass   = SK_mono_field_get_value_object (domain, _pass, __this);
+  //  
+  //if (pass != nullptr)
+  //{
+  //  static auto UnityEngine_Matrix4x4 =
+  //    GetClass (GetImage ("UnityEngine.CoreModule"), "UnityEngine", "Matrix4x4");
+  //
+  //  static auto cameraview =
+  //    GetField ("NobleMovieRendererPass", "cameraview", "Assembly-CSharp", "Noble");
+  //
+  //  auto view =
+  //    SK_mono_field_get_value_object (domain, cameraview, pass);
+  //
+  //  static auto m33 = GetField (UnityEngine_Matrix4x4, "m33");
+  //  static auto m11 = GetField (UnityEngine_Matrix4x4, "m11");
+  //
+  //  if (     SK_TGFix_AspectRatio > SK_TGFix_NativeAspect)
+  //    SetFieldValue (view, m33, &SK_TGFix_AspectMultiplier);
+  //  else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect)
+  //    SetFieldValue (view, m11, &SK_TGFix_AspectMultiplier);
+  //}
 }
 
 using UnityEngine_Rendering_Volume_OnEnable_pfn = void (*)(MonoObject*);
@@ -1337,6 +1337,20 @@ SK_TGFix_UnityEngine_Rendering_Volume_OnEnable_Detour (MonoObject* __this)
   std::ignore = pipeline, msaa_sample_count;
 }
 
+using UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn = void (*)(MonoObject*, Unity_Rect*);
+      UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn
+      UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original = nullptr;
+
+void
+SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObject* __this, Unity_Rect* Scissor)
+{
+  SK_LOG_FIRST_CALL
+
+  // We're nop'ing this entire thing because it breaks shadows if we don't.
+
+  std::ignore = __this, Scissor;
+}
+
 bool
 SK_TGFix_SetupFramerateHooks (void)
 {
@@ -1348,6 +1362,7 @@ SK_TGFix_SetupFramerateHooks (void)
     return false;
 
   SK_RunOnce (
+  {
     auto pfnNobleFrameRateManager_SetQualitySettingFrameRate =
       CompileMethod ("Noble", "FrameRateManager",
              "SetQualitySettingFrameRate", 1);
@@ -1412,12 +1427,17 @@ SK_TGFix_SetupFramerateHooks (void)
       static_cast_p2p <void> (&         NobleMovieRendereFeature_Create_Original) );
 
     SK_QueueEnableHook (pfnNobleMovieRendereFeature_Create);
-  );
+
+    bool  enabled = SK_EnableApplyQueuedHooks ();
+                          SK_ApplyQueuedHooks ();
+    if (! enabled) SK_DisableApplyQueuedHooks ();
+  });
 
   if (! LoadMonoAssembly ("UnityEngine.CoreModule"))
     return false;
 
   SK_RunOnce (
+  {
     auto pfnUnityEngine_Screen_SetResolution =
       CompileMethod ("UnityEngine", "Screen",
                      "SetResolution", 3, "UnityEngine.CoreModule");
@@ -1428,13 +1448,30 @@ SK_TGFix_SetupFramerateHooks (void)
       static_cast_p2p <void> (&         UnityEngine_Screen_SetResolution_Original) );
 
     SK_QueueEnableHook (pfnUnityEngine_Screen_SetResolution);
-  );
+
+    auto pfnUnityEngine_Rendering_CommandBuffer_EnableScissorRect =
+      CompileMethod ("UnityEngine.Rendering", "CommandBuffer", "EnableScissorRect_Injected", 1,
+                     "UnityEngine.CoreModule");
+
+    SK_CreateFuncHook (               L"UnityEngine.Rendering.CommandBuffer.EnableScissorRect",
+                                     pfnUnityEngine_Rendering_CommandBuffer_EnableScissorRect,
+                               SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour,
+      static_cast_p2p <void> (&         UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original) );
+
+    SK_QueueEnableHook (pfnUnityEngine_Rendering_CommandBuffer_EnableScissorRect);
+
+    bool  enabled = SK_EnableApplyQueuedHooks ();
+                          SK_ApplyQueuedHooks ();
+    if (! enabled) SK_DisableApplyQueuedHooks ();
+
+  });
 
   if (! (LoadMonoAssembly ("Unity.RenderPipelines.Core.Runtime") &&
          LoadMonoAssembly ("Unity.RenderPipelines.Universal.Runtime")))
     return false;
 
   SK_RunOnce (
+  {
     auto pfnUnityEngine_Rendering_Volume_OnEnable =
       CompileMethod ("UnityEngine.Rendering", "Volume", "OnEnable", 0,
                      "Unity.RenderPipelines.Core.Runtime");
@@ -1447,11 +1484,11 @@ SK_TGFix_SetupFramerateHooks (void)
     SK_QueueEnableHook (pfnUnityEngine_Rendering_Volume_OnEnable);
 
     SK_LOGi0 (L"Hooked 'UnityEngine.Rendering.Volume.OnEnable' from 'Unity.RenderPipelines.Core.Runtime'");
-  );
 
-  bool enabled  = SK_EnableApplyQueuedHooks ();
-                        SK_ApplyQueuedHooks ();
-  if (! enabled) SK_DisableApplyQueuedHooks ();
+    bool  enabled = SK_EnableApplyQueuedHooks ();
+                          SK_ApplyQueuedHooks ();
+    if (! enabled) SK_DisableApplyQueuedHooks ();
+  });
 
   return true;
 }
