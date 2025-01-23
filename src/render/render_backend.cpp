@@ -197,7 +197,7 @@ SK_DXVK_CheckForInterop (void)
 
     if (PathFileExistsW (wszDllPath))
     {
-      hModD3D9 =
+      hModD3D11 =
         SK_LoadLibraryW (wszDllPath);
     }
   }
