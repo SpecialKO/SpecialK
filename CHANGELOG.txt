@@ -1,4 +1,12 @@
-﻿25.1.24
+﻿25.1.24.1
+=========
+ + Reduced D3D11 render state tracking when ReShade is loaded, but there are no
+     actual ReShade triggers defined in d3d11_shaders.ini that would require
+       tracking ReShade draw call triggers.
+ + Fixed assignment to config variables in refactored Tales of Graces f code
+     not actually writing a value to the INI file (i.e. Temporal AA not saved).
+
+25.1.24
 =======
  + Default Tales of Graces f to 1 kHz input polling rate, since SK's handling
      input and the dummies hard-coded 60 Hz input polling rate no matter what

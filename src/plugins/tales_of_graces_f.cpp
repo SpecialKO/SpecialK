@@ -50,6 +50,8 @@ public:
   operator value_type&  (void) noexcept { return  cfg_val; }
   value_type* operator& (void) noexcept { return &cfg_val; }
 
+  value_type& operator= (const value_type& val) noexcept { return (cfg_val = val); }
+
   void        store     (void)                  {        if (ini_param != nullptr) ini_param->store ( cfg_val       ); }
   void        store     (const value_type& val) {        if (ini_param != nullptr) ini_param->store ((cfg_val = val)); }
   value_type& load      (void)                  { return     ini_param != nullptr? ini_param->load  ( cfg_val)
@@ -172,21 +174,18 @@ SK_TGFix_PlugInCfg (void)
         switch (postfx_aa_sel)
         {
           case 0:
-            SK_TGFix_Cfg.use_taa      = false;
-            SK_TGFix_Cfg.disable_fxaa =  true;
+            SK_TGFix_Cfg.use_taa.store      (false);
+            SK_TGFix_Cfg.disable_fxaa.store (true);
             break;
           case 1:
-            SK_TGFix_Cfg.use_taa      = false;
-            SK_TGFix_Cfg.disable_fxaa = false;
+            SK_TGFix_Cfg.use_taa.store      (false);
+            SK_TGFix_Cfg.disable_fxaa.store (false);
             break;
           case 2:
-            SK_TGFix_Cfg.use_taa      =  true;
-            SK_TGFix_Cfg.disable_fxaa = false;
+            SK_TGFix_Cfg.use_taa.store      (true);
+            SK_TGFix_Cfg.disable_fxaa.store (false);
             break;
         }
-
-        SK_TGFix_Cfg.use_taa.store      ();
-        SK_TGFix_Cfg.disable_fxaa.store ();
 
         if (SK_TGFix_Cfg.disable_fxaa != orig_disable_fxaa)
         {
@@ -517,10 +516,6 @@ SK_TGFix_InitPlugin (void)
     SK_D3D11_DeclHUDShader_Pix (0x1399301e);
     SK_D3D11_DeclHUDShader_Pix (0x171c9bf7);
 
-    plugin_mgr->config_fns.emplace      (SK_TGFix_PlugInCfg);
-    plugin_mgr->first_frame_fns.emplace (SK_TGFix_PresentFirstFrame);
-    plugin_mgr->end_frame_fns.emplace   (SK_TGFix_EndFrame);
-
     SK_TGFix_Cfg.disable_dof.bind_to_ini (
       _CreateConfigParameterBool ( L"TGFix.Render",
                                    L"DisableDepthOfField",  SK_TGFix_Cfg.disable_dof,
@@ -627,6 +622,10 @@ SK_TGFix_InitPlugin (void)
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
+
+    plugin_mgr->config_fns.emplace      (SK_TGFix_PlugInCfg);
+    plugin_mgr->first_frame_fns.emplace (SK_TGFix_PresentFirstFrame);
+    plugin_mgr->end_frame_fns.emplace   (SK_TGFix_EndFrame);
   );
 }
 
