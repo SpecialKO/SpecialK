@@ -1394,3 +1394,6 @@ SK_ReShadeAddOn_CleanupConfigAndLogs (void)
     }
   }
 }
+
+// This is cached each frame to keep state tracking overhead low when addons are in use
+bool SK_D3D11_HasReShadeTriggers = false;

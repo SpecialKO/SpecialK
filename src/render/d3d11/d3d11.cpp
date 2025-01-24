@@ -3098,7 +3098,6 @@ const
  auto
   TriggerReShade_Before = [&]
   {
-
     if ( (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED) &&
                              (! shaders->reshade_triggered )       )
     {
@@ -3180,7 +3179,8 @@ const
   };
 
 
-  TriggerReShade_Before ();
+  if (SK_D3D11_HasReShadeTriggers)
+    TriggerReShade_Before ();
 
 
   if (SK_D3D11_EnableTracking)
@@ -9122,10 +9122,12 @@ D3D11Dev_GetImmediateContext3_Override (
   D3D11Dev_GetImmediateContext3_Original (This, ppImmediateContext3);
 }
 
-
 void
 SK_D3D11_EndFrame (SK_TLS* pTLS)
 {
+  SK_D3D11_HasReShadeTriggers =
+    SK_D3D11_Shaders->hasReShadeTriggers ();
+
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {
     end_frame_fn ();
@@ -9170,6 +9172,9 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
     SK_D3D11_DispatchThreads->clear_active ();
   }
 #endif
+
+  SK_D3D11_HasReShadeTriggers =
+    SK_D3D11_Shaders->hasReShadeTriggers ();
 
   //for ( auto& it : shaders.reshade_triggered )
   //            it = false;

@@ -620,7 +620,7 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
   };
 
   if ( config.reshade.is_addon &&
-          SK_D3D11_Shaders->hasReShadeTriggers () &&
+   SK_D3D11_HasReShadeTriggers &&
                  reshadable () &&
        (! SK_D3D11_Shaders->reshade_triggered) )
   {

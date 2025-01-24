@@ -1887,6 +1887,9 @@ struct d3d11_shader_tracking_s
   d3d11_shader_resource_views_s* current_ = nullptr;
 };
 
+// Cached each frame
+extern bool SK_D3D11_HasReShadeTriggers;
+
 struct SK_D3D11_KnownShaders
 {
   typedef std::unordered_map <
