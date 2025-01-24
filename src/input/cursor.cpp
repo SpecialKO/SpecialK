@@ -1117,7 +1117,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     SK_GetCursorPos (&ptCursor);
 
     // Also prevent mouse look from spinning like mad while the cursor is outisde the game window :)
-    if (!SK_ImGui_CursorWarpingCooledDown () || WindowFromPoint (ptCursor) != game_window.hWnd)
+    if (!SK_ImGui_CursorWarpingCooledDown () || (!PtInRect (&game_window.actual.window, ptCursor)))// || WindowFromPoint (ptCursor) != game_window.hWnd))
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 
