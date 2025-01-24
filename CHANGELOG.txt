@@ -1,4 +1,11 @@
-﻿25.1.23
+﻿25.1.24
+=======
+ + Default Tales of Graces f to 1 kHz input polling rate, since SK's handling
+     input and the dummies hard-coded 60 Hz input polling rate no matter what
+       framerate limit you have selected (!!)
+ + Added MSAA, Temporal AA and Resolution scaling options to Tales of Graces f.
+
+25.1.23
 =======
  + Disable scissor rectangles in Tales of Graces f in order to fix screenspace
      shadows being clipped incorrectly on non-16:9 displays

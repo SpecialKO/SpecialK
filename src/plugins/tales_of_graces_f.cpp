@@ -33,26 +33,61 @@
 
 bool SK_TGFix_HookMonoInit        (void);
 bool SK_TGFix_SetupFramerateHooks (void);
+void SK_TGFix_SetMSAASampleCount  (int);
+void SK_TGFix_SetRenderScale      (float);
+void SK_TGFix_SetCameraAA         (void);
+void SK_TGFIX_SetInputPollingFreq (float PollingHz);
 
 extern volatile LONG SK_D3D11_DrawTrackingReqs;
 
-sk::ParameterBool* _SK_TGFix_DisableDepthOfField;
-bool              __SK_TGFix_DisableDepthOfField = true;
+template <typename _T>
+class PlugInParameter {
+public:
+  typedef _T           value_type;
 
-sk::ParameterBool* _SK_TGFix_DisableBloom;
-bool              __SK_TGFix_DisableBloom = false;
+  PlugInParameter (const value_type& value) : cfg_val (value) { };
 
-sk::ParameterBool* _SK_TGFix_DisableHeatHaze;
-bool              __SK_TGFix_DisableHeatHaze = false;
+  operator value_type&  (void) noexcept { return  cfg_val; }
+  value_type* operator& (void) noexcept { return &cfg_val; }
 
-sk::ParameterBool* _SK_TGFix_DisableFXAA;
-bool              __SK_TGFix_DisableFXAA = false;
+  void        store     (void)                  {        if (ini_param != nullptr) ini_param->store ( cfg_val       ); }
+  void        store     (const value_type& val) {        if (ini_param != nullptr) ini_param->store ((cfg_val = val)); }
+  value_type& load      (void)                  { return     ini_param != nullptr? ini_param->load  ( cfg_val)
+                                                                                 :                    cfg_val;         }
 
-sk::ParameterBool* _SK_TGFix_SharpenOutlines;
-bool              __SK_TGFix_SharpenOutlines = false;
+  bool bind_to_ini (sk::Parameter <value_type>* _ini) noexcept
+  {
+    if (!  ini_param) ini_param = _ini;
+    return ini_param           == _ini;
+  }
 
-sk::ParameterInt* _SK_TGFix_MSAASampleCount;
-bool             __SK_TGFix_MSAASampleCount = 1;
+private:
+  sk::Parameter <value_type>* ini_param = nullptr;
+  value_type                  cfg_val   = {     };
+};
+
+struct sk_tgfix_cfg_s {
+  PlugInParameter <bool>  disable_dof        =  true;
+  PlugInParameter <bool>  disable_bloom      = false;
+  PlugInParameter <bool>  disable_heat_haze  = false;
+  PlugInParameter <bool>  sharpen_outlines   = false;
+
+  PlugInParameter <bool>  disable_fxaa       = false;
+
+  PlugInParameter <bool>  use_taa            = false;
+  PlugInParameter <int>   msaa_sample_count  =     1;
+  PlugInParameter <float> render_scale       =  1.0f;
+
+  // Special K's Windows.Gaming.Input emulation can easily
+  //   poll at 1 kHz with zero performance overhead, so just
+  //     default to 1 kHz and everyone profits!
+  // 
+  //  * Game is hardcoded to poll gamepad input at 60 Hz
+  //      regardless of device caps or framerate limit, ugh!
+  PlugInParameter <float> gamepad_polling_hz = 1000.0f;
+
+  bool _fix_shadow_scissors = true;
+} SK_TGFix_Cfg;
 
 bool
 SK_TGFix_PlugInCfg (void)
@@ -69,14 +104,115 @@ SK_TGFix_PlugInCfg (void)
     static int  restart_reqs = 0;
 
     ImGui::BeginGroup ();
-    if (ImGui::CollapsingHeader (ICON_FA_PORTRAIT " Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
-                                                                      ImGuiTreeNodeFlags_AllowOverlap))
+    if (ImGui::CollapsingHeader (ICON_FA_PORTRAIT " Graphics Settings", ImGuiTreeNodeFlags_DefaultOpen |
+                                                                        ImGuiTreeNodeFlags_AllowOverlap))
     {
       ImGui::TreePush ("");
 
-      if (ImGui::Checkbox ("Disable Depth of Field", &__SK_TGFix_DisableDepthOfField))
+      int                  msaa_idx = 0;
+      switch (SK_TGFix_Cfg.msaa_sample_count)
       {
-        if (! __SK_TGFix_DisableDepthOfField)
+        default:
+        case  1: msaa_idx = 0; break;
+        case  2: msaa_idx = 1; break;
+        case  4: msaa_idx = 2; break;
+        case  8: msaa_idx = 3; break;
+      }
+
+      if (ImGui::Combo ("Multisampling", &msaa_idx, "Do Not Use\0 2x MSAA\0 4x MSAA\0 8x MSAA"))
+      {
+        SK_TGFix_Cfg.msaa_sample_count.store (1 << msaa_idx);
+
+        SK_TGFix_SetMSAASampleCount (SK_TGFix_Cfg.msaa_sample_count);
+
+        // Turn off FXAA to prevent MSAA from breaking the minimap
+        if (SK_TGFix_Cfg.msaa_sample_count > 1)
+        {
+          bool
+              orig_disable_fxaa  = std::exchange (SK_TGFix_Cfg.disable_fxaa, true);
+          if (orig_disable_fxaa !=                SK_TGFix_Cfg.disable_fxaa)
+          {
+            SK_TGFix_Cfg.disable_fxaa.store ();
+
+            SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2); InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+            SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1); InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+          }
+
+          bool
+              orig_disable_dof  = std::exchange (SK_TGFix_Cfg.disable_dof, true);
+          if (orig_disable_dof !=                SK_TGFix_Cfg.disable_dof)
+          {
+            SK_TGFix_Cfg.disable_dof.store ();
+
+            SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x54f44c1a);
+            InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+          }
+        }
+
+        cfg_changed = true;
+      }
+
+      if (ImGui::SliderFloat ("Render Scale", &SK_TGFix_Cfg.render_scale, 0.1f, 2.0f))
+      {
+        SK_TGFix_Cfg.render_scale.store ();
+
+        SK_TGFix_SetRenderScale (SK_TGFix_Cfg.render_scale);
+
+        cfg_changed = true;
+      }
+
+      int                                  postfx_aa_sel = 0;
+      if (      SK_TGFix_Cfg.use_taa)      postfx_aa_sel = 2;
+      else if (!SK_TGFix_Cfg.disable_fxaa) postfx_aa_sel = 1;
+
+      if (ImGui::Combo ("PostFX Anti-Aliasing", &postfx_aa_sel, "None\0Morphological (FXAA)\0Temporal AA\0\0"))
+      {
+        bool orig_disable_fxaa = SK_TGFix_Cfg.disable_fxaa;
+
+        switch (postfx_aa_sel)
+        {
+          case 0:
+            SK_TGFix_Cfg.use_taa      = false;
+            SK_TGFix_Cfg.disable_fxaa =  true;
+            break;
+          case 1:
+            SK_TGFix_Cfg.use_taa      = false;
+            SK_TGFix_Cfg.disable_fxaa = false;
+            break;
+          case 2:
+            SK_TGFix_Cfg.use_taa      =  true;
+            SK_TGFix_Cfg.disable_fxaa = false;
+            break;
+        }
+
+        SK_TGFix_Cfg.use_taa.store      ();
+        SK_TGFix_Cfg.disable_fxaa.store ();
+
+        if (SK_TGFix_Cfg.disable_fxaa != orig_disable_fxaa)
+        {
+          if (SK_TGFix_Cfg.disable_fxaa)
+          {
+            SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2); InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+            SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1); InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+          }
+
+          else
+          {
+            SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2); InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+            SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1); InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+          }
+        }
+
+        SK_TGFix_SetCameraAA ();
+
+        cfg_changed = true;
+      }
+
+      ImGui::SeparatorText ("Post-Processing Passes");
+
+      if (ImGui::Checkbox ("Disable Depth of Field", &SK_TGFix_Cfg.disable_dof))
+      {
+        if (! SK_TGFix_Cfg.disable_dof)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x54f44c1a);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
@@ -88,41 +224,15 @@ SK_TGFix_PlugInCfg (void)
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
         }
 
-        _SK_TGFix_DisableDepthOfField->store (__SK_TGFix_DisableDepthOfField);
+        SK_TGFix_Cfg.disable_dof.store ();
 
         cfg_changed = true;
       }
       ImGui::SetItemTooltip ("Depth of Field may be unusually strong at DSR resolutions and when using MSAA.");
 
-      if (ImGui::Checkbox ("Disable FXAA", &__SK_TGFix_DisableFXAA))
+      if (ImGui::Checkbox ("Disable Heat Haze", &SK_TGFix_Cfg.disable_heat_haze))
       {
-        if (__SK_TGFix_DisableFXAA)
-        {
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
-
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-        }
-
-        else
-        {
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
-
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-        }
-
-        _SK_TGFix_DisableFXAA->store (__SK_TGFix_DisableFXAA);
-
-        cfg_changed = true;
-      }
-      ImGui::SetItemTooltip ("FXAA should be disabled when using MSAA or the minimap will break.");
-
-      if (ImGui::Checkbox ("Disable Heat Haze", &__SK_TGFix_DisableHeatHaze))
-      {
-        if (__SK_TGFix_DisableHeatHaze)
+        if (SK_TGFix_Cfg.disable_heat_haze)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
 
@@ -136,15 +246,15 @@ SK_TGFix_PlugInCfg (void)
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
         }
 
-        _SK_TGFix_DisableHeatHaze->store (__SK_TGFix_DisableHeatHaze);
+        SK_TGFix_Cfg.disable_heat_haze.store ();
 
         cfg_changed = true;
       }
       ImGui::SetItemTooltip ("Heat Haze may be unusually strong at DSR resolutions and when using MSAA.");
 
-      if (ImGui::Checkbox ("Disable Atmospheric Bloom", &__SK_TGFix_DisableBloom))
+      if (ImGui::Checkbox ("Disable Atmospheric Bloom", &SK_TGFix_Cfg.disable_bloom))
       {
-        if (__SK_TGFix_DisableBloom)
+        if (SK_TGFix_Cfg.disable_bloom)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xa9ca2e76);
@@ -172,14 +282,14 @@ SK_TGFix_PlugInCfg (void)
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
         }
 
-        _SK_TGFix_DisableBloom->store (__SK_TGFix_DisableBloom);
+        SK_TGFix_Cfg.disable_bloom.store ();
 
         cfg_changed = true;
       }
 
-      if (ImGui::Checkbox ("Sharpen Outlines", &__SK_TGFix_SharpenOutlines))
+      if (ImGui::Checkbox ("Sharpen Outlines", &SK_TGFix_Cfg.sharpen_outlines))
       {
-        if (__SK_TGFix_SharpenOutlines)
+        if (SK_TGFix_Cfg.sharpen_outlines)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
@@ -201,7 +311,7 @@ SK_TGFix_PlugInCfg (void)
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
         }
 
-        _SK_TGFix_SharpenOutlines->store (__SK_TGFix_SharpenOutlines);
+        SK_TGFix_Cfg.sharpen_outlines.store ();
 
         cfg_changed = true;
       }
@@ -214,15 +324,28 @@ SK_TGFix_PlugInCfg (void)
       ImGui::TreePop  ();
     } ImGui::EndGroup ();
 
-    if (SK_ImGui_HasPlayStationController ())
-    {
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
 
-      if (ImGui::CollapsingHeader (ICON_FA_PLAYSTATION " PlayStation Controllers", ImGuiTreeNodeFlags_DefaultOpen |
-                                                                                   ImGuiTreeNodeFlags_AllowOverlap))
+    if (ImGui::CollapsingHeader (ICON_FA_GAMEPAD " Gamepad Input", ImGuiTreeNodeFlags_DefaultOpen |
+                                                                   ImGuiTreeNodeFlags_AllowOverlap))
+    {
+      ImGui::TreePush ("");
+
+      if (ImGui::SliderFloat ("Polling Frequency", &SK_TGFix_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
       {
-        ImGui::TreePush ("");
+        SK_TGFIX_SetInputPollingFreq (SK_TGFix_Cfg.gamepad_polling_hz);
+
+        SK_TGFix_Cfg.gamepad_polling_hz.store ();
+
+        config.utility.save_async ();
+      }
+
+      ImGui::SetItemTooltip ("Game defaults to 60 Hz, regardless of framerate cap!");
+
+      if (SK_ImGui_HasPlayStationController ())
+      {
+        ImGui::SeparatorText (ICON_FA_PLAYSTATION " PlayStation Controllers");
 
         static std::error_code                    ec = { };
         static std::filesystem::path pathPlayStation =
@@ -398,39 +521,74 @@ SK_TGFix_InitPlugin (void)
     plugin_mgr->first_frame_fns.emplace (SK_TGFix_PresentFirstFrame);
     plugin_mgr->end_frame_fns.emplace   (SK_TGFix_EndFrame);
 
-    _SK_TGFix_DisableDepthOfField =
+    SK_TGFix_Cfg.disable_dof.bind_to_ini (
       _CreateConfigParameterBool ( L"TGFix.Render",
-                                   L"DisableDepthOfField",  __SK_TGFix_DisableDepthOfField,
-                                   L"Disable Depth of Field" );
+                                   L"DisableDepthOfField",  SK_TGFix_Cfg.disable_dof,
+                                   L"Disable Depth of Field" )
+    );
 
-    _SK_TGFix_DisableBloom =
+    SK_TGFix_Cfg.disable_bloom.bind_to_ini (
       _CreateConfigParameterBool ( L"TGFix.Render",
-                                   L"DisableBloom",  __SK_TGFix_DisableBloom,
-                                   L"Disable Bloom Lighting" );
+                                   L"DisableBloom",  SK_TGFix_Cfg.disable_bloom,
+                                   L"Disable Bloom Lighting" )
+    );
 
-    _SK_TGFix_DisableHeatHaze =
+    SK_TGFix_Cfg.disable_heat_haze.bind_to_ini (
       _CreateConfigParameterBool ( L"TGFix.Render",
-                                   L"DisableHeatHaze",  __SK_TGFix_DisableHeatHaze,
-                                   L"Disable Heat Haze" );
+                                   L"DisableHeatHaze",  SK_TGFix_Cfg.disable_heat_haze,
+                                   L"Disable Heat Haze" )
+    );
 
-    _SK_TGFix_DisableFXAA =
+    SK_TGFix_Cfg.disable_fxaa.bind_to_ini (
       _CreateConfigParameterBool ( L"TGFix.Render",
-                                   L"DisableFXAA",  __SK_TGFix_DisableFXAA,
-                                   L"Disable FXAA" );
+                                   L"DisableFXAA",  SK_TGFix_Cfg.disable_fxaa,
+                                   L"Disable FXAA" )
+    );
 
-    _SK_TGFix_SharpenOutlines =
+    SK_TGFix_Cfg.use_taa.bind_to_ini (
       _CreateConfigParameterBool ( L"TGFix.Render",
-                                   L"SharpenOutlines",  __SK_TGFix_SharpenOutlines,
-                                   L"Sharpen Character Outlines" );
+                                   L"UseTemporalAA",  SK_TGFix_Cfg.use_taa,
+                                   L"Use Temporal AA instead of FXAA" )
+    );
 
-    if (__SK_TGFix_DisableDepthOfField)
+    SK_TGFix_Cfg.sharpen_outlines.bind_to_ini (
+      _CreateConfigParameterBool ( L"TGFix.Render",
+                                   L"SharpenOutlines",  SK_TGFix_Cfg.sharpen_outlines,
+                                   L"Sharpen Character Outlines" )
+    );
+
+    SK_TGFix_Cfg.msaa_sample_count.bind_to_ini (
+      _CreateConfigParameterInt ( L"TGFix.Render",
+                                  L"MSAASampleCount",  SK_TGFix_Cfg.msaa_sample_count,
+                                  L"Sample count for Multisample Anti-Aliasing" )
+    );
+
+    SK_TGFix_Cfg.render_scale.bind_to_ini (
+      _CreateConfigParameterFloat ( L"TGFix.Render",
+                                    L"RenderScale",  SK_TGFix_Cfg.render_scale,
+                                    L"Internal Render Scale (0.1-2.0)" )
+    );
+
+    SK_TGFix_Cfg.gamepad_polling_hz.bind_to_ini (
+      _CreateConfigParameterFloat ( L"TGFix.Input",
+                                    L"PollingFrequency",  SK_TGFix_Cfg.gamepad_polling_hz,
+                                    L"Gamepad Polling Frequency (30.0 Hz - 1000.0Hz; 60.0 Hz == hard-coded game default)" )
+    );
+
+    if (SK_TGFix_Cfg.msaa_sample_count > 1)
+    {
+      // Implicitly disable Depth of Field if MSAA is enabled
+      SK_TGFix_Cfg.disable_dof = true;
+    }
+
+    if (SK_TGFix_Cfg.disable_dof)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x54f44c1a);
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
 
-    if (__SK_TGFix_DisableBloom)
+    if (SK_TGFix_Cfg.disable_bloom)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xa9ca2e76);
@@ -443,7 +601,7 @@ SK_TGFix_InitPlugin (void)
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
 
-    if (__SK_TGFix_DisableFXAA)
+    if (SK_TGFix_Cfg.disable_fxaa)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xbe80dda2);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0xef92e3e1);
@@ -452,7 +610,7 @@ SK_TGFix_InitPlugin (void)
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
 
-    if (__SK_TGFix_SharpenOutlines)
+    if (SK_TGFix_Cfg.sharpen_outlines)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
@@ -463,7 +621,7 @@ SK_TGFix_InitPlugin (void)
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
 
-    if (__SK_TGFix_DisableHeatHaze)
+    if (SK_TGFix_Cfg.disable_heat_haze)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
 
@@ -480,10 +638,15 @@ typedef MonoThread*     (*mono_thread_attach_pfn)(MonoDomain* domain);
 typedef MonoDomain*     (*mono_get_root_domain_pfn)(void);
 typedef MonoAssembly*   (*mono_domain_assembly_open_pfn)(MonoDomain* doamin, const char* name);
 typedef MonoImage*      (*mono_assembly_get_image_pfn)(MonoAssembly* assembly);
+typedef MonoString*     (*mono_string_new_pfn)(MonoDomain* domain, const char* text);
 typedef MonoObject*     (*mono_object_new_pfn)(MonoDomain* domain, MonoClass* klass);
+typedef void*           (*mono_object_unbox_pfn)(MonoObject* obj);
 typedef MonoDomain*     (*mono_object_get_domain_pfn)(MonoObject* obj);
 typedef MonoClass*      (*mono_class_from_name_pfn)(MonoImage* image, const char* name_space, const char* name);
 typedef MonoMethod*     (*mono_class_get_method_from_name_pfn)(MonoClass* klass, const char* name, int param_count);
+typedef MonoType*       (*mono_class_get_type_pfn)(MonoClass* klass);
+typedef MonoReflectionType*
+                        (*mono_type_get_object_pfn)(MonoDomain* domain, MonoType* type);
 typedef void*           (*mono_compile_method_pfn)(MonoMethod* method);
 typedef MonoObject*     (*mono_runtime_invoke_pfn)(MonoMethod* method, void* obj, void** params, MonoObject** exc);
 
@@ -504,10 +667,14 @@ mono_thread_attach_pfn                SK_mono_thread_attach                = nul
 mono_get_root_domain_pfn              SK_mono_get_root_domain              = nullptr;
 mono_domain_assembly_open_pfn         SK_mono_domain_assembly_open         = nullptr;
 mono_assembly_get_image_pfn           SK_mono_assembly_get_image           = nullptr;
+mono_string_new_pfn                   SK_mono_string_new                   = nullptr;
 mono_object_new_pfn                   SK_mono_object_new                   = nullptr;
 mono_object_get_domain_pfn            SK_mono_object_get_domain            = nullptr;
+mono_object_unbox_pfn                 SK_mono_object_unbox                 = nullptr;
 mono_class_from_name_pfn              SK_mono_class_from_name              = nullptr;
 mono_class_get_method_from_name_pfn   SK_mono_class_get_method_from_name   = nullptr;
+mono_class_get_type_pfn               SK_mono_class_get_type               = nullptr;
+mono_type_get_object_pfn              SK_mono_type_get_object              = nullptr;
 mono_compile_method_pfn               SK_mono_compile_method               = nullptr;
 mono_runtime_invoke_pfn               SK_mono_runtime_invoke               = nullptr;
 
@@ -544,7 +711,7 @@ mono_jit_init_Detour (const char *file)
 
   if (domain != nullptr)
   {
-    //SK_TGFix_OnInitMono (domain);
+    SK_TGFix_OnInitMono (domain);
   }
 
   return domain;
@@ -560,7 +727,7 @@ mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_
 
   if (domain != nullptr)
   {
-    //SK_TGFix_OnInitMono (domain);
+    SK_TGFix_OnInitMono (domain);
   }
 
   return domain;
@@ -584,6 +751,8 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_assembly_get_image           = reinterpret_cast <mono_assembly_get_image_pfn>           (SK_GetProcAddress (hMono, "mono_assembly_get_image"));
   SK_mono_class_from_name              = reinterpret_cast <mono_class_from_name_pfn>              (SK_GetProcAddress (hMono, "mono_class_from_name"));
   SK_mono_class_get_method_from_name   = reinterpret_cast <mono_class_get_method_from_name_pfn>   (SK_GetProcAddress (hMono, "mono_class_get_method_from_name"));
+  SK_mono_class_get_type               = reinterpret_cast <mono_class_get_type_pfn>               (SK_GetProcAddress (hMono, "mono_class_get_type"));
+  SK_mono_type_get_object              = reinterpret_cast <mono_type_get_object_pfn>              (SK_GetProcAddress (hMono, "mono_type_get_object"));
   SK_mono_compile_method               = reinterpret_cast <mono_compile_method_pfn>               (SK_GetProcAddress (hMono, "mono_compile_method"));
   SK_mono_runtime_invoke               = reinterpret_cast <mono_runtime_invoke_pfn>               (SK_GetProcAddress (hMono, "mono_runtime_invoke"));
   
@@ -599,36 +768,38 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_property_get_value           = reinterpret_cast <mono_property_get_value_pfn>           (SK_GetProcAddress (hMono, "mono_property_get_value"));
   SK_mono_class_get_property_from_name = reinterpret_cast <mono_class_get_property_from_name_pfn> (SK_GetProcAddress (hMono, "mono_class_get_property_from_name"));
   SK_mono_image_loaded                 = reinterpret_cast <mono_image_loaded_pfn>                 (SK_GetProcAddress (hMono, "mono_image_loaded"));
+  SK_mono_string_new                   = reinterpret_cast <mono_string_new_pfn>                   (SK_GetProcAddress (hMono, "mono_string_new"));
   SK_mono_object_new                   = reinterpret_cast <mono_object_new_pfn>                   (SK_GetProcAddress (hMono, "mono_object_new"));
   SK_mono_object_get_domain            = reinterpret_cast <mono_object_get_domain_pfn>            (SK_GetProcAddress (hMono, "mono_object_get_domain"));
+  SK_mono_object_unbox                 = reinterpret_cast <mono_object_unbox_pfn>                 (SK_GetProcAddress (hMono, "mono_object_unbox"));
  
   SK_mono_thread_attach                = reinterpret_cast <mono_thread_attach_pfn>                (SK_GetProcAddress (hMono, "mono_thread_attach"));
   SK_mono_get_root_domain              = reinterpret_cast <mono_get_root_domain_pfn>              (SK_GetProcAddress (hMono, "mono_get_root_domain"));
 
 
-  void* pfnMonoJitInit        = nullptr;
-  void* pfnMonoJitInitVersion = nullptr;
-
+#if 0
+  void*                   pfnMonoJitInit = nullptr;
   SK_CreateDLLHook (         mono_dll,
                             "mono_jit_init",
                              mono_jit_init_Detour,
     static_cast_p2p <void> (&mono_jit_init_Original),
                            &pfnMonoJitInit );
+  SK_EnableHook   (         pfnMonoJitInit );
+#endif
 
+  void*                   pfnMonoJitInitVersion = nullptr;
   SK_CreateDLLHook (         mono_dll,
                             "mono_jit_init_version",
                              mono_jit_init_version_Detour,
     static_cast_p2p <void> (&mono_jit_init_version_Original),
                            &pfnMonoJitInitVersion );
-
-  SK_EnableHook (pfnMonoJitInit);
-  SK_EnableHook (pfnMonoJitInitVersion);
+  SK_EnableHook    (        pfnMonoJitInitVersion );
 
   // If this was pre-loaded, then the above hooks never run and we should initialize everything immediately...
   if (SK_GetModuleHandleW (L"BepInEx.Core.dll"))
   {
-    //if ( nullptr !=        SK_mono_get_root_domain )
-    //  SK_TGFix_OnInitMono (SK_mono_get_root_domain ());
+    if ( nullptr !=        SK_mono_get_root_domain )
+      SK_TGFix_OnInitMono (SK_mono_get_root_domain ());
   }
 
 
@@ -663,6 +834,26 @@ SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   // Better late initialization than never...
   if ( nullptr !=        SK_mono_get_root_domain )
     SK_TGFix_OnInitMono (SK_mono_get_root_domain ());
+
+  if (SK_TGFix_Cfg.msaa_sample_count > 1)
+  {
+    SK_TGFix_SetMSAASampleCount (SK_TGFix_Cfg.msaa_sample_count);
+  }
+
+  if (SK_TGFix_Cfg.render_scale != 1.0f)
+  {
+    SK_TGFix_SetRenderScale (SK_TGFix_Cfg.render_scale);
+  }
+
+  if (SK_TGFix_Cfg.use_taa)
+  {
+    SK_TGFix_SetCameraAA ();
+  }
+
+  if (SK_TGFix_Cfg.gamepad_polling_hz != 60.0f)
+  {
+    SK_TGFIX_SetInputPollingFreq (SK_TGFix_Cfg.gamepad_polling_hz);
+  }
 
   return S_OK;
 }
@@ -777,6 +968,8 @@ MonoMethod* GetMethod (const char* className, const char* methodName, int param_
 // When you need to get a class pointer
 MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+
   MonoImage* pImage =
     SK_mono_image_loaded (assemblyName);
 
@@ -817,6 +1010,8 @@ MonoClass* GetClassFromMethod (MonoMethod* method)
 // When you need data from a class field like if something IsActive
 MonoClassField* GetField (const char* className, const char* fieldName, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+
   MonoImage* pImage =
     SK_mono_image_loaded (assemblyName);
 
@@ -868,13 +1063,17 @@ uint32_t GetFieldOffset (MonoClassField* field)
     SK_mono_field_get_offset (field);
 }
 
-void GetFieldValue (void* instance, MonoClassField* field, void* out)
+void GetFieldValue (MonoObject* obj, MonoClassField* field, void* out)
 {
-  SK_mono_field_get_value (instance, field, out);
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+
+  SK_mono_field_get_value (obj, field, out);
 }
 
 void SetFieldValue (MonoObject* obj, MonoClassField* field, void* value)
 {
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+
   SK_mono_field_set_value (obj, field, value);
 }
 
@@ -974,9 +1173,14 @@ MonoObject* GetPropertyValue (MonoImage* image, const char* namespace_, const ch
   return
     GetPropertyValue (GetProperty (image, namespace_, class_, name), instance);
 }
- 
+
 MonoObject* InvokeMethod (const char* namespace_, const char* class_, const char* method, int paramsCount, void* instance, const char* image_ = "Assembly-CSharp", void** params = nullptr)
 {
+  if (instance == nullptr)
+           return nullptr;
+
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+
   return
     SK_mono_runtime_invoke (GetClassMethod (GetImage (image_), namespace_, class_, method, paramsCount), instance, params, nullptr);
 }
@@ -1124,11 +1328,12 @@ SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour (MonoObject* __this, fl
 }
 
 constexpr
-float SK_TGFix_NativeAspect     = 16.0f / 9.0f;
-float SK_TGFix_AspectRatio      = 0.0f;
-float SK_TGFix_AspectMultiplier = 0.0f;
-int   SK_TGFix_ScreenWidth      = 0;
-int   SK_TGFix_ScreenHeight     = 0;
+float SK_TGFix_NativeAspect          = 16.0f / 9.0f;
+float SK_TGFix_AspectRatio           =     0.0f;//SK_TGFix_NativeAspect;
+float SK_TGFix_AspectMultiplier      =     0.0f;
+int   SK_TGFix_ScreenWidth           =     0;
+int   SK_TGFix_ScreenHeight          =     0;
+float SK_TGFix_InputPollingFrequency = 60.0f;
 
 using UnityEngine_Screen_SetResolution_pfn = void (*)(int, int, int);
       UnityEngine_Screen_SetResolution_pfn
@@ -1187,7 +1392,7 @@ SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour (MonoObject* __this, float a
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect)
+  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
     return
       Noble_CameraManager_SetCameraAspect_Original (__this, SK_TGFix_AspectRatio);
@@ -1200,31 +1405,77 @@ using Noble_PrimitiveManager_CalcUIOrthoMatrix_pfn = void (*)(MonoObject*, bool 
       Noble_PrimitiveManager_CalcUIOrthoMatrix_pfn
       Noble_PrimitiveManager_CalcUIOrthoMatrix_Original = nullptr;
 
+using Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_pfn = void (*)(MonoObject*);
+      Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_pfn
+      Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original = nullptr;
+
+using Noble_PrimitiveManager_OnEndUpdateNativeGameMain_pfn = void (*)(MonoObject*);
+      Noble_PrimitiveManager_OnEndUpdateNativeGameMain_pfn
+      Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original = nullptr;
+
 void
-SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bool forceproc)
+SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour (MonoObject* __this)
 {
   SK_LOG_FIRST_CALL
 
-  forceproc = true;
-
-  if (SK_TGFix_AspectRatio == SK_TGFix_NativeAspect)
-    Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
-
-  // These are called out-of-order sometimes
-  if (SK_TGFix_AspectMultiplier == 0.0f)
-  {
-    return;
-  }
-
   static auto m_Viewport     =
-    GetField ("PrimitiveManager", "m_Viewport", "Assembly-CSharp", "Noble");
+    GetField ("PrimitiveManager", "m_Viewport",
+              "Assembly-CSharp",      "Noble");
   static auto m_screenWidth  =
-    GetField ("PrimitiveManager", "m_screenWidth", "Assembly-CSharp", "Noble");
+    GetField ("PrimitiveManager", "m_screenWidth",
+              "Assembly-CSharp",         "Noble");
   static auto m_screenHeight =
-    GetField ("PrimitiveManager", "m_screenHeight", "Assembly-CSharp", "Noble");
+    GetField ("PrimitiveManager", "m_screenHeight",
+              "Assembly-CSharp",          "Noble");
 
   static auto UnityEngine_Rect =
-    GetClass (GetImage ("UnityEngine.CoreModule"), "UnityEngine", "Rect");
+    GetClass (GetImage ("UnityEngine.CoreModule"),
+                        "UnityEngine",    "Rect");
+
+  float x      = 0.0f,      y = 0.0f,
+        width  = 0.0f, height = 0.0f;
+
+  auto domain   = SK_mono_object_get_domain                          (__this);
+  auto viewport = SK_mono_field_get_value_object (domain, m_Viewport, __this);
+
+  static auto _x      = GetField ("Rect", "m_XMin",   "UnityEngine.CoreModule", "UnityEngine");
+  static auto _y      = GetField ("Rect", "m_YMin",   "UnityEngine.CoreModule", "UnityEngine");
+  static auto _width  = GetField ("Rect", "m_Width",  "UnityEngine.CoreModule", "UnityEngine");
+  static auto _height = GetField ("Rect", "m_Height", "UnityEngine.CoreModule", "UnityEngine");
+
+  width = width / SK_TGFix_AspectMultiplier;
+
+  GetFieldValue (__this,  m_screenWidth,  &width);
+  GetFieldValue (__this,  m_screenHeight, &height);
+
+  SetFieldValue (viewport, _x,      &x);
+  SetFieldValue (viewport, _y,      &y);
+  SetFieldValue (viewport, _width,  &width);
+  SetFieldValue (viewport, _height, &height);
+
+  Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original (__this);
+}
+
+void
+SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original (__this);
+
+  static auto m_Viewport     =
+    GetField ("PrimitiveManager", "m_Viewport",
+              "Assembly-CSharp",      "Noble");
+  static auto m_screenWidth  =
+    GetField ("PrimitiveManager", "m_screenWidth",
+              "Assembly-CSharp",         "Noble");
+  static auto m_screenHeight =
+    GetField ("PrimitiveManager", "m_screenHeight",
+              "Assembly-CSharp",          "Noble");
+
+  static auto UnityEngine_Rect =
+    GetClass (GetImage ("UnityEngine.CoreModule"),
+                        "UnityEngine",    "Rect");
 
   if (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect)
   {
@@ -1239,8 +1490,6 @@ SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bo
     static auto _width  = GetField ("Rect", "m_Width",  "UnityEngine.CoreModule", "UnityEngine");
     static auto _height = GetField ("Rect", "m_Height", "UnityEngine.CoreModule", "UnityEngine");
 
-    GetFieldValue (viewport, _x,            &x);
-    GetFieldValue (viewport, _y,            &y);
     GetFieldValue (__this,  m_screenWidth,  &width);
     GetFieldValue (__this,  m_screenHeight, &height);
 
@@ -1265,8 +1514,6 @@ SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bo
     static auto _width  = GetField ("Rect", "m_Width",  "UnityEngine.CoreModule", "UnityEngine");
     static auto _height = GetField ("Rect", "m_Height", "UnityEngine.CoreModule", "UnityEngine");
 
-    GetFieldValue (viewport, _x,            &x);
-    GetFieldValue (viewport, _y,            &y);
     GetFieldValue (__this,  m_screenWidth,  &width);
     GetFieldValue (__this,  m_screenHeight, &height);
 
@@ -1277,6 +1524,15 @@ SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bo
     SetFieldValue (viewport, _width,  &width);
     SetFieldValue (viewport, _height, &height);
   }
+}
+
+void
+SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bool forceproc)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_TGFix_NativeAspect == SK_TGFix_AspectRatio)
+    Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
 }
 
 using NobleMovieRendereFeature_Create_pfn = void (*)(MonoObject*);
@@ -1346,9 +1602,13 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
 {
   SK_LOG_FIRST_CALL
 
-  // We're nop'ing this entire thing because it breaks shadows if we don't.
+  if (SK_TGFix_Cfg._fix_shadow_scissors)
+  {
+    // We're nop'ing this entire thing because it breaks shadows if we don't.
+    return;
+  }
 
-  std::ignore = __this, Scissor;
+  UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original (__this, Scissor);
 }
 
 bool
@@ -1416,6 +1676,28 @@ SK_TGFix_SetupFramerateHooks (void)
 
     SK_QueueEnableHook (pfnNoble_PrimitiveManager_CalcUIOrthoMatrix);
 
+    //auto pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain =
+    //  CompileMethod ("Noble",   "PrimitiveManager",
+    //                 "OnBeginUpdateNativeGameMain", 0);
+    //
+    //SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnBeginUpdateNativeGameMain",
+    //                                 pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain,
+    //                           SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour,
+    //  static_cast_p2p <void> (&         Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original) );
+    //
+    //SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain);
+    //
+    auto pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain =
+      CompileMethod ("Noble", "PrimitiveManager",
+                     "OnEndUpdateNativeGameMain", 0);
+    
+    SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnEndUpdateNativeGameMain",
+                                     pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain,
+                               SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour,
+      static_cast_p2p <void> (&         Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original) );
+    
+    SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain);
+
     auto pfnNobleMovieRendereFeature_Create =
       CompileMethod ("",
            "NobleMovieRendereFeature",
@@ -1428,9 +1710,7 @@ SK_TGFix_SetupFramerateHooks (void)
 
     SK_QueueEnableHook (pfnNobleMovieRendereFeature_Create);
 
-    bool  enabled = SK_EnableApplyQueuedHooks ();
-                          SK_ApplyQueuedHooks ();
-    if (! enabled) SK_DisableApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
   });
 
   if (! LoadMonoAssembly ("UnityEngine.CoreModule"))
@@ -1460,10 +1740,7 @@ SK_TGFix_SetupFramerateHooks (void)
 
     SK_QueueEnableHook (pfnUnityEngine_Rendering_CommandBuffer_EnableScissorRect);
 
-    bool  enabled = SK_EnableApplyQueuedHooks ();
-                          SK_ApplyQueuedHooks ();
-    if (! enabled) SK_DisableApplyQueuedHooks ();
-
+    SK_ApplyQueuedHooks ();
   });
 
   if (! (LoadMonoAssembly ("Unity.RenderPipelines.Core.Runtime") &&
@@ -1485,9 +1762,7 @@ SK_TGFix_SetupFramerateHooks (void)
 
     SK_LOGi0 (L"Hooked 'UnityEngine.Rendering.Volume.OnEnable' from 'Unity.RenderPipelines.Core.Runtime'");
 
-    bool  enabled = SK_EnableApplyQueuedHooks ();
-                          SK_ApplyQueuedHooks ();
-    if (! enabled) SK_DisableApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
   });
 
   return true;
@@ -1513,4 +1788,144 @@ void STDMETHODCALLTYPE SK_TGFix_EndFrame (void)
   }
 
   return;
+}
+
+MonoObject*
+SK_TGFix_NobleQualitySettings (void)
+{
+  static MonoObject*
+        NobleQualitySettings = nullptr;
+  if (! NobleQualitySettings)
+  {
+    SK_mono_thread_attach (SK_mono_get_root_domain ());
+
+    MonoImage*  assemblyCSharp     = SK_mono_image_loaded               ("Assembly-CSharp");
+    MonoClass*  gameObjectClass    = SK_mono_class_from_name            (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "GameObject");
+    MonoMethod* findMethod         = SK_mono_class_get_method_from_name (gameObjectClass, "Find",         1);
+    MonoMethod* getComponentMethod = SK_mono_class_get_method_from_name (gameObjectClass, "GetComponent", 1);
+
+    MonoClass* Noble_NobleQualitySettingsClass =
+      SK_mono_class_from_name (assemblyCSharp, "Noble", "NobleQualitySettings");
+
+    void* find_args [1] =
+      { SK_mono_string_new (SK_mono_get_root_domain (), "NobleQualitySettings") };
+
+    auto gameObject =
+      SK_mono_runtime_invoke (findMethod, nullptr, find_args, nullptr);
+
+    void* get_component_args [1] =
+      { SK_mono_type_get_object (SK_mono_get_root_domain (), SK_mono_class_get_type (Noble_NobleQualitySettingsClass)) };
+
+    NobleQualitySettings =
+      SK_mono_runtime_invoke (getComponentMethod, gameObject, get_component_args, nullptr);
+  }
+
+  return NobleQualitySettings;
+}
+
+MonoObject*
+SK_TGFix_GetMainCameraAdditionalData (void)
+{
+  static MonoObject*
+        UniversalAdditionalCameraData = nullptr;
+  if (! UniversalAdditionalCameraData)
+  {
+    SK_mono_thread_attach (SK_mono_get_root_domain ());
+
+    MonoImage*  assemblyRenderPipes = SK_mono_image_loaded               ("Unity.RenderPipelines.Universal.Runtime");
+    MonoClass*  gameObjectClass     = SK_mono_class_from_name            (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "GameObject");
+    MonoMethod* findMethod          = SK_mono_class_get_method_from_name (gameObjectClass, "Find",         1);
+    MonoMethod* getComponentMethod  = SK_mono_class_get_method_from_name (gameObjectClass, "GetComponent", 1);
+
+    MonoClass* UnityEngine_Rendering_Universal_UniversalAdditionalCameraDataClass =
+      SK_mono_class_from_name (assemblyRenderPipes, "UnityEngine.Rendering.Universal", "UniversalAdditionalCameraData");
+
+    void* find_args [1] =
+      { SK_mono_string_new (SK_mono_get_root_domain (), "Main Camera") };
+
+    auto gameObject =
+      SK_mono_runtime_invoke (findMethod, nullptr, find_args, nullptr);
+
+    void* get_component_args [1] =
+      { SK_mono_type_get_object (SK_mono_get_root_domain (), SK_mono_class_get_type (UnityEngine_Rendering_Universal_UniversalAdditionalCameraDataClass)) };
+
+    UniversalAdditionalCameraData =
+      SK_mono_runtime_invoke (getComponentMethod, gameObject, get_component_args, nullptr);
+  }
+
+  return UniversalAdditionalCameraData;
+}
+
+void
+SK_TGFix_SetMSAASampleCount (int sample_count)
+{
+  static MonoObject* pipeline =
+    InvokeMethod ("Noble", "NobleQualitySettings", "get_m_urpAsset", 0, SK_TGFix_NobleQualitySettings ());
+
+  void* params [1] = { &sample_count };
+
+  SK_LOGi0 (L"Setting MSAA Sample Count: %d", sample_count);
+
+  InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalRenderPipelineAsset", "set_msaaSampleCount", 1, pipeline, "Unity.RenderPipelines.Universal.Runtime", params);
+}
+
+void
+SK_TGFix_SetRenderScale (float render_scale)
+{
+  // Avoid VERY expensive repeated calls while user is holding ImGui slider
+  static float fRenderScale = 0.0f;
+
+  // We _could_ override the range that Unity allows, but probably not worth it
+  render_scale = std::clamp (render_scale, 0.1f, 2.0f);
+
+  if (std::exchange (fRenderScale, render_scale) == render_scale)
+    return;
+
+  static MonoObject* pipeline =
+    InvokeMethod ("Noble", "NobleQualitySettings", "get_m_urpAsset", 0, SK_TGFix_NobleQualitySettings ());
+
+  void* params [1] = { &render_scale };
+
+  SK_LOGi0 (L"Setting Render Scale: %f", render_scale);
+
+  InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalRenderPipelineAsset", "set_renderScale", 1, pipeline, "Unity.RenderPipelines.Universal.Runtime", params);
+}
+
+void
+SK_TGFix_SetCameraAA (void)
+{
+  MonoObject* MainCameraAdditionalData =
+  SK_TGFix_GetMainCameraAdditionalData ();
+
+  // SubpixelMorphologicalAntiAliasing = 2
+  // TemporalAntiAliasing              = 3
+
+  int                                  mode = 0;
+  if (      SK_TGFix_Cfg.use_taa)      mode = 3;
+  else if (!SK_TGFix_Cfg.disable_fxaa) mode = 2;
+
+  void* params [1] = { &mode };
+  
+  SK_LOGi0 (L"Setting PostFX AA Type: %d", mode);
+
+  InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalAdditionalCameraData", "set_antialiasing", 1,
+                MainCameraAdditionalData, "Unity.RenderPipelines.Universal.Runtime", params);
+}
+
+void
+SK_TGFIX_SetInputPollingFreq (float PollingHz)
+{
+  if (std::exchange (SK_TGFix_InputPollingFrequency, PollingHz) == PollingHz)
+    return;
+
+  SK_mono_thread_attach (SK_mono_get_root_domain ());
+
+  static auto NativeInputRuntime_instance =
+    GetStaticFieldValue ("NativeInputRuntime", "instance", "Unity.InputSystem", "UnityEngine.InputSystem.LowLevel");
+
+  void* params [1] = { &PollingHz };
+
+  SK_LOGi0 (L"Setting Input Polling Hz: %f", PollingHz);
+
+  InvokeMethod ("UnityEngine.InputSystem.LowLevel", "NativeInputRuntime", "set_pollingFrequency", 1, NativeInputRuntime_instance, "Unity.InputSystem", params);
 }
