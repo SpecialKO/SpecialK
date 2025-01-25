@@ -36,7 +36,8 @@ bool SK_TGFix_SetupFramerateHooks (void);
 void SK_TGFix_SetMSAASampleCount  (int);
 void SK_TGFix_SetRenderScale      (float);
 void SK_TGFix_SetCameraAA         (void);
-void SK_TGFIX_SetInputPollingFreq (float PollingHz);
+void SK_TGFix_SetInputPollingFreq (float PollingHz);
+void SK_TGFix_EnableInternalHDR   (bool);
 
 extern volatile LONG SK_D3D11_DrawTrackingReqs;
 
@@ -86,7 +87,7 @@ struct sk_tgfix_cfg_s {
   // 
   //  * Game is hardcoded to poll gamepad input at 60 Hz
   //      regardless of device caps or framerate limit, ugh!
-  PlugInParameter <float> gamepad_polling_hz = 1000.0f;
+  PlugInParameter <float> gamepad_polling_hz = 240.0f;
 
   bool _fix_shadow_scissors = true;
 } SK_TGFix_Cfg;
@@ -333,7 +334,7 @@ SK_TGFix_PlugInCfg (void)
 
       if (ImGui::SliderFloat ("Polling Frequency", &SK_TGFix_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
       {
-        SK_TGFIX_SetInputPollingFreq (SK_TGFix_Cfg.gamepad_polling_hz);
+        SK_TGFix_SetInputPollingFreq (SK_TGFix_Cfg.gamepad_polling_hz);
 
         SK_TGFix_Cfg.gamepad_polling_hz.store ();
 
@@ -507,6 +508,8 @@ SK_TGFix_PlugInCfg (void)
 HRESULT STDMETHODCALLTYPE SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
 void    STDMETHODCALLTYPE SK_TGFix_EndFrame          (void);
 
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
 void
 SK_TGFix_InitPlugin (void)
 {
@@ -622,6 +625,10 @@ SK_TGFix_InitPlugin (void)
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
     }
+
+
+    SK_TGFix_EnableInternalHDR (true);
+
 
     plugin_mgr->config_fns.emplace      (SK_TGFix_PlugInCfg);
     plugin_mgr->first_frame_fns.emplace (SK_TGFix_PresentFirstFrame);
@@ -851,8 +858,10 @@ SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   if (SK_TGFix_Cfg.gamepad_polling_hz != 60.0f)
   {
-    SK_TGFIX_SetInputPollingFreq (SK_TGFix_Cfg.gamepad_polling_hz);
+    SK_TGFix_SetInputPollingFreq (SK_TGFix_Cfg.gamepad_polling_hz);
   }
+
+  SK_TGFix_EnableInternalHDR (true);
 
   return S_OK;
 }
@@ -1686,16 +1695,16 @@ SK_TGFix_SetupFramerateHooks (void)
     //
     //SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain);
     //
-    auto pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain =
-      CompileMethod ("Noble", "PrimitiveManager",
-                     "OnEndUpdateNativeGameMain", 0);
-    
-    SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnEndUpdateNativeGameMain",
-                                     pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain,
-                               SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour,
-      static_cast_p2p <void> (&         Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original) );
-    
-    SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain);
+    //auto pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain =
+    //  CompileMethod ("Noble", "PrimitiveManager",
+    //                 "OnEndUpdateNativeGameMain", 0);
+    //
+    //SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnEndUpdateNativeGameMain",
+    //                                 pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain,
+    //                           SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour,
+    //  static_cast_p2p <void> (&         Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original) );
+
+    //SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain);
 
     auto pfnNobleMovieRendereFeature_Create =
       CompileMethod ("",
@@ -1912,7 +1921,33 @@ SK_TGFix_SetCameraAA (void)
 }
 
 void
-SK_TGFIX_SetInputPollingFreq (float PollingHz)
+SK_TGFix_EnableInternalHDR (bool enable)
+{
+  if (! enable)
+    return;
+
+  // Enable HDR remastering for final out
+  SK_HDR_RenderTargets_8bpc.getPtr ()->PromoteTo16Bit = true;
+
+  static bool          skipped_once = false;
+  if (! std::exchange (skipped_once, true))
+    return;
+
+  SK_LOGi0 (L"Enabling Native HDR");
+
+  static MonoObject* pipeline =
+    InvokeMethod ("Noble", "NobleQualitySettings", "get_m_urpAsset", 0, SK_TGFix_NobleQualitySettings ());
+
+  bool                 enable_hdr = true;
+  void* params [] = { &enable_hdr };
+
+  // Enable native HDR internally for most render passes
+  InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalRenderPipelineAsset", "set_supportsHDR", 1, pipeline,
+                "Unity.RenderPipelines.Universal.Runtime", params);
+}
+
+void
+SK_TGFix_SetInputPollingFreq (float PollingHz)
 {
   if (std::exchange (SK_TGFix_InputPollingFrequency, PollingHz) == PollingHz)
     return;

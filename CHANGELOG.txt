@@ -1,4 +1,12 @@
-﻿25.1.24.1
+﻿25.1.25
+=======
+ + Changed default gamepad polling rate to 250 Hz in Tales of Graces f,
+     because Steam Input and the native Windows.Gaming.Input implementation
+       do not work reliably at higher rates.
+ + Enabled HDR rendering in Tales of Graces f w/o using HDR remasters;
+     uses R11G11B10 instead of FP16 to improve performance w/ MSAA.
+
+25.1.24.1
 =========
  + Reduced D3D11 render state tracking when ReShade is loaded, but there are no
      actual ReShade triggers defined in d3d11_shaders.ini that would require

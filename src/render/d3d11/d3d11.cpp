@@ -5813,7 +5813,10 @@ D3D11Dev_CreateTexture2DCore_Impl (
               const bool bIgnorePartialMatches =
                 ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata ) ||
                 ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations ) ||
-                ( SK_GetCurrentGameID () == SK_GAME_ID::Metaphor );
+                ( SK_GetCurrentGameID () == SK_GAME_ID::Metaphor )                ||
+                // Partial matches work, we just don't want them, there's only one
+                // surface that needs to be converted to FP16 for HDR.
+                ( SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Graces );
 
               const bool game_specific_reqs_met = false;
               if (       game_specific_reqs_met  ||
