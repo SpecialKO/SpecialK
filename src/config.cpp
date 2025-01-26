@@ -695,6 +695,7 @@ struct {
   sk::ParameterStringW*   filename_format         = nullptr;
   sk::ParameterInt*       compression_quality     = nullptr;
   sk::ParameterBool*      compatibility_mode      = nullptr;
+  sk::ParameterInt*       clipboard_hdr_format    = nullptr;
 
   struct {
     sk::ParameterBool*    use_avif                = nullptr;
@@ -1683,6 +1684,7 @@ auto DeclKeybind =
     ConfigEntry (screenshots.png.store_hdr,              L"Use HDR PNG file format for HDR screenshots",               osd_ini,         L"Screenshot.HDR",        L"StorePNG"),
     ConfigEntry (screenshots.allow_hdr_clipboard,        L"Use HDR for Windows Clipboard screenshots",                 osd_ini,         L"Screenshot.HDR",        L"AllowClipboardHDR"),
     ConfigEntry (screenshots.png.st2084_bits,            L"Use n-bit Quantization to save Disk Space",                 osd_ini,         L"Screenshot.HDR",        L"MaxST2084QuantizedBits"),
+    ConfigEntry (screenshots.clipboard_hdr_format,       L"Use PNG or AVIF for HDR clipboard screenshots",             osd_ini,         L"Screenshot.HDR",        L"HDRClipboardFormat"),
     Keybind (&config.render.keys.hud_toggle,             L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind (&config.osd.keys.console_toggle,            L"Toggle SK's Command Console",                               osd_ini,         L"OSD.System"),
     Keybind (&config.screenshots.game_hud_free_keybind,  L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
@@ -5502,6 +5504,7 @@ auto DeclKeybind =
   screenshots.png.store_hdr->load             (config.screenshots.use_hdr_png);
   screenshots.allow_hdr_clipboard->load       (config.screenshots.allow_hdr_clipboard);
   screenshots.png.st2084_bits->load           (config.screenshots.max_st2084_bits);
+  screenshots.clipboard_hdr_format->load      (config.screenshots.clipboard_hdr_format);
 
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.osd.keys.console_toggle);
@@ -6912,6 +6915,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.png.store_hdr->store             (config.screenshots.use_hdr_png);
   screenshots.allow_hdr_clipboard->store       (config.screenshots.allow_hdr_clipboard);
   screenshots.png.st2084_bits->store           (config.screenshots.max_st2084_bits);
+  screenshots.clipboard_hdr_format->store      (config.screenshots.clipboard_hdr_format);
 
   screenshots.jxl.use_jxl->store               (config.screenshots.use_jxl);
   screenshots.avif.use_avif->store             (config.screenshots.use_avif);

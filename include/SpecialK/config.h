@@ -42,6 +42,11 @@ static constexpr int SK_NoPreference = -1;
 static constexpr int SK_Disabled     =  0;
 static constexpr int SK_Enabled      =  1;
 
+enum {
+  SK_HDR_CLIPBOARD_FORMAT_PNG  = 1,
+  SK_HDR_CLIPBOARD_FORMAT_AVIF = 2,
+};
+
 struct SK_Keybind
 {
   const char*  bind_name      = nullptr;
@@ -562,6 +567,7 @@ struct sk_config_t
     bool         play_sound            =  true;
     bool         copy_to_clipboard     =  true;
     bool         allow_hdr_clipboard   =  true;
+    int          clipboard_hdr_format  =     1; // 1 = PNG, 2 = AVIF
     bool         embed_nickname        = false;
     std::wstring override_path         =   L"";
     std::wstring filename_format       = L"%G %F %T";

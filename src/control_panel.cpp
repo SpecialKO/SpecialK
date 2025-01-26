@@ -3583,11 +3583,14 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         int clipboard_selection =
           config.screenshots.copy_to_clipboard   ?
-          config.screenshots.allow_hdr_clipboard ? 1 : 2 : 0;
+          config.screenshots.allow_hdr_clipboard ?
+          config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_PNG ? 1
+                                                                                 : 2 : 3 : 0;
 
         if (ImGui::Combo ( "Clipboard Format", &clipboard_selection,
                            "None (Do Not Copy)\0"
                            "HDR Encoded PNG\0"
+                           "HDR Encoded AVIF\0"
                            "Tone-mapped SDR\0\0" ))
         {
           hdr_changed = true;
@@ -3595,7 +3598,23 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           if (clipboard_selection > 0)
           {
             config.screenshots.allow_hdr_clipboard =
-              (clipboard_selection == 1);
+              (clipboard_selection == 1 ||
+               clipboard_selection == 2);
+
+            if (config.screenshots.allow_hdr_clipboard)
+            {
+              config.screenshots.clipboard_hdr_format =
+                clipboard_selection == 1 ? SK_HDR_CLIPBOARD_FORMAT_PNG  :
+                clipboard_selection == 2 ? SK_HDR_CLIPBOARD_FORMAT_AVIF :
+                                           SK_HDR_CLIPBOARD_FORMAT_AVIF;
+
+              if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+              {
+                config.screenshots.use_jxl     = false;
+                config.screenshots.use_avif    = true;
+                config.screenshots.use_hdr_png = false;
+              }
+            }
           }
           config.screenshots.copy_to_clipboard =
             (clipboard_selection > 0);
@@ -3603,7 +3622,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         if (ImGui::BeginItemTooltip ())
         {
-          ImGui::TextUnformatted ("HDR Encoded PNGs are compatible with Discord and most web browsers");
+          ImGui::TextUnformatted ("HDR Encoded PNG and AVIF are compatible with Discord and most web browsers");
           ImGui::Separator       ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
           ImGui::BulletText      ("Instead of tone mapping HDR->SDR, the clipboard will contain a real HDR image.");
@@ -3613,7 +3632,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           ImGui::SameLine        ();
           ImGui::TextColored     (ImVec4 (1.f, 1.f, 1.f, 1.f), "Special K Image Viewer");
           ImGui::SameLine        ();
-          ImGui::TextUnformatted ("(SKIV) can display HDR PNGs on SDR displays and export to SDR");
+          ImGui::TextUnformatted ("(SKIV) can display HDR PNG and AVIF on SDR displays and export to SDR");
           ImGui::PopStyleColor   ();
           ImGui::EndTooltip      ();
         }
@@ -3621,44 +3640,47 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         if ((config.screenshots.copy_to_clipboard &&
              config.screenshots.allow_hdr_clipboard) || config.screenshots.use_hdr_png)
         {
-          hdr_changed |=
-            ImGui::SliderInt ("PNG Quality", &config.screenshots.max_st2084_bits, 7, 16, "%d-bit Limited ST.2084");
-
-          if (ImGui::BeginItemTooltip ())
+          if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_PNG || config.screenshots.use_hdr_png)
           {
-            ImGui::Spacing         ( );
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-            ImGui::TextUnformatted ("Reduced Quality\t\t");
-            ImGui::SameLine        (); auto x_pos =
-            ImGui::GetCursorPosX   ();
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
-            ImGui::TextUnformatted ("(7-bit - 9-bit)");
-            ImGui::TreePush        ("###ReducedQuality");
-            ImGui::BulletText      ("Banding will be visible to the naked eye");
-            ImGui::Spacing         ( );
-            ImGui::TreePop         ( );
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-            ImGui::TextUnformatted ("Visually Lossless");
-            ImGui::SameLine        ();
-            ImGui::SetCursorPos    (ImVec2 (x_pos, ImGui::GetCursorPosY ()));
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
-            ImGui::TextUnformatted ("(10-bit - 12-bit)");
-            ImGui::TreePush        ("###VisuallyLossless");
-            ImGui::BulletText      ("Most image defects were there before encoding");
-            ImGui::Spacing         ( );
-            ImGui::TreePop         ( );
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-            ImGui::TextUnformatted ("Reference Quality");
-            ImGui::SameLine        ();
-            ImGui::SetCursorPos    (ImVec2 (x_pos, ImGui::GetCursorPosY ()));
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
-            ImGui::TextUnformatted ("(16-bit scRGB, 10-bit HDR10)");
-            ImGui::TreePush        ("###ReferenceQuality");
-            ImGui::BulletText      ("Only benefits image analysis tools like SKIV");
-            ImGui::Spacing         ( );
-            ImGui::TreePop         ( );
-            ImGui::PopStyleColor   (6);
-            ImGui::EndTooltip      ( );
+            hdr_changed |=
+              ImGui::SliderInt ("PNG Quality", &config.screenshots.max_st2084_bits, 7, 16, "%d-bit Limited ST.2084");
+
+            if (ImGui::BeginItemTooltip ())
+            {
+              ImGui::Spacing         ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+              ImGui::TextUnformatted ("Reduced Quality\t\t");
+              ImGui::SameLine        (); auto x_pos =
+              ImGui::GetCursorPosX   ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
+              ImGui::TextUnformatted ("(7-bit - 9-bit)");
+              ImGui::TreePush        ("###ReducedQuality");
+              ImGui::BulletText      ("Banding will be visible to the naked eye");
+              ImGui::Spacing         ( );
+              ImGui::TreePop         ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+              ImGui::TextUnformatted ("Visually Lossless");
+              ImGui::SameLine        ();
+              ImGui::SetCursorPos    (ImVec2 (x_pos, ImGui::GetCursorPosY ()));
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
+              ImGui::TextUnformatted ("(10-bit - 12-bit)");
+              ImGui::TreePush        ("###VisuallyLossless");
+              ImGui::BulletText      ("Most image defects were there before encoding");
+              ImGui::Spacing         ( );
+              ImGui::TreePop         ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+              ImGui::TextUnformatted ("Reference Quality");
+              ImGui::SameLine        ();
+              ImGui::SetCursorPos    (ImVec2 (x_pos, ImGui::GetCursorPosY ()));
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
+              ImGui::TextUnformatted ("(16-bit scRGB, 10-bit HDR10)");
+              ImGui::TreePush        ("###ReferenceQuality");
+              ImGui::BulletText      ("Only benefits image analysis tools like SKIV");
+              ImGui::Spacing         ( );
+              ImGui::TreePop         ( );
+              ImGui::PopStyleColor   (6);
+              ImGui::EndTooltip      ( );
+            }
           }
         }
 

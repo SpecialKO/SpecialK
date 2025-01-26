@@ -1669,13 +1669,20 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     {
                       if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard))
                       {
-                        if (SK_PNG_CopyToClipboard (*hdr10_img.GetImages (), wszAbsolutePathToLossless, 0))
+                        if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_PNG &&
+                                                                       SK_PNG_CopyToClipboard (*hdr10_img.GetImages (), wszAbsolutePathToLossless, 0))
                         {
                           bCopiedToClipboard = true;
                         }
                       }
                     }
                   }
+                }
+
+                if ((! bCopiedToClipboard) && config.screenshots.copy_to_clipboard &&
+                                              config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+                {
+                  bCopiedToClipboard = true;
                 }
 
                 if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)) && (! bCopiedToClipboard))
@@ -1762,16 +1769,22 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       // Remove the temporary files...
                       DeleteFileW (wszAbsolutePathToThumbnail);
-                    }
-                    DeleteFileW (wszAbsolutePathToScreenshot);
+                    } DeleteFileW (wszAbsolutePathToScreenshot);
                   }
                 }
               }
 
               if (! (config.screenshots.png_compress && pFrameData->AllowSaveToDisk))
-              {
-                delete pop_off;
-                       pop_off = nullptr;
+              { if (pFrameData->AllowCopyToClipboard &&!pFrameData->AllowSaveToDisk && config.screenshots.copy_to_clipboard    && hdr
+                                                                                    && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+                {
+                  to_write.emplace_back (pop_off);
+                }
+                else
+                {
+                  delete pop_off;
+                         pop_off = nullptr;
+                }
               }
             }
           }
@@ -1970,8 +1983,13 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
 
                     // Handle Normal PNG or JXR/AVIF; HDR PNG was already handled above...
-                    if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress && ((! config.screenshots.use_hdr_png) || (! hdr)))
-                    {
+                    if ( (pFrameData->AllowCopyToClipboard && (config.screenshots.copy_to_clipboard && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF) && hdr) || (pFrameData->AllowSaveToDisk && config.screenshots.png_compress && ((! config.screenshots.use_hdr_png) || (! hdr))))
+                    { if (pFrameData->AllowCopyToClipboard &&  config.screenshots.copy_to_clipboard && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF  && hdr && (!pFrameData->AllowSaveToDisk))
+                      {
+                        PathRemoveFileSpecW (wszAbsolutePathToLossless);
+                        PathAppendW         (wszAbsolutePathToLossless, L"hdr10_clipboard.avif");
+                      }
+
                       SK_CreateDirectories (wszAbsolutePathToLossless);
 
                       ScratchImage
@@ -1982,6 +2000,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       {
                         SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (pFrameData->hdr.max_cll_nits),
                                                                                     static_cast <uint16_t> (pFrameData->hdr.avg_cll_nits));
+
+                        if ( config.screenshots.allow_hdr_clipboard  &&
+                             config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF )
+                        {
+                          SK_AVIF_CopyToClipboard (wszAbsolutePathToLossless);
+                        }
                       }
 
                       if (hdr && config.screenshots.use_jxl)

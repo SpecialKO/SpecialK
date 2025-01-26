@@ -289,6 +289,8 @@ void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
 void SK_WIC_SetMetadataTitle  (IWICMetadataQueryWriter *pMQW, std::string& title);
 
+bool SK_AVIF_CopyToClipboard (const wchar_t* wszFilePath);
+
 bool SK_PNG_MakeHDR (const wchar_t*        wszFilePath,
                      const DirectX::Image& encoded_img,
                      const DirectX::Image& raw_img);

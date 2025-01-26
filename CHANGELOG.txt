@@ -1,4 +1,11 @@
-﻿25.1.26.1
+﻿25.1.26.2
+=========
+ + Added Discord compatible AVIF HDR screenshot encoding, for MUCH more
+     efficient image sharing than crappy old HDR PNG.
+ + Added an option to copy HDR AVIF images to the clipboard instead of
+     PNG; default remains PNG for now -- eventually AVIF will reign supreme!
+
+25.1.26.1
 =========
  + Always clear the camera's background to black in Tales of Graces f,
      to avoid random -white- bars in places where the UI has to be
