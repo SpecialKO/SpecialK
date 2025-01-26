@@ -667,6 +667,7 @@ typedef uint32_t        (*mono_field_get_offset_pfn)(MonoClassField* field);
 
 typedef MonoObject*     (*mono_property_get_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
 typedef MonoProperty*   (*mono_class_get_property_from_name_pfn)(MonoClass *klass, const char *name);
+typedef MonoMethod*     (*mono_property_get_get_method_pfn)(MonoProperty *prop);
 typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
 
 mono_thread_attach_pfn                SK_mono_thread_attach                = nullptr;
@@ -686,6 +687,8 @@ mono_runtime_invoke_pfn               SK_mono_runtime_invoke               = nul
 
 mono_property_get_value_pfn           SK_mono_property_get_value           = nullptr;
 mono_class_get_property_from_name_pfn SK_mono_class_get_property_from_name = nullptr;
+mono_property_get_get_method_pfn      SK_mono_property_get_get_method      = nullptr;
+mono_property_get_get_method_pfn      SK_mono_property_get_set_method      = nullptr;
 mono_image_loaded_pfn                 SK_mono_image_loaded                 = nullptr;
 
 mono_class_get_field_from_name_pfn    SK_mono_class_get_field_from_name    = nullptr;
@@ -773,6 +776,8 @@ SK_TGFix_HookMonoInit (void)
   
   SK_mono_property_get_value           = reinterpret_cast <mono_property_get_value_pfn>           (SK_GetProcAddress (hMono, "mono_property_get_value"));
   SK_mono_class_get_property_from_name = reinterpret_cast <mono_class_get_property_from_name_pfn> (SK_GetProcAddress (hMono, "mono_class_get_property_from_name"));
+  SK_mono_property_get_get_method      = reinterpret_cast <mono_property_get_get_method_pfn>      (SK_GetProcAddress (hMono, "mono_property_get_get_method"));
+  SK_mono_property_get_set_method      = reinterpret_cast <mono_property_get_get_method_pfn>      (SK_GetProcAddress (hMono, "mono_property_get_set_method"));
   SK_mono_image_loaded                 = reinterpret_cast <mono_image_loaded_pfn>                 (SK_GetProcAddress (hMono, "mono_image_loaded"));
   SK_mono_string_new                   = reinterpret_cast <mono_string_new_pfn>                   (SK_GetProcAddress (hMono, "mono_string_new"));
   SK_mono_object_new                   = reinterpret_cast <mono_object_new_pfn>                   (SK_GetProcAddress (hMono, "mono_object_new"));
@@ -1373,11 +1378,13 @@ struct Unity_Rect
   float height;
 };
 
-using Noble_CameraManager_SetCameraViewportRect_pfn = void (*)(MonoObject*, Unity_Rect*);
-using Noble_CameraManager_SetCameraAspect_pfn       = void (*)(MonoObject*, float aspect);
+using Noble_CameraManager_SetCameraViewportRect_pfn  = void (*)(MonoObject*, Unity_Rect*);
+using Noble_CameraManager_SetCameraAspect_pfn        = void (*)(MonoObject*, float aspect);
+using Noble_CameraManager_OnPostNativeGameUpdate_pfn = void (*)(MonoObject*);
 
-Noble_CameraManager_SetCameraViewportRect_pfn Noble_CameraManager_SetCameraViewportRect_Original = nullptr;
-Noble_CameraManager_SetCameraAspect_pfn       Noble_CameraManager_SetCameraAspect_Original       = nullptr;
+Noble_CameraManager_SetCameraViewportRect_pfn  Noble_CameraManager_SetCameraViewportRect_Original  = nullptr;
+Noble_CameraManager_SetCameraAspect_pfn        Noble_CameraManager_SetCameraAspect_Original        = nullptr;
+Noble_CameraManager_OnPostNativeGameUpdate_pfn Noble_CameraManager_OnPostNativeGameUpdate_Original = nullptr;
 
 void
 SK_TGFix_Noble_CameraManager_SetCameraViewportRect_Detour (MonoObject* __this, Unity_Rect* rect)
@@ -1408,6 +1415,70 @@ SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour (MonoObject* __this, float a
 
   Noble_CameraManager_SetCameraAspect_Original (__this, aspect);
 }
+
+void
+SK_TGFix_Noble_CameraManager_OnPostNativeGameUpdate_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  std::ignore = __this;
+
+  //__instance.mCamera.backgroundColor = new UnityEngine.Color (0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+using Noble_Object_ApplyVisibility_pfn = void (*)(MonoObject*);
+      Noble_Object_ApplyVisibility_pfn
+      Noble_Object_ApplyVisibility_Original = nullptr;
+
+void
+SK_TGFix_Noble_Object_ApplyVisibility_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  Noble_Object_ApplyVisibility_Original (__this);
+
+  static MonoMethod* DisableBoundingBox =
+    GetMethod ("Object", "DisableBoundingBox", 0, "Assembly-CSharp", "Noble");
+  static MonoMethod* getGameObject =
+    GetMethod ("Object", "GetGameObject", 0, "Assembly-CSharp", "Noble");
+  static MonoMethod* SetDirtyFlags =
+    GetMethod ("Object", "SetDirtyFlags", 2, "Assembly-CSharp", "Noble");
+
+  MonoObject* gameObject =
+    Invoke (getGameObject, __this, nullptr);
+
+  if (gameObject != nullptr)
+  {
+    static MonoProperty*
+      activeSelf = GetProperty (GetImage ("UnityEngine.CoreModule"), "UnityEngine", "GameObject", "activeSelf");
+    static MonoMethod* get_activeSelf =
+      SK_mono_property_get_get_method (activeSelf);
+    static MonoMethod* set_activeSelf =
+      SK_mono_property_get_set_method (activeSelf);
+
+    MonoObject* activeSelfBoxed =
+      SK_mono_runtime_invoke (get_activeSelf, gameObject, nullptr, nullptr);
+
+    bool* pactiveSelf =
+      (bool *)SK_mono_object_unbox (activeSelfBoxed);
+
+    if (true == *pactiveSelf)
+    {
+      SK_mono_runtime_invoke (DisableBoundingBox, __this, nullptr, nullptr);
+      //                    *pactiveSelf = true;
+      //void* params [] = {  pactiveSelf };
+      //
+      //SK_mono_runtime_invoke (set_activeSelf, gameObject, params, nullptr);
+    }
+
+    //static int                kVisibility = 1;
+    //static bool                             dirty = false;
+    //void* dirty_flags [] = { &kVisibility, &dirty };
+    //
+    //Invoke (SetDirtyFlags, __this, dirty_flags);
+  }
+}
+
 
 using Noble_PrimitiveManager_CalcUIOrthoMatrix_pfn = void (*)(MonoObject*, bool forceproc);
       Noble_PrimitiveManager_CalcUIOrthoMatrix_pfn
@@ -1660,6 +1731,10 @@ SK_TGFix_SetupFramerateHooks (void)
       CompileMethod ("Noble", "CameraManager",
                            "SetCameraAspect", 1);
 
+    auto pfnNoble_CameraManager_OnPostNativeGameUpdate =
+      CompileMethod ("Noble", "CameraManager",
+                           "OnPostNativeGameUpdate", 0);
+
     SK_CreateFuncHook (               L"Noble.CameraManager.SetCameraViewportRect",
                                      pfnNoble_CameraManager_SetCameraViewportRect,
                                SK_TGFix_Noble_CameraManager_SetCameraViewportRect_Detour,
@@ -1670,8 +1745,26 @@ SK_TGFix_SetupFramerateHooks (void)
                                SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour,
       static_cast_p2p <void> (&         Noble_CameraManager_SetCameraAspect_Original) );
 
+    SK_CreateFuncHook (               L"Noble.CameraManager.OnPostNativeGameUpdate",
+                                     pfnNoble_CameraManager_OnPostNativeGameUpdate,
+                               SK_TGFix_Noble_CameraManager_OnPostNativeGameUpdate_Detour,
+      static_cast_p2p <void> (&         Noble_CameraManager_OnPostNativeGameUpdate_Original) );
+
     SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraViewportRect);
     SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraAspect);
+    SK_QueueEnableHook (pfnNoble_CameraManager_OnPostNativeGameUpdate);
+
+    ////// Keep all objects visible at all times to workaround bad camera culling
+    ////auto pfnNoble_Object_ApplyVisibility =
+    ////  CompileMethod ("Noble", "Object",
+    ////                 "ApplyVisibility", 0);
+    ////
+    ////SK_CreateFuncHook (               L"Noble.Object.ApplyVisibility",
+    ////                                 pfnNoble_Object_ApplyVisibility,
+    ////                           SK_TGFix_Noble_Object_ApplyVisibility_Detour,
+    ////  static_cast_p2p <void> (&         Noble_Object_ApplyVisibility_Original) );
+    ////
+    ////SK_QueueEnableHook (pfnNoble_Object_ApplyVisibility);
 
     auto pfnNoble_PrimitiveManager_CalcUIOrthoMatrix =
       CompileMethod ("Noble", "PrimitiveManager",
@@ -1875,6 +1968,14 @@ SK_TGFix_SetMSAASampleCount (int sample_count)
   SK_LOGi0 (L"Setting MSAA Sample Count: %d", sample_count);
 
   InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalRenderPipelineAsset", "set_msaaSampleCount", 1, pipeline, "Unity.RenderPipelines.Universal.Runtime", params);
+
+  if (sample_count > 1)
+  {
+    int             none = 0;
+    params [0] = { &none };
+
+    SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_OpaqueDownsampling"), &none);
+  }
 }
 
 void

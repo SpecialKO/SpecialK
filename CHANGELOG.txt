@@ -1,4 +1,12 @@
-﻿25.1.26
+﻿25.1.26.1
+=========
+ + Always clear the camera's background to black in Tales of Graces f,
+     to avoid random -white- bars in places where the UI has to be
+       centered in 16:9 for wide/narrow screens.
+ + Set the "opaque downsampling" pass in Tales of Graces f to native
+     resolution when MSAA is used.
+
+25.1.26
 =======
  + Fixed scenario where SK wouldn't correctly detect RenoDX in
      Tales of Graces f.
