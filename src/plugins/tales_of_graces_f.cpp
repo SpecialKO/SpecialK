@@ -1923,6 +1923,10 @@ SK_TGFix_SetCameraAA (void)
 void
 SK_TGFix_EnableInternalHDR (bool enable)
 {
+  // Do not turn on internal HDR without RenoDX
+  if (! GetModuleHandleW (L"renodx-talesofgracesf.addon64"))
+    return;
+
   if (! enable)
     return;
 

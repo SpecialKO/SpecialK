@@ -1,6 +1,11 @@
-﻿25.1.25
+﻿25.1.25.1
+=========
+ + Released new version to get 25.1.2.51 verison number
+ + Disable HDR in Tales of Graces f without RenoDX
+
+25.1.25
 =======
- + Changed default gamepad polling rate to 250 Hz in Tales of Graces f,
+ + Changed default gamepad polling rate to 240 Hz in Tales of Graces f,
      because Steam Input and the native Windows.Gaming.Input implementation
        do not work reliably at higher rates.
  + Enabled HDR rendering in Tales of Graces f w/o using HDR remasters;
