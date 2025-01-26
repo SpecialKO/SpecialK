@@ -1679,8 +1679,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   }
                 }
 
-                if ((! bCopiedToClipboard) && config.screenshots.copy_to_clipboard &&
-                                              config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+                if (! bCopiedToClipboard && config.screenshots.copy_to_clipboard
+                                         && config.screenshots.allow_hdr_clipboard
+                                         && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
                 {
                   bCopiedToClipboard = true;
                 }

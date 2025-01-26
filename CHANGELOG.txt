@@ -1,4 +1,9 @@
-﻿25.1.26.3
+﻿25.1.26.4
+=========
+ + Fixed tone-mapped screenshot setting not applying to clipboard screenshots
+ + Tweaked ReShade compatibility slightly
+
+25.1.26.3
 =========
  + Fixed AVIF screenshots copied to the clipboard _after_ being saved to disk
      the normal way not being valid because they had a .jxr file extension in

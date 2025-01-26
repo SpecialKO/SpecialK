@@ -3615,6 +3615,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 config.screenshots.use_hdr_png = false;
               }
             }
+
+            else
+            {
+              config.screenshots.clipboard_hdr_format = 0;
+            }
           }
           config.screenshots.copy_to_clipboard =
             (clipboard_selection > 0);
