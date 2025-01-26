@@ -11172,8 +11172,8 @@ SK_DXGI_QuickHook (void)
   {
     SK_LOGi0 (L" # DXGI QuickHook disabled because a ReShade Plug-In is present...");
 
-    // Implicitly load ReShade (ReShade{32|64}.dll) if it exists
-    SK_ReShade_LoadIfPresent ();
+    //// Implicitly load ReShade (ReShade{32|64}.dll) if it exists
+    //SK_ReShade_LoadIfPresent ();
 
     __SK_DisableQuickHook = TRUE;
   }

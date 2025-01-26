@@ -315,8 +315,6 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
 void
 SK_NvAPI_HookReflex (void)
 {
-  SK_LOGi0 (L"SK_NvAPI_HookReflex (...)");
-
   static bool          init = false;
   if (! std::exchange (init, true))
   {

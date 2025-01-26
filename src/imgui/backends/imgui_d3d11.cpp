@@ -1922,8 +1922,11 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
       _pDevice    = pDevice;
       _pDeviceCtx = pDeviceCtx;
 
-      _pReShadeRuntime =
-        SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (_pDevice, _pDeviceCtx, _pSwapChain);
+      if (config.reshade.is_addon_hookless)
+      {
+        _pReShadeRuntime =
+          SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (_pDevice, _pDeviceCtx, _pSwapChain);
+      }
 
       return true;
     }
@@ -2201,14 +2204,24 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   // Queue-up Post-SK OSD Screenshots  (If done here, will not include ReShade)
   SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
 
+  if (_pReShadeRuntime == nullptr)
+  {
+    if (! config.reshade.is_addon_hookless)
+    {
+      if (_pReShadeRuntime == nullptr)
+          _pReShadeRuntime = SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain);
+    }
+
+    else
+    {
+      // Lazy initialize the runtime so that we can hot-inject ReShade
+      _pReShadeRuntime =
+        SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (_pDevice, _pDeviceCtx, _pSwapChain);
+    }
+  }
+
   if (_pReShadeRuntime != nullptr)
     SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
-  else if (config.reshade.is_addon)
-  {
-    // Lazy initialize the runtime so that we can hot-inject ReShade
-    _pReShadeRuntime =
-      SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (_pDevice, _pDeviceCtx, _pSwapChain);
-  }
 
   ApplyStateblock (_pDeviceCtx, sb);
 

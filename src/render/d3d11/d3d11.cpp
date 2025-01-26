@@ -7892,8 +7892,8 @@ SK_D3D11_QuickHook (void)
   {
     SK_LOGi0 (L" # D3D11 QuickHook disabled because a ReShade Plug-In is present...");
 
-    // Implicitly load ReShade (ReShade{32|64}.dll) if it exists
-    SK_ReShade_LoadIfPresent ();
+    //// Implicitly load ReShade (ReShade{32|64}.dll) if it exists
+    //SK_ReShade_LoadIfPresent ();
 
     return;
   }

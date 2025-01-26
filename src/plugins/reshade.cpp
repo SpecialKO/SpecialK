@@ -1289,7 +1289,7 @@ SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *run
     runtime->set_color_space (reshade::api::color_space::srgb_nonlinear);
   }
 
-  //if (config.reshade.is_addon_hookless)
+  if (config.reshade.is_addon_hookless)
     reshade::update_and_present_effect_runtime (runtime);
 }
 
