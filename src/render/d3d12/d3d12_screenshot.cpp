@@ -2010,8 +2010,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           PathRemoveExtensionW (wszAVIFPath);
                           PathAddExtensionW    (wszAVIFPath, L".avif");
 
-                          FILE* fAVIF =
-                            _wfopen (wszAVIFPath, L"wb");
                           SK_AVIF_CopyToClipboard (wszAVIFPath);
                         }
                       }
