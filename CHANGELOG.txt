@@ -1,6 +1,11 @@
-﻿25.1.25.1
+﻿25.1.26
+=======
+ + Fixed scenario where SK wouldn't correctly detect RenoDX in
+     Tales of Graces f.
+
+25.1.25.1
 =========
- + Released new version to get 25.1.2.51 verison number
+ + Released new version to get 25.1.25.1 version number
  + Disable HDR in Tales of Graces f without RenoDX
 
 25.1.25
