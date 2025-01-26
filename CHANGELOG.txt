@@ -1,4 +1,10 @@
-﻿25.1.26.2
+﻿25.1.26.3
+=========
+ + Fixed AVIF screenshots copied to the clipboard _after_ being saved to disk
+     the normal way not being valid because they had a .jxr file extension in
+       the clipboard name...
+
+25.1.26.2
 =========
  + Added Discord compatible AVIF HDR screenshot encoding, for MUCH more
      efficient image sharing than crappy old HDR PNG.

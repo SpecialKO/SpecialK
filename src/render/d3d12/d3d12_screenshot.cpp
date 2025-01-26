@@ -1775,8 +1775,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               }
 
               if (! (config.screenshots.png_compress && pFrameData->AllowSaveToDisk))
-              { if (pFrameData->AllowCopyToClipboard &&!pFrameData->AllowSaveToDisk && config.screenshots.copy_to_clipboard    && hdr
-                                                                                    && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+              { if (pFrameData->AllowCopyToClipboard && config.screenshots.copy_to_clipboard    && hdr
+                                                     && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
                 {
                   to_write.emplace_back (pop_off);
                 }
@@ -2004,7 +2004,15 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         if ( config.screenshots.allow_hdr_clipboard  &&
                              config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF )
                         {
-                          SK_AVIF_CopyToClipboard (wszAbsolutePathToLossless);
+                          wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
+                          wcsncpy_s (wszAVIFPath, wszAbsolutePathToLossless, MAX_PATH);
+
+                          PathRemoveExtensionW (wszAVIFPath);
+                          PathAddExtensionW    (wszAVIFPath, L".avif");
+
+                          FILE* fAVIF =
+                            _wfopen (wszAVIFPath, L"wb");
+                          SK_AVIF_CopyToClipboard (wszAVIFPath);
                         }
                       }
 
