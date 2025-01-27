@@ -1239,7 +1239,7 @@ MonoObject* ConstructNewObject (MonoClass* klass, int num_args, void** args)
   if (instance != nullptr)
   {
     return
-      Invoke (ctor, instance, args);
+      SK_mono_runtime_invoke (ctor, instance, args, nullptr);
   }
 
   return nullptr;
@@ -1253,7 +1253,7 @@ MonoObject* ConstructObject (MonoClass* klass, MonoObject* instance, int num_arg
   if (instance != nullptr)
   {
     return
-      Invoke (ctor, instance, args);
+      SK_mono_runtime_invoke (ctor, instance, args, nullptr);
   }
 
   return nullptr;
@@ -1610,8 +1610,7 @@ SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bo
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_TGFix_NativeAspect == SK_TGFix_AspectRatio)
-    Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
+  Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
 }
 
 using NobleMovieRendereFeature_Create_pfn = void (*)(MonoObject*);
@@ -1650,26 +1649,6 @@ SK_TGFix_NobleMovieRendereFeature_Create_Detour (MonoObject* __this)
   //  else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect)
   //    SetFieldValue (view, m11, &SK_TGFix_AspectMultiplier);
   //}
-}
-
-using UnityEngine_Rendering_Volume_OnEnable_pfn = void (*)(MonoObject*);
-      UnityEngine_Rendering_Volume_OnEnable_pfn
-      UnityEngine_Rendering_Volume_OnEnable_Original = nullptr;
-
-void
-SK_TGFix_UnityEngine_Rendering_Volume_OnEnable_Detour (MonoObject* __this)
-{
-  SK_LOG_FIRST_CALL
-
-  UnityEngine_Rendering_Volume_OnEnable_Original (__this);
-
-  auto pipeline =
-    GetStaticFieldValue ("GraphicsSettings", "currentRenderPipeline", "UnityEngine.CoreModule", "UnityEngine.Rendering");
-
-  auto msaa_sample_count =
-    GetField ("UniversalRenderPipelineAsset", "msaaSampleCount", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal");
-
-  std::ignore = pipeline, msaa_sample_count;
 }
 
 using UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn = void (*)(MonoObject*, Unity_Rect*);
@@ -1796,20 +1775,20 @@ SK_TGFix_SetupFramerateHooks (void)
     //                                 pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain,
     //                           SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour,
     //  static_cast_p2p <void> (&         Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original) );
-
+    //
     //SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain);
-
-    auto pfnNobleMovieRendereFeature_Create =
-      CompileMethod ("",
-           "NobleMovieRendereFeature",
-                                    "Create", 0);
-
-    SK_CreateFuncHook (               L"NobleMovieRendereFeature.Create",
-                                     pfnNobleMovieRendereFeature_Create,
-                               SK_TGFix_NobleMovieRendereFeature_Create_Detour,
-      static_cast_p2p <void> (&         NobleMovieRendereFeature_Create_Original) );
-
-    SK_QueueEnableHook (pfnNobleMovieRendereFeature_Create);
+    //
+    //auto pfnNobleMovieRendereFeature_Create =
+    //  CompileMethod ("",
+    //       "NobleMovieRendereFeature",
+    //                                "Create", 0);
+    //
+    //SK_CreateFuncHook (               L"NobleMovieRendereFeature.Create",
+    //                                 pfnNobleMovieRendereFeature_Create,
+    //                           SK_TGFix_NobleMovieRendereFeature_Create_Detour,
+    //  static_cast_p2p <void> (&         NobleMovieRendereFeature_Create_Original) );
+    //
+    //SK_QueueEnableHook (pfnNobleMovieRendereFeature_Create);
 
     SK_ApplyQueuedHooks ();
   });
@@ -1847,24 +1826,6 @@ SK_TGFix_SetupFramerateHooks (void)
   if (! (LoadMonoAssembly ("Unity.RenderPipelines.Core.Runtime") &&
          LoadMonoAssembly ("Unity.RenderPipelines.Universal.Runtime")))
     return false;
-
-  SK_RunOnce (
-  {
-    auto pfnUnityEngine_Rendering_Volume_OnEnable =
-      CompileMethod ("UnityEngine.Rendering", "Volume", "OnEnable", 0,
-                     "Unity.RenderPipelines.Core.Runtime");
-
-    SK_CreateFuncHook (               L"UnityEngine.Rendering.Volume.OnEnable",
-                                     pfnUnityEngine_Rendering_Volume_OnEnable,
-                               SK_TGFix_UnityEngine_Rendering_Volume_OnEnable_Detour,
-      static_cast_p2p <void> (&         UnityEngine_Rendering_Volume_OnEnable_Original) );
-
-    SK_QueueEnableHook (pfnUnityEngine_Rendering_Volume_OnEnable);
-
-    SK_LOGi0 (L"Hooked 'UnityEngine.Rendering.Volume.OnEnable' from 'Unity.RenderPipelines.Core.Runtime'");
-
-    SK_ApplyQueuedHooks ();
-  });
 
   return true;
 }
