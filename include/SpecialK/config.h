@@ -1126,6 +1126,10 @@ struct sk_config_t
         float deadzone            =  5.0f; // 5% Left/Right Analog Stick Deadzone
       } xinput;
 
+      struct {
+        bool  blackout_api        = false;
+      } windows_gaming_input;
+
       struct dinput_s {
         bool  blackout_gamepads   = false;
         bool  blackout_keyboards  = false;

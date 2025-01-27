@@ -3342,14 +3342,17 @@ auto DeclKeybind =
       case SK_GAME_ID::Tales_of_Graces:
       {
         // Avoid the game's native DualSense support so rumble will work
-        config.input.gamepad.xinput.emulate              = true;
-        config.input.gamepad.disable_hid                 = true;
-        config.input.gamepad.scepad.alias_trackpad_share = true;
-        config.render.framerate.target_fps               = 0.0f;
-        config.render.framerate.buffer_count             = 3;
-        config.render.framerate.pre_render_limit         = 2;
-        config.render.framerate.sleepless_render         = true;
-        config.render.framerate.sleepless_window         = true;
+        config.input.gamepad.xinput.emulate                    = true;
+        config.input.gamepad.disable_hid                       = true;
+        config.input.gamepad.scepad.alias_trackpad_share       = true;
+        // XInput has a number of advantages over WGI and Unity will fallback
+        //   to XInput 1.3 if we deny it access to Windows.Gaming.Input interfaces.
+        config.input.gamepad.windows_gaming_input.blackout_api = true;
+        config.render.framerate.target_fps                     = 0.0f;
+        config.render.framerate.buffer_count                   = 3;
+        config.render.framerate.pre_render_limit               = 2;
+        config.render.framerate.sleepless_render               = true;
+        config.render.framerate.sleepless_window               = true;
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:

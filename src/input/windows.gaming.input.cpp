@@ -1392,6 +1392,12 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     {
       SK_LOGi0 (L"RoGetActivationFactory (IID_IRawGameControllerStatics)");
 
+      if (config.input.gamepad.windows_gaming_input.blackout_api)
+      {
+        SK_LOGi0 (L" => Disabling Interface for Current Game.");
+        return E_NOTIMPL;
+      }
+
       if (config.input.gamepad.xinput.emulate)
       {
         // XXX: TODO.
@@ -1404,6 +1410,12 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     if (iid == IID_IGamepadStatics2)
     {
       SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics2)");
+
+      if (config.input.gamepad.windows_gaming_input.blackout_api)
+      {
+        SK_LOGi0 (L" => Disabling Interface for Current Game.");
+        return E_NOTIMPL;
+      }
 
       if (config.input.gamepad.xinput.emulate)
       {
@@ -1439,6 +1451,12 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     if (iid == IID_IGamepadStatics)
     {
       SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics)");
+
+      if (config.input.gamepad.windows_gaming_input.blackout_api)
+      {
+        SK_LOGi0 (L" => Disabling Interface for Current Game.");
+        return E_NOTIMPL;
+      }
 
       SK_ComPtr <ABI::Windows::Gaming::Input::IGamepadStatics> pGamepadStatsFactory;
 
