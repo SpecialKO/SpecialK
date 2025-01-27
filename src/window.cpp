@@ -6998,14 +6998,15 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     return false;
 
   const bool dummy_window =
-    (*pWindowClass->lpszClassName == L'K' && StrStrW (pWindowClass->lpszClassName, L"Kiero DirectX Window"))                  || // CyberEngine
-    (*pWindowClass->lpszClassName == L'R' && StrStrW (pWindowClass->lpszClassName, L"RTSSWndClass"))                          || // RTSS
-    (*pWindowClass->lpszClassName == L'S' && StrStrW (pWindowClass->lpszClassName, L"Special K Dummy Window Class"))          || // ... that's us!
-    (*pWindowClass->lpszClassName == L'E' && StrStrW (pWindowClass->lpszClassName, L"EOSOVHDummyWindowClass"))                || // Epic Online Store Overlay
-    (*pWindowClass->lpszClassName == L'C' && StrStrW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window")) || // Twitch
-    (*pWindowClass->lpszClassName == L'T' && StrStrW (pWindowClass->lpszClassName, L"TestDX11WindowClass"))                   || // X-Ray Oxygen
-    (*pWindowClass->lpszClassName == L's' && StrStrW (pWindowClass->lpszClassName, L"static"))                                || // AMD's stupid OpenGL interop
-    (*pWindowClass->lpszClassName == L'S' && StrStrW (pWindowClass->lpszClassName, L"SKIV_NotificationIcon"))                 || // SKIV's thingy...
+  //(*pWindowClass->lpszClassName == L'K' && !_wcsicmp (pWindowClass->lpszClassName, L"Kiero DirectX Window"))                  || // CyberEngine
+    (*pWindowClass->lpszClassName == L'K' && StrStrW   (pWindowClass->lpszClassName, L"Kiero"))                                 || // Lovely, they shortened this in later iterations...
+    (*pWindowClass->lpszClassName == L'R' && !_wcsicmp (pWindowClass->lpszClassName, L"RTSSWndClass"))                          || // RTSS
+    (*pWindowClass->lpszClassName == L'S' && !_wcsicmp (pWindowClass->lpszClassName, L"Special K Dummy Window Class"))          || // ... that's us!
+    (*pWindowClass->lpszClassName == L'E' && !_wcsicmp (pWindowClass->lpszClassName, L"EOSOVHDummyWindowClass"))                || // Epic Online Store Overlay
+    (*pWindowClass->lpszClassName == L'C' && !_wcsicmp (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window")) || // Twitch
+    (*pWindowClass->lpszClassName == L'T' && !_wcsicmp (pWindowClass->lpszClassName, L"TestDX11WindowClass"))                   || // X-Ray Oxygen
+    (*pWindowClass->lpszClassName == L's' && !_wcsicmp (pWindowClass->lpszClassName, L"static"))                                || // AMD's stupid OpenGL interop
+    (*pWindowClass->lpszClassName == L'S' && !_wcsicmp (pWindowClass->lpszClassName, L"SKIV_NotificationIcon"))                 || // SKIV's thingy...
 
     // F' it, there's a pattern here, just ignore all dummies.
     ((*pWindowClass->lpszClassName == L'D'||

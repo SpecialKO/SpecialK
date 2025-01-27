@@ -1,4 +1,15 @@
-﻿25.1.26.4
+﻿25.1.27
+=======
+ + Add protection against recently changed versions of "Kiero" hook framework,
+     which changed its window class from "Kiero DirectX Window" to "Kiero".
+
+   * This hook system is used by CyberTweakEngine and Overwolf overlays, and
+       generally causes all kinds of window management problems if special
+         compatibility code isn't activated...
+
+     Renaming the damn window class was much appreciated, Kiero :-\
+
+25.1.26.4
 =========
  + Fixed tone-mapped screenshot setting not applying to clipboard screenshots
  + Tweaked ReShade compatibility slightly

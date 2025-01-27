@@ -4808,6 +4808,9 @@ SK_DXGI_CreateSwapChain_PreInit (
                          L"Not Used (or Offscreen)",
                           pDesc->SampleDesc.Count );
 
+    wchar_t                                  wszWindowClass [128] = { };
+    RealGetWindowClass (pDesc->OutputWindow, wszWindowClass, 127);
+
     dll_log->LogEx ( true,
     L"[Swap Chain]  { %ws }\n"
     L"  +-------------+-------------------------------------------------------------------------+\n"
@@ -4817,6 +4820,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     L"  | MSAA....... |  %-71ws|\n"
     L"  | Mode....... |  %-71ws|\n"
     L"  | Window..... |  0x%08x%-61ws|\n"
+    L"  | WindowClass |  %-71ws|\n"
     L"  | Scaling.... |  %-71ws|\n"
     L"  | Scanlines.. |  %-71ws|\n",
          wszLabel,
@@ -4833,6 +4837,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         L"Windowed" :
         L"Fullscreen",
     sk::narrow_cast <UINT> ((uintptr_t)pDesc->OutputWindow), L" ",
+    wszWindowClass,
     pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
                                                 L"Unspecified" :
     pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED    ?
