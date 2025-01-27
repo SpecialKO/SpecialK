@@ -1259,14 +1259,25 @@ D3D11Dev_CreateSamplerState_Override
 
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
-#if 0
-  extern const char*
-  SK_D3D11_FilterToStr (D3D11_FILTER filter) noexcept;
+  if (config.render.d3d11.trace_sampler_init)
+  {
+    extern const char*
+    SK_D3D11_FilterToStr (D3D11_FILTER filter) noexcept;
 
-  dll_log->Log ( L"CreateSamplerState - Filter: %hs, MaxAniso: %lu, MipLODBias: %3.1f, MinLOD: %3.1f, MaxLOD: %3.1f, Comparison: %d, U:%d,V:%d,W:%d - %ws",
-                 SK_D3D11_FilterToStr (new_desc.Filter), new_desc.MaxAnisotropy, new_desc.MipLODBias, new_desc.MinLOD, new_desc.MaxLOD,
-                 new_desc.ComparisonFunc, new_desc.AddressU, new_desc.AddressV, new_desc.AddressW, SK_SummarizeCaller ().c_str () );
-#endif
+    dll_log->Log (
+      L"CreateSamplerState - Filter: %hs, MaxAniso: %lu, MipLODBias: %3.1f, MinLOD: %3.1f"
+      L", MaxLOD: % 3.1f, Comparison : % d, U : % d, V : % d, W : % d - % ws",
+        SK_D3D11_FilterToStr (new_desc.Filter),
+                              new_desc.MaxAnisotropy,
+                              new_desc.MipLODBias,
+                              new_desc.MinLOD,
+                              new_desc.MaxLOD,
+                              new_desc.ComparisonFunc,
+                              new_desc.AddressU,
+                              new_desc.AddressV,
+                              new_desc.AddressW, SK_SummarizeCaller ().c_str ()
+    );
+  }
 
 #pragma region UglyGameHacksThatShouldNotBeHere
   static const bool bShenmue =

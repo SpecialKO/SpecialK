@@ -87,7 +87,7 @@ struct sk_tgfix_cfg_s {
   // 
   //  * Game is hardcoded to poll gamepad input at 60 Hz
   //      regardless of device caps or framerate limit, ugh!
-  PlugInParameter <float> gamepad_polling_hz = 240.0f;
+  PlugInParameter <float> gamepad_polling_hz = 10000.0f;
 
   bool _fix_shadow_scissors = true;
 } SK_TGFix_Cfg;
@@ -204,6 +204,30 @@ SK_TGFix_PlugInCfg (void)
         }
 
         SK_TGFix_SetCameraAA ();
+
+        if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
+        {
+          restart_reqs++;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+
+        ImGui::SameLine ();
+
+        if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
+                                                   config.render.d3d12.max_anisotropy > 0 ? config.render.d3d12.max_anisotropy != 9 ? "%dx" : "Game Default" : "Game Default"))
+        {
+          restart_reqs++;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Force maximum anisotropic filtering level (game's default = 9x), for native anisotropic "
+                               "filtered render passes as well as any forced.");
 
         cfg_changed = true;
       }

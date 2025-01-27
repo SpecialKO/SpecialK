@@ -1,4 +1,11 @@
-﻿25.1.27.1
+﻿25.1.27.2
+=========
+ + Boosted default gamepad polling rate up to 1 kHz again after disabling WGI
+     in favor of XInput for Tales of Graces f.
+ + Added options to control anisotropic filtering front and center in
+     Tales of Graces f's control panel.
+
+25.1.27.1
 =========
  + Prevent Tales of Graces f using Windows.Gaming.Input to get it to fallback to
      XInput 1.3, which has support for gamepad input polling on -real- Xbox

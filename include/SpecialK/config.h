@@ -845,6 +845,7 @@ struct sk_config_t
       bool    wrap_d3d11_dev_ctx   = false;
       bool    track_map_and_unmap  = true;
       bool    track_set_shader_res = true; // Required for used texture determination in mod tools
+      bool    trace_sampler_init   = false;
     } d3d11;
 
     struct {

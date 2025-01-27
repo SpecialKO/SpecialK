@@ -3348,11 +3348,14 @@ auto DeclKeybind =
         // XInput has a number of advantages over WGI and Unity will fallback
         //   to XInput 1.3 if we deny it access to Windows.Gaming.Input interfaces.
         config.input.gamepad.windows_gaming_input.blackout_api = true;
+      //config.render.d3d11.trace_sampler_init                 = true;
         config.render.framerate.target_fps                     = 0.0f;
-        config.render.framerate.buffer_count                   = 3;
-        config.render.framerate.pre_render_limit               = 2;
+        config.render.framerate.buffer_count                   =    3;
+        config.render.framerate.pre_render_limit               =    2;
         config.render.framerate.sleepless_render               = true;
         config.render.framerate.sleepless_window               = true;
+        config.render.d3d12.max_anisotropy                     =    9;
+        config.render.d3d12.force_anisotropic                  =false;
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:
