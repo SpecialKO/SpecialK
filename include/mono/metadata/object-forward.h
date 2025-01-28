@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file
  *
  * Forward declarations of opaque types, and typedefs thereof.
@@ -13,6 +13,7 @@
 typedef struct _MonoClass MonoClass;
 typedef struct _MonoImage MonoImage;
 typedef struct _MonoMethod MonoMethod;
+typedef struct _MonoMethodDesc MonoMethodDesc;
 
 typedef struct _MonoObject MONO_RT_MANAGED_ATTR MonoObject;
 typedef struct _MonoException MONO_RT_MANAGED_ATTR MonoException;

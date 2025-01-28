@@ -76,8 +76,15 @@ struct sk_tgfix_cfg_s {
   PlugInParameter <bool>  sharpen_outlines   = false;
 
   PlugInParameter <bool>  disable_fxaa       = false;
+  PlugInParameter <bool>  disable_smog       =  true;
 
   PlugInParameter <bool>  use_taa            = false;
+  PlugInParameter <float> taa_jitter         =  0.9f;//Not configurable yet
+  PlugInParameter <float> taa_blend_power    = 0.75f;//Not configurable yet
+  PlugInParameter <float> taa_frame_influence= 0.33f;//Not configurable yet
+  PlugInParameter <int>   taa_quality        =     2;//Not configurable yet
+
+  PlugInParameter <int>   hdr_quality        =     1; // 1 = 32-bit, 2 = 64-bit
   PlugInParameter <int>   msaa_sample_count  =     1;
   PlugInParameter <float> render_scale       =  1.0f;
 
@@ -99,14 +106,14 @@ SK_TGFix_PlugInCfg (void)
   {
     bool cfg_changed = false;
 
-    ImGui::TreePush ("");
+    ImGui::TreePush       ("");
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
     static int  restart_reqs = 0;
 
-    ImGui::BeginGroup ();
+    ImGui::BeginGroup (  );
     if (ImGui::CollapsingHeader (ICON_FA_PORTRAIT " Graphics Settings", ImGuiTreeNodeFlags_DefaultOpen |
                                                                         ImGuiTreeNodeFlags_AllowOverlap))
     {
@@ -122,7 +129,7 @@ SK_TGFix_PlugInCfg (void)
         case  8: msaa_idx = 3; break;
       }
 
-      if (ImGui::Combo ("Multisampling", &msaa_idx, "Do Not Use\0 2x MSAA\0 4x MSAA\0 8x MSAA"))
+      if (ImGui::Combo ("Multisampling", &msaa_idx, "Not Active\0 2x MSAA\0 4x MSAA\0 8x MSAA"))
       {
         SK_TGFix_Cfg.msaa_sample_count.store (1 << msaa_idx);
 
@@ -155,6 +162,8 @@ SK_TGFix_PlugInCfg (void)
         cfg_changed = true;
       }
 
+      ImGui::SetItemTooltip ("Temporal AA cannot be used with MSAA, and there are various unsolved artifacts that will occur using MSAA...");
+
       if (ImGui::SliderFloat ("Render Scale", &SK_TGFix_Cfg.render_scale, 0.1f, 2.0f))
       {
         SK_TGFix_Cfg.render_scale.store ();
@@ -164,11 +173,17 @@ SK_TGFix_PlugInCfg (void)
         cfg_changed = true;
       }
 
+      ImGui::SetItemTooltip ("Some parts of the game's UI are buggy and scale w/ Render Scale, you should only use this with Temporal AA.");
+
+      if (SK_TGFix_Cfg.msaa_sample_count > 1 && SK_TGFix_Cfg.use_taa)
+          SK_TGFix_Cfg.use_taa.store (false);
+
       int                                  postfx_aa_sel = 0;
       if (      SK_TGFix_Cfg.use_taa)      postfx_aa_sel = 2;
       else if (!SK_TGFix_Cfg.disable_fxaa) postfx_aa_sel = 1;
 
-      if (ImGui::Combo ("PostFX Anti-Aliasing", &postfx_aa_sel, "None\0Morphological (FXAA)\0Temporal AA\0\0"))
+      if (ImGui::Combo ("PostFX Anti-Aliasing", &postfx_aa_sel, SK_TGFix_Cfg.msaa_sample_count <= 1 ? "None\0Morphological (FXAA)\0Temporal AA\0\0" 
+                                                                                                    : "None\0Morphological (FXAA)\0\0"))
       {
         bool orig_disable_fxaa = SK_TGFix_Cfg.disable_fxaa;
 
@@ -205,37 +220,37 @@ SK_TGFix_PlugInCfg (void)
 
         SK_TGFix_SetCameraAA ();
 
-        if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
-        {
-          restart_reqs++;
-
-          config.utility.save_async ();
-        }
-
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
-
-        ImGui::SameLine ();
-
-        if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
-                                                   config.render.d3d12.max_anisotropy > 0 ? config.render.d3d12.max_anisotropy != 9 ? "%dx" : "Game Default" : "Game Default"))
-        {
-          restart_reqs++;
-
-          config.utility.save_async ();
-        }
-
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Force maximum anisotropic filtering level (game's default = 9x), for native anisotropic "
-                               "filtered render passes as well as any forced.");
-
         cfg_changed = true;
       }
+      
+      if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
+                                                 config.render.d3d12.max_anisotropy > 0 ? config.render.d3d12.max_anisotropy != 9 ? "%dx" : "Game Default" : "Game Default"))
+      {
+        cfg_changed = true;
+        restart_reqs++;
+      
+        config.utility.save_async ();
+      }
+      
+      ImGui::SetItemTooltip ("Force maximum anisotropic filtering level (game's default = 9x), for native anisotropic "
+                             "filtered render passes as well as any forced.");
+
+      if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
+      {
+        cfg_changed = true;
+        restart_reqs++;
+      
+        config.utility.save_async ();
+      }
+      
+      ImGui::SetItemTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
 
       ImGui::SeparatorText ("Post-Processing Passes");
 
-      if (ImGui::Checkbox ("Disable Depth of Field", &SK_TGFix_Cfg.disable_dof))
+      bool                                    dof = !SK_TGFix_Cfg.disable_dof;
+      if (ImGui::Checkbox ("Depth of Field", &dof))
       {
+              SK_TGFix_Cfg.disable_dof = !dof;
         if (! SK_TGFix_Cfg.disable_dof)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x54f44c1a);
@@ -254,8 +269,15 @@ SK_TGFix_PlugInCfg (void)
       }
       ImGui::SetItemTooltip ("Depth of Field may be unusually strong at DSR resolutions and when using MSAA.");
 
-      if (ImGui::Checkbox ("Disable Heat Haze", &SK_TGFix_Cfg.disable_heat_haze))
+      const auto fItemSpacing = 
+        ImGui::GetStyle ().ItemSpacing.x * 3.0f;
+
+      ImGui::SameLine (0.0f, fItemSpacing);
+
+      bool                               heat_haze = !SK_TGFix_Cfg.disable_heat_haze;
+      if (ImGui::Checkbox ("Heat Haze", &heat_haze))
       {
+            SK_TGFix_Cfg.disable_heat_haze = !heat_haze;
         if (SK_TGFix_Cfg.disable_heat_haze)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x4ea47fea);
@@ -276,8 +298,12 @@ SK_TGFix_PlugInCfg (void)
       }
       ImGui::SetItemTooltip ("Heat Haze may be unusually strong at DSR resolutions and when using MSAA.");
 
-      if (ImGui::Checkbox ("Disable Atmospheric Bloom", &SK_TGFix_Cfg.disable_bloom))
+      ImGui::SameLine (0.0f, fItemSpacing);
+
+      bool                           bloom = !SK_TGFix_Cfg.disable_bloom;
+      if (ImGui::Checkbox ("Bloom", &bloom))
       {
+            SK_TGFix_Cfg.disable_bloom = !bloom;
         if (SK_TGFix_Cfg.disable_bloom)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x5bcdb543);
@@ -309,6 +335,14 @@ SK_TGFix_PlugInCfg (void)
         SK_TGFix_Cfg.disable_bloom.store ();
 
         cfg_changed = true;
+      }
+
+      ImGui::SameLine (0.0f, fItemSpacing);
+
+      bool                          smog = !SK_TGFix_Cfg.disable_smog;
+      if (ImGui::Checkbox ("Smog", &smog))
+      {
+        SK_TGFix_Cfg.disable_smog = !smog;
       }
 
       if (ImGui::Checkbox ("Sharpen Outlines", &SK_TGFix_Cfg.sharpen_outlines))
@@ -345,12 +379,11 @@ SK_TGFix_PlugInCfg (void)
         config.utility.save_async ();
       }
 
-      ImGui::TreePop  ();
-    } ImGui::EndGroup ();
-
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
-
+      ImGui::TreePop  (  );
+    }
+    ImGui::EndGroup   (  );
+    ImGui::SameLine   (  );
+    ImGui::BeginGroup (  );
     if (ImGui::CollapsingHeader (ICON_FA_GAMEPAD " Gamepad Input", ImGuiTreeNodeFlags_DefaultOpen |
                                                                    ImGuiTreeNodeFlags_AllowOverlap))
     {
@@ -483,12 +516,11 @@ SK_TGFix_PlugInCfg (void)
             }
           }
         }
-
-        ImGui::TreePop  (  );
       }
 
-      ImGui::EndGroup    ( );
+      ImGui::TreePop  (  );
     }
+    ImGui::EndGroup   (  );
 
 #if 0
     if (ImGui::CollapsingHeader (ICON_FA_MAGIC " ThirdParty AddOns", ImGuiTreeNodeFlags_DefaultOpen |
@@ -672,13 +704,16 @@ typedef MonoString*     (*mono_string_new_pfn)(MonoDomain* domain, const char* t
 typedef MonoObject*     (*mono_object_new_pfn)(MonoDomain* domain, MonoClass* klass);
 typedef void*           (*mono_object_unbox_pfn)(MonoObject* obj);
 typedef MonoDomain*     (*mono_object_get_domain_pfn)(MonoObject* obj);
+typedef MonoClass*      (*mono_object_get_class_pfn)(MonoObject* obj);
 typedef MonoClass*      (*mono_class_from_name_pfn)(MonoImage* image, const char* name_space, const char* name);
 typedef MonoMethod*     (*mono_class_get_method_from_name_pfn)(MonoClass* klass, const char* name, int param_count);
 typedef MonoType*       (*mono_class_get_type_pfn)(MonoClass* klass);
+typedef const char*     (*mono_class_get_name_pfn)(MonoClass* klass);
 typedef MonoReflectionType*
                         (*mono_type_get_object_pfn)(MonoDomain* domain, MonoType* type);
 typedef void*           (*mono_compile_method_pfn)(MonoMethod* method);
 typedef MonoObject*     (*mono_runtime_invoke_pfn)(MonoMethod* method, void* obj, void** params, MonoObject** exc);
+typedef char*           (*mono_array_addr_with_size_pfn)(MonoArray* array, int size, uintptr_t idx);
 
 typedef MonoClassField* (*mono_class_get_field_from_name_pfn)(MonoClass* klass, const char* name);
 typedef void*           (*mono_field_get_value_pfn)(void* obj, MonoClassField* field, void* value);
@@ -689,10 +724,20 @@ typedef MonoVTable*     (*mono_class_vtable_pfn)(MonoDomain* domain, MonoClass* 
 typedef void*           (*mono_vtable_get_static_field_data_pfn)(MonoVTable* vt);
 typedef uint32_t        (*mono_field_get_offset_pfn)(MonoClassField* field);
 
+typedef MonoMethodDesc* (*mono_method_desc_new_pfn)(const char* name, mono_bool include_namespace);
+typedef MonoMethod*     (*mono_method_desc_search_in_image_pfn)(MonoMethodDesc* desc, MonoImage* image);
+
+typedef MonoGCHandle    (*mono_gchandle_new_v2_pfn)(MonoObject* obj, mono_bool pinned);
+typedef MonoGCHandle    (*mono_gchandle_free_v2_pfn)(MonoGCHandle gchandle);
+typedef MonoObject*     (*mono_gchandle_get_target_v2_pfn)(MonoGCHandle gchandle);
+
 typedef MonoObject*     (*mono_property_get_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
 typedef MonoProperty*   (*mono_class_get_property_from_name_pfn)(MonoClass *klass, const char *name);
 typedef MonoMethod*     (*mono_property_get_get_method_pfn)(MonoProperty *prop);
 typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
+
+#define SK_mono_array_addr(array,type,index) ((type*)SK_mono_array_addr_with_size ((array), sizeof (type), (index)))
+#define SK_mono_array_get(array,type,index) ( *(type*)SK_mono_array_addr ((array), type, (index)) ) 
 
 mono_thread_attach_pfn                SK_mono_thread_attach                = nullptr;
 mono_get_root_domain_pfn              SK_mono_get_root_domain              = nullptr;
@@ -701,13 +746,16 @@ mono_assembly_get_image_pfn           SK_mono_assembly_get_image           = nul
 mono_string_new_pfn                   SK_mono_string_new                   = nullptr;
 mono_object_new_pfn                   SK_mono_object_new                   = nullptr;
 mono_object_get_domain_pfn            SK_mono_object_get_domain            = nullptr;
+mono_object_get_class_pfn             SK_mono_object_get_class             = nullptr;
 mono_object_unbox_pfn                 SK_mono_object_unbox                 = nullptr;
 mono_class_from_name_pfn              SK_mono_class_from_name              = nullptr;
 mono_class_get_method_from_name_pfn   SK_mono_class_get_method_from_name   = nullptr;
 mono_class_get_type_pfn               SK_mono_class_get_type               = nullptr;
+mono_class_get_name_pfn               SK_mono_class_get_name               = nullptr;
 mono_type_get_object_pfn              SK_mono_type_get_object              = nullptr;
 mono_compile_method_pfn               SK_mono_compile_method               = nullptr;
 mono_runtime_invoke_pfn               SK_mono_runtime_invoke               = nullptr;
+mono_array_addr_with_size_pfn         SK_mono_array_addr_with_size         = nullptr;
 
 mono_property_get_value_pfn           SK_mono_property_get_value           = nullptr;
 mono_class_get_property_from_name_pfn SK_mono_class_get_property_from_name = nullptr;
@@ -724,6 +772,12 @@ mono_class_vtable_pfn                 SK_mono_class_vtable                 = nul
 mono_vtable_get_static_field_data_pfn SK_mono_vtable_get_static_field_data = nullptr;
 mono_field_get_offset_pfn             SK_mono_field_get_offset             = nullptr;
 
+mono_gchandle_new_v2_pfn              SK_mono_gchandle_new_v2              = nullptr;
+mono_gchandle_free_v2_pfn             SK_mono_gchandle_free_v2             = nullptr;
+mono_gchandle_get_target_v2_pfn       SK_mono_gchandle_get_target_v2       = nullptr;
+
+mono_method_desc_new_pfn              SK_mono_method_desc_new              = nullptr;
+mono_method_desc_search_in_image_pfn  SK_mono_method_desc_search_in_image  = nullptr;
 
 using mono_jit_init_pfn              = MonoDomain* (*)(const char *file);
       mono_jit_init_pfn
@@ -785,9 +839,11 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_class_from_name              = reinterpret_cast <mono_class_from_name_pfn>              (SK_GetProcAddress (hMono, "mono_class_from_name"));
   SK_mono_class_get_method_from_name   = reinterpret_cast <mono_class_get_method_from_name_pfn>   (SK_GetProcAddress (hMono, "mono_class_get_method_from_name"));
   SK_mono_class_get_type               = reinterpret_cast <mono_class_get_type_pfn>               (SK_GetProcAddress (hMono, "mono_class_get_type"));
+  SK_mono_class_get_name               = reinterpret_cast <mono_class_get_name_pfn>               (SK_GetProcAddress (hMono, "mono_class_get_name"));
   SK_mono_type_get_object              = reinterpret_cast <mono_type_get_object_pfn>              (SK_GetProcAddress (hMono, "mono_type_get_object"));
   SK_mono_compile_method               = reinterpret_cast <mono_compile_method_pfn>               (SK_GetProcAddress (hMono, "mono_compile_method"));
   SK_mono_runtime_invoke               = reinterpret_cast <mono_runtime_invoke_pfn>               (SK_GetProcAddress (hMono, "mono_runtime_invoke"));
+  SK_mono_array_addr_with_size         = reinterpret_cast <mono_array_addr_with_size_pfn>         (SK_GetProcAddress (hMono, "mono_array_addr_with_size"));
   
   SK_mono_class_get_field_from_name    = reinterpret_cast <mono_class_get_field_from_name_pfn>    (SK_GetProcAddress (hMono, "mono_class_get_field_from_name"));
   SK_mono_field_get_value              = reinterpret_cast <mono_field_get_value_pfn>              (SK_GetProcAddress (hMono, "mono_field_get_value"));
@@ -806,21 +862,18 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_string_new                   = reinterpret_cast <mono_string_new_pfn>                   (SK_GetProcAddress (hMono, "mono_string_new"));
   SK_mono_object_new                   = reinterpret_cast <mono_object_new_pfn>                   (SK_GetProcAddress (hMono, "mono_object_new"));
   SK_mono_object_get_domain            = reinterpret_cast <mono_object_get_domain_pfn>            (SK_GetProcAddress (hMono, "mono_object_get_domain"));
+  SK_mono_object_get_class             = reinterpret_cast <mono_object_get_class_pfn>             (SK_GetProcAddress (hMono, "mono_object_get_class"));
   SK_mono_object_unbox                 = reinterpret_cast <mono_object_unbox_pfn>                 (SK_GetProcAddress (hMono, "mono_object_unbox"));
+
+  SK_mono_method_desc_new              = reinterpret_cast <mono_method_desc_new_pfn>              (SK_GetProcAddress (hMono, "mono_method_desc_new"));
+  SK_mono_method_desc_search_in_image  = reinterpret_cast <mono_method_desc_search_in_image_pfn>  (SK_GetProcAddress (hMono, "mono_method_desc_search_in_image"));
+
+  SK_mono_gchandle_new_v2              = reinterpret_cast <mono_gchandle_new_v2_pfn>              (SK_GetProcAddress (hMono, "SK_mono_gchandle_new_v2"));
+  SK_mono_gchandle_free_v2             = reinterpret_cast <mono_gchandle_free_v2_pfn>             (SK_GetProcAddress (hMono, "SK_mono_gchandle_free_v2"));
+  SK_mono_gchandle_get_target_v2       = reinterpret_cast <mono_gchandle_get_target_v2_pfn>       (SK_GetProcAddress (hMono, "SK_mono_gchandle_get_target_v2"));
  
   SK_mono_thread_attach                = reinterpret_cast <mono_thread_attach_pfn>                (SK_GetProcAddress (hMono, "mono_thread_attach"));
   SK_mono_get_root_domain              = reinterpret_cast <mono_get_root_domain_pfn>              (SK_GetProcAddress (hMono, "mono_get_root_domain"));
-
-
-#if 0
-  void*                   pfnMonoJitInit = nullptr;
-  SK_CreateDLLHook (         mono_dll,
-                            "mono_jit_init",
-                             mono_jit_init_Detour,
-    static_cast_p2p <void> (&mono_jit_init_Original),
-                           &pfnMonoJitInit );
-  SK_EnableHook   (         pfnMonoJitInit );
-#endif
 
   void*                   pfnMonoJitInitVersion = nullptr;
   SK_CreateDLLHook (         mono_dll,
@@ -857,6 +910,9 @@ void SK_TGFix_OnInitMono (MonoDomain* domain)
     init = SK_TGFix_SetupFramerateHooks ();
   }
 }
+
+MonoObject* SK_TGFix_PrimitiveManagerSingleton = nullptr;
+MonoObject* SK_TGFix_CameraManagerSingleton    = nullptr;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -895,6 +951,13 @@ SK_TGFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   return S_OK;
 }
 
+//
+// Various poorly-written examples on using Mono embedded framework from:
+//    https://www.unknowncheats.me/forum/unity/603179-hacking-mono-games.html
+// 
+//  This code all needs to be re-written if it is to be useful in future projects;
+//    it is terrible :)
+//
 bool LoadMonoAssembly (const char* assemblyName)
 {
   MonoImage* pImage =
@@ -922,7 +985,6 @@ bool LoadMonoAssembly (const char* assemblyName)
     (pImage != nullptr);
 }
 
-// Used to get the address of a game function for hooking
 void* GetCompiledMethod (const char* nameSpace, const char* className, const char* methodName, int param_count = 0, const char* assemblyName = "Assembly-CSharp")
 {
   MonoImage* pImage =
@@ -965,7 +1027,6 @@ void* GetCompiledMethod (const char* nameSpace, const char* className, const cha
     SK_mono_compile_method (pMethod);
 }
 
-// Get a game method to call using mono_runtime_invoke
 MonoMethod* GetMethod (const char* className, const char* methodName, int param_count = 0, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
   MonoImage* pImage =
@@ -1002,7 +1063,6 @@ MonoMethod* GetMethod (const char* className, const char* methodName, int param_
     SK_mono_class_get_method_from_name (pKlass, methodName, param_count);
 }
 
-// When you need to get a class pointer
 MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
   SK_mono_thread_attach (SK_mono_get_root_domain ());
@@ -1037,14 +1097,12 @@ MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly
   return pKlass;
 }
 
-// When you need the class from a method*
 MonoClass* GetClassFromMethod (MonoMethod* method)
 {
   return
     SK_mono_method_get_class (method);
 }
 
-// When you need data from a class field like if something IsActive
 MonoClassField* GetField (const char* className, const char* fieldName, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
   SK_mono_thread_attach (SK_mono_get_root_domain ());
@@ -1137,7 +1195,6 @@ void* GetStaticFieldData (MonoClass* pKlass)
   return
     SK_mono_vtable_get_static_field_data (pVTable);
 }
-// End helpers
 
 void* GetStaticFieldValue (const char* className, const char* fieldName, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
@@ -1242,7 +1299,6 @@ MonoObject* NewObject (MonoClass* klass)
     SK_mono_object_new (SK_mono_get_root_domain (), klass);
 }
 
-// This is probably one of the most useful functions, for when you need to call one of the games functions easily
 MonoObject* Invoke (MonoMethod* method, void* obj, void** params)
 {
   SK_mono_thread_attach (SK_mono_get_root_domain ());
@@ -1366,10 +1422,10 @@ SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour (MonoObject* __this, fl
 
 constexpr
 float SK_TGFix_NativeAspect          = 16.0f / 9.0f;
-float SK_TGFix_AspectRatio           =     0.0f;//SK_TGFix_NativeAspect;
-float SK_TGFix_AspectMultiplier      =     0.0f;
-int   SK_TGFix_ScreenWidth           =     0;
-int   SK_TGFix_ScreenHeight          =     0;
+float SK_TGFix_AspectRatio           =  0.0f;
+float SK_TGFix_AspectMultiplier      =  0.0f;
+UINT  SK_TGFix_ScreenWidth           =    0U;
+UINT  SK_TGFix_ScreenHeight          =    0U;
 float SK_TGFix_InputPollingFrequency = 60.0f;
 
 using UnityEngine_Screen_SetResolution_pfn = void (*)(int, int, int);
@@ -1402,12 +1458,22 @@ struct Unity_Rect
   float height;
 };
 
+struct Unity_Matrix4x4
+{
+  float m00; float m10; float m20; float m30;
+  float m01; float m11; float m21; float m31;
+  float m02; float m12; float m22; float m32;
+  float m03; float m13; float m23; float m33;
+};
+
 using Noble_CameraManager_SetCameraViewportRect_pfn  = void (*)(MonoObject*, Unity_Rect*);
 using Noble_CameraManager_SetCameraAspect_pfn        = void (*)(MonoObject*, float aspect);
+using Noble_CameraManager_SetBackGoundColor_pfn      = void (*)(MonoObject*, MonoObject*);
 using Noble_CameraManager_OnPostNativeGameUpdate_pfn = void (*)(MonoObject*);
 
 Noble_CameraManager_SetCameraViewportRect_pfn  Noble_CameraManager_SetCameraViewportRect_Original  = nullptr;
 Noble_CameraManager_SetCameraAspect_pfn        Noble_CameraManager_SetCameraAspect_Original        = nullptr;
+Noble_CameraManager_SetBackGoundColor_pfn      Noble_CameraManager_SetBackGoundColor_Original      = nullptr;
 Noble_CameraManager_OnPostNativeGameUpdate_pfn Noble_CameraManager_OnPostNativeGameUpdate_Original = nullptr;
 
 void
@@ -1415,7 +1481,9 @@ SK_TGFix_Noble_CameraManager_SetCameraViewportRect_Detour (MonoObject* __this, U
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect)
+  SK_TGFix_CameraManagerSingleton = __this;
+
+  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
     rect->width  = 1.0f;
     rect->height = 1.0f;
@@ -1431,6 +1499,8 @@ SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour (MonoObject* __this, float a
 {
   SK_LOG_FIRST_CALL
 
+  SK_TGFix_CameraManagerSingleton = __this;
+
   if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
     return
@@ -1441,66 +1511,63 @@ SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour (MonoObject* __this, float a
 }
 
 void
-SK_TGFix_Noble_CameraManager_OnPostNativeGameUpdate_Detour (MonoObject* __this)
+SK_TGFix_Noble_CameraManager_SetBackGoundColor_Detour (MonoObject* __this, MonoObject*/*color*/)
 {
   SK_LOG_FIRST_CALL
 
-  std::ignore = __this;
-
-  //__instance.mCamera.backgroundColor = new UnityEngine.Color (0.0f, 0.0f, 0.0f, 0.0f);
+  SK_TGFix_CameraManagerSingleton = __this;
 }
 
-using Noble_Object_ApplyVisibility_pfn = void (*)(MonoObject*);
-      Noble_Object_ApplyVisibility_pfn
-      Noble_Object_ApplyVisibility_Original = nullptr;
+using Noble_Object_ApplyCachedParameters_pfn = void (*)(MonoObject*);
+      Noble_Object_ApplyCachedParameters_pfn
+      Noble_Object_ApplyCachedParameters_Original = nullptr;
 
 void
-SK_TGFix_Noble_Object_ApplyVisibility_Detour (MonoObject* __this)
+SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
 {
   SK_LOG_FIRST_CALL
 
-  Noble_Object_ApplyVisibility_Original (__this);
+  static bool
+      once = false;
+  if (once || (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f))
+  { //once = true;
+    static MonoMethod* SetVisibilityFlags = GetMethod ("Object", "SetVisibilityFlags", 2, "Assembly-CSharp", "Noble");
+    static MonoMethod* IsDirty            = GetMethod ("Object", "IsDirty",            1, "Assembly-CSharp", "Noble");
+    static MonoMethod* IsVisible          = GetMethod ("Object", "IsVisible",          1, "Assembly-CSharp", "Noble");
 
-  static MonoMethod* DisableBoundingBox =
-    GetMethod ("Object", "DisableBoundingBox", 0, "Assembly-CSharp", "Noble");
-  static MonoMethod* getGameObject =
-    GetMethod ("Object", "GetGameObject", 0, "Assembly-CSharp", "Noble");
-  static MonoMethod* SetDirtyFlags =
-    GetMethod ("Object", "SetDirtyFlags", 2, "Assembly-CSharp", "Noble");
+    int  flag = 0x1; // kObjectVisible
+    bool set  = true;
 
-  MonoObject* gameObject =
-    Invoke (getGameObject, __this, nullptr);
+    void* params [2] = { &flag, &set };
 
-  if (gameObject != nullptr)
-  {
-    static MonoProperty*
-      activeSelf = GetProperty (GetImage ("UnityEngine.CoreModule"), "UnityEngine", "GameObject", "activeSelf");
-    static MonoMethod* get_activeSelf =
-      SK_mono_property_get_get_method (activeSelf);
-    static MonoMethod* set_activeSelf =
-      SK_mono_property_get_set_method (activeSelf);
-
-    MonoObject* activeSelfBoxed =
-      SK_mono_runtime_invoke (get_activeSelf, gameObject, nullptr, nullptr);
-
-    bool* pactiveSelf =
-      (bool *)SK_mono_object_unbox (activeSelfBoxed);
-
-    if (true == *pactiveSelf)
+    bool is_dirty =                           *(bool *)SK_mono_object_unbox (Invoke (IsDirty,   __this, params));
+    if (!is_dirty &&                          *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params)))
     {
-      SK_mono_runtime_invoke (DisableBoundingBox, __this, nullptr, nullptr);
-      //                    *pactiveSelf = true;
-      //void* params [] = {  pactiveSelf };
-      //
-      //SK_mono_runtime_invoke (set_activeSelf, gameObject, params, nullptr);
+      flag = 0x2;
+      const bool bCachedRenderRequest       = *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params));
+      flag = 0x4;
+      const bool bCurrentFrameRenderRequest = *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params));
+
+      is_dirty = bCachedRenderRequest != bCurrentFrameRenderRequest;
     }
 
-    //static int                kVisibility = 1;
-    //static bool                             dirty = false;
-    //void* dirty_flags [] = { &kVisibility, &dirty };
-    //
-    //Invoke (SetDirtyFlags, __this, dirty_flags);
+    if (is_dirty)
+    {
+      flag = 0x5; // kObjectVisible | kCurrentFrameRenderRequest
+
+      const bool is_visible =
+        *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params));
+      
+      if (is_visible)
+      {
+        flag = 0x7; // kObjectVisible | kCachedRenderRequest
+                    //                | kCurrentFrameRenderRequest
+        Invoke (SetVisibilityFlags, __this, params);
+      }
+    }
   }
+
+  Noble_Object_ApplyCachedParameters_Original (__this);
 }
 
 
@@ -1521,40 +1588,7 @@ SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour (MonoObject* 
 {
   SK_LOG_FIRST_CALL
 
-  static auto m_Viewport     =
-    GetField ("PrimitiveManager", "m_Viewport",
-              "Assembly-CSharp",      "Noble");
-  static auto m_screenWidth  =
-    GetField ("PrimitiveManager", "m_screenWidth",
-              "Assembly-CSharp",         "Noble");
-  static auto m_screenHeight =
-    GetField ("PrimitiveManager", "m_screenHeight",
-              "Assembly-CSharp",          "Noble");
-
-  static auto UnityEngine_Rect =
-    GetClass (GetImage ("UnityEngine.CoreModule"),
-                        "UnityEngine",    "Rect");
-
-  float x      = 0.0f,      y = 0.0f,
-        width  = 0.0f, height = 0.0f;
-
-  auto domain   = SK_mono_object_get_domain                          (__this);
-  auto viewport = SK_mono_field_get_value_object (domain, m_Viewport, __this);
-
-  static auto _x      = GetField ("Rect", "m_XMin",   "UnityEngine.CoreModule", "UnityEngine");
-  static auto _y      = GetField ("Rect", "m_YMin",   "UnityEngine.CoreModule", "UnityEngine");
-  static auto _width  = GetField ("Rect", "m_Width",  "UnityEngine.CoreModule", "UnityEngine");
-  static auto _height = GetField ("Rect", "m_Height", "UnityEngine.CoreModule", "UnityEngine");
-
-  width = width / SK_TGFix_AspectMultiplier;
-
-  GetFieldValue (__this,  m_screenWidth,  &width);
-  GetFieldValue (__this,  m_screenHeight, &height);
-
-  SetFieldValue (viewport, _x,      &x);
-  SetFieldValue (viewport, _y,      &y);
-  SetFieldValue (viewport, _width,  &width);
-  SetFieldValue (viewport, _height, &height);
+  SK_TGFix_PrimitiveManagerSingleton = __this;
 
   Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original (__this);
 }
@@ -1564,69 +1598,116 @@ SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour (MonoObject* __
 {
   SK_LOG_FIRST_CALL
 
+  SK_TGFix_PrimitiveManagerSingleton = __this;
+
   Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original (__this);
 
-  static auto m_Viewport     =
-    GetField ("PrimitiveManager", "m_Viewport",
-              "Assembly-CSharp",      "Noble");
-  static auto m_screenWidth  =
-    GetField ("PrimitiveManager", "m_screenWidth",
-              "Assembly-CSharp",         "Noble");
-  static auto m_screenHeight =
-    GetField ("PrimitiveManager", "m_screenHeight",
-              "Assembly-CSharp",          "Noble");
+  static MonoImage* assemblyCSharp              = SK_mono_image_loaded    ("Assembly-CSharp");
+  static MonoClass* Noble_CameraManagerClass    = SK_mono_class_from_name (assemblyCSharp, "Noble", "CameraManager");
+  static MonoClass* Noble_PrimitiveManagerClass = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager");
 
-  static auto UnityEngine_Rect =
-    GetClass (GetImage ("UnityEngine.CoreModule"),
-                        "UnityEngine",    "Rect");
-
-  if (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect)
+  auto cameraManager  = SK_TGFix_CameraManagerSingleton;
+  if ( cameraManager != nullptr )
   {
-    float x      = 0.0f,      y = 0.0f,
-          width  = 0.0f, height = 0.0f;
+    static MonoMethod* SetCameraAspect       = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "SetCameraAspect",       1);
+    static MonoMethod* GetCameraViewportRect = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "GetCameraViewportRect", 0);
+    static MonoMethod* SetCameraViewportRect = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "SetCameraViewportRect", 1);
 
-    auto domain   = SK_mono_object_get_domain                          (__this);
-    auto viewport = SK_mono_field_get_value_object (domain, m_Viewport, __this);
+    void*                                                   aspect_args [] = { &SK_TGFix_AspectRatio };
+    SK_mono_runtime_invoke (SetCameraAspect, cameraManager, aspect_args, nullptr);
 
-    static auto _x      = GetField ("Rect", "m_XMin",   "UnityEngine.CoreModule", "UnityEngine");
-    static auto _y      = GetField ("Rect", "m_YMin",   "UnityEngine.CoreModule", "UnityEngine");
-    static auto _width  = GetField ("Rect", "m_Width",  "UnityEngine.CoreModule", "UnityEngine");
-    static auto _height = GetField ("Rect", "m_Height", "UnityEngine.CoreModule", "UnityEngine");
+    float              value = 1.0f;
+    void* args [] = { &value };
 
-    GetFieldValue (__this,  m_screenWidth,  &width);
-    GetFieldValue (__this,  m_screenHeight, &height);
+    Unity_Rect _rect =
+      { 0.0f, 0.0f,
+        1.0f, 1.0f };
 
-    width = width / SK_TGFix_AspectMultiplier;
+    args [0] = { &_rect };
 
-    SetFieldValue (viewport, _x,      &x);
-    SetFieldValue (viewport, _y,      &y);
-    SetFieldValue (viewport, _width,  &width);
-    SetFieldValue (viewport, _height, &height);
+    SK_mono_runtime_invoke (SetCameraViewportRect, cameraManager, args, nullptr);
+
+    auto primitiveManager = SK_TGFix_PrimitiveManagerSingleton;
+    if ( primitiveManager != nullptr )
+    {
+      static MonoMethod*     CalcUIOrthoMatrix =
+        SK_mono_class_get_method_from_name (Noble_PrimitiveManagerClass, "CalcUIOrthoMatrix", 1);
+      static MonoClassField* m_Viewport        =
+        SK_mono_class_get_field_from_name  (Noble_PrimitiveManagerClass, "m_Viewport");
+
+      bool          forceproc = true;
+      args [0] = { &forceproc };
+
+      SK_mono_runtime_invoke (CalcUIOrthoMatrix, primitiveManager, args, nullptr);
+
+      const float width  =
+        (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect) ? (float)SK_TGFix_ScreenWidth  / SK_TGFix_AspectMultiplier :
+                                                         (float)SK_TGFix_ScreenWidth;
+      const float height =
+        (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect) ? (float)SK_TGFix_ScreenHeight * SK_TGFix_AspectMultiplier :
+                                                         (float)SK_TGFix_ScreenHeight;
+
+      _rect.width  = width;
+      _rect.height = height;
+
+      SK_mono_field_set_value (primitiveManager, m_Viewport, &_rect);
+    }
   }
+}
 
-  else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect)
+using Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_pfn = void (*)(MonoObject*,MonoObject*,MonoObject*,MonoObject*,MonoObject*);
+      Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_pfn
+      Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Original = nullptr;
+
+void
+SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObject* __this, MonoObject* context, MonoObject* obj, MonoObject* commandBuffer, MonoObject* renderingData)
+{
+  SK_LOG_FIRST_CALL
+
+  static MonoImage*      assemblyCSharp                    = SK_mono_image_loaded    ("Assembly-CSharp");
+  static MonoClass*      Noble_PrimitiveManagerClass       = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager");
+  static MonoClass*      Noble_PrimitiveManager_PRIM_PARAM = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_PARAM");
+  static MonoClass*      Noble_PrimitiveManager_PRIM_TYPE  = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_TYPE");
+  static MonoClass*      Noble_ObjPrimitiveBaseClass       = SK_mono_class_from_name (assemblyCSharp, "Noble", "ObjPrimitiveBase");
+  static MonoClassField* vertexCount                       = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass,       "vertexCount");
+  static MonoClassField* m_PrimitiveType                   = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass,       "m_PrimitiveType");
+  static MonoClassField* m_PrimitiveType_type              = SK_mono_class_get_field_from_name (Noble_PrimitiveManager_PRIM_PARAM, "type");
+  static MonoClassField* m_PrimitiveType_type_db           = SK_mono_class_get_field_from_name (Noble_PrimitiveManager_PRIM_TYPE,  "db");
+
+  if (obj != nullptr && SK_TGFix_Cfg.disable_smog)
   {
-    float x      = 0.0f,      y = 0.0f,
-          width  = 0.0f, height = 0.0f;
+    // Get the vertex count first, let's -try- to be efficient here... Mono makes that difficult.
+    int                           obj_vertexCount = 0;
+    SK_mono_field_get_value (obj,     vertexCount,
+                                 &obj_vertexCount);
 
-    auto domain   = SK_mono_object_get_domain                          (__this);
-    auto viewport = SK_mono_field_get_value_object (domain, m_Viewport, __this);
+    // Pause Background
+    //if (__1.m_PrimitiveType.type.db[0] == 2) return false;
+    
+    // Text Bubble  (and some screenspace garbage)
+    if (obj_vertexCount == 3) // Type.db[0] == 4
+    {
+      MonoObject* primitive_type      =
+      SK_mono_field_get_value_object (SK_mono_object_get_domain (obj),              m_PrimitiveType,
+                                                                 obj);
+      MonoObject* primitive_type_type =
+        SK_mono_field_get_value_object (SK_mono_object_get_domain (primitive_type), m_PrimitiveType_type,
+                                                                   primitive_type);
 
-    static auto _x      = GetField ("Rect", "m_XMin",   "UnityEngine.CoreModule", "UnityEngine");
-    static auto _y      = GetField ("Rect", "m_YMin",   "UnityEngine.CoreModule", "UnityEngine");
-    static auto _width  = GetField ("Rect", "m_Width",  "UnityEngine.CoreModule", "UnityEngine");
-    static auto _height = GetField ("Rect", "m_Height", "UnityEngine.CoreModule", "UnityEngine");
+      MonoArray*                                                              obj_m_PrimitiveType_type_db = nullptr;
+      SK_mono_field_get_value (primitive_type_type, m_PrimitiveType_type_db, &obj_m_PrimitiveType_type_db);
 
-    GetFieldValue (__this,  m_screenWidth,  &width);
-    GetFieldValue (__this,  m_screenHeight, &height);
-
-    height = height * SK_TGFix_AspectMultiplier;
-
-    SetFieldValue (viewport, _x,      &x);
-    SetFieldValue (viewport, _y,      &y);
-    SetFieldValue (viewport, _width,  &width);
-    SetFieldValue (viewport, _height, &height);
+      if (SK_mono_array_get(obj_m_PrimitiveType_type_db, int, 0) == 4)
+      {
+        return;
+      }
+    }
+    
+    // Star dream sequences
+    //if (__1.m_PrimitiveType.type.db[0] == 6) return false;
   }
+  
+  Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Original (__this, context, obj, commandBuffer, renderingData);
 }
 
 void
@@ -1634,45 +1715,38 @@ SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bo
 {
   SK_LOG_FIRST_CALL
 
+  SK_TGFix_PrimitiveManagerSingleton = __this;
+
   Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
 }
 
-using NobleMovieRendereFeature_Create_pfn = void (*)(MonoObject*);
-      NobleMovieRendereFeature_Create_pfn
-      NobleMovieRendereFeature_Create_Original = nullptr;
+using NobleMovieRendererPass_Execute_pfn = void (*)(MonoObject*, MonoObject*, MonoObject*);
+      NobleMovieRendererPass_Execute_pfn
+      NobleMovieRendererPass_Execute_Original = nullptr;
 
 void
-SK_TGFix_NobleMovieRendereFeature_Create_Detour (MonoObject* __this)
+SK_TGFix_NobleMovieRendererPass_Execute_Detour (MonoObject* __this, MonoObject* context, MonoObject* renderingData)
 {
   SK_LOG_FIRST_CALL
 
-  NobleMovieRendereFeature_Create_Original (__this);
+  NobleMovieRendererPass_Execute_Original (__this, context, renderingData);
 
-  //static auto _pass =
-  //  GetField ("NobleMovieRendereFeature", "_pass", "Assembly-CSharp", "Noble");
-  //
-  //auto domain = SK_mono_object_get_domain                     (__this);
-  //auto pass   = SK_mono_field_get_value_object (domain, _pass, __this);
-  //  
-  //if (pass != nullptr)
-  //{
-  //  static auto UnityEngine_Matrix4x4 =
-  //    GetClass (GetImage ("UnityEngine.CoreModule"), "UnityEngine", "Matrix4x4");
-  //
-  //  static auto cameraview =
-  //    GetField ("NobleMovieRendererPass", "cameraview", "Assembly-CSharp", "Noble");
-  //
-  //  auto view =
-  //    SK_mono_field_get_value_object (domain, cameraview, pass);
-  //
-  //  static auto m33 = GetField (UnityEngine_Matrix4x4, "m33");
-  //  static auto m11 = GetField (UnityEngine_Matrix4x4, "m11");
-  //
-  //  if (     SK_TGFix_AspectRatio > SK_TGFix_NativeAspect)
-  //    SetFieldValue (view, m33, &SK_TGFix_AspectMultiplier);
-  //  else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect)
-  //    SetFieldValue (view, m11, &SK_TGFix_AspectMultiplier);
-  //}
+  static auto cameraview =
+    GetField ("NobleMovieRendererPass", "cameraview", "Assembly-CSharp");
+  
+  Unity_Matrix4x4                               view;
+  SK_mono_field_get_value (__this, cameraview, &view);
+
+  float& m11 = view.m11;
+  float& m33 = view.m33;
+  
+  if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
+  {
+    if      (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect) m33 = SK_TGFix_AspectMultiplier;
+    else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect) m11 = SK_TGFix_AspectMultiplier;
+
+    SK_mono_field_set_value (__this, cameraview, &view);
+  }
 }
 
 using UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn = void (*)(MonoObject*, Unity_Rect*);
@@ -1684,7 +1758,7 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_TGFix_Cfg._fix_shadow_scissors)
+  if (SK_TGFix_Cfg._fix_shadow_scissors && SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
     // We're nop'ing this entire thing because it breaks shadows if we don't.
     return;
@@ -1734,9 +1808,13 @@ SK_TGFix_SetupFramerateHooks (void)
       CompileMethod ("Noble", "CameraManager",
                            "SetCameraAspect", 1);
 
-    auto pfnNoble_CameraManager_OnPostNativeGameUpdate =
+    //auto pfnNoble_CameraManager_OnPostNativeGameUpdate =
+    //  CompileMethod ("Noble", "CameraManager",
+    //                       "OnPostNativeGameUpdate", 0);
+
+    auto pfnNoble_CameraManager_SetBackGoundColor =
       CompileMethod ("Noble", "CameraManager",
-                           "OnPostNativeGameUpdate", 0);
+                           "SetBackGoundColor", 1);
 
     SK_CreateFuncHook (               L"Noble.CameraManager.SetCameraViewportRect",
                                      pfnNoble_CameraManager_SetCameraViewportRect,
@@ -1748,71 +1826,88 @@ SK_TGFix_SetupFramerateHooks (void)
                                SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour,
       static_cast_p2p <void> (&         Noble_CameraManager_SetCameraAspect_Original) );
 
-    SK_CreateFuncHook (               L"Noble.CameraManager.OnPostNativeGameUpdate",
-                                     pfnNoble_CameraManager_OnPostNativeGameUpdate,
-                               SK_TGFix_Noble_CameraManager_OnPostNativeGameUpdate_Detour,
-      static_cast_p2p <void> (&         Noble_CameraManager_OnPostNativeGameUpdate_Original) );
+    //SK_CreateFuncHook (               L"Noble.CameraManager.OnPostNativeGameUpdate",
+    //                                 pfnNoble_CameraManager_OnPostNativeGameUpdate,
+    //                           SK_TGFix_Noble_CameraManager_OnPostNativeGameUpdate_Detour,
+    //  static_cast_p2p <void> (&         Noble_CameraManager_OnPostNativeGameUpdate_Original) );
+    SK_CreateFuncHook (               L"Noble.CameraManager.SetBackGoundColor",
+                                     pfnNoble_CameraManager_SetBackGoundColor,
+                               SK_TGFix_Noble_CameraManager_SetBackGoundColor_Detour,
+      static_cast_p2p <void> (&         Noble_CameraManager_SetBackGoundColor_Original) );
 
     SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraViewportRect);
     SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraAspect);
-    SK_QueueEnableHook (pfnNoble_CameraManager_OnPostNativeGameUpdate);
+    SK_QueueEnableHook (pfnNoble_CameraManager_SetBackGoundColor);
+    //SK_QueueEnableHook (pfnNoble_CameraManager_OnPostNativeGameUpdate);
 
-    ////// Keep all objects visible at all times to workaround bad camera culling
-    ////auto pfnNoble_Object_ApplyVisibility =
-    ////  CompileMethod ("Noble", "Object",
-    ////                 "ApplyVisibility", 0);
-    ////
-    ////SK_CreateFuncHook (               L"Noble.Object.ApplyVisibility",
-    ////                                 pfnNoble_Object_ApplyVisibility,
-    ////                           SK_TGFix_Noble_Object_ApplyVisibility_Detour,
-    ////  static_cast_p2p <void> (&         Noble_Object_ApplyVisibility_Original) );
-    ////
-    ////SK_QueueEnableHook (pfnNoble_Object_ApplyVisibility);
+
+    // Keep all objects visible at all times to workaround bad camera culling
+    auto pfnNoble_Object_ApplyCachedParameters =
+      CompileMethod ("Noble", "Object",
+                           "ApplyCachedParameters", 0);
+    
+    SK_CreateFuncHook (               L"Noble.Object.ApplyCachedParameters",
+                                     pfnNoble_Object_ApplyCachedParameters,
+                               SK_TGFix_Noble_Object_ApplyCachedParameters_Detour,
+      static_cast_p2p <void> (&         Noble_Object_ApplyCachedParameters_Original) );
+    
+    SK_QueueEnableHook (pfnNoble_Object_ApplyCachedParameters);
 
     auto pfnNoble_PrimitiveManager_CalcUIOrthoMatrix =
       CompileMethod ("Noble", "PrimitiveManager",
                      "CalcUIOrthoMatrix", 1);
-
+    
     SK_CreateFuncHook (               L"Noble.PrimitiveManager.CalcUIOrthoMatrix",
                                      pfnNoble_PrimitiveManager_CalcUIOrthoMatrix,
                                SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour,
       static_cast_p2p <void> (&         Noble_PrimitiveManager_CalcUIOrthoMatrix_Original) );
-
+    
     SK_QueueEnableHook (pfnNoble_PrimitiveManager_CalcUIOrthoMatrix);
 
-    //auto pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain =
-    //  CompileMethod ("Noble",   "PrimitiveManager",
-    //                 "OnBeginUpdateNativeGameMain", 0);
-    //
-    //SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnBeginUpdateNativeGameMain",
-    //                                 pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain,
-    //                           SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour,
-    //  static_cast_p2p <void> (&         Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original) );
-    //
-    //SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain);
-    //
-    //auto pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain =
-    //  CompileMethod ("Noble", "PrimitiveManager",
-    //                 "OnEndUpdateNativeGameMain", 0);
-    //
-    //SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnEndUpdateNativeGameMain",
-    //                                 pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain,
-    //                           SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour,
-    //  static_cast_p2p <void> (&         Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original) );
-    //
-    //SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain);
-    //
-    //auto pfnNobleMovieRendereFeature_Create =
-    //  CompileMethod ("",
-    //       "NobleMovieRendereFeature",
-    //                                "Create", 0);
-    //
-    //SK_CreateFuncHook (               L"NobleMovieRendereFeature.Create",
-    //                                 pfnNobleMovieRendereFeature_Create,
-    //                           SK_TGFix_NobleMovieRendereFeature_Create_Detour,
-    //  static_cast_p2p <void> (&         NobleMovieRendereFeature_Create_Original) );
-    //
-    //SK_QueueEnableHook (pfnNobleMovieRendereFeature_Create);
+    auto pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain =
+      CompileMethod ("Noble",   "PrimitiveManager",
+                     "OnBeginUpdateNativeGameMain", 0);
+
+    SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnBeginUpdateNativeGameMain",
+                                     pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain,
+                               SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour,
+      static_cast_p2p <void> (&         Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original) );
+
+    SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain);
+
+    auto pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain =
+      CompileMethod ("Noble", "PrimitiveManager",
+                     "OnEndUpdateNativeGameMain", 0);
+    
+    SK_CreateFuncHook (               L"Noble.PrimitiveManager.OnEndUpdateNativeGameMain",
+                                     pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain,
+                               SK_TGFix_Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Detour,
+      static_cast_p2p <void> (&         Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original) );
+
+    SK_QueueEnableHook (pfnNoble_PrimitiveManager_OnEndUpdateNativeGameMain);
+
+    auto pfnNoble_PrimitiveManager_PrimitiveRenderExecute_Internal =
+      CompileMethod ("Noble", "PrimitiveManager",
+                     "PrimitiveRenderExecute_Internal", 4);
+
+    SK_CreateFuncHook (               L"Noble.PrimitiveManager.PrimitiveRenderExecute_Internal",
+                                     pfnNoble_PrimitiveManager_PrimitiveRenderExecute_Internal,
+                               SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour,
+      static_cast_p2p <void> (&         Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Original) );
+
+    SK_QueueEnableHook (pfnNoble_PrimitiveManager_PrimitiveRenderExecute_Internal);
+
+    auto pfnNobleMovieRendererPass_Execute =
+      CompileMethod ("",
+           "NobleMovieRendererPass",
+                                  "Execute", 2);
+
+    SK_CreateFuncHook (               L"NobleMovieRendererPass.Execute",
+                                     pfnNobleMovieRendererPass_Execute,
+                               SK_TGFix_NobleMovieRendererPass_Execute_Detour,
+      static_cast_p2p <void> (&         NobleMovieRendererPass_Execute_Original) );
+
+    SK_QueueEnableHook (pfnNobleMovieRendererPass_Execute);
 
     SK_ApplyQueuedHooks ();
   });
@@ -1870,6 +1965,34 @@ void STDMETHODCALLTYPE SK_TGFix_EndFrame (void)
 
       InvokeMethod ("Noble", "FrameRateManager", "SetQualitySettingFrameRate", 1,
                 SK_TGFix_NobleFrameRateManagerSingleton, "Assembly-CSharp", args);
+    }
+  }
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComQIPtr <IDXGISwapChain1>
+      pSwapChain (rb.swapchain.p);
+  if (pSwapChain)
+  {
+    DXGI_SWAP_CHAIN_DESC  swapDesc = {};
+    pSwapChain->GetDesc (&swapDesc);
+
+    static UINT last_width  = 0;
+    static UINT last_height = 0;
+    if ((UINT)(std::exchange (last_width,  swapDesc.BufferDesc.Width)  != swapDesc.BufferDesc.Width) |
+        (UINT)(std::exchange (last_height, swapDesc.BufferDesc.Height) != swapDesc.BufferDesc.Height))
+    {
+      SK_TGFix_ScreenWidth      = swapDesc.BufferDesc.Width;
+      SK_TGFix_ScreenHeight     = swapDesc.BufferDesc.Height;
+
+      SK_TGFix_AspectRatio      = (float)SK_TGFix_ScreenWidth / (float)SK_TGFix_ScreenHeight;
+      SK_TGFix_AspectMultiplier =        SK_TGFix_AspectRatio /        SK_TGFix_NativeAspect;
+
+      SK_LOGi0 ("Current Resolution: %dx%d",                 swapDesc.BufferDesc.Width,
+                                                             swapDesc.BufferDesc.Height);
+      SK_LOGi0 ("Current Resolution: Aspect Ratio: %f",      SK_TGFix_AspectRatio);
+      SK_LOGi0 ("Current Resolution: Aspect Multiplier: %f", SK_TGFix_AspectMultiplier);
     }
   }
 

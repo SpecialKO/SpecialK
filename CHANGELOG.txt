@@ -1,4 +1,14 @@
-﻿25.1.27.2
+﻿25.1.28
+=======
+ + Finished porting all of Lyall's Tales of Graces f fix BepInEx mod to C++,
+     including aspect ratio centering and new code to address object culling.
+
+25.1.27.3
+=========
+ + Remove Temporal AA option when MSAA is selected in Tales of Graces f
+ + Improve overall UI layoiut and spacing in Tales of Graces f control panel
+
+25.1.27.2
 =========
  + Boosted default gamepad polling rate up to 1 kHz again after disabling WGI
      in favor of XInput for Tales of Graces f.
