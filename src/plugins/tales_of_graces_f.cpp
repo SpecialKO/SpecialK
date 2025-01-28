@@ -697,6 +697,9 @@ SK_TGFix_InitPlugin (void)
 #include <mono/metadata/object.h>
 
 typedef MonoThread*     (*mono_thread_attach_pfn)(MonoDomain* domain);
+typedef MonoThread*     (*mono_thread_current_pfn)(void);
+typedef void            (*mono_thread_detach_pfn)(MonoThread* thread);
+typedef mono_bool       (*mono_thread_is_foreign_pfn)(MonoThread* thread);
 typedef MonoDomain*     (*mono_get_root_domain_pfn)(void);
 typedef MonoAssembly*   (*mono_domain_assembly_open_pfn)(MonoDomain* doamin, const char* name);
 typedef MonoImage*      (*mono_assembly_get_image_pfn)(MonoAssembly* assembly);
@@ -740,6 +743,9 @@ typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
 #define SK_mono_array_get(array,type,index) ( *(type*)SK_mono_array_addr ((array), type, (index)) ) 
 
 mono_thread_attach_pfn                SK_mono_thread_attach                = nullptr;
+mono_thread_current_pfn               SK_mono_thread_current               = nullptr;
+mono_thread_detach_pfn                SK_mono_thread_detach                = nullptr;
+mono_thread_is_foreign_pfn            SK_mono_thread_is_foreign            = nullptr;
 mono_get_root_domain_pfn              SK_mono_get_root_domain              = nullptr;
 mono_domain_assembly_open_pfn         SK_mono_domain_assembly_open         = nullptr;
 mono_assembly_get_image_pfn           SK_mono_assembly_get_image           = nullptr;
@@ -778,6 +784,8 @@ mono_gchandle_get_target_v2_pfn       SK_mono_gchandle_get_target_v2       = nul
 
 mono_method_desc_new_pfn              SK_mono_method_desc_new              = nullptr;
 mono_method_desc_search_in_image_pfn  SK_mono_method_desc_search_in_image  = nullptr;
+
+MonoDomain* SK_TGFix_MonoDomain = nullptr;
 
 using mono_jit_init_pfn              = MonoDomain* (*)(const char *file);
       mono_jit_init_pfn
@@ -818,6 +826,31 @@ mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_
   }
 
   return domain;
+}
+
+void AttachThread (void)
+{
+  SK_mono_thread_attach (SK_TGFix_MonoDomain);
+}
+
+bool DetachCurrentThreadIfNotNative (void)
+{
+  MonoThread* this_thread =
+    SK_mono_thread_current ();
+
+  if (this_thread != nullptr)
+  {
+    if (SK_mono_thread_is_foreign (this_thread))
+    {
+      SK_mono_thread_detach (this_thread);
+
+      SK_LOGi1 (L"Detached Non-Native Mono Thread: tid=%x", GetCurrentThreadId ());
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 static constexpr wchar_t* mono_dll  = L"mono-2.0-bdwgc.dll";
@@ -874,6 +907,9 @@ SK_TGFix_HookMonoInit (void)
  
   SK_mono_thread_attach                = reinterpret_cast <mono_thread_attach_pfn>                (SK_GetProcAddress (hMono, "mono_thread_attach"));
   SK_mono_get_root_domain              = reinterpret_cast <mono_get_root_domain_pfn>              (SK_GetProcAddress (hMono, "mono_get_root_domain"));
+  SK_mono_thread_current               = reinterpret_cast <mono_thread_current_pfn>               (SK_GetProcAddress (hMono, "mono_thread_current"));
+  SK_mono_thread_detach                = reinterpret_cast <mono_thread_detach_pfn>                (SK_GetProcAddress (hMono, "mono_thread_detach"));
+  SK_mono_thread_is_foreign            = reinterpret_cast <mono_thread_is_foreign_pfn>            (SK_GetProcAddress (hMono, "mono_thread_is_foreign"));
 
   void*                   pfnMonoJitInitVersion = nullptr;
   SK_CreateDLLHook (         mono_dll,
@@ -903,7 +939,7 @@ void SK_TGFix_OnInitMono (MonoDomain* domain)
         init = false;
   if (! init)
   {
-    SK_mono_thread_attach (domain);
+    SK_TGFix_MonoDomain = domain;
 
     SK_ReleaseAssert (domain == SK_mono_get_root_domain ());
 
@@ -967,7 +1003,7 @@ bool LoadMonoAssembly (const char* assemblyName)
     return true;
 
   MonoDomain* pDomain =
-    SK_mono_get_root_domain ();
+    SK_TGFix_MonoDomain;
 
   if (pDomain == nullptr)
     return false;
@@ -993,7 +1029,7 @@ void* GetCompiledMethod (const char* nameSpace, const char* className, const cha
   if (! pImage)
   {
     MonoDomain* pDomain =
-      SK_mono_get_root_domain ();
+      SK_TGFix_MonoDomain;
 
     if (pDomain == nullptr)
       return nullptr;
@@ -1035,7 +1071,7 @@ MonoMethod* GetMethod (const char* className, const char* methodName, int param_
   if (! pImage)
   {
     MonoDomain* pDomain =
-      SK_mono_get_root_domain ();
+      SK_TGFix_MonoDomain;
 
     if (pDomain == nullptr)
       return nullptr;
@@ -1065,15 +1101,13 @@ MonoMethod* GetMethod (const char* className, const char* methodName, int param_
 
 MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
-
   MonoImage* pImage =
     SK_mono_image_loaded (assemblyName);
 
   if (! pImage)
   {
     MonoDomain* pDomain =
-      SK_mono_get_root_domain ();
+      SK_TGFix_MonoDomain;
 
     if (pDomain == nullptr)
       return nullptr;
@@ -1105,15 +1139,13 @@ MonoClass* GetClassFromMethod (MonoMethod* method)
 
 MonoClassField* GetField (const char* className, const char* fieldName, const char* assemblyName = "Assembly-CSharp", const char* nameSpace = "")
 {
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
-
   MonoImage* pImage =
     SK_mono_image_loaded (assemblyName);
 
   if (! pImage)
   {
     MonoDomain* pDomain =
-      SK_mono_get_root_domain ();
+      SK_TGFix_MonoDomain;
 
     if (pDomain == nullptr)
       return nullptr;
@@ -1160,22 +1192,20 @@ uint32_t GetFieldOffset (MonoClassField* field)
 
 void GetFieldValue (MonoObject* obj, MonoClassField* field, void* out)
 {
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
+  AttachThread ();
 
   SK_mono_field_get_value (obj, field, out);
 }
 
 void SetFieldValue (MonoObject* obj, MonoClassField* field, void* value)
 {
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
-
   SK_mono_field_set_value (obj, field, value);
 }
 
 MonoVTable* GetVTable (MonoClass* pKlass)
 {
   return
-    SK_mono_class_vtable (SK_mono_get_root_domain (), pKlass);
+    SK_mono_class_vtable (SK_TGFix_MonoDomain, pKlass);
 }
 
 void* GetStaticFieldData (MonoVTable* pVTable)
@@ -1273,7 +1303,7 @@ MonoObject* InvokeMethod (const char* namespace_, const char* class_, const char
   if (instance == nullptr)
            return nullptr;
 
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
+  AttachThread ();
 
   return
     SK_mono_runtime_invoke (GetClassMethod (GetImage (image_), namespace_, class_, method, paramsCount), instance, params, nullptr);
@@ -1293,15 +1323,15 @@ void* CompileMethod (const char* namespace_, const char* class_, const char* nam
 
 MonoObject* NewObject (MonoClass* klass)
 {
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
+  SK_mono_thread_attach (SK_TGFix_MonoDomain);
 
   return
-    SK_mono_object_new (SK_mono_get_root_domain (), klass);
+    SK_mono_object_new (SK_TGFix_MonoDomain, klass);
 }
 
 MonoObject* Invoke (MonoMethod* method, void* obj, void** params)
 {
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
+  SK_mono_thread_attach (SK_TGFix_MonoDomain);
  
   MonoObject* exc;
 
@@ -1540,13 +1570,13 @@ SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
 
     void* params [2] = { &flag, &set };
 
-    bool is_dirty =                           *(bool *)SK_mono_object_unbox (Invoke (IsDirty,   __this, params));
-    if (!is_dirty &&                          *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params)))
+    bool is_dirty =                           *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsDirty,   __this, params, nullptr));
+    if (!is_dirty &&                          *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr)))
     {
       flag = 0x2;
-      const bool bCachedRenderRequest       = *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params));
+      const bool bCachedRenderRequest       = *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr));
       flag = 0x4;
-      const bool bCurrentFrameRenderRequest = *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params));
+      const bool bCurrentFrameRenderRequest = *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr));
 
       is_dirty = bCachedRenderRequest != bCurrentFrameRenderRequest;
     }
@@ -1556,13 +1586,13 @@ SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
       flag = 0x5; // kObjectVisible | kCurrentFrameRenderRequest
 
       const bool is_visible =
-        *(bool *)SK_mono_object_unbox (Invoke (IsVisible, __this, params));
+        *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr));
       
       if (is_visible)
       {
         flag = 0x7; // kObjectVisible | kCachedRenderRequest
                     //                | kCurrentFrameRenderRequest
-        Invoke (SetVisibilityFlags, __this, params);
+        SK_mono_runtime_invoke (SetVisibilityFlags, __this, params, nullptr);
       }
     }
   }
@@ -1697,7 +1727,7 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
       MonoArray*                                                              obj_m_PrimitiveType_type_db = nullptr;
       SK_mono_field_get_value (primitive_type_type, m_PrimitiveType_type_db, &obj_m_PrimitiveType_type_db);
 
-      if (SK_mono_array_get(obj_m_PrimitiveType_type_db, int, 0) == 4)
+      if (SK_mono_array_get (obj_m_PrimitiveType_type_db, int, 0) == 4)
       {
         return;
       }
@@ -1776,6 +1806,8 @@ SK_TGFix_SetupFramerateHooks (void)
 
   if (! LoadMonoAssembly ("Assembly-CSharp"))
     return false;
+
+  AttachThread ();
 
   SK_RunOnce (
   {
@@ -1912,8 +1944,12 @@ SK_TGFix_SetupFramerateHooks (void)
     SK_ApplyQueuedHooks ();
   });
 
+  DetachCurrentThreadIfNotNative ();
+
   if (! LoadMonoAssembly ("UnityEngine.CoreModule"))
     return false;
+
+  AttachThread ();
 
   SK_RunOnce (
   {
@@ -1942,6 +1978,8 @@ SK_TGFix_SetupFramerateHooks (void)
     SK_ApplyQueuedHooks ();
   });
 
+  DetachCurrentThreadIfNotNative ();
+
   if (! (LoadMonoAssembly ("Unity.RenderPipelines.Core.Runtime") &&
          LoadMonoAssembly ("Unity.RenderPipelines.Universal.Runtime")))
     return false;
@@ -1965,6 +2003,9 @@ void STDMETHODCALLTYPE SK_TGFix_EndFrame (void)
 
       InvokeMethod ("Noble", "FrameRateManager", "SetQualitySettingFrameRate", 1,
                 SK_TGFix_NobleFrameRateManagerSingleton, "Assembly-CSharp", args);
+
+      // We don't want garbage collection overhead on this thread just because we called a function once!
+      DetachCurrentThreadIfNotNative ();
     }
   }
 
@@ -2006,7 +2047,7 @@ SK_TGFix_NobleQualitySettings (void)
         NobleQualitySettings = nullptr;
   if (! NobleQualitySettings)
   {
-    SK_mono_thread_attach (SK_mono_get_root_domain ());
+    AttachThread ();
 
     MonoImage*  assemblyCSharp     = SK_mono_image_loaded               ("Assembly-CSharp");
     MonoClass*  gameObjectClass    = SK_mono_class_from_name            (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "GameObject");
@@ -2017,16 +2058,19 @@ SK_TGFix_NobleQualitySettings (void)
       SK_mono_class_from_name (assemblyCSharp, "Noble", "NobleQualitySettings");
 
     void* find_args [1] =
-      { SK_mono_string_new (SK_mono_get_root_domain (), "NobleQualitySettings") };
+      { SK_mono_string_new (SK_TGFix_MonoDomain, "NobleQualitySettings") };
 
     auto gameObject =
       SK_mono_runtime_invoke (findMethod, nullptr, find_args, nullptr);
 
     void* get_component_args [1] =
-      { SK_mono_type_get_object (SK_mono_get_root_domain (), SK_mono_class_get_type (Noble_NobleQualitySettingsClass)) };
+      { SK_mono_type_get_object (SK_TGFix_MonoDomain, SK_mono_class_get_type (Noble_NobleQualitySettingsClass)) };
 
     NobleQualitySettings =
       SK_mono_runtime_invoke (getComponentMethod, gameObject, get_component_args, nullptr);
+
+    // The object we just got is a singleton and persistent whether we garbage collect on this thread or not
+    DetachCurrentThreadIfNotNative ();
   }
 
   return NobleQualitySettings;
@@ -2039,7 +2083,7 @@ SK_TGFix_GetMainCameraAdditionalData (void)
         UniversalAdditionalCameraData = nullptr;
   if (! UniversalAdditionalCameraData)
   {
-    SK_mono_thread_attach (SK_mono_get_root_domain ());
+    AttachThread ();
 
     MonoImage*  assemblyRenderPipes = SK_mono_image_loaded               ("Unity.RenderPipelines.Universal.Runtime");
     MonoClass*  gameObjectClass     = SK_mono_class_from_name            (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "GameObject");
@@ -2050,16 +2094,19 @@ SK_TGFix_GetMainCameraAdditionalData (void)
       SK_mono_class_from_name (assemblyRenderPipes, "UnityEngine.Rendering.Universal", "UniversalAdditionalCameraData");
 
     void* find_args [1] =
-      { SK_mono_string_new (SK_mono_get_root_domain (), "Main Camera") };
+      { SK_mono_string_new (SK_TGFix_MonoDomain, "Main Camera") };
 
     auto gameObject =
       SK_mono_runtime_invoke (findMethod, nullptr, find_args, nullptr);
 
     void* get_component_args [1] =
-      { SK_mono_type_get_object (SK_mono_get_root_domain (), SK_mono_class_get_type (UnityEngine_Rendering_Universal_UniversalAdditionalCameraDataClass)) };
+      { SK_mono_type_get_object (SK_TGFix_MonoDomain, SK_mono_class_get_type (UnityEngine_Rendering_Universal_UniversalAdditionalCameraDataClass)) };
 
     UniversalAdditionalCameraData =
       SK_mono_runtime_invoke (getComponentMethod, gameObject, get_component_args, nullptr);
+
+    // The object we just got is a singleton and persistent whether we garbage collect on this thread or not
+    DetachCurrentThreadIfNotNative ();
   }
 
   return UniversalAdditionalCameraData;
@@ -2106,6 +2153,9 @@ SK_TGFix_SetRenderScale (float render_scale)
   SK_LOGi0 (L"Setting Render Scale: %f", render_scale);
 
   InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalRenderPipelineAsset", "set_renderScale", 1, pipeline, "Unity.RenderPipelines.Universal.Runtime", params);
+
+  // We don't want garbage collection overhead on this thread just because we called a function once!
+  DetachCurrentThreadIfNotNative ();
 }
 
 void
@@ -2127,6 +2177,9 @@ SK_TGFix_SetCameraAA (void)
 
   InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalAdditionalCameraData", "set_antialiasing", 1,
                 MainCameraAdditionalData, "Unity.RenderPipelines.Universal.Runtime", params);
+
+  // We don't want garbage collection overhead on this thread just because we called a function once!
+  DetachCurrentThreadIfNotNative ();
 }
 
 void
@@ -2157,6 +2210,9 @@ SK_TGFix_EnableInternalHDR (bool enable)
   // Enable native HDR internally for most render passes
   InvokeMethod ("UnityEngine.Rendering.Universal", "UniversalRenderPipelineAsset", "set_supportsHDR", 1, pipeline,
                 "Unity.RenderPipelines.Universal.Runtime", params);
+
+  // We don't want garbage collection overhead on this thread just because we called a function once!
+  DetachCurrentThreadIfNotNative ();
 }
 
 void
@@ -2165,9 +2221,9 @@ SK_TGFix_SetInputPollingFreq (float PollingHz)
   if (std::exchange (SK_TGFix_InputPollingFrequency, PollingHz) == PollingHz)
     return;
 
-  SK_mono_thread_attach (SK_mono_get_root_domain ());
+  AttachThread ();
 
-  static auto NativeInputRuntime_instance =
+  auto NativeInputRuntime_instance =
     GetStaticFieldValue ("NativeInputRuntime", "instance", "Unity.InputSystem", "UnityEngine.InputSystem.LowLevel");
 
   void* params [1] = { &PollingHz };
@@ -2175,4 +2231,7 @@ SK_TGFix_SetInputPollingFreq (float PollingHz)
   SK_LOGi0 (L"Setting Input Polling Hz: %f", PollingHz);
 
   InvokeMethod ("UnityEngine.InputSystem.LowLevel", "NativeInputRuntime", "set_pollingFrequency", 1, NativeInputRuntime_instance, "Unity.InputSystem", params);
+
+  // We don't want garbage collection overhead on this thread just because we called a function once!
+  DetachCurrentThreadIfNotNative ();
 }
