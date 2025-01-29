@@ -1,4 +1,12 @@
-﻿25.1.29
+﻿25.1.29.1
+=========
+ + Fixed a SERIOUS screwup in the Tales of Graces f Steam port, where ALL
+     achievement-related code is contingent upon the end-user having the
+       Steam overlay enabled!
+
+    * Bad Bandai Namco, Bad!  Pay me to do your QA next time? :)
+
+25.1.29
 =======
  + Detach Mono threads after invoking C# functions on threads that are not
      originally part of the Mono runtime to avoid garbage collection on the

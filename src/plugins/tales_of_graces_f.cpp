@@ -1841,6 +1841,36 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
   UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original (__this, Scissor);
 }
 
+using Steamworks_SteamUtils_IsOverlayEnabled_pfn = bool (*)(void);
+      Steamworks_SteamUtils_IsOverlayEnabled_pfn
+      Steamworks_SteamUtils_IsOverlayEnabled_Original = nullptr;
+
+bool
+SK_TGFix_Steamworks_SteamUtils_IsOverlayEnabled_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  if (! Steamworks_SteamUtils_IsOverlayEnabled_Original ())
+  {
+    SK_RunOnce (
+    {
+      SK_ImGui_CreateNotification ( "TalesOfGraces.CriticalSteamBug",
+                                          SK_ImGui_Toast::Warning,
+                "This game normally requires the Steam overlay to be enabled to unlock achievements\r\n\r\n\t"
+                "Special K has fixed the problem -- but -- you will not retroactively unlock missed achievements!!\r\n\r\n"
+                " * This is a serious bug, please report it to Bandai Namco ASAP!",
+                "Steamworks Achievement Bug (Partially) Fixed",
+                                            25000UL,
+                                          SK_ImGui_Toast::UseDuration |
+                                          SK_ImGui_Toast::ShowTitle   |
+                                          SK_ImGui_Toast::ShowCaption |
+                                          SK_ImGui_Toast::ShowOnce );
+    });
+  }
+
+  return true;
+}
+
 bool
 SK_TGFix_SetupFramerateHooks (void)
 {
@@ -1855,6 +1885,9 @@ SK_TGFix_SetupFramerateHooks (void)
 
   SK_RunOnce (
   {
+    //
+    // Framerate Hooks
+    //
     auto pfnNobleFrameRateManager_SetQualitySettingFrameRate =
       CompileMethod ("Noble", "FrameRateManager",
              "SetQualitySettingFrameRate", 1);
@@ -1876,6 +1909,9 @@ SK_TGFix_SetupFramerateHooks (void)
     SK_QueueEnableHook (pfnNobleFrameRateManager_SetQualitySettingFrameRate);
     SK_QueueEnableHook (pfnNobleFrameRateManager_SetTargetFrameRate);
 
+    //
+    // Aspect Ratio Hooks
+    //
     auto pfnNoble_CameraManager_SetCameraViewportRect =
       CompileMethod ("Noble", "CameraManager",
                            "SetCameraViewportRect", 1);
@@ -1883,10 +1919,6 @@ SK_TGFix_SetupFramerateHooks (void)
     auto pfnNoble_CameraManager_SetCameraAspect =
       CompileMethod ("Noble", "CameraManager",
                            "SetCameraAspect", 1);
-
-    //auto pfnNoble_CameraManager_OnPostNativeGameUpdate =
-    //  CompileMethod ("Noble", "CameraManager",
-    //                       "OnPostNativeGameUpdate", 0);
 
     auto pfnNoble_CameraManager_SetBackGoundColor =
       CompileMethod ("Noble", "CameraManager",
@@ -1902,10 +1934,6 @@ SK_TGFix_SetupFramerateHooks (void)
                                SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour,
       static_cast_p2p <void> (&         Noble_CameraManager_SetCameraAspect_Original) );
 
-    //SK_CreateFuncHook (               L"Noble.CameraManager.OnPostNativeGameUpdate",
-    //                                 pfnNoble_CameraManager_OnPostNativeGameUpdate,
-    //                           SK_TGFix_Noble_CameraManager_OnPostNativeGameUpdate_Detour,
-    //  static_cast_p2p <void> (&         Noble_CameraManager_OnPostNativeGameUpdate_Original) );
     SK_CreateFuncHook (               L"Noble.CameraManager.SetBackGoundColor",
                                      pfnNoble_CameraManager_SetBackGoundColor,
                                SK_TGFix_Noble_CameraManager_SetBackGoundColor_Detour,
@@ -1914,7 +1942,6 @@ SK_TGFix_SetupFramerateHooks (void)
     SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraViewportRect);
     SK_QueueEnableHook (pfnNoble_CameraManager_SetCameraAspect);
     SK_QueueEnableHook (pfnNoble_CameraManager_SetBackGoundColor);
-    //SK_QueueEnableHook (pfnNoble_CameraManager_OnPostNativeGameUpdate);
 
 
     // Keep all objects visible at all times to workaround bad camera culling
@@ -2016,6 +2043,27 @@ SK_TGFix_SetupFramerateHooks (void)
 
   SK_TGFix_MonoFields. Noble.ObjPrimitiveBase.vertexCount        = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass, "vertexCount");
   SK_TGFix_MonoFields. Noble.ObjPrimitiveBase.m_PrimitiveType    = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass, "m_PrimitiveType");
+
+  DetachCurrentThreadIfNotNative ();
+
+  if (! LoadMonoAssembly ("com.rlabrecque.steamworks.net"))
+    return false;
+
+  AttachThread ();
+
+  SK_RunOnce(
+  {
+    auto pfnSteamworks_SteamUtils_IsOverlayEnabled =
+      CompileMethod ("Steamworks", "SteamUtils",
+                     "IsOverlayEnabled", 0, "com.rlabrecque.steamworks.net");
+
+    SK_CreateFuncHook (               L"Steamworks.SteamUtils.IsOverlayEnabled",
+                                     pfnSteamworks_SteamUtils_IsOverlayEnabled,
+                               SK_TGFix_Steamworks_SteamUtils_IsOverlayEnabled_Detour,
+      static_cast_p2p <void> (&         Steamworks_SteamUtils_IsOverlayEnabled_Original) );
+
+    SK_QueueEnableHook (pfnSteamworks_SteamUtils_IsOverlayEnabled);
+  });
 
   DetachCurrentThreadIfNotNative ();
 
