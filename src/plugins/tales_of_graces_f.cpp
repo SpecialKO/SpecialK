@@ -76,7 +76,7 @@ struct sk_tgfix_cfg_s {
   PlugInParameter <bool>  sharpen_outlines   = false;
 
   PlugInParameter <bool>  disable_fxaa       = false;
-  PlugInParameter <bool>  disable_blur       =  true;
+  PlugInParameter <bool>  disable_fog        =  true;
 
   PlugInParameter <bool>  use_taa            = false;
   PlugInParameter <float> taa_jitter         =  0.9f;//Not configurable yet
@@ -347,18 +347,19 @@ SK_TGFix_PlugInCfg (void)
 
       ImGui::SameLine (0.0f, fItemSpacing);
 
-      bool                          blur = !SK_TGFix_Cfg.disable_blur;
-      if (ImGui::Checkbox ("Blur", &blur))
+      bool                         fog = !SK_TGFix_Cfg.disable_fog;
+      if (ImGui::Checkbox ("Fog", &fog))
       {
-        SK_TGFix_Cfg.disable_blur = !blur;
-        SK_TGFix_Cfg.disable_blur.store ();
+        SK_TGFix_Cfg.disable_fog = !fog;
+        SK_TGFix_Cfg.disable_fog.store ();
 
         cfg_changed = true;
       }
 
       ImGui::SetItemTooltip (
-        "Some areas of the game have an additional layer of blurriness that detracts from HDR and does not cover the entire screen in 21:9.\r\n"
-        "\tYou are encouraged to disable \"Blur\" if you are using RenoDX or a 21:9 screen"
+        "Some areas of the game have an additional layer of fogginess that detracts from HDR and "
+        "does not cover the entire screen in 21:9.\r\n\r\n"
+        "\tYou are encouraged to disable \"Fog\" if you are using RenoDX or a 21:9 screen."
       );
 
       if (ImGui::Checkbox ("Sharpen Outlines", &SK_TGFix_Cfg.sharpen_outlines))
@@ -662,10 +663,10 @@ SK_TGFix_InitPlugin (void)
                                     L"Internal Render Scale (0.1-2.0)" )
     );
 
-    SK_TGFix_Cfg.disable_blur.bind_to_ini (
+    SK_TGFix_Cfg.disable_fog.bind_to_ini (
       _CreateConfigParameterBool  ( L"TGFix.Render",
-                                    L"DisableBlur",  SK_TGFix_Cfg.disable_blur,
-                                    L"Disables partial screen blur effect that is not desirable for HDR or 21:9." )
+                                    L"DisableFog",  SK_TGFix_Cfg.disable_fog,
+                                    L"Disables partial screen fog effect that is not desirable for HDR or 21:9." )
     );
 
     SK_TGFix_Cfg.hacks.constant_visibility.bind_to_ini (
@@ -1826,7 +1827,7 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
 {
   SK_LOG_FIRST_CALL
 
-  if (obj != nullptr && SK_TGFix_Cfg.disable_blur)
+  if (obj != nullptr && SK_TGFix_Cfg.disable_fog)
   {
     const auto vertexCount     = SK_TGFix_MonoFields.Noble.ObjPrimitiveBase.vertexCount;
     const auto m_PrimitiveType = SK_TGFix_MonoFields.Noble.ObjPrimitiveBase.m_PrimitiveType;
