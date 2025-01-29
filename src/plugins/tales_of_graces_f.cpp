@@ -76,7 +76,7 @@ struct sk_tgfix_cfg_s {
   PlugInParameter <bool>  sharpen_outlines   = false;
 
   PlugInParameter <bool>  disable_fxaa       = false;
-  PlugInParameter <bool>  disable_smog       =  true;
+  PlugInParameter <bool>  disable_blur       =  true;
 
   PlugInParameter <bool>  use_taa            = false;
   PlugInParameter <float> taa_jitter         =  0.9f;//Not configurable yet
@@ -239,8 +239,6 @@ SK_TGFix_PlugInCfg (void)
       {
         cfg_changed = true;
         restart_reqs++;
-      
-        config.utility.save_async ();
       }
       
       ImGui::SetItemTooltip ("Force maximum anisotropic filtering level (game's default = 9x), for native anisotropic "
@@ -250,8 +248,6 @@ SK_TGFix_PlugInCfg (void)
       {
         cfg_changed = true;
         restart_reqs++;
-      
-        config.utility.save_async ();
       }
       
       ImGui::SetItemTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
@@ -350,11 +346,19 @@ SK_TGFix_PlugInCfg (void)
 
       ImGui::SameLine (0.0f, fItemSpacing);
 
-      bool                          smog = !SK_TGFix_Cfg.disable_smog;
-      if (ImGui::Checkbox ("Smog", &smog))
+      bool                          blur = !SK_TGFix_Cfg.disable_blur;
+      if (ImGui::Checkbox ("Blur", &blur))
       {
-        SK_TGFix_Cfg.disable_smog = !smog;
+        SK_TGFix_Cfg.disable_blur = !blur;
+        SK_TGFix_Cfg.disable_blur.store ();
+
+        cfg_changed = true;
       }
+
+      ImGui::SetItemTooltip (
+        "Some areas of the game have an additional layer of blurriness that detracts from HDR and does not cover the entire screen in 21:9.\r\n"
+        "\tYou are encouraged to disable \"Blur\" if you are using RenoDX or a 21:9 screen"
+      );
 
       if (ImGui::Checkbox ("Sharpen Outlines", &SK_TGFix_Cfg.sharpen_outlines))
       {
@@ -387,7 +391,16 @@ SK_TGFix_PlugInCfg (void)
       {
         ImGui::SeparatorText ("Aspect Ratio");
 
-        ImGui::Checkbox ("Use Visibility Hack", &SK_TGFix_Cfg.hacks.constant_visibility);
+        if (ImGui::Checkbox ("Use Visibility Hack", &SK_TGFix_Cfg.hacks.constant_visibility))
+        {
+          SK_TGFix_Cfg.hacks.constant_visibility.store ();
+
+          cfg_changed = true;
+        }
+
+        ImGui::SetItemTooltip (
+          "Enables a special hack to keep objects off to the side from becoming invisible prematurely."
+        );
       }
 
       if (cfg_changed)
@@ -637,6 +650,18 @@ SK_TGFix_InitPlugin (void)
       _CreateConfigParameterFloat ( L"TGFix.Render",
                                     L"RenderScale",  SK_TGFix_Cfg.render_scale,
                                     L"Internal Render Scale (0.1-2.0)" )
+    );
+
+    SK_TGFix_Cfg.render_scale.bind_to_ini (
+      _CreateConfigParameterBool  ( L"TGFix.Render",
+                                    L"DisableBlur",  SK_TGFix_Cfg.disable_blur,
+                                    L"Disables partial screen blur effect that is not desirable for HDR or 21:9." )
+    );
+
+    SK_TGFix_Cfg.hacks.constant_visibility.bind_to_ini (
+      _CreateConfigParameterBool  ( L"TGFix.Render",
+                                    L"WidescreenCullingHack",  SK_TGFix_Cfg.hacks.constant_visibility,
+                                    L"Ensures objects that are close to off-screen, but not actually off-screen, remain visible." )
     );
 
     SK_TGFix_Cfg.gamepad_polling_hz.bind_to_ini (
@@ -1754,7 +1779,7 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
 {
   SK_LOG_FIRST_CALL
 
-  if (obj != nullptr && SK_TGFix_Cfg.disable_smog)
+  if (obj != nullptr && SK_TGFix_Cfg.disable_blur)
   {
     const auto vertexCount     = SK_TGFix_MonoFields.Noble.ObjPrimitiveBase.vertexCount;
     const auto m_PrimitiveType = SK_TGFix_MonoFields.Noble.ObjPrimitiveBase.m_PrimitiveType;
@@ -2251,10 +2276,10 @@ SK_TGFix_SetMSAASampleCount (int sample_count)
   if (sample_count > 1)
   {
     int none     = 0;
-    //int lut_size = 65;
+    int lut_size = 32;
 
     SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_OpaqueDownsampling"),  &none);
-  //SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
+    SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
   }
 
   DetachCurrentThreadIfNotNative ();
@@ -2284,10 +2309,10 @@ SK_TGFix_SetRenderScale (float render_scale)
   if (render_scale != 1.0f)
   {
     int none     = 0;
-  //int lut_size = 65;
+    int lut_size = 32;
 
     SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_OpaqueDownsampling"),  &none);
-  //SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
+    SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
   }
 
   // We don't want garbage collection overhead on this thread just because we called a function once!

@@ -1,4 +1,11 @@
-﻿25.1.29.1
+﻿25.1.29.2
+=========
+ + Changed Widescreen Visibility Hack and "Smog" (now renamed to "Blur")
+     settings in Tales of Graces f from unsaved debug test options to
+       actual settings stored in SK's INI for the game.
+ + Added tooltips explaining what the abovementioned things even are :)
+
+25.1.29.1
 =========
  + Fixed a SERIOUS screwup in the Tales of Graces f Steam port, where ALL
      achievement-related code is contingent upon the end-user having the
