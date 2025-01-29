@@ -362,7 +362,6 @@ SK_TGFix_PlugInCfg (void)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
-          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0xf751273e);
 
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
@@ -373,7 +372,6 @@ SK_TGFix_PlugInCfg (void)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
-          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0xf751273e);
 
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
@@ -686,7 +684,6 @@ SK_TGFix_InitPlugin (void)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
-      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0xf751273e);
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
@@ -971,6 +968,44 @@ MonoObject* SK_TGFix_PrimitiveManagerSingleton = nullptr;
 MonoObject* SK_TGFix_CameraManagerSingleton    = nullptr;
 MonoObject* SK_TGFix_FrameRateManagerSingleton = nullptr;
 float       SK_TGFix_LastSetFrameRateLimit     = 0.0f;
+
+struct {
+  struct {
+    struct {
+      MonoClassField*   m_Viewport      = nullptr;
+      struct {
+        MonoClassField* type            = nullptr;
+      } PRIM_PARAM;
+      struct {
+        MonoClassField* db              = nullptr;
+      } PRIM_TYPE;
+    } PrimitiveManager;
+    struct {
+      MonoClassField*   vertexCount     = nullptr;
+      MonoClassField*   m_PrimitiveType = nullptr;
+    } ObjPrimitiveBase;
+    struct {
+      MonoClassField*   cameraview      = nullptr;
+    } NobleMovieRendererPass;
+  } Noble;
+} SK_TGFix_MonoFields;
+
+struct {
+  struct {
+    struct {
+      MonoMethod* SetVisibilityFlags    = nullptr;
+      MonoMethod* IsDirty               = nullptr;
+      MonoMethod* IsVisible             = nullptr;
+    } Object;
+    struct {
+      MonoMethod* SetCameraAspect       = nullptr;
+      MonoMethod* SetCameraViewportRect = nullptr;
+    } CameraManager;
+    struct {
+      MonoMethod* CalcUIOrthoMatrix     = nullptr;
+    } PrimitiveManager;
+  } Noble;
+} SK_TGFix_MonoMethods;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -1576,9 +1611,9 @@ SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
 
   if (SK_TGFix_Cfg.hacks.constant_visibility && SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
-    static MonoMethod* SetVisibilityFlags = GetMethod ("Object", "SetVisibilityFlags", 2, "Assembly-CSharp", "Noble");
-    static MonoMethod* IsDirty            = GetMethod ("Object", "IsDirty",            1, "Assembly-CSharp", "Noble");
-    static MonoMethod* IsVisible          = GetMethod ("Object", "IsVisible",          1, "Assembly-CSharp", "Noble");
+    const auto IsDirty            = SK_TGFix_MonoMethods.Noble.Object.IsDirty;
+    const auto IsVisible          = SK_TGFix_MonoMethods.Noble.Object.IsVisible;
+    const auto SetVisibilityFlags = SK_TGFix_MonoMethods.Noble.Object.SetVisibilityFlags;
 
     int  flag = 0x1; // kObjectVisible
     bool set  = true;
@@ -1628,6 +1663,20 @@ using Noble_PrimitiveManager_OnEndUpdateNativeGameMain_pfn = void (*)(MonoObject
       Noble_PrimitiveManager_OnEndUpdateNativeGameMain_pfn
       Noble_PrimitiveManager_OnEndUpdateNativeGameMain_Original = nullptr;
 
+bool SK_TGFix_LastCalcUIOrthoMatrixWasForced = false;
+
+void
+SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bool forceproc)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_TGFix_PrimitiveManagerSingleton = __this;
+
+  Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
+
+  SK_TGFix_LastCalcUIOrthoMatrixWasForced = forceproc;
+}
+
 void
 SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour (MonoObject* __this)
 {
@@ -1637,18 +1686,14 @@ SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour (MonoObject* 
 
   Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Original (__this);
 
-  static MonoImage* assemblyCSharp              = SK_mono_image_loaded    ("Assembly-CSharp");
-  static MonoClass* Noble_CameraManagerClass    = SK_mono_class_from_name (assemblyCSharp, "Noble", "CameraManager");
-  static MonoClass* Noble_PrimitiveManagerClass = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager");
-
   auto cameraManager  = SK_TGFix_CameraManagerSingleton;
   if ( cameraManager != nullptr )
   {
-    static MonoMethod* SetCameraAspect       = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "SetCameraAspect",       1);
-    static MonoMethod* GetCameraViewportRect = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "GetCameraViewportRect", 0);
-    static MonoMethod* SetCameraViewportRect = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "SetCameraViewportRect", 1);
+    const auto SetCameraAspect       = SK_TGFix_MonoMethods.Noble.CameraManager.SetCameraAspect;
+    const auto SetCameraViewportRect = SK_TGFix_MonoMethods.Noble.CameraManager.SetCameraViewportRect;
 
-    void*                                                   aspect_args [] = { &SK_TGFix_AspectRatio };
+    void* aspect_args [] = { &SK_TGFix_AspectRatio };
+
     SK_mono_runtime_invoke (SetCameraAspect, cameraManager, aspect_args, nullptr);
 
     float              value = 1.0f;
@@ -1665,15 +1710,15 @@ SK_TGFix_Noble_PrimitiveManager_OnBeginUpdateNativeGameMain_Detour (MonoObject* 
     auto primitiveManager = SK_TGFix_PrimitiveManagerSingleton;
     if ( primitiveManager != nullptr )
     {
-      static MonoMethod*     CalcUIOrthoMatrix =
-        SK_mono_class_get_method_from_name (Noble_PrimitiveManagerClass, "CalcUIOrthoMatrix", 1);
-      static MonoClassField* m_Viewport        =
-        SK_mono_class_get_field_from_name  (Noble_PrimitiveManagerClass, "m_Viewport");
+      const auto CalcUIOrthoMatrix = SK_TGFix_MonoMethods.Noble.PrimitiveManager.CalcUIOrthoMatrix;
+      const auto m_Viewport        = SK_TGFix_MonoFields.Noble.PrimitiveManager.m_Viewport;
 
-      bool          forceproc = true;
+      bool          forceproc = SK_TGFix_LastCalcUIOrthoMatrixWasForced;
       args [0] = { &forceproc };
 
       SK_mono_runtime_invoke (CalcUIOrthoMatrix, primitiveManager, args, nullptr);
+
+      SK_TGFix_LastCalcUIOrthoMatrixWasForced = false;
 
       const float width  =
         (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect) ? (float)SK_TGFix_ScreenWidth  / SK_TGFix_AspectMultiplier :
@@ -1709,18 +1754,13 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
 {
   SK_LOG_FIRST_CALL
 
-  static MonoImage*      assemblyCSharp                    = SK_mono_image_loaded    ("Assembly-CSharp");
-  static MonoClass*      Noble_PrimitiveManagerClass       = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager");
-  static MonoClass*      Noble_PrimitiveManager_PRIM_PARAM = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_PARAM");
-  static MonoClass*      Noble_PrimitiveManager_PRIM_TYPE  = SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_TYPE");
-  static MonoClass*      Noble_ObjPrimitiveBaseClass       = SK_mono_class_from_name (assemblyCSharp, "Noble", "ObjPrimitiveBase");
-  static MonoClassField* vertexCount                       = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass,       "vertexCount");
-  static MonoClassField* m_PrimitiveType                   = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass,       "m_PrimitiveType");
-  static MonoClassField* m_PrimitiveType_type              = SK_mono_class_get_field_from_name (Noble_PrimitiveManager_PRIM_PARAM, "type");
-  static MonoClassField* m_PrimitiveType_type_db           = SK_mono_class_get_field_from_name (Noble_PrimitiveManager_PRIM_TYPE,  "db");
-
   if (obj != nullptr && SK_TGFix_Cfg.disable_smog)
   {
+    const auto vertexCount     = SK_TGFix_MonoFields.Noble.ObjPrimitiveBase.vertexCount;
+    const auto m_PrimitiveType = SK_TGFix_MonoFields.Noble.ObjPrimitiveBase.m_PrimitiveType;
+    const auto type            = SK_TGFix_MonoFields.Noble.PrimitiveManager.PRIM_PARAM.type;
+    const auto db              = SK_TGFix_MonoFields.Noble.PrimitiveManager.PRIM_TYPE.db;
+
     // Get the vertex count first, let's -try- to be efficient here... Mono makes that difficult.
     int                           obj_vertexCount = 0;
     SK_mono_field_get_value (obj,     vertexCount,
@@ -1733,14 +1773,14 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
     if (obj_vertexCount == 3) // Type.db[0] == 4
     {
       MonoObject* primitive_type      =
-      SK_mono_field_get_value_object (SK_mono_object_get_domain (obj),              m_PrimitiveType,
+      SK_mono_field_get_value_object (SK_mono_object_get_domain (obj), m_PrimitiveType,
                                                                  obj);
       MonoObject* primitive_type_type =
-        SK_mono_field_get_value_object (SK_mono_object_get_domain (primitive_type), m_PrimitiveType_type,
+        SK_mono_field_get_value_object (SK_mono_object_get_domain (primitive_type), type,
                                                                    primitive_type);
 
-      MonoArray*                                                              obj_m_PrimitiveType_type_db = nullptr;
-      SK_mono_field_get_value (primitive_type_type, m_PrimitiveType_type_db, &obj_m_PrimitiveType_type_db);
+      MonoArray*                                         obj_m_PrimitiveType_type_db = nullptr;
+      SK_mono_field_get_value (primitive_type_type, db, &obj_m_PrimitiveType_type_db);
 
       if (SK_mono_array_get (obj_m_PrimitiveType_type_db, int, 0) == 4)
       {
@@ -1755,16 +1795,6 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
   Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Original (__this, context, obj, commandBuffer, renderingData);
 }
 
-void
-SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour (MonoObject* __this, bool forceproc)
-{
-  SK_LOG_FIRST_CALL
-
-  SK_TGFix_PrimitiveManagerSingleton = __this;
-
-  Noble_PrimitiveManager_CalcUIOrthoMatrix_Original (__this, forceproc);
-}
-
 using NobleMovieRendererPass_Execute_pfn = void (*)(MonoObject*, MonoObject*, MonoObject*);
       NobleMovieRendererPass_Execute_pfn
       NobleMovieRendererPass_Execute_Original = nullptr;
@@ -1775,18 +1805,17 @@ SK_TGFix_NobleMovieRendererPass_Execute_Detour (MonoObject* __this, MonoObject* 
   SK_LOG_FIRST_CALL
 
   NobleMovieRendererPass_Execute_Original (__this, context, renderingData);
-
-  static auto cameraview =
-    GetField ("NobleMovieRendererPass", "cameraview", "Assembly-CSharp");
-  
-  Unity_Matrix4x4                               view;
-  SK_mono_field_get_value (__this, cameraview, &view);
-
-  float& m11 = view.m11;
-  float& m33 = view.m33;
   
   if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
+    const auto cameraview = SK_TGFix_MonoFields.Noble.NobleMovieRendererPass.cameraview;
+
+    Unity_Matrix4x4 view;
+    SK_mono_field_get_value (__this, cameraview, &view);
+
+    float& m11 = view.m11;
+    float& m33 = view.m33;
+
     if      (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect) m33 = SK_TGFix_AspectMultiplier;
     else if (SK_TGFix_AspectRatio < SK_TGFix_NativeAspect) m11 = SK_TGFix_AspectMultiplier;
 
@@ -1900,16 +1929,16 @@ SK_TGFix_SetupFramerateHooks (void)
     
     SK_QueueEnableHook (pfnNoble_Object_ApplyCachedParameters);
 
-    ////auto pfnNoble_PrimitiveManager_CalcUIOrthoMatrix =
-    ////  CompileMethod ("Noble", "PrimitiveManager",
-    ////                 "CalcUIOrthoMatrix", 1);
-    ////
-    ////SK_CreateFuncHook (               L"Noble.PrimitiveManager.CalcUIOrthoMatrix",
-    ////                                 pfnNoble_PrimitiveManager_CalcUIOrthoMatrix,
-    ////                           SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour,
-    ////  static_cast_p2p <void> (&         Noble_PrimitiveManager_CalcUIOrthoMatrix_Original) );
-    ////
-    ////SK_QueueEnableHook (pfnNoble_PrimitiveManager_CalcUIOrthoMatrix);
+    auto pfnNoble_PrimitiveManager_CalcUIOrthoMatrix =
+      CompileMethod ("Noble", "PrimitiveManager",
+                     "CalcUIOrthoMatrix", 1);
+
+    SK_CreateFuncHook (               L"Noble.PrimitiveManager.CalcUIOrthoMatrix",
+                                     pfnNoble_PrimitiveManager_CalcUIOrthoMatrix,
+                               SK_TGFix_Noble_PrimitiveManager_CalcUIOrthoMatrix_Detour,
+      static_cast_p2p <void> (&         Noble_PrimitiveManager_CalcUIOrthoMatrix_Original) );
+
+    SK_QueueEnableHook (pfnNoble_PrimitiveManager_CalcUIOrthoMatrix);
 
     auto pfnNoble_PrimitiveManager_OnBeginUpdateNativeGameMain =
       CompileMethod ("Noble",   "PrimitiveManager",
@@ -1958,6 +1987,35 @@ SK_TGFix_SetupFramerateHooks (void)
 
     SK_ApplyQueuedHooks ();
   });
+
+  MonoImage* assemblyCSharp                    = SK_mono_image_loaded    ("Assembly-CSharp");
+  MonoClass* Noble_PrimitiveManagerClass       =
+    SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager");
+  MonoClass* Noble_PrimitiveManager_PRIM_PARAM =
+    SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_PARAM");
+  MonoClass* Noble_PrimitiveManager_PRIM_TYPE  =
+    SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_TYPE");
+  MonoClass* Noble_ObjPrimitiveBaseClass       =
+    SK_mono_class_from_name (assemblyCSharp, "Noble", "ObjPrimitiveBase");
+  MonoClass* Noble_CameraManagerClass          =
+    SK_mono_class_from_name (assemblyCSharp, "Noble", "CameraManager");
+
+  SK_TGFix_MonoMethods.Noble.PrimitiveManager.CalcUIOrthoMatrix  = SK_mono_class_get_method_from_name (Noble_PrimitiveManagerClass,       "CalcUIOrthoMatrix", 1);
+  SK_TGFix_MonoFields. Noble.PrimitiveManager.m_Viewport         = SK_mono_class_get_field_from_name  (Noble_PrimitiveManagerClass,       "m_Viewport");
+  SK_TGFix_MonoFields. Noble.PrimitiveManager.PRIM_PARAM.type    = SK_mono_class_get_field_from_name  (Noble_PrimitiveManager_PRIM_PARAM, "type");
+  SK_TGFix_MonoFields. Noble.PrimitiveManager.PRIM_TYPE.db       = SK_mono_class_get_field_from_name  (Noble_PrimitiveManager_PRIM_TYPE,  "db");
+
+  SK_TGFix_MonoMethods.Noble.CameraManager.SetCameraAspect       = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "SetCameraAspect",       1);
+  SK_TGFix_MonoMethods.Noble.CameraManager.SetCameraViewportRect = SK_mono_class_get_method_from_name (Noble_CameraManagerClass, "SetCameraViewportRect", 1);
+
+  SK_TGFix_MonoMethods.Noble.Object.SetVisibilityFlags           = GetMethod ("Object", "SetVisibilityFlags", 2, "Assembly-CSharp", "Noble");
+  SK_TGFix_MonoMethods.Noble.Object.IsDirty                      = GetMethod ("Object", "IsDirty",            1, "Assembly-CSharp", "Noble");
+  SK_TGFix_MonoMethods.Noble.Object.IsVisible                    = GetMethod ("Object", "IsVisible",          1, "Assembly-CSharp", "Noble");
+
+  SK_TGFix_MonoFields. Noble.NobleMovieRendererPass.cameraview   = GetField  ("NobleMovieRendererPass", "cameraview", "Assembly-CSharp");
+
+  SK_TGFix_MonoFields. Noble.ObjPrimitiveBase.vertexCount        = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass, "vertexCount");
+  SK_TGFix_MonoFields. Noble.ObjPrimitiveBase.m_PrimitiveType    = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass, "m_PrimitiveType");
 
   DetachCurrentThreadIfNotNative ();
 
@@ -2039,6 +2097,9 @@ void STDMETHODCALLTYPE SK_TGFix_EndFrame (void)
     if ((UINT)(std::exchange (last_width,  swapDesc.BufferDesc.Width)  != swapDesc.BufferDesc.Width) |
         (UINT)(std::exchange (last_height, swapDesc.BufferDesc.Height) != swapDesc.BufferDesc.Height))
     {
+      // Cause a recalculation of this matrix, at the beginning of the next frame.
+      SK_TGFix_LastCalcUIOrthoMatrixWasForced = true;
+
       SK_TGFix_ScreenWidth      = swapDesc.BufferDesc.Width;
       SK_TGFix_ScreenHeight     = swapDesc.BufferDesc.Height;
 
@@ -2142,10 +2203,10 @@ SK_TGFix_SetMSAASampleCount (int sample_count)
   if (sample_count > 1)
   {
     int none     = 0;
-    int lut_size = 65;
+    //int lut_size = 65;
 
     SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_OpaqueDownsampling"),  &none);
-    SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
+  //SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
   }
 
   DetachCurrentThreadIfNotNative ();
@@ -2175,10 +2236,10 @@ SK_TGFix_SetRenderScale (float render_scale)
   if (render_scale != 1.0f)
   {
     int none     = 0;
-    int lut_size = 65;
+  //int lut_size = 65;
 
     SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_OpaqueDownsampling"),  &none);
-    SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
+  //SetFieldValue (pipeline, GetField (GetClass ("UniversalRenderPipelineAsset", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.Rendering.Universal"), "m_ColorGradingLutSize"), &lut_size);
   }
 
   // We don't want garbage collection overhead on this thread just because we called a function once!
