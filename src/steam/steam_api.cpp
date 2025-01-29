@@ -4452,7 +4452,7 @@ SteamAPI_Delay_Init (LPVOID)
 
     if (SK_GetFramesDrawn () < 1)
     {
-      SK_Sleep (std::max (10, config.steam.init_delay));
+      SwitchToThread ();
 
       if (ReadAcquire (&__SK_Steam_init))
       {
