@@ -142,6 +142,7 @@ SK_XInput_GetCapabilities (_In_  DWORD                dwUserIndex,
                            _Out_ XINPUT_CAPABILITIES *pCapabilities);
 
 LRESULT
+WINAPI
 SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   if (           Msg == WM_DEVICECHANGE   &&
