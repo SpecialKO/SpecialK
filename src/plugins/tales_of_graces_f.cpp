@@ -652,7 +652,7 @@ SK_TGFix_InitPlugin (void)
                                     L"Internal Render Scale (0.1-2.0)" )
     );
 
-    SK_TGFix_Cfg.render_scale.bind_to_ini (
+    SK_TGFix_Cfg.disable_blur.bind_to_ini (
       _CreateConfigParameterBool  ( L"TGFix.Render",
                                     L"DisableBlur",  SK_TGFix_Cfg.disable_blur,
                                     L"Disables partial screen blur effect that is not desirable for HDR or 21:9." )
