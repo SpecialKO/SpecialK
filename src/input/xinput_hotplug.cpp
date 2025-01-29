@@ -955,10 +955,12 @@ struct SK_Win32_DeviceNotificationInstance
 
 SK_LazyGlobal <concurrency::concurrent_vector <SK_Win32_DeviceNotificationInstance>> SK_Win32_RegisteredDevNotifications;
 
-static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_xbox_w [16] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_hid_w  [16] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_xbox_a [16] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_hid_a  [16] = { };
+// These declarations look weird, but they're just allocating enough storage
+//   for the base struct + a 260 character string...
+static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_xbox_w [16][20] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_hid_w  [16][20] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_xbox_a [16][10] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_hid_a  [16][10] = { };
 
 SK_LazyGlobal <concurrency::concurrent_unordered_set <HWND>> SK_Win32_NotifiedWindows;
 
@@ -1082,30 +1084,30 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
   {
     for ( auto& xbox_w : dbcc_xbox_w )
     {
-      xbox_w.dbcc_size       = sizeof (xbox_w);
-      xbox_w.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-      xbox_w.dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+      xbox_w->dbcc_size       = sizeof (xbox_w);
+      xbox_w->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+      xbox_w->dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
     }
 
     for ( auto& hid_w : dbcc_hid_w )
     {
-      hid_w.dbcc_size        = sizeof (hid_w);
-      hid_w.dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
-      hid_w.dbcc_classguid   = GUID_DEVINTERFACE_HID;
+      hid_w->dbcc_size        = sizeof (hid_w);
+      hid_w->dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
+      hid_w->dbcc_classguid   = GUID_DEVINTERFACE_HID;
     }
 
     for ( auto& xbox_a : dbcc_xbox_a )
     {
-      xbox_a.dbcc_size       = sizeof (xbox_a);
-      xbox_a.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-      xbox_a.dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+      xbox_a->dbcc_size       = sizeof (xbox_a);
+      xbox_a->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+      xbox_a->dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
     }
 
     for ( auto& hid_a : dbcc_hid_a )
     {
-      hid_a.dbcc_size        = sizeof (hid_a);
-      hid_a.dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
-      hid_a.dbcc_classguid   = GUID_DEVINTERFACE_HID;
+      hid_a->dbcc_size        = sizeof (hid_a);
+      hid_a->dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
+      hid_a->dbcc_classguid   = GUID_DEVINTERFACE_HID;
     }
   });
 
@@ -1124,17 +1126,17 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
       return;
     }
 
-    wcsncpy_s (dbcc_xbox_w [idx].dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
-    wcsncpy_s (dbcc_hid_w  [idx].dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    wcsncpy_s (dbcc_xbox_w [idx]->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    wcsncpy_s (dbcc_hid_w  [idx]->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
 
-    dbcc_xbox_w [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w [idx].dbcc_name) * 2;
-    dbcc_hid_w  [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w  [idx].dbcc_name) * 2;
+    dbcc_xbox_w [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w [idx]->dbcc_name) * 2;
+    dbcc_hid_w  [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w  [idx]->dbcc_name) * 2;
 
-    strncpy (dbcc_xbox_a [idx].dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
-    strncpy (dbcc_hid_a  [idx].dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    strncpy (dbcc_xbox_a [idx]->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    strncpy (dbcc_hid_a  [idx]->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
 
-    dbcc_xbox_a [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a [idx].dbcc_name);
-    dbcc_hid_a  [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a  [idx].dbcc_name);
+    dbcc_xbox_a [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a [idx]->dbcc_name);
+    dbcc_hid_a  [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a  [idx]->dbcc_name);
 
     for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
     {
