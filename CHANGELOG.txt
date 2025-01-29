@@ -1,8 +1,9 @@
-﻿25.1.28.1
-=========
+﻿25.1.29
+=======
  + Detach Mono threads after invoking C# functions on threads that are not
      originally part of the Mono runtime to avoid garbage collection on the
        render thread in Tales of Graces f.
+ + Increased color grading LUT size to reduce banding in Tales of Graces f.
 
 25.1.28
 =======
