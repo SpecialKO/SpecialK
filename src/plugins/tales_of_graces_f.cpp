@@ -87,6 +87,7 @@ struct sk_tgfix_cfg_s {
   PlugInParameter <int>   hdr_quality        =     1; // 1 = 32-bit, 2 = 64-bit
   PlugInParameter <int>   msaa_sample_count  =     1;
   PlugInParameter <float> render_scale       =  1.0f;
+  PlugInParameter <bool>  achievement_earned = false; // Don't show achievement bug warnings after first one unlocked.
 
   // Special K's Windows.Gaming.Input emulation can easily
   //   poll at 1 kHz with zero performance overhead, so just
@@ -596,6 +597,15 @@ void    STDMETHODCALLTYPE SK_TGFix_EndFrame          (void);
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 void
+SK_TGFix_OnAchievementUnlocked (SK_AchievementManager::Achievement* achv)
+{
+  std::ignore = achv;
+
+  SK_TGFix_Cfg.achievement_earned.store (true);
+
+  config.utility.save_async ();
+}
+void
 SK_TGFix_InitPlugin (void)
 {
   SK_RunOnce (
@@ -670,6 +680,12 @@ SK_TGFix_InitPlugin (void)
                                     L"Gamepad Polling Frequency (30.0 Hz - 1000.0Hz; 60.0 Hz == hard-coded game default)" )
     );
 
+    SK_TGFix_Cfg.achievement_earned.bind_to_ini(
+      _CreateConfigParameterBool  ( L"TGFix.Bugs",
+                                    L"UnlockedAnAchievement", SK_TGFix_Cfg.achievement_earned,
+                                    L"Keep track of the achievement bug, and only display warnings while it applies." )
+    );
+
     if (SK_TGFix_Cfg.msaa_sample_count > 1)
     {
       // Implicitly disable Depth of Field if MSAA is enabled
@@ -726,9 +742,10 @@ SK_TGFix_InitPlugin (void)
     SK_TGFix_EnableInternalHDR (true);
 
 
-    plugin_mgr->config_fns.emplace      (SK_TGFix_PlugInCfg);
-    plugin_mgr->first_frame_fns.emplace (SK_TGFix_PresentFirstFrame);
-    plugin_mgr->end_frame_fns.emplace   (SK_TGFix_EndFrame);
+    plugin_mgr->config_fns.emplace             (SK_TGFix_PlugInCfg);
+    plugin_mgr->first_frame_fns.emplace        (SK_TGFix_PresentFirstFrame);
+    plugin_mgr->end_frame_fns.emplace          (SK_TGFix_EndFrame);
+    plugin_mgr->achievement_unlock_fns.emplace (SK_TGFix_OnAchievementUnlocked);
   );
 }
 
@@ -993,6 +1010,11 @@ MonoObject* SK_TGFix_PrimitiveManagerSingleton = nullptr;
 MonoObject* SK_TGFix_CameraManagerSingleton    = nullptr;
 MonoObject* SK_TGFix_FrameRateManagerSingleton = nullptr;
 float       SK_TGFix_LastSetFrameRateLimit     = 0.0f;
+
+struct {
+  MonoImage* assemblyCSharp            = nullptr;
+  MonoImage* UnityEngine_CoreModule    = nullptr;
+} SK_TGFix_MonoAssemblies;
 
 struct {
   struct {
@@ -1617,10 +1639,35 @@ SK_TGFix_Noble_CameraManager_SetCameraAspect_Detour (MonoObject* __this, float a
   Noble_CameraManager_SetCameraAspect_Original (__this, aspect);
 }
 
+template <typename _T>
+std::optional     <_T>
+SK_Mono_InvokeAndUnbox (MonoMethod* method, MonoObject* obj, void** params, MonoObject** exc = nullptr)
+{
+  if (method != nullptr && obj != nullptr)
+  {
+    const auto result =
+      SK_mono_runtime_invoke (method, obj, params, exc);
+
+    if (result != nullptr)
+    {
+      _T* unboxed =
+        static_cast <_T*> (SK_mono_object_unbox (result));
+
+      if (unboxed != nullptr)
+        return *(_T *)unboxed;
+    }
+  }
+
+  return
+    std::nullopt;
+}
+
 void
-SK_TGFix_Noble_CameraManager_SetBackGoundColor_Detour (MonoObject* __this, MonoObject*/*color*/)
+SK_TGFix_Noble_CameraManager_SetBackGoundColor_Detour (MonoObject* __this, MonoObject* color)
 {
   SK_LOG_FIRST_CALL
+
+  std::ignore = color;
 
   SK_TGFix_CameraManagerSingleton = __this;
 }
@@ -1645,13 +1692,12 @@ SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
 
     void* params [2] = { &flag, &set };
 
-    bool is_dirty =                           *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsDirty,   __this, params, nullptr));
-    if (!is_dirty &&                          *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr)))
-    {
-      flag = 0x2;
-      const bool bCachedRenderRequest       = *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr));
-      flag = 0x4;
-      const bool bCurrentFrameRenderRequest = *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr));
+    bool is_dirty =                           SK_Mono_InvokeAndUnbox <bool> (IsDirty,   __this, params).value_or (false);
+    if (!is_dirty &&                          SK_Mono_InvokeAndUnbox <bool> (IsVisible, __this, params).value_or (false))
+{                                                                                                 flag = 0x2;
+      const bool bCachedRenderRequest       = SK_Mono_InvokeAndUnbox <bool> (IsVisible, __this, params).value_or (false);
+                                                                                                  flag = 0x4;
+      const bool bCurrentFrameRenderRequest = SK_Mono_InvokeAndUnbox <bool> (IsVisible, __this, params).value_or (false);
 
       is_dirty = bCachedRenderRequest != bCurrentFrameRenderRequest;
     }
@@ -1661,12 +1707,13 @@ SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
       flag = 0x5; // kObjectVisible | kCurrentFrameRenderRequest
 
       const bool is_visible =
-        *(bool *)SK_mono_object_unbox (SK_mono_runtime_invoke (IsVisible, __this, params, nullptr));
+        SK_Mono_InvokeAndUnbox <bool> (IsVisible, __this, params).value_or (false);
       
       if (is_visible)
       {
         flag = 0x7; // kObjectVisible | kCachedRenderRequest
                     //                | kCurrentFrameRenderRequest
+
         SK_mono_runtime_invoke (SetVisibilityFlags, __this, params, nullptr);
       }
     }
@@ -1798,8 +1845,8 @@ SK_TGFix_Noble_PrimitiveManager_PrimitiveRenderExecute_Internal_Detour (MonoObje
     if (obj_vertexCount == 3) // Type.db[0] == 4
     {
       MonoObject* primitive_type      =
-      SK_mono_field_get_value_object (SK_mono_object_get_domain (obj), m_PrimitiveType,
-                                                                 obj);
+        SK_mono_field_get_value_object (SK_mono_object_get_domain (obj), m_PrimitiveType,
+                                                                   obj);
       MonoObject* primitive_type_type =
         SK_mono_field_get_value_object (SK_mono_object_get_domain (primitive_type), type,
                                                                    primitive_type);
@@ -1833,7 +1880,8 @@ SK_TGFix_NobleMovieRendererPass_Execute_Detour (MonoObject* __this, MonoObject* 
   
   if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
   {
-    const auto cameraview = SK_TGFix_MonoFields.Noble.NobleMovieRendererPass.cameraview;
+    const auto cameraview =
+      SK_TGFix_MonoFields.Noble.NobleMovieRendererPass.cameraview;
 
     Unity_Matrix4x4 view;
     SK_mono_field_get_value (__this, cameraview, &view);
@@ -1877,20 +1925,23 @@ SK_TGFix_Steamworks_SteamUtils_IsOverlayEnabled_Detour (void)
 
   if (! Steamworks_SteamUtils_IsOverlayEnabled_Original ())
   {
-    SK_RunOnce (
+    if (! SK_TGFix_Cfg.achievement_earned)
     {
-      SK_ImGui_CreateNotification ( "TalesOfGraces.CriticalSteamBug",
-                                          SK_ImGui_Toast::Warning,
-                "This game normally requires the Steam overlay to be enabled to unlock achievements\r\n\r\n\t"
-                "Special K has fixed the problem -- but -- you will not retroactively unlock missed achievements!!\r\n\r\n"
-                " * This is a serious bug, please report it to Bandai Namco ASAP!",
-                "Steamworks Achievement Bug (Partially) Fixed",
-                                            25000UL,
-                                          SK_ImGui_Toast::UseDuration |
-                                          SK_ImGui_Toast::ShowTitle   |
-                                          SK_ImGui_Toast::ShowCaption |
-                                          SK_ImGui_Toast::ShowOnce );
-    });
+      SK_RunOnce (
+      {
+        SK_ImGui_CreateNotification ( "TalesOfGraces.CriticalSteamBug",
+                                            SK_ImGui_Toast::Warning,
+                  "This game normally requires the Steam overlay to be enabled to unlock achievements\r\n\r\n\t"
+                  "Special K has fixed the problem -- but -- you will not retroactively unlock missed achievements!!\r\n\r\n"
+                  " * This is a serious bug, please report it to Bandai Namco ASAP!",
+                  "Steamworks Achievement Bug (Partially) Fixed",
+                                              25000UL,
+                                            SK_ImGui_Toast::UseDuration |
+                                            SK_ImGui_Toast::ShowTitle   |
+                                            SK_ImGui_Toast::ShowCaption |
+                                            SK_ImGui_Toast::ShowOnce );
+      });
+    }
   }
 
   return true;
@@ -2040,16 +2091,20 @@ SK_TGFix_SetupFramerateHooks (void)
     SK_ApplyQueuedHooks ();
   });
 
-  MonoImage* assemblyCSharp                    = SK_mono_image_loaded    ("Assembly-CSharp");
-  MonoClass* Noble_PrimitiveManagerClass       =
+  SK_TGFix_MonoAssemblies.assemblyCSharp         = SK_mono_image_loaded ("Assembly-CSharp");
+  SK_TGFix_MonoAssemblies.UnityEngine_CoreModule = SK_mono_image_loaded ("UnityEngine.CoreModule");
+
+  auto& assemblyCSharp                           = SK_TGFix_MonoAssemblies.assemblyCSharp;
+
+  MonoClass* Noble_PrimitiveManagerClass         =
     SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager");
-  MonoClass* Noble_PrimitiveManager_PRIM_PARAM =
+  MonoClass* Noble_PrimitiveManager_PRIM_PARAM   =
     SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_PARAM");
-  MonoClass* Noble_PrimitiveManager_PRIM_TYPE  =
+  MonoClass* Noble_PrimitiveManager_PRIM_TYPE    =
     SK_mono_class_from_name (assemblyCSharp, "Noble", "PrimitiveManager/PRIM_TYPE");
-  MonoClass* Noble_ObjPrimitiveBaseClass       =
+  MonoClass* Noble_ObjPrimitiveBaseClass         =
     SK_mono_class_from_name (assemblyCSharp, "Noble", "ObjPrimitiveBase");
-  MonoClass* Noble_CameraManagerClass          =
+  MonoClass* Noble_CameraManagerClass            =
     SK_mono_class_from_name (assemblyCSharp, "Noble", "CameraManager");
 
   SK_TGFix_MonoMethods.Noble.PrimitiveManager.CalcUIOrthoMatrix  = SK_mono_class_get_method_from_name (Noble_PrimitiveManagerClass,       "CalcUIOrthoMatrix", 1);
@@ -2198,13 +2253,12 @@ SK_TGFix_NobleQualitySettings (void)
   {
     AttachThread ();
 
-    MonoImage*  assemblyCSharp     = SK_mono_image_loaded               ("Assembly-CSharp");
-    MonoClass*  gameObjectClass    = SK_mono_class_from_name            (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "GameObject");
+    MonoClass*  gameObjectClass    = SK_mono_class_from_name            (SK_TGFix_MonoAssemblies.UnityEngine_CoreModule, "UnityEngine", "GameObject");
     MonoMethod* findMethod         = SK_mono_class_get_method_from_name (gameObjectClass, "Find",         1);
     MonoMethod* getComponentMethod = SK_mono_class_get_method_from_name (gameObjectClass, "GetComponent", 1);
 
     MonoClass* Noble_NobleQualitySettingsClass =
-      SK_mono_class_from_name (assemblyCSharp, "Noble", "NobleQualitySettings");
+      SK_mono_class_from_name (SK_TGFix_MonoAssemblies.assemblyCSharp, "Noble", "NobleQualitySettings");
 
     void* find_args [1] =
       { SK_mono_string_new (SK_TGFix_MonoDomain, "NobleQualitySettings") };

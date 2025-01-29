@@ -2599,6 +2599,11 @@ public:
 
         achievement->unlocked_ = true;
 
+        for ( auto& callback : plugin_mgr->achievement_unlock_fns )
+        {
+          callback (achievement);
+        }
+
         if (config.platform.achievements.play_sound && (! unlock_sound.empty ()))
         {
           SK_PlaySound ( (LPCWSTR)unlock_sound.data (),

@@ -4,6 +4,8 @@
      settings in Tales of Graces f from unsaved debug test options to
        actual settings stored in SK's INI for the game.
  + Added tooltips explaining what the abovementioned things even are :)
+ + Disable notification about fixing achievement bugs in Tales of Graces f
+     after the first one has been unlocked.
 
 25.1.29.1
 =========

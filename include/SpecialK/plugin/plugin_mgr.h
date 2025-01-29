@@ -65,6 +65,8 @@ using SK_PlugIn_PresentFirstFrame_pfn = HRESULT (__stdcall *)( IUnknown*,
                                                                UINT, UINT  );
 using SK_PlugIn_Init_pfn              = void    (          *)( void        );
 using SK_PlugIn_ControlPanelCfg_pfn   = bool    (          *)( void        );
+using SK_AchievementUnlock_pfn        = void    (          *)
+                                       (SK_AchievementManager::Achievement*);
 
 
 struct SK_PluginRegistry
@@ -85,6 +87,7 @@ struct SK_PluginRegistry
   std::set <SK_BeginFrame_pfn>               begin_frame_fns;
   std::set <SK_ReleaseGfx_pfn>               release_gfx_fns;
   std::set <SK_ExitGame_pfn>                   exit_game_fns;
+  std::set <SK_AchievementUnlock_pfn> achievement_unlock_fns;
 
   std::wstring plugin_name;
 };
