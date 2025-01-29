@@ -1643,8 +1643,11 @@ SK_Input_HookWGI (void)
           if (SK_timeGetTime () - dwTimeStartedLookingForWGI > 30000)
           {
             // After 30 seconds, it's likely the game is never going to load Windows.Gaming.Input...
-                    break;
-          } else continue;
+            break;
+          }
+
+          SK_SleepEx (dwTimeoutPeriodInMs, FALSE);
+          continue;
         }
 
         // Init COM on this thread

@@ -141,6 +141,462 @@ SK_XInput_GetCapabilities (_In_  DWORD                dwUserIndex,
                            _In_  DWORD                dwFlags,
                            _Out_ XINPUT_CAPABILITIES *pCapabilities);
 
+LRESULT
+SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+  if (           Msg == WM_DEVICECHANGE   &&
+      (void *)lParam != nullptr           &&
+             (wParam == DBT_DEVICEARRIVAL ||
+              wParam == DBT_DEVICEREMOVECOMPLETE))
+  {
+    DEV_BROADCAST_HDR* pDevHdr =
+      (DEV_BROADCAST_HDR *)lParam;
+
+    if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+    {
+      const bool arrival =
+        (wParam == DBT_DEVICEARRIVAL);
+
+      SK_ReleaseAssert (
+        pDevHdr->dbch_size >= sizeof (DEV_BROADCAST_DEVICEINTERFACE_W)
+      );
+
+      DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
+        (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
+
+      if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
+          IsEqualGUID (pDev->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
+      {
+        bool playstation = false;
+        bool xinput      = IsEqualGUID (pDev->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS);
+
+        wchar_t    wszFileName [MAX_PATH];
+        wcsncpy_s (wszFileName, MAX_PATH, pDev->dbcc_name, _TRUNCATE);
+
+        SK_AutoHandle hDeviceFile (
+          SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                                        FILE_SHARE_READ   | FILE_SHARE_WRITE,
+                                          nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
+                                                                  FILE_ATTRIBUTE_TEMPORARY |
+                                                                  FILE_FLAG_OVERLAPPED, nullptr )
+                                );
+
+        HIDD_ATTRIBUTES hidAttribs      = {                      };
+                        hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
+
+        wchar_t wszDeviceName [128] = L"Unknown";
+
+        if (hDeviceFile.isValid ())
+        {
+          // If user disabled HID, this will be nullptr
+          if (SK_HidD_GetProductString != nullptr)
+          {
+            SK_HidD_GetProductString (hDeviceFile.m_h, wszDeviceName, 254);
+            SK_HidD_GetAttributes    (hDeviceFile.m_h, &hidAttribs);
+
+            playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
+          }
+        }
+
+        else
+        {
+          // On device removal, all we can do is go by the filename...
+          playstation |= wcsstr (wszFileName, L"054c") != nullptr;
+        }
+
+        SK_LOG0 ( ( L" Device %s:\t%32ws (%s)", arrival ? L"Arrival"
+                                                        : L"Removal",
+                                              wszDeviceName,
+                                              pDev->dbcc_name ),
+                    __SK_SUBSYSTEM__ );
+
+        xinput |= wcsstr (wszFileName, L"IG_") != nullptr;
+
+        //
+        // Device Arrival
+        //
+        if (arrival)
+        {
+          for (  auto event : SK_HID_DeviceArrivalEvents  )
+            SetEvent (event);
+
+          // XInput devices contain IG_...
+          if ( xinput &&
+               wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
+               // Ignore XInputGetKeystroke
+          {
+            XINPUT_CAPABILITIES caps = { };
+
+            // Determine all connected XInput controllers and only
+            //   refresh those that need it...
+            for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
+            {
+              if ( ERROR_SUCCESS ==
+                     SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps) )
+              {
+                SK_XInput_Refresh        (i);
+                SK_XInput_PollController (i);
+
+                if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
+                    SetEvent (SK_XInputCold_DecommisionEvent);
+              }
+            }
+          }
+
+          else if (playstation)
+          {
+            bool has_existing = false;
+
+            for ( auto& controller : SK_HID_PlayStationControllers )
+            {
+              if (! _wcsicmp (controller.wszDevicePath, wszFileName))
+              {
+                // We missed a device removal event if this is true
+                SK_ReleaseAssert (controller.bConnected == false);
+
+                controller.hDeviceFile = hDeviceFile.Detach ();
+
+                                                            // If user disabled HID, this will be nullptr
+                if (controller.hDeviceFile != INVALID_HANDLE_VALUE &&
+                      SK_HidD_GetPreparsedData != nullptr)
+                { if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
+                  {
+                    controller.bConnected = true;
+                    controller.bBluetooth =  //Bluetooth_Base_UUID
+                      StrStrIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}");
+
+                    controller.reset_device ();
+
+                    controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+                    controller.setPollingFrequency (0);
+
+                    if (config.system.log_level > 0)
+                      SK_ImGui_Warning (L"PlayStation Controller Reconnected");
+
+                    has_existing = true;
+
+                    if ((! controller.bBluetooth) || (! config.input.gamepad.bt_input_only))
+                      controller.write_output_report ();
+
+                    if (        controller.hReconnectEvent != nullptr)
+                      SetEvent (controller.hReconnectEvent);
+                  }
+                }
+                break;
+              }
+            }
+
+            if (! has_existing)
+            {
+              SK_HID_PlayStationDevice controller (hDeviceFile.Detach ());
+
+              controller.pid = hidAttribs.ProductID;
+              controller.vid = hidAttribs.VendorID;
+
+              controller.bBluetooth =
+                StrStrIW (
+                  controller.wszDevicePath, //Bluetooth_Base_UUID
+                          L"{00001124-0000-1000-8000-00805f9b34fb}"
+                );
+
+              controller.bDualSense =
+                (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
+                (controller.pid == SK_HID_PID_DUALSENSE);
+
+              controller.bDualSenseEdge =
+                controller.pid == SK_HID_PID_DUALSENSE_EDGE;
+
+              controller.bDualShock4 =
+                (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
+                (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
+                (controller.pid == 0x0BA0); // Dongle
+
+              controller.bDualShock3 =
+                (controller.pid == SK_HID_PID_DUALSHOCK3);
+
+              if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
+              {
+                if (controller.vid == SK_HID_VID_SONY)
+                {
+                  SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
+                }
+
+                return
+                  DefWindowProcW (hWnd, Msg, wParam, lParam);
+              }
+
+              wcsncpy_s (controller.wszDevicePath, MAX_PATH,
+                                    wszFileName,   _TRUNCATE);
+
+              if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
+              {
+                controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+                controller.setPollingFrequency (0);
+
+                if (SK_HidD_GetPreparsedData != nullptr &&
+                    SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
+                {
+                  HIDP_CAPS                                      caps = { };
+                    SK_HidP_GetCaps (controller.pPreparsedData, &caps);
+
+                  controller.input_report.resize   (caps.InputReportByteLength);
+                  controller.output_report.resize  (caps.OutputReportByteLength);
+                  controller.feature_report.resize (caps.FeatureReportByteLength);
+
+                  controller.initialize_serial ();
+
+                  std::vector <HIDP_BUTTON_CAPS>
+                    buttonCapsArray;
+                    buttonCapsArray.resize (caps.NumberInputButtonCaps);
+
+                  std::vector <HIDP_VALUE_CAPS>
+                    valueCapsArray;
+                    valueCapsArray.resize (caps.NumberInputValueCaps);
+
+                  USHORT num_caps =
+                    caps.NumberInputButtonCaps;
+
+                  if (num_caps > 2)
+                  {
+                    SK_LOGi0 (
+                      L"PlayStation Controller has too many button sets (%d);"
+                      L" will ignore Device=%ws", num_caps, wszFileName
+                    );
+
+                    return
+                      DefWindowProcW (hWnd, Msg, wParam, lParam);
+                  }
+
+                  if ( HIDP_STATUS_SUCCESS ==
+                    SK_HidP_GetButtonCaps ( HidP_Input,
+                                              buttonCapsArray.data (), &num_caps,
+                                                controller.pPreparsedData ) )
+                  {
+                    for (UINT i = 0 ; i < num_caps ; ++i)
+                    {
+                      // Face Buttons
+                      if (buttonCapsArray [i].IsRange)
+                      {
+                        controller.button_report_id =
+                          buttonCapsArray [i].ReportID;
+                        controller.button_usage_min =
+                          buttonCapsArray [i].Range.UsageMin;
+                        controller.button_usage_max =
+                          buttonCapsArray [i].Range.UsageMax;
+
+                        controller.buttons.resize (
+                          static_cast <size_t> (
+                            controller.button_usage_max -
+                            controller.button_usage_min + 1
+                          )
+                        );
+                      }
+                    }
+
+                    USHORT value_caps_count =
+                      sk::narrow_cast <USHORT> (valueCapsArray.size ());
+
+                    if ( HIDP_STATUS_SUCCESS ==
+                           SK_HidP_GetValueCaps ( HidP_Input, valueCapsArray.data (),
+                                                             &value_caps_count,
+                                                              controller.pPreparsedData ) )
+                    {
+                      controller.value_caps.resize (value_caps_count);
+
+                      for ( int idx = 0; idx < value_caps_count; ++idx )
+                      {
+                        controller.value_caps [idx] = valueCapsArray [idx];
+                      }
+                    }
+
+                    // We need a contiguous array to read-back the set buttons,
+                    //   rather than allocating it dynamically, do it once and reuse.
+                    controller.button_usages.resize (controller.buttons.size ());
+
+                    USAGE idx = 0;
+
+                    for ( auto& button : controller.buttons )
+                    {
+                      button.UsagePage = buttonCapsArray [0].UsagePage;
+                      button.Usage     = controller.button_usage_min + idx++;
+                      button.state     = false;
+                    }
+                  }
+                }
+
+                controller.bConnected = true;
+                controller.reset_device ();
+
+                auto iter =
+                  SK_HID_PlayStationControllers.push_back (controller);
+
+                iter->write_output_report ();
+
+                if (config.system.log_level > 0)
+                  SK_ImGui_Warning (L"PlayStation Controller Connected");
+              }
+            }
+          }
+        }
+
+
+        //
+        // Device Removal
+        //
+        else
+        {
+          for (  auto event : SK_HID_DeviceRemovalEvents  )
+            SetEvent (event);
+
+          if ( xinput &&
+               wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
+               // Ignore XInputGetKeystroke
+          {
+            // We really have no idea what controller this is, so refresh them all
+            SetEvent (SK_XInputHot_NotifyEvent);
+
+            if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
+                SetEvent (SK_XInputCold_DecommisionEvent);
+          }
+
+          else// if (playstation)
+          {
+            for ( auto& controller : SK_HID_PlayStationControllers )
+            {
+              if (! _wcsicmp (controller.wszDevicePath, wszFileName))
+              {
+                controller.bConnected = false;
+                controller.reset_device ();
+                controller.reset_rgb  = false;
+
+                if (                (intptr_t)controller.hDeviceFile > 0)
+                  CloseHandle (std::exchange (controller.hDeviceFile,  nullptr));
+
+                if (controller.pPreparsedData != nullptr &&
+                    SK_HidD_FreePreparsedData != nullptr)
+                    SK_HidD_FreePreparsedData (
+                      std::exchange (controller.pPreparsedData, nullptr)
+                    );
+
+                if (        controller.hDisconnectEvent != nullptr)
+                  SetEvent (controller.hDisconnectEvent);
+
+                if (config.system.log_level > 0)
+                  SK_ImGui_Warning (L"PlayStation Controller Disconnected");
+
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      return 1;
+    }
+  }
+
+  return
+    DefWindowProcW (hWnd, Msg, wParam, lParam);
+};
+
+DWORD
+WINAPI
+SK_HID_Hotplug_Dispatch (LPVOID user)
+{
+  HANDLE hNotify =
+    (HANDLE)user;
+
+  HANDLE phWaitObjects [2] = {
+    hNotify, __SK_DLL_TeardownEvent
+  };
+
+  static constexpr DWORD ArrivalEvent  = ( WAIT_OBJECT_0     );
+  static constexpr DWORD ShutdownEvent = ( WAIT_OBJECT_0 + 1 );
+
+  std::wstring wnd_class_name =
+    SK_FormatStringW (
+      L"SK_HID_Listener_pid%x",
+        GetCurrentProcessId () );
+
+  WNDCLASSEXW
+    wnd_class               = {                          };
+    wnd_class.hInstance     = SK_GetModuleHandle (nullptr);
+    wnd_class.lpszClassName = wnd_class_name.c_str ();
+    wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
+    wnd_class.cbSize        = sizeof (WNDCLASSEXW);
+
+  if (RegisterClassEx (&wnd_class))
+  {
+    DWORD dwWaitStatus = WAIT_OBJECT_0;
+
+    SK_hWndDeviceListener =
+      (HWND)CreateWindowEx ( 0, wnd_class_name.c_str (),     NULL, 0,
+                             0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
+
+    // It's technically unnecessary to register this, but not a bad idea
+    HDEVNOTIFY hDevNotify =
+      SK_RegisterDeviceNotification (SK_hWndDeviceListener);
+
+    do
+    {
+      if (hDevNotify != 0) {
+        dwWaitStatus =
+          MsgWaitForMultipleObjects (2, phWaitObjects, FALSE, INFINITE, QS_ALLINPUT);
+      } else {
+        dwWaitStatus = ArrivalEvent;
+      }
+
+      // Event is created in signaled state to queue a refresh in case of
+      //   late inject
+      if (dwWaitStatus == ArrivalEvent)
+      {
+        static ULONGLONG last_frame = 0ULL;
+        auto             this_frame = SK_GetFramesDrawn ();
+
+        // Do at most once per-frame, then pick up residuals next frame
+        if (                       0 == this_frame ||
+             std::exchange (last_frame, this_frame) <
+                                        this_frame )
+        {
+          SK_XInput_RefreshControllers (                        );
+          ResetEvent                   (SK_XInputHot_NotifyEvent);
+        }
+
+        else
+        {
+          dwWaitStatus =
+            MsgWaitForMultipleObjects (0, nullptr, FALSE, 4UL, QS_ALLINPUT);
+        }
+      }
+
+      if (dwWaitStatus != ShutdownEvent)
+      {
+        MSG                      msg = { };
+        while (SK_PeekMessageW (&msg, SK_hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
+        {
+          SK_TranslateMessage (&msg);
+          SK_DispatchMessageW (&msg);
+        }
+      }
+    } while (hDevNotify != 0 &&
+           dwWaitStatus != ShutdownEvent);
+
+    UnregisterDeviceNotification (hDevNotify);
+    DestroyWindow                (SK_hWndDeviceListener);
+    UnregisterClassW             (wnd_class.lpszClassName, wnd_class.hInstance);
+  }
+
+  else if (config.system.log_level > 0)
+    SK_ReleaseAssert (! L"Failed to register Window Class!");
+
+  if (                             SK_XInputHot_NotifyEvent!=nullptr)
+    SK_CloseHandle (std::exchange (SK_XInputHot_NotifyEvent, nullptr));
+
+  SK_Thread_CloseSelf ();
+
+  return 0;
+}
+
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
@@ -150,536 +606,97 @@ SK_XInput_NotifyDeviceArrival (void)
               SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
 
     SK_XInputHot_ReconnectThread =
-    SK_Thread_CreateEx ([](LPVOID user)->
-      DWORD
-      {
-        HANDLE hNotify =
-          (HANDLE)user;
-
-        HANDLE phWaitObjects [2] = {
-          hNotify, __SK_DLL_TeardownEvent
-        };
-
-        static constexpr DWORD ArrivalEvent  = ( WAIT_OBJECT_0     );
-        static constexpr DWORD ShutdownEvent = ( WAIT_OBJECT_0 + 1 );
-
-        auto SK_HID_DeviceNotifyProc =
-      [] (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-      -> LRESULT
-        {
-          switch (message)
-          {
-            case WM_DEVICECHANGE:
-            {
-              switch (wParam)
-              {
-                case DBT_DEVICEARRIVAL:
-                case DBT_DEVICEREMOVECOMPLETE:
-                {
-                  DEV_BROADCAST_HDR* pDevHdr =
-                    (DEV_BROADCAST_HDR *)lParam;
-
-                  if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-                  {
-                    const bool arrival =
-                      (wParam == DBT_DEVICEARRIVAL);
-
-                    SK_ReleaseAssert (
-                      pDevHdr->dbch_size >= sizeof (DEV_BROADCAST_DEVICEINTERFACE_W)
-                    );
-
-                    DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
-                      (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
-
-                    if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
-                        IsEqualGUID (pDev->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
-                    {
-                      bool playstation = false;
-                      bool xinput      = IsEqualGUID (pDev->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS);
-
-                      wchar_t    wszFileName [MAX_PATH];
-                      wcsncpy_s (wszFileName, MAX_PATH, pDev->dbcc_name, _TRUNCATE);
-
-                      SK_AutoHandle hDeviceFile (
-                          SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
-                                                        FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                          nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
-                                                                                  FILE_ATTRIBUTE_TEMPORARY |
-                                                                                  FILE_FLAG_OVERLAPPED, nullptr )
-                                                );
-                      
-                      HIDD_ATTRIBUTES hidAttribs      = {                      };
-                                      hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
-
-                      wchar_t wszDeviceName [128] = L"Unknown";
-
-                      if (hDeviceFile.isValid ())
-                      {
-                        // If user disabled HID, this will be nullptr
-                        if (SK_HidD_GetProductString != nullptr)
-                        {
-                          SK_HidD_GetProductString (hDeviceFile.m_h, wszDeviceName, 254);
-                          SK_HidD_GetAttributes    (hDeviceFile.m_h, &hidAttribs);
-
-                          playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
-                        }
-                      }
-
-                      else
-                      {
-                        // On device removal, all we can do is go by the filename...
-                        playstation |= wcsstr (wszFileName, L"054c") != nullptr;
-                      }
-
-                      SK_LOG0 ( ( L" Device %s:\t%32ws (%s)", arrival ? L"Arrival"
-                                                                      : L"Removal",
-                                                            wszDeviceName,
-                                                            pDev->dbcc_name ),
-                                  __SK_SUBSYSTEM__ );
-
-                      xinput |= wcsstr (wszFileName, L"IG_") != nullptr;
-
-                      if (arrival)
-                      {
-                        for (  auto event : SK_HID_DeviceArrivalEvents  )
-                          SetEvent (event);
-
-                        // XInput devices contain IG_...
-                        if ( xinput &&
-                             wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
-                             // Ignore XInputGetKeystroke
-                        {
-                          XINPUT_CAPABILITIES caps = { };
-
-                          // Determine all connected XInput controllers and only
-                          //   refresh those that need it...
-                          for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
-                          {
-                            if ( ERROR_SUCCESS ==
-                                   SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps) )
-                            {
-                              SK_XInput_Refresh        (i);
-                              SK_XInput_PollController (i);
-
-                              if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
-                                  SetEvent (SK_XInputCold_DecommisionEvent);
-                            }
-                          }
-                        }
-
-                        else if (playstation)
-                        {
-                          bool has_existing = false;
-
-                          for ( auto& controller : SK_HID_PlayStationControllers )
-                          {
-                            if (! _wcsicmp (controller.wszDevicePath, wszFileName))
-                            {
-                              // We missed a device removal event if this is true
-                              SK_ReleaseAssert (controller.bConnected == false);
-
-                              controller.hDeviceFile = hDeviceFile.Detach ();
-
-                                                                          // If user disabled HID, this will be nullptr
-                              if (controller.hDeviceFile != INVALID_HANDLE_VALUE &&
-                                    SK_HidD_GetPreparsedData != nullptr)
-                              { if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
-                                {
-                                  controller.bConnected = true;
-                                  controller.bBluetooth =  //Bluetooth_Base_UUID
-                                    StrStrIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}");
-
-                                  controller.reset_device ();
-
-                                  controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
-                                  controller.setPollingFrequency (0);
-
-                                  if (config.system.log_level > 0)
-                                    SK_ImGui_Warning (L"PlayStation Controller Reconnected");
-
-                                  has_existing = true;
-
-                                  if ((! controller.bBluetooth) || (! config.input.gamepad.bt_input_only))
-                                    controller.write_output_report ();
-
-                                  if (        controller.hReconnectEvent != nullptr)
-                                    SetEvent (controller.hReconnectEvent);
-                                }
-                              }
-                              break;
-                            }
-                          }
-
-                          if (! has_existing)
-                          {
-                            SK_HID_PlayStationDevice controller (hDeviceFile.Detach ());
-
-                            controller.pid = hidAttribs.ProductID;
-                            controller.vid = hidAttribs.VendorID;
-
-                            controller.bBluetooth =
-                              StrStrIW (
-                                controller.wszDevicePath, //Bluetooth_Base_UUID
-                                        L"{00001124-0000-1000-8000-00805f9b34fb}"
-                              );
-
-                            controller.bDualSense =
-                              (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
-                              (controller.pid == SK_HID_PID_DUALSENSE);
-
-                            controller.bDualSenseEdge =
-                              controller.pid == SK_HID_PID_DUALSENSE_EDGE;
-
-                            controller.bDualShock4 =
-                              (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
-                              (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
-                              (controller.pid == 0x0BA0); // Dongle
-
-                            controller.bDualShock3 =
-                              (controller.pid == SK_HID_PID_DUALSHOCK3);
-
-                            if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
-                            {
-                              if (controller.vid == SK_HID_VID_SONY)
-                              {
-                                SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
-                              }
-
-                              return
-                                DefWindowProcW (hwnd, message, wParam, lParam);
-                            }
-
-                            wcsncpy_s (controller.wszDevicePath, MAX_PATH,
-                                                  wszFileName,   _TRUNCATE);
-
-                            if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
-                            {
-                              controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
-                              controller.setPollingFrequency (0);
-
-                              if (SK_HidD_GetPreparsedData != nullptr &&
-                                  SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
-                              {
-                                HIDP_CAPS                                      caps = { };
-                                  SK_HidP_GetCaps (controller.pPreparsedData, &caps);
-
-                                controller.input_report.resize   (caps.InputReportByteLength);
-                                controller.output_report.resize  (caps.OutputReportByteLength);
-                                controller.feature_report.resize (caps.FeatureReportByteLength);
-
-                                controller.initialize_serial ();
-
-                                std::vector <HIDP_BUTTON_CAPS>
-                                  buttonCapsArray;
-                                  buttonCapsArray.resize (caps.NumberInputButtonCaps);
-
-                                std::vector <HIDP_VALUE_CAPS>
-                                  valueCapsArray;
-                                  valueCapsArray.resize (caps.NumberInputValueCaps);
-
-                                USHORT num_caps =
-                                  caps.NumberInputButtonCaps;
-
-                                if (num_caps > 2)
-                                {
-                                  SK_LOGi0 (
-                                    L"PlayStation Controller has too many button sets (%d);"
-                                    L" will ignore Device=%ws", num_caps, wszFileName
-                                  );
-
-                                  return
-                                    DefWindowProcW (hwnd, message, wParam, lParam);
-                                }
-
-                                if ( HIDP_STATUS_SUCCESS ==
-                                  SK_HidP_GetButtonCaps ( HidP_Input,
-                                                            buttonCapsArray.data (), &num_caps,
-                                                              controller.pPreparsedData ) )
-                                {
-                                  for (UINT i = 0 ; i < num_caps ; ++i)
-                                  {
-                                    // Face Buttons
-                                    if (buttonCapsArray [i].IsRange)
-                                    {
-                                      controller.button_report_id =
-                                        buttonCapsArray [i].ReportID;
-                                      controller.button_usage_min =
-                                        buttonCapsArray [i].Range.UsageMin;
-                                      controller.button_usage_max =
-                                        buttonCapsArray [i].Range.UsageMax;
-
-                                      controller.buttons.resize (
-                                        static_cast <size_t> (
-                                          controller.button_usage_max -
-                                          controller.button_usage_min + 1
-                                        )
-                                      );
-                                    }
-                                  }
-
-                                  USHORT value_caps_count =
-                                    sk::narrow_cast <USHORT> (valueCapsArray.size ());
-
-                                  if ( HIDP_STATUS_SUCCESS ==
-                                         SK_HidP_GetValueCaps ( HidP_Input, valueCapsArray.data (),
-                                                                           &value_caps_count,
-                                                                            controller.pPreparsedData ) )
-                                  {
-                                    controller.value_caps.resize (value_caps_count);
-
-                                    for ( int idx = 0; idx < value_caps_count; ++idx )
-                                    {
-                                      controller.value_caps [idx] = valueCapsArray [idx];
-                                    }
-                                  }
-
-                                  // We need a contiguous array to read-back the set buttons,
-                                  //   rather than allocating it dynamically, do it once and reuse.
-                                  controller.button_usages.resize (controller.buttons.size ());
-
-                                  USAGE idx = 0;
-
-                                  for ( auto& button : controller.buttons )
-                                  {
-                                    button.UsagePage = buttonCapsArray [0].UsagePage;
-                                    button.Usage     = controller.button_usage_min + idx++;
-                                    button.state     = false;
-                                  }
-                                }
-                              }
-
-                              controller.bConnected = true;
-                              controller.reset_device ();
-
-                              auto iter =
-                                SK_HID_PlayStationControllers.push_back (controller);
-
-                              iter->write_output_report ();
-
-                              if (config.system.log_level > 0)
-                                SK_ImGui_Warning (L"PlayStation Controller Connected");
-                            }
-                          }
-                        }
-                      }
-
-                      else
-                      {
-                        for (  auto event : SK_HID_DeviceRemovalEvents  )
-                          SetEvent (event);
-
-                        if ( xinput &&
-                             wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
-                             // Ignore XInputGetKeystroke
-                        {
-                          // We really have no idea what controller this is, so refresh them all
-                          SetEvent (SK_XInputHot_NotifyEvent);
-
-                          if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
-                              SetEvent (SK_XInputCold_DecommisionEvent);
-                        }
-
-                        else// if (playstation)
-                        {
-                          for ( auto& controller : SK_HID_PlayStationControllers )
-                          {
-                            if (! _wcsicmp (controller.wszDevicePath, wszFileName))
-                            {
-                              controller.bConnected         = false;
-                              controller.reset_device ();
-                              controller.reset_rgb          = false;
-
-                              if (                (intptr_t)controller.hDeviceFile > 0)
-                                CloseHandle (std::exchange (controller.hDeviceFile,  nullptr));
-
-                              if (controller.pPreparsedData != nullptr &&
-                                  SK_HidD_FreePreparsedData != nullptr)
-                                  SK_HidD_FreePreparsedData (
-                                    std::exchange (controller.pPreparsedData, nullptr)
-                                  );
-
-                              if (        controller.hDisconnectEvent != nullptr)
-                                SetEvent (controller.hDisconnectEvent);
-
-                              if (config.system.log_level > 0)
-                                SK_ImGui_Warning (L"PlayStation Controller Disconnected");
-
-                              break;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                } break;
-
-                default: // Don't care
-                  break;
-              }
-
-              return 0;
-            } break;
-
-            default: // Don't care
-              break;
-          };
-
-          return
-            DefWindowProcW (hwnd, message, wParam, lParam);
-        };
-
-        std::wstring wnd_class_name =
-          SK_FormatStringW (
-            L"SK_HID_Listener_pid%x",
-              GetCurrentProcessId () );
-
-        WNDCLASSEXW
-          wnd_class               = {                          };
-          wnd_class.hInstance     = SK_GetModuleHandle (nullptr);
-          wnd_class.lpszClassName = wnd_class_name.c_str ();
-          wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
-          wnd_class.cbSize        = sizeof (WNDCLASSEXW);
-
-        if (RegisterClassEx (&wnd_class))
-        {
-          DWORD dwWaitStatus = WAIT_OBJECT_0;
-
-          SK_hWndDeviceListener =
-            (HWND)CreateWindowEx ( 0, wnd_class_name.c_str (),     NULL, 0,
-                                   0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
-
-          // It's technically unnecessary to register this, but not a bad idea
-          HDEVNOTIFY hDevNotify =
-            SK_RegisterDeviceNotification (SK_hWndDeviceListener);
-
-          do
-          {
-            auto MessagePump = [&] (void) ->
-            void
-            {
-              MSG                      msg = { };
-              while (SK_PeekMessageW (&msg, SK_hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
-              {
-                SK_TranslateMessage (&msg);
-                SK_DispatchMessageW (&msg);
-              }
-            };
-
-            dwWaitStatus =
-              MsgWaitForMultipleObjects (2, phWaitObjects, FALSE, INFINITE, QS_ALLINPUT);
-
-            // Event is created in signaled state to queue a refresh in case of
-            //   late inject
-            if (dwWaitStatus == ArrivalEvent)
-            {
-              static ULONGLONG ullLastFrame = 0;
-
-              // Do at most once per-frame, then pick up residuals next frame
-              if ( std::exchange (ullLastFrame, SK_GetFramesDrawn ()) <
-                                                SK_GetFramesDrawn () )
-              {
-                SK_XInput_RefreshControllers (                        );
-                ResetEvent                   (SK_XInputHot_NotifyEvent);
-              }
-
-              else
-              {
-                dwWaitStatus =
-                  MsgWaitForMultipleObjects (0, nullptr, FALSE, 3UL, QS_ALLINPUT);
-
-                if (std::exchange (dwWaitStatus, WAIT_OBJECT_0 + 2) !=
-                                                 WAIT_OBJECT_0)
-                                   dwWaitStatus  = ArrivalEvent;
-              }
-            }
-
-            if (dwWaitStatus == (WAIT_OBJECT_0 + 2))
-            {
-              MessagePump ();
-            }
-          } while (dwWaitStatus != ShutdownEvent);
-
-          UnregisterDeviceNotification (hDevNotify);
-          DestroyWindow                (SK_hWndDeviceListener);
-          UnregisterClassW             (wnd_class.lpszClassName, wnd_class.hInstance);
-        }
-
-        else if (config.system.log_level > 0)
-          SK_ReleaseAssert (! L"Failed to register Window Class!");
-
-        SK_CloseHandle (SK_XInputHot_NotifyEvent);
-                        SK_XInputHot_NotifyEvent = 0;
-
-        SK_Thread_CloseSelf ();
-
-        return 0;
-      }, L"[SK] HID Hotplug Dispatch", (LPVOID)SK_XInputHot_NotifyEvent
-    );
+      SK_Thread_CreateEx ( SK_HID_Hotplug_Dispatch,
+                       L"[SK] HID Hotplug Dispatch",
+                 (LPVOID)SK_XInputHot_NotifyEvent );
   });
 }
 
 
-void SK_XInput_DeferredStatusChecks (void)
+DWORD
+WINAPI
+SK_XInput_Polling_Thread (LPVOID user)
 {
-  static SK_AutoHandle hHotplugUnawareXInputRefresh (
-    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
-  );
+  if (! user)
+  {
+    SK_LOGi0 (L"Invalid user parameters in XInput Polling Thread Init.");
+    SK_Thread_CloseSelf ();
+    return 0;
+  }
 
-  SK_RunOnce (
-    SK_Thread_CreateEx ([](LPVOID) -> DWORD
-    {
-      SK_XInputCold_DecommisionEvent =
-                      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+  SK_AutoHandle& hHotplugUnawareXInputRefresh =
+    *(SK_AutoHandle *)user;
 
-      SetThreadPriority      ( SK_GetCurrentThread (),
-        THREAD_PRIORITY_BELOW_NORMAL );
-      SetThreadPriorityBoost ( SK_GetCurrentThread (),
-        TRUE                         );
+  SK_XInputCold_DecommisionEvent =
+                  SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+  
+  SetThreadPriority      ( SK_GetCurrentThread (),
+    THREAD_PRIORITY_BELOW_NORMAL );
+  SetThreadPriorityBoost ( SK_GetCurrentThread (),
+    TRUE                         );
+  
+  HANDLE hWaitEvents [] = {
+    hHotplugUnawareXInputRefresh.m_h, SK_XInputCold_DecommisionEvent,
+                                              __SK_DLL_TeardownEvent
+  };
+  
+  DWORD  dwWait =  WAIT_OBJECT_0;
+  while (dwWait == WAIT_OBJECT_0)
+  {
+    dwWait =
+      MsgWaitForMultipleObjects ( 3, hWaitEvents, FALSE,
+                                        INFINITE, QS_ALLINPUT );
+  
+    XINPUT_STATE                  xstate = { };
+    SK_XInput_PollController (0, &xstate);
+    SK_XInput_PollController (1, &xstate);
+    SK_XInput_PollController (2, &xstate);
+    SK_XInput_PollController (3, &xstate);
+  
+    ResetEvent (hHotplugUnawareXInputRefresh.m_h);
+  } while ( dwWait == WAIT_OBJECT_0 ); // Events #1 and #2 end this thread
+  
+  if (                (intptr_t)SK_XInputCold_DecommisionEvent > 0)
+  { CloseHandle (std::exchange (SK_XInputCold_DecommisionEvent, (HANDLE)0));
+  
+    // One notification is enough to stop periodically testing
+    //   slots and use event-based logic instead
+    SK_XInput_SetRefreshInterval (SK_timeGetTime ());
+  }
+  
+  hHotplugUnawareXInputRefresh.Close ();
+  
+  SK_Thread_CloseSelf ();
+  
+  return 0;
+}
 
-      HANDLE hWaitEvents [] = {
-        hHotplugUnawareXInputRefresh.m_h, SK_XInputCold_DecommisionEvent,
-                                                  __SK_DLL_TeardownEvent
-      };
+void
+SK_XInput_DeferredStatusChecks (void)
+{
+  static SK_AutoHandle
+    hHotplugUnawareXInputRefresh (
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+    );
 
-      DWORD  dwWait =  WAIT_OBJECT_0;
-      while (dwWait == WAIT_OBJECT_0)
-      {
-        dwWait =
-          MsgWaitForMultipleObjects ( 3, hWaitEvents, FALSE,
-                                            INFINITE, QS_ALLINPUT );
+  static HANDLE
+    hXInputPollingThread =
+      SK_Thread_CreateEx ( SK_XInput_Polling_Thread,
+                       L"[SK] XInput Polling Thread",
+                     &hHotplugUnawareXInputRefresh );
 
-        XINPUT_STATE                  xstate = { };
-        SK_XInput_PollController (0, &xstate);
-        SK_XInput_PollController (1, &xstate);
-        SK_XInput_PollController (2, &xstate);
-        SK_XInput_PollController (3, &xstate);
+  static ULONG64 ullLastFrameChecked =
+    SK_GetFramesDrawn ();
 
-        ResetEvent (hHotplugUnawareXInputRefresh.m_h);
-      } while ( dwWait == WAIT_OBJECT_0 ); // Events #1 and #2 end this thread
+  const auto frames_drawn = 
+    SK_GetFramesDrawn ();
 
-      if (                (intptr_t)SK_XInputCold_DecommisionEvent > 0)
-      { CloseHandle (std::exchange (SK_XInputCold_DecommisionEvent, (HANDLE)0));
-
-        // One notification is enough to stop periodically testing
-        //   slots and use event-based logic instead
-        SK_XInput_SetRefreshInterval (SK_timeGetTime ());
-      }
-
-      hHotplugUnawareXInputRefresh.Close ();
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }, L"[SK] XInput Polling Thread")
-  );
-
-  static ULONG64 ullLastFrameChecked = SK_GetFramesDrawn ();
   // Always refresh at the beginning of a frame rather than the end,
   //   a failure event may cause a lengthy delay, missing VBLANK.
-  if (ullLastFrameChecked < SK_GetFramesDrawn () - 30 &&
+  if (ullLastFrameChecked < frames_drawn - 30 &&
       (intptr_t)hHotplugUnawareXInputRefresh.m_h > 0)
   { SetEvent (  hHotplugUnawareXInputRefresh);
-    ullLastFrameChecked = SK_GetFramesDrawn ();
+      ullLastFrameChecked = frames_drawn;
   }
 }
 
@@ -937,10 +954,10 @@ struct SK_Win32_DeviceNotificationInstance
 
 SK_LazyGlobal <concurrency::concurrent_vector <SK_Win32_DeviceNotificationInstance>> SK_Win32_RegisteredDevNotifications;
 
-static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_xbox_w [16][9] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_hid_w  [16][9] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_xbox_a [16][9] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_hid_a  [16][9] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_xbox_w [16] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_hid_w  [16] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_xbox_a [16] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_hid_a  [16] = { };
 
 SK_LazyGlobal <concurrency::concurrent_unordered_set <HWND>> SK_Win32_NotifiedWindows;
 
@@ -1064,30 +1081,30 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
   {
     for ( auto& xbox_w : dbcc_xbox_w )
     {
-      xbox_w [0].dbcc_size       = sizeof (xbox_w);
-      xbox_w [0].dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-      xbox_w [0].dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+      xbox_w.dbcc_size       = sizeof (xbox_w);
+      xbox_w.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+      xbox_w.dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
     }
 
     for ( auto& hid_w : dbcc_hid_w )
     {
-      hid_w [0].dbcc_size        = sizeof (hid_w);
-      hid_w [0].dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
-      hid_w [0].dbcc_classguid   = GUID_DEVINTERFACE_HID;
+      hid_w.dbcc_size        = sizeof (hid_w);
+      hid_w.dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
+      hid_w.dbcc_classguid   = GUID_DEVINTERFACE_HID;
     }
 
     for ( auto& xbox_a : dbcc_xbox_a )
     {
-      xbox_a [0].dbcc_size       = sizeof (xbox_a);
-      xbox_a [0].dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-      xbox_a [0].dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+      xbox_a.dbcc_size       = sizeof (xbox_a);
+      xbox_a.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+      xbox_a.dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
     }
 
     for ( auto& hid_a : dbcc_hid_a )
     {
-      hid_a [0].dbcc_size        = sizeof (hid_a);
-      hid_a [0].dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
-      hid_a [0].dbcc_classguid   = GUID_DEVINTERFACE_HID;
+      hid_a.dbcc_size        = sizeof (hid_a);
+      hid_a.dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
+      hid_a.dbcc_classguid   = GUID_DEVINTERFACE_HID;
     }
   });
 
@@ -1106,17 +1123,17 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
       return;
     }
 
-    wcsncpy_s (dbcc_xbox_w [idx]->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
-    wcsncpy_s (dbcc_hid_w  [idx]->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    wcsncpy_s (dbcc_xbox_w [idx].dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    wcsncpy_s (dbcc_hid_w  [idx].dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
 
-    dbcc_xbox_w [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w [idx]->dbcc_name) * 2;
-    dbcc_hid_w  [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w  [idx]->dbcc_name) * 2;
+    dbcc_xbox_w [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w [idx].dbcc_name) * 2;
+    dbcc_hid_w  [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w  [idx].dbcc_name) * 2;
 
-    strncpy (dbcc_xbox_a [idx]->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
-    strncpy (dbcc_hid_a  [idx]->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    strncpy (dbcc_xbox_a [idx].dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    strncpy (dbcc_hid_a  [idx].dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
 
-    dbcc_xbox_a [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a [idx]->dbcc_name);
-    dbcc_hid_a  [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a  [idx]->dbcc_name);
+    dbcc_xbox_a [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a [idx].dbcc_name);
+    dbcc_hid_a  [idx].dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a  [idx].dbcc_name);
 
     for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
     {
@@ -1127,16 +1144,16 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
       {
         if (notify.bUnicode)
         {
-          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w [idx]);
-          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w  [idx]);
+          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_xbox_w [idx]);
+          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_hid_w  [idx]);
         
           SK_Win32_NotifiedWindows->insert (notify.hWnd);
         }
 
         else
         {
-          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a [idx]);
-          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a  [idx]);
+          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_xbox_a [idx]);
+          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_hid_a  [idx]);
         
           SK_Win32_NotifiedWindows->insert (notify.hWnd);
         }
@@ -1175,15 +1192,15 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
       {
         SK_Win32_NotifiedWindows->insert (hWnd);
 
-        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w [idx]);
-        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w  [idx]);
+        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_xbox_w [idx]);
+        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_hid_w  [idx]);
       }
       else
       {
         SK_Win32_NotifiedWindows->insert (hWnd);
 
-        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a [idx]);
-        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a  [idx]);
+        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_xbox_a [idx]);
+        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)&dbcc_hid_a  [idx]);
       }
 
       return TRUE;
