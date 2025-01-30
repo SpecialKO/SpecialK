@@ -4678,10 +4678,7 @@ __SK_Singleton_D3D11_ShaderClassMap (void)
   return &SK_D3D11_ShaderClassMap_;
 }
 
-SK_LazyGlobal <concurrency::concurrent_unordered_set <std::wstring>> loaded_configs;
-
 #define SK_D3D11_ShaderClassMap (*__SK_Singleton_D3D11_ShaderClassMap ())
-
 
 struct SK_D3D11_CommandBase
 {
@@ -4698,9 +4695,6 @@ struct SK_D3D11_CommandBase
             SK_UTF8ToWideChar (szArgs);
 
           SK_D3D11_LoadShaderStateEx (args, false);
-
-          if (loaded_configs->count  (args))
-              loaded_configs->insert (args);
         }
 
         else
@@ -4726,9 +4720,6 @@ struct SK_D3D11_CommandBase
 
         SK_D3D11_UnloadShaderState (args);
 
-        if (loaded_configs->count  (args))
-            loaded_configs->insert (args);
-
         return SK_ICommandResult ("D3D11.ShaderMods.Unload", szArgs, "done", 1, nullptr, this);
       }
 
@@ -4746,15 +4737,16 @@ struct SK_D3D11_CommandBase
         std::wstring args =
           SK_UTF8ToWideChar (szArgs);
 
-        if (loaded_configs->count (args))
-        {
-                loaded_configs->insert (args);
-          SK_D3D11_UnloadShaderState   (args);
-        }
+        auto& loaded_configs =
+          _SK_D3D11_LoadedShaderConfigs ();
 
+        if (    loaded_configs.count (args) &&
+                loaded_configs       [args])
+        {
+          SK_D3D11_UnloadShaderState (args);
+        }
         else
         {
-              loaded_configs->insert (args);
           SK_D3D11_LoadShaderStateEx (args, false);
         }
 
