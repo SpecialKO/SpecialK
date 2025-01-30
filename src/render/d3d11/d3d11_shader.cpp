@@ -1042,6 +1042,8 @@ SK_D3D11_ClearShaderState (void)
       record->wireframe.size             () + record->on_top.size                 () +
       record->trigger_reshade.after.size () + record->trigger_reshade.before.size ();
 
+    size_t texture_based = record->blacklist_if_texture.size ();
+
     record->blacklist.clear              ();
     record->blacklist_if_texture.clear   ();
     record->wireframe.clear              ();
@@ -1056,6 +1058,8 @@ SK_D3D11_ClearShaderState (void)
       -static_cast <LONG> (always_tracked) );
     InterlockedAdd (      &SK_D3D11_TrackingCount->Always,
       -static_cast <LONG> (always_tracked) );
+    InterlockedAdd (      &SK_D3D11_TrackingCount->TextureBased,
+      -static_cast <LONG> (texture_based)  );
 
 #if 0
     LONG conditionally_tracked =
@@ -1238,7 +1242,10 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
     }
 
     size_t num_conditionally_tracked  = 0;
-        num_conditionally_tracked += draw_states [i].hud_shader.size ();
+           num_conditionally_tracked += draw_states [i].hud_shader.size ();
+
+    size_t num_texture_tracked  = 0;
+           num_texture_tracked += draw_states [i].disable_if_texture.size ();
 #pragma endregion
 
     for ( auto& it : draw_states [i].disable)    record->addTrackingRef (record->blacklist, it);
@@ -1290,8 +1297,9 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
 
       if (! clear)
       {
-        InterlockedAdd (&SK_D3D11_TrackingCount->Always,      sk::narrow_cast <LONG> (num_always_tracked_per_stage));
-        InterlockedAdd (&SK_D3D11_TrackingCount->Conditional, sk::narrow_cast <LONG> (num_conditionally_tracked));
+        InterlockedAdd (&SK_D3D11_TrackingCount->Always,       sk::narrow_cast <LONG> (num_always_tracked_per_stage));
+        InterlockedAdd (&SK_D3D11_TrackingCount->Conditional,  sk::narrow_cast <LONG> (num_conditionally_tracked));
+        InterlockedAdd (&SK_D3D11_TrackingCount->TextureBased, sk::narrow_cast <LONG> (num_texture_tracked));
       }
     }
   }
@@ -1451,6 +1459,7 @@ SK_D3D11_UnloadShaderState (std::wstring& name)
 
   size_t tracking_reqs_removed    = 0;
   size_t conditional_reqs_removed = 0;
+  size_t texture_reqs_removed     = 0;
 
   for (int i = 0; i < 6; i++)
   {
@@ -1507,6 +1516,8 @@ SK_D3D11_UnloadShaderState (std::wstring& name)
       }
     }
 
+    texture_reqs_removed +=
+      draw_states [i].disable_if_texture.size ();
     conditional_reqs_removed +=
       draw_states [i].hud_shader.size ();
 
@@ -1529,14 +1540,19 @@ SK_D3D11_UnloadShaderState (std::wstring& name)
       SK_ReleaseAssert ( tracking_reqs_removed    > 0 ||
                          conditional_reqs_removed > 0 );
 
-      InterlockedAdd (&SK_D3D11_TrackingCount->Always,      -sk::narrow_cast <LONG> (tracking_reqs_removed));
-      InterlockedAdd (&SK_D3D11_TrackingCount->Conditional, -sk::narrow_cast <LONG> (conditional_reqs_removed));
+      InterlockedAdd (&SK_D3D11_TrackingCount->Always,       -sk::narrow_cast <LONG> (tracking_reqs_removed));
+      InterlockedAdd (&SK_D3D11_TrackingCount->Conditional,  -sk::narrow_cast <LONG> (conditional_reqs_removed));
+      InterlockedAdd (&SK_D3D11_TrackingCount->TextureBased, -sk::narrow_cast <LONG> (texture_reqs_removed));
     }
 
     else
     {
-      SK_ReleaseAssert ( tracking_reqs_removed    == 0 &&
-                         conditional_reqs_removed == 0 );
+      if (config.system.log_level > 1)
+      {
+        SK_ReleaseAssert ( tracking_reqs_removed    == 0 &&
+                           conditional_reqs_removed == 0 &&
+                           texture_reqs_removed     == 0 );
+      }
     }
   }
 }
@@ -2363,6 +2379,8 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
 
     if (selected)
     {
+      InterlockedDecrement (&SK_D3D11_TrackingCount->TextureBased);
+
       cond_blacklist [shader].erase (crc32c);
     }
   }
@@ -2415,6 +2433,8 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
 
       if (selected)
       {
+        InterlockedIncrement (&SK_D3D11_TrackingCount->TextureBased);
+
         cond_blacklist [shader].emplace (crc32c);
       }
     }
@@ -3351,8 +3371,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (sel_changed)
         {
-          if (! ImGui::IsItemVisible  ())
-            ImGui::SetScrollHereY     (0.5f);
+          if (! ImGui::IsItemVisible  (    ))
+                ImGui::SetScrollHereY (0.5f);
           ImGui::SetKeyboardFocusHere (    );
 
           sel_changed = false;
@@ -3386,9 +3406,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         static concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView> > empty_set;
 
         ShaderMenu ( (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)
-                        ShaderBase              (shader_type),
-                     GetShaderBlacklist         (shader_type),
-                     GetShaderBlacklistEx       (shader_type),
+                        ShaderBase                                  (shader_type),
+                     GetShaderBlacklist                             (shader_type),
+                     GetShaderBlacklistEx                           (shader_type),
                      line == list->sel ? GetShaderUsedResourceViews (shader_type) :
                                          empty_list,
                      line == list->sel ? GetShaderResourceSet       (shader_type) :

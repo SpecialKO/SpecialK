@@ -1,4 +1,9 @@
-﻿25.1.29.3
+﻿25.1.30
+=======
+ + Fixed DisableIfTexture=... condition in d3d11_shaders.ini not actually
+     enabling texture binding state for vertex, pixel, and geometry shaders.
+
+25.1.29.3
 =========
  + Increase allocation size for DEV_BROADCAST_DEVICEINTERFACE_W global
      structs to accomodate storing a device path MAX_PATH-many characters.

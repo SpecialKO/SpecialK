@@ -130,7 +130,7 @@ SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
   if (pDevCtx == nullptr)
     return false;
 
-  if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
+  if (! SK::ControlPanel::D3D11::show_shader_mod_dlg && ReadAcquire (&SK_D3D11_TrackingCount->TextureBased) == 0)
     return false;
 
   const bool                                   bIsDeferred = SK_D3D11_IsDevCtxDeferred (pDevCtx);

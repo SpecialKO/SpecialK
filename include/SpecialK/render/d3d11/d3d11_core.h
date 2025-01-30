@@ -1551,8 +1551,9 @@ public:
 //
 struct SK_D3D11_StateTrackingCounters
 {
-  volatile LONG Always = 0;
-  volatile LONG Conditional = 0;
+  volatile LONG Always       = 0;
+  volatile LONG Conditional  = 0;
+  volatile LONG TextureBased = 0;
 };
 
 extern SK_LazyGlobal <SK_D3D11_Wrapper_Factory>       SK_D3D11_WrapperFactory;

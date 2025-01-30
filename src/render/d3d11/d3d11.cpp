@@ -3313,7 +3313,7 @@ const
   }
 
   struct filter_cache_s {
-    ULONG64 ulLastFrame = 0;
+    ULONG64 ulLastFrame = ULONG64_MAX;
     size_t  count       = 0;
   };
 
