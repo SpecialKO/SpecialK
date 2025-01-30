@@ -368,6 +368,7 @@ SK_TGFix_PlugInCfg (void)
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
+          SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0xf751273e);
 
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
@@ -378,6 +379,7 @@ SK_TGFix_PlugInCfg (void)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
+          SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0xf751273e);
 
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
           InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
@@ -726,6 +728,7 @@ SK_TGFix_InitPlugin (void)
     {
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x2dfcf950);
       SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0x9a0e24eb);
+      SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.on_top, 0xf751273e);
 
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
@@ -775,6 +778,7 @@ typedef MonoReflectionType*
 typedef void*           (*mono_compile_method_pfn)(MonoMethod* method);
 typedef MonoObject*     (*mono_runtime_invoke_pfn)(MonoMethod* method, void* obj, void** params, MonoObject** exc);
 typedef char*           (*mono_array_addr_with_size_pfn)(MonoArray* array, int size, uintptr_t idx);
+typedef uintptr_t       (*mono_array_length_pfn)(MonoArray* array);
 
 typedef MonoClassField* (*mono_class_get_field_from_name_pfn)(MonoClass* klass, const char* name);
 typedef void*           (*mono_field_get_value_pfn)(void* obj, MonoClassField* field, void* value);
@@ -798,7 +802,12 @@ typedef MonoMethod*     (*mono_property_get_get_method_pfn)(MonoProperty *prop);
 typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
 
 #define SK_mono_array_addr(array,type,index) ((type*)SK_mono_array_addr_with_size ((array), sizeof (type), (index)))
-#define SK_mono_array_get(array,type,index) ( *(type*)SK_mono_array_addr ((array), type, (index)) ) 
+#define SK_mono_array_get(array,type,index) (*(type*)SK_mono_array_addr           ((array),         type,  (index)))
+#define SK_mono_array_set(array,type,index,value)	                  \
+do {                                                                \
+  type *__p = (type *) SK_mono_array_addr ((array), type, (index));	\
+  *__p = (value);	                                                  \
+} while (0)
 
 mono_thread_attach_pfn                SK_mono_thread_attach                = nullptr;
 mono_thread_current_pfn               SK_mono_thread_current               = nullptr;
@@ -820,6 +829,7 @@ mono_type_get_object_pfn              SK_mono_type_get_object              = nul
 mono_compile_method_pfn               SK_mono_compile_method               = nullptr;
 mono_runtime_invoke_pfn               SK_mono_runtime_invoke               = nullptr;
 mono_array_addr_with_size_pfn         SK_mono_array_addr_with_size         = nullptr;
+mono_array_length_pfn                 SK_mono_array_length                 = nullptr;
 
 mono_property_get_value_pfn           SK_mono_property_get_value           = nullptr;
 mono_class_get_property_from_name_pfn SK_mono_class_get_property_from_name = nullptr;
@@ -937,7 +947,8 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_compile_method               = reinterpret_cast <mono_compile_method_pfn>               (SK_GetProcAddress (hMono, "mono_compile_method"));
   SK_mono_runtime_invoke               = reinterpret_cast <mono_runtime_invoke_pfn>               (SK_GetProcAddress (hMono, "mono_runtime_invoke"));
   SK_mono_array_addr_with_size         = reinterpret_cast <mono_array_addr_with_size_pfn>         (SK_GetProcAddress (hMono, "mono_array_addr_with_size"));
-  
+  SK_mono_array_length                 = reinterpret_cast <mono_array_length_pfn>                 (SK_GetProcAddress (hMono, "mono_array_length"));
+
   SK_mono_class_get_field_from_name    = reinterpret_cast <mono_class_get_field_from_name_pfn>    (SK_GetProcAddress (hMono, "mono_class_get_field_from_name"));
   SK_mono_field_get_value              = reinterpret_cast <mono_field_get_value_pfn>              (SK_GetProcAddress (hMono, "mono_field_get_value"));
   SK_mono_field_set_value              = reinterpret_cast <mono_field_set_value_pfn>              (SK_GetProcAddress (hMono, "mono_field_set_value"));
@@ -946,7 +957,7 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_class_vtable                 = reinterpret_cast <mono_class_vtable_pfn>                 (SK_GetProcAddress (hMono, "mono_class_vtable"));
   SK_mono_vtable_get_static_field_data = reinterpret_cast <mono_vtable_get_static_field_data_pfn> (SK_GetProcAddress (hMono, "mono_vtable_get_static_field_data"));
   SK_mono_field_get_offset             = reinterpret_cast <mono_field_get_offset_pfn>             (SK_GetProcAddress (hMono, "mono_field_get_offset"));
-  
+
   SK_mono_property_get_value           = reinterpret_cast <mono_property_get_value_pfn>           (SK_GetProcAddress (hMono, "mono_property_get_value"));
   SK_mono_class_get_property_from_name = reinterpret_cast <mono_class_get_property_from_name_pfn> (SK_GetProcAddress (hMono, "mono_class_get_property_from_name"));
   SK_mono_property_get_get_method      = reinterpret_cast <mono_property_get_get_method_pfn>      (SK_GetProcAddress (hMono, "mono_property_get_get_method"));
@@ -964,7 +975,7 @@ SK_TGFix_HookMonoInit (void)
   SK_mono_gchandle_new_v2              = reinterpret_cast <mono_gchandle_new_v2_pfn>              (SK_GetProcAddress (hMono, "SK_mono_gchandle_new_v2"));
   SK_mono_gchandle_free_v2             = reinterpret_cast <mono_gchandle_free_v2_pfn>             (SK_GetProcAddress (hMono, "SK_mono_gchandle_free_v2"));
   SK_mono_gchandle_get_target_v2       = reinterpret_cast <mono_gchandle_get_target_v2_pfn>       (SK_GetProcAddress (hMono, "SK_mono_gchandle_get_target_v2"));
- 
+
   SK_mono_thread_attach                = reinterpret_cast <mono_thread_attach_pfn>                (SK_GetProcAddress (hMono, "mono_thread_attach"));
   SK_mono_get_root_domain              = reinterpret_cast <mono_get_root_domain_pfn>              (SK_GetProcAddress (hMono, "mono_get_root_domain"));
   SK_mono_thread_current               = reinterpret_cast <mono_thread_current_pfn>               (SK_GetProcAddress (hMono, "mono_thread_current"));
@@ -1036,23 +1047,30 @@ struct {
       MonoClassField*   cameraview      = nullptr;
     } NobleMovieRendererPass;
   } Noble;
+  struct {
+    MonoClassField*     mRenderShadowParamUseNum = nullptr;
+    MonoClassField*     mRenderShadowParam       = nullptr;
+  } NobleLegacyShadowRenderParameter;
 } SK_TGFix_MonoFields;
 
 struct {
   struct {
     struct {
-      MonoMethod* SetVisibilityFlags    = nullptr;
-      MonoMethod* IsDirty               = nullptr;
-      MonoMethod* IsVisible             = nullptr;
+      MonoMethod* SetVisibilityFlags     = nullptr;
+      MonoMethod* IsDirty                = nullptr;
+      MonoMethod* IsVisible              = nullptr;
     } Object;
     struct {
-      MonoMethod* SetCameraAspect       = nullptr;
-      MonoMethod* SetCameraViewportRect = nullptr;
+      MonoMethod* SetCameraAspect        = nullptr;
+      MonoMethod* SetCameraViewportRect  = nullptr;
     } CameraManager;
     struct {
-      MonoMethod* CalcUIOrthoMatrix     = nullptr;
+      MonoMethod* CalcUIOrthoMatrix      = nullptr;
     } PrimitiveManager;
   } Noble;
+  struct {
+    MonoMethod*   get_mLegacyShadowParam = nullptr;
+  } NoblePostEffectLegacyShadowParam;
 } SK_TGFix_MonoMethods;
 
 HRESULT
@@ -1588,12 +1606,45 @@ struct Unity_Rect
   float height;
 };
 
+struct Unity_Color
+{
+  float r;
+  float g;
+  float b;
+  float a;
+};
+
+struct Unity_Vector2
+{
+  float x;
+  float y;
+};
+
+struct Unity_Vector4
+{
+  float x;
+  float y;
+  float z;
+  float w;
+};
+
 struct Unity_Matrix4x4
 {
   float m00; float m10; float m20; float m30;
   float m01; float m11; float m21; float m31;
   float m02; float m12; float m22; float m32;
   float m03; float m13; float m23; float m33;
+};
+
+struct Noble_LegacyShadowRenderParam
+{
+  Unity_Matrix4x4 mMatrix;
+  Unity_Color     mColor;
+  Unity_Vector2   mParam;
+  Unity_Vector2   mClipZ;
+  Unity_Vector4   mScissor;
+  uint16_t        mShadowTextureIndex;
+  uint16_t        mShadowRenderingLayerNo;
 };
 
 using Noble_CameraManager_SetCameraViewportRect_pfn  = void (*)(MonoObject*, Unity_Rect*);
@@ -1897,20 +1948,158 @@ SK_TGFix_NobleMovieRendererPass_Execute_Detour (MonoObject* __this, MonoObject* 
   }
 }
 
+using NoblePostEffectLegacyShadow_BeginRender_pfn = void (*)(MonoObject* __this, MonoObject* renderPass, MonoObject* cmd, MonoObject* renderingData);
+      NoblePostEffectLegacyShadow_BeginRender_pfn
+      NoblePostEffectLegacyShadow_BeginRender_Original = nullptr;
+
+void
+SK_TGFix_NoblePostEffectLegacyShadow_BeginRender_Detour (MonoObject* __this, MonoObject* renderPass, MonoObject* cmd, MonoObject* renderingData)
+{
+  SK_LOG_FIRST_CALL
+
+  #if 0
+  if (SK_TGFix_Cfg.render_scale != 1.0f)
+  {
+    int        mLegacyShadowParam_mRenderShadowParamUseNum = 0;
+    MonoArray* mLegacyShadowParam_mRenderShadowParam       = nullptr;
+
+    MonoObject* mLegacyShadowParam =
+      SK_mono_runtime_invoke (
+        SK_TGFix_MonoMethods.NoblePostEffectLegacyShadowParam.get_mLegacyShadowParam,
+          nullptr, nullptr, nullptr
+      );
+
+    SK_mono_field_get_value (mLegacyShadowParam,
+      SK_TGFix_MonoFields.NobleLegacyShadowRenderParameter.mRenderShadowParam,
+                                       &mLegacyShadowParam_mRenderShadowParam);
+
+    SK_mono_field_get_value (mLegacyShadowParam,
+      SK_TGFix_MonoFields.NobleLegacyShadowRenderParameter.mRenderShadowParamUseNum,
+                                       &mLegacyShadowParam_mRenderShadowParamUseNum);
+
+    const int num =
+      std::min (mLegacyShadowParam_mRenderShadowParamUseNum,
+        (int)SK_mono_array_length (mLegacyShadowParam_mRenderShadowParam));
+
+    for (int i = 0; i < num; i++)
+    {
+      auto mRenderShadowParam =
+        SK_mono_array_get (mLegacyShadowParam_mRenderShadowParam,
+                                         Noble_LegacyShadowRenderParam, i);
+
+      mRenderShadowParam.mScissor.x *= SK_TGFix_Cfg.render_scale;
+      mRenderShadowParam.mScissor.y *= SK_TGFix_Cfg.render_scale;
+      mRenderShadowParam.mScissor.z /= SK_TGFix_Cfg.render_scale;
+      mRenderShadowParam.mScissor.w /= SK_TGFix_Cfg.render_scale;
+
+      SK_mono_array_set (mLegacyShadowParam_mRenderShadowParam,
+                                         Noble_LegacyShadowRenderParam, i,
+                                            mRenderShadowParam);
+    }
+  }
+  #endif
+
+  NoblePostEffectLegacyShadow_BeginRender_Original (__this, renderPass, cmd, renderingData);
+}
+
+
 using UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn = void (*)(MonoObject*, Unity_Rect*);
       UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn
       UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original = nullptr;
+
+#if 0
+void
+SK_TGFix_ComputeAspectCoeffs (float& x, float& y, float& xoff, float& yoff)
+{
+  yoff = 0.0f;
+  xoff = 0.0f;
+
+  x = 1.0f;
+  y = 1.0f;
+
+  ////float rescale = (1.77777778f / SK_TGFix_AspectRatio);
+
+  // Wider
+  if (SK_TGFix_AspectRatio > 1.7777f) {
+    int width  = (int)((16.0f / 9.0f) * SK_TGFix_ScreenHeight);
+    int x_off  = (int)((SK_TGFix_ScreenWidth - width) / 2);
+
+    x    = (float)SK_TGFix_ScreenWidth / (float)width;
+    xoff = (float)x_off;
+  } else {
+    int height = (int)((9.0f / 16.0f) * SK_TGFix_ScreenWidth);
+    int y_off  = (int)((SK_TGFix_ScreenHeight - height) / 2);
+
+    y    = (float)SK_TGFix_ScreenHeight / (float)height;
+    yoff = (float)y_off;
+  }
+}
+#endif
 
 void
 SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObject* __this, Unity_Rect* Scissor)
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_TGFix_Cfg.hacks.fix_shadow_scissors && SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
+  if (SK_TGFix_Cfg.hacks.fix_shadow_scissors && (SK_TGFix_Cfg.render_scale != 1.0f || (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)))
   {
-    // We're nop'ing this entire thing because it breaks shadows if we don't.
-    return;
+    const float scale = SK_TGFix_Cfg.render_scale;
+
+    if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect)
+    {
+      // Disable scissor, we can't reasonably fix what went wrong here!
+      return;
+#if 0
+      float x_scale, y_scale;
+      float x_off,   y_off;
+      SK_TGFix_ComputeAspectCoeffs (x_scale, y_scale, x_off, y_off);
+
+      // Wider
+      if (SK_TGFix_AspectRatio > 1.7777f) {
+        float left  =        Scissor->x;
+        float right = left + Scissor->width;
+
+        float left_ndc  = 2.0f * (left  / (float)(SK_TGFix_ScreenWidth)) - 1.0f;
+        float right_ndc = 2.0f * (right / (float)(SK_TGFix_ScreenWidth)) - 1.0f;
+
+        int width = (int)((16.0f / 9.0f) * SK_TGFix_ScreenHeight);
+
+        left  = (left_ndc  * width + width) / 2.0f + x_off;
+        right = (right_ndc * width + width) / 2.0f + x_off;
+
+        Scissor->x     =       left;
+        Scissor->width = right-left;
+      } else {
+        //float top_ndc    = 2.0f * ((float)pRect->top    / (float)tzf::RenderFix::height) - 1.0f;
+        //float bottom_ndc = 2.0f * ((float)pRect->bottom / (float)tzf::RenderFix::height) - 1.0f;
+        //
+        //int height = (9.0f / 16.0f) * tzf::RenderFix::width;
+        //
+        //fixed_scissor.top    = (top_ndc    * height + height) / 2.0f + y_off;
+        //fixed_scissor.bottom = (bottom_ndc * height + height) / 2.0f + y_off;
+      }
+#endif
+    }
+
+    // A simple rescale done in NDC-space to properly stretch the scissor rectangle
+    if (SK_TGFix_Cfg.render_scale != 1.0f)
+    {
+      float NewWidth  = (float)SK_TGFix_ScreenWidth  * scale;
+      float NewHeight = (float)SK_TGFix_ScreenHeight * scale;
+
+      float left_ndc = 2.0f * ( Scissor->x / (float)SK_TGFix_ScreenWidth  ) - 1.0f;
+      float top_ndc  = 2.0f * ( Scissor->y / (float)SK_TGFix_ScreenHeight ) - 1.0f;
+
+      Scissor->x = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
+      Scissor->y = (top_ndc  * NewHeight + NewHeight) / 2.0f;
+
+      Scissor->width  = Scissor->width  * scale;
+      Scissor->height = Scissor->height * scale;
+    }
   }
+
+    //// We're nop'ing this entire thing because it breaks shadows if we don't.
+    //return;
 
   UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original (__this, Scissor);
 }
@@ -2089,6 +2278,19 @@ SK_TGFix_SetupFramerateHooks (void)
 
     SK_QueueEnableHook (pfnNobleMovieRendererPass_Execute);
 
+
+    auto pfnNoblePostEffectLegacyShadow_BeginRender =
+      CompileMethod ("",
+           "NoblePostEffectLegacyShadow",
+                                       "BeginRender", 3);
+
+    SK_CreateFuncHook (               L"NoblePostEffectLegacyShadow.BeginRender",
+                                     pfnNoblePostEffectLegacyShadow_BeginRender,
+                               SK_TGFix_NoblePostEffectLegacyShadow_BeginRender_Detour,
+      static_cast_p2p <void> (&         NoblePostEffectLegacyShadow_BeginRender_Original) );
+
+    SK_QueueEnableHook (pfnNoblePostEffectLegacyShadow_BeginRender);
+
     SK_ApplyQueuedHooks ();
   });
 
@@ -2124,6 +2326,19 @@ SK_TGFix_SetupFramerateHooks (void)
 
   SK_TGFix_MonoFields. Noble.ObjPrimitiveBase.vertexCount        = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass, "vertexCount");
   SK_TGFix_MonoFields. Noble.ObjPrimitiveBase.m_PrimitiveType    = SK_mono_class_get_field_from_name (Noble_ObjPrimitiveBaseClass, "m_PrimitiveType");
+
+  MonoClass                                                              *NoblePostEffectLegacyShadowParam_Class =
+    SK_mono_class_from_name (SK_TGFix_MonoAssemblies.assemblyCSharp, "", "NoblePostEffectLegacyShadowParam"),
+                                                                         *NobleLegacyShadowRenderParameter_Class =
+    SK_mono_class_from_name (SK_TGFix_MonoAssemblies.assemblyCSharp, "", "NobleLegacyShadowRenderParameter");
+
+  SK_TGFix_MonoMethods.NoblePostEffectLegacyShadowParam.get_mLegacyShadowParam  =
+    SK_mono_class_get_method_from_name (NoblePostEffectLegacyShadowParam_Class, "get_mLegacyShadowParam", 0);
+
+  SK_TGFix_MonoFields.NobleLegacyShadowRenderParameter.mRenderShadowParamUseNum =
+    SK_mono_class_get_field_from_name (NobleLegacyShadowRenderParameter_Class, "mRenderShadowParamUseNum");
+  SK_TGFix_MonoFields.NobleLegacyShadowRenderParameter.mRenderShadowParam       =
+    SK_mono_class_get_field_from_name (NobleLegacyShadowRenderParameter_Class, "mRenderShadowParam");
 
   DetachCurrentThreadIfNotNative ();
 
