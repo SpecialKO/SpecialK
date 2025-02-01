@@ -3329,6 +3329,12 @@ auto DeclKeybind =
         config.platform.silent            = true;
       } break;
 
+      case SK_GAME_ID::Hello_Kitty_Island_Adventure:
+      {
+        config.input.gamepad.xinput.emulate = false;
+        config.window.background_render     = false;
+      } break;
+
       case SK_GAME_ID::Tales_of_Vesperia:
       {
         config.window.treat_fg_as_active        = true;

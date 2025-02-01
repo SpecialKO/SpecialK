@@ -1653,6 +1653,7 @@ enum class SK_GAME_ID
   Tales_of_Vesperia,            // TOV_DE.exe
   Tales_of_Arise,               // Tales of Arise.exe
   Tales_of_Graces,              // Tales of Graces f Remastered.exe
+  Hello_Kitty_Island_Adventure, // Hello Kitty.exe
   DivinityOriginalSin,          // EoCApp.exe
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe

@@ -1,4 +1,10 @@
-﻿25.1.30.2
+﻿25.1.31
+=======
+ + Disable XInput Emulation in Hello Kitty: Island Adventure.
+ + Disabled render in background in Hello Kitty: Island Adventure or it
+     breaks input and requires you to use keyboard and mouse.
+
+25.1.30.2
 =========
  + Enable modified form of scissor rectangle hack for 16:9 users running at
      resolution scales != 100% in Tales of Graces f to prevent shadows from

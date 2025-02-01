@@ -3795,6 +3795,13 @@ SK_BackgroundRender_EndFrame (void)
   if (            first_frame ||
        (background_last_frame != config.window.background_render) )
   {
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
+    {
+      config.window.background_render     = false;
+      config.input.gamepad.xinput.emulate = false;
+    }
+
     if (first_frame && ( SK_GetModuleHandleW (L"SDL2.dll") ||
                          SK_GetModuleHandleW (L"SDL3.dll")) )
     {
