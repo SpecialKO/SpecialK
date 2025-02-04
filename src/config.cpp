@@ -3362,6 +3362,8 @@ auto DeclKeybind =
         config.render.framerate.sleepless_window               = true;
         config.render.d3d12.max_anisotropy                     =    9;
         config.render.d3d12.force_anisotropic                  =false;
+        config.textures.cache.ignore_nonmipped                 =false;
+        config.textures.cache.allow_staging                    = true;
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:

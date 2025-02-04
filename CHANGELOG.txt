@@ -1,4 +1,10 @@
-﻿25.1.31
+﻿25.2.4
+======
+ + Stop auto-disabling texture cache for textures without mipmaps in
+     Unity engine games.
+ + No longer cache 16-bit or 32-bit single-channel no mipmap textures
+
+25.1.31
 =======
  + Disable XInput Emulation in Hello Kitty: Island Adventure.
  + Disabled render in background in Hello Kitty: Island Adventure or it

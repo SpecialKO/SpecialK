@@ -7641,8 +7641,8 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
       config.apis.OpenGL.hook                   = false; // Unity does some fake OpenGL stuff; ignore.
     }
 
-    config.textures.cache.ignore_nonmipped      =  true;
-    cache_opts.ignore_non_mipped                =  true; // Push this change through immediately
+    //config.textures.cache.ignore_nonmipped      =  true;
+    //cache_opts.ignore_non_mipped                =  true; // Push this change through immediately
 
                    
     if (changed)

@@ -5994,8 +5994,11 @@ D3D11Dev_CreateTexture2DCore_Impl (
                      pDesc->SampleDesc.Count == 1       &&
                     (pDesc->MiscFlags        == 0x00 ||
                      pDesc->MiscFlags        == D3D11_RESOURCE_MISC_RESOURCE_CLAMP ||
-                     pDesc->MiscFlags        == D3D11_RESOURCE_MISC_GENERATE_MIPS)
-                                                        &&
+                     pDesc->MiscFlags        == D3D11_RESOURCE_MISC_GENERATE_MIPS) &&
+                     // Workaround for Unity stuff...
+                    ((//DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R8_TYPELESS  &&
+                      DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16_TYPELESS &&
+                      DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R32_TYPELESS) || pDesc->MipLevels > 1)
                      //pDesc->MiscFlags        != 0x01  &&
                      pDesc->CPUAccessFlags   == 0x0     &&
                      pDesc->Width             > 0       &&
