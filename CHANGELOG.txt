@@ -1,4 +1,17 @@
-﻿25.2.4.1
+﻿25.2.4.2
+========
+ + For shadow scissor rectangles completely within the normal 16:9 area,
+     in Tales of Graces f, simply rescale and offset the scissor instead
+       of disabling it.
+
+   For shadow scissor rectangles that extend to the left/right of the 16:9
+     area or top/bottom (i.e. 16:10), extend the rectangle to the edge of
+       the screen.
+
+    * This gets rid of most artifacts without completely disabling scissor
+        tests on shadows.
+
+25.2.4.1
 ========
  + Continue auto-disabling texture cache for non-mipmapped textures if
      UnityPlayer.dll is from 2020 or older.

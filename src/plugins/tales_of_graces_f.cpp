@@ -2007,7 +2007,7 @@ using UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn = void (*)(MonoO
       UnityEngine_Rendering_CommandBuffer_EnableScissorRect_pfn
       UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original = nullptr;
 
-#if 0
+#if 1
 void
 SK_TGFix_ComputeAspectCoeffs (float& x, float& y, float& xoff, float& yoff)
 {
@@ -2043,18 +2043,17 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
 
   if (SK_TGFix_Cfg.hacks.fix_shadow_scissors && (SK_TGFix_Cfg.render_scale != 1.0f || (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)))
   {
-    const float scale = SK_TGFix_Cfg.render_scale;
+    const float scale =
+      SK_TGFix_Cfg.render_scale;
 
     if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect)
     {
-      // Disable scissor, we can't reasonably fix what went wrong here!
-      return;
-#if 0
       float x_scale, y_scale;
       float x_off,   y_off;
       SK_TGFix_ComputeAspectCoeffs (x_scale, y_scale, x_off, y_off);
 
-      // Wider
+      // Wider (scissor calculations within the 16:9 region can be scaled,
+      //          but those outside must be stretched to the edge).
       if (SK_TGFix_AspectRatio > 1.7777f) {
         float left  =        Scissor->x;
         float right = left + Scissor->width;
@@ -2069,16 +2068,43 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
 
         Scissor->x     =       left;
         Scissor->width = right-left;
-      } else {
-        //float top_ndc    = 2.0f * ((float)pRect->top    / (float)tzf::RenderFix::height) - 1.0f;
-        //float bottom_ndc = 2.0f * ((float)pRect->bottom / (float)tzf::RenderFix::height) - 1.0f;
-        //
-        //int height = (9.0f / 16.0f) * tzf::RenderFix::width;
-        //
-        //fixed_scissor.top    = (top_ndc    * height + height) / 2.0f + y_off;
-        //fixed_scissor.bottom = (bottom_ndc * height + height) / 2.0f + y_off;
+
+        if (Scissor->x <= x_off + 1.0f)
+        {
+            Scissor->width += x_off;
+            Scissor->x = 0.0f;
+        }
+
+        if (Scissor->x + Scissor->width >= SK_TGFix_ScreenWidth - x_off - 1.0f)
+            Scissor->width = SK_TGFix_ScreenWidth - Scissor->x;
       }
-#endif
+
+      // Narrower (scissor calculations within the 16:9 region can be scaled,
+      //             but those outside must be stretched to the edge).
+      else {
+        float top    =       Scissor->y;
+        float bottom = top + Scissor->width;
+
+        float top_ndc    = 2.0f * ((float)top    / (float)(SK_TGFix_ScreenHeight)) - 1.0f;
+        float bottom_ndc = 2.0f * ((float)bottom / (float)(SK_TGFix_ScreenHeight)) - 1.0f;
+
+        int height = (int)((9.0f / 16.0f) * SK_TGFix_ScreenWidth);
+
+        top    = (top_ndc    * height + height) / 2.0f + y_off;
+        bottom = (bottom_ndc * height + height) / 2.0f + y_off;
+
+        Scissor->y      =        top;
+        Scissor->height = bottom-top;
+
+        if (Scissor->y <= y_off + 1.0f)
+        {
+            Scissor->height += y_off;
+            Scissor->y = 0.0f;
+        }
+
+        if (Scissor->y + Scissor->height >= SK_TGFix_ScreenHeight - y_off - 1.0f)
+            Scissor->height = SK_TGFix_ScreenHeight - Scissor->y;
+      }
     }
 
     // A simple rescale done in NDC-space to properly stretch the scissor rectangle
@@ -2097,9 +2123,6 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
       Scissor->height = Scissor->height * scale;
     }
   }
-
-    //// We're nop'ing this entire thing because it breaks shadows if we don't.
-    //return;
 
   UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Original (__this, Scissor);
 }
