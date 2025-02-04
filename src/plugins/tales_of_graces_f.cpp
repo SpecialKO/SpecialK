@@ -1733,7 +1733,7 @@ SK_TGFix_Noble_Object_ApplyCachedParameters_Detour (MonoObject* __this)
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_TGFix_Cfg.hacks.constant_visibility && SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f)
+  if (SK_TGFix_Cfg.hacks.constant_visibility && SK_TGFix_AspectRatio != SK_TGFix_NativeAspect && SK_TGFix_AspectRatio != 0.0f && SK_GetFramesDrawn () > 3000UL)
   {
     const auto IsDirty            = SK_TGFix_MonoMethods.Noble.Object.IsDirty;
     const auto IsVisible          = SK_TGFix_MonoMethods.Noble.Object.IsVisible;
@@ -2054,7 +2054,7 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
 
       // Wider (scissor calculations within the 16:9 region can be scaled,
       //          but those outside must be stretched to the edge).
-      if (SK_TGFix_AspectRatio > 1.7777f) {
+      if (SK_TGFix_AspectRatio > SK_TGFix_NativeAspect) {
         float left  =        Scissor->x;
         float right = left + Scissor->width;
 
@@ -2081,7 +2081,7 @@ SK_TGFix_UnityEngine_Rendering_CommandBuffer_EnableScissorRect_Detour (MonoObjec
 
       // Narrower (scissor calculations within the 16:9 region can be scaled,
       //             but those outside must be stretched to the edge).
-      else {
+      else if (SK_TGFix_AspectRatio != SK_TGFix_NativeAspect) {
         float top    =       Scissor->y;
         float bottom = top + Scissor->width;
 
