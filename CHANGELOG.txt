@@ -1,4 +1,9 @@
-﻿25.2.4
+﻿25.2.4.1
+========
+ + Continue auto-disabling texture cache for non-mipmapped textures if
+     UnityPlayer.dll is from 2020 or older.
+
+25.2.4
 ======
  + Stop auto-disabling texture cache for textures without mipmaps in
      Unity engine games.

@@ -7624,15 +7624,24 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
     bool changed = false;
 
+    auto dll_ver =
+      SK_GetDLLVersionShort (L"UnityPlayer.dll");
+
+    int                                 version = 0;
+    swscanf (dll_ver.c_str (), L"%d.", &version);
+
     // Auto-enable this for Unity Engine games
     if (config.input.gamepad.scepad.hide_ds_edge_pid == SK_NoPreference) {
         config.input.gamepad.scepad.hide_ds_edge_pid =  SK_Enabled;
         changed = true;
     }
 
-    if (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_NoPreference) {
-        config.input.gamepad.scepad.hide_ds4_v2_pid =  SK_Enabled;
-        changed = true;
+    if (version < 2018)
+    {
+      if (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_NoPreference) {
+          config.input.gamepad.scepad.hide_ds4_v2_pid =  SK_Enabled;
+          changed = true;
+      }
     }
 
     if ( config.apis.last_known != SK_RenderAPI::Reserved &&
@@ -7641,8 +7650,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
       config.apis.OpenGL.hook                   = false; // Unity does some fake OpenGL stuff; ignore.
     }
 
-    //config.textures.cache.ignore_nonmipped      =  true;
-    //cache_opts.ignore_non_mipped                =  true; // Push this change through immediately
+    if (version < 2021)
+    {
+      config.textures.cache.ignore_nonmipped =  true;
+      cache_opts.ignore_non_mipped           =  true; // Push this change through immediately
+    }
 
                    
     if (changed)
