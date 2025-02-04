@@ -3288,6 +3288,12 @@ auto DeclKeybind =
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
         config.textures.cache.max_size            = 5120;
+        config.render.framerate.flip_discard      = false;
+        config.render.framerate.flip_sequential   = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
       case SK_GAME_ID::AssassinsCreed_Valhalla:
@@ -3304,6 +3310,10 @@ auto DeclKeybind =
         config.render.framerate.present_interval =     1;
         config.render.framerate.sleepless_render =  true;
         config.render.framerate.sleepless_window =  true;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
       case SK_GAME_ID::Shenmue:
@@ -3362,7 +3372,7 @@ auto DeclKeybind =
         config.render.framerate.sleepless_window               = true;
         config.render.d3d12.max_anisotropy                     =    9;
         config.render.d3d12.force_anisotropic                  =false;
-        config.textures.cache.ignore_nonmipped                 =false;
+        config.textures.cache.ignore_nonmipped                 = true;
         config.textures.cache.allow_staging                    = true;
       } break;
 
@@ -3411,6 +3421,9 @@ auto DeclKeybind =
         config.apis.d3d9.hook   = false;
         config.apis.d3d9ex.hook = false;
 
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+
         SK_D3D11_DeclHUDShader_Vtx (0x1a7704f4);
       } break;
 
@@ -3451,7 +3464,7 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   = false;
 
         config.threads.enable_file_io_trace       =  true;
-        
+
         SK_OPT_InitPlugin ();
 
         apis.d3d9.hook->store   (config.apis.d3d9.  hook);
@@ -3716,6 +3729,10 @@ auto DeclKeybind =
         config.apis.d3d9.hook   = false;
         config.apis.d3d9ex.hook = false;
         config.apis.OpenGL.hook = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
       case SK_GAME_ID::Elex2:
@@ -3874,6 +3891,10 @@ auto DeclKeybind =
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
         config.apis.dxgi.d3d12.hook = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.      hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.    hook);
+        apis.d3d12.hook->store  (config.apis.dxgi.d3d12.hook);
         break;
 
       // Pain in the ass Nixxes port
@@ -3941,6 +3962,10 @@ auto DeclKeybind =
         config.apis.d3d9.hook   = false;
         config.apis.d3d9ex.hook = false;
         config.apis.Vulkan.hook = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
 
         void *pOverlayCheck =
           (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x1E74B09);
@@ -4021,6 +4046,10 @@ auto DeclKeybind =
         config.apis.d3d9.hook   = false;
         config.apis.d3d9ex.hook = false;
         config.apis.OpenGL.hook = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
       } break;
 
       case SK_GAME_ID::CrashBandicootNSaneTrilogy:

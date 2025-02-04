@@ -1,4 +1,10 @@
-﻿25.2.4.2
+﻿25.2.4.3
+========
+ + Disabled D3D10 and DXGI Flip Model in Assassin's Creed Origin and Odyssey
+ + Add 3000 frame delay befor enabling visibility hacks for wide aspect ratio
+     displays in Tales of Graces f, to mask glitches on the title screen.
+
+25.2.4.2
 ========
  + For shadow scissor rectangles completely within the normal 16:9 area,
      in Tales of Graces f, simply rescale and offset the scissor instead
