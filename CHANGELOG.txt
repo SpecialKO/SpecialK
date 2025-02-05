@@ -1,4 +1,9 @@
-﻿25.2.5
+﻿25.2.5.1
+========
+ + Avoid endless deathloop of ResizeBuffers (...) in Kingdom Come Deliverance
+     by lying to it about the format of its SwapChain when it calls GetDesc.
+
+25.2.5
 ======
  + Enable "continue rendering" by default in Kingdom Come Deliverance 2,
      (and 1 because the dummies use the same executable name) to prevent
