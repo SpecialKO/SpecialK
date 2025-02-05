@@ -1,4 +1,9 @@
-﻿25.2.5.2
+﻿25.2.5.3
+========
+ + Added experimental support for DLSS 310.x presets J and K;
+     tooltip descriptions have not been updated.
+
+25.2.5.2
 ========
  + Fix DInput 7/8 hook race that may occur when opening SK's control panel if
      Epic's overlay is loaded in a game that uses DirectInput 8.

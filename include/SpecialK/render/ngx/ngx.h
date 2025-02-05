@@ -56,11 +56,14 @@ struct SK_DLSS_Context
     static DWORD         IndicatorFlags;
     static version_s     Version;
 
-    static bool hasSharpening       (void) { return ( Version.major <= 2 && ( Version.major != 2 ||   Version.minor < 5 ||   Version.build < 1 ) );                             };
-    static bool hasDLAAQualityLevel (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 1 || ( Version.minor == 1 && Version.build >= 13 ) ) ) ); };
-    static bool hasAlphaUpscaling   (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 6 )                                                  ) ); };
-    static bool hasPresetE          (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 6 )                                                  ) ); };
-    static bool hasPresetsAThroughD (void) { return ( Version.major  < 3 || ( Version.major == 3 && ( Version.minor < 8 || ( Version.minor == 8 && Version.build <=  9 ) ) ) ); };
+    static bool hasSharpening       (void) { return ( Version.major <= 2   && ( Version.major != 2   ||   Version.minor <  5 ||   Version.build < 1 ) );                             };
+    static bool hasDLAAQualityLevel (void) { return ( Version.major  > 3   || ( Version.major == 3   && ( Version.minor >  1 || ( Version.minor == 1 && Version.build >= 13 ) ) ) ); };
+    static bool hasAlphaUpscaling   (void) { return ( Version.major  > 3   || ( Version.major == 3   && ( Version.minor >  6 )                                                  ) ); };
+    static bool hasPresetE          (void) { return ( Version.major  > 3   || ( Version.major == 3   && ( Version.minor >  6 )                                                  ) ); };
+    static bool hasPresetsAThroughD (void) { return ( Version.major  < 3   ||   
+                                                      Version.major >= 310 || ( Version.major == 3   && ( Version.minor <  8 || ( Version.minor == 8 && Version.build <=  9 ) ) ) ); };
+    static bool hasPresetJ          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >= 1                                                  ) ) ); };
+    static bool hasPresetK          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >  2 || ( Version.minor == 2 && Version.build >=  1 ) ) ) ); };
 
     static void showIndicator    (bool show);
     static bool isIndicatorShown (void);

@@ -1245,6 +1245,8 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
     case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       return "E";            break;
     case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       return "F";            break;
     case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       return "G";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       return "J";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       return "K";            break;
     default:                                        return "DLSS Default"; break;
   }
 }
@@ -1382,6 +1384,12 @@ SK_NGX_DLSS_ControlPanel (void)
 
         static const bool bHasPresetE =
           SK_DLSS_Context::dlss_s::hasPresetE ();
+
+        static const bool bHasPresetJ =
+          SK_DLSS_Context::dlss_s::hasPresetJ ();
+
+        static const bool bHasPresetK =
+          SK_DLSS_Context::dlss_s::hasPresetK ();
 
         static const bool bHasAlphaUpscaling =
           SK_DLSS_Context::dlss_s::hasAlphaUpscaling () &&
@@ -1595,6 +1603,8 @@ SK_NGX_DLSS_ControlPanel (void)
           case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
           case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
           case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       szPreset = "J";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       szPreset = "K";       break;
           default:
             break;
         }
@@ -1610,24 +1620,64 @@ SK_NGX_DLSS_ControlPanel (void)
         );
 
         int preset_override = config.nvidia.dlss.forced_preset + 1;
+        if (preset_override > 8)
+        {
+          // Skip over H and I
+          preset_override -= 2;
+        }
 
         ImGui::SetNextItemWidth (
           fComboBoxWidth
         );
 
+
+        static const char* combo_str =
+          bHasPresetK ? "Game Default\0"
+                        "DLSS Default\0"
+                        "Override: A\0"
+                        "Override: B\0"
+                        "Override: C\0"
+                        "Override: D\0"
+                        "Override: E (DLSS 3.7+)\0"
+                        "Override: F\0"
+                        "Override: G (Invalid)\0"
+                        "Override: J\0"
+                        "Override: K\0\0"
+                      :
+          bHasPresetJ ? "Game Default\0"
+                        "DLSS Default\0"
+                        "Override: A\0"
+                        "Override: B\0"
+                        "Override: C\0"
+                        "Override: D\0"
+                        "Override: E (DLSS 3.7+)\0"
+                        "Override: F\0"
+                        "Override: G (Invalid)\0"
+                        "Override: J\0\0"
+                      :
+                        "Game Default\0"
+                        "DLSS Default\0"
+                        "Override: A\0"
+                        "Override: B\0"
+                        "Override: C\0"
+                        "Override: D\0"
+                        "Override: E (DLSS 3.7+)\0"
+                        "Override: F\0"
+                        "Override: G (Invalid)\0\0";
+
+        static const int selections =
+                        bHasPresetK ? 11 :
+                        bHasPresetJ ? 10 : 9;
+
         if ( ImGui::Combo ( "##",
-                            &preset_override, "Game Default\0"
-                                              "DLSS Default\0"
-                                              "Override: A\0"
-                                              "Override: B\0"
-                                              "Override: C\0"
-                                              "Override: D\0"
-                                              "Override: E (DLSS 3.7+)\0"
-                                              "Override: F\0"
-                                              "Override: G (Invalid)\0", 9 )
+                            &preset_override, combo_str, selections )
            )
         {
           config.nvidia.dlss.forced_preset = preset_override - 1;
+
+          // Skip over H and I
+          if (config.nvidia.dlss.forced_preset > 7)
+              config.nvidia.dlss.forced_preset += 2;
 
           if (config.nvidia.dlss.forced_preset != -1)
           {
