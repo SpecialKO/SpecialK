@@ -273,7 +273,8 @@ SK_BootDI8 (void)
           ( SK_GetModuleHandle (L"dinput8.dll") != hBackend );
 
 
-        if ( MH_OK ==
+        if ( InterlockedCompareExchangePointer ((void **)&DirectInput8Create_Import, (void*)1, nullptr) == nullptr &&
+               MH_OK ==
                 SK_CreateDLLHook2 (      L"dinput8.dll",
                                           "DirectInput8Create",
                                            DirectInput8Create,
@@ -393,7 +394,10 @@ CoCreateInstance_DI8 (
   _Out_ LPVOID   *ppv,
   _In_  LPVOID    pCallerAddr )
 {
-  SK_BootDI8 ();
+  if (DirectInput8Create_Import == nullptr)
+  {
+    SK_BootDI8 ();
+  }
 
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   {
@@ -1919,7 +1923,7 @@ SK_Input_HookDI8 (void)
   if (! SK_GetModuleHandle (L"dinput8.dll"))
            SK_LoadLibraryW (L"dinput8.dll");
 
-  if (SK_GetModuleHandle (L"dinput8.dll"))
+  if (SK_GetModuleHandle (L"dinput8.dll") && InterlockedCompareExchangePointer ((void **)&DirectInput8Create_Import, (void*)1, nullptr) == nullptr)
   {
     static volatile LONG               hooked    =   FALSE;
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
