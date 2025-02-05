@@ -1990,7 +1990,7 @@ SK_Input_PreHookDI8 (void)
         SK_Input_HookDI8 ();
     }
 
-    if (tests [0].used/* || SK_GetModuleHandle (L"dinput.dll")*/)
+    if (tests [0].used || SK_GetModuleHandle (L"dinput.dll"))
     {
       SK_Modules->LoadLibraryLL (L"dinput.dll");
                          SK_Input_PreHookDI7 ();

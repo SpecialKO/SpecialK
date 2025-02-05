@@ -636,12 +636,12 @@ SetWindowsHookExW_Detour (
   wchar_t                   wszHookMod [MAX_PATH] = { };
   GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
 
-  //if (StrStrIW (wszHookMod, L"dinput") != nullptr)
-  //{
-  //  // In some weird games, this is the first time that SK will actually be
-  //  //   able to detect that this DLL has been loaded...
-  //  SK_Input_PreHookDI8 ();
-  //}
+  if (StrStrIW (wszHookMod, L"dinput") != nullptr)
+  {
+    // In some weird games, this is the first time that SK will actually be
+    //   able to detect that this DLL has been loaded...
+    SK_Input_PreHookDI8 ();
+  }
 
   HHOOK* hook = nullptr;
 
@@ -759,12 +759,12 @@ SetWindowsHookExA_Detour (
   wchar_t                   wszHookMod [MAX_PATH] = { };
   GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
 
-  //if (StrStrIW (wszHookMod, L"dinput") != nullptr)
-  //{
-  //  // In some weird games, this is the first time that SK will actually be
-  //  //   able to detect that this DLL has been loaded...
-  //  SK_Input_PreHookDI8 ();
-  //}
+  if (StrStrIW (wszHookMod, L"dinput") != nullptr)
+  {
+    // In some weird games, this is the first time that SK will actually be
+    //   able to detect that this DLL has been loaded...
+    SK_Input_PreHookDI8 ();
+  }
 
   HHOOK* hook = nullptr;
 
