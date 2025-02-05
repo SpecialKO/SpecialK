@@ -636,6 +636,7 @@ void SK_Input_PreInit (void)
   SK_Input_PreHookCursor   ();
   SK_Input_PreHookKeyboard ();
 
+  SK_RunOnce (
   //SK_CreateDLLHook2 (       L"user32",
   //                           "GetMessagePos",
   //                            GetMessagePos_Detour,
@@ -657,6 +658,7 @@ void SK_Input_PreInit (void)
                             "SetThreadExecutionState",
                              SetThreadExecutionState_Detour,
     static_cast_p2p <void> (&SetThreadExecutionState_Original) );
+  );
 
   if (config.input.gamepad.hook_raw_input)
     SK_Input_HookRawInput ();

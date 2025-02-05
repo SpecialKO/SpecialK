@@ -387,6 +387,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     return;
   }
 
+  SK_Input_PreInit ();
+
   wchar_t     wszModName [MAX_PATH + 2] = { };
   wcsncpy_s ( wszModName, MAX_PATH,
              SK_GetModuleName (hCallingMod).c_str (),

@@ -1319,23 +1319,25 @@ RegisterDeviceNotificationA_Detour (
 void
 SK_XInput_InitHotPlugHooks (void)
 {
-// According to the DLL Export Table, ...A and ...W are the same freaking function :)
-  SK_CreateDLLHook2 (       L"user32",
-                             "RegisterDeviceNotificationW",
-                              RegisterDeviceNotificationW_Detour,
-     static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
-
-  // If they are identical, then do not install two hooks
-  if ( SK_GetProcAddress (L"user32", "RegisterDeviceNotificationA") !=
-       SK_GetProcAddress (L"user32", "RegisterDeviceNotificationW") )
-  {
+  SK_RunOnce (
+    // According to the DLL Export Table, ...A and ...W are the same freaking function :)
     SK_CreateDLLHook2 (       L"user32",
-                               "RegisterDeviceNotificationA",
-                                RegisterDeviceNotificationA_Detour,
-       static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
-  }
+                               "RegisterDeviceNotificationW",
+                                RegisterDeviceNotificationW_Detour,
+       static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
 
-  SK_ApplyQueuedHooks ();
+    // If they are identical, then do not install two hooks
+    if ( SK_GetProcAddress (L"user32", "RegisterDeviceNotificationA") !=
+         SK_GetProcAddress (L"user32", "RegisterDeviceNotificationW") )
+    {
+      SK_CreateDLLHook2 (       L"user32",
+                                 "RegisterDeviceNotificationA",
+                                  RegisterDeviceNotificationA_Detour,
+         static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
+    }
+
+    SK_ApplyQueuedHooks ();
+  );
 }
 
 
