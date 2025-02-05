@@ -1222,7 +1222,7 @@ SK_Input_HookDI7 (void)
   if (! SK_GetModuleHandle (L"dinput.dll"))
            SK_LoadLibraryW (L"dinput.dll");
 
-  if (SK_GetModuleHandle (L"dinput.dll"))
+  if (SK_GetModuleHandle (L"dinput.dll") && (intptr_t)DirectInputCreateEx_Import <= 1)
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
@@ -1259,12 +1259,12 @@ SK_Input_HookDI7 (void)
           static_cast_p2p <void> (&DirectInputCreateW_Import) );
       }
 
+      InterlockedIncrementRelease (&hooked);
+
       if (SK_GetModuleHandle (L"dinput8.dll"))
       {
         SK_Input_HookDI8 ();
       }
-
-      InterlockedIncrementRelease (&hooked);
     }
 
     else

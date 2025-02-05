@@ -675,6 +675,11 @@ void SK_Input_PreInit (void)
     if (SK_IsModuleLoaded (L"libScePad.dll"))
       SK_Input_HookScePad ();
   }
+
+  if (config.input.gamepad.hook_dinput8)
+  {
+    SK_Input_PreHookDI8 ();
+  }
 }
 
 void

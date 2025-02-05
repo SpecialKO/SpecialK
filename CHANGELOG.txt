@@ -1,4 +1,9 @@
-﻿25.2.5.1
+﻿25.2.5.2
+========
+ + Fix DInput 7/8 hook race that may occur when opening SK's control panel if
+     Epic's overlay is loaded in a game that uses DirectInput 8.
+
+25.2.5.1
 ========
  + Avoid endless deathloop of ResizeBuffers (...) in Kingdom Come Deliverance
      by lying to it about the format of its SwapChain when it calls GetDesc.
