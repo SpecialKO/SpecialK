@@ -2613,6 +2613,11 @@ auto DeclKeybind =
       case SK_GAME_ID::KingdomComeDeliverance:
         config.textures.cache.ignore_nonmipped = true;
         config.textures.d3d11.cache            = false; // Fix grass artifacts
+        // Hacks for HDR in KCD2 due to messed up window management
+        config.window.background_render        = true;
+        config.window.treat_fg_as_active       = true;
+        config.window.borderless               = true;
+        config.window.fullscreen               = true;
         break;
 
       case SK_GAME_ID::DragonsDogma2:

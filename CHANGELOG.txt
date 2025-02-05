@@ -1,4 +1,10 @@
-﻿25.2.4.3
+﻿25.2.5
+======
+ + Enable "continue rendering" by default in Kingdom Come Deliverance 2,
+     (and 1 because the dummies use the same executable name) to prevent
+       the game from wigging out on alt-tab.
+
+25.2.4.3
 ========
  + Disabled D3D10 and DXGI Flip Model in Assassin's Creed Origin and Odyssey
  + Add 3000 frame delay befor enabling visibility hacks for wide aspect ratio
