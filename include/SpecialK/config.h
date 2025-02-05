@@ -835,6 +835,8 @@ struct sk_config_t
       bool    allow_d3d12_footguns = false; // Allow overrides that are unsafe in D3D12
       bool    fake_fullscreen_mode = false; // Trick APIs like NvAPI into thinking FSE is on
       float   vram_budget_scale    =  1.0f; // Over- or under-report VRAM capabilities.
+      DXGI_FORMAT                           // Report this value when the game calls GetDesc (...)
+              fake_swapchain_desc  = DXGI_FORMAT_UNKNOWN;
       struct hooks_s {
         bool  create_swapchain     =  true;
         bool  create_swapchain4hwnd=  true;
