@@ -1,4 +1,8 @@
-﻿25.2.5.4
+﻿25.2.6
+======
+ + Workaround Steam overlay manipulation of DirectInput 8 that could deadlock
+
+25.2.5.4
 ========
  + Fixed DirectInput8 related crash in Cyberpunk 2077
 
