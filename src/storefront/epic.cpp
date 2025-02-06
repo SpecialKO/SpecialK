@@ -884,6 +884,8 @@ EOS_Platform_Release_Detour (EOS_HPlatform Handle)
 void
 SK::EOS::Init (bool pre_load)
 {
+  //SK_LOGi0 (L"Initializing EOS...");
+
   if (config.platform.silent)
     return;
 
@@ -892,14 +894,13 @@ SK::EOS::Init (bool pre_load)
       SK_RunLHIfBitness ( 64, L"EOSSDK-Win64-Shipping.dll",
                               L"EOSSDK-Win32-Shipping.dll" );
 
-  if ((! pre_load) && (! SK_GetModuleHandle (wszEOSDLLName)))
-    return;
-
   static HMODULE     hModEOS = nullptr;
   if (std::exchange (hModEOS, SK_LoadLibraryW (wszEOSDLLName)) == nullptr)
   {
     epic_log->init (L"logs/eos.log", L"wt+,ccs=UTF-8");
     epic_log->silent = config.platform.silent;
+
+    epic_log->Log (L"EOS DLL: %p", SK_LoadLibraryW (wszEOSDLLName));
 
     SK_ICommandProcessor* cmd = nullptr;
 
@@ -1089,7 +1090,9 @@ SK::EOS::Init (bool pre_load)
     }
 #endif
 
-    SK_ApplyQueuedHooks ();
+    bool bEnable = SK_EnableApplyQueuedHooks ();
+                         SK_ApplyQueuedHooks ();
+    if (!bEnable) SK_DisableApplyQueuedHooks ();
   };
 
   if ((! pre_load) && hModEOS != nullptr)

@@ -523,12 +523,13 @@ DllMain ( HMODULE hModule,
 
       auto CreateTeardownEvent =
       [&](void)
-      { if (__SK_DLL_TeardownEvent == 0)
+      { if (__SK_DLL_TeardownEvent == 0) {
             __SK_DLL_TeardownEvent =
                     SK_CreateEvent ( nullptr, TRUE,
                                              FALSE, nullptr );
 
-        SK_Inject_SpawnUnloadListener ();
+          SK_Inject_SpawnUnloadListener ();
+        }
       };
 
       auto EarlyOut =
@@ -589,13 +590,13 @@ DllMain ( HMODULE hModule,
       //   generally happen if a game has opted-out of global injection.
       if (! SK_EstablishDllRole (hModule))         return EarlyOut (TRUE);
 
+      SK_MinHook_Init     ();
+      CreateTeardownEvent ();
+
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())   return EarlyOut (TRUE);
       if (! SK_Attach         (SK_GetDLLRole ()))  return EarlyOut (TRUE);
-
-      SK_MinHook_Init     ();
-      CreateTeardownEvent ();
 
       InterlockedIncrementRelease (
         &__SK_DLL_Refs

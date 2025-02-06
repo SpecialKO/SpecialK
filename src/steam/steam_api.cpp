@@ -7714,6 +7714,11 @@ SK_Steam_GetAppID_NoAPI (void)
   if (AppID != 0)
     config.steam.appid = AppID;
 
+  const wchar_t*
+    wszEOSDLLName =
+      SK_RunLHIfBitness ( 64, L"EOSSDK-Win64-Shipping.dll",
+                              L"EOSSDK-Win32-Shipping.dll" );
+
   if (dwSteamGameIdLen > 1 && config.steam.appid != 0)
   {
     SK_GetConfigPathEx (true);
@@ -7734,6 +7739,9 @@ SK_Steam_GetAppID_NoAPI (void)
     // Trigger profile migration if necessary
     app_cache_mgr->getConfigPathForAppID (AppID);
 
+    if (SK_GetModuleHandleW (wszEOSDLLName))
+      SK::EOS::Init (false); // Hook EOS SDK; game seems to use both SteamAPI and EOS...
+
     return
       config.steam.appid;
   }
@@ -7741,12 +7749,13 @@ SK_Steam_GetAppID_NoAPI (void)
   //
   // Alternative platforms init now
   //
-  else if ( StrStrIA (GetCommandLineA (), "-epicapp") ||
-                        PathFileExistsW (L".egstore") ||
-                     PathFileExistsW (L"../.egstore") )
+  if ( StrStrIA (GetCommandLineA (), "-epicapp") ||
+                   PathFileExistsW (L".egstore") ||
+                PathFileExistsW (L"../.egstore") ||
+                SK_GetModuleHandleW (wszEOSDLLName) != nullptr )
   {
-    SK::EOS::Init (false); // Hook EOS SDK; game was launched by Epic
-    SK::EOS::AppName (  ); // Use manifest to get app name
+    SK::EOS::Init (true); // Hook EOS SDK; game was launched by Epic
+    SK::EOS::AppName ( ); // Use manifest to get app name
 
     // Trigger profile migration if necessary
     app_cache_mgr->getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());

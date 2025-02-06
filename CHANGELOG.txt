@@ -1,4 +1,9 @@
-﻿25.2.6.5
+﻿25.2.6.6
+========
+ + Fixed some EOS games not triggering EOS SDK hooks for overlay/achievement
+     features when using Global Injection.
+
+25.2.6.5
 ========
  + Xbox Guide + Start or PlayStation + Start now triggers HUDless screenshots,
      provided d3d11_shaders.ini defines any HUD shaders.
