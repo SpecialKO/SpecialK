@@ -2682,6 +2682,7 @@ auto DeclKeybind =
         config.render.dxgi.scaling_mode         = DXGI_MODE_SCALING_UNSPECIFIED;
         config.render.dxgi.fake_fullscreen_mode = true;
         config.window.background_render         = true;
+        config.render.dxgi.hide_hdr_support     = true;
 
         // Prevent VRR disable when game plays cutscenes
         config.render.framerate.sync_interval_clamp  =     1;
