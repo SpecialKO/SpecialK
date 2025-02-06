@@ -1788,6 +1788,7 @@ enum class SK_GAME_ID
   Stalker2,                     // Stalker2-WinGDK-Shipping.exe (Microsoft Store) Stalker2-Win64-Shipping.exe (Steam)
   vlc,                          // vlc.exe
   ZenlessZoneZero,              // ZenlessZoneZero.exe
+  EnderLilies,                  // EnderLiliesEOS-Win64-Shipping.exe, EnderLiliesSteam-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };

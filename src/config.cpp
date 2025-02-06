@@ -278,6 +278,8 @@ SK_GetCurrentGameID (void)
           { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     },
           { L"vlc.exe",                                SK_GAME_ID::vlc                          },
           { L"ZenlessZoneZero.exe",                    SK_GAME_ID::ZenlessZoneZero              },
+          { L"EnderLiliesSteam-Win64-Shipping.exe",    SK_GAME_ID::EnderLilies                  },
+          { L"EnderLiliesEOS-Win64-Shipping.exe",      SK_GAME_ID::EnderLilies                  },
         };
 
     first_check  = false;
@@ -4070,6 +4072,11 @@ auto DeclKeybind =
         config.apis.OpenGL.hook      = false;
         config.apis.dxgi.d3d11.hook  = true;
         config.apis.dxgi.d3d12.hook  = true;
+      } break;
+
+      case SK_GAME_ID::EnderLilies:
+      { SK_D3D11_DeclHUDShader_Pix (0x0f1f6c61);
+        SK_D3D11_DeclHUDShader_Pix (0x28d2dd57);
       } break;
     }
   }
