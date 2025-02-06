@@ -2235,7 +2235,8 @@ SK_D3D11_WaitOnAllScreenshots (void)
 
 void SK_Screenshot_D3D11_EndFrame (void)
 {
-  if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, 0, -1) == -1)
+  if (     InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, -1, -2) == -2);
+  else if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot,  0, -1) == -1)
   {
     SK_D3D11_ShowGameHUD ();
   }
@@ -2249,14 +2250,14 @@ bool SK_Screenshot_D3D11_BeginFrame (void)
        ReadAcquire (&__SK_D3D11_InitiateHudFreeShot) != 0    )
   {
     InterlockedExchange            (&__SK_ScreenShot_CapturingHUDless, 1);
-    if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, -2, 1) == 1)
+    if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, -3, 1) == 1)
     {
       SK_D3D11_HideGameHUD ();
     //InterlockedDecrement (&SK_D3D11_DrawTrackingReqs); (Handled by ShowGameHUD)
     }
 
     // 1-frame Delay for SDR->HDR Upconversion
-    else if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, -1, -2) == -2)
+    else if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, -2, -3) == -3)
     {
       SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::BeforeGameHUD);
     }

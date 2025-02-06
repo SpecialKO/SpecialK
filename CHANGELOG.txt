@@ -1,4 +1,9 @@
-﻿25.2.6.3
+﻿25.2.6.4
+========
+ + Fixed HUDless screenshots not working in some D3D11 games...
+     (mostly ones that use fewer than 3 buffers in their SwapChain).
+
+25.2.6.3
 ========
  + Fixed monochrome JPEG achievement icons showing up as misaligned Red-only
      textures in D3D12 achievement popups. (They are converted to RGBA now...)
