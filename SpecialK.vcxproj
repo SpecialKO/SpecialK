@@ -668,7 +668,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>min,max</UndefinePreprocessorDefinitions>
-      <AdditionalOptions>/execution-charset:utf-8 /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings-</AdditionalOptions>
+      <AdditionalOptions>/execution-charset:utf-8 /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /jumptablerdata</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>

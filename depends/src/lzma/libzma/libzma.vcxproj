@@ -361,7 +361,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /jumptablerdata</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
