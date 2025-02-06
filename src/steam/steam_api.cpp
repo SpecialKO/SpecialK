@@ -7740,7 +7740,7 @@ SK_Steam_GetAppID_NoAPI (void)
     app_cache_mgr->getConfigPathForAppID (AppID);
 
     if (SK_GetModuleHandleW (wszEOSDLLName))
-      SK::EOS::Init (false); // Hook EOS SDK; game seems to use both SteamAPI and EOS...
+      SK::EOS::Init (true); // Hook EOS SDK; game seems to use both SteamAPI and EOS...
 
     return
       config.steam.appid;

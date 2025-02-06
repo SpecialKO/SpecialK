@@ -1,6 +1,7 @@
 ﻿25.2.6.7
 ========
- + Added widescreen patch to Ender Lilies
+ + Added widescreen patch to Ender Lilies.
+ + Fixed EOS frame counter in games that use both SteamAPI and EOS SDK.
 
 25.2.6.6
 ========
