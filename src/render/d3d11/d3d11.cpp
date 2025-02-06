@@ -5532,9 +5532,11 @@ D3D11Dev_CreateTexture2DCore_Impl (
       {
         if (__SK_CC_ResMultiplier)
         {
-          if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
-              pDesc->Width == 4096 && pDesc->Height == 2048 && ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-                                                                (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
+          if (!DirectX::IsCompressed (pDesc->Format) &&
+                                      pDesc->Format != DXGI_FORMAT_R16_UINT &&
+              pDesc->Width == 4096 && pDesc->Height == 2048 && ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL)   ||
+                                                                (pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE) ||
+                                                                (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)   ||
                                                                 (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)))
           {
             pDesc->Width  = 4096 * static_cast <UINT> (__SK_CC_ResMultiplier);

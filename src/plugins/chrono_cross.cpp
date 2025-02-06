@@ -483,6 +483,184 @@ SK_CC_InitConfig (void)
   SK_CC_PlugIn.clock_check.replacement.inst_bytes = code_bytes_t <4> {0x3B,0xC7,0x74,0x18};
 }
 
+extern
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D11_RSSetViewports_Override (
+                 ID3D11DeviceContext* This,
+  _In_           UINT                 NumViewports,
+  _In_opt_ const D3D11_VIEWPORT*      pViewports );
+
+extern __declspec (noinline)
+void
+STDMETHODCALLTYPE
+SK_D3D11_CopySubresourceRegion_Impl (
+            ID3D11DeviceContext *pDevCtx,
+  _In_           ID3D11Resource *pDstResource,
+  _In_           UINT            DstSubresource,
+  _In_           UINT            DstX,
+  _In_           UINT            DstY,
+  _In_           UINT            DstZ,
+  _In_           ID3D11Resource *pSrcResource,
+  _In_           UINT            SrcSubresource,
+  _In_opt_ const D3D11_BOX      *pSrcBox,
+                 BOOL            bWrapped );
+
+using RSSetViewports_pfn        = void (STDMETHODCALLTYPE *)
+          (ID3D11DeviceContext*,UINT, const D3D11_VIEWPORT*);
+using CopySubresourceRegion_pfn = void (STDMETHODCALLTYPE *)
+          (ID3D11DeviceContext*,ID3D11Resource*,UINT,UINT,UINT,
+           UINT,ID3D11Resource*,UINT, const D3D11_BOX*,BOOL);
+
+static RSSetViewports_pfn        RSSetViewports_Original        = nullptr;
+static CopySubresourceRegion_pfn CopySubresourceRegion_Original = nullptr;
+
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+SK_CC_RSSetViewports (
+        ID3D11DeviceContext* This,
+        UINT                 NumViewports,
+  const D3D11_VIEWPORT*      pViewports )
+{
+  if (__SK_CC_ResMultiplier > 1.0f)
+  {
+    if (NumViewports == 1)
+    {
+      SK_ComPtr <ID3D11RenderTargetView> rtv;
+      This->OMGetRenderTargets      (1, &rtv, nullptr);
+
+      SK_ComPtr <ID3D11Texture2D> pTex;
+
+      if (rtv.p != nullptr)
+      {
+        SK_ComPtr <ID3D11Resource> pRes;
+        rtv->GetResource         (&pRes.p);
+
+        if (pRes.p != nullptr)
+          pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
+
+        if (pTex.p != nullptr)
+        {
+          D3D11_VIEWPORT vp = *pViewports;
+
+          D3D11_TEXTURE2D_DESC texDesc = { };
+          pTex->GetDesc      (&texDesc);
+
+          if ( texDesc.Width  == 4096 * __SK_CC_ResMultiplier &&
+               texDesc.Height == 2048 * __SK_CC_ResMultiplier )
+          {
+            static float NewWidth  = 4096.0f * __SK_CC_ResMultiplier;
+            static float NewHeight = 2048.0f * __SK_CC_ResMultiplier;
+
+            float left_ndc = 2.0f * ( vp.TopLeftX / 4096.0f) - 1.0f;
+            float top_ndc  = 2.0f * ( vp.TopLeftY / 2048.0f) - 1.0f;
+
+            vp.TopLeftX = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
+            vp.TopLeftY = (top_ndc  * NewHeight + NewHeight) / 2.0f;
+            vp.Width    = __SK_CC_ResMultiplier * vp.Width;
+            vp.Height   = __SK_CC_ResMultiplier * vp.Height;
+
+            vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
+            vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
+
+            vp.Width    = std::min (vp.Width,    32767.0f);
+            vp.Height   = std::min (vp.Height,   32767.0f);
+
+            RSSetViewports_Original (This, 1, &vp);
+
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  RSSetViewports_Original (
+    This, NumViewports,
+            pViewports
+  );
+}
+
+void
+STDMETHODCALLTYPE
+SK_CC_CopySubresourceRegion (
+                   ID3D11DeviceContext *This,
+    _In_           ID3D11Resource      *pDstResource,
+    _In_           UINT                 DstSubresource,
+    _In_           UINT                 DstX,
+    _In_           UINT                 DstY,
+    _In_           UINT                 DstZ,
+    _In_           ID3D11Resource      *pSrcResource,
+    _In_           UINT                 SrcSubresource,
+    _In_opt_ const D3D11_BOX           *pSrcBox,
+    _In_           BOOL                 bWrapped )
+{
+  D3D11_BOX newBox = { };
+
+  if (__SK_CC_ResMultiplier > 1.0f)
+  {
+    SK_ComQIPtr <ID3D11Texture2D>
+      pSrcTex (pSrcResource),
+      pDstTex (pDstResource);
+
+    if ( pSrcTex.p != nullptr &&
+         pDstTex.p != nullptr )
+    {
+      D3D11_TEXTURE2D_DESC srcDesc = { },
+                           dstDesc = { };
+      pSrcTex->GetDesc   (&srcDesc);
+      pDstTex->GetDesc   (&dstDesc);
+
+      if (srcDesc.Width == __SK_CC_ResMultiplier * 4096 && srcDesc.Height == __SK_CC_ResMultiplier * 2048 && pSrcBox != nullptr &&
+          dstDesc.Width == __SK_CC_ResMultiplier * 4096 && dstDesc.Height == __SK_CC_ResMultiplier * 2048)
+      {
+        newBox = *pSrcBox;
+
+        static float NewWidth  = 2048 * __SK_CC_ResMultiplier;
+        static float NewHeight = 1024 * __SK_CC_ResMultiplier;
+
+        float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (newBox.left,   0U, 4096U)) / 4096.0f ) - 1.0f;
+        float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (newBox.top,    0U, 2048U)) / 2048.0f ) - 1.0f;
+        float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (newBox.right,  0U, 4096U)) / 4096.0f ) - 1.0f;
+        float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (newBox.bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
+
+        newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  ));
+        newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) ));
+        newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
+        newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
+
+        DstX *= static_cast <UINT> (__SK_CC_ResMultiplier);
+        DstY *= static_cast <UINT> (__SK_CC_ResMultiplier);
+
+        pSrcBox = &newBox;
+      }
+
+      else if (pSrcBox != nullptr && ( pSrcBox->right  > srcDesc.Width ||
+                                       pSrcBox->bottom > srcDesc.Height ))
+      {
+        ///dll_log->Log ( L"xxxDesc={%dx%d}, Box={%d/%d::%d,%d}",
+        ///             srcDesc.Width, srcDesc.Height,
+        ///               pSrcBox->left,  pSrcBox->top,
+        ///               pSrcBox->right, pSrcBox->bottom );
+
+        newBox = *pSrcBox;
+
+        newBox.right  = std::min (srcDesc.Width,  newBox.right);
+        newBox.bottom = std::min (srcDesc.Height, newBox.bottom);
+
+        pSrcBox = &newBox;
+      }
+    }
+  }
+
+  CopySubresourceRegion_Original ( This,
+    pDstResource, DstSubresource, DstX, DstY, DstZ,
+    pSrcResource, SrcSubresource, pSrcBox, bWrapped
+  );
+}
+
 void
 SK_CC_InitPlugin (void)
 {
@@ -542,179 +720,22 @@ SK_CC_InitPlugin (void)
 
   plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
   plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::RSSetViewports",
+                                       D3D11_RSSetViewports_Override,
+                                       SK_CC_RSSetViewports,
+                    static_cast_p2p <void> (&RSSetViewports_Original) );
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::CopySubresourceRegion",
+                                    SK_D3D11_CopySubresourceRegion_Impl,
+                                       SK_CC_CopySubresourceRegion,
+                    static_cast_p2p <void> (&CopySubresourceRegion_Original) );
+
+  MH_QueueEnableHook (   D3D11_RSSetViewports_Override);
+  MH_QueueEnableHook (SK_D3D11_CopySubresourceRegion_Impl);
+
+  SK_ApplyQueuedHooks ();
 }
-
-
-
-
-
-
-
-
-
-// Garbage dump, need to hook these functions
-//
-#if 0
-  void STDMETHODCALLTYPE RSSetViewports (
-    _In_range_     (0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE) UINT          NumViewports,
-    _In_reads_opt_ (NumViewports)                                          const D3D11_VIEWPORT *pViewports ) override
-  {
-    TraceAPI
-
-#ifndef _M_AMD64
-    static auto game_id = SK_GetCurrentGameID ();
-
-    if (game_id == SK_GAME_ID::ChronoCross)
-    {
-      extern float
-          __SK_CC_ResMultiplier;
-      if (__SK_CC_ResMultiplier)
-      {
-        if (NumViewports == 1)
-        {
-          SK_ComPtr <ID3D11RenderTargetView> rtv;
-          OMGetRenderTargets            (1, &rtv, nullptr);
-
-          SK_ComPtr <ID3D11Texture2D> pTex;
-
-          if (rtv.p != nullptr)
-          {
-            SK_ComPtr <ID3D11Resource> pRes;
-            rtv->GetResource         (&pRes.p);
-
-            if (pRes.p != nullptr)
-              pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
-
-            if (pTex.p != nullptr)
-            {
-              D3D11_VIEWPORT vp = *pViewports;
-
-              D3D11_TEXTURE2D_DESC texDesc = { };
-              pTex->GetDesc      (&texDesc);
-
-              if ( texDesc.Width  == 4096 * __SK_CC_ResMultiplier &&
-                   texDesc.Height == 2048 * __SK_CC_ResMultiplier )
-              {
-                static float NewWidth  = 4096.0f * __SK_CC_ResMultiplier;
-                static float NewHeight = 2048.0f * __SK_CC_ResMultiplier;
-
-                float left_ndc = 2.0f * ( vp.TopLeftX / 4096.0f) - 1.0f;
-                float top_ndc  = 2.0f * ( vp.TopLeftY / 2048.0f) - 1.0f;
-
-                vp.TopLeftX = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
-                vp.TopLeftY = (top_ndc  * NewHeight + NewHeight) / 2.0f;
-                vp.Width    = __SK_CC_ResMultiplier * vp.Width;
-                vp.Height   = __SK_CC_ResMultiplier * vp.Height;
-
-                vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
-                vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
-
-                vp.Width    = std::min (vp.Width,  32767.0f);
-                vp.Height   = std::min (vp.Height, 32767.0f);
-
-                pReal->RSSetViewports (1, &vp);
-
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-#endif
-
-    pReal->RSSetViewports (
-             NumViewports,
-               pViewports
-    );
-  }
-
-  void STDMETHODCALLTYPE CopySubresourceRegion (
-    _In_           ID3D11Resource *pDstResource,
-    _In_           UINT            DstSubresource,
-    _In_           UINT            DstX,
-    _In_           UINT            DstY,
-    _In_           UINT            DstZ,
-    _In_           ID3D11Resource *pSrcResource,
-    _In_           UINT            SrcSubresource,
-    _In_opt_ const D3D11_BOX      *pSrcBox ) override
-  {
-    TraceAPI
-
-#ifndef _M_AMD64
-    static auto game_id = SK_GetCurrentGameID ();
-
-    D3D11_BOX newBox = { };
-
-    if (game_id == SK_GAME_ID::ChronoCross)
-    {
-      extern float
-          __SK_CC_ResMultiplier;
-      if (__SK_CC_ResMultiplier > 1.0f)
-      {
-        SK_ComQIPtr <ID3D11Texture2D>
-          pSrcTex (pSrcResource),
-          pDstTex (pDstResource);
-
-        if ( pSrcTex.p != nullptr &&
-             pDstTex.p != nullptr )
-        {
-          D3D11_TEXTURE2D_DESC srcDesc = { },
-                               dstDesc = { };
-          pSrcTex->GetDesc   (&srcDesc);
-          pDstTex->GetDesc   (&dstDesc);
-
-          if (srcDesc.Width == __SK_CC_ResMultiplier * 4096 && srcDesc.Height == __SK_CC_ResMultiplier * 2048 && pSrcBox != nullptr &&
-              dstDesc.Width == __SK_CC_ResMultiplier * 4096 && dstDesc.Height == __SK_CC_ResMultiplier * 2048)
-          {
-            newBox = *pSrcBox;
-
-            static float NewWidth  = 2048 * __SK_CC_ResMultiplier;
-            static float NewHeight = 1024 * __SK_CC_ResMultiplier;
-
-            float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (newBox.left,   0U, 4096U)) / 4096.0f ) - 1.0f;
-            float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (newBox.top,    0U, 2048U)) / 2048.0f ) - 1.0f;
-            float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (newBox.right,  0U, 4096U)) / 4096.0f ) - 1.0f;
-            float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (newBox.bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
-
-            newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  ));
-            newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) ));
-            newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
-            newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
-
-            DstX *= __SK_CC_ResMultiplier;
-            DstY *= __SK_CC_ResMultiplier;
-
-            pSrcBox = &newBox;
-          }
-
-          else if (pSrcBox != nullptr && ( pSrcBox->right  > srcDesc.Width ||
-                                           pSrcBox->bottom > srcDesc.Height ))
-          {
-            SK_LOGi0 ( L"xxxDesc={%dx%d}, Box={%d/%d::%d,%d}",
-                         srcDesc.Width, srcDesc.Height,
-                           pSrcBox->left,  pSrcBox->top,
-                           pSrcBox->right, pSrcBox->bottom );
-
-            return;
-          }
-        }
-      }
-    }
-#endif
-
-#ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_CopySubresourceRegion_Impl (pReal,
-                 pDstResource, DstSubresource, DstX, DstY, DstZ,
-                 pSrcResource, SrcSubresource, pSrcBox, TRUE
-        );
-    else
-#endif
-      pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
-                                     pSrcResource, SrcSubresource, pSrcBox );
-  }
-#endif
 
 
 
