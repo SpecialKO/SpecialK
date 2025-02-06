@@ -795,6 +795,9 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop  ();
     }
 
+    // Gamepad debug menus
+    static bool show_debug_option = false;
+
     if (bHasPlayStation)
       ImGui::SetNextItemOpen (true, ImGuiCond_Once);
 
@@ -1728,7 +1731,6 @@ SK::ControlPanel::Input::Draw (void)
 
             if (config.input.gamepad.xinput.emulate)
             {
-              static bool show_debug_option = false;
               //ImGui::TreePush ("");
               ImGui::SameLine        ();
               ImGui::PushItemWidth   (
@@ -2398,7 +2400,7 @@ extern float SK_ImGui_PulseNav_Strength;
           std::min (16U, joy_caps.wMaxButtons);
 
         for ( unsigned int i = 0,
-                           j = 0                                    ;
+                           j = 0           ;
                            i < max_buttons ;
                          ++i )
         {
@@ -2496,26 +2498,27 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::PopID         ( );
       };
 
-#if 1
-      static DWORD dwLastCheck = current_time;
-      static UINT  dwLastCount = SK_joyGetNumDevs ();
+      if (show_debug_option)
+      {
+        static DWORD dwLastCheck = current_time;
+        static UINT  dwLastCount = SK_joyGetNumDevs ();
 
-      const DWORD _CHECK_INTERVAL = 1500UL;
+        const DWORD _CHECK_INTERVAL = 1500UL;
 
-      UINT count =
-        ( dwLastCheck < (current_tick - _CHECK_INTERVAL) ) ?
-                  SK_joyGetNumDevs () : dwLastCount;
+        UINT count =
+          ( dwLastCheck < (current_tick - _CHECK_INTERVAL) ) ?
+                    SK_joyGetNumDevs () : dwLastCount;
 
-      if (dwLastCheck < (current_tick - _CHECK_INTERVAL))
-          dwLastCount = count;
+        if (dwLastCheck < (current_tick - _CHECK_INTERVAL))
+            dwLastCount = count;
 
-      if (  count > 0) { GamepadDebug (JOYSTICKID1);
-        if (count > 1) {
-          for ( UINT i = 1 ; i < count ; ++i )
-            GamepadDebug (i);
+        if (  count > 0) { GamepadDebug (JOYSTICKID1);
+          if (count > 1) {
+            for ( UINT i = 1 ; i < count ; ++i )
+              GamepadDebug (i);
+          }
         }
       }
-#endif
 
       if (config.input.gamepad.hook_xinput && SK_ImGui_HasXboxController ())
       {

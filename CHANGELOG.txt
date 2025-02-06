@@ -1,4 +1,13 @@
-﻿25.2.6.7
+﻿25.2.6.8
+========
+ + Hide the controller reading debug menu under Input Management / Gamepad
+     unless Xbox debug mode is enabled (right-click the Xbox Mode button),
+       if you have an Xbox controller this doesn't apply to you.
+
+   * That debug menu loads up DirectInput 7 and causes issues with some
+       overlays, so it's going back to hidden by default...
+
+25.2.6.7
 ========
  + Added widescreen patch to Ender Lilies.
  + Fixed EOS frame counter in games that use both SteamAPI and EOS SDK.
