@@ -1,4 +1,9 @@
-﻿25.2.6.4
+﻿25.2.6.5
+========
+ + Xbox Guide + Start or PlayStation + Start now triggers HUDless screenshots,
+     provided d3d11_shaders.ini defines any HUD shaders.
+
+25.2.6.4
 ========
  + Fixed HUDless screenshots not working in some D3D11 games...
      (mostly ones that use fewer than 3 buffers in their SwapChain).

@@ -25,6 +25,8 @@ volatile LONG
 #include <SpecialK/input/sce_pad.h>
 #include <SpecialK/input/xinput_hotplug.h>
 
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 #include <algorithm>
 
 
@@ -2141,6 +2143,17 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)))
         {
           SK_SteamAPI_TakeScreenshot ();
+          bChordActivated = true;
+        }
+
+        if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+            (     state.Gamepad.wButtons & XINPUT_GAMEPAD_START) &&
+          (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START)))
+        {
+          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 && ReadAcquire(&SK_D3D11_TrackingCount->Conditional) > 0)
+          {
+            SK_TriggerHudFreeScreenshot ();
+          }
           bChordActivated = true;
         }
 

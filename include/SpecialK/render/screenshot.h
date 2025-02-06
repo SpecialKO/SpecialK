@@ -120,6 +120,9 @@ SK_Screenshot_IsCapturingHUDless (void);
 bool
 SK_Screenshot_IsCapturing (void);
 
+void
+SK_TriggerHudFreeScreenshot (void) noexcept;
+
 #include <concurrent_unordered_map.h>
 
 

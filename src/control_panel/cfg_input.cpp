@@ -23,6 +23,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/control_panel/input.h>
+#include <SpecialK/render/d3d11/d3d11_core.h> // For HUDless keybinding
 
 #include <imgui/font_awesome.h>
 
@@ -1117,6 +1118,9 @@ SK::ControlPanel::Input::Draw (void)
           }
           else
           {
+            bool bHasHUDless =
+              ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 && ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0 );
+
             if (bHasPlayStation)
               ImGui::TextUnformatted ("Exit \"Control Panel Exclusive Input Mode\" by Holding Share/Select or Pressing Caps Lock");
             else
@@ -1135,6 +1139,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Left");
               ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Right");
               ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Share");
+              if (bHasHUDless)
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Start");
               ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + L3");
               ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + L1");
               ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + R1");
@@ -1159,6 +1165,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted (ICON_FA_XBOX " + Left");
               ImGui::TextUnformatted (ICON_FA_XBOX " + Right");
               ImGui::TextUnformatted (ICON_FA_XBOX " + Back");
+              if (bHasHUDless)
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Start");
               ImGui::TextUnformatted (ICON_FA_XBOX " + LS");
               ImGui::TextUnformatted (ICON_FA_XBOX " + LB");
               ImGui::TextUnformatted (ICON_FA_XBOX " + RB");
@@ -1180,6 +1188,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted ("HDR Brightness -10 nits");
               ImGui::TextUnformatted ("HDR Brightness +10 nits");
               ImGui::TextUnformatted ("Capture Screenshot");
+              if (bHasHUDless)
+              ImGui::TextUnformatted ("Capture HUDless Screenshot");
               ImGui::TextUnformatted ("Media Play / Pause");
               ImGui::TextUnformatted ("Media Prev Track");
               ImGui::TextUnformatted ("Media Next Track");
