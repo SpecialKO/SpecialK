@@ -803,7 +803,8 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
       spinCount++;
     } while ( frozen_ratio > frozen_threshold &&
-              frozen       > 1 );
+              frozen       > 1 &&
+              frozen_ratio < 1.0f );
   }
 
 
