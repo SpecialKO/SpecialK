@@ -2620,6 +2620,7 @@ auto DeclKeybind =
         // Fake it, otherwise once per-frame the game's going to try to
         //   ReSizeBuffers (...)
         config.render.dxgi.fake_swapchain_desc = DXGI_FORMAT_R8G8B8A8_UNORM;
+        config.input.ui.use_hw_cursor          = false; // Prevent the game's cursor from doing whatever
         break;
 
       case SK_GAME_ID::DragonsDogma2:

@@ -2,6 +2,7 @@
 ========
  + Fixed some EOS games not triggering EOS SDK hooks for overlay/achievement
      features when using Global Injection.
+ + Disable Hardware Cursor in Kingdom Come Deliverance 2
 
 25.2.6.5
 ========
