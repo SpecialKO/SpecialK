@@ -1,8 +1,12 @@
-﻿25.2.6.6
+﻿25.2.6.7
+========
+ + Added widescreen patch to Ender Lilies
+
+25.2.6.6
 ========
  + Fixed some EOS games not triggering EOS SDK hooks for overlay/achievement
      features when using Global Injection.
- + Disable Hardware Cursor in Kingdom Come Deliverance 2
+ + Disable Hardware Cursor in Kingdom Come Deliverance 2.
 
 25.2.6.5
 ========
@@ -17,12 +21,12 @@
 25.2.6.3
 ========
  + Fixed monochrome JPEG achievement icons showing up as misaligned Red-only
-     textures in D3D12 achievement popups. (They are converted to RGBA now...)
+     textures in D3D12 achievement popups. (They are converted to RGBA now...).
 
 25.2.6.2
 ========
  + Fixed Chrono Cross resolution uncap not working after December's D3D11 state
-     tracking optimization
+     tracking optimization.
  + Pass initialized values for interface count when building stateblocks during
      SK_D3D11_BltCopySurface (...) and calling ID3D11DeviceContext::*SGetShader
 

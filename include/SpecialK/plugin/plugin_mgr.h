@@ -183,6 +183,8 @@ void SK_SO2R_InitPlugin            (void);
 bool SK_SO2R_PlugInCfg             (void);
 bool SK_SO2R_DrawHandler           (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);
 
+void SK_EnderLilies_InitPlugIn     (void);
+
 void SK_MHW_PlugIn_Shutdown (void);
 extern bool __SK_MHW_KillAntiDebug;
 

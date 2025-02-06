@@ -1657,3 +1657,151 @@ SK_Metaphor_InitPlugin (void)
   MH_QueueEnableHook   (       SleepEx_Detour                );
   SK_ApplyQueuedHooks  ();
 }
+
+void
+SK_EnderLilies_InitPlugIn (void)
+{
+  SK_D3D11_DeclHUDShader_Pix (0x0f1f6c61);
+  SK_D3D11_DeclHUDShader_Pix (0x28d2dd57);
+  SK_D3D11_DeclHUDShader_Pix (0x65ead9ff);
+
+  static sk::ParameterInt64 fov0_addr;
+  static uint8_t*           fov0            = nullptr;
+  static sk::ParameterInt64 fov1_addr;
+  static uint8_t*           fov1            = nullptr;
+  static sk::ParameterInt64 pillarbox_addr;
+  static uint8_t*           pillarbox_code  = nullptr;
+  static sk::ParameterInt   widescreen_opt;
+  static int                widescreen_mode = -1;
+
+  auto dll_ini = SK_GetDLLConfig ();
+
+  widescreen_opt.register_to_ini (
+    dll_ini, L"EnderLilies.Widescreen", L"EnableWidescreen"
+  );
+
+  widescreen_opt.load  (widescreen_mode);
+  widescreen_opt.store (widescreen_mode);
+
+  static auto _ApplyPatch = [&](void)
+  {
+    auto createCachedAddress = [&](sk::ParameterInt64* addr, const wchar_t* name)
+    {
+      addr->register_to_ini (
+                    dll_ini, L"EnderLilies.Widescreen", name);
+    };
+  
+    createCachedAddress (&fov0_addr,      L"Address_Fov0");
+    createCachedAddress (&fov1_addr,      L"Address_Fov1");
+    createCachedAddress (&pillarbox_addr, L"Address_Pillarbox");
+  
+    int64_t              addr = 0;
+    fov0_addr.load      (addr);
+    fov0  =  (uint8_t *) addr;
+    fov1_addr.load      (addr);
+    fov1  =  (uint8_t *) addr;
+    pillarbox_addr.load (addr); pillarbox_code
+          =  (uint8_t *) addr;
+  
+    uint8_t* orig_fov0   = fov0;
+    uint8_t* orig_fov1   = fov1;
+    uint8_t* orig_pillar = fov1;
+  
+    pillarbox_code = (uint8_t *)
+      SK_ScanAlignedEx ("\xF6\x41\x30\x01\x49", 5,
+                        "\xF6\x41\x30\x01\x49", pillarbox_code > (uint8_t*)1 ? pillarbox_code - 1 : 0);
+  
+    DWORD dwProtect   = 0;
+    bool  bFlushAddrs = false;
+  
+    if (pillarbox_code != nullptr)
+    {
+      if (VirtualProtect (
+           pillarbox_code, 5, PAGE_EXECUTE_READWRITE, &dwProtect))
+      {
+        if (*(pillarbox_code + 3) == 1) {
+            *(pillarbox_code + 3)  = 0;
+              pillarbox_addr.store ((uint64_t)(intptr_t)
+              pillarbox_code);
+  
+          bFlushAddrs |=
+            (pillarbox_code != orig_pillar);
+        }
+        VirtualProtect (pillarbox_code, 5, dwProtect, &dwProtect);
+      }
+    }
+  
+    fov0 = (uint8_t *)
+      SK_ScanAlignedEx ("\x35\xFA\x0E\x3C\x66", 5,
+                        "\x35\xFA\x0E\x3C\x66", fov0 > (uint8_t*)1 ? fov0-1 : 0),
+    fov1 = (uint8_t *)
+      SK_ScanAlignedEx ("\xE0\x2E\xE5\x42",     4,
+                        "\xE0\x2E\xE5\x42",     fov1 > (uint8_t*)1 ? fov1-1 : 0);
+  
+    if ( fov0 != nullptr &&
+         fov1 != nullptr )
+    {
+      if (VirtualProtect (
+           fov0, 5, PAGE_EXECUTE_READWRITE, &dwProtect))
+      {
+        if (*(fov0 + 2) == 0x0E) {
+            *(fov0 + 2)  = 0x33;
+              fov0_addr.store ((uint64_t)(intptr_t)
+              fov0);
+  
+          bFlushAddrs |=
+            (fov0 != orig_fov0);
+        }
+        VirtualProtect (fov0, 5, dwProtect, &dwProtect);
+      }
+  
+      if (VirtualProtect (
+           fov1, 4, PAGE_EXECUTE_READWRITE, &dwProtect))
+      {
+        if (*(fov1 + 3) == 0x42) {
+            *(fov1 + 3)  = 0x41;
+              fov1_addr.store ((uint64_t)(intptr_t)
+              fov1);
+  
+          bFlushAddrs |=
+            (fov1 != orig_fov1);
+        }
+        VirtualProtect (fov1, 4, dwProtect, &dwProtect);
+      }
+    }
+  
+    if (bFlushAddrs)
+      config.utility.save_async ();
+  };
+
+  auto _FirstFrame = [](IUnknown* This,UINT,UINT) -> HRESULT
+  {
+    DXGI_SWAP_CHAIN_DESC
+                swapDesc = {};
+
+    SK_ComQIPtr <IDXGISwapChain>
+                     pSwapChain (This);
+    if (  nullptr != pSwapChain  )
+                     pSwapChain->GetDesc (&swapDesc);
+  
+    if ((float)(swapDesc.BufferDesc.Width)/
+        (float)(swapDesc.BufferDesc.Height) > 16.0f/9.0f)
+    {
+      widescreen_mode = 1;
+      widescreen_opt.store (widescreen_mode);
+      config.utility.save_async ();
+  
+      _ApplyPatch ();
+    }
+  
+    return S_OK;
+  };
+
+  if (widescreen_mode == -1)
+    plugin_mgr->first_frame_fns.insert (_FirstFrame);
+  
+  if (widescreen_mode == 1)
+  {
+    _ApplyPatch ();
+  }
+}
