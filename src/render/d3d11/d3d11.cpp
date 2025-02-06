@@ -5112,8 +5112,6 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
   ID3D11DepthStencilView *pDSV =
        pDepthStencilView;
 
-  SK_WRAP_AND_HOOK
-
   auto _Finish = [&](void) ->
   void
   {
@@ -5136,9 +5134,18 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
           pDevCtx, NumViews, ppRenderTargetViews,
             pDSV );
     }
-    catch (const SK_SEH_IgnoredException&) {};
+    catch (const SK_SEH_IgnoredException&) {
+      SK_LOGi0 (
+        L"Caught Access Violation during call to OMSetRenderTargets (...)!"
+      );
+    };
     SK_SEH_RemoveTranslator (orig_se);
   };
+
+  if (! (SK::ControlPanel::D3D11::show_shader_mod_dlg && (! SK_D3D11_ApplyingStateBlock)))
+    return _Finish ();
+
+  SK_WRAP_AND_HOOK
 
   bool early_out =
     (! bMustNotIgnore) ||
@@ -6771,9 +6778,6 @@ SK_D3D11_Init (void)
     if (! config.apis.dxgi.d3d11.hook)
       return false;
 
-    auto suspended =
-      SK_SuspendAllOtherThreads ();
-
     SK_LOGi0 (L"Importing D3D11CreateDevice[AndSwapChain]");
     SK_LOGi0 (L"=========================================");
 
@@ -6858,11 +6862,12 @@ SK_D3D11_Init (void)
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active == TRUE  ||
                MH_OK == SK_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
-          SK_EnableApplyQueuedHooks ();
+          bool bDisable = SK_EnableApplyQueuedHooks ();
           {
             success =
               ( MH_OK == SK_ApplyQueuedHooks () );
           }
+          if  (bDisable)  SK_DisableApplyQueuedHooks ();
 
           InterlockedIncrementRelease (&SK_D3D11_initialized);
         }
@@ -6887,8 +6892,6 @@ SK_D3D11_Init (void)
            pfnD3D11CreateDevice :
               D3D11CreateDevice_Import;
     LocalHook_D3D11CreateDevice.active      = TRUE;
-
-    SK_ResumeThreads (suspended);
   }
 
   else

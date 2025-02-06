@@ -1785,23 +1785,13 @@ _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 {
-  //if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
-  if (SK::ControlPanel::D3D11::show_shader_mod_dlg && (! SK_D3D11_ApplyingStateBlock))
-  {
-    return
-      SK_D3D11_OMSetRenderTargets_Impl ( This,
-                             NumViews,
-                  ppRenderTargetViews,
-                   pDepthStencilView,
-        FALSE
-      );
-  }
-
-  D3D11_OMSetRenderTargets_Original ( This,
-                      NumViews,
-           ppRenderTargetViews,
-            pDepthStencilView
-  );
+  return
+    SK_D3D11_OMSetRenderTargets_Impl ( This,
+                           NumViews,
+                ppRenderTargetViews,
+                 pDepthStencilView,
+      FALSE
+    );
 }
 
 __declspec (noinline)
