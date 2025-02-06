@@ -695,8 +695,14 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     ThrowIfFailed (
       cmdQueue->Signal (pFence,                       1));
                         pFence->SetEventOnCompletion (1,
-                                  hEvent.m_h);
-    SK_WaitForSingleObject       (hEvent.m_h, INFINITE);
+                                  hEvent.m_h); auto dwWaitState =
+      SK_WaitForSingleObject     (hEvent.m_h, 5000UL);
+
+    if (dwWaitState != WAIT_OBJECT_0)
+    {
+      SK_LOGi0 (L"Timed-out waiting for D3D12 Texture Upload!");
+      return;
+    }
 
     // Create texture view
     D3D12_SHADER_RESOURCE_VIEW_DESC
@@ -734,17 +740,61 @@ ImGui_ImplDX12_CreateFontsTexture (void)
 size_t sk_d3d12_texture_s::num_textures = 0;
 
 sk_d3d12_texture_s
-SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
-                       DirectX::ScratchImage& image )
+SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata_,
+                       DirectX::ScratchImage& image_ )
 {
+        DirectX::ScratchImage  converted_image;
+  const DirectX::ScratchImage*           image = &image_;
+  const DirectX::TexMetadata*         metadata = &metadata_;
+
   sk_d3d12_texture_s texture = { };
 
-  if (! _imgui_d3d12.pDevice)
-    return texture;
+  if (image == nullptr || metadata == nullptr)
+  {
+    SK_LOGi0 (
+      L"Invalid Paramters passed to SK_D3D12_CreateDXTex (%p, %p)",
+        metadata, image );
 
-  unsigned char* pixels = image.GetImage (0, 0, 0)->pixels;
-  intptr_t       width  = static_cast <intptr_t> (metadata.width),
-                 height = static_cast <intptr_t> (metadata.height);
+    return texture;
+  }
+
+  if (_d3d12_rbk->frames_.empty ())
+  {
+    SK_LOGi0 (
+      L"SK D3D12 render backend not yet setup, ignoring texture load!"
+    );
+
+    return texture;
+  }
+
+  if (DirectX::BitsPerColor (metadata->format) == 
+      DirectX::BitsPerPixel (metadata->format) &&
+      DirectX::BitsPerPixel (metadata->format) == 8)
+  {
+    // Convert monochrome JPEGs to RGB instead of a weird red-only
+    //   skewed image
+
+    if (SUCCEEDED (
+          DirectX::Convert ( *image->GetImage (0,0,0),
+                               DXGI_FORMAT_R8G8B8A8_UNORM,
+                                 DirectX::TEX_FILTER_DEFAULT,
+                                   0.0f, converted_image ) ) )
+    {
+      metadata = &converted_image.GetMetadata ();
+      image    = &converted_image;
+    }
+  }
+
+  if (! _imgui_d3d12.pDevice)
+  {
+    SK_LOGi0 (L"No D3D12 Device established yet, ignoring texture load!");
+
+    return texture;
+  }
+
+  unsigned char* pixels = image->GetImage (0, 0, 0)->pixels;
+  intptr_t       width  = static_cast <intptr_t> (metadata->width),
+                 height = static_cast <intptr_t> (metadata->height);
 
   try {
     SK_ComPtr <ID3D12Resource>            pTexture;
@@ -774,7 +824,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       desc.Height           = (UINT)height;
       desc.DepthOrArraySize = 1;
       desc.MipLevels        = 1;
-      desc.Format           = metadata.format;
+      desc.Format           = metadata->format;
       desc.SampleDesc.Count = 1;
 
     static UINT uiTexNum = 0;
@@ -824,7 +874,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       dstLocation                                    = { .pResource = pTexture     },
       srcLocation                                    = { .pResource = uploadBuffer };
       srcLocation.Type                               = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-      srcLocation.PlacedFootprint.Footprint.Format   = metadata.format;
+      srcLocation.PlacedFootprint.Footprint.Format   = metadata->format;
       srcLocation.PlacedFootprint.Footprint.Width    = (UINT)width;
       srcLocation.PlacedFootprint.Footprint.Height   = (UINT)height;
       srcLocation.PlacedFootprint.Footprint.Depth    = 1;
@@ -887,7 +937,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
     // Create texture view
     D3D12_SHADER_RESOURCE_VIEW_DESC
       srvDesc                           = { };
-      srvDesc.Format                    = metadata.format;
+      srvDesc.Format                    = metadata->format;
       srvDesc.ViewDimension             = D3D12_SRV_DIMENSION_TEXTURE2D;
       srvDesc.Texture2D.MipLevels       = desc.MipLevels;
       srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;

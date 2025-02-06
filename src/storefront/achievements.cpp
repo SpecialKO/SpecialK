@@ -30,6 +30,10 @@
 
 #include <imgui/font_awesome.h>
 
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L" Trophies "
+#endif
+
 //#define _HAS_CEGUI_REPLACEMENT
 #ifdef __CPP20
 #define __cpp_lib_format
@@ -1855,16 +1859,43 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
   if ( bIsNativeOrLayeredD3D11 ||
        bIsNativeOrLayeredD3D12 )
   {
-    DirectX::TexMetadata  metadata = {};
-    DirectX::ScratchImage image    = {};
+    DirectX::TexMetadata  metadata_ = {};
+    DirectX::ScratchImage image_    = {};
 
     if ( SUCCEEDED (
            DirectX::LoadFromWICFile (
              icon_filename.c_str (),
-               0x0, &metadata, image )
+               0x0, &metadata_, image_ )
          )
        )
     {
+      DirectX::ScratchImage*   image = &image_;
+      DirectX::TexMetadata* metadata = &metadata_;
+      DirectX::ScratchImage   converted_image;
+
+      if (DirectX::BitsPerColor (metadata->format) == 
+          DirectX::BitsPerPixel (metadata->format) &&
+          DirectX::BitsPerPixel (metadata->format) == 8)
+      {
+        // Convert monochrome JPEGs to RGB instead of a weird red-only
+        //   skewed image
+      
+        if (SUCCEEDED (
+              DirectX::Convert ( *image->GetImage (0,0,0),
+                                   DXGI_FORMAT_R8G8B8A8_UNORM,
+                                     DirectX::TEX_FILTER_DEFAULT,
+                                       0.0f, converted_image ) ) )
+        {
+          metadata = (DirectX::TexMetadata *)&converted_image.GetMetadata();
+          image    =                         &converted_image;
+        }
+
+        else
+        {
+          SK_LOGi0 (L"Failed to convert monochrome achievement icon to RGBA!");
+        }
+      }
+
       if (bIsNativeOrLayeredD3D11)
       {
         SK_ComPtr <ID3D11Resource> pIconTex;
@@ -1874,9 +1905,9 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 
         if ( SUCCEEDED (
                DirectX::CreateTexture (
-                 pDev, image.GetImages     (),
-                       image.GetImageCount (),
-                         metadata, &pIconTex.p ) )
+                 pDev, image->GetImages     (),
+                       image->GetImageCount (),
+                         *metadata, &pIconTex.p ) )
            )
         {
           SK_ComPtr <ID3D11ShaderResourceView> pSRV;
@@ -1896,7 +1927,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
       else
       {
         auto texture =
-          SK_D3D12_CreateDXTex (metadata, image);
+          SK_D3D12_CreateDXTex (*metadata, *image);
 
         if (texture.pTexture != nullptr)
         {
