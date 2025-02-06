@@ -4075,10 +4075,12 @@ auto DeclKeybind =
         config.apis.dxgi.d3d12.hook  = true;
       } break;
 
+#ifdef _M_AMD64
       case SK_GAME_ID::EnderLilies:
       {
         SK_EnderLilies_InitPlugIn ();
       } break;
+#endif
     }
   }
 
