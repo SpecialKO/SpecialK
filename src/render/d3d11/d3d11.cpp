@@ -6769,6 +6769,9 @@ SK_D3D11_Init (void)
     if (! config.apis.dxgi.d3d11.hook)
       return false;
 
+    auto suspended =
+      SK_SuspendAllOtherThreads ();
+
     SK_LOGi0 (L"Importing D3D11CreateDevice[AndSwapChain]");
     SK_LOGi0 (L"=========================================");
 
@@ -6849,12 +6852,17 @@ SK_D3D11_Init (void)
         }
 
         if ( ( LocalHook_D3D11CreateDevice.active             == TRUE  ||
-               MH_OK == SK_EnableHook (pfnD3D11CreateDevice) ) &&
+               MH_OK == SK_QueueEnableHook (pfnD3D11CreateDevice) ) &&
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active == TRUE  ||
-               MH_OK == SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
+               MH_OK == SK_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
+          SK_EnableApplyQueuedHooks ();
+          {
+            success =
+              ( MH_OK == SK_ApplyQueuedHooks () );
+          }
+
           InterlockedIncrementRelease (&SK_D3D11_initialized);
-          success = true;
         }
       }
 
@@ -6877,6 +6885,8 @@ SK_D3D11_Init (void)
            pfnD3D11CreateDevice :
               D3D11CreateDevice_Import;
     LocalHook_D3D11CreateDevice.active      = TRUE;
+
+    SK_ResumeThreads (suspended);
   }
 
   else
