@@ -1999,19 +1999,19 @@ const D3D11_VIEWPORT vp = {         0.0f, 0.0f,
 
   SK_ComPtr <ID3D11VertexShader>   vs;
   SK_ComPtr <ID3D11ClassInstance>  vs_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
-  UINT                             vs_num_ifaces;
+  UINT                             vs_num_ifaces = D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
   SK_ComPtr <ID3D11PixelShader>    ps;
   SK_ComPtr <ID3D11ClassInstance>  ps_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
-  UINT                             ps_num_ifaces;
+  UINT                             ps_num_ifaces = D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
   SK_ComPtr <ID3D11GeometryShader> gs;
   SK_ComPtr <ID3D11ClassInstance>  gs_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
-  UINT                             gs_num_ifaces;
+  UINT                             gs_num_ifaces = D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
   SK_ComPtr <ID3D11HullShader>     hs;
   SK_ComPtr <ID3D11ClassInstance>  hs_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
-  UINT                             hs_num_ifaces;
+  UINT                             hs_num_ifaces = D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
   SK_ComPtr <ID3D11DomainShader>   ds;
   SK_ComPtr <ID3D11ClassInstance>  ds_interfaces [D3D11_SHADER_MAX_INSTANCES_PER_CLASS];
-  UINT                             ds_num_ifaces;
+  UINT                             ds_num_ifaces = D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
 
   SK_ComPtrArray <ID3D11Buffer, D3D11_SO_BUFFER_SLOT_COUNT> so_targets;
 
