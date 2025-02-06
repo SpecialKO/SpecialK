@@ -4077,6 +4077,7 @@ auto DeclKeybind =
       case SK_GAME_ID::EnderLilies:
       { SK_D3D11_DeclHUDShader_Pix (0x0f1f6c61);
         SK_D3D11_DeclHUDShader_Pix (0x28d2dd57);
+        SK_D3D11_DeclHUDShader_Pix (0x65ead9ff);
       } break;
     }
   }
