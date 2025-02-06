@@ -114,10 +114,7 @@ struct SK_NVIDIA_DeviceFile {
 SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
 {
   // Make sure our custom HID DLL is loaded before initializing devices
-  SK_RunOnce (
-    SK_Input_PreHookHID ();
-    SK_ApplyQueuedHooks ();
-  );
+  SK_RunOnce (SK_Input_PreHookHID ());
 
   static
     concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> known_paths;

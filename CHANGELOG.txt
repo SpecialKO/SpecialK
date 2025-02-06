@@ -1,4 +1,9 @@
-﻿25.2.6
+﻿25.2.6.1
+========
+ + Change D3D11 hook initialization to avoid "Out of Graphic Memory" jibberish
+     error in NieR: Automata
+
+25.2.6
 ======
  + Workaround Steam overlay manipulation of DirectInput 8 that could deadlock
 
