@@ -3724,8 +3724,8 @@ SK_D3D11_ReloadAllTextures (void)
   {
     if (SK_D3D11_TextureIsCached (it.first))
     {
-      if (! (it.second.injected || it.second.discard))
-        continue;
+      //if (! (it.second.injected || it.second.discard))
+      //  continue;
 
       if (SUCCEEDED (SK_D3D11_ReloadTexture (it.first)))
         ++count;

@@ -1,4 +1,9 @@
-﻿25.2.7.2
+﻿25.2.7.3
+========
+ + Drag-n-Drop D3D11 .dds texture mods no longer need a game restart, as long
+     as the texture is the same format and dimensions as the original.
+
+25.2.7.2
 ========
  + Fixed NieR: Automata and potentially other games processing mouse input
      while "Continue Rendering" is turned on and the mouse cursor is failing

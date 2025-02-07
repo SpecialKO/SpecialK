@@ -3601,11 +3601,39 @@ public:
 
             sk_download_request_s fetch_this (
                 L"", wszSource,
-                  []( const std::vector <uint8_t>&&,
-                      const std::wstring_view )
+                  []( const std::vector <uint8_t>&& concat_buffer,
+                      const std::wstring_view       path)
                    -> bool
                       {
-                        return false;
+                        const auto fs_path   = std::filesystem::path (path);
+                        auto       directory = fs_path.parent_path   (    );
+                        auto       filename  = fs_path.filename      (    );
+
+                        std::error_code                                       ec = { };
+                        if (! std::filesystem::exists             (directory, ec))
+                              std::filesystem::create_directories (directory, ec);
+
+                        if ( FILE *fOut = _wfopen ( fs_path.wstring ().c_str (), L"wb+" ) ;
+                                   fOut != nullptr )
+                        {
+                          fwrite ( concat_buffer.data (),
+                                   concat_buffer.size (), 1, fOut );
+                          fclose (                           fOut );
+
+                          SK_ImGui_CreateNotification (
+                            "D3D11.TexMod.Download", SK_ImGui_Toast::Success,
+                              SK_FormatString ( "\t%ws successfully downloaded\t(%5.3f MiB)\n",
+                                                filename.wstring ().c_str (), (double)concat_buffer.size () / (1024.0 * 1024.0)).c_str(),
+                              "Injectable D3D11 Textures Downloaded", 30000,
+                                                               SK_ImGui_Toast::UseDuration |
+                                                               SK_ImGui_Toast::ShowTitle   |
+                                                               SK_ImGui_Toast::ShowCaption |
+                                                               SK_ImGui_Toast::ShowNewest );
+
+                          SK_D3D11_ReloadAllTextures ();
+                        }
+
+                        return true;
                       }
             );
 
@@ -3624,8 +3652,6 @@ public:
             SK_Network_EnqueueDownload (
               std::move (fetch_this), true
             );
-
-            SK_ImGui_Warning (fetch_this.path.c_str ());
           }
 
           GlobalUnlock (medium.hGlobal);
@@ -3677,11 +3703,39 @@ public:
 
             sk_download_request_s fetch_this (
                 L"", szSource,
-                  []( const std::vector <uint8_t>&&,
-                      const std::wstring_view )
+                  []( const std::vector <uint8_t>&& concat_buffer,
+                      const std::wstring_view       path)
                    -> bool
                       {
-                        return false;
+                        const auto fs_path   = std::filesystem::path (path);
+                        auto       directory = fs_path.parent_path   (    );
+                        auto       filename  = fs_path.filename      (    );
+
+                        std::error_code                                       ec = { };
+                        if (! std::filesystem::exists             (directory, ec))
+                              std::filesystem::create_directories (directory, ec);
+
+                        if ( FILE *fOut = _wfopen ( fs_path.wstring ().c_str (), L"wb+" ) ;
+                                   fOut != nullptr )
+                        {
+                          fwrite ( concat_buffer.data (),
+                                   concat_buffer.size (), 1, fOut );
+                          fclose (                           fOut );
+
+                          SK_ImGui_CreateNotification (
+                            "D3D11.TexMod.Download", SK_ImGui_Toast::Success,
+                              SK_FormatString ( "\t%ws successfully downloaded\t(%5.3f MiB)\n",
+                                                filename.wstring ().c_str (), (double)concat_buffer.size () / (1024.0 * 1024.0)).c_str(),
+                              "Injectable D3D11 Textures Downloaded", 30000,
+                                                               SK_ImGui_Toast::UseDuration |
+                                                               SK_ImGui_Toast::ShowTitle   |
+                                                               SK_ImGui_Toast::ShowCaption |
+                                                               SK_ImGui_Toast::ShowNewest );
+
+                          SK_D3D11_ReloadAllTextures ();
+                        }
+
+                        return true;
                       }
             );
 
@@ -3700,8 +3754,6 @@ public:
             SK_Network_EnqueueDownload (
               std::move (fetch_this), true
             );
-
-            SK_ImGui_Warning (fetch_this.path.c_str ());
           }
 
           GlobalUnlock (medium.hGlobal);
@@ -3736,6 +3788,7 @@ SK_ImGui_InitDragAndDrop (void)
     SK_RunOnce (
       OleInitialize        (nullptr);
       SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
+      RevokeDragDrop       (game_window.hWnd);
       RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
     );
   }
