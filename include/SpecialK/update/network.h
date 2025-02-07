@@ -88,7 +88,34 @@ struct sk_download_request_s
                          0x00,
                            &urlcomps );
 
-    if (wide_url.find (L"https") != std::wstring::npos)
+    if (StrStrIW (wide_url.c_str (), L"https") == wide_url.c_str ())
+      port = INTERNET_DEFAULT_HTTPS_PORT;
+  }
+
+  sk_download_request_s (const std::wstring&     local_path,
+                         const std::wstring_view url,
+                         bool (*finisher)(const std::vector <uint8_t>&&,
+                                          const std::wstring_view) = nullptr)
+  {
+    finish_routine = finisher;
+    path           = local_path;
+
+    URL_COMPONENTSW
+      urlcomps                  = {                      };
+      urlcomps.dwStructSize     = sizeof (URL_COMPONENTSW);
+
+      urlcomps.lpszHostName     = wszHostName;
+      urlcomps.dwHostNameLength = INTERNET_MAX_HOST_NAME_LENGTH;
+
+      urlcomps.lpszUrlPath      = wszHostPath;
+      urlcomps.dwUrlPathLength  = INTERNET_MAX_PATH_LENGTH;
+
+    InternetCrackUrlW (         url.data   (),
+       sk::narrow_cast <DWORD> (url.length ()),
+                         0x00,
+                           &urlcomps );
+
+    if (StrStrIW (url.data (), L"https") == url.data ())
       port = INTERNET_DEFAULT_HTTPS_PORT;
   }
 };

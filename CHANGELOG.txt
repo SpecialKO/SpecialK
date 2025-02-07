@@ -1,7 +1,18 @@
-﻿25.2.6.8
+﻿25.2.7
+======
+ + Added experimental support for dragging and dropping .dds files into D3D11
+     games to setup texture injection.
+
+   * Drag files from Discord with the .dds extension and SK will download the
+       texture and and place it in the right location (game restart required).
+
+   This will be extended to support .dll, .asi and .addon{32|64} also, but they
+     require extra config (i.e. load order and local vs. global ReShade).
+
+25.2.6.8
 ========
  + Hide the controller reading debug menu under Input Management / Gamepad
-     unless Xbox debug mode is enabled (right-click the Xbox Mode button),
+     unless Xbox debug mode is enabled (right-click the Xbox Deadzone slider),
        if you have an Xbox controller this doesn't apply to you.
 
    * That debug menu loads up DirectInput 7 and causes issues with some

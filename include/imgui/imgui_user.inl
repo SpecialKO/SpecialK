@@ -3400,6 +3400,331 @@ SK_ImGui_HandleBorderlessMinimizeMaximize (void)
     last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
 }
 
+#include <SpecialK/update/network.h>
+#include <ShlGuid.h>
+#include <ShlObj_core.h>
+
+class SK_DropTarget : public IDropTarget {
+public:
+  SK_DropTarget (HWND hWnd)
+  {
+    m_hWnd       = hWnd;
+    m_ulRefCount = 1;
+    
+    // CLSCTX_INPROC_SERVER
+    if (FAILED (CoCreateInstance (CLSID_DragDropHelper, NULL, CLSCTX_INPROC_SERVER,
+                                 IID_IDropTargetHelper, reinterpret_cast <LPVOID *>(&m_pDropTargetHelper))))
+    {
+      m_pDropTargetHelper = nullptr;
+    }
+
+    else
+    {
+      // Initialize our supported clipboard formats
+      m_fmtSupported = {
+        { CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }, // Unicode text (URLs)
+      //{ CF_HDROP,       nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }, // Files
+        { CF_TEXT,        nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }  // ANSI text (URLs)
+      };
+    }
+  }
+
+  ~SK_DropTarget (void) = default;
+
+  // IUnknown methods
+  STDMETHODIMP QueryInterface (REFIID riid, void** ppvObject) override
+  {
+    if ( IsEqualIID (riid, IID_IUnknown) ||
+         IsEqualIID (riid, IID_IDropTarget) )
+    {
+      *ppvObject = this;
+
+      AddRef ();
+
+      return S_OK;
+    }
+
+    *ppvObject = nullptr;
+
+    return
+      E_NOINTERFACE;
+  }
+
+  STDMETHODIMP_(ULONG) AddRef (void) override
+  {
+    return
+      InterlockedIncrement (&m_ulRefCount);
+  }
+
+  STDMETHODIMP_(ULONG) Release (void) override
+  {
+    ULONG newRefCount =
+      InterlockedDecrement (&m_ulRefCount);
+
+    if (newRefCount == 0)
+    {
+      delete this;
+    }
+
+    return
+      newRefCount;
+  }
+
+  // IDropTarget methods
+  STDMETHODIMP DragEnter (IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override
+  {
+    UNREFERENCED_PARAMETER (grfKeyState);
+
+    // Reset stuff
+    m_bAllowDrop  = false;
+    m_fmtDropping = nullptr;
+
+    if (pdwEffect == nullptr)
+      return E_INVALIDARG;
+
+    if (pDataObj == nullptr)
+      return E_UNEXPECTED;
+
+    // We are only interested in copy operations (for now)
+    if ((*pdwEffect & DROPEFFECT_COPY) == DROPEFFECT_COPY)
+    {
+      SK_ComPtr <IEnumFORMATETC>                            pEnumFormatEtc;
+      if (SUCCEEDED (pDataObj->EnumFormatEtc (DATADIR_GET, &pEnumFormatEtc.p)))
+      {
+        FORMATETC s_fmtSupported = { }; // FormatEtc supported by the source
+        ULONG     fetched        =   0;
+
+        // We need to find a matching format that both we and the source supports
+        while (pEnumFormatEtc->Next (1, &s_fmtSupported, &fetched) == S_OK)
+        {
+          for ( auto& fmt : m_fmtSupported )
+          {
+            if (fmt.cfFormat == s_fmtSupported.cfFormat && // Are we dealing with the same format type?
+                SUCCEEDED (pDataObj->QueryGetData (&fmt))) // Does it accept our format specification?
+            {
+              m_bAllowDrop  = true;
+              m_fmtDropping = &fmt;
+              *pdwEffect    = DROPEFFECT_COPY;
+
+              if (m_pDropTargetHelper != nullptr)
+                  m_pDropTargetHelper->DragEnter (m_hWnd, pDataObj, reinterpret_cast <LPPOINT> (&pt), *pdwEffect);
+
+              return S_OK;
+            }
+          }
+        }
+      }
+    }
+
+    *pdwEffect = DROPEFFECT_NONE;
+
+    return S_FALSE;
+  }
+
+  STDMETHODIMP DragOver (DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override
+  {
+    UNREFERENCED_PARAMETER (grfKeyState);
+
+    if (pdwEffect == nullptr)
+      return E_INVALIDARG;
+
+    // Here we could theoretically check if an ImGui component that supports the text is being hovered
+    if (m_bAllowDrop && (*pdwEffect & DROPEFFECT_COPY) == DROPEFFECT_COPY)
+    {
+      *pdwEffect = DROPEFFECT_COPY;
+
+      if (m_pDropTargetHelper != nullptr)
+          m_pDropTargetHelper->DragOver (reinterpret_cast <LPPOINT> (&pt), *pdwEffect);
+
+      return S_OK;
+    }
+
+    *pdwEffect = DROPEFFECT_NONE;
+
+    return S_FALSE;
+  }
+
+  STDMETHODIMP DragLeave (void) override
+  {
+    if (m_pDropTargetHelper != nullptr)
+        m_pDropTargetHelper->DragLeave ();
+
+    m_bAllowDrop  = false;
+    m_fmtDropping = nullptr;
+
+    return S_OK;
+  }
+
+  STDMETHODIMP Drop (IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override
+  {
+    UNREFERENCED_PARAMETER (grfKeyState);
+
+    if (pdwEffect == nullptr)
+      return E_INVALIDARG;
+
+    if (pDataObj == nullptr || m_fmtDropping == nullptr)
+      return E_UNEXPECTED;
+
+    if ((*pdwEffect & DROPEFFECT_COPY) == DROPEFFECT_COPY)
+    {
+      *pdwEffect = DROPEFFECT_COPY;
+
+      if (m_pDropTargetHelper != nullptr)
+          m_pDropTargetHelper->Drop (pDataObj, reinterpret_cast <LPPOINT> (&pt), *pdwEffect);
+
+      STGMEDIUM medium;
+
+      auto ReturnAndCleanUp = [&](void)
+      {
+        ReleaseStgMedium (&medium);
+
+        m_bAllowDrop  = false;
+        m_fmtDropping = nullptr;
+
+        return S_OK;
+      };
+
+      // Unicode URLs
+      if (m_fmtDropping->cfFormat == CF_UNICODETEXT && SUCCEEDED (pDataObj->GetData (m_fmtDropping, &medium)))
+      {
+        const wchar_t* wszSource =
+          static_cast <const wchar_t *> (GlobalLock (medium.hGlobal));
+
+        if (wszSource != nullptr)
+        {
+          if (StrStrIW (wszSource, L".dds"))
+          {
+            std::filesystem::path dest =
+              *SK_D3D11_res_root;
+
+            dest /= LR"(inject\textures)";
+
+            sk_download_request_s fetch_this (
+                L"", wszSource,
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        return false;
+                      }
+            );
+
+            wchar_t        wszFileName [2050] = {};
+            wcsncpy_s     (wszFileName, 2048, fetch_this.wszHostPath, _TRUNCATE);
+            PathStripPath (wszFileName);
+
+            // Get rid of stuff that's not part of the actual filename.
+            wchar_t* wszHTTPArgs = StrStrIW (wszFileName, L"?");
+            if (     wszHTTPArgs != nullptr)
+                    *wszHTTPArgs  = L'\0';
+
+            fetch_this.path =
+              (dest / wszFileName).wstring ();
+
+            SK_Network_EnqueueDownload (
+              std::move (fetch_this), true
+            );
+
+            SK_ImGui_Warning (fetch_this.path.c_str ());
+          }
+
+          GlobalUnlock (medium.hGlobal);
+        }
+
+        ReturnAndCleanUp ();
+      }
+
+      // Files
+      else if (m_fmtDropping->cfFormat == CF_HDROP && SUCCEEDED (pDataObj->GetData (m_fmtDropping, &medium)))
+      {
+        HDROP hDrop =
+          static_cast<HDROP> (GlobalLock (medium.hGlobal));
+
+        if (hDrop != nullptr)
+        {
+          UINT numFiles =
+            DragQueryFile (hDrop, 0xFFFFFFFF, nullptr, 0);
+
+          if (numFiles > 0)
+          {
+            wchar_t                  wszFilePath [MAX_PATH + 2];
+            DragQueryFile (hDrop, 0, wszFilePath, MAX_PATH);
+
+            //dragDroppedFilePath =
+            //  std::wstring (wszFilePath);
+          }
+
+          GlobalUnlock (medium.hGlobal);
+        }
+
+        ReturnAndCleanUp ();
+      }
+
+      // URLs
+      else if (m_fmtDropping->cfFormat == CF_TEXT && SUCCEEDED (pDataObj->GetData (m_fmtDropping, &medium)))
+      {
+        const char* szSource =
+          static_cast <const char *> (GlobalLock (medium.hGlobal));
+
+        if (szSource != nullptr)
+        {
+          if (StrStrIA (szSource, ".dds"))
+          {
+            std::filesystem::path dest =
+              *SK_D3D11_res_root;
+
+            dest /= LR"(inject\textures)";
+
+            sk_download_request_s fetch_this (
+                L"", szSource,
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        return false;
+                      }
+            );
+
+            wchar_t        wszFileName [2050] = {};
+            wcsncpy_s     (wszFileName, 2048, fetch_this.wszHostPath, _TRUNCATE);
+            PathStripPath (wszFileName);
+
+            // Get rid of stuff that's not part of the actual filename.
+            wchar_t* wszHTTPArgs = StrStrIW (wszFileName, L"?");
+            if (     wszHTTPArgs != nullptr)
+                    *wszHTTPArgs  = L'\0';
+
+            fetch_this.path =
+              (dest / wszFileName).wstring ();
+
+            SK_Network_EnqueueDownload (
+              std::move (fetch_this), true
+            );
+
+            SK_ImGui_Warning (fetch_this.path.c_str ());
+          }
+
+          GlobalUnlock (medium.hGlobal);
+        }
+
+        ReturnAndCleanUp ();
+      }
+    }
+
+    *pdwEffect = DROPEFFECT_NONE;
+
+    return S_FALSE;
+  }
+
+private:
+  HWND                          m_hWnd              = nullptr; // Required by m_pDropTargetHelper->DragEnter
+  ULONG                         m_ulRefCount        =       0;
+  bool                          m_bAllowDrop        =   false;
+  SK_ComPtr <IDropTargetHelper> m_pDropTargetHelper = nullptr; // Drag image/thumbnail helper
+  FORMATETC*                    m_fmtDropping       = nullptr;
+  std::vector <FORMATETC>       m_fmtSupported;
+};
+
 void
 SK_ImGui_User_NewFrame (void)
 {
@@ -3566,6 +3891,18 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_LeftSuper]      = VK_LWIN;
     io.KeyMap [ImGuiKey_RightSuper]     = VK_RWIN;
     io.KeyMap [ImGuiKey_Menu]           = VK_APPS;
+  }
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (SK_API_IsLayeredOnD3D11 (rb.api))
+  {
+    SK_RunOnce (
+      OleInitialize        (nullptr);
+      SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
+      RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
+    );
   }
 
   static auto ticks_per_sec =
