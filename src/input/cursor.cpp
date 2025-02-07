@@ -296,7 +296,7 @@ SK_ImGui_IsMouseRelevantEx (bool update)
     return relevant.load ();
 
   bool bRelevant =
-    config.input.mouse.disabled_to_game || SK_ImGui_Active ();
+    config.input.mouse.disabled_to_game || SK_ImGui_Active () || ((! SK_IsGameWindowActive ()) && SK_WantBackgroundRender ());
 
   if (! bRelevant)
   {
@@ -621,7 +621,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
         DefWindowProcW (game_window.hWnd,WM_NCHITTEST,0,MAKELPARAM(ptCursor.x,ptCursor.y));
 
       // Do not block the mouse while it is on the window's titlebar, resize grips, etc.
-      if (hit_test == HTCLIENT)
+      if (hit_test <= HTCLIENT)
       {
         if (SK_WantBackgroundRender ())
           imgui_capture = true;

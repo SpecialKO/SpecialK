@@ -1,4 +1,14 @@
-﻿25.2.7.1
+﻿25.2.7.2
+========
+ + Fixed NieR: Automata and potentially other games processing mouse input
+     while "Continue Rendering" is turned on and the mouse cursor is failing
+       hit tests (i.e. another window is between the game and the cursor).
+ + FORCEFULLY write the default INI values for Kingdom Come Deliverance 2,
+     because these issues were fixed a long time ago but users are not
+       resetting their INI.
+ + Disable forced Anisotropic Filtering in Kingdom Come Deliverance 2.
+
+25.2.7.1
 ========
  + Handle games that run Render and Window on different threads when setting
      up drag-n-drop support.

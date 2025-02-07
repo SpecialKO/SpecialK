@@ -3736,7 +3736,6 @@ SK_ImGui_InitDragAndDrop (void)
     SK_RunOnce (
       OleInitialize        (nullptr);
       SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
-      RevokeDragDrop       (game_window.hWnd);
       RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
     );
   }
