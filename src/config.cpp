@@ -2620,7 +2620,16 @@ auto DeclKeybind =
         // Fake it, otherwise once per-frame the game's going to try to
         //   ReSizeBuffers (...)
         config.render.dxgi.fake_swapchain_desc = DXGI_FORMAT_R8G8B8A8_UNORM;
+
         config.input.ui.use_hw_cursor          = false; // Prevent the game's cursor from doing whatever
+        config.render.d3d12.force_anisotropic  = false;
+
+        // Sick of users complaining about bugs that -were- fixed because they can't be bothered to
+        //   reset their INI after defaults are changed to fix the problems... so we're going to be
+        //     VERY FORCEFUL ABOUT THIS!
+        input.cursor.hw_cursor->store         (config.input.ui.use_hw_cursor);
+        render.d3d12.force_anisotropic->store (config.render.d3d12.force_anisotropic);
+        window.background_render->store       (config.window.background_render);
         break;
 
       case SK_GAME_ID::DragonsDogma2:
