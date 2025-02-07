@@ -5614,6 +5614,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  void SK_ImGui_InitDragAndDrop (void);
+       SK_ImGui_InitDragAndDrop ();
+
   // @TODO: Allow PlugIns to install callbacks for window proc
   static bool bIgnoreKeyboardAndMouse =
     (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI);

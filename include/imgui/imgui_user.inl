@@ -3613,7 +3613,7 @@ public:
             wcsncpy_s     (wszFileName, 2048, fetch_this.wszHostPath, _TRUNCATE);
             PathStripPath (wszFileName);
 
-            // Get rid of stuff that's not part of the actual filename.
+        // Get rid of stuff that's not part of the actual filename.
             wchar_t* wszHTTPArgs = StrStrIW (wszFileName, L"?");
             if (     wszHTTPArgs != nullptr)
                     *wszHTTPArgs  = L'\0';
@@ -3724,6 +3724,23 @@ private:
   FORMATETC*                    m_fmtDropping       = nullptr;
   std::vector <FORMATETC>       m_fmtSupported;
 };
+
+void
+SK_ImGui_InitDragAndDrop (void)
+{
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (SK_API_IsLayeredOnD3D11 (rb.api))
+  {
+    SK_RunOnce (
+      OleInitialize        (nullptr);
+      SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
+      RevokeDragDrop       (game_window.hWnd);
+      RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
+    );
+  }
+}
 
 void
 SK_ImGui_User_NewFrame (void)
@@ -3891,18 +3908,6 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_LeftSuper]      = VK_LWIN;
     io.KeyMap [ImGuiKey_RightSuper]     = VK_RWIN;
     io.KeyMap [ImGuiKey_Menu]           = VK_APPS;
-  }
-
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  if (SK_API_IsLayeredOnD3D11 (rb.api))
-  {
-    SK_RunOnce (
-      OleInitialize        (nullptr);
-      SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
-      RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
-    );
   }
 
   static auto ticks_per_sec =

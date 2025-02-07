@@ -1,10 +1,15 @@
-﻿25.2.7
+﻿25.2.7.1
+========
+ + Handle games that run Render and Window on different threads when setting
+     up drag-n-drop support.
+
+25.2.7
 ======
  + Added experimental support for dragging and dropping .dds files into D3D11
      games to setup texture injection.
 
    * Drag files from Discord with the .dds extension and SK will download the
-       texture and and place it in the right location (game restart required).
+       texture and place it in the right location (game restart required).
 
    This will be extended to support .dll, .asi and .addon{32|64} also, but they
      require extra config (i.e. load order and local vs. global ReShade).
