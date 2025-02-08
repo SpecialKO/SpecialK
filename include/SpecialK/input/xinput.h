@@ -263,5 +263,8 @@ SK_ImGui_FilterXInputKeystroke (
 void
 SK_XInput_ApplyDeadzone (XINPUT_STATE* state, float deadzone_percent);
 
+void
+SK_XInput_ApplyRemapping (XINPUT_STATE* state);
+
 
 #endif /* __SK__XINPUT_H__ */

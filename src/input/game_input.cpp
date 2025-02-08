@@ -1861,8 +1861,10 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
       {
         if (! SK_ImGui_WantGamepadCapture ())
         {
-          const auto latest_state =
+          auto latest_state =
             pNewestInputDevice->xinput.getLatestState ();
+
+          SK_XInput_ApplyRemapping (&latest_state);
 
           state->leftThumbstickX =
             static_cast <float> (latest_state.Gamepad.sThumbLX) / 32767;

@@ -463,6 +463,8 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
         SK_XInput_PollController (0, &xi_state);
       }
 
+      SK_XInput_ApplyRemapping (&xi_state);
+
       value->Buttons = GamepadButtons::GamepadButtons_None;
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
@@ -559,6 +561,8 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       value->Timestamp = timestamp;
       value->Buttons   = GamepadButtons::GamepadButtons_None;
 
+      SK_XInput_ApplyRemapping (&xi_state);
+
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
                       value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN))
@@ -644,6 +648,8 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       {
         SK_XInput_PollController (0, &xi_state);
       }
+
+      SK_XInput_ApplyRemapping (&xi_state);
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
                       value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;

@@ -657,19 +657,7 @@ XInputGetState1_4_Detour (
       WriteULong64Release (&last_time [0], virtual_newer ? virtual_time : native_time);
     }
 
-    if (config.input.gamepad.xinput.invert_lx)
-      pState->Gamepad.sThumbLX = ~pState->Gamepad.sThumbLX;
-    if (config.input.gamepad.xinput.invert_ly)
-      pState->Gamepad.sThumbLY = ~pState->Gamepad.sThumbLY;
-    if (config.input.gamepad.xinput.invert_rx)
-      pState->Gamepad.sThumbRX = ~pState->Gamepad.sThumbRX;
-    if (config.input.gamepad.xinput.invert_ry)
-      pState->Gamepad.sThumbRY = ~pState->Gamepad.sThumbRY;
-    if (config.input.gamepad.xinput.swap_sticks)
-    {
-      std::swap (pState->Gamepad.sThumbRX, pState->Gamepad.sThumbLX);
-      std::swap (pState->Gamepad.sThumbRY, pState->Gamepad.sThumbLY);
-    }
+    SK_XInput_ApplyRemapping (pState);
 
     if (new_packet)
     {
@@ -682,6 +670,24 @@ XInputGetState1_4_Detour (
   }
 
   return dwRet;
+}
+
+void
+SK_XInput_ApplyRemapping (XINPUT_STATE* state)
+{
+  if (config.input.gamepad.xinput.invert_lx)
+    state->Gamepad.sThumbLX = ~state->Gamepad.sThumbLX;
+  if (config.input.gamepad.xinput.invert_ly)
+    state->Gamepad.sThumbLY = ~state->Gamepad.sThumbLY;
+  if (config.input.gamepad.xinput.invert_rx)
+    state->Gamepad.sThumbRX = ~state->Gamepad.sThumbRX;
+  if (config.input.gamepad.xinput.invert_ry)
+    state->Gamepad.sThumbRY = ~state->Gamepad.sThumbRY;
+  if (config.input.gamepad.xinput.swap_sticks)
+  {
+    std::swap (state->Gamepad.sThumbRX, state->Gamepad.sThumbLX);
+    std::swap (state->Gamepad.sThumbRY, state->Gamepad.sThumbLY);
+  }
 }
 
 DWORD
@@ -979,19 +985,7 @@ XInputGetStateEx1_4_Detour (
       WriteULong64Release (&last_time [0], virtual_newer ? virtual_time : native_time);
     }
 
-    if (config.input.gamepad.xinput.invert_lx)
-      pState->Gamepad.sThumbLX = ~pState->Gamepad.sThumbLX;
-    if (config.input.gamepad.xinput.invert_ly)
-      pState->Gamepad.sThumbLY = ~pState->Gamepad.sThumbLY;
-    if (config.input.gamepad.xinput.invert_rx)
-      pState->Gamepad.sThumbRX = ~pState->Gamepad.sThumbRX;
-    if (config.input.gamepad.xinput.invert_ry)
-      pState->Gamepad.sThumbRY = ~pState->Gamepad.sThumbRY;
-    if (config.input.gamepad.xinput.swap_sticks)
-    {
-      std::swap (pState->Gamepad.sThumbRX, pState->Gamepad.sThumbLX);
-      std::swap (pState->Gamepad.sThumbRY, pState->Gamepad.sThumbLY);
-    }
+    SK_XInput_ApplyRemapping ((XINPUT_STATE *)pState);
 
     if (new_packet)
     {

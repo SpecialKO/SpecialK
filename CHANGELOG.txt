@@ -1,5 +1,6 @@
 ﻿25.2.8.1
 ========
+ + Apply Xbox analog stick remapping to Windows.Gaming.Input and GameInput
  + Added INI setting to hide Windows.Gaming.Input support from games, which
      usually causes them to fallback to XInput.
 
