@@ -1,4 +1,15 @@
-﻿25.2.8
+﻿25.2.8.1
+========
+ + Added INI setting to hide Windows.Gaming.Input support from games, which
+     usually causes them to fallback to XInput.
+
+   [Input.Gamepad]
+   HideWindowsGamingInput={true|false}  Default: false
+
+   * XInput has a few benefits, such as support for higher polling rates, and
+       the API allows polling while the game window is in the background.
+
+25.2.8
 ======
  + Added options to invert X/Y-axes on analog sticks in Xbox mode.
  + Added options to swap left/right analog sticks in Xbox mode.
