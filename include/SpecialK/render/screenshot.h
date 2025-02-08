@@ -168,6 +168,8 @@ public:
   void                     setSnipRect  (const DirectX::Rect& rect);
   DirectX::Rect            getSnipRect  (void) const;
 
+  int                      getClipboardFormat (void);
+
 protected:
   screenshot_repository_s screenshots = { };
   SnippingState           snip_state  = SnippingInactive;

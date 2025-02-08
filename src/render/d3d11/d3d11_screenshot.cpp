@@ -1687,8 +1687,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     {
                       if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard))
                       {
-                        if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_PNG &&
-                                                                       SK_PNG_CopyToClipboard (*hdr10_img.GetImages (), wszAbsolutePathToLossless, 0))
+                        if (rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_PNG &&
+                                                                        SK_PNG_CopyToClipboard (*hdr10_img.GetImages (), wszAbsolutePathToLossless, 0))
                         {
                           bCopiedToClipboard = true;
                         }
@@ -1699,7 +1699,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                 if (! bCopiedToClipboard && config.screenshots.copy_to_clipboard
                                          && config.screenshots.allow_hdr_clipboard
-                                         && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+                                         && rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_AVIF)
                 {
                   bCopiedToClipboard = true;
                 }
@@ -1795,8 +1795,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
               }
 
               if (! (config.screenshots.png_compress && pFrameData->AllowSaveToDisk))
-              { if (pFrameData->AllowCopyToClipboard && config.screenshots.copy_to_clipboard    && hdr
-                                                     && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
+              { if (pFrameData->AllowCopyToClipboard && config.screenshots.copy_to_clipboard     && hdr
+                                                     && rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_AVIF)
                 {
                   to_write.emplace_back (pop_off);
                 }
@@ -2003,8 +2003,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     }
 
                     // Handle Normal PNG or JXR/AVIF; HDR PNG was already handled above...
-                    if ( (pFrameData->AllowCopyToClipboard && (config.screenshots.copy_to_clipboard && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)) || (pFrameData->AllowSaveToDisk && config.screenshots.png_compress && ((! config.screenshots.use_hdr_png) || (! hdr))))
-                    { if (pFrameData->AllowCopyToClipboard &&  config.screenshots.copy_to_clipboard && config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF && (! pFrameData->AllowSaveToDisk))
+                    if ( (pFrameData->AllowCopyToClipboard && (config.screenshots.copy_to_clipboard && rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_AVIF)) || (pFrameData->AllowSaveToDisk && config.screenshots.png_compress && ((! config.screenshots.use_hdr_png) || (! hdr))))
+                    { if (pFrameData->AllowCopyToClipboard &&  config.screenshots.copy_to_clipboard && rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_AVIF && (! pFrameData->AllowSaveToDisk))
                       {
                         PathRemoveFileSpecW (wszAbsolutePathToLossless);
                         PathAppendW         (wszAbsolutePathToLossless, L"hdr10_clipboard.avif");
@@ -2021,8 +2021,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                         SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (std::max (0.0f, pFrameData->hdr.max_cll_nits)),
                                                                                     static_cast <uint16_t> (std::max (0.0f, pFrameData->hdr.avg_cll_nits)));
 
-                        if ( config.screenshots.allow_hdr_clipboard  &&
-                             config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF )
+                        if ( config.screenshots.allow_hdr_clipboard   &&
+                             rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_AVIF )
                         {
                           wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
                           wcsncpy_s (wszAVIFPath, wszAbsolutePathToLossless, MAX_PATH);

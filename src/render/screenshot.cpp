@@ -474,28 +474,36 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
       }
     }
 
+    else if (PathFileExistsW (wszOptionalFilename) && (StrStrIW (wszOptionalFilename, L".png") ||
+                                                       StrStrIW (wszOptionalFilename, L".avif")))
+    {
+      if (SK_PNG_CopyToClipboard (*pOptionalHDR, wszOptionalFilename, 0))
+      {
+        return true;
+      }
+    }
 
     DirectX::ScratchImage                hdr10_img;
     if (SK_HDR_ConvertImageToPNG (*pImg, hdr10_img))
     {
       wchar_t                   wszPNGPath [MAX_PATH + 2] = { };
-      if (                                  wszOptionalFilename != nullptr)
-      { wcsncpy_s (             wszPNGPath, wszOptionalFilename, MAX_PATH);
-        PathRemoveExtensionW   (wszPNGPath);
-        PathRemoveFileSpecW    (wszPNGPath);
-      } else {
-        wcsncpy_s              (wszPNGPath, getBasePath (), MAX_PATH);
-      }
+      wcsncpy_s                (wszPNGPath, getBasePath (), MAX_PATH);
       PathAppendW              (wszPNGPath, L"hdr10_clipboard");
       PathAddExtensionW        (wszPNGPath, L".png");
       if (SK_HDR_SavePNGToDisk (wszPNGPath, hdr10_img.GetImages (), pOptionalHDR))
       {
         if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszPNGPath, 0))
         {
+          config.screenshots.reset_snipboard_frame =
+            SK_GetFramesDrawn () + 15;
+
           return true;
         }
       }
     }
+
+    config.screenshots.reset_snipboard_frame =
+      SK_GetFramesDrawn () + 3;
   }
 
   auto snip = 
@@ -2613,6 +2621,15 @@ void
 SK_ScreenshotManager::setSnipRect (const DirectX::Rect& rect)
 {
   snip_rect = rect;
+}
+
+int
+SK_ScreenshotManager::getClipboardFormat (void)
+{
+  if (config.screenshots.snipboard_hdr_format != 0)
+    return config.screenshots.snipboard_hdr_format;
+
+  return config.screenshots.clipboard_hdr_format;
 }
 
 

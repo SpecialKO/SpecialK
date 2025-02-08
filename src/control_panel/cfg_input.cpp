@@ -1375,34 +1375,28 @@ SK::ControlPanel::Input::Draw (void)
 
         if (axial_remap)
         {
-          ImGui::SameLine     (0.0f, ImGui::GetStyle ().ItemSpacing.x * 3);
+          const float item_spacing_x = ImGui::GetStyle ().ItemSpacing.x;
+          const float combo_width    = item_spacing_x * 2 +
+                     ImGui::CalcTextSize ("Inverted X-axis\t").x;
+
+          ImGui::SameLine     (0.0f, item_spacing_x * 3);
           changed |=
           ImGui::Checkbox     ("Swap Left / Right",
             &config.input.gamepad.xinput.swap_sticks);
           ImGui::TreePush     ("");
+          ImGui::PushItemWidth(combo_width);
           ImGui::BeginGroup   (  );
-          ImGui::TextUnformatted
-                           ("L: ");
-          ImGui::SameLine     (  );
-          ImGui::PushItemWidth(
-            ImGui::GetStyle ().ItemSpacing.x * 2 +
-            ImGui::CalcTextSize ("Inverted X-axis\t").x);
           changed |=
-          ImGui::Combo        ("##LeftStickRemap",  &ls_inversion,
+          ImGui::Combo        ("Left##LeftStickRemap",  &ls_inversion,
             "Normal\0Inverted X-axis\0Inverted Y-axis\0Fully Inverted\0\0", 4);
-          ImGui::PopItemWidth (  );
-          ImGui::SameLine     (0.0f, ImGui::GetStyle ().ItemSpacing.x * 2);
-          ImGui::TextUnformatted
-                           ("R: ");
-          ImGui::SameLine     (  );
-          ImGui::PushItemWidth(
-            ImGui::GetStyle ().ItemSpacing.x * 2 +
-            ImGui::CalcTextSize ("Inverted X-axis\t").x);
-          changed |=
-          ImGui::Combo        ("##RightStickRemap", &rs_inversion,
-            "Normal\0Inverted X-axis\0Inverted Y-axis\0Fully Inverted\0\0", 4);
-          ImGui::PopItemWidth (  );
           ImGui::EndGroup     (  );
+          ImGui::SameLine     (0.0f, item_spacing_x * 2);
+          ImGui::BeginGroup   (  );
+          changed |=
+          ImGui::Combo        ("Right##RightStickRemap", &rs_inversion,
+            "Normal\0Inverted X-axis\0Inverted Y-axis\0Fully Inverted\0\0", 4);
+          ImGui::EndGroup     (  );
+          ImGui::PopItemWidth (  );
           ImGui::TreePop      (  );
         }
 

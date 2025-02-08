@@ -1,4 +1,11 @@
-﻿25.2.8.1
+﻿25.2.8.2
+========
+ + Automatically download the AVIF codec if a user selects AVIF clipboard
+     format and does not already have the codec.
+ + Fixed HDR snipping screenshots when AVIF is the selected clipboard format,
+     it will use HDR PNG for the snip because it is simpler and lossless.
+
+25.2.8.1
 ========
  + Apply Xbox analog stick remapping to Windows.Gaming.Input and GameInput
  + Added INI setting to hide Windows.Gaming.Input support from games, which
