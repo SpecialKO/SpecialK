@@ -461,8 +461,20 @@ SK::ControlPanel::D3D11::Draw (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+        if (SK_API_IsLayeredOnD3D12 (rb.api))
+        {
+          ImGui::BeginTooltip ();
+          ImGui::TextColored  (
+            ImVec4 (1.f, 1.f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE
+                               );
+          ImGui::SameLine     ();
+          ImGui::TextUnformatted(
+            "Be cautious in D3D12 games; if you see a screen full of red "
+            "artifacts turn this off.");
+          ImGui::EndTooltip   ();
+        }
+        else
+          ImGui::SetItemTooltip ("Upgrade bi- and trilinear to anisotropic.");
 
         ImGui::SameLine ();
 
@@ -474,8 +486,7 @@ SK::ControlPanel::D3D11::Draw (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
+        ImGui::SetItemTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
                                "filtered render passes as well as any forced.");
 
         if (ImGui::SliderFloat ("Mipmap LOD Bias", &config.render.d3d12.force_lod_bias, -5.0f, 5.0f,
@@ -486,8 +497,7 @@ SK::ControlPanel::D3D11::Draw (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip    ("Use a small (i.e. -0.6'ish) negative LOD bias to sharpen DLSS and FSR games");
+        ImGui::SetItemTooltip ("Use a small (i.e. -0.6'ish) negative LOD bias to sharpen DLSS and FSR games");
 
         if (restart_warning)
         {
@@ -583,8 +593,7 @@ SK::ControlPanel::D3D11::Draw (void)
                 bool changed =
                   ImGui::Combo (szName, &prio, "Low\0Normal\0High\0Realtime\0\0");
 
-                if (ImGui::IsItemHovered ())
-                    ImGui::SetTooltip ("A game restart is required to change this...");
+                ImGui::SetItemTooltip ("A game restart is required to change this...");
 
                 if (changed)
                 {
@@ -605,8 +614,7 @@ SK::ControlPanel::D3D11::Draw (void)
               changed |=
                 PriorityComboBox ("NxStorage Index", L"NxStorageIndexPriority");
 
-              if (changed)
-                config.utility.save_async ();
+              config.utility.save_async_if (changed);
 
               ImGui::TreePop  ();
             }
@@ -628,8 +636,7 @@ SK::ControlPanel::D3D11::Draw (void)
             changed |=
               ImGui::Checkbox ("Disable Telemetry", &config.render.dstorage.disable_telemetry);
 
-            if (changed)
-              config.utility.save_async ();
+            config.utility.save_async_if (changed);
 
             ImGui::TreePop ();
           }
@@ -867,8 +874,7 @@ SK::ControlPanel::D3D11::Draw (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+        ImGui::SetItemTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
 
         ImGui::SameLine ();
 
@@ -880,8 +886,7 @@ SK::ControlPanel::D3D11::Draw (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
+        ImGui::SetItemTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
                                "filtered render passes as well as any forced.");
 
         if (ImGui::SliderFloat ("Mipmap LOD Bias", &config.render.d3d12.force_lod_bias, -5.0f, 5.0f,
@@ -892,8 +897,7 @@ SK::ControlPanel::D3D11::Draw (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip    ("Use a small (i.e. -0.6'ish) negative LOD bias to sharpen DLSS and FSR games");
+        ImGui::SetItemTooltip ("Use a small (i.e. -0.6'ish) negative LOD bias to sharpen DLSS and FSR games");
 
         if (restart_warning)
         {
@@ -919,10 +923,10 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (ImGui::IsItemHovered ())
     {
-      ImGui::BeginTooltip   ();
-      ImGui::TextColored    ( ImColor (235, 235, 235),
-                              "Latency and Framepacing Tweaks" );
-      ImGui::EndTooltip     ();
+      ImGui::BeginTooltip    ();
+      ImGui::TextColored     ( ImColor (235, 235, 235),
+                               "Latency and Framepacing Tweaks" );
+      ImGui::EndTooltip      ();
     }
 
     if (swapchain)
@@ -1304,13 +1308,14 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::Spacing  ();
         ImGui::SameLine ();
 
+        bool changed =
         ImGui::Checkbox ("Ignore Textures Without Mipmaps", &config.textures.cache.ignore_nonmipped);
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Important Compatibility Setting for Some Games (e.g. The Witcher 3)");
+        ImGui::SetItemTooltip ("Important Compatibility Setting for Some Games (e.g. Unity Engine and Kingdom Come Deliverance)");
 
         ImGui::SameLine ();
 
+        changed |=
         ImGui::Checkbox ("Cache Staged Texture Uploads", &config.textures.cache.allow_staging);
 
         if (ImGui::IsItemHovered ())
@@ -1322,6 +1327,8 @@ SK::ControlPanel::D3D11::Draw (void)
           ImGui::BulletText   ("Try to leave this off unless textures are missing from the mod tools.");
           ImGui::EndTooltip   ();
         }
+
+        config.utility.save_async_if (changed);
       }
 
       ImGui::TreePop  ();
@@ -1373,8 +1380,7 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::Checkbox     ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
       ImGui::SetItemTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
 
-      if (changed)
-        config.utility.save_async ();
+      config.utility.save_async_if (changed);
     }
 
     if (! config.reshade.is_addon)
@@ -1438,8 +1444,7 @@ SK::ControlPanel::D3D11::Draw (void)
 #ifdef _SUPPORT_ENHANCED_DEPTH
           ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Requires application restart");
+          ImGui::SetItemTooltip ("Requires application restart");
 #endif
 
           if (sk::NVAPI::nv_hardware)

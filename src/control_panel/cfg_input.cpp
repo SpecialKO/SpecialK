@@ -1707,18 +1707,16 @@ SK::ControlPanel::Input::Draw (void)
                       //ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
                       //ImGui::SameLine    ();
 
-                      if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
-                      {
-                        config.utility.save_async ();
-                      }
+                      config.utility.save_async_if (
+                        ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode)
+                      );
 
                       ImGui::SetItemTooltip ("Polls gyro and touchpad less frequently to save power.");
                     }
 
-                    if (ImGui::SliderFloat ("Critical Battery Level", &config.input.gamepad.low_battery_percent, 0.0f, 45.0f, "%3.0f%% Remaining"))
-                    {
-                      config.utility.save_async ();
-                    }
+                    config.utility.save_async_if (
+                      ImGui::SliderFloat ("Critical Battery Level", &config.input.gamepad.low_battery_percent, 0.0f, 45.0f, "%3.0f%% Remaining")
+                    );
 
                     if (ImGui::BeginItemTooltip ())
                     {
@@ -2113,8 +2111,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::SliderFloat ("Right Trigger", &config.input.gamepad.impulse_strength_r, 0.0f, 1.5f, "%3.1fx Impulse Strength");
             ImGui::TreePop     ( );
 
-            if (changed)
-              config.utility.save_async ();
+            config.utility.save_async_if (changed);
           }
 
           ImGui::BeginGroup ();
@@ -2271,8 +2268,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::EndGroup ();
             }
 
-            if (changed)
-              config.utility.save_async ();
+            config.utility.save_async_if (changed);
 
             ImGui::TreePop  (  );
           }
@@ -2733,8 +2729,7 @@ extern float SK_ImGui_PulseNav_Strength;
       if (keyboard_changed)config.input.keyboard.    disabled_to_game =
                            config.input.keyboard.org_disabled_to_game;
 
-      if (mouse_changed || keyboard_changed)
-        config.utility.save_async ();
+      config.utility.save_async_if (mouse_changed || keyboard_changed);
 
       if (config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
         ImGui::SetItemTooltip ("Most games block keyboard input in the background to begin with...");

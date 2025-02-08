@@ -1444,7 +1444,8 @@ struct sk_config_t
   struct utility_functions_s {
     HANDLE hSignalAsyncSave     = nullptr;
 
-    void save_async (void);
+    void save_async_if (bool predicate);
+    void save_async    (void);
   } utility;
 };
 

@@ -1205,8 +1205,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     rb.next_monitor =
       rb.displays [active_display].monitor;
 
-    if (config.display.save_monitor_prefs)
-        config.utility.save_async ();
+    config.utility.save_async_if (config.display.save_monitor_prefs);
 
     if (rb.monitor != rb.next_monitor)
     {
@@ -4073,10 +4072,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             }
           }
 
-          if (changed)
-          {
-            config.utility.save_async ();
-          }
+          config.utility.save_async_if (changed);
 
           ImGui::TreePop ();
         }
@@ -4120,8 +4116,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           ImGui::EndGroup   (  );
         }
 
-        if (hdr_changed)
-          config.utility.save_async ();
+        config.utility.save_async_if (hdr_changed);
 
         ImGui::SeparatorText ("HDR Display Management");
 
@@ -5822,10 +5817,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             ImGui::EndTooltip      ();
           }
 
-          if (method_changed)
-          {
-            config.utility.save_async ();
-          }
+          config.utility.save_async_if (method_changed);
         };
 
         if (limit)
@@ -8931,8 +8923,7 @@ SK_ImGui_Toggle (void)
   }
 
   // Save config on control panel close, not open
-  if (! SK_ImGui_Visible)
-    config.utility.save_async ();
+  config.utility.save_async_if (! SK_ImGui_Visible);
 
 
   // Immediately stop capturing keyboard/mouse events,

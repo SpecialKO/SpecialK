@@ -5714,6 +5714,17 @@ auto DeclKeybind =
                        config.system.first_run = false;
                        do_win_verify_trust     = false;
     }
+
+    else
+    {
+      if ( SK_GetModuleHandleW (L"UnityPlayer.dll") ||
+               PathFileExistsW (L"UnityPlayer.dll") )
+      {
+        // Automatically disable Windows.Gaming.Input, because Unity's
+        //   implementation sucks
+        config.input.gamepad.windows_gaming_input.blackout_api = true;
+      }
+    }
   );
 
   skif_autostop_behavior->load (config.skif.auto_stop_behavior);
@@ -8637,6 +8648,15 @@ namespace sk
   };
 };
 
+
+void
+sk_config_t::utility_functions_s::save_async_if (bool predicate)
+{
+  if (! predicate)
+    return;
+
+  save_async ();
+}
 
 void
 sk_config_t::utility_functions_s::save_async (void)
