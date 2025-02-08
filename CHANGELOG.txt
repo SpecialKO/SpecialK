@@ -1,4 +1,12 @@
-﻿25.2.8.2
+﻿25.2.8.3
+========
+ + Added support for importing settings from an INI file using drag-n-drop
+     from a URL (i.e. drag the download icon from Discord into the game).
+
+   * Currently SK allows importing any INI file named "SpecialK_import.ini",
+       or "<game_executable_name>.ini" (with the .exe extension removed).
+
+25.2.8.2
 ========
  + Automatically download the AVIF codec if a user selects AVIF clipboard
      format and does not already have the codec.

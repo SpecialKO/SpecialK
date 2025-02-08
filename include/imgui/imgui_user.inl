@@ -3592,6 +3592,81 @@ public:
 
         if (wszSource != nullptr)
         {
+          if (StrStrIW (wszSource, L".ini"))
+          {
+            wchar_t               wszHostApp [MAX_PATH + 2] = { };
+            wcsncpy_s            (wszHostApp, MAX_PATH, SK_GetHostApp (),
+                                   _TRUNCATE);
+            PathRemoveExtensionW (wszHostApp);
+
+            if (StrStrIW (wszSource, L"SpecialK_import") ||
+                StrStrIW (wszSource, wszHostApp))
+            {
+              std::filesystem::path dest =
+                SK_GetConfigPath ();
+
+              sk_download_request_s fetch_this (
+                  L"", wszSource,
+                    []( const std::vector <uint8_t>&& concat_buffer,
+                        const std::wstring_view       path)
+                     -> bool
+                        {
+                          const auto fs_path   = std::filesystem::path (path);
+                          auto       directory = fs_path.parent_path   (    );
+                          auto       filename  = fs_path.filename      (    );
+
+                          std::error_code                                       ec = { };
+                          if (! std::filesystem::exists             (directory, ec))
+                                std::filesystem::create_directories (directory, ec);
+
+                          if ( FILE *fOut = _wfopen ( fs_path.wstring ().c_str (), L"wb+" ) ;
+                                     fOut != nullptr )
+                          {
+                            fwrite ( concat_buffer.data (),
+                                     concat_buffer.size (), 1, fOut );
+                            fclose (                           fOut );
+
+                            if (SK_GetDLLConfig ()->import_file (fs_path.wstring ().c_str ()))
+                            {   SK_GetDLLConfig ()->write ();
+                                  SK_LoadConfig ();
+
+                              SK_ImGui_CreateNotification (
+                                "INI.Import.Download", SK_ImGui_Toast::Success,
+                                  SK_FormatString ( "\n\t%ws successfully applied\n\n"
+                                                    "Some setting changes may require a game restart...",
+                                                    filename.wstring ().c_str () ).c_str(),
+                                  "INI Settings Imported", 30000,
+                                                                   SK_ImGui_Toast::UseDuration |
+                                                                   SK_ImGui_Toast::ShowTitle   |
+                                                                   SK_ImGui_Toast::ShowCaption |
+                                                                   SK_ImGui_Toast::ShowNewest );
+                            }
+
+                            DeleteFileW (fs_path.wstring ().c_str ());
+                          }
+
+                          return true;
+                        }
+                );
+
+              wchar_t        wszFileName [2050] = {};
+              wcsncpy_s     (wszFileName, 2048, fetch_this.wszHostPath, _TRUNCATE);
+              PathStripPath (wszFileName);
+
+              // Get rid of stuff that's not part of the actual filename.
+              wchar_t* wszHTTPArgs = StrStrIW (wszFileName, L"?");
+              if (     wszHTTPArgs != nullptr)
+                      *wszHTTPArgs  = L'\0';
+
+              fetch_this.path =
+                (dest / wszFileName).wstring ();
+
+              SK_Network_EnqueueDownload (
+                std::move (fetch_this), true
+              );
+            }
+          }
+
           if (StrStrIW (wszSource, L".dds"))
           {
             std::filesystem::path dest =
@@ -3694,6 +3769,81 @@ public:
 
         if (szSource != nullptr)
         {
+          if (StrStrIA (szSource, ".ini"))
+          {
+            wchar_t               wszHostApp [MAX_PATH + 2] = { };
+            wcsncpy_s            (wszHostApp, MAX_PATH, SK_GetHostApp (),
+                                   _TRUNCATE);
+            PathRemoveExtensionW (wszHostApp);
+
+            if (StrStrIA (szSource, "SpecialK_import") ||
+                StrStrIA (szSource, SK_WideCharToUTF8 (wszHostApp).c_str ()))
+            {
+              std::filesystem::path dest =
+                SK_GetConfigPath ();
+
+              sk_download_request_s fetch_this (
+                  L"", szSource,
+                    []( const std::vector <uint8_t>&& concat_buffer,
+                        const std::wstring_view       path)
+                     -> bool
+                        {
+                          const auto fs_path   = std::filesystem::path (path);
+                          auto       directory = fs_path.parent_path   (    );
+                          auto       filename  = fs_path.filename      (    );
+
+                          std::error_code                                       ec = { };
+                          if (! std::filesystem::exists             (directory, ec))
+                                std::filesystem::create_directories (directory, ec);
+
+                          if ( FILE *fOut = _wfopen ( fs_path.wstring ().c_str (), L"wb+" ) ;
+                                     fOut != nullptr )
+                          {
+                            fwrite ( concat_buffer.data (),
+                                     concat_buffer.size (), 1, fOut );
+                            fclose (                           fOut );
+
+                            if (SK_GetDLLConfig ()->import_file (fs_path.wstring ().c_str ()))
+                            {   SK_GetDLLConfig ()->write ();
+                                  SK_LoadConfig ();
+
+                              SK_ImGui_CreateNotification (
+                                "INI.Import.Download", SK_ImGui_Toast::Success,
+                                  SK_FormatString ( "\n\t%ws successfully applied\n\n"
+                                                    "Some setting changes may require a game restart...",
+                                                    filename.wstring ().c_str () ).c_str(),
+                                  "INI Settings Imported", 30000,
+                                                                   SK_ImGui_Toast::UseDuration |
+                                                                   SK_ImGui_Toast::ShowTitle   |
+                                                                   SK_ImGui_Toast::ShowCaption |
+                                                                   SK_ImGui_Toast::ShowNewest );
+                            }
+
+                            DeleteFileW (fs_path.wstring ().c_str ());
+                          }
+
+                          return true;
+                        }
+                );
+
+              wchar_t        wszFileName [2050] = {};
+              wcsncpy_s     (wszFileName, 2048, fetch_this.wszHostPath, _TRUNCATE);
+              PathStripPath (wszFileName);
+
+              // Get rid of stuff that's not part of the actual filename.
+              wchar_t* wszHTTPArgs = StrStrIW (wszFileName, L"?");
+              if (     wszHTTPArgs != nullptr)
+                      *wszHTTPArgs  = L'\0';
+
+              fetch_this.path =
+                (dest / wszFileName).wstring ();
+
+              SK_Network_EnqueueDownload (
+                std::move (fetch_this), true
+              );
+            }
+          }
+
           if (StrStrIA (szSource, ".dds"))
           {
             std::filesystem::path dest =
