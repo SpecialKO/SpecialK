@@ -3580,6 +3580,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
 
+        static bool bFetchingAVIF        = false;
+               bool avif_codec_requested = false;
+
         int clipboard_selection =
           config.screenshots.copy_to_clipboard   ?
           config.screenshots.allow_hdr_clipboard ?
@@ -3609,6 +3612,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
               if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
               {
+                avif_codec_requested = true;
+
                 config.screenshots.use_jxl     = false;
                 config.screenshots.use_avif    = true;
                 config.screenshots.use_hdr_png = false;
@@ -3690,8 +3695,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         if (config.screenshots.png_compress)
         {
-          static bool bFetchingAVIF = false;
-          static int  iFetchingJXL  = 0;
+          static int iFetchingJXL = 0;
 
           static constexpr int SK_CODEC_JXL  = 3;
           static constexpr int SK_CODEC_AVIF = 2;
@@ -3716,42 +3720,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               config.screenshots.use_hdr_png = false;
               config.screenshots.use_jxl     = false;
 
-              if (! bFetchingAVIF)
-              {
-                static std::filesystem::path avif_dll =
-                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
-                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libavif\libavif_x64.dll)",
-                                            LR"(Image Codecs\libavif\libavif_x86.dll)" );
-
-                std::error_code                          ec;
-                if (! std::filesystem::exists (avif_dll, ec))
-                {
-                  bFetchingAVIF = true;
-
-                  SK_Network_EnqueueDownload (
-                       sk_download_request_s (
-                         avif_dll.wstring (),                           
-                           SK_RunLHIfBitness ( 64, R"(https://sk-data.special-k.info/addon/ImageCodecs/libavif/libavif_x64.dll)",
-                                                   R"(https://sk-data.special-k.info/addon/ImageCodecs/libavif/libavif_x86.dll)" ),
-                  []( const std::vector <uint8_t>&&,
-                      const std::wstring_view )
-                   -> bool
-                      {
-                        bFetchingAVIF                          = false;
-                        config.screenshots.use_avif            = true;
-                        config.screenshots.compression_quality = 100;
-                  
-                        return false;
-                      }
-                    ), true
-                  );
-                }
-                else
-                {
-                  config.screenshots.use_avif            = true;
-                  config.screenshots.compression_quality = 100;
-                }
-              }
+              avif_codec_requested = true;
             }
 
             else if (selection == SK_CODEC_JXL)
@@ -3971,6 +3940,46 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               config.screenshots.use_jxl             = false;
               config.screenshots.use_avif            = false;
               config.screenshots.compression_quality = 90;
+            }
+          }
+
+          if (avif_codec_requested)
+          {
+            if (! bFetchingAVIF)
+            {
+              static std::filesystem::path avif_dll =
+                     std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                  SK_RunLHIfBitness ( 64, LR"(Image Codecs\libavif\libavif_x64.dll)",
+                                          LR"(Image Codecs\libavif\libavif_x86.dll)" );
+
+              std::error_code                          ec;
+              if (! std::filesystem::exists (avif_dll, ec))
+              {
+                bFetchingAVIF = true;
+
+                SK_Network_EnqueueDownload (
+                     sk_download_request_s (
+                       avif_dll.wstring (),                           
+                         SK_RunLHIfBitness ( 64, R"(https://sk-data.special-k.info/addon/ImageCodecs/libavif/libavif_x64.dll)",
+                                                 R"(https://sk-data.special-k.info/addon/ImageCodecs/libavif/libavif_x86.dll)" ),
+                []( const std::vector <uint8_t>&&,
+                    const std::wstring_view )
+                 -> bool
+                    {
+                      bFetchingAVIF                          = false;
+                      config.screenshots.use_avif            = true;
+                      config.screenshots.compression_quality = 94;
+                
+                      return false;
+                    }
+                  ), true
+                );
+              }
+              else
+              {
+                config.screenshots.use_avif            = true;
+                config.screenshots.compression_quality = 94;
+              }
             }
           }
 
@@ -8561,8 +8570,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   auto& screenshot_mgr =
     rb.screenshot_mgr.get ();
 
+  const auto frames_drawn =
+    SK_GetFramesDrawn ();
+
   static volatile ULONG64  queued_snipped_shot = ULONG64_MAX;
-  if (ReadULong64Acquire (&queued_snipped_shot) == SK_GetFramesDrawn ())
+  if (ReadULong64Acquire (&queued_snipped_shot) == frames_drawn)
   {
     screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingInactive);
 
@@ -8573,6 +8585,12 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   const auto snip_state =
     screenshot_mgr.getSnipState ();
+
+  if (snip_state == SK_ScreenshotManager::SnippingInactive)
+  {
+    if (frames_drawn == config.screenshots.reset_snipboard_frame)
+      config.screenshots.snipboard_hdr_format = 0;
+  }
 
   if (snip_state == SK_ScreenshotManager::SnippingRequested)
   {
@@ -8585,6 +8603,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   if (snip_state == SK_ScreenshotManager::SnippingActive)
   {
+    config.screenshots.snipboard_hdr_format = SK_HDR_CLIPBOARD_FORMAT_PNG;
+
     static ImRect selection =
       { 0.0f,0.0f, 0.0f,0.0f };
 
