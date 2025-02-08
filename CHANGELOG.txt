@@ -1,4 +1,16 @@
-﻿25.2.7.3
+﻿25.2.8
+======
+ + Added options to invert X/Y-axes on analog sticks in Xbox mode.
+ + Added options to swap left/right analog sticks in Xbox mode.
+ + Added command console variables to control the aforementioned options:
+
+    Input.Gamepad.InvertLX, Input.Gamepad.InvertLY
+    Input.Gamepad.InvertRX, Input.Gamepad.InvertRY
+    Input.Gamepad.SwapSticks
+
+      * All variables are booleans
+
+25.2.7.3
 ========
  + Drag-n-Drop D3D11 .dds texture mods no longer need a game restart, as long
      as the texture is the same format and dimensions as the original.

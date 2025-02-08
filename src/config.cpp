@@ -1079,6 +1079,11 @@ struct {
       sk::ParameterBool*  blackout_api            = nullptr;
       sk::ParameterBool*  emulate                 = nullptr;
       sk::ParameterFloat* deadzone                = nullptr;
+      sk::ParameterBool*  invert_lx               = nullptr;
+      sk::ParameterBool*  invert_ly               = nullptr;
+      sk::ParameterBool*  invert_rx               = nullptr;
+      sk::ParameterBool*  invert_ry               = nullptr;
+      sk::ParameterBool*  swap_sticks             = nullptr;
     } xinput;
 
     struct {
@@ -1776,6 +1781,11 @@ auto DeclKeybind =
                                                          L"supports native SONY input and XInput.",                    dll_ini,         L"Input.XInput",          L"HideAllDevices"),
     ConfigEntry (input.gamepad.xinput.emulate,           L"For non-Xbox controllers, translate HID to XInput",         dll_ini,         L"Input.XInput",          L"EnableEmulation"),
     ConfigEntry (input.gamepad.xinput.deadzone,          L"In HID->XInput, filter analog values below this threshold", dll_ini,         L"Input.XInput",          L"DeadzonePercent"),
+    ConfigEntry (input.gamepad.xinput.invert_lx,         L"Invert the X-Axis on the Left Analog Stick",                dll_ini,         L"Input.XInput",          L"InvertLX"),
+    ConfigEntry (input.gamepad.xinput.invert_ly,         L"Invert the Y-Axis on the Left Analog Stick",                dll_ini,         L"Input.XInput",          L"InvertLY"),
+    ConfigEntry (input.gamepad.xinput.invert_rx,         L"Invert the X-Axis on the Right Analog Stick",               dll_ini,         L"Input.XInput",          L"InvertRX"),
+    ConfigEntry (input.gamepad.xinput.invert_ry,         L"Invert the Y-Axis on the Right Analog Stick",               dll_ini,         L"Input.XInput",          L"InvertRY"),
+    ConfigEntry (input.gamepad.xinput.swap_sticks,       L"Swap Left and Right Analog Stick Input",                    dll_ini,         L"Input.XInput",          L"SwapSticks"),
     ConfigEntry (input.gamepad.dinput.blackout_gamepads, L"Prevent game from seeing DirectInput gamepads",             dll_ini,         L"Input.DInput",          L"HideGamepads"),
     ConfigEntry (input.gamepad.dinput.blackout_mice,     L"Prevent game from seeing DirectInput mice",                 dll_ini,         L"Input.DInput",          L"HideMice"),
     ConfigEntry (input.gamepad.dinput.blackout_keyboards,L"Prevent game from seeing DirectInput keyboards",            dll_ini,         L"Input.DInput",          L"HideKeyboards"),
@@ -4862,6 +4872,11 @@ auto DeclKeybind =
   input.gamepad.xinput.blackout_api->load      (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->load           (config.input.gamepad.xinput.emulate);
   input.gamepad.xinput.deadzone->load          (config.input.gamepad.xinput.deadzone);
+  input.gamepad.xinput.invert_lx->load         (config.input.gamepad.xinput.invert_lx);
+  input.gamepad.xinput.invert_ly->load         (config.input.gamepad.xinput.invert_ly);
+  input.gamepad.xinput.invert_rx->load         (config.input.gamepad.xinput.invert_rx);
+  input.gamepad.xinput.invert_ry->load         (config.input.gamepad.xinput.invert_ry);
+  input.gamepad.xinput.swap_sticks->load       (config.input.gamepad.xinput.swap_sticks);
   input.gamepad.dinput.blackout_gamepads->load (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->load     (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->load(config.input.gamepad.dinput.blackout_keyboards);
@@ -6400,6 +6415,11 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->store              (config.input.gamepad.xinput.emulate);
   input.gamepad.xinput.deadzone->store             (config.input.gamepad.xinput.deadzone);
+  input.gamepad.xinput.invert_lx->store            (config.input.gamepad.xinput.invert_lx);
+  input.gamepad.xinput.invert_ly->store            (config.input.gamepad.xinput.invert_ly);
+  input.gamepad.xinput.invert_rx->store            (config.input.gamepad.xinput.invert_rx);
+  input.gamepad.xinput.invert_ry->store            (config.input.gamepad.xinput.invert_ry);
+  input.gamepad.xinput.swap_sticks->store          (config.input.gamepad.xinput.swap_sticks);
   input.gamepad.dinput.blackout_gamepads->store    (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->store        (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->store   (config.input.gamepad.dinput.blackout_keyboards);

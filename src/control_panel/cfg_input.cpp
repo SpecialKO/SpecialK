@@ -1343,6 +1343,79 @@ SK::ControlPanel::Input::Draw (void)
           XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 3", 3);
         }
 
+        int ls_inversion = (config.input.gamepad.xinput.invert_lx ? 1 : 0) +
+                           (config.input.gamepad.xinput.invert_ly ? 2 : 0);
+        int rs_inversion = (config.input.gamepad.xinput.invert_rx ? 1 : 0) +
+                           (config.input.gamepad.xinput.invert_ry ? 2 : 0);
+
+        static bool axial_remap =
+          ( ls_inversion != 0 ||
+            rs_inversion != 0 ||
+            config.input.gamepad.xinput.swap_sticks );
+
+        bool changed = false;
+
+        ImGui::Separator ();
+
+        if (ImGui::Checkbox ("Remap Analog Sticks", &axial_remap))
+        {
+          if (! axial_remap)
+          {
+            config.input.gamepad.xinput.swap_sticks = false;
+
+            ls_inversion = 0;
+            rs_inversion = 0;
+            changed      = true;
+          }
+        }
+
+        ImGui::SetItemTooltip (
+          "Applies to Xbox input; PlayStation remapping requires \"Xbox Mode\""
+        );
+
+        if (axial_remap)
+        {
+          ImGui::SameLine     (0.0f, ImGui::GetStyle ().ItemSpacing.x * 3);
+          changed |=
+          ImGui::Checkbox     ("Swap Left / Right",
+            &config.input.gamepad.xinput.swap_sticks);
+          ImGui::TreePush     ("");
+          ImGui::BeginGroup   (  );
+          ImGui::TextUnformatted
+                           ("L: ");
+          ImGui::SameLine     (  );
+          ImGui::PushItemWidth(
+            ImGui::GetStyle ().ItemSpacing.x * 2 +
+            ImGui::CalcTextSize ("Inverted X-axis\t").x);
+          changed |=
+          ImGui::Combo        ("##LeftStickRemap",  &ls_inversion,
+            "Normal\0Inverted X-axis\0Inverted Y-axis\0Fully Inverted\0\0", 4);
+          ImGui::PopItemWidth (  );
+          ImGui::SameLine     (0.0f, ImGui::GetStyle ().ItemSpacing.x * 2);
+          ImGui::TextUnformatted
+                           ("R: ");
+          ImGui::SameLine     (  );
+          ImGui::PushItemWidth(
+            ImGui::GetStyle ().ItemSpacing.x * 2 +
+            ImGui::CalcTextSize ("Inverted X-axis\t").x);
+          changed |=
+          ImGui::Combo        ("##RightStickRemap", &rs_inversion,
+            "Normal\0Inverted X-axis\0Inverted Y-axis\0Fully Inverted\0\0", 4);
+          ImGui::PopItemWidth (  );
+          ImGui::EndGroup     (  );
+          ImGui::TreePop      (  );
+        }
+
+        if (changed)
+        {
+          config.input.gamepad.xinput.invert_lx = (ls_inversion & 0x1) != 0;
+          config.input.gamepad.xinput.invert_ly = (ls_inversion & 0x2) != 0;
+          config.input.gamepad.xinput.invert_rx = (rs_inversion & 0x1) != 0;
+          config.input.gamepad.xinput.invert_ry = (rs_inversion & 0x2) != 0;
+
+          config.utility.save_async ();
+        }
+
         ImGui::NextColumn ( );
 
         ImGui::ItemSize ( ImVec2 (0.0f, 0.0f),

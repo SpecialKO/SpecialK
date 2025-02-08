@@ -1127,6 +1127,11 @@ struct sk_config_t
         bool  emulate             = false;
         bool  debug               = false;
         float deadzone            =  5.0f; // 5% Left/Right Analog Stick Deadzone
+        bool  invert_lx           =  false;
+        bool  invert_ly           =  false;
+        bool  invert_rx           =  false;
+        bool  invert_ry           =  false;
+        bool  swap_sticks         =  false;
       } xinput;
 
       struct {

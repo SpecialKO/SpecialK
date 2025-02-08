@@ -657,6 +657,20 @@ XInputGetState1_4_Detour (
       WriteULong64Release (&last_time [0], virtual_newer ? virtual_time : native_time);
     }
 
+    if (config.input.gamepad.xinput.invert_lx)
+      pState->Gamepad.sThumbLX = ~pState->Gamepad.sThumbLX;
+    if (config.input.gamepad.xinput.invert_ly)
+      pState->Gamepad.sThumbLY = ~pState->Gamepad.sThumbLY;
+    if (config.input.gamepad.xinput.invert_rx)
+      pState->Gamepad.sThumbRX = ~pState->Gamepad.sThumbRX;
+    if (config.input.gamepad.xinput.invert_ry)
+      pState->Gamepad.sThumbRY = ~pState->Gamepad.sThumbRY;
+    if (config.input.gamepad.xinput.swap_sticks)
+    {
+      std::swap (pState->Gamepad.sThumbRX, pState->Gamepad.sThumbLX);
+      std::swap (pState->Gamepad.sThumbRY, pState->Gamepad.sThumbLY);
+    }
+
     if (new_packet)
     {
       if (!(SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [0]))
@@ -963,6 +977,20 @@ XInputGetStateEx1_4_Detour (
         (virtual_time > native_time);
 
       WriteULong64Release (&last_time [0], virtual_newer ? virtual_time : native_time);
+    }
+
+    if (config.input.gamepad.xinput.invert_lx)
+      pState->Gamepad.sThumbLX = ~pState->Gamepad.sThumbLX;
+    if (config.input.gamepad.xinput.invert_ly)
+      pState->Gamepad.sThumbLY = ~pState->Gamepad.sThumbLY;
+    if (config.input.gamepad.xinput.invert_rx)
+      pState->Gamepad.sThumbRX = ~pState->Gamepad.sThumbRX;
+    if (config.input.gamepad.xinput.invert_ry)
+      pState->Gamepad.sThumbRY = ~pState->Gamepad.sThumbRY;
+    if (config.input.gamepad.xinput.swap_sticks)
+    {
+      std::swap (pState->Gamepad.sThumbRX, pState->Gamepad.sThumbLX);
+      std::swap (pState->Gamepad.sThumbRY, pState->Gamepad.sThumbLY);
     }
 
     if (new_packet)
@@ -3461,6 +3489,21 @@ SK_Input_PreHookXInput (void)
 {
   if (! config.input.gamepad.hook_xinput)
     return;
+
+  SK_RunOnce (
+    auto pCommandProc = SK_GetCommandProcessor ();
+    
+    pCommandProc->AddVariable (               "Input.Gamepad.InvertLX",
+        new SK_IVarStub <bool> (&config.input.gamepad.xinput.invert_lx) );
+    pCommandProc->AddVariable (               "Input.Gamepad.InvertLY",
+        new SK_IVarStub <bool> (&config.input.gamepad.xinput.invert_ly) );
+    pCommandProc->AddVariable (               "Input.Gamepad.InvertRX",
+        new SK_IVarStub <bool> (&config.input.gamepad.xinput.invert_rx) );
+    pCommandProc->AddVariable (               "Input.Gamepad.InvertRY",
+        new SK_IVarStub <bool> (&config.input.gamepad.xinput.invert_ry) );
+    pCommandProc->AddVariable (               "Input.Gamepad.SwapSticks",
+        new SK_IVarStub <bool> (&config.input.gamepad.xinput.swap_sticks) );
+  );
 
   static std::filesystem::path path_to_driver_base =
         (std::filesystem::path (SK_GetInstallPath ()) /
