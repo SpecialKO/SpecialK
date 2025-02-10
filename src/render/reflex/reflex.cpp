@@ -370,6 +370,16 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
   if (config.nvidia.reflex.native)
     return;
 
+  // Avoid unnecessarily calling PeekMessage because the Steam overlay adds
+  //   a ton of overhead to it.
+  static bool bSteamOverlaySafe =
+    !SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"GameOverlayRenderer64.dll",
+                                                 L"GameOverlayRenderer.dll")) ||
+    config.steam.disable_overlay;
+
+  if (! bSteamOverlaySafe)
+    return;
+
   static bool init = false;
 
   if (marker.markerType == SIMULATION_START)
@@ -392,15 +402,8 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
           bool ping             = false;
           MSG  msg              = { };
 
-    // Avoid unnecessarily calling PeekMessage because the Steam overlay adds
-    //   a ton of overhead to it.
-    static DWORD
-        dwLastPeek = SK::ControlPanel::current_time;
-    if (dwLastPeek < SK::ControlPanel::current_time - 150)
-    {   dwLastPeek = SK::ControlPanel::current_time;
-      while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
-        ping = true;
-    }
+    while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
+      ping = true;
 
     if (ping)
     {

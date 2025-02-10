@@ -1,4 +1,16 @@
-﻿25.2.8.3
+﻿25.2.10
+=======
+ + Disable NVIDIA Reflex PC Latency Stats if the Steam Overlay is loaded, or
+     if SK has not been setup to disable Steam's hooks.
+
+   * They hook and place a mutex on PeekMessageW (...), which makes the Reflex
+       latency stats thread that SK uses block execution of the game's main
+         thread, and the original solution of throttling PC latency stat
+           updates only results in inaccurate values reported by NV's overlay.
+
+    - Instead of hurting performance, this feature is disabled for Steam users.
+
+25.2.8.3
 ========
  + Added support for importing settings from an INI file using drag-n-drop
      from a URL (i.e. drag the download icon from Discord into the game).
