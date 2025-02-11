@@ -377,9 +377,6 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
                                                  L"GameOverlayRenderer.dll")) ||
     config.steam.disable_overlay;
 
-  if (! bSteamOverlaySafe)
-    return;
-
   static bool init = false;
 
   if (marker.markerType == SIMULATION_START)
@@ -402,8 +399,11 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
           bool ping             = false;
           MSG  msg              = { };
 
-    while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
-      ping = true;
+    if (bSteamOverlaySafe)
+    {
+      while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
+        ping = true;
+    }
 
     if (ping)
     {

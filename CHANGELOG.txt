@@ -1,4 +1,9 @@
-﻿25.2.10
+﻿25.2.10.1
+=========
+ + Enable the rest of NVIDIA's Reflex stats even for Steam users, since they
+     are not affected by the overlay.
+
+25.2.10
 =======
  + Disable NVIDIA Reflex PC Latency Stats if the Steam Overlay is loaded, or
      if SK has not been setup to disable Steam's hooks.
