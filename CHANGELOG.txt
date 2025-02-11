@@ -1,4 +1,8 @@
-﻿25.2.10.1
+﻿25.2.11
+=======
+ + Blacklist "WaitTitleProject.exe" for some weird Square Enix game's launcher.
+
+25.2.10.1
 =========
  + Enable the rest of NVIDIA's Reflex stats even for Steam users, since they
      are not affected by the overlay.
