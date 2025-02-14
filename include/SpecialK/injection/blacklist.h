@@ -242,6 +242,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"dockmod64.exe",
 
   L"waittitleproject.exe",
+  L"BsSndRpt64.exe", // Some kind of crash handler
 
   L"crashpad_handler.exe",
   L"crashpad_handler.dll", // WTF? Dave the Diver runs this DLL as an exe

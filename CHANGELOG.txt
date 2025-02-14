@@ -1,4 +1,9 @@
-﻿25.2.11
+﻿25.2.13
+=======
+ + Added BsSndRpt64.exe to internal injection blacklist; some kind of bs
+     crash handler for Kingdom Come Deliverance 2.
+
+25.2.11
 =======
  + Blacklist "WaitTitleProject.exe" for some weird Square Enix game's launcher.
 
