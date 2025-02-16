@@ -1,6 +1,8 @@
 ﻿
 25.2.16.3
 =========
+ + Added config profile for Avowed and set "Treat Foreground Window as Active",
+     because the game is using the wrong test for window activation.
  + Added an INI option to control whether Alt+Tab stuck-key fixes are
      applied even for non-background-render scenarios.
 

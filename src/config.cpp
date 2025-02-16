@@ -280,6 +280,8 @@ SK_GetCurrentGameID (void)
           { L"ZenlessZoneZero.exe",                    SK_GAME_ID::ZenlessZoneZero              },
           { L"EnderLiliesSteam-Win64-Shipping.exe",    SK_GAME_ID::EnderLilies                  },
           { L"EnderLiliesEOS-Win64-Shipping.exe",      SK_GAME_ID::EnderLilies                  },
+          { L"Avowed-WinGDK-Shipping.exe",             SK_GAME_ID::Avowed                       }, // Microsoft Store Version
+          { L"Avowed-Win64-Shipping.exe",              SK_GAME_ID::Avowed                       }, // Steam Version
         };
 
     first_check  = false;
@@ -3913,6 +3915,10 @@ auto DeclKeybind =
                          SK_ImGui_Toast::ShowTitle );
           }
         );
+        break;
+
+      case SK_GAME_ID::Avowed:
+        config.window.treat_fg_as_active = true;
         break;
 
       case SK_GAME_ID::DiabloIV:

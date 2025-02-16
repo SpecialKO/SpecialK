@@ -1799,6 +1799,7 @@ enum class SK_GAME_ID
   vlc,                          // vlc.exe
   ZenlessZoneZero,              // ZenlessZoneZero.exe
   EnderLilies,                  // EnderLiliesEOS-Win64-Shipping.exe, EnderLiliesSteam-Win64-Shipping.exe
+  Avowed,                       // Avowed-WinGDK-Shipping.exe, Avowed-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };
