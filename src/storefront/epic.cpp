@@ -895,7 +895,7 @@ SK::EOS::Init (bool pre_load)
                               L"EOSSDK-Win32-Shipping.dll" );
 
   static HMODULE     hModEOS = nullptr;
-  if (std::exchange (hModEOS, SK_LoadLibraryW (wszEOSDLLName)) == nullptr)
+  if (std::exchange (hModEOS, SK_LoadLibraryW (wszEOSDLLName)) == nullptr && hModEOS != nullptr)
   {
     epic_log->init (L"logs/eos.log", L"wt+,ccs=UTF-8");
     epic_log->silent = config.platform.silent;

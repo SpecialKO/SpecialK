@@ -3590,6 +3590,9 @@ public:
         return S_OK;
       };
 
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
       // Unicode URLs
       if (m_fmtDropping->cfFormat == CF_UNICODETEXT && SUCCEEDED (pDataObj->GetData (m_fmtDropping, &medium)))
       {
@@ -3673,7 +3676,7 @@ public:
             }
           }
 
-          if (StrStrIW (wszSource, L".dds"))
+          if (SK_API_IsLayeredOnD3D11 (rb.api) && StrStrIW (wszSource, L".dds"))
           {
             std::filesystem::path dest =
               *SK_D3D11_res_root;
@@ -3850,7 +3853,7 @@ public:
             }
           }
 
-          if (StrStrIA (szSource, ".dds"))
+          if (SK_API_IsLayeredOnD3D11 (rb.api) && StrStrIA (szSource, ".dds"))
           {
             std::filesystem::path dest =
               *SK_D3D11_res_root;
@@ -3936,18 +3939,12 @@ private:
 void
 SK_ImGui_InitDragAndDrop (void)
 {
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  if (SK_API_IsLayeredOnD3D11 (rb.api))
-  {
-    SK_RunOnce (
-      OleInitialize        (nullptr);
-      SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
-      RevokeDragDrop       (game_window.hWnd);
-      RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
-    );
-  }
+  SK_RunOnce (
+    OleInitialize        (nullptr);
+    SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
+    RevokeDragDrop       (game_window.hWnd);
+    RegisterDragDrop     (game_window.hWnd,                 new SK_DropTarget (game_window.hWnd))
+  );
 }
 
 void
