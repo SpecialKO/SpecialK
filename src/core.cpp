@@ -3798,7 +3798,6 @@ SK_BackgroundRender_EndFrame (void)
 
     if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
     {
-      config.window.background_render       = false;
       config.input.gamepad.xinput.emulate   = false;
       config.nvidia.reflex.enforcement_site = 0; // Reduce sutter
     }

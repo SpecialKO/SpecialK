@@ -3373,7 +3373,6 @@ auto DeclKeybind =
       case SK_GAME_ID::Hello_Kitty_Island_Adventure:
       {
         config.input.gamepad.xinput.emulate = false;
-        config.window.background_render     = false;
       } break;
 
       case SK_GAME_ID::Tales_of_Vesperia:

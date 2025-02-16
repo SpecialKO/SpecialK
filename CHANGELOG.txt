@@ -1,4 +1,9 @@
-﻿25.2.16.1
+﻿25.2.16.2
+=========
+ + Re-enable background rendering mode in Hello Kitty: Island Adventure,
+     because 25.2.16.1 fixed the original input problem.
+
+25.2.16.1
 =========
  + Add 5 millisecond delay between each of the keys listed in 25.2.16;
      seems to fix Avowed's menus not working correctly...
