@@ -2635,6 +2635,7 @@ auto DeclKeybind =
 
         config.input.ui.use_hw_cursor          = false; // Prevent the game's cursor from doing whatever
         config.render.d3d12.force_anisotropic  = false;
+        config.input.ui.ignore_set_cursor      = true;
 
         // Sick of users complaining about bugs that -were- fixed because they can't be bothered to
         //   reset their INI after defaults are changed to fix the problems... so we're going to be

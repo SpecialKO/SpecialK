@@ -5963,7 +5963,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SETCURSOR:
     {
-      if (hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)
+      if ((! config.input.ui.ignore_set_cursor) && hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)
       {
         if (LOWORD (lParam) == HTCLIENT)
         {
@@ -8628,7 +8628,7 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       break;
     case WM_SETCURSOR:
-      if (game_window.active)
+      if (game_window.active && (! config.input.ui.ignore_set_cursor))
       {
         SetCursor (NULL);
         return TRUE;

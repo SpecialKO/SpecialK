@@ -1,4 +1,8 @@
-﻿25.2.13
+﻿25.2.15
+=======
+ + Attempted fix for Kingdom Come Deliverance 2 mouse cursor issues.
+
+25.2.13
 =======
  + Added BsSndRpt64.exe to internal injection blacklist; some kind of bs
      crash handler for Kingdom Come Deliverance 2.

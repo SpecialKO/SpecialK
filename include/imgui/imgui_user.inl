@@ -1079,7 +1079,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     }
   }
 
-  if (msg == WM_SETCURSOR)
+  if (msg == WM_SETCURSOR && (! config.input.ui.ignore_set_cursor))
   {
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
