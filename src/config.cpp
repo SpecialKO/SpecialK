@@ -2638,9 +2638,10 @@ auto DeclKeybind =
         //   ReSizeBuffers (...)
         config.render.dxgi.fake_swapchain_desc = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-        config.input.ui.use_hw_cursor          = false; // Prevent the game's cursor from doing whatever
+        config.input.ui.use_hw_cursor          = false;
         config.render.d3d12.force_anisotropic  = false;
         config.input.ui.allow_set_cursor       = false;
+        config.window.dont_hook_wndproc        =  true; // Game randomly displays mouse cursor when memory is modified
 
         // Sick of users complaining about bugs that -were- fixed because they can't be bothered to
         //   reset their INI after defaults are changed to fix the problems... so we're going to be

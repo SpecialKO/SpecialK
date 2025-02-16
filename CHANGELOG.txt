@@ -1,5 +1,7 @@
 ﻿25.2.16.3
 =========
+ + Added DontHookWndProc=true to Kingdom Come Deliverance 2 to keep the mouse
+     cursor from randomly appearing when the game detects modified memory.
  + Enabled drag-n-drop functionality (for INI files) for all graphics APIs;
      texture mod drag-n-drop still requires D3D11.
  + Added config profile for Avowed and set "Treat Foreground Window as Active",
