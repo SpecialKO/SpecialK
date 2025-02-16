@@ -1,4 +1,9 @@
-﻿25.2.16
+﻿25.2.16.1
+=========
+ + Add 5 millisecond delay between each of the keys listed in 25.2.16;
+     seems to fix Avowed's menus not working correctly...
+
+25.2.16
 =======
  + When "Continue Rendering" is enabled, generate fake key release events for
      Tab, Escape, Alt, Ctrl, Shift, Windows after alt-tabbing back into a game

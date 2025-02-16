@@ -750,20 +750,14 @@ void
 SK_Input_ReleaseCommonStuckKeys (void) noexcept
 {
   static const std::pair <BYTE, BYTE> virt_keys_to_release [] =
-    { { (BYTE)VK_TAB,      (BYTE)MapVirtualKey ((BYTE)VK_TAB,      0) },
-      { (BYTE)VK_ESCAPE,   (BYTE)MapVirtualKey ((BYTE)VK_ESCAPE,   0) },
-      { (BYTE)VK_LWIN,     (BYTE)MapVirtualKey ((BYTE)VK_LWIN,     0) },
-      { (BYTE)VK_RWIN,     (BYTE)MapVirtualKey ((BYTE)VK_RWIN,     0) },
-      { (BYTE)VK_LMENU,    (BYTE)MapVirtualKey ((BYTE)VK_LMENU,    0) },
-      { (BYTE)VK_RMENU,    (BYTE)MapVirtualKey ((BYTE)VK_RMENU,    0) },
-      { (BYTE)VK_MENU,     (BYTE)MapVirtualKey ((BYTE)VK_MENU,     0) },
-      { (BYTE)VK_LSHIFT,   (BYTE)MapVirtualKey ((BYTE)VK_LSHIFT,   0) },
-      { (BYTE)VK_RSHIFT,   (BYTE)MapVirtualKey ((BYTE)VK_RSHIFT,   0) },
-      { (BYTE)VK_SHIFT,    (BYTE)MapVirtualKey ((BYTE)VK_SHIFT,    0) },
-      { (BYTE)VK_LCONTROL, (BYTE)MapVirtualKey ((BYTE)VK_LCONTROL, 0) },
-      { (BYTE)VK_RCONTROL, (BYTE)MapVirtualKey ((BYTE)VK_RCONTROL, 0) },
-      { (BYTE)VK_CONTROL,  (BYTE)MapVirtualKey ((BYTE)VK_CONTROL,  0) } };
-  
+    { { (BYTE)VK_MENU,     (BYTE)MapVirtualKey ((BYTE)VK_MENU,     0) },   // 0
+      { (BYTE)VK_LWIN,     (BYTE)MapVirtualKey ((BYTE)VK_LWIN,     0) },   // 1
+      { (BYTE)VK_LMENU,    (BYTE)MapVirtualKey ((BYTE)VK_LMENU,    0) },   // 2
+      { (BYTE)VK_SHIFT,    (BYTE)MapVirtualKey ((BYTE)VK_SHIFT,    0) },   // 3
+      { (BYTE)VK_RMENU,    (BYTE)MapVirtualKey ((BYTE)VK_RMENU,    0) },   // 4
+      { (BYTE)VK_RWIN,     (BYTE)MapVirtualKey ((BYTE)VK_RWIN,     0) },   // 5
+      { (BYTE)VK_TAB,      (BYTE)MapVirtualKey ((BYTE)VK_TAB,      0) } }; // 6
+
   for ( auto& [vKey, bScancode] : virt_keys_to_release )
   {
     DWORD dwFlags  =

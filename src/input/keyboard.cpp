@@ -358,6 +358,8 @@ SK_keybd_event (
           SK_Win32_KeybdEvent        data = { };
           if (_keybd_events.try_pop (data))
           {
+            SK_SleepEx (5, FALSE);
+
             ( keybd_event_Original != nullptr )                       ?
               keybd_event_Original ( data.bVk,     data.bScan,
                                      data.dwFlags, data.dwExtraInfo ) :
