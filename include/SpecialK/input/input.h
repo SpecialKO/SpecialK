@@ -79,7 +79,8 @@ void SK_Input_Init         (void);
 void SK_Input_InitKeyboard (void);
 
 
-void SK_Input_SetLatencyMarker (void) noexcept;
+void SK_Input_ReleaseCommonStuckKeys (void) noexcept;
+void SK_Input_SetLatencyMarker       (void) noexcept;
 
 // SK doesn't use SDL, but many games crash on exit due to polling
 //   joystick after XInput is unloaded... so we'll just terminate

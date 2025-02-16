@@ -6138,6 +6138,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         ActivateWindow (hWnd, true, (HWND)wParam);
 
+        if (config.window.background_render        &&
+            config.input.keyboard.disabled_to_game != SK_InputEnablement::Disabled)
+        {
+          SK_Input_ReleaseCommonStuckKeys ();
+        }
+
         // GeForce Experience Overlay is known to paradoxically set
         //   hWnd == wParam when it activates...
         if ( hWnd != (HWND)wParam &&
