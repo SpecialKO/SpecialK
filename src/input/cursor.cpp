@@ -55,6 +55,9 @@ BOOL
 WINAPI
 SK_SendMsgShowCursor (BOOL bShow)
 {
+  if (! config.input.ui.allow_show_cursor)
+    return SK_InputUtil_IsHWCursorVisible ();
+
   // Game is mouselooking if this is true
   if (bShow && config.input.cursor.manage && !SK_ImGui_CursorWarpingCooledDown () && !SK_ImGui_WantMouseCapture ())
   {
@@ -115,6 +118,9 @@ int
 WINAPI
 SK_ShowCursor (BOOL bShow)
 {
+  if (! config.input.ui.allow_show_cursor)
+    return SK_InputUtil_IsHWCursorVisible ();
+
   return (ShowCursor_Original != nullptr) ?
           ShowCursor_Original (bShow)     :
           ShowCursor          (bShow);
@@ -124,6 +130,9 @@ int
 WINAPI
 ShowCursor_Detour (BOOL bShow)
 {
+  if (! config.input.ui.allow_show_cursor)
+    return ShowCursor_Original (bShow);
+
   CURSORINFO
     cursor_info        = { };
     cursor_info.cbSize = sizeof (CURSORINFO);

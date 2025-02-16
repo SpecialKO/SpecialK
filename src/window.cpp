@@ -1286,11 +1286,19 @@ ActivateWindow ( HWND hWnd,
 
     else
     {
-      if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
+      if (config.input.ui.allow_show_cursor)
       {
-        game_window.cursor_visible =
-          SK_ShowCursor (TRUE) >= 1;
-          SK_ShowCursor (FALSE);
+        if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
+        {
+          game_window.cursor_visible =
+            SK_ShowCursor (TRUE) >= 1;
+            SK_ShowCursor (FALSE);
+        }
+      }
+
+      else
+      {
+        game_window.cursor_visible = SK_InputUtil_IsHWCursorVisible ();
       }
     }
 
@@ -7861,7 +7869,7 @@ DefWindowProcW_Detour ( _In_ HWND   hWnd,
 
   if (Msg >= 0xC000 && Msg <= 0xFFFF)
   {
-    if (Msg == game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage)
+    if (Msg == game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage && config.input.ui.allow_show_cursor)
     {
       static constexpr auto          _MaxTries = 25;
       for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
@@ -7871,7 +7879,7 @@ DefWindowProcW_Detour ( _In_ HWND   hWnd,
       }
     }
 
-    else if (Msg == game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage)
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage && config.input.ui.allow_show_cursor)
     {
       static constexpr auto          _MaxTries = 25;
       for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
@@ -7933,7 +7941,7 @@ DefWindowProcA_Detour ( _In_ HWND   hWnd,
 
   if (Msg >= 0xC000 && Msg <= 0xFFFF)
   {
-    if (Msg == game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage)
+    if (Msg == game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage && config.input.ui.allow_show_cursor)
     {
       static constexpr auto          _MaxTries = 25;
       for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
@@ -7943,7 +7951,7 @@ DefWindowProcA_Detour ( _In_ HWND   hWnd,
       }
     }
 
-    else if (Msg == game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage)
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage && config.input.ui.allow_show_cursor)
     {
       static constexpr auto          _MaxTries = 25;
       for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )

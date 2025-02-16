@@ -1,4 +1,8 @@
-﻿25.2.16.3
+﻿25.2.17
+=======
+ + Fixed cursor issues in Kingdom Come Deliverance 2 once and for all.
+
+25.2.16.3
 =========
  + Added DontHookWndProc=true to Kingdom Come Deliverance 2 to keep the mouse
      cursor from randomly appearing when the game detects modified memory.

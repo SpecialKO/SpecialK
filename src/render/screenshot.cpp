@@ -2588,10 +2588,13 @@ SK_ScreenshotManager::setSnipState (SK_ScreenshotManager::SnippingState state)
   if (state == SnippingInactive ||
       state == SnippingComplete)
   {
-    if (     _ExtraCursorRefs > 0) {
-      while (_ExtraCursorRefs-- > 0)
-      {
-        ShowCursor (FALSE);
+    if (config.input.ui.allow_show_cursor)
+    {
+      if (     _ExtraCursorRefs > 0) {
+        while (_ExtraCursorRefs-- > 0)
+        {
+          ShowCursor (FALSE);
+        }
       }
     }
   }
@@ -2599,12 +2602,15 @@ SK_ScreenshotManager::setSnipState (SK_ScreenshotManager::SnippingState state)
   else if (state == SnippingRequested ||
            state == SnippingActive)
   {
-    if (! SK_ImGui_IsHWCursorVisible)
+    if (config.input.ui.allow_show_cursor)
     {
-      do
+      if (! SK_ImGui_IsHWCursorVisible)
       {
-        ++_ExtraCursorRefs;
-      } while (ShowCursor (TRUE) < 0);
+        do
+        {
+          ++_ExtraCursorRefs;
+        } while (ShowCursor (TRUE) < 0);
+      }
     }
   }
 

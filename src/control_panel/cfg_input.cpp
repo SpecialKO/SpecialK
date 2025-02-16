@@ -685,8 +685,12 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::BeginGroup ();
       ImGui::BeginGroup ();
 
+      if (! config.input.ui.allow_show_cursor)
+      ImGui::BeginDisabled ();
       bool bIdleHideChange =
       ImGui::Checkbox ( "Auto Hide Mouse Cursor", &config.input.cursor.manage   );
+      if (! config.input.ui.allow_show_cursor)
+      ImGui::EndDisabled ();
 
       auto button_size =
         ImGui::GetItemRectSize ();
@@ -707,7 +711,7 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
       ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
-      ImGui::BeginDisabled (! config.input.cursor.manage);
+      ImGui::BeginDisabled (!config.input.cursor.manage || !config.input.ui.allow_show_cursor);
       ImGui::PushItemWidth (button_size.x);
       if ( ImGui::SliderFloat ("###SecondsBeforeHidingCursor",
                                  &seconds, 0.0f, 10.0f, seconds > 0.0 ? "%.2f Second Idle" : "Always Hidden" ) )
@@ -725,7 +729,7 @@ SK::ControlPanel::Input::Draw (void)
                         (
         "Auto-hide the cursor in response to XInput (Xbox) or HID (PlayStation) input activity."
                            );
-      if (! config.input.cursor.manage)
+      if (!config.input.cursor.manage || !config.input.ui.allow_show_cursor)
       ImGui::EndDisabled(  );
       ImGui::SameLine   (  );
       ImGui::TreePop    (  );
@@ -3196,6 +3200,9 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
       config.input.ui.allow_set_cursor = config.input.ui.use_hw_cursor;
       SK_ImGui_UpdateCursor ();
     }
+    if (SK_ImGui_IsItemRightClicked ())
+      config.input.ui.allow_show_cursor = !config.input.ui.allow_show_cursor;
+
     if (ImGui::BeginItemTooltip ())
     {
       ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Reduce Mouse Latency in SK's Overlay");
@@ -3208,6 +3215,8 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     ImGui::SameLine     (0.0f, 15);
     ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine     (0.0f,  7);
+    if (! config.input.ui.allow_show_cursor)
+    ImGui::BeginDisabled ();
     if (! config.input.cursor.manage)
     {
       if (SK_ImGui_Cursor.force == sk_cursor_state::None)
@@ -3250,23 +3259,27 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     
     else ImGui::Checkbox( "Keyboard Activates",
           &config.input.cursor.keys_activate );
+
+    if (! config.input.ui.allow_show_cursor)
+    ImGui::EndDisabled  (  );
     ImGui::EndGroup     (  );
   }
   ImGui::SeparatorText  ("Cursor Boundaries");
   ImGui::EndGroup       (  );
   ImGui::TreePush       ("");
-  
+  ImGui::PushID         (_ReturnAddress ());
+
   int  ovr     = 0;
   bool changed = false;
-  
+
   if (config.window.confine_cursor)
     ovr = 1;
   if (config.window.unconfine_cursor)
     ovr = 2;
-  
+
   changed |= ImGui::RadioButton ("Normal Game Behavior", &ovr, 0); ImGui::SameLine ();
   changed |= ImGui::RadioButton ("Keep Inside Window",   &ovr, 1); ImGui::SameLine ();
-  
+
   if (ImGui::BeginItemTooltip ())
   {
     ImGui::Text       ("Prevents Mouse Cursor from Leaving the Game Window");
@@ -3274,11 +3287,11 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     ImGui::BulletText ("This window-lock will be disengaged when you press Alt + Tab");
     ImGui::EndTooltip ();
   }
-  
+
   changed |= ImGui::RadioButton ("Unrestrict Cursor",    &ovr, 2);
-  
+
   ImGui::SetItemTooltip ("Prevent Game from Restricting Cursor to Window");
-  
+
   if (changed)
   {
     switch (ovr)
@@ -3296,9 +3309,10 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
         config.window.unconfine_cursor = 1;
         break;
     }
-  
+
     SK_ImGui_AdjustCursor ();
   }
-  
+
+  ImGui::PopID   ();
   ImGui::TreePop ();
 }

@@ -2638,10 +2638,9 @@ auto DeclKeybind =
         //   ReSizeBuffers (...)
         config.render.dxgi.fake_swapchain_desc = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-        config.input.ui.use_hw_cursor          = false;
         config.render.d3d12.force_anisotropic  = false;
-        config.input.ui.allow_set_cursor       = false;
-        config.window.dont_hook_wndproc        =  true; // Game randomly displays mouse cursor when memory is modified
+        config.input.ui.use_hw_cursor          =  true;
+        config.input.ui.allow_show_cursor      = false;
 
         // Sick of users complaining about bugs that -were- fixed because they can't be bothered to
         //   reset their INI after defaults are changed to fix the problems... so we're going to be
@@ -2649,6 +2648,7 @@ auto DeclKeybind =
         input.cursor.hw_cursor->store         (config.input.ui.use_hw_cursor);
         render.d3d12.force_anisotropic->store (config.render.d3d12.force_anisotropic);
         window.background_render->store       (config.window.background_render);
+        window.dont_hook_wndproc->store       (config.window.dont_hook_wndproc);
         break;
 
       case SK_GAME_ID::DragonsDogma2:
