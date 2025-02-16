@@ -3193,6 +3193,7 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     ImGui::SameLine     (0.0f, 15);
     if (ImGui::Checkbox ("Use Hardware Cursor", &config.input.ui.use_hw_cursor))
     {
+      config.input.ui.allow_set_cursor = config.input.ui.use_hw_cursor;
       SK_ImGui_UpdateCursor ();
     }
     if (ImGui::BeginItemTooltip ())

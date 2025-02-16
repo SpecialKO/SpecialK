@@ -2635,7 +2635,7 @@ auto DeclKeybind =
 
         config.input.ui.use_hw_cursor          = false; // Prevent the game's cursor from doing whatever
         config.render.d3d12.force_anisotropic  = false;
-        config.input.ui.ignore_set_cursor      = true;
+        config.input.ui.allow_set_cursor       = false;
 
         // Sick of users complaining about bugs that -were- fixed because they can't be bothered to
         //   reset their INI after defaults are changed to fix the problems... so we're going to be
@@ -4821,6 +4821,9 @@ auto DeclKeybind =
   input.cursor.hw_cursor->load           (config.input.ui.use_hw_cursor);
   input.cursor.block_invisible->load     (config.input.ui.capture_hidden);
   input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
+
+  // Implicit setting, not user-facing
+  config.input.ui.allow_set_cursor =      config.input.ui.use_hw_cursor;
 
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_hid->load        (config.input.gamepad.disable_hid);

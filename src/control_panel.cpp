@@ -8822,7 +8822,7 @@ SK_ImGui_Toggle (void)
 
   static auto Send_WM_SETCURSOR = [&](void)
   {
-    if (config.input.ui.ignore_set_cursor)
+    if (! config.input.ui.allow_set_cursor)
       return;
 
     SK_COMPAT_SafeCallProc (&game_window,
@@ -8882,8 +8882,8 @@ SK_ImGui_Toggle (void)
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
     );
 
-    if (! config.input.ui.ignore_set_cursor)
     SK_RunOnce (
+      if (config.input.ui.allow_set_cursor)
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);

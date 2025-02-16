@@ -1079,7 +1079,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     }
   }
 
-  if (msg == WM_SETCURSOR && (! config.input.ui.ignore_set_cursor))
+  if (msg == WM_SETCURSOR)
   {
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
@@ -1116,7 +1116,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
           if (bRawCapture || ( SK_ImGui_IsAnythingHovered () &&
                                SK_ImGui_WantMouseCapture  () ))
           {
-            if (SK_ImGui_WantHWCursor ())
+            if (SK_ImGui_WantHWCursor () && config.input.ui.allow_set_cursor)
             {
               auto desired_cursor     = ImGui_DesiredCursor ();
               bool using_class_cursor = false;
@@ -1144,19 +1144,23 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
                 SK_SetCursor (desired_cursor);
             }
 
-            return TRUE;
+            if (config.input.ui.allow_set_cursor)
+              return TRUE;
           }
 
           else
           {
-            // Reset the class cursor if necessary.
-            if ((intptr_t)game_window.game_cursor > 0 &&
-                          game_window.game_cursor != game_window.real_cursor)
+            if (config.input.ui.allow_set_cursor)
             {
-              game_window.real_cursor = game_window.game_cursor;
+              // Reset the class cursor if necessary.
+              if ((intptr_t)game_window.game_cursor > 0 &&
+                            game_window.game_cursor != game_window.real_cursor)
+              {
+                game_window.real_cursor = game_window.game_cursor;
 
-              SK_SetClassLongPtrW ( game_window.hWnd, GCLP_HCURSOR,
-                       (LONG_PTR)game_window.real_cursor );
+                SK_SetClassLongPtrW ( game_window.hWnd, GCLP_HCURSOR,
+                         (LONG_PTR)game_window.real_cursor );
+              }
             }
 
             if (config.input.cursor.manage)
@@ -1171,9 +1175,11 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
 
               if (! SK_Window_IsCursorActive ())
               {
-                SK_SetCursor (0);
-
-                return TRUE;
+                if (config.input.ui.allow_set_cursor)
+                {
+                  SK_SetCursor (0);
+                  return TRUE;
+                }
               }
             }
           }

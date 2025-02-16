@@ -1,6 +1,6 @@
 ﻿25.2.15
 =======
- + Attempted fix for Kingdom Come Deliverance 2 mouse cursor issues.
+ + Fix for Kingdom Come Deliverance 2 mouse cursor issues.
 
 25.2.13
 =======

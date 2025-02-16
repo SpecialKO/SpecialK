@@ -5963,7 +5963,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SETCURSOR:
     {
-      if ((! config.input.ui.ignore_set_cursor) && hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)
+      if (hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)
       {
         if (LOWORD (lParam) == HTCLIENT)
         {
@@ -5976,8 +5976,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
             __SK_EnableSetCursor = bOrig;
 
-            // For a very long time now, we've been handling this message WRONG, return 1 stupid!
-            return 1;
+            if (config.input.ui.allow_set_cursor)
+            {
+              // For a very long time now, we've been handling this message WRONG, return 1 stupid!
+              return 1;
+            }
           }
         }
       }
@@ -8628,9 +8631,14 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       break;
     case WM_SETCURSOR:
-      if (game_window.active && (! config.input.ui.ignore_set_cursor))
+      if (game_window.active)
       {
-        SetCursor (NULL);
+        if (       GetCurrentThreadId () !=
+             GetWindowThreadProcessId (game_window.hWnd, nullptr) )
+        {
+          SetCursor (NULL);
+        }
+
         return TRUE;
       }
   }

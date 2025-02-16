@@ -375,12 +375,9 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_SETCURSOR:
       {
-        if (! config.input.ui.ignore_set_cursor)
-        {
-          handled =
-            ( 0 != ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                         lpMsg->wParam, lpMsg->lParam) );
-        }
+        handled =
+          ( 0 != ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                       lpMsg->wParam, lpMsg->lParam) );
       } break;
 
 
