@@ -1168,6 +1168,7 @@ struct {
   sk::ParameterBool*      dont_hook_wndproc       = nullptr;
   sk::ParameterBool*      activate_at_start       = nullptr;
   sk::ParameterBool*      treat_fg_as_active      = nullptr;
+  sk::ParameterBool*      fix_stuck_alt_tab_keys  = nullptr;
 } window;
 
 struct {
@@ -1855,6 +1856,8 @@ auto DeclKeybind =
                                                          L" they are running in the background)",                      dll_ini,         L"Window.System",         L"ActivateAtStart"),
     ConfigEntry (window.treat_fg_as_active,              L"The game treats the foreground window (rather than focus),"
                                                          L" as the active application [for background render feature]",dll_ini,         L"Window.System",         L"TreatForegroundAsActive"),
+    ConfigEntry (window.fix_stuck_alt_tab_keys,          L"Automatically re-send key release notifications for keys"
+                                                         L" that were released while the game was alt-tab'd",          dll_ini,         L"Window.System",         L"FixStuckAltTabKeys"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -5032,18 +5035,19 @@ auto DeclKeybind =
     }
   }
 
-  window.confine_cursor->load      (config.window.confine_cursor);
-  window.unconfine_cursor->load    (config.window.unconfine_cursor);
-  window.persistent_drag->load     (config.window.persistent_drag);
-  window.fullscreen->load          (config.window.fullscreen);
-  window.fix_mouse_coords->load    (config.window.res.override.fix_mouse);
-  window.always_on_top->load       (config.window.always_on_top);
-  window.disable_screensaver->load (config.window.disable_screensaver);
-  window.fullscreen_no_saver->load (config.window.fullscreen_no_saver);
-  window.manage_screensaver->load  (config.window.manage_screensaver);
-  window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
-  window.activate_at_start->load   (config.window.activate_at_start);
-  window.treat_fg_as_active->load  (config.window.treat_fg_as_active);
+  window.confine_cursor->load         (config.window.confine_cursor);
+  window.unconfine_cursor->load       (config.window.unconfine_cursor);
+  window.persistent_drag->load        (config.window.persistent_drag);
+  window.fullscreen->load             (config.window.fullscreen);
+  window.fix_mouse_coords->load       (config.window.res.override.fix_mouse);
+  window.always_on_top->load          (config.window.always_on_top);
+  window.disable_screensaver->load    (config.window.disable_screensaver);
+  window.fullscreen_no_saver->load    (config.window.fullscreen_no_saver);
+  window.manage_screensaver->load     (config.window.manage_screensaver);
+  window.dont_hook_wndproc->load      (config.window.dont_hook_wndproc);
+  window.activate_at_start->load      (config.window.activate_at_start);
+  window.treat_fg_as_active->load     (config.window.treat_fg_as_active);
+  window.fix_stuck_alt_tab_keys->load (config.window.fix_stuck_keys);
 
   if (config.window.fullscreen && (! config.window.borderless))
   {
@@ -6521,6 +6525,7 @@ SK_SaveConfig ( std::wstring name,
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
   window.activate_at_start->store             (config.window.activate_at_start);
   window.treat_fg_as_active->store            (config.window.treat_fg_as_active);
+  window.fix_stuck_alt_tab_keys->store        (config.window.fix_stuck_keys);
 
 #ifdef _VALIDATE_MONITOR_IDX
   if (config.display.monitor_handle != 0)

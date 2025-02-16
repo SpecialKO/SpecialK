@@ -6138,8 +6138,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         ActivateWindow (hWnd, true, (HWND)wParam);
 
-        if (config.window.background_render        &&
-            config.input.keyboard.disabled_to_game != SK_InputEnablement::Disabled)
+        if ( ( config.window.background_render ||
+               config.window.fix_stuck_keys )  &&
+               config.input.keyboard.disabled_to_game != SK_InputEnablement::Disabled )
         {
           SK_Input_ReleaseCommonStuckKeys ();
         }

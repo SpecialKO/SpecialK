@@ -1,4 +1,13 @@
-﻿25.2.16.2
+﻿
+25.2.16.3
+=========
+ + Added an INI option to control whether Alt+Tab stuck-key fixes are
+     applied even for non-background-render scenarios.
+
+    [Window.System]
+    FixStuckAltTabKeys={true|false}  Default=true
+
+25.2.16.2
 =========
  + Re-enable background rendering mode in Hello Kitty: Island Adventure,
      because 25.2.16.1 fixed the original input problem.
