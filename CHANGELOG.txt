@@ -1,4 +1,9 @@
-﻿25.2.17
+﻿25.2.18
+=======
+ + Fixed (low-level) keyboard/mouse hook function table issues in 32-bit games
+ + Prevent games from using low-level keyboard hooks to block Alt+Tab
+
+25.2.17
 =======
  + Fixed cursor issues in Kingdom Come Deliverance 2 once and for all.
 

@@ -214,8 +214,8 @@ SK_Proxy_MouseProc   (
       DWORD dwTid =
         GetCurrentThreadId ();
 
-      auto local_hook_fn  = __hooks.mouse [dwTid|(WH_MOUSE<<31)].first;
-      auto global_hook_fn = __hooks.mouse [0ULL |(WH_MOUSE<<31)].first;
+      auto local_hook_fn  = __hooks.mouse [(DWORD64)dwTid|((DWORD64)WH_MOUSE<<31ULL)].first;
+      auto global_hook_fn = __hooks.mouse [         0ULL |((DWORD64)WH_MOUSE<<31ULL)].first;
 
       SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -349,8 +349,8 @@ SK_Proxy_LLMouseProc   (
     DWORD dwTid =
       GetCurrentThreadId ();
 
-    auto local_hook_fn  = __hooks.mouse [dwTid|(WH_MOUSE_LL<<31)].first;
-    auto global_hook_fn = __hooks.mouse [0    |(WH_MOUSE_LL<<31)].first;
+    auto local_hook_fn  = __hooks.mouse [(DWORD64)dwTid|((DWORD64)WH_MOUSE_LL<<31ULL)].first;
+    auto global_hook_fn = __hooks.mouse [0             |((DWORD64)WH_MOUSE_LL<<31ULL)].first;
 
     SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -425,8 +425,8 @@ SK_Proxy_KeyboardProc (
 
     SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
-    auto local_hook_fn  = __hooks.keyboard [dwTid|(WH_KEYBOARD<<31)].first;
-    auto global_hook_fn = __hooks.keyboard [0    |(WH_KEYBOARD<<31)].first;
+    auto local_hook_fn  = __hooks.keyboard [(DWORD64)dwTid|((DWORD64)WH_KEYBOARD<<31ULL)].first;
+    auto global_hook_fn = __hooks.keyboard [(DWORD64)0    |((DWORD64)WH_KEYBOARD<<31ULL)].first;
 
     SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -553,8 +553,8 @@ SK_Proxy_LLKeyboardProc (
 
     SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
-    auto local_hook_fn  = __hooks.keyboard [dwTid|(WH_KEYBOARD_LL<<31)].first;
-    auto global_hook_fn = __hooks.keyboard [0ULL |(WH_KEYBOARD_LL<<31)].first;
+    auto local_hook_fn  = __hooks.keyboard [(DWORD64)dwTid|((DWORD64)WH_KEYBOARD_LL<<31ULL)].first;
+    auto global_hook_fn = __hooks.keyboard [         0ULL |((DWORD64)WH_KEYBOARD_LL<<31ULL)].first;
 
     SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -563,28 +563,27 @@ SK_Proxy_LLKeyboardProc (
 
     hide |= config.input.keyboard.disabled_to_game == 1;
 
-    // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
-    //   the game shouldn't have seen those keys, but the hook they are using doesn't
-    //     hide them...
-    if ((hide || !game_window.active) && (wParam == VK_MENU || wParam == VK_LMENU || wParam == VK_RMENU || wParam == VK_TAB))
+    if (hook_fn != nullptr && !hide)
     {
-      if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
-      {
-        lParam &= ~(1UL<<31UL);
-        lParam &= ~(1UL<<30UL);
-        lParam &= ~(1UL<<29UL);
-
+      LRESULT result =
         hook_fn (nCode, wParam, lParam);
 
-        return
-          CallNextHookEx (
-            nullptr, nCode,
-             wParam, lParamOrig );
+      if (result == 0)
+        return result;
+
+      KBDLLHOOKSTRUCT* kbd = (KBDLLHOOKSTRUCT*)lParam;
+
+      if (kbd != nullptr)
+      {
+        // Disallow the game from blocking these keys...
+        if (kbd->vkCode != VK_MENU    && kbd->vkCode != VK_LMENU    && kbd->vkCode != VK_RMENU &&
+            kbd->vkCode != VK_TAB     && kbd->vkCode != VK_LWIN     && kbd->vkCode != VK_RWIN  &&
+            kbd->vkCode != VK_CONTROL && kbd->vkCode != VK_LCONTROL && kbd->vkCode != VK_RCONTROL)
+        {
+          return result;
+        }
       }
     }
-
-    if (     hook_fn != nullptr && !hide)
-      return hook_fn (nCode, wParam, lParam);
   }
 
   return
@@ -658,10 +657,10 @@ SetWindowsHookExW_Detour (
 
       bool install = false;
 
-      if (       !__hooks.keyboard.count (dwThreadId|(idHook<<31)) ||
-                  __hooks.keyboard       [dwThreadId|(idHook<<31)].first == nullptr)
-      {           __hooks.keyboard       [dwThreadId|(idHook<<31)].first = lpfn;
-        hook    =&__hooks.keyboard       [dwThreadId|(idHook<<31)].second;
+      if (       !__hooks.keyboard.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
+                  __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
+      {           __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
+        hook    =&__hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
         install = true;
       }
 
@@ -702,10 +701,10 @@ SetWindowsHookExW_Detour (
 
       bool install = false;
 
-      if (       !__hooks.mouse.count (dwThreadId|(idHook<<31)) ||
-                  __hooks.mouse       [dwThreadId|(idHook<<31)].first == nullptr)
-      {           __hooks.mouse       [dwThreadId|(idHook<<31)].first = lpfn;
-        hook    =&__hooks.mouse       [dwThreadId|(idHook<<31)].second;
+      if (       !__hooks.mouse.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
+                  __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
+      {           __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
+        hook    =&__hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
         install = true;
       }
 
@@ -781,10 +780,10 @@ SetWindowsHookExA_Detour (
 
       bool install = false;
 
-      if (       !__hooks.keyboard.count (dwThreadId|(idHook<<31)) ||
-                  __hooks.keyboard       [dwThreadId|(idHook<<31)].first == nullptr)
-      {           __hooks.keyboard       [dwThreadId|(idHook<<31)].first = lpfn;
-        hook    =&__hooks.keyboard       [dwThreadId|(idHook<<31)].second;
+      if (       !__hooks.keyboard.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
+                  __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
+      {           __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
+        hook    =&__hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
         install = true;
       }
 
@@ -825,10 +824,10 @@ SetWindowsHookExA_Detour (
 
       bool install = false;
 
-      if (       !__hooks.mouse.count (dwThreadId|(idHook<<31)) ||
-                  __hooks.mouse       [dwThreadId|(idHook<<31)].first == nullptr)
-      {           __hooks.mouse       [dwThreadId|(idHook<<31)].first = lpfn;
-        hook    =&__hooks.mouse       [dwThreadId|(idHook<<31)].second;
+      if (       !__hooks.mouse.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
+                  __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
+      {           __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
+        hook    =&__hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
         install = true;
       }
 
