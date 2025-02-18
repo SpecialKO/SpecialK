@@ -1,4 +1,11 @@
-﻿25.2.18.1
+﻿25.2.18.2
+=========
+ + Added pacing option to Alt-Tab for ADHD users with poor impulse control.
+ + Added command console variable to control Alt-Tab pacing:
+
+     Input.Keyboard.AltTabPace   (Milliseconds between Alt-Tab if >= 0)
+
+25.2.18.1
 =========
  + Made Windows Key / Alt+Tab block/unblock into a configurable feature in the
      new Input Management | Keyboard section of the control panel.

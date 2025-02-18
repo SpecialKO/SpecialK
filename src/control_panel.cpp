@@ -7457,41 +7457,57 @@ LRESULT
 CALLBACK
 SK_Input_LowLevelKeyboardProc (int code, WPARAM wParam, LPARAM lParam)
 {
+  KBDLLHOOKSTRUCT *pHookData =
+    (KBDLLHOOKSTRUCT *)lParam;
+
+  const bool bIsAltTab =
+    ( wParam                            == WM_SYSKEYDOWN &&
+      pHookData                         != nullptr       &&
+     (pHookData->flags & LLKHF_ALTDOWN) != 0x0           &&
+      pHookData->vkCode                 == VK_TAB );
+
+  static DWORD                             dwLastAltTab = 0;
+  if (bIsAltTab && (! game_window.active)) dwLastAltTab = SK_timeGetTime ();
+
   if (code != HC_ACTION || game_window.active == false || lParam == 0)
     return CallNextHookEx (0, code, wParam, lParam);
 
-  if (config.input.keyboard.enable_alt_tab == SK_Disabled ||
-      config.input.keyboard.enable_win_key == SK_Disabled)
+  if (bIsAltTab)
   {
-    KBDLLHOOKSTRUCT *pHookData =
-      (KBDLLHOOKSTRUCT *)lParam;
+    const auto adhd_pace =
+      config.input.keyboard.alt_tab_adhd_pace;
 
-    switch (wParam)
+    if (dwLastAltTab > SK_timeGetTime() - adhd_pace && adhd_pace > 0)
     {
-      case WM_SYSKEYDOWN:
-      case WM_SYSKEYUP:
+      if ((SK_GetAsyncKeyState (VK_SHIFT) & 0x8000) == 0x0)
       {
-        const bool bIsAltTab =
-          ( (pHookData->flags & LLKHF_ALTDOWN) != 0x0 &&
-             pHookData->vkCode                 == VK_TAB );
-
-        if (bIsAltTab && config.input.keyboard.enable_alt_tab == SK_Disabled)
-          return 1;
-      } break;
-
-      case WM_KEYDOWN:
-      case WM_KEYUP:
-      {
-        const bool bIsWindowsKey =
-          ( pHookData->vkCode == VK_LWIN  ||
-            pHookData->vkCode == VK_RWIN  ||
-            pHookData->vkCode == VK_APPS );
-
-        if (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Disabled)
-          return 1;
-      } break;
+        SK_ImGui_CreateNotification (
+          "ADHD.TaskSwitch", SK_ImGui_Toast::Warning,
+             SK_FormatString ("Alt-Tab Blocked for the next %3.1f seconds...",
+             (double)(dwLastAltTab-(SK_timeGetTime ()-adhd_pace))/1000.0).c_str (),
+                                 "ADHD Multi-Tasking Blocked",
+                     1000, SK_ImGui_Toast::UseDuration |
+                           SK_ImGui_Toast::ShowCaption |
+                           SK_ImGui_Toast::ShowNewest );
+        return 1;
+      }
     }
+
+    if (config.input.keyboard.enable_alt_tab == SK_Disabled)
+    {
+      return 1;
+    }
+
+    dwLastAltTab =
+      SK_timeGetTime ();
   }
+
+  const bool bIsWindowsKey =
+    ( pHookData->vkCode >= VK_LWIN &&
+      pHookData->vkCode <= VK_APPS );
+
+  if (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Disabled)
+    return 1;
 
   return
     CallNextHookEx (0, code, wParam, lParam);

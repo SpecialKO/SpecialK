@@ -1221,6 +1221,7 @@ struct sk_config_t
       int     org_disabled_to_game=     2;
       int     enable_win_key      = SK_NoPreference;
       int     enable_alt_tab      = SK_Enabled;
+      int     alt_tab_adhd_pace   = 0UL;
       volatile
       UINT64  temporarily_allow   =     0; // Up until temporarily_allow + 1 frames,
     } keyboard;                            //   ignore "disabled_to_game"

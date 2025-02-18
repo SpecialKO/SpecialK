@@ -819,6 +819,46 @@ SK::ControlPanel::Input::Draw (void)
       changed |= ImGui::Combo ("Windows Key", &enable_win_key, "Normal Game Behavior\0Block\0Allow\0\0", 3);
       changed |= ImGui::Combo ("Alt + Tab",   &enable_alt_tab, "Normal Game Behavior\0Block\0Allow\0\0", 3);
 
+      bool adhd_pacing =
+        (config.input.keyboard.alt_tab_adhd_pace > 0);
+
+      if (config.input.keyboard.enable_alt_tab != SK_Disabled)
+      {
+        ImGui::SameLine ();
+
+        if (ImGui::Checkbox ("ADHD Pacing", &adhd_pacing))
+        {
+          changed = true;
+
+          config.input.keyboard.alt_tab_adhd_pace *= -1;
+
+          if (adhd_pacing)
+          {
+            config.input.keyboard.alt_tab_adhd_pace =
+              std::max (5000, config.input.keyboard.alt_tab_adhd_pace);
+          }
+        }
+
+        if (adhd_pacing)
+          ImGui::SetItemTooltip (ICON_FA_DIZZY " Use Alt+Shift+Tab if you lack discipline.");
+
+        float fSeconds =
+          fabs (static_cast <float> (config.input.keyboard.alt_tab_adhd_pace) / 1000.0f);
+
+        if (fSeconds > 0.0f)
+        {
+          ImGui::SameLine ();
+
+          ImGui::BeginDisabled (config.input.keyboard.alt_tab_adhd_pace <= 0);
+          if (ImGui::SliderFloat ("###AltTabPace", &fSeconds, 5.0f, 30.0f, "Once Every %3.1f Seconds"))
+          {
+            config.input.keyboard.alt_tab_adhd_pace = (int)(1000.0 * fSeconds);
+            changed = true;
+          }
+          ImGui::EndDisabled ();
+        }
+      }
+
       if (changed)
       {
         config.input.keyboard.enable_win_key = enable_win_key - 1;
