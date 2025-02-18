@@ -799,6 +799,38 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop  ();
     }
 
+    if (ImGui::CollapsingHeader ("Keyboard"))
+    {
+      ImGui::TreePush       ("");
+      ImGui::SeparatorText  ("Special Keys");
+      ImGui::TreePush       ("");
+
+      bool changed = false;
+
+      config.input.keyboard.enable_win_key =
+        std::min (1, std::max (-1, config.input.keyboard.enable_win_key));
+
+      config.input.keyboard.enable_alt_tab =
+        std::min (1, std::max (-1, config.input.keyboard.enable_alt_tab));
+
+      int enable_alt_tab = config.input.keyboard.enable_alt_tab + 1;
+      int enable_win_key = config.input.keyboard.enable_win_key + 1;
+
+      changed |= ImGui::Combo ("Windows Key", &enable_win_key, "Normal Game Behavior\0Block\0Allow\0\0", 3);
+      changed |= ImGui::Combo ("Alt + Tab",   &enable_alt_tab, "Normal Game Behavior\0Block\0Allow\0\0", 3);
+
+      if (changed)
+      {
+        config.input.keyboard.enable_win_key = enable_win_key - 1;
+        config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
+
+        config.utility.save_async ();
+      }
+
+      ImGui::TreePop (  );
+      ImGui::TreePop (  );
+    }
+
     // Gamepad debug menus
     static bool show_debug_option = false;
 

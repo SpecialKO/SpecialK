@@ -1219,6 +1219,8 @@ struct sk_config_t
       bool    override_alt_f4     = false; // For games that have prompts (i.e. DQ XI / Yakuza)
       int     disabled_to_game    =     2; //0 = Never, 1 = Always, 2 = In Background
       int     org_disabled_to_game=     2;
+      int     enable_win_key      = SK_NoPreference;
+      int     enable_alt_tab      = SK_Enabled;
       volatile
       UINT64  temporarily_allow   =     0; // Up until temporarily_allow + 1 frames,
     } keyboard;                            //   ignore "disabled_to_game"

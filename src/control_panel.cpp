@@ -7455,6 +7455,50 @@ extern ULONG64 SK_ImGui_LastKeyboardInputFrame;
 
 LRESULT
 CALLBACK
+SK_Input_LowLevelKeyboardProc (int code, WPARAM wParam, LPARAM lParam)
+{
+  if (code != HC_ACTION || game_window.active == false || lParam == 0)
+    return CallNextHookEx (0, code, wParam, lParam);
+
+  if (config.input.keyboard.enable_alt_tab == SK_Disabled ||
+      config.input.keyboard.enable_win_key == SK_Disabled)
+  {
+    KBDLLHOOKSTRUCT *pHookData =
+      (KBDLLHOOKSTRUCT *)lParam;
+
+    switch (wParam)
+    {
+      case WM_SYSKEYDOWN:
+      case WM_SYSKEYUP:
+      {
+        const bool bIsAltTab =
+          ( (pHookData->flags & LLKHF_ALTDOWN) != 0x0 &&
+             pHookData->vkCode                 == VK_TAB );
+
+        if (bIsAltTab && config.input.keyboard.enable_alt_tab == SK_Disabled)
+          return 1;
+      } break;
+
+      case WM_KEYDOWN:
+      case WM_KEYUP:
+      {
+        const bool bIsWindowsKey =
+          ( pHookData->vkCode == VK_LWIN  ||
+            pHookData->vkCode == VK_RWIN  ||
+            pHookData->vkCode == VK_APPS );
+
+        if (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Disabled)
+          return 1;
+      } break;
+    }
+  }
+
+  return
+    CallNextHookEx (0, code, wParam, lParam);
+}
+
+LRESULT
+CALLBACK
 SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
 {
   if (code < 0 || GImGui == nullptr) // We saw nothing (!!)
@@ -7499,6 +7543,11 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
     if (isPressed) SK_Console::getInstance ()->KeyDown ((BYTE)(vKey & 0xFF), 0x0);
     else           SK_Console::getInstance ()->KeyUp   ((BYTE)(vKey & 0xFF), 0x0);
 
+    return 1;
+  }
+
+  if ((vKey == VK_LWIN || vKey == VK_RWIN) && config.input.keyboard.enable_win_key == SK_Disabled)
+  {
     return 1;
   }
 

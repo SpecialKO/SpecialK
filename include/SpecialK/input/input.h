@@ -1314,6 +1314,10 @@ SK_mouse_event (
 
 LRESULT
 CALLBACK
+SK_Input_LowLevelKeyboardProc (int code, WPARAM wParam, LPARAM lParam);
+
+LRESULT
+CALLBACK
 SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam);
 
 LRESULT

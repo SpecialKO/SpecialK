@@ -474,7 +474,7 @@ SK_Proxy_LLKeyboardProc (
 {
   LPARAM lParamOrig = lParam;
 
-  if (nCode == HC_ACTION)
+  if (nCode == HC_ACTION && (LPVOID)lParam != nullptr)
   {
     KBDLLHOOKSTRUCT *pHookData =
       (KBDLLHOOKSTRUCT *)lParam;
@@ -565,22 +565,32 @@ SK_Proxy_LLKeyboardProc (
 
     if (hook_fn != nullptr && !hide)
     {
+      const bool bIsAltTab =
+        ( (pHookData->flags & LLKHF_ALTDOWN) != 0x0 &&
+           pHookData->vkCode                 == VK_TAB );
+
+      const bool bIsWindowsKey =
+        ( pHookData->vkCode == VK_LWIN  ||
+          pHookData->vkCode == VK_RWIN  ||
+          pHookData->vkCode == VK_APPS );
+
+      if ( (bIsAltTab     && config.input.keyboard.enable_alt_tab == SK_Disabled) ||
+           (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Disabled) )
+      {
+        hook_fn (nCode, wParam, lParam);
+        return 1;
+      }
+
       LRESULT result =
         hook_fn (nCode, wParam, lParam);
 
-      if (result == 0)
-        return result;
-
-      KBDLLHOOKSTRUCT* kbd = (KBDLLHOOKSTRUCT*)lParam;
-
-      if (kbd != nullptr)
+      // Disallow the game from blocking certain keys...
+      if (result != 0)
       {
-        // Disallow the game from blocking these keys...
-        if (kbd->vkCode != VK_MENU    && kbd->vkCode != VK_LMENU    && kbd->vkCode != VK_RMENU &&
-            kbd->vkCode != VK_TAB     && kbd->vkCode != VK_LWIN     && kbd->vkCode != VK_RWIN  &&
-            kbd->vkCode != VK_CONTROL && kbd->vkCode != VK_LCONTROL && kbd->vkCode != VK_RCONTROL)
+        if ( (bIsAltTab     && config.input.keyboard.enable_alt_tab == SK_Enabled) ||
+             (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Enabled) )
         {
-          return result;
+          return 0;
         }
       }
     }

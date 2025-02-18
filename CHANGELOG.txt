@@ -1,4 +1,15 @@
-﻿25.2.18
+﻿25.2.18.1
+=========
+ + Made Windows Key / Alt+Tab block/unblock into a configurable feature in the
+     new Input Management | Keyboard section of the control panel.
+ + Added command console variables to control keyboard special key blocking:
+
+     Input.Keyboard.EnableAltTab
+     Input.Keyboard.EnableWinKey
+
+      -1 = Don't Care, 0 = Block, 1 = Allow
+
+25.2.18
 =======
  + Fixed (low-level) keyboard/mouse hook function table issues in 32-bit games
  + Prevent games from using low-level keyboard hooks to block Alt+Tab
