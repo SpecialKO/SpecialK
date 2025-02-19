@@ -2388,6 +2388,17 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
   RealGetWindowClassW
     ( desc.OutputWindow, wszClass, 63 );
 
+  // Square windows are exceptionally rare and unlikely to be
+  //   intended for actual rendering.
+  if (desc.BufferDesc.Width == desc.BufferDesc.Height)
+  {
+    // Ignores something called "medal-hook64.dll"
+    if (desc.BufferDesc.Width == 2 && !wcscmp (wszClass, L"Static"))
+    {
+      dummy_window = true;
+    }
+  }
+
   if (dummy_window)
     SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
                  wszClass );

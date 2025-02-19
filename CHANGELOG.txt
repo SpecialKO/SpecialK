@@ -1,4 +1,14 @@
-﻿25.2.18.2
+﻿25.2.19
+=======
+ + Added hook exclusions for something called medal-hook64.dll, which uses
+     'Static' window class and a 2x2 dummy window to initialize its hooks.
+
+    * SK used to ignore all 'Static' window class requests, but AMD's driver
+        uses 'Static' for GL/Vk / DXGI interop...
+
+    -> Devs:  Please use better class names, 'Static' is as bad as game.exe :)
+
+25.2.18.2
 =========
  + Added pacing option to Alt-Tab for ADHD users with poor impulse control.
  + Added command console variable to control Alt-Tab pacing:
