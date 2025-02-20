@@ -315,14 +315,17 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
 
       UINT uiEnableOFA         = 0;
       UINT uiEnableDLSSGInterp = 0;
+      UINT uiMultiFrameCount   = 1;
 
-      InParameters->Get ("Enable.OFA",         &uiEnableOFA);
-      InParameters->Get ("DLSSG.EnableInterp", &uiEnableDLSSGInterp);
+      InParameters->Get ("Enable.OFA",            &uiEnableOFA);
+      InParameters->Get ("DLSSG.EnableInterp",    &uiEnableDLSSGInterp);
+      InParameters->Get ("DLSSG.MultiFrameCount", &uiMultiFrameCount);
 
       __SK_IsDLSSGActive =
         ( uiEnableOFA && uiEnableDLSSGInterp );
 
-      __SK_ForceDLSSGPacing = __SK_IsDLSSGActive;
+      __SK_ForceDLSSGPacing     = __SK_IsDLSSGActive;
+      __SK_DLSSGMultiFrameCount = uiMultiFrameCount;
 
       SK_LOGi1 (L"DLSS-G Feature Created!");
     }
@@ -511,12 +514,14 @@ SK_NGX12_UpdateDLSSGStatus (void)
   UINT uiNumberOfFrames    = 0;
   UINT uiEnableOFA         = 0;
   UINT uiEnableDLSSGInterp = 0;
+  UINT uiMultiFrameCount   = 1;
 
   if (SK_NGX_DLSS12.frame_gen.Parameters != nullptr)
   {
-    SK_NGX_DLSS12.frame_gen.Parameters->Get ("Enable.OFA",         &uiEnableOFA);
-    SK_NGX_DLSS12.frame_gen.Parameters->Get ("DLSSG.EnableInterp", &uiEnableDLSSGInterp);
-    SK_NGX_DLSS12.frame_gen.Parameters->Get ("DLSSG.NumFrames",    &uiNumberOfFrames);
+    SK_NGX_DLSS12.frame_gen.Parameters->Get ("Enable.OFA",            &uiEnableOFA);
+    SK_NGX_DLSS12.frame_gen.Parameters->Get ("DLSSG.EnableInterp",    &uiEnableDLSSGInterp);
+    SK_NGX_DLSS12.frame_gen.Parameters->Get ("DLSSG.NumFrames",       &uiNumberOfFrames);
+    SK_NGX_DLSS12.frame_gen.Parameters->Get ("DLSSG.MultiFrameCount", &uiMultiFrameCount);
 
 #if 0
     ID3D12Resource*                                          pMvecsRes = nullptr;
@@ -555,7 +560,8 @@ SK_NGX12_UpdateDLSSGStatus (void)
     }
   }
 
-  __SK_ForceDLSSGPacing = __SK_IsDLSSGActive;
+  __SK_ForceDLSSGPacing     = __SK_IsDLSSGActive;
+  __SK_DLSSGMultiFrameCount = uiMultiFrameCount;
 }
 
 NVSDK_NGX_Result

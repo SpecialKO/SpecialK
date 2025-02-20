@@ -1067,7 +1067,7 @@ SK_DrawOSD (void)
 
       if (config.dlss.show_fg && SK_NGX_IsUsingDLSS_G ())
       {
-        OSD_DLSS_PRINTF " [FG]" OSD_END
+        OSD_DLSS_PRINTF " [FG %dx]", SK_NGX_DLSSG_GetMultiFrameCount () + 1 OSD_END
       }
 
       OSD_DLSS_PRINTF "\n" OSD_END

@@ -1,4 +1,9 @@
-﻿25.2.19
+﻿25.2.20
+=======
+ + Added DLSS Multi-Frame Generation Rate to text OSD and control panel.
+     >> Override support should follow soon...
+
+25.2.19
 =======
  + Added hook exclusions for something called medal-hook64.dll, which uses
      'Static' window class and a 2x2 dummy window to initialize its hooks.

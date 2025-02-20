@@ -313,9 +313,11 @@ NVSDK_NGX_D3D11_CreateFeature_Detour ( ID3D11DeviceContext       *InDevCtx,
 
       UINT uiEnableOFA         = 0;
       UINT uiEnableDLSSGInterp = 0;
+      UINT uiMultiFrameCount   = 1;
 
-      InParameters->Get ("Enable.OFA",         &uiEnableOFA);
-      InParameters->Get ("DLSSG.EnableInterp", &uiEnableDLSSGInterp);
+      InParameters->Get ("Enable.OFA",            &uiEnableOFA);
+      InParameters->Get ("DLSSG.EnableInterp",    &uiEnableDLSSGInterp);
+      InParameters->Get ("DLSSG.MultiFrameCount", &uiMultiFrameCount);
 
       __SK_IsDLSSGActive =
         ( uiEnableOFA && uiEnableDLSSGInterp );
@@ -495,12 +497,14 @@ SK_NGX11_UpdateDLSSGStatus (void)
   UINT uiNumberOfFrames    = 0;
   UINT uiEnableOFA         = 0;
   UINT uiEnableDLSSGInterp = 0;
+  UINT uiMultiFrameCount   = 1;
 
   if (SK_NGX_DLSS11.frame_gen.Parameters != nullptr)
   {
-    SK_NGX_DLSS11.frame_gen.Parameters->Get ("Enable.OFA",         &uiEnableOFA);
-    SK_NGX_DLSS11.frame_gen.Parameters->Get ("DLSSG.EnableInterp", &uiEnableDLSSGInterp);
-    SK_NGX_DLSS11.frame_gen.Parameters->Get ("DLSSG.NumFrames",    &uiNumberOfFrames);
+    SK_NGX_DLSS11.frame_gen.Parameters->Get ("Enable.OFA",            &uiEnableOFA);
+    SK_NGX_DLSS11.frame_gen.Parameters->Get ("DLSSG.EnableInterp",    &uiEnableDLSSGInterp);
+    SK_NGX_DLSS11.frame_gen.Parameters->Get ("DLSSG.NumFrames",       &uiNumberOfFrames);
+    SK_NGX_DLSS11.frame_gen.Parameters->Get ("DLSSG.MultiFrameCount", &uiMultiFrameCount);
 
     //{
     //  SK_LOGi0 (L"Failure to get DLSS-G Parameters During SK_NGX_UpdateDLSSGStatus (...)");
@@ -513,6 +517,8 @@ SK_NGX11_UpdateDLSSGStatus (void)
                        uiNumberOfFrames >= 1 &&
                        uiEnableDLSSGInterp   && uiEnableOFA;
 
+  __SK_DLSSGMultiFrameCount = uiMultiFrameCount;
+
   if (SK_NGX_DLSS11.frame_gen.Handle != nullptr)
   {
     static UINT        uiLastDLSSGState = UINT_MAX;
@@ -524,7 +530,8 @@ SK_NGX11_UpdateDLSSGStatus (void)
     }
   }
 
-  __SK_ForceDLSSGPacing = __SK_IsDLSSGActive;
+  __SK_ForceDLSSGPacing     = __SK_IsDLSSGActive;
+  __SK_DLSSGMultiFrameCount = uiMultiFrameCount;
 }
 
 NVSDK_NGX_Result

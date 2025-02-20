@@ -33,6 +33,7 @@
 
 bool __SK_HasDLSSGStatusSupport = false;
 bool __SK_IsDLSSGActive         = false;
+int  __SK_DLSSGMultiFrameCount  = 0;
 bool __SK_DoubleUpOnReflex      = false;
 bool __SK_ForceDLSSGPacing      = false;
 
@@ -65,6 +66,13 @@ SK_NGX_IsUsingDLSS_G (void)
 {
   return /// TODO Refactor
     __SK_IsDLSSGActive;
+}
+
+int
+SK_NGX_DLSSG_GetMultiFrameCount (void)
+{
+  return
+    __SK_DLSSGMultiFrameCount;
 }
 
 static  unsigned  int SK_NGX_GameSetPerfQuality = 0;
@@ -1334,13 +1342,15 @@ SK_NGX_DLSS_ControlPanel (void)
 
         ImGui::TextColored     ( bFrameGen ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
-        ImGui::SameLine        ();
-        ImGui::TextUnformatted ("Frame Generation\t");
-        ImGui::SameLine        ();
+        ImGui::SameLine        ( );
+        ImGui::Text            ( bFrameGen ? "Frame Generation (%dx)\t" :
+                                             "Frame Generation",
+                         SK_NGX_DLSSG_GetMultiFrameCount () + 1 );
+        ImGui::SameLine        ( );
         ImGui::TextColored     ( bRayRecon ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bRayRecon ? ICON_FA_CHECK                   : ICON_FA_XMARK );
-        ImGui::SameLine        ();
-        ImGui::TextUnformatted ("Ray Reconstruction");
+        ImGui::SameLine        ( );
+        ImGui::TextUnformatted ( "Ray Reconstruction" );
       }
 
       ImGui::TreePush     ("");

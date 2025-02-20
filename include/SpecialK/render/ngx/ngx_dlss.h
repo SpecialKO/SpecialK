@@ -23,18 +23,20 @@
 
 #include <render/ngx/ngx_defs.h>
 
-NVSDK_NGX_Parameter* SK_NGX_GetDLSSParameters (void);
-bool                 SK_NGX_IsUsingDLSS       (void);
-bool                 SK_NGX_IsUsingDLSS_D     (void);
-bool                 SK_NGX_IsUsingDLSS_G     (void);
+NVSDK_NGX_Parameter* SK_NGX_GetDLSSParameters  (void);
+bool                 SK_NGX_IsUsingDLSS        (void);
+bool                 SK_NGX_IsUsingDLSS_D      (void);
+bool                 SK_NGX_IsUsingDLSS_G      (void); 
 void                 SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters);
-void                 SK_NGX_DLSS_ControlPanel (void);
+void                 SK_NGX_DLSS_ControlPanel  (void);
 void                 SK_NGX_DLSS_GetResolution            (int& x, int& y, int& out_x, int& out_y);
 const char*          SK_NGX_DLSS_GetCurrentPerfQualityStr (void);
 const char*          SK_NGX_DLSS_GetCurrentPresetStr      (void);
+int                  SK_NGX_DLSSG_GetMultiFrameCount      (void);
 
 extern bool __SK_HasDLSSGStatusSupport;
 extern bool __SK_IsDLSSGActive;
+extern int  __SK_DLSSGMultiFrameCount;
 extern bool __SK_DoubleUpOnReflex;
 extern bool __SK_ForceDLSSGPacing;
 
