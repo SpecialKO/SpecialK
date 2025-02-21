@@ -1085,8 +1085,13 @@ bool SK_ReShadeAddOn_HadLocalINI = true;
 BOOL SK_ReShade_HasRenoDX (void)
 {
   if (SK_GetFramesDrawn () < 1)
-    return FALSE;
+  {
+    return
+      reshade::internal::has_addon (L"RenoDX");
+  }
 
+  // After 1 frame is drawn, we have a definitive answer,
+  //   and calling into this repeatedly would be bad.
   static BOOL _HasRenoDX =
     reshade::internal::has_addon (L"RenoDX");
 
@@ -1179,7 +1184,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
     reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
     reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
-    reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
+    //reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
 
     auto _AutoLoadAddOns = [&](void)
     {

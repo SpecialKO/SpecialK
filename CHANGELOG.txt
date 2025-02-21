@@ -1,4 +1,9 @@
-﻿25.2.20
+﻿25.2.21
+=======
+ + Removed reshade::addon_event::display_change from SK's codebase, because
+     it was not merged into ReShade 6.4.0 and some addons behave funny with it.
+
+25.2.20
 =======
  + Added DLSS Multi-Frame Generation Rate to text OSD and control panel.
      >> Override support should follow soon...
