@@ -1,4 +1,21 @@
-﻿25.2.21
+﻿25.2.21.1
+=========
+ + Added compat hack for using RenoDX HDR in Avowed; load ReShade as
+     ReShade64.dll from the game directory.
+ + Added experimental forced DLSSG Multiframe Generation Frame Count override,
+     this setting should enable older games on 5xxx GPUs to use 3x or 4x mode.
+       (Updated Streamline DLLs are necessary.)
+
+      [NVIDIA.DLSS]
+      ForcedMaxMultiFrameCount=1|2|3  (2 = 3x, 3 = 4x)
+
+       - Setting is experimental and does not appear in the control panel...
+
+    * Note setting this override will expose multiframe generation options in
+        settings menus for games like Cyberpunk 2077 on RTX 4xxx GPUs, but it
+          won't actually allow you to use the feature :)
+
+25.2.21
 =======
  + Removed reshade::addon_event::display_change from SK's codebase, because
      it was not merged into ReShade 6.4.0 and some addons behave funny with it.

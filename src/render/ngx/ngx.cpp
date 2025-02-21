@@ -221,6 +221,19 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
               L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
+  if (! strcmp (InName, "DLSSG.BackbufferFormat"))
+  {
+    if (__SK_HDR_16BitSwap)
+    {
+      InValue = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    }
+
+    else if (__SK_HDR_10BitSwap)
+    {
+      InValue = DXGI_FORMAT_R10G10B10A2_UNORM;
+    }
+  }
+
   if (! strcmp (InName, NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags))
   {
     if (config.nvidia.dlss.use_sharpening != -1)
@@ -507,6 +520,19 @@ NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const 
     SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
                 L"NGX_Parameter_GetUI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
+    if (! strcmp (InName, "DLSSG.BackbufferFormat"))
+    {
+      if (__SK_HDR_16BitSwap)
+      {
+        *OutValue = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      }
+
+      else if (__SK_HDR_10BitSwap)
+      {
+        *OutValue = DXGI_FORMAT_R10G10B10A2_UNORM;
+      }
+    }
+
     if (config.nvidia.dlss.force_dlaa)
     {
       if (! strcmp (InName, NVSDK_NGX_Parameter_OutWidth))                           { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,     OutValue); *OutValue = sk::narrow_cast <UINT> (std::max (1, (int)*OutValue + config.nvidia.dlss.compat.extra_pixels)); }
@@ -581,6 +607,14 @@ NVSDK_NGX_Parameter_GetI_Detour (const NVSDK_NGX_Parameter *InParameter, const c
     SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
                 L"NGX_Parameter_GetI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
+    if (config.nvidia.dlss.forced_multiframe != SK_NoPreference)
+    {
+      if (! strcmp (InName, "DLSSG.MultiFrameCountMax"))
+      {
+        *OutValue =
+          std::max (1, std::min (config.nvidia.dlss.forced_multiframe, 8));
+      }
+    }
     // This stuff doesn't work for signed integers
 #if 0
     if (config.nvidia.dlss.force_dlaa)
