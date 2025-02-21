@@ -7900,22 +7900,25 @@ SK_D3D11_QuickHook (void)
   if (config.render.dxgi.debug_layer)
     return;
 
-  if (config.compatibility.init_sync_for_reshade || SK_ReShade_IsLocalDLLPresent ())
+  if (! config.render.dxgi.always_allow_quickhook)
   {
-    SK_LOGi0 (L" # D3D11 QuickHook disabled because a ReShade Plug-In is present...");
+    if (config.compatibility.init_sync_for_reshade || SK_ReShade_IsLocalDLLPresent ())
+    {
+      SK_LOGi0 (L" # D3D11 QuickHook disabled because a ReShade Plug-In is present...");
 
-    //// Implicitly load ReShade (ReShade{32|64}.dll) if it exists
-    //SK_ReShade_LoadIfPresent ();
+      //// Implicitly load ReShade (ReShade{32|64}.dll) if it exists
+      //SK_ReShade_LoadIfPresent ();
 
-    return;
-  }
+      return;
+    }
 
-  if ( PathFileExistsW (L"dxgi.dll") ||
-       PathFileExistsW (L"d3d11.dll") )
-  {
-    SK_LOGi0 (L" # D3D11 QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
+    if ( PathFileExistsW (L"dxgi.dll") ||
+         PathFileExistsW (L"d3d11.dll") )
+    {
+      SK_LOGi0 (L" # D3D11 QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
 
-    return;
+      return;
+    }
   }
 
   static volatile LONG hooked = FALSE;

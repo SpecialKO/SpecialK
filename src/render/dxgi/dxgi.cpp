@@ -11165,29 +11165,32 @@ SK_DXGI_QuickHook (void)
     return;
 
 
-  if ( PathFileExistsW (L"dxgi.dll") ||
-       PathFileExistsW (L"d3d11.dll") )
+  if (! config.render.dxgi.always_allow_quickhook)
   {
-    SK_LOGi0 (L" # DXGI QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
+    if ( PathFileExistsW (L"dxgi.dll") ||
+         PathFileExistsW (L"d3d11.dll") )
+    {
+      SK_LOGi0 (L" # DXGI QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
 
-    __SK_DisableQuickHook = TRUE;
-  }
+      __SK_DisableQuickHook = TRUE;
+    }
 
-  if (config.compatibility.init_sync_for_reshade || SK_ReShade_IsLocalDLLPresent ())
-  {
-    SK_LOGi0 (L" # DXGI QuickHook disabled because a ReShade Plug-In is present...");
+    if (config.compatibility.init_sync_for_reshade || SK_ReShade_IsLocalDLLPresent ())
+    {
+      SK_LOGi0 (L" # DXGI QuickHook disabled because a ReShade Plug-In is present...");
 
-    //// Implicitly load ReShade (ReShade{32|64}.dll) if it exists
-    //SK_ReShade_LoadIfPresent ();
+      //// Implicitly load ReShade (ReShade{32|64}.dll) if it exists
+      //SK_ReShade_LoadIfPresent ();
 
-    __SK_DisableQuickHook = TRUE;
-  }
+      __SK_DisableQuickHook = TRUE;
+    }
 
-  if ( SK_IsModuleLoaded (L"sl.interposer.dll") )
-  {
-    SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");
+    if ( SK_IsModuleLoaded (L"sl.interposer.dll") )
+    {
+      SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");
 
-    __SK_DisableQuickHook = TRUE;
+      __SK_DisableQuickHook = TRUE;
+    }
   }
 
 

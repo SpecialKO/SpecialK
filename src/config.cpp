@@ -803,6 +803,7 @@ struct {
     sk::ParameterInt*     forced_preset           = nullptr;
     sk::ParameterInt*     forced_auto_exposure    = nullptr;
     sk::ParameterInt*     forced_alpha_upscale    = nullptr;
+    sk::ParameterInt*     forced_max_multiframe   = nullptr;
     sk::ParameterBool*    show_active_features    = nullptr;
     sk::ParameterFloat*   performance_scale       = nullptr;
     sk::ParameterFloat*   balanced_scale          = nullptr;
@@ -2012,6 +2013,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.forced_preset,              L"Override DLSS Perf/Quality Level's Preset",                 dll_ini,         L"NVIDIA.DLSS",           L"ForcePreset"),
     ConfigEntry (nvidia.dlss.forced_auto_exposure,       L"Override DLSS Auto Exposure",                               dll_ini,         L"NVIDIA.DLSS",           L"ForcedAutoExposure"),
     ConfigEntry (nvidia.dlss.forced_alpha_upscale,       L"Override DLSS Alpha Upscaling (3.7.0+)",                    dll_ini,         L"NVIDIA.DLSS",           L"ForceAlphaUpscale"),
+    ConfigEntry (nvidia.dlss.forced_max_multiframe,      L"Allow forcing multi-frame generation on in older games.",   dll_ini,         L"NVIDIA.DLSS",           L"ForcedMaxMultiFrameCount"),
     ConfigEntry (nvidia.dlss.performance_scale,          L"Custom scale factor (if != 0.0f) to use for Performance",   dll_ini,         L"NVIDIA.DLSS",           L"CustomPerformanceScale"),
     ConfigEntry (nvidia.dlss.balanced_scale,             L"Custom scale factor (if != 0.0f) to use for Balanced",      dll_ini,         L"NVIDIA.DLSS",           L"CustomBalancedScale"),
     ConfigEntry (nvidia.dlss.quality_scale,              L"Custom scale factor (if != 0.0f) to use for Quality",       dll_ini,         L"NVIDIA.DLSS",           L"CustomQualityScale"),
@@ -3925,7 +3927,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Avowed:
-        config.window.treat_fg_as_active = true;
+        config.window.treat_fg_as_active          = true;
+        config.render.dxgi.always_allow_quickhook = true;
         break;
 
       case SK_GAME_ID::DiabloIV:
@@ -4461,6 +4464,7 @@ auto DeclKeybind =
   nvidia.dlss.forced_preset->load            (config.nvidia.dlss.forced_preset);
   nvidia.dlss.forced_auto_exposure->load     (config.nvidia.dlss.forced_auto_exposure);
   nvidia.dlss.forced_alpha_upscale->load     (config.nvidia.dlss.forced_alpha_upscale);
+  nvidia.dlss.forced_max_multiframe->load    (config.nvidia.dlss.forced_multiframe);
   nvidia.dlss.performance_scale->load        (config.nvidia.dlss.scale.performance);
   nvidia.dlss.balanced_scale->load           (config.nvidia.dlss.scale.balanced);
   nvidia.dlss.quality_scale->load            (config.nvidia.dlss.scale.quality);
@@ -6751,6 +6755,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.forced_preset->store            (config.nvidia.dlss.forced_preset);
       nvidia.dlss.forced_auto_exposure->store     (config.nvidia.dlss.forced_auto_exposure);
       nvidia.dlss.forced_alpha_upscale->store     (config.nvidia.dlss.forced_alpha_upscale);
+      nvidia.dlss.forced_max_multiframe->store    (config.nvidia.dlss.forced_multiframe);
       nvidia.dlss.performance_scale->store        (config.nvidia.dlss.scale.performance);
       nvidia.dlss.balanced_scale->store           (config.nvidia.dlss.scale.balanced);
       nvidia.dlss.quality_scale->store            (config.nvidia.dlss.scale.quality);

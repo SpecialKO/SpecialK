@@ -843,6 +843,7 @@ struct sk_config_t
         bool  create_swapchain     =  true;
         bool  create_swapchain4hwnd=  true;
       } hooks;
+      bool    always_allow_quickhook=false;
     } dxgi;
 
     struct {
@@ -1047,6 +1048,7 @@ struct sk_config_t
       int     forced_alpha_upscale= SK_NoPreference;
       int     use_sharpening      = SK_NoPreference;
       float   forced_sharpness    =   0.0f;
+      int     forced_multiframe   = SK_NoPreference;
       struct {
         float performance         =   0.0f;
         float balanced            =   0.0f;
