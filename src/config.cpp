@@ -3929,6 +3929,7 @@ auto DeclKeybind =
       case SK_GAME_ID::Avowed:
         config.window.treat_fg_as_active          = true;
         config.render.dxgi.always_allow_quickhook = true;
+        SK_GetDLLConfig ()->import (L"[DXGI.Hooks]\r\nEnableGlobalCache=true\r\nEnableLocalCache=false\r\n\r\n[D3D11.Hooks]\r\nEnableGlobalCache=true\r\nEnableLocalCache=false\r\n");
         break;
 
       case SK_GAME_ID::DiabloIV:

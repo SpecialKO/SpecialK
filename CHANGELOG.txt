@@ -1,4 +1,13 @@
-﻿25.2.21.1
+﻿25.2.22
+=======
+ + Add workaround for Proton's lack of support for WASAPI's IID_IAudioClient3
+     interface. It's a never ending series of broken Windows APIs and a real
+       miracle it can even run a few games; at least they stopped deliberately
+         crashing for code they do not implement.
+
+     * That's an improvement, if nothing else :)
+
+25.2.21.1
 =========
  + Added compat hack for using RenoDX HDR in Avowed; load ReShade as
      ReShade64.dll from the game directory.

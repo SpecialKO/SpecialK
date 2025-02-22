@@ -34,14 +34,20 @@ SK_IAudioClient3
 __stdcall
 SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
 {
+  static bool             unsupported   = false;
   static SK_IAudioClient3 pCachedClient = nullptr;
   static DWORD            dwLastUpdate  = 0;
+
+  if (unsupported)
+    return nullptr;
 
   // TODO: Stash this in the session manager SK already has, and keep it
   //         around persistently
   if (SK::ControlPanel::current_time > dwLastUpdate + 2500UL || uncached)
   {
     dwLastUpdate = SK::ControlPanel::current_time;
+
+    HRESULT hr = S_OK; 
 
     try
     {
@@ -66,8 +72,7 @@ SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
 
       SK_ComPtr <IAudioClient3> pAudioClient;
 
-      ThrowIfFailed (
-        pDevice->Activate (IID_IAudioClient3, CLSCTX_ALL, nullptr, IID_PPV_ARGS_Helper (&pAudioClient.p)));
+      ThrowIfFailed (hr = pDevice->Activate (IID_IAudioClient3, CLSCTX_ALL, nullptr, IID_PPV_ARGS_Helper (&pAudioClient.p)));
 
       pCachedClient =
         pAudioClient;
@@ -77,6 +82,9 @@ SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
     {
       SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
                 ),L"  WASAPI  " );
+
+      if (hr == E_NOINTERFACE)
+        unsupported = true;
 
       return nullptr;
     }
