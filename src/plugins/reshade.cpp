@@ -389,16 +389,6 @@ SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
 
   SK_LOGs0 (L"ReShadeExt", L"Runtime Destroyed");
 
-  SK_ReShadeAddOn_CleanupRTVs (runtime, true);
-
-  if (! _d3d12_rbk->frames_.empty ())
-  {
-    for ( auto& frame : _d3d12_rbk->frames_ )
-    {
-      frame.wait_for_gpu ();
-    }
-  }
-
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
 }
 
@@ -690,6 +680,9 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 {
   if (pSwapChain == nullptr)
     return;
+
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
   
   HWND                  hWnd = 0;
   pSwapChain->GetHwnd (&hWnd);
@@ -715,6 +708,9 @@ extern SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
 bool
 SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return false;
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -730,6 +726,9 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 
     const auto device =
       runtime->get_device ();
+
+    if (device == nullptr)
+      return false;
 
     const auto cmd_queue =
       runtime->get_command_queue ();
@@ -851,6 +850,9 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
                                        ID3D11RenderTargetView *pRTV,
                                        ID3D11RenderTargetView *pRTV_sRGB )
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return false;
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -862,8 +864,14 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
     const auto cmd_queue =
       runtime->get_command_queue ();
 
+    if (cmd_queue == nullptr)
+      return false;
+
     const auto cmd_list =
       cmd_queue->get_immediate_command_list ();
+
+    if (cmd_list == nullptr)
+      return false;
 
 
     SK_ReShadeAddOn_CleanupRTVs (runtime, false);
@@ -960,6 +968,9 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
 void
 SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -973,6 +984,9 @@ UINT64
 SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV, D3D12_CPU_DESCRIPTOR_HANDLE hRTV_sRGB)
 {
   if (_d3d12_rbk->_pReShadeRuntime == nullptr)
+    return 0;
+
+  if (ReadAcquire (&__SK_DLL_Ending))
     return 0;
 
   static volatile LONG64 lLastFrame = 0;
@@ -1061,6 +1075,9 @@ void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::
   if (swapchain == nullptr)
     return;
 
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   auto *device = swapchain->get_device ();
 
   if (device == nullptr)
@@ -1124,6 +1141,9 @@ SK_ReShadeGetConfigPath (void)
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return false;
+
   // Load ReShade's early import even earlier than normal so that AddOns
   //   initialize before third-party overlays do, helping to prevent them
   //     from crashing if they do not do nullptr checks.
@@ -1265,6 +1285,9 @@ SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *run
   if (runtime == nullptr)
     return;
 
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1304,10 +1327,31 @@ SK_ReShadeAddOn_DestroyEffectRuntime (reshade::api::effect_runtime *runtime)
   if (runtime == nullptr)
     return;
 
-  runtime->get_command_queue ()->wait_idle ();
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
 
   if (config.reshade.is_addon_hookless)
+  {
+    SK_ReShadeAddOn_CleanupRTVs (runtime, true);
+
+    auto cmd_queue = 
+      runtime->get_command_queue ();
+
+    if (! cmd_queue)
+      return;
+
+    if (! _d3d12_rbk->frames_.empty ())
+    {
+      for ( auto& frame : _d3d12_rbk->frames_ )
+      {
+        frame.wait_for_gpu ();
+      }
+    }
+
+    cmd_queue->wait_idle ();
+
     reshade::destroy_effect_runtime (runtime);
+  }
 }
 
 void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
