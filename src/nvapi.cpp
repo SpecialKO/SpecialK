@@ -1566,6 +1566,24 @@ NvAPI_QueryInterface_Detour (unsigned int ordinal)
   }
 #endif
 
+  static constexpr unsigned int NvAPI_D3D12_SetFlipConfig = 0xF3148C42;
+
+  switch (ordinal)
+  {
+    case NvAPI_D3D12_SetFlipConfig:
+      if (! config.nvidia.dlss.allow_flip_metering)
+      {
+        SK_RunOnce (
+          SK_LOGi0 (L"D3D12 Flip Metering Disabled")
+        );
+
+        return nullptr;
+      }
+      break;
+    default:
+      break;
+  }
+
   return
     NvAPI_QueryInterface_Original (ordinal);
 }

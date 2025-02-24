@@ -1,4 +1,11 @@
-﻿25.2.22.1
+﻿25.2.24
+=======
+ + Added option to prevent Streamline's fake frame pacing for fake frames.
+
+    [NVIDIA.DLSS]
+    AllowFlipMetering={true|false}  Default: false
+
+25.2.22.1
 =========
  + Optimized shutdown procedure when ReShade is present to avoid rare deadlocks
 
