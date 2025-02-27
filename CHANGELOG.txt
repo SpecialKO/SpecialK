@@ -1,4 +1,9 @@
-﻿25.2.26.1
+﻿25.2.27
+=======
+ + Write DLSS Frame Generation overrides to driver profile instead of
+     trying to hook the NvAPI driver settings API.
+
+25.2.26.1
 =========
  + Finished support for ForcedMaxMultiFrameCount introduced in 25.2.21.1,
      but no control panel option will be added until more testing is done.

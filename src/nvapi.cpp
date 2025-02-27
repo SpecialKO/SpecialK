@@ -1535,6 +1535,180 @@ SK_RenderBackend_V2::scan_out_s::
 }
 
 
+#define NGX_DLSSG_MULTI_FRAME_COUNT_ID 0x104D6667U
+#define NGX_DLSS_FG_OVERRIDE_ID        0x10E41E03U
+
+enum EValues_NGX_DLSSG_MULTI_FRAME_COUNT {
+    NGX_DLSSG_MULTI_FRAME_COUNT_MIN                      = 1,
+    NGX_DLSSG_MULTI_FRAME_COUNT_MAX                      = 15,
+    NGX_DLSSG_MULTI_FRAME_COUNT_DEFAULT                  = 1,
+    NGX_DLSSG_MULTI_FRAME_COUNT_NUM_VALUES = 3,
+};
+
+enum EValues_NGX_DLSS_FG_OVERRIDE {
+    NGX_DLSS_FG_OVERRIDE_OFF                             = 0,
+    NGX_DLSS_FG_OVERRIDE_ON                              = 1,
+    NGX_DLSS_FG_OVERRIDE_NUM_VALUES = 2,
+    NGX_DLSS_FG_OVERRIDE_DEFAULT = NGX_DLSS_FG_OVERRIDE_OFF
+};
+
+void
+SK_NvAPI_SetDLSSGOverride (int max_frames = -1)
+{
+  if (! nv_hardware)
+    return;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession),                 ret);
+    }
+  }
+
+  NVDRS_SETTING dlssg_override_val            = {               };
+                dlssg_override_val.version    = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING dlssg_frame_count_val         = {               };
+                dlssg_frame_count_val.version = NVDRS_SETTING_VER;
+
+  unsigned int override_    = (max_frames > 0) ? NGX_DLSS_FG_OVERRIDE_ON
+                                               : NGX_DLSS_FG_OVERRIDE_OFF;
+  unsigned int frame_count_ = (max_frames > 0) ? (unsigned int)max_frames
+                                               : 0;
+
+  bool restart_required0 = false;
+  bool restart_required1 = false;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT      ();
+  NVAPI_CALL        (DRS_GetSetting   (hSession, hProfile, NGX_DLSS_FG_OVERRIDE_ID, &dlssg_override_val));
+  if (               dlssg_override_val.u32CurrentValue !=                                 override_) {
+    NVAPI_SET_DWORD (dlssg_override_val,                   NGX_DLSS_FG_OVERRIDE_ID,        override_);
+    NVAPI_CALL      (DRS_SetSetting   (hSession, hProfile,                          &dlssg_override_val));
+    NVAPI_CALL      (DRS_SaveSettings (hSession));
+    NVAPI_CALL      (DRS_GetSetting   (hSession, hProfile, NGX_DLSS_FG_OVERRIDE_ID, &dlssg_override_val));
+
+    if (dlssg_override_val.u32CurrentValue != override_)
+    {
+      restart_required0 = true;
+    }
+  }
+  NVAPI_CALL        (DRS_GetSetting   (hSession, hProfile, NGX_DLSSG_MULTI_FRAME_COUNT_ID, &dlssg_frame_count_val));
+  if (               dlssg_frame_count_val.u32CurrentValue !=                                     frame_count_) {
+    NVAPI_SET_DWORD (dlssg_frame_count_val,                NGX_DLSSG_MULTI_FRAME_COUNT_ID,        frame_count_);
+    NVAPI_CALL      (DRS_SetSetting   (hSession, hProfile,                                 &dlssg_frame_count_val));
+    NVAPI_CALL      (DRS_SaveSettings (hSession));
+    NVAPI_CALL      (DRS_GetSetting   (hSession, hProfile, NGX_DLSSG_MULTI_FRAME_COUNT_ID, &dlssg_frame_count_val));
+
+    if (dlssg_frame_count_val.u32CurrentValue != frame_count_)
+    {
+      restart_required1 = true;
+    }
+  }
+  NVAPI_VERBOSE     ();
+
+  NVAPI_CALL (DRS_SaveSettings   (hSession));
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  if ( restart_required0 ||
+       restart_required1 )
+  {
+    SK_MessageBox (
+      L"A game restart will be required to apply DLSS Frame Generation Overrides",
+      L"DLSS Frame Generation Override",
+        MB_OK
+    );
+
+    std::wstring wszCommand0 =
+      SK_FormatStringW (
+        L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
+          SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+            NGX_DLSS_FG_OVERRIDE_ID, override_,
+              app_name.c_str ()
+      );
+
+    std::wstring wszCommand1 =
+      SK_FormatStringW (
+        L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
+          SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+            NGX_DLSSG_MULTI_FRAME_COUNT_ID, frame_count_,
+              app_name.c_str ()
+      );
+
+    if (restart_required0)
+    {
+      SK_ElevateToAdmin (wszCommand0.c_str (), false);
+    }
+
+    if (restart_required1)
+    {
+      SK_ElevateToAdmin (wszCommand1.c_str (), false);
+    }
+  }
+}
+
 using NvAPI_DRS_GetSetting_pfn = NvAPI_Status (__cdecl *)(NvDRSSessionHandle hSession, NvDRSProfileHandle hProfile, NvU32 settingId, NVDRS_SETTING *pSetting);
       NvAPI_DRS_GetSetting_pfn
       NvAPI_DRS_GetSetting_Original = nullptr;
@@ -1543,15 +1717,24 @@ NvAPI_Status
 __cdecl
 NvAPI_DRS_GetSetting_Detour (NvDRSSessionHandle hSession, NvDRSProfileHandle hProfile, NvU32 settingId, NVDRS_SETTING *pSetting)
 {
+  SK_LOG_FIRST_CALL
+
   NvAPI_Status status =
     NvAPI_DRS_GetSetting_Original (hSession, hProfile, settingId, pSetting);
 
-  if (NVAPI_OK == status)
+  if (NVAPI_OK == status && SK_GetCallingDLL () != SK_GetDLL ())
   {
-#define NGX_DLSSG_MULTI_FRAME_COUNT_ID 0x104D6667
-
     switch (settingId)
     {
+      case NGX_DLSS_FG_OVERRIDE_ID:
+      {
+        if (config.nvidia.dlss.forced_multiframe > 0)
+        {
+          SK_RunOnce (SK_LOGi0 (L"Forced DLSSG Override"));
+          pSetting->u32CurrentValue = NGX_DLSS_FG_OVERRIDE_ON;
+        }
+      } break;
+
       case NGX_DLSSG_MULTI_FRAME_COUNT_ID:
       {
         if (config.nvidia.dlss.forced_multiframe > 0)
@@ -1562,7 +1745,7 @@ NvAPI_DRS_GetSetting_Detour (NvDRSSessionHandle hSession, NvDRSProfileHandle hPr
                                       config.nvidia.dlss.forced_multiframe+1));
           pSetting->u32CurrentValue = config.nvidia.dlss.forced_multiframe;
         }
-      }
+      } break;
     }
   }
 
@@ -1912,6 +2095,11 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       // Admin privileges are required to do this...
       if (SK_IsAdmin ())
         SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
+
+      if (config.nvidia.dlss.forced_multiframe != -1)
+      {
+        SK_NvAPI_SetDLSSGOverride (config.nvidia.dlss.forced_multiframe);
+      }
 
       if (! SK_IsRunDLLInvocation ())
       {
