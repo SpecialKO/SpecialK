@@ -3,6 +3,9 @@
  + Write DLSS Frame Generation overrides to driver profile instead of
      trying to hook the NvAPI driver settings API.
 
+   * A game restart is required, and running commands as admin to modify
+       this part of the driver profile is also necessary.
+
 25.2.26.1
 =========
  + Finished support for ForcedMaxMultiFrameCount introduced in 25.2.21.1,

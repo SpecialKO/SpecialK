@@ -1702,7 +1702,7 @@ SK_NvAPI_SetDLSSGOverride (int max_frames = -1)
       SK_ElevateToAdmin (wszCommand0.c_str (), false);
     }
 
-    if (restart_required1)
+    if (restart_required1 && override_ != 0)
     {
       SK_ElevateToAdmin (wszCommand1.c_str (), false);
     }
