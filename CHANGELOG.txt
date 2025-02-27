@@ -1,4 +1,9 @@
-﻿25.2.26
+﻿25.2.26.1
+=========
+ + Finished support for ForcedMaxMultiFrameCount introduced in 25.2.21.1,
+     but no control panel option will be added until more testing is done.
+
+25.2.26
 =======
  + Restore partial latency statistics (DXGI) on systems that do not have
      NVIDIA Reflex capable hardware installed.

@@ -1535,6 +1535,41 @@ SK_RenderBackend_V2::scan_out_s::
 }
 
 
+using NvAPI_DRS_GetSetting_pfn = NvAPI_Status (__cdecl *)(NvDRSSessionHandle hSession, NvDRSProfileHandle hProfile, NvU32 settingId, NVDRS_SETTING *pSetting);
+      NvAPI_DRS_GetSetting_pfn
+      NvAPI_DRS_GetSetting_Original = nullptr;
+
+NvAPI_Status
+__cdecl
+NvAPI_DRS_GetSetting_Detour (NvDRSSessionHandle hSession, NvDRSProfileHandle hProfile, NvU32 settingId, NVDRS_SETTING *pSetting)
+{
+  NvAPI_Status status =
+    NvAPI_DRS_GetSetting_Original (hSession, hProfile, settingId, pSetting);
+
+  if (NVAPI_OK == status)
+  {
+#define NGX_DLSSG_MULTI_FRAME_COUNT_ID 0x104D6667
+
+    switch (settingId)
+    {
+      case NGX_DLSSG_MULTI_FRAME_COUNT_ID:
+      {
+        if (config.nvidia.dlss.forced_multiframe > 0)
+        {
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Forced DLSSG Multiframe to %dx",
+                                      config.nvidia.dlss.forced_multiframe+1));
+          pSetting->u32CurrentValue = config.nvidia.dlss.forced_multiframe;
+        }
+      }
+    }
+  }
+
+  return
+    status;
+}
+
 using NvAPI_QueryInterface_pfn = void* (*)(unsigned int ordinal);
       NvAPI_QueryInterface_pfn
       NvAPI_QueryInterface_Original = nullptr;
@@ -1880,6 +1915,13 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
       if (! SK_IsRunDLLInvocation ())
       {
+        SK_CreateFuncHook (      L"NvAPI_DRS_GetSetting",
+                                   NvAPI_QueryInterface (0x73BF8338),
+                                   NvAPI_DRS_GetSetting_Detour,
+          static_cast_p2p <void> (&NvAPI_DRS_GetSetting_Original) );
+
+        MH_QueueEnableHook (NvAPI_QueryInterface (0x73BF8338));
+
         SK_CreateDLLHook2 ( SK_RunLHIfBitness (64, L"nvapi64.dll",
                                                    L"nvapi.dll"),
                                   "nvapi_QueryInterface",
