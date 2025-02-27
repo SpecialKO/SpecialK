@@ -1,4 +1,9 @@
-﻿25.2.24
+﻿25.2.26
+=======
+ + Restore partial latency statistics (DXGI) on systems that do not have
+     NVIDIA Reflex capable hardware installed.
+
+25.2.24
 =======
  + Added option to prevent Streamline's fake frame pacing for fake frames.
 

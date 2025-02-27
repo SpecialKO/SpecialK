@@ -451,16 +451,6 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       SetEvent (  SK_ImGui_SignalBackupInputThread     );
   }
 
-  if (! isReflexSupported ())
-    return false;
-
-  if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
-    return true;
-
-  const bool bWantAccuratePresentTiming = false;
-    //( config.render.framerate.target_fps > 0.0f ||
-    //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
-
   NvAPI_Status ret =
     NVAPI_INVALID_CONFIGURATION;
 
@@ -513,6 +503,21 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 #endif
     }
 
+    if (marker == RENDERSUBMIT_END)
+    {
+      latency.submitQueuedFrame (pSwapChain.p);
+    }
+
+    if (! isReflexSupported ())
+      return false;
+
+    if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
+      return true;
+
+    const bool bWantAccuratePresentTiming = false;
+      //( config.render.framerate.target_fps > 0.0f ||
+      //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
+
     // Only do this if game is not Reflex native, or if the marker is a flash
     if ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || (bWantAccuratePresentTiming && (marker == PRESENT_START || marker == PRESENT_END)))
     {
@@ -564,11 +569,6 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       //   we may have gotten here out-of-order.
       ret = NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
          SK_NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
-    }
-
-    if (marker == RENDERSUBMIT_END)
-    {
-      latency.submitQueuedFrame (pSwapChain.p);
     }
   }
 
