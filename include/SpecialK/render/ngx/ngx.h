@@ -34,8 +34,8 @@ struct NGX_ThreadSafety {
 
 extern SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
-void SK_NGX_EstablishDLSSVersion  (void) noexcept;
-void SK_NGX_EstablishDLSSGVersion (void) noexcept;
+void SK_NGX_EstablishDLSSVersion  (const wchar_t*) noexcept;
+void SK_NGX_EstablishDLSSGVersion (const wchar_t*) noexcept;
 
 struct SK_DLSS_Context
 {
@@ -80,7 +80,7 @@ struct SK_DLSS_Context
     static bool isIndicatorShown (void);
   } frame_gen;
 
-  inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (); };
+  inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll"); };
 };
 
 extern SK_DLSS_Context SK_NGX_DLSS12;

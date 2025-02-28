@@ -811,23 +811,23 @@ SK_DLSS_Context::version_s SK_DLSS_Context::dlss_s::Version;
 SK_DLSS_Context::version_s SK_DLSS_Context::dlssg_s::Version;
 
 void
-SK_NGX_EstablishDLSSVersion (void) noexcept
+SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 {
   static bool bHasVersion = false;
 
   if (bHasVersion && SK_GetFramesDrawn () > 0)
     return;
 
-  if (! GetModuleHandleW (L"nvngx_dlss.dll"))
+  if (! GetModuleHandleW (wszDLSS))
     return;
 
   std::swscanf (
-    SK_GetDLLVersionShort (L"nvngx_dlss.dll").c_str (), L"%d,%d,%d,%d",
+    SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
       &SK_DLSS_Context::dlss_s::Version.major, &SK_DLSS_Context::dlss_s::Version.minor,
       &SK_DLSS_Context::dlss_s::Version.build, &SK_DLSS_Context::dlss_s::Version.revision
   );
 
-  bHasVersion = true;
+  bHasVersion = SK_DLSS_Context::dlss_s::Version.major > 0;
 
   // Turn off overrides before we break stuff!
   if (SK_DLSS_Context::dlss_s::Version.major < 2)
@@ -840,23 +840,23 @@ SK_NGX_EstablishDLSSVersion (void) noexcept
 }
 
 void
-SK_NGX_EstablishDLSSGVersion (void) noexcept
+SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 {
   static bool bHasVersion = false;
 
   if (bHasVersion && SK_GetFramesDrawn () > 0)
     return;
 
-  if (! GetModuleHandleW (L"nvngx_dlssg.dll"))
+  if (! GetModuleHandleW (wszDLSSG))
     return;
 
   std::swscanf (
-    SK_GetDLLVersionShort (L"nvngx_dlssg.dll").c_str (), L"%d,%d,%d,%d",
+    SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
       &SK_DLSS_Context::dlssg_s::Version.major, &SK_DLSS_Context::dlssg_s::Version.minor,
       &SK_DLSS_Context::dlssg_s::Version.build, &SK_DLSS_Context::dlssg_s::Version.revision
   );
 
-  bHasVersion = true;
+  bHasVersion = SK_DLSS_Context::dlssg_s::Version.major > 0;
 }
 
 SK_DLSS_Context::version_s

@@ -303,7 +303,7 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
   {
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
-      SK_NGX_EstablishDLSSGVersion ();
+      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssg.dll");
 
       SK_ReleaseAssert ( SK_NGX_DLSS12.frame_gen.Handle == *OutHandle ||
                          SK_NGX_DLSS12.frame_gen.Handle == nullptr );
@@ -583,7 +583,7 @@ SK_NGX_InitD3D12 (void)
 {
   SK_RunOnce (
   {
-    SK_NGX_EstablishDLSSVersion ();
+    SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll");
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                          "NVSDK_NGX_D3D12_Init",

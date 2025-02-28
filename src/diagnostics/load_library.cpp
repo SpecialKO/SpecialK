@@ -576,14 +576,14 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlss.dll")) ||
                 StrStrIW (wszModName,        L"nvngx_dlss.dll") )
     {
-      extern void SK_NGX_EstablishDLSSVersion (void) noexcept;
-                  SK_NGX_EstablishDLSSVersion ();
+      extern void SK_NGX_EstablishDLSSVersion (const wchar_t*) noexcept;
+                  SK_NGX_EstablishDLSSVersion (wszModName);
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlssg.dll")) ||
                 StrStrIW (wszModName,        L"nvngx_dlssg.dll") )
     {
-      extern void SK_NGX_EstablishDLSSGVersion (void) noexcept;
-                  SK_NGX_EstablishDLSSGVersion ();
+      extern void SK_NGX_EstablishDLSSGVersion (const wchar_t*) noexcept;
+                  SK_NGX_EstablishDLSSGVersion (wszModName);
     }
 
 #if 0
@@ -974,48 +974,57 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
 
-      else if (config.nvidia.dlss.auto_redirect_dlss && StrStrIW (compliant_path, L"nvngx_dlss.dll"))
+      else if (StrStrIW (compliant_path, L"nvngx_dlss.dll"))
       {
-        static auto path_to_plugin_dlss =
-          std::filesystem::path (
-            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
-          ) / L"NVIDIA" / L"nvngx_dlss.dll";
-
-        std::error_code                                   ec;
-        if (std::filesystem::exists (path_to_plugin_dlss, ec))
+        if (config.nvidia.dlss.auto_redirect_dlss)
         {
-          if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
-          {
-            dll_log->Log (
-              L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
-                compliant_path,
-                          path_to_plugin_dlss.c_str ()
-            );
+          static auto path_to_plugin_dlss =
+            std::filesystem::path (
+              SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+            ) / L"NVIDIA" / L"nvngx_dlss.dll";
 
-            hMod =
-              SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+          std::error_code                                   ec;
+          if (std::filesystem::exists (path_to_plugin_dlss, ec))
+          {
+            if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
+            {
+              dll_log->Log (
+                L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+                  compliant_path,
+                            path_to_plugin_dlss.c_str ()
+              );
+
+              hMod =
+                SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+            }
+
+            else
+            {
+              dll_log->Log (
+                L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
+                  SK_GetDLLVersionShort (compliant_path).c_str ()
+              );
+
+              hMod = nullptr;
+            }
+
+            if (! hMod)
+            {
+              dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
+
+              hMod =
+                SK_LoadLibraryW (compliant_path);
+            }
           }
 
           else
           {
-            dll_log->Log (
-              L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
-                SK_GetDLLVersionShort (compliant_path).c_str ()
-            );
-
-            hMod = nullptr;
-          }
-
-          if (! hMod)
-          {
-            dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
-
             hMod =
               SK_LoadLibraryW (compliant_path);
           }
 
-          extern void SK_NGX_EstablishDLSSVersion (void);
-                      SK_NGX_EstablishDLSSVersion ();
+          extern void SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept;
+                      SK_NGX_EstablishDLSSVersion (compliant_path);
         }
       }
 
@@ -1354,49 +1363,58 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   try
   {
 #endif
-    if (config.nvidia.dlss.auto_redirect_dlss && StrStrIW (compliant_path, L"nvngx_dlss.dll"))
+    if (StrStrIW (compliant_path, L"nvngx_dlss.dll"))
     {
-      static auto path_to_plugin_dlss =
-        std::filesystem::path (
-          SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
-        ) / L"NVIDIA" / L"nvngx_dlss.dll";
-
-      std::error_code                                   ec;
-      if (std::filesystem::exists (path_to_plugin_dlss, ec))
+      if (config.nvidia.dlss.auto_redirect_dlss)
       {
-        if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
+        static auto path_to_plugin_dlss =
+          std::filesystem::path (
+            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+          ) / L"NVIDIA" / L"nvngx_dlss.dll";
+
+        std::error_code                                   ec;
+        if (std::filesystem::exists (path_to_plugin_dlss, ec))
         {
-          dll_log->Log (
-            L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
-              compliant_path,
-                        path_to_plugin_dlss.c_str ()
-          );
+          if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
+          {
+            dll_log->Log (
+              L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+                compliant_path,
+                          path_to_plugin_dlss.c_str ()
+            );
 
-          hMod =
-            SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
-        }
+            hMod =
+              SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+          }
 
-        else
-        {
-          dll_log->Log (
-            L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
-              SK_GetDLLVersionShort (compliant_path).c_str ()
-          );
+          else
+          {
+            dll_log->Log (
+              L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
+                SK_GetDLLVersionShort (compliant_path).c_str ()
+            );
 
-          hMod = nullptr;
-        }
+            hMod = nullptr;
+          }
 
-        if (! hMod)
-        {
-          dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
+          if (! hMod)
+          {
+            dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
 
-          hMod =
-            SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+            hMod =
+              SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+          }
         }
       }
-      
-      extern void SK_NGX_EstablishDLSSVersion (void);
-                  SK_NGX_EstablishDLSSVersion ();
+
+      else
+      {
+        hMod =
+          SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+      }
+
+      extern void SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept;
+                  SK_NGX_EstablishDLSSVersion (compliant_path);
     }
 
     else
