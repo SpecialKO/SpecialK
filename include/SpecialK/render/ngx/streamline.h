@@ -1062,3 +1062,73 @@ SL_STRUCT(AdapterInfo, StructType({ 0x677315f, 0xa746, 0x4492, { 0x9f, 0x42, 0xc
     //! IMPORTANT: New members go here or if optional can be chained in a new struct, see sl_struct.h for details
 };
 }
+
+
+//! GUID
+struct StructType
+{
+    uint32_t data1;
+    uint16_t data2;
+    uint16_t data3;
+    uint8_t  data4[8];
+
+    inline bool operator==(const StructType& rhs) const { return memcmp(this, &rhs, sizeof(*this)) == 0; }
+    inline bool operator!=(const StructType& rhs) const { return memcmp(this, &rhs, sizeof(*this)) != 0; }
+};
+
+//! IMPORTANT: New members in the structure always go at the end!
+//!
+constexpr uint32_t kStructVersion1 = 1;
+constexpr uint32_t kStructVersion2 = 2;
+constexpr uint32_t kStructVersion3 = 3;
+
+struct BaseStructure
+{
+    BaseStructure() = delete;
+    BaseStructure(StructType t, uint32_t v) : structType(t), structVersion(v) {};
+    BaseStructure* next{};
+    StructType structType{};
+    size_t structVersion;
+};
+
+#define SL_STRUCT_BEGIN(name, guid, version)                                \
+struct name : public sl::BaseStructure                                      \
+{                                                                           \
+    name() : sl::BaseStructure(guid, version){}                             \
+    constexpr static sl::StructType s_structType = guid;
+
+#define SL_STRUCT_END() };
+
+#define SL_STRUCT_PROTECTED_BEGIN(name, guid, version)                      \
+struct name : public sl::BaseStructure                                      \
+{                                                                           \
+protected:                                                                  \
+    name() : sl::BaseStructure(guid, version){}                             \
+public:                                                                     \
+    constexpr static sl::StructType s_structType = guid;                    \
+
+namespace sl
+{
+enum class DLSSGMode : uint32_t
+{
+  eOff,
+  eOn,
+  eCount
+};
+
+// {FAC5F1CB-2DFD-4F36-A1E6-3A9E865256C5}
+SL_STRUCT_BEGIN(DLSSGOptions, StructType({ 0xfac5f1cb, 0x2dfd, 0x4f36, { 0xa1, 0xe6, 0x3a, 0x9e, 0x86, 0x52, 0x56, 0xc5 } }), kStructVersion3)
+    //! Specifies which mode should be used.
+    DLSSGMode mode = DLSSGMode::eOff;
+    //! Number of frames to generate inbetween fully rendered frames. Cannot exceed DLSSGState::numFramesToGenerateMax.
+    //!     For 2x frame multiplier, numFramesToGenerate is 1.
+    //!     For 3x frame multiplier, numFramesToGenerate is 2.
+    //!     For 4x frame multiplier, numFramesToGenerate is 3.
+    uint32_t numFramesToGenerate = 1;
+    //! Optional - Flags used to enable or disable certain functionality
+
+    // Don't care about the rest of this struct...
+SL_STRUCT_END()
+};
+
+using PFun_slDLSSGSetOptions = sl::Result(const sl::ViewportHandle& viewport, const sl::DLSSGOptions& options);

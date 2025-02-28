@@ -1672,8 +1672,8 @@ SK_NvAPI_SetDLSSGOverride (int max_frames = -1)
   NVAPI_CALL (DRS_SaveSettings   (hSession));
   NVAPI_CALL (DRS_DestroySession (hSession));
 
-  if ( restart_required0 ||
-       restart_required1 )
+  if (   restart_required0 ||
+       ( restart_required1 && override_ != 0 ) )
   {
     SK_MessageBox (
       L"A game restart will be required to apply DLSS Frame Generation Overrides",

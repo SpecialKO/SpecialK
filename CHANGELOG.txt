@@ -1,4 +1,9 @@
-﻿25.2.27
+﻿25.2.27.1
+=========
+ + Added support for DLSS version detection when an NVIDIA App configured
+     override is being applied.
+
+25.2.27
 =======
  + Write DLSS Frame Generation overrides to driver profile instead of
      trying to hook the NvAPI driver settings API.

@@ -573,6 +573,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       extern void SK_NGX_Init (void);
                   SK_NGX_Init ();
     }
+    else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlss.dll")) ||
+                StrStrIW (wszModName,        L"nvngx_dlss.dll") )
+    {
+      extern void SK_NGX_EstablishDLSSVersion (void) noexcept;
+                  SK_NGX_EstablishDLSSVersion ();
+    }
     else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlssg.dll")) ||
                 StrStrIW (wszModName,        L"nvngx_dlssg.dll") )
     {
