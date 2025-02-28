@@ -1,4 +1,11 @@
-﻿25.2.27.2
+﻿25.2.28
+=======
+ + Improved detection of DLSS/DLSSG version when overrides are applied using
+     NVIDIA App.
+ + Various fixes for MonsterHunterWilds anti-tamper
+    * Game will deliberately corrupt graphics if it detects modification.
+
+25.2.27.2
 =========
  + Fixed potential to load ReShade AddOns twice when using local injection
 

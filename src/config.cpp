@@ -3867,7 +3867,10 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::MonsterHunterWilds:
-        config.steam.crapcom_mode                   = true;
+        config.window.dont_hook_wndproc             = true;
+        config.platform.silent                      = true;
+        config.compatibility.disable_debug_features = true;
+        config.system.handle_crashes                = false;
         config.render.dstorage.enable_hooks         = false;
         break;
 
@@ -5916,8 +5919,8 @@ auto DeclKeybind =
                                          wszKaldaienAPIDll, FALSE)));
         }
   
-        if (! config.platform.silent )
-        {if(! config.steam.crapcom_mode )
+        if  (!config.platform.silent)
+        {if((!config.steam.crapcom_mode) || wcscmp (config.steam.dll_path.c_str (), wszKaldaienAPIDll))
           {   config.steam.auto_inject         =    true;
               config.steam.auto_pump_callbacks =    true;
               config.steam.force_load_steamapi =    true;
@@ -5926,6 +5929,14 @@ auto DeclKeybind =
               config.steam.init_delay          =      -1;
               config.platform.silent           =   false;
               config.steam.dll_path            =  wszKaldaienAPIDll;
+              //SK_ImGui_CreateNotification (
+              //"AntiTamper.Info", SK_ImGui_Toast::Info,
+              //   "A game restart is required to fully workaround CAPCOM's anti-tamper.",
+              //     "Anti-Tamper Bypass",
+              //     300000, SK_ImGui_Toast::UseDuration |
+              //             SK_ImGui_Toast::ShowCaption |
+              //             SK_ImGui_Toast::ShowTitle
+              //);
           }   config.steam.crapcom_mode        =    true;
         }else{config.steam.crapcom_mode        =   false;
               config.steam.dll_path            =     L"";}
