@@ -1,4 +1,8 @@
-﻿25.2.27.1
+﻿25.2.27.2
+=========
+ + Fixed potential to load ReShade AddOns twice when using local injection
+
+25.2.27.1
 =========
  + Added support for DLSS version detection when an NVIDIA App configured
      override is being applied.

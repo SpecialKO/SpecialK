@@ -1182,7 +1182,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   registered =
     reshade::register_addon (SK_GetDLL (), reshade_module);
 
-  if (registered)
+  if (registered) SK_RunOnce (
   {
     std::filesystem::path shared_base_path (
     std::filesystem::path (SK_GetInstallPath ()) / LR"(Global\ReShade\)");
@@ -1227,7 +1227,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
                                                                          L".addon32")))
         {
           // It's already loaded...
-          if (GetModuleHandleW (path.filename ().c_str ()))
+          if (GetModuleHandleW (path.parent_path ().wstring ().data ()))
             continue;
 
           const auto filename      = path.filename ().wstring  ();
@@ -1272,7 +1272,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     };
 
     _AutoLoadAddOns ();
-  }
+  });
 
   return
     registered;
