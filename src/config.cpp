@@ -3867,8 +3867,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::MonsterHunterWilds:
+        config.steam.crapcom_mode                   = true;
         config.window.dont_hook_wndproc             = true;
-        config.platform.silent                      = true;
         config.compatibility.disable_debug_features = true;
         config.system.handle_crashes                = false;
         config.render.dstorage.enable_hooks         = false;
@@ -5854,7 +5854,7 @@ auto DeclKeybind =
   //
   // DRM Workarounds
   //
-  bool bHasCrapcomDRM = false;
+  bool bHasCrapcomDRM = config.steam.crapcom_mode;
 
   // Only do DRM checks when we have a fully parsed INI file
   //
@@ -5872,7 +5872,7 @@ auto DeclKeybind =
       config.compatibility.disable_debug_features = true;
     }
 
-    if (StrStrIW (code_sig.subject.c_str (), L"CAPCOM"))
+    if (StrStrIW (code_sig.subject.c_str (), L"CAPCOM") || SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWilds)
     //LR"(Private Organization, JP, 1200-01-077023, JP, Osaka, Osaka-shi, "CAPCOM CO., LTD.", "CAPCOM CO., LTD.")"
     {
       static constexpr
@@ -5899,8 +5899,10 @@ auto DeclKeybind =
       static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api.dll";
       static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api.dll";
   #else
-      static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api64.dll";
-      static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api64.dll";
+      static const wchar_t *wszSteamAPIDll    =                 L"steam_api64.dll";
+      static const wchar_t *wszKaldaienAPIDll = SK_IsCurrentGame (SK_GAME_ID::StreetFighter6) ?
+                                                   L"kaldaien_api/steam_api64.dll"            :
+                                                   L"kaldaien_api/kaldaien_api64.dll";
   #endif
   
       // Do not use CRAPCOM DRM workaround on Steam Deck
@@ -5929,14 +5931,6 @@ auto DeclKeybind =
               config.steam.init_delay          =      -1;
               config.platform.silent           =   false;
               config.steam.dll_path            =  wszKaldaienAPIDll;
-              //SK_ImGui_CreateNotification (
-              //"AntiTamper.Info", SK_ImGui_Toast::Info,
-              //   "A game restart is required to fully workaround CAPCOM's anti-tamper.",
-              //     "Anti-Tamper Bypass",
-              //     300000, SK_ImGui_Toast::UseDuration |
-              //             SK_ImGui_Toast::ShowCaption |
-              //             SK_ImGui_Toast::ShowTitle
-              //);
           }   config.steam.crapcom_mode        =    true;
         }else{config.steam.crapcom_mode        =   false;
               config.steam.dll_path            =     L"";}
