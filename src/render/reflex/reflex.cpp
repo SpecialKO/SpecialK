@@ -74,10 +74,10 @@ SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
 {
   if (NvAPI_D3D_SetLatencyMarker_Original != nullptr)
   {
-    //SK_ComPtr <ID3D12Device>                     pDev12;
-    //if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-    //  return NvAPI_D3D_SetLatencyMarker_Original(pDev12.p, pSetLatencyMarkerParams);
-    //else
+    SK_ComPtr <ID3D12Device>                     pDev12;
+    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+      return NvAPI_D3D_SetLatencyMarker_Original(pDev12.p, pSetLatencyMarkerParams);
+    else
       return NvAPI_D3D_SetLatencyMarker_Original(pDev,     pSetLatencyMarkerParams);
   }
 
@@ -90,10 +90,10 @@ SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
 {
   if (NvAPI_D3D_Sleep_Original != nullptr)
   {
-    //SK_ComPtr <ID3D12Device>                     pDev12;
-    //if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-    //  return NvAPI_D3D_Sleep_Original (          pDev12.p);
-    //else
+    SK_ComPtr <ID3D12Device>                     pDev12;
+    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+      return NvAPI_D3D_Sleep_Original (          pDev12.p);
+    else
       return NvAPI_D3D_Sleep_Original (          pDev);
   }
 
@@ -117,10 +117,10 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   if (config.nvidia.reflex.disable_native)
     return NVAPI_OK;
 
-  ///SK_ComPtr <ID3D12Device>                     pDev12;
-  ///if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-  ///  return SK_NvAPI_D3D_Sleep (                pDev12);
-  ///else
+  SK_ComPtr <ID3D12Device>                     pDev12;
+  if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+    return SK_NvAPI_D3D_Sleep (                pDev12);
+  else
     return SK_NvAPI_D3D_Sleep (pDev);
 }
 
@@ -130,10 +130,10 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
 {
   if (NvAPI_D3D_SetSleepMode_Original != nullptr)
   {
-    //SK_ComPtr <ID3D12Device>                     pDev12;
-    //if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-    //  return NvAPI_D3D_SetSleepMode_Original (   pDev12, pSetSleepModeParams);
-    //else
+    SK_ComPtr <ID3D12Device>                     pDev12;
+    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+      return NvAPI_D3D_SetSleepMode_Original (   pDev12, pSetSleepModeParams);
+    else
       return NvAPI_D3D_SetSleepMode_Original (   pDev,   pSetSleepModeParams);
   }
 
@@ -221,17 +221,10 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
     bFixed;
 }
 
-NVAPI_INTERFACE
-NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
-                                    __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
+std::optional <NvAPI_Status>
+SK_Reflex_GameSpecificLatencyMarkerFixups ( __in IUnknown                 *pDev,
+                                            __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
-  SK_LOG_FIRST_CALL
-
-#ifdef _DEBUG
-  // Naive test, proper test for equality would involve QueryInterface
-  SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
-#endif
-
   if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
   {
     if (pSetLatencyMarkerParams->markerType > INPUT_SAMPLE)
@@ -243,25 +236,65 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       SK_LOGi0 (L"Marker Type: %d, on frame: %d", pSetLatencyMarkerParams->markerType, pSetLatencyMarkerParams->frameID);
     }
 
-    if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END)
+    if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END ||
+        pSetLatencyMarkerParams->markerType == SIMULATION_START)
     {
-      SK_NvAPI_D3D_Sleep (pDev);
-    }
+      NV_GET_SLEEP_STATUS_PARAMS
+        sleepStatusParams         = {                            };
+        sleepStatusParams.version = NV_GET_SLEEP_STATUS_PARAMS_VER;
 
-    static NvU64 lastSimFrame = 0;
-    if (pSetLatencyMarkerParams->markerType == SIMULATION_START)
-    {
-      if (lastSimFrame != pSetLatencyMarkerParams->frameID)
-      {   lastSimFrame  = pSetLatencyMarkerParams->frameID;
-    
-        NV_LATENCY_MARKER_PARAMS fake_input = *pSetLatencyMarkerParams;
-                                 fake_input.markerType = INPUT_SAMPLE;
-    
-               NvAPI_D3D_SetLatencyMarker_Detour (pDev, pSetLatencyMarkerParams);
-        return NvAPI_D3D_SetLatencyMarker_Detour (pDev, &fake_input);
+      if ( NVAPI_OK ==
+             NvAPI_D3D_GetSleepStatus (pDev, &sleepStatusParams)
+         )
+      {
+        if (sleepStatusParams.bLowLatencyMode)
+        {
+          if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END)
+          {
+            SK_NvAPI_D3D_Sleep (pDev);
+          }
+
+          static NvU64 lastSimFrame = MAXUINT64;
+          if (pSetLatencyMarkerParams->markerType == SIMULATION_START)
+          {
+            if (lastSimFrame != pSetLatencyMarkerParams->frameID)
+            {   lastSimFrame  = pSetLatencyMarkerParams->frameID;
+
+              NV_LATENCY_MARKER_PARAMS fake_input = *pSetLatencyMarkerParams;
+                                       fake_input.markerType = INPUT_SAMPLE;
+
+              NVAPI_INTERFACE
+              NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
+                                                  __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams );
+
+                     NvAPI_D3D_SetLatencyMarker_Detour (pDev, pSetLatencyMarkerParams);
+              return NvAPI_D3D_SetLatencyMarker_Detour (pDev, &fake_input);
+            }
+          }
+        }
       }
     }
   }
+
+  return std::nullopt;
+}
+
+NVAPI_INTERFACE
+NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
+                                    __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
+{
+  SK_LOG_FIRST_CALL
+
+#ifdef _DEBUG
+  // Naive test, proper test for equality would involve QueryInterface
+  SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
+#endif
+
+  const auto fixup =
+    SK_Reflex_GameSpecificLatencyMarkerFixups (pDev, pSetLatencyMarkerParams);
+
+  if ( fixup.has_value ())
+    return fixup.value ();
 
   if (! config.nvidia.reflex.disable_native)
   {
