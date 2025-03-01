@@ -1,4 +1,9 @@
-﻿25.2.29
+﻿25.2.29.1
+=========
+ + Disable GPU Decompression Metacommands when forcing GPU Decompression off
+     in DirectStorage overrides.
+
+25.2.29
 =======
  + Added nvngx_dlssg.dll and nvngx_dlssd.dll to the list of DLLs that
      Special K can auto-load an alternate version of.

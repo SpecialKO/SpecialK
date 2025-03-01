@@ -55,7 +55,10 @@ SK_DStorage_ApplyConfigOverrides (DSTORAGE_CONFIGURATION *pConfig)
     pConfig->DisableBypassIO = true;
 
   if (config.render.dstorage.disable_gpu_decomp)
-    pConfig->DisableGpuDecompression = true;
+  {
+    pConfig->DisableGpuDecompressionMetacommand = true;
+    pConfig->DisableGpuDecompression            = true;
+  }
 
   if (config.render.dstorage.disable_telemetry)
     pConfig->DisableTelemetry = true;
@@ -271,6 +274,12 @@ void SK_DStorage_Init (void)
       }
 
       SK_ApplyQueuedHooks ();
+
+      if (config.render.dstorage.disable_bypass_io || config.render.dstorage.disable_gpu_decomp || config.render.dstorage.disable_telemetry)
+      {
+        DSTORAGE_CONFIGURATION1            cfg1 = {};
+        DStorageSetConfiguration1_Detour (&cfg1);
+      }
     });
   }
 }
