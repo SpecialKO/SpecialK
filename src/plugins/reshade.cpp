@@ -92,6 +92,9 @@ SK_ReShade_IsLocalDLLPresent (void)
 void
 SK_ReShade_LoadIfPresent (void)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   const wchar_t *wszDLL =
     SK_RunLHIfBitness (64, L"ReShade64.dll",
                            L"ReShade32.dll");
@@ -144,7 +147,7 @@ void
 __cdecl
 SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 {
-  if (! runtime)
+  if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
   static SK_Thread_HybridSpinlock                   _init_lock;
@@ -266,8 +269,11 @@ Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_GetRuntimeForHWND (HWND hWnd)
 {
-  if (     ReShadeRuntimes.count (hWnd))
-    return ReShadeRuntimes       [hWnd];
+  if (hWnd != 0)
+  {
+    if (     ReShadeRuntimes.count (hWnd))
+      return ReShadeRuntimes       [hWnd];
+  }
 
   return nullptr;
 }
@@ -275,36 +281,38 @@ SK_ReShadeAddOn_GetRuntimeForHWND (HWND hWnd)
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
 {
-  if (! pSwapChain)
+  if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return nullptr;
 
-  SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+  SK_ComQIPtr <IDXGISwapChain1>
+      pSwapChain1 (pSwapChain);
+  if (pSwapChain1 != nullptr)
+  {
+    HWND                  hWnd = 0;
+    pSwapChain1->GetHwnd (&hWnd);
 
-  HWND                  hWnd = 0;
-  pSwapChain1->GetHwnd (&hWnd);
+    if (! hWnd)
+      return nullptr;
 
-  if (! hWnd)
-    return nullptr;
+    auto runtime =
+      ReShadeRuntimes [hWnd];
 
-  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-  pSwapChain->GetDesc (&swapDesc);
+    return runtime;
+  }
 
-  auto runtime =
-    ReShadeRuntimes [hWnd];
-
-  return runtime;
+  return nullptr;
 }
 
 void
 SK_ReShadeAddOn_CleanupRTVs (reshade::api::device *device, bool must_wait)
 {
-  if (! device)
+  if (ReadAcquire (&__SK_DLL_Ending) || device == nullptr)
     return;
 
   dxgi_rtv_s  dxgi_rtv;
   std::queue <dxgi_rtv_s> busy_rtvs;
 
-  auto api =
+  const auto api =
     device->get_api ();
 
   if (api != reshade::api::device_api::d3d12 &&
@@ -358,16 +366,16 @@ SK_ReShadeAddOn_CleanupRTVs (reshade::api::device *device, bool must_wait)
 void
 SK_ReShadeAddOn_CleanupRTVs (reshade::api::effect_runtime *runtime, bool must_wait)
 {
-  if (! runtime)
+  if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
   const auto device =
     runtime->get_device ();
 
-  if (! device)
+  if (device == nullptr)
     return;
 
-  auto api =
+  const auto api =
     device->get_api ();
 
   if (api != reshade::api::device_api::d3d12 &&
@@ -384,19 +392,10 @@ void
 __cdecl
 SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
 {
-  if (! runtime)
+  if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
-  SK_LOGs0 (L"ReShadeExt", L"Runtime Destroyed");
-
-  ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
-}
-
-void
-__cdecl
-SK_ReShadeAddOn_DestroyDevice (reshade::api::device *device)
-{
-  if (! device) return;
+  SK_ReShadeAddOn_CleanupRTVs (runtime, true);
 
   if (! _d3d12_rbk->frames_.empty ())
   {
@@ -406,7 +405,37 @@ SK_ReShadeAddOn_DestroyDevice (reshade::api::device *device)
     }
   }
 
-  auto api =
+  const auto hwnd =
+    (HWND)runtime->get_hwnd ();
+
+  if (hwnd != 0)
+  {
+    SK_LOGs0 (L"ReShadeExt", L"Runtime Destroyed");
+    ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
+  }
+
+  else
+  {
+    SK_LOGs0 (L"ReShadeExt", L"Runtime With No Window Destroyed?!");
+  }
+}
+
+void
+__cdecl
+SK_ReShadeAddOn_DestroyDevice (reshade::api::device *device)
+{
+  if (ReadAcquire (&__SK_DLL_Ending) || device == nullptr)
+    return;
+
+  if (! _d3d12_rbk->frames_.empty ())
+  {
+    for ( auto& frame : _d3d12_rbk->frames_ )
+    {
+      frame.wait_for_gpu ();
+    }
+  }
+
+  const auto api =
     device->get_api ();
 
   switch (api)
@@ -430,7 +459,8 @@ void
 __cdecl
 SK_ReShadeAddOn_DestroySwapChain (reshade::api::swapchain *swapchain)
 {
-  if (! swapchain) return;
+  if (ReadAcquire (&__SK_DLL_Ending) || swapchain == nullptr)
+    return;
 
   if (! _d3d12_rbk->frames_.empty ())
   {
@@ -440,7 +470,10 @@ SK_ReShadeAddOn_DestroySwapChain (reshade::api::swapchain *swapchain)
     }
   }
 
-  auto api =
+  SK_ReleaseAssert (swapchain->get_device () != nullptr);
+  SK_ReleaseAssert (swapchain->get_native () !=       0);
+
+  const auto api =
     swapchain->get_device ()->get_api ();
 
   switch (api)
@@ -472,16 +505,16 @@ void
 __cdecl
 SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
 {
-  if (queue == nullptr)
+  if (ReadAcquire (&__SK_DLL_Ending) || queue == nullptr)
     return;
 
-  auto device =
+  const auto device =
     queue->get_device ();
 
   if (device == nullptr)
     return;
 
-  auto api =
+  const auto api =
     device->get_api ();
 
   if (api != reshade::api::device_api::d3d12 &&
@@ -678,10 +711,7 @@ bool SK_ReShadeAddOn_IsOverlayActive (void)
 void
 SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 {
-  if (pSwapChain == nullptr)
-    return;
-
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return;
   
   HWND                  hWnd = 0;
@@ -689,9 +719,6 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
   
   if (! hWnd)
     return;
-  
-  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-  pSwapChain->GetDesc (&swapDesc);
   
   auto runtime =
     ReShadeRuntimes [hWnd];
@@ -708,14 +735,11 @@ extern SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
 bool
 SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 {
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return false;
 
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
-
-  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-  pSwapChain->GetDesc (&swapDesc);
 
   if (runtime != nullptr)
   {
@@ -757,9 +781,12 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 
     if (has_effects)
     {
+      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+      pSwapChain->GetDesc (&swapDesc);
+
       dxgi_rtv_s dxgi_rtv;
 
-      auto backbuffer =
+      const auto backbuffer =
         runtime->get_back_buffer (runtime->get_current_back_buffer_index ());
 
       auto rtvDesc =
@@ -850,13 +877,13 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
                                        ID3D11RenderTargetView *pRTV,
                                        ID3D11RenderTargetView *pRTV_sRGB )
 {
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr || pRTV == nullptr)
     return false;
 
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
-  if (runtime != nullptr && pRTV != nullptr)
+  if (runtime != nullptr)
   {
     const bool has_effects =
       runtime->get_effects_state ();
@@ -897,33 +924,32 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
       SK_ComPtr <ID3D11Resource> pResource;
              pRTV->GetResource (&pResource.p);
 
-      D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
-      pRTV->GetDesc               (&rtvDesc);
-
       SK_ComQIPtr <ID3D11Texture2D> pTexture (pResource);
 
       if (! pTexture.p)
         return false;
 
-      bool bHasTemporaryRTV_sRGB =
-        false;
+      bool bHasTemporaryRTV_sRGB = false;
 
       if (pRTV_sRGB == nullptr)
       {
-          D3D11_RENDER_TARGET_VIEW_DESC
-                             rtvDesc_sRGB = rtvDesc;
+        D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
+        pRTV->GetDesc               (&rtvDesc);
 
-          if (rtvDesc_sRGB.Format == DXGI_FORMAT_UNKNOWN)
-          {
-            D3D11_TEXTURE2D_DESC texDesc = { };
-            pTexture->GetDesc  (&texDesc);
+        D3D11_RENDER_TARGET_VIEW_DESC
+                           rtvDesc_sRGB = rtvDesc;
 
-            rtvDesc_sRGB.Format = texDesc.Format;
-          }
+        if (rtvDesc_sRGB.Format == DXGI_FORMAT_UNKNOWN)
+        {
+          D3D11_TEXTURE2D_DESC texDesc = { };
+          pTexture->GetDesc  (&texDesc);
 
-          if (DirectX::IsTypeless        (rtvDesc_sRGB.Format))
-                                          rtvDesc_sRGB.Format =
-              DirectX::MakeTypelessUNORM (rtvDesc_sRGB.Format);
+          rtvDesc_sRGB.Format = texDesc.Format;
+        }
+
+        if (DirectX::IsTypeless        (rtvDesc_sRGB.Format))
+                                        rtvDesc_sRGB.Format =
+            DirectX::MakeTypelessUNORM (rtvDesc_sRGB.Format);
 
                              rtvDesc_sRGB.Format =
           DirectX::MakeSRGB (rtvDesc_sRGB.Format);
@@ -968,7 +994,7 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
 void
 SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 {
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return;
 
   auto runtime =
@@ -981,20 +1007,24 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 }
 
 UINT64
-SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV, D3D12_CPU_DESCRIPTOR_HANDLE hRTV_sRGB)
+SK_ReShadeAddOn_RenderEffectsD3D12 ( IDXGISwapChain1             *pSwapChain,
+                                     ID3D12Resource              *pResource,
+                                     ID3D12Fence                 *pFence,
+                                     D3D12_CPU_DESCRIPTOR_HANDLE  hRTV,
+                                     D3D12_CPU_DESCRIPTOR_HANDLE  hRTV_sRGB )
 {
-  if (_d3d12_rbk->_pReShadeRuntime == nullptr)
+  if (ReadAcquire (&__SK_DLL_Ending) || !_d3d12_rbk.isAllocated ()
+                                     ||  _d3d12_rbk->_pReShadeRuntime == nullptr)
+  {
     return 0;
+  }
 
-  if (ReadAcquire (&__SK_DLL_Ending))
+  static volatile LONG64      lLastFrame = 0;
+  if (InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn ()) ==
+                                          (LONG64)SK_GetFramesDrawn ())
+  {
     return 0;
-
-  static volatile LONG64 lLastFrame = 0;
-
-  if (InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn ()) == (LONG64)SK_GetFramesDrawn ())
-    return 0;
-
-  static volatile UINT64 uiFenceVal = 0;
+  }
 
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
@@ -1019,10 +1049,11 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
       const auto rtv      = reshade::api::resource_view { static_cast      <uint64_t> (hRTV.     ptr) };
       const auto rtv_srgb = reshade::api::resource_view { static_cast      <uint64_t> (hRTV_sRGB.ptr) };
       const auto fence    = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)        };
+      const auto device   = runtime->get_device ();
 
-      if (pResource == nullptr)
+      if (pResource == nullptr && device != nullptr)
       {
-        buffer = runtime->get_device ()->get_resource_from_view (rtv);
+        buffer = device->get_resource_from_view (rtv);
       }
 
 
@@ -1048,6 +1079,8 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
 
       if (pFence != nullptr)
       {
+        static volatile UINT64 uiFenceVal = 0;
+
         const UINT64 uiNextFenceVal =
           InterlockedIncrement (&uiFenceVal);
 
@@ -1070,15 +1103,19 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
   return 0;
 }
 
-void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::swapchain *swapchain, const reshade::api::rect *source_rect, const reshade::api::rect *dest_rect, uint32_t dirty_rect_count, const reshade::api::rect *dirty_rects)
+void
+SK_ReShadeAddOn_Present (       reshade::api::command_queue *queue,
+                                reshade::api::swapchain     *swapchain,
+                          const reshade::api::rect          *source_rect,
+                          const reshade::api::rect          *dest_rect,
+                                uint32_t                     dirty_rect_count,
+                          const reshade::api::rect          *dirty_rects )
 {
-  if (swapchain == nullptr)
+  if (ReadAcquire (&__SK_DLL_Ending) || swapchain == nullptr || swapchain->get_hwnd () == 0)
     return;
 
-  if (ReadAcquire (&__SK_DLL_Ending))
-    return;
-
-  auto *device = swapchain->get_device ();
+  const auto *device =
+    swapchain->get_device ();
 
   if (device == nullptr)
     return;
@@ -1141,6 +1178,8 @@ SK_ReShadeGetConfigPath (void)
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
+  static SK_Thread_HybridSpinlock _init_lock;
+
   if (ReadAcquire (&__SK_DLL_Ending))
     return false;
 
@@ -1159,10 +1198,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   if (reshade_module == nullptr)
       reshade_module = reshade::internal::get_reshade_module_handle (reshade_module);
 
-  std::wstring mod_name =
-    SK_GetModuleName (reshade_module);
-
-  auto reshade_base_path =
+  const auto reshade_base_path =
     SK_ReShadeGetBasePath ();
 
   if (! SK_ReShadeAddOn_HadLocalINI)
@@ -1179,10 +1215,12 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   if (registered)
     return true;
 
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
+
   registered =
     reshade::register_addon (SK_GetDLL (), reshade_module);
 
-  if (registered) SK_RunOnce (
+  if (registered)
   {
     std::filesystem::path shared_base_path (
     std::filesystem::path (SK_GetInstallPath ()) / LR"(Global\ReShade\)");
@@ -1210,11 +1248,16 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     {
       using namespace std::filesystem;
 
-      std::error_code                                                          ec;
-      recursive_directory_iterator  profile_dir (SK_GetConfigPath (),          ec);
-      recursive_directory_iterator  global_dir  (shared_base_path / L"AddOns", ec);
+      const path profile_addon_path =
+        config.system.central_repository ?
+              path (SK_GetConfigPath ()) :
+              path (SK_GetConfigPath ()) / L"ReShade/AddOns";
+
+      std::error_code                                                            ec;
+      recursive_directory_iterator  profile_dir (profile_addon_path,             ec);
+      recursive_directory_iterator  global_dir  (  shared_base_path / L"AddOns", ec);
       std::vector <directory_entry> files;
-      
+
       for (const auto& file : profile_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
       for (const auto& file :  global_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
       for (const auto& file :                                                                            files)
@@ -1272,7 +1315,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     };
 
     _AutoLoadAddOns ();
-  });
+  }
 
   return
     registered;
@@ -1282,10 +1325,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 void
 SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime)
 {
-  if (runtime == nullptr)
-    return;
-
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
   SK_RenderBackend &rb =
@@ -1324,20 +1364,17 @@ SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *run
 void
 SK_ReShadeAddOn_DestroyEffectRuntime (reshade::api::effect_runtime *runtime)
 {
-  if (runtime == nullptr)
-    return;
-
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
   if (config.reshade.is_addon_hookless)
   {
     SK_ReShadeAddOn_CleanupRTVs (runtime, true);
 
-    auto cmd_queue = 
+    const auto cmd_queue = 
       runtime->get_command_queue ();
 
-    if (! cmd_queue)
+    if (cmd_queue == nullptr)
       return;
 
     if (! _d3d12_rbk->frames_.empty ())
@@ -1354,8 +1391,12 @@ SK_ReShadeAddOn_DestroyEffectRuntime (reshade::api::effect_runtime *runtime)
   }
 }
 
-void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
+void
+SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
 {
+  if (wszINIFile == nullptr)
+    return;
+
   if (! PathFileExistsW (wszINIFile))
   {
     FILE *fReShadeINI =
@@ -1376,8 +1417,17 @@ void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
 }
 
 reshade::api::effect_runtime*
-SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain)
+SK_ReShadeAddOn_CreateEffectRuntime_D3D11 ( ID3D11Device        *pDevice,
+                                            ID3D11DeviceContext *pDevCtx,
+                                            IDXGISwapChain      *pSwapChain )
 {
+  if ( ReadAcquire (&__SK_DLL_Ending) || pDevice    == nullptr ||
+                                         pDevCtx    == nullptr ||
+                                         pSwapChain == nullptr )
+  {
+    return nullptr;
+  }
+
   // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
   if (! SK_ReShadeAddOn_HadLocalINI)
   {
@@ -1390,7 +1440,11 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str(), &runtime))
+    if (! reshade::create_effect_runtime ( reshade::api::device_api::d3d11,
+                                           pDevice,
+                                           pDevCtx,
+                                           swapchain,
+                             (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str (), &runtime ))
     {
       return nullptr;
     }
@@ -1400,8 +1454,17 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
 }
 
 reshade::api::effect_runtime*
-SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQueue *pCmdQueue, IDXGISwapChain *pSwapChain)
+SK_ReShadeAddOn_CreateEffectRuntime_D3D12 ( ID3D12Device       *pDevice,
+                                            ID3D12CommandQueue *pCmdQueue,
+                                            IDXGISwapChain     *pSwapChain )
 {
+  if ( ReadAcquire (&__SK_DLL_Ending) || pDevice    == nullptr ||
+                                         pCmdQueue  == nullptr ||
+                                         pSwapChain == nullptr )
+  {
+    return nullptr;
+  }
+
   // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
   if (! SK_ReShadeAddOn_HadLocalINI)
   {
@@ -1414,12 +1477,17 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQ
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str (), &runtime))
+    if (! reshade::create_effect_runtime ( reshade::api::device_api::d3d12,
+                                           pDevice,
+                                           pCmdQueue,
+                                           swapchain,
+                             (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str (), &runtime ))
     {
       return nullptr;
     }
 
-    runtime->get_command_queue ()->wait_idle ();
+    if (runtime != nullptr)
+        runtime->get_command_queue ()->wait_idle ();
   }
 
   return runtime;
