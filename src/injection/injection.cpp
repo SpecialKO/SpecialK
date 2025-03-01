@@ -1255,10 +1255,10 @@ SK_Inject_SpawnUnloadListener (void)
   if (RtlpWaitCouldDeadlock ())
     return;
 
-  //if (SK_GetHostAppUtil ()->isBlacklisted ())
-  //{
-  //  return;
-  //}
+  if (SK_GetHostAppUtil ()->isBlacklisted ())
+  {
+    return;
+  }
 
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {

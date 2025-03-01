@@ -431,6 +431,21 @@ SK_DLL_SetAttached (bool bAttached) noexcept
                                 1UL : 0UL );
 }
 
+void
+SK_CreateTeardownEvent (void)
+{
+  if (__SK_DLL_TeardownEvent != 0)
+    return;
+
+  SK_RunOnce (
+    __SK_DLL_TeardownEvent =
+      SK_CreateEvent ( nullptr, TRUE,
+                               FALSE, nullptr );
+
+    SK_Inject_SpawnUnloadListener ();
+  );
+}
+
 int
 SK_NT_GetProcessProtection (void)
 {
@@ -521,16 +536,6 @@ DllMain ( HMODULE hModule,
 
       skModuleRegistry::Self (hModule);
 
-      auto CreateTeardownEvent =
-      [&](void)
-      { if (__SK_DLL_TeardownEvent == 0) {
-            __SK_DLL_TeardownEvent =
-                    SK_CreateEvent ( nullptr, TRUE,
-                                             FALSE, nullptr );
-
-          SK_Inject_SpawnUnloadListener ();
-        }
-      };
 
       auto EarlyOut =
       [&](BOOL bRet = TRUE)
@@ -538,9 +543,10 @@ DllMain ( HMODULE hModule,
         if (bRet)
         {
           // This is not the process SKIF is looking for :)
+          if (! _HasLocalDll)
           SK_Inject_SuppressExitNotify (       );
           SK_DLL_SetAttached           ( false );
-          CreateTeardownEvent          (       );
+          SK_CreateTeardownEvent       (       );
         }
 
         return bRet;
@@ -579,8 +585,9 @@ DllMain ( HMODULE hModule,
 
       if (dll_isolation_lvl >  0)                  return EarlyOut (TRUE);
 
-      SK_TLS_Acquire       ();
-      SK_EstablishRootPath ();
+      SK_TLS_Acquire         ();
+      SK_EstablishRootPath   ();
+      SK_CreateTeardownEvent ();
 
       SK_TLS_Bottom ()->debug.in_DllMain = true;
 
@@ -589,9 +596,6 @@ DllMain ( HMODULE hModule,
       // We reserve the right to deny attaching the DLL, this will
       //   generally happen if a game has opted-out of global injection.
       if (! SK_EstablishDllRole (hModule))         return EarlyOut (TRUE);
-
-      SK_MinHook_Init     ();
-      CreateTeardownEvent ();
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
@@ -689,11 +693,6 @@ DllMain ( HMODULE hModule,
         SK_TLS_Release ();
       }
 
-      if ((uintptr_t)__SK_DLL_TeardownEvent > (uintptr_t)nullptr)
-    {SK_CloseHandle (__SK_DLL_TeardownEvent);
-                     __SK_DLL_TeardownEvent = INVALID_HANDLE_VALUE;
-      }
-
       // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
       if (InterlockedCompareExchange (&__SK_HookContextOwner, FALSE, TRUE))
       {
@@ -713,14 +712,20 @@ DllMain ( HMODULE hModule,
         );
       }
 #endif
-      
+
       SK_Inject_CleanupSharedMemory ();
 
       // Give time for any threads waiting on something such as a message pump
       //   to wake up before we unload the DLL, because our hook procedures are
       //     about to be unloaded from the process.
       if (SK_GetFramesDrawn () > 1)
-          SK_Sleep (250UL);
+      {
+        int                                      tries   =  0;
+        while (ReadAcquire (&__SK_Init) != -2 && tries++ < 25)
+        {
+          SK_Sleep (10UL);
+        }
+      }
     } break;
 
 
@@ -1673,7 +1678,8 @@ SK_Attach (DLL_ROLE role)
 
     try
     {
-      SK_TLS_Acquire ();
+      SK_TLS_Acquire  ();
+      SK_MinHook_Init ();
 
       _time64 (&__SK_DLL_AttachTime);
 
