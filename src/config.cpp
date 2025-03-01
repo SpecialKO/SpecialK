@@ -3870,6 +3870,9 @@ auto DeclKeybind =
         config.steam.crapcom_mode                   = true;
         config.window.dont_hook_wndproc             = true;
         config.render.dstorage.enable_hooks         = true;
+        // Game uses a software cursor, so hide the HW cursor
+        config.input.cursor.manage                  = true;
+        config.input.cursor.timeout                 =    0;
         // Prevent a bug in the game's foreground/background detection
         // that may lead to worse framerates while in the foreground.
         config.window.treat_fg_as_active            = true;
