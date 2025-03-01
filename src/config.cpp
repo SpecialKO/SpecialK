@@ -5874,7 +5874,7 @@ auto DeclKeybind =
       config.compatibility.disable_debug_features = true;
     }
 
-    if (StrStrIW (code_sig.subject.c_str (), L"CAPCOM") || SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWilds)
+    if (StrStrIW (code_sig.subject.c_str (), L"CAPCOM"))
     //LR"(Private Organization, JP, 1200-01-077023, JP, Osaka, Osaka-shi, "CAPCOM CO., LTD.", "CAPCOM CO., LTD.")"
     {
       static constexpr
@@ -5890,70 +5890,74 @@ auto DeclKeybind =
       //if (1 == CompareFileTime (&code_sig.valid_beginning, &ft_drm_epoch))
       {
         bHasCrapcomDRM = true;
-
-        SK_GetCurrentRenderBackend ().windows.capcom = bHasCrapcomDRM;
       }
     }
+  }
 
-    if (bHasCrapcomDRM)
-    {
+  if (bHasCrapcomDRM)
+  {
+    SK_GetCurrentRenderBackend ().windows.capcom = bHasCrapcomDRM;
+
   #ifdef _M_IX86
-      static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api.dll";
-      static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api.dll";
-  #else
-      static const wchar_t *wszSteamAPIDll    =                 L"steam_api64.dll";
-      static const wchar_t *wszKaldaienAPIDll = SK_IsCurrentGame (SK_GAME_ID::StreetFighter6) ?
-                                                   L"kaldaien_api/steam_api64.dll"            :
-                                                   L"kaldaien_api/kaldaien_api64.dll";
-  #endif
-  
-      // Do not use CRAPCOM DRM workaround on Steam Deck
-      if (config.compatibility.using_wine)
-          config.platform.silent = true;
-  
-      if (PathFileExistsW (wszSteamAPIDll))
-      {
-        if (! config.platform.silent)
-        {     config.platform.silent =
-                !((PathFileExistsW (                  wszSteamAPIDll)
-                 &&PathFileExistsW (               wszKaldaienAPIDll))||
-                  (PathFileExistsW (                  wszSteamAPIDll)&&
-                   SK_CreateDirectories (L"kaldaien_api/") &&
-                   CopyFile        (        wszSteamAPIDll,
-                                         wszKaldaienAPIDll, FALSE)));
-        }
-  
-        if  (!config.platform.silent)
-        {if((!config.steam.crapcom_mode) || wcscmp (config.steam.dll_path.c_str (), wszKaldaienAPIDll))
-          {   config.steam.auto_inject         =    true;
-              config.steam.auto_pump_callbacks =    true;
-              config.steam.force_load_steamapi =    true;
-              config.steam.preload_client      =    true;
-              config.steam.preload_overlay     =    true;
-              config.steam.init_delay          =      -1;
-              config.platform.silent           =   false;
-              config.steam.dll_path            =  wszKaldaienAPIDll;
-          }   config.steam.crapcom_mode        =    true;
-        }else{config.steam.crapcom_mode        =   false;
-              config.steam.dll_path            =     L"";}
+    static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api.dll";
+    static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api.dll";
+#else
+    static const wchar_t *wszSteamAPIDll    =                 L"steam_api64.dll";
+    static const wchar_t *wszKaldaienAPIDll = SK_IsCurrentGame (SK_GAME_ID::StreetFighter6) ?
+                                                 L"kaldaien_api/steam_api64.dll"            :
+                                                 L"kaldaien_api/kaldaien_api64.dll";
+#endif
+
+    // Do not use CRAPCOM DRM workaround on Steam Deck
+    if (config.compatibility.using_wine)
+        config.platform.silent = true;
+
+    if (PathFileExistsW (wszSteamAPIDll))
+    {
+      if (! config.platform.silent)
+      {     config.platform.silent =
+              !((PathFileExistsW (                  wszSteamAPIDll)
+               &&PathFileExistsW (               wszKaldaienAPIDll))||
+                (PathFileExistsW (                  wszSteamAPIDll)&&
+                 SK_CreateDirectories (L"kaldaien_api/") &&
+                 CopyFile        (        wszSteamAPIDll,
+                                       wszKaldaienAPIDll, FALSE)));
       }
-  
-      else
-      {
-        config.steam.preload_client  = true;
-        config.steam.preload_overlay = true;
-  
-        // Setup to use SK's own Steamworks DLL because Enigma Protector packs
-        //   the game's SteamAPI DLL into its encrypted payload
-        if ((! config.platform.silent) && config.steam.dll_path.empty ())
-          SteamAPI_ManualDispatch_Init_Detour ();
-      }
+
+      if  (!config.platform.silent)
+      {if((!config.steam.crapcom_mode) || wcscmp (config.steam.dll_path.c_str (), wszKaldaienAPIDll))
+        {   config.steam.auto_inject         =    true;
+            config.steam.auto_pump_callbacks =    true;
+            config.steam.force_load_steamapi =    true;
+            config.steam.preload_client      =    true;
+            config.steam.preload_overlay     =    true;
+            config.steam.init_delay          =      -1;
+            config.platform.silent           =   false;
+            config.steam.dll_path            =  wszKaldaienAPIDll;
+        }   config.steam.crapcom_mode        =    true;
+      }else{config.steam.crapcom_mode        =   false;
+            config.steam.dll_path            =     L"";}
     }
-  
-    // Time this, because the Steam overlay is doing some bad stuff with
-    //   WinVerifyTrust that causes games to take an extremely excessive
-    //     amount of time to start! (2025)
+
+    else
+    {
+      config.steam.preload_client  = true;
+      config.steam.preload_overlay = true;
+
+      // Setup to use SK's own Steamworks DLL because Enigma Protector packs
+      //   the game's SteamAPI DLL into its encrypted payload
+      if ((! config.platform.silent) && config.steam.dll_path.empty ())
+        SteamAPI_ManualDispatch_Init_Detour ();
+    }
+  }
+
+  // Time this, because the Steam overlay is doing some bad stuff with
+  //   WinVerifyTrust that causes games to take an extremely excessive
+  //     amount of time to start! (2025)
 #ifdef DEBUG
+  if ( dll_ini != nullptr &&
+       osd_ini != nullptr && do_win_verify_trust )
+  {
     static DWORD
         dwVerifyTrustEndTime = SK_timeGetTime ();
     if (dwVerifyTrustEndTime - dwVerifyTrustStartTime > 250UL)
@@ -5962,8 +5966,8 @@ auto DeclKeybind =
                     dwVerifyTrustEndTime -
                     dwVerifyTrustStartTime );
     }
-#endif
   }
+#endif
 
 
   // Config opted-in to debugger wait

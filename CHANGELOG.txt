@@ -1,4 +1,11 @@
-﻿25.3.1
+﻿25.3.1.1
+========
+ + Disable NvAPI_D3D_Sleep (...) calls in Monster Hunter Wilds if Reflex is
+     not enabled in the game, or if SK is forcing Reflex off.
+ + Automatically workaround SteamAPI issues in Monster Hunter Wilds if user
+     has not reset their INI after using an older version.
+
+25.3.1
 ======
  + Enabled background-processing by default in Monster Hunter Wilds.
  + Fixed NVIDIA Reflex-related issues in Monster Hunter Wilds caused by the
