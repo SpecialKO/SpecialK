@@ -1111,6 +1111,15 @@ TerminateProcess_Detour ( HANDLE hProcess,
       }
     }
 
+    // CAPCOM's anti-tamper when a debugger attaches
+    if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWilds)
+    {
+      if (uExitCode == 0x7cb351f0)
+      {
+        return FALSE;
+      }
+    }
+
     if (! abnormal_dll_state)
     {
       SK_LOG0 ( ( L"Software Is Terminating Itself With Exit Code (%x)",
