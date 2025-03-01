@@ -1016,21 +1016,23 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
                 SK_LoadLibraryW (compliant_path);
             }
           }
-
-          else
-          {
-            hMod =
-              SK_LoadLibraryW (compliant_path);
-          }
-
-          extern void SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept;
-                      SK_NGX_EstablishDLSSVersion (compliant_path);
         }
+
+        if (! hMod)
+        {
+          hMod =
+            SK_LoadLibraryW (compliant_path);
+        }
+
+        extern void SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept;
+                    SK_NGX_EstablishDLSSVersion (compliant_path);
       }
 
       else
+      {
         hMod =
           SK_LoadLibraryW (compliant_path);
+      }
 #ifdef _DEBUG
     }
     catch (const SK_SEH_IgnoredException&)
@@ -1407,7 +1409,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
         }
       }
 
-      else
+      if (! hMod)
       {
         hMod =
           SK_LoadLibraryExW (compliant_path, hFile, dwFlags);

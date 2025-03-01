@@ -1,4 +1,10 @@
-﻿25.2.28.1
+﻿25.2.29
+=======
+ + Fixed potential issue with older games that use DLSS without Streamline,
+     which could prevent them from loading NVNGX.
+ + Minor tweaks to anti-tamper workaround in Monster Hunter: Wilds
+
+25.2.28.1
 =========
  + Allow Steam Input to run in the background in Monster Hunter: Wilds
 
