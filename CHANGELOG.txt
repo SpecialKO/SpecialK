@@ -1,8 +1,15 @@
 ﻿25.2.29
 =======
+ + Added nvngx_dlssg.dll and nvngx_dlssd.dll to the list of DLLs that
+     Special K can auto-load an alternate version of.
+
+   * Place the DLLs in the same PlugIns\ThirdParty\NVIDIA directory as dlss...
+
  + Fixed potential issue with older games that use DLSS without Streamline,
      which could prevent them from loading NVNGX.
  + Minor tweaks to anti-tamper workaround in Monster Hunter: Wilds
+ + Allow DirectStorage overrides in Monster Hunter: Wilds;
+     reset SK's config for MHW if you've previously run 25.2.28.x...
 
 25.2.28.1
 =========

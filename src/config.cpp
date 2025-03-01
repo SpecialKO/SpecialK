@@ -3869,7 +3869,7 @@ auto DeclKeybind =
       case SK_GAME_ID::MonsterHunterWilds:
         config.steam.crapcom_mode                   = true;
         config.window.dont_hook_wndproc             = true;
-        config.render.dstorage.enable_hooks         = false;
+        config.render.dstorage.enable_hooks         = true;
         break;
 
       case SK_GAME_ID::DragonAgeTheVeilguard:

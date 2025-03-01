@@ -307,8 +307,11 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   // OBS Stuff
   L"obs-browser-page.exe",
   L"get-graphics-offsets64.exe",
-  L"obs64.exe"
+  L"obs64.exe",
 
   // Genshin Impact's launcher
-  L"hyp.exe"
+  L"hyp.exe",
+
+  // Our image viewer
+  L"skiv.exe"
 };

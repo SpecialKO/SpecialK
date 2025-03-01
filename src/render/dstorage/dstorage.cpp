@@ -39,7 +39,7 @@ DStorageSetConfiguration1_pfn      DStorageSetConfiguration1_Original      = nul
 bool SK_DStorage_UsingDLL      = false;
 bool SK_DStorage_UsingGDeflate = false;
 
-DSTORAGE_CONFIGURATION       SK_DStorage_LastConfig      = { };
+DSTORAGE_CONFIGURATION1      SK_DStorage_LastConfig      = { };
 DSTORAGE_COMPRESSION_SUPPORT SK_DStorage_GDeflateSupport = { };
 //
 // Compression support is technically per-queue, but for the time being they all have
@@ -80,29 +80,6 @@ SK_DStorage_ApplyConfigOverrides1 (DSTORAGE_CONFIGURATION1 *pConfig1)
 
 HRESULT
 WINAPI
-DStorageSetConfiguration_Detour (DSTORAGE_CONFIGURATION const *configuration)
-{
-  SK_LOG_FIRST_CALL
-
-  if (! configuration)
-    return E_POINTER;
-
-  auto                               cfg = *configuration;
-  SK_DStorage_ApplyConfigOverrides (&cfg);
-
-  HRESULT hr =
-    DStorageSetConfiguration_Original (&cfg);
-
-  if (SUCCEEDED (hr))
-  {
-    SK_DStorage_LastConfig = cfg;
-  }
-
-  return hr;
-}
-
-HRESULT
-WINAPI
 DStorageSetConfiguration1_Detour (DSTORAGE_CONFIGURATION1 const *configuration1)
 {
   SK_LOG_FIRST_CALL
@@ -113,9 +90,6 @@ DStorageSetConfiguration1_Detour (DSTORAGE_CONFIGURATION1 const *configuration1)
   auto                                cfg1 = *configuration1;
   SK_DStorage_ApplyConfigOverrides1 (&cfg1);
 
-  static DSTORAGE_CONFIGURATION1                   defaults = { };
-  SK_RunOnce (DStorageSetConfiguration1_Original (&defaults));
-
   HRESULT hr =
     DStorageSetConfiguration1_Original (&cfg1);
 
@@ -123,11 +97,52 @@ DStorageSetConfiguration1_Detour (DSTORAGE_CONFIGURATION1 const *configuration1)
   {
     SK_DStorage_LastConfig = cfg1;
 
-    if (SK_DStorage_LastConfig.NumSubmitThreads == 0)
-        SK_DStorage_LastConfig.NumSubmitThreads = defaults.NumSubmitThreads;
+    if (SK_DStorage_LastConfig.NumSubmitThreads                  == 0 ||
+        SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads <= 0)
+    {
+      static DSTORAGE_CONFIGURATION1                   defaults = { };
+      SK_RunOnce (DStorageSetConfiguration1_Original (&defaults));
 
-    if (SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads == -1)
-        SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads = defaults.NumBuiltInCpuDecompressionThreads;
+      if (SK_DStorage_LastConfig.NumSubmitThreads == 0)
+          SK_DStorage_LastConfig.NumSubmitThreads = defaults.NumSubmitThreads;
+
+      if (SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads <= 0)
+          SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads = defaults.NumBuiltInCpuDecompressionThreads;
+    }
+  }
+
+  return hr;
+}
+
+HRESULT
+WINAPI
+DStorageSetConfiguration_Detour (DSTORAGE_CONFIGURATION const *configuration)
+{
+  SK_LOG_FIRST_CALL
+
+  if (! configuration)
+    return E_POINTER;
+
+  // Forward this to SetConfiguration1 if that is an option
+  if (DStorageSetConfiguration1_Original != nullptr)
+  {
+    DSTORAGE_CONFIGURATION1 cfg1 = { *configuration, FALSE };
+    return
+      DStorageSetConfiguration1_Detour (&cfg1);
+  }
+
+  //
+  // Fallback for old implementations of DStorage
+  //
+  auto                               cfg = *configuration;
+  SK_DStorage_ApplyConfigOverrides (&cfg);
+
+  HRESULT hr =
+    DStorageSetConfiguration_Original (&cfg);
+
+  if (SUCCEEDED (hr))
+  {
+    SK_DStorage_LastConfig = { *configuration, FALSE };
   }
 
   return hr;
@@ -208,9 +223,9 @@ DStorageGetFactory_Detour ( REFIID riid,
 
     if (SUCCEEDED (hr) && ppv != nullptr)
     {
-      static SK_IWrapDStorageFactory
-              wrapped_factory ((IDStorageFactory *)pv2);
-      *ppv = &wrapped_factory;
+      SK_IWrapDStorageFactory*
+             wrapped_factory = new SK_IWrapDStorageFactory ((IDStorageFactory *)pv2);
+      *ppv = wrapped_factory;
 
       return hr;
     }
@@ -249,9 +264,11 @@ void SK_DStorage_Init (void)
                                            DStorageSetConfiguration_Detour,
                   static_cast_p2p <void> (&DStorageSetConfiguration_Original) );
 
-      SK_CreateDLLHook2 (L"dstorage.dll", "DStorageSetConfiguration1",
-                                           DStorageSetConfiguration1_Detour,
-                  static_cast_p2p <void> (&DStorageSetConfiguration1_Original) );
+      if (SK_GetProcAddress (L"dstorage.dll", "DStorageSetConfiguration1") != nullptr)
+      {   SK_CreateDLLHook2 (L"dstorage.dll", "DStorageSetConfiguration1",
+                                               DStorageSetConfiguration1_Detour,
+                      static_cast_p2p <void> (&DStorageSetConfiguration1_Original) );
+      }
 
       SK_ApplyQueuedHooks ();
     });

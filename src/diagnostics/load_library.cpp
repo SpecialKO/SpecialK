@@ -255,6 +255,10 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
 
 extern std::wstring SK_XInput_LinkedVersion;
+extern void SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSS) noexcept;
+extern void SK_NGX_EstablishDLSSVersion  (const wchar_t* wszDLSS) noexcept;
+extern void SK_NGX_Init                  (void);
+extern void SK_DStorage_Init             (void);
 
 template <typename _T>
 void
@@ -542,7 +546,11 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI ( lpFileName, SK_TEXT("dstorage.dll")) ||
                 StrStrIW (wszModName,        L"dstorage.dll") )
     {
-      extern void SK_DStorage_Init (void);
+      SK_RunOnce (SK_DStorage_Init ());
+    }
+    else if (   StrStrI ( lpFileName, SK_TEXT("dstoragecore.dll")) ||
+                StrStrIW (wszModName,        L"dstoragecore.dll") )
+    {
       SK_RunOnce (SK_DStorage_Init ());
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("sl.interposer.dll")) ||
@@ -570,20 +578,17 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
                 StrStrIW (wszModName,        L"_nvngx.dll") )
     {
-      extern void SK_NGX_Init (void);
-                  SK_NGX_Init ();
+      SK_NGX_Init ();
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlss.dll")) ||
                 StrStrIW (wszModName,        L"nvngx_dlss.dll") )
     {
-      extern void SK_NGX_EstablishDLSSVersion (const wchar_t*) noexcept;
-                  SK_NGX_EstablishDLSSVersion (wszModName);
+      SK_NGX_EstablishDLSSVersion (wszModName);
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlssg.dll")) ||
                 StrStrIW (wszModName,        L"nvngx_dlssg.dll") )
     {
-      extern void SK_NGX_EstablishDLSSGVersion (const wchar_t*) noexcept;
-                  SK_NGX_EstablishDLSSGVersion (wszModName);
+      SK_NGX_EstablishDLSSGVersion (wszModName);
     }
 
 #if 0
@@ -844,144 +849,154 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     try
     {
 #endif
-      //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    //
+    // CRAPCOM loads SteamAPI twice as part of its craptastic DRM.
+    //
+    //  The first DLL is fake and done using LoadLibraryW
+    //  The second load is real, and done using LoadLibraryExA
+    //
+    //////////////////////////////////////////////////////////
+    if (config.steam.crapcom_mode)
+    {
+      // Here we hook and load the -fake- SteamAPI DLL.
+      // 
+      //   CRAPCOM checks this DLL for memory consistency, they think that
+      //   it is the same DLL they loaded w/ LoadLibraryExA, but NOPE!
       //
-      // CRAPCOM loads SteamAPI twice as part of its craptastic DRM.
-      //
-      //  The first DLL is fake and done using LoadLibraryW
-      //  The second load is real, and done using LoadLibraryExA
-      //
-      //////////////////////////////////////////////////////////
-      if (config.steam.crapcom_mode)
+      if (StrStrIW (compliant_path, L"steam_api64.dll") == compliant_path)
       {
-        // Here we hook and load the -fake- SteamAPI DLL.
-        // 
-        //   CRAPCOM checks this DLL for memory consistency, they think that
-        //   it is the same DLL they loaded w/ LoadLibraryExA, but NOPE!
-        //
-        if (StrStrIW (compliant_path, L"steam_api64.dll") == compliant_path)
-        {
-          static wchar_t   steam_dll [] = L"./steam_api64.dll";
-          compliant_path = steam_dll;
-        }
+        static wchar_t   steam_dll [] = L"./steam_api64.dll";
+        compliant_path = steam_dll;
       }
+    }
 
-      // Avoid loader deadlock in Steam overlay by pre-loading this
-      //   DLL behind the overlay's back.
-      if (StrStrIW (compliant_path, L"rxcore"))
-        SK_LoadLibraryW (L"xinput1_4.dll");
+    // Avoid loader deadlock in Steam overlay by pre-loading this
+    //   DLL behind the overlay's back.
+    if (StrStrIW (compliant_path, L"rxcore"))
+      SK_LoadLibraryW (L"xinput1_4.dll");
 
-      bool bVulkanLayerDisabled = false;
+    bool bVulkanLayerDisabled = false;
 
-      if (config.apis.NvAPI.vulkan_bridge == 1 && SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll"))
-      {
-        if (StrStrIW (compliant_path, L"graphics-hook"))
-        {
-          SK_RunOnce (
-            dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
-          );
-
-          bVulkanLayerDisabled = true;
-        }
-
-        //else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
-        //{
-        //  SK_RunOnce (
-        //    dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-        //  );
-        //
-        //  bVulkanLayerDisabled = true;
-        //}
-
-        //else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
-        //{
-        //  SK_RunOnce (
-        //    dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
-        //  );
-        //
-        //  bVulkanLayerDisabled = true;
-        //}
-      }
-
-
-      // Disable EOS Overlay in local injection
-      if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
-      {
-        SK_LOGs0 (L"DLL Loader", L"Epic Overlay Disabled in 32-bit game to prevent deadlock");
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-        hMod = nullptr;
-      }
-
-      // Avoid issues on AMD drivers caused by GOG's overlay
-      else if (StrStrIW (compliant_path, L"overlay_mediator_"))
-      {
-        extern int
-            SK_ADL_CountActiveGPUs (void);
-        if (SK_ADL_CountActiveGPUs () > 0)
-        {
-          if (SK_GetModuleHandleW (L"OpenGL32.dll"))
-          {
-            SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay on AMD systems.");
-            SK_SetLastError (ERROR_MOD_NOT_FOUND);
-            hMod = nullptr;
-          }
-        }
-      }
-
-      // Windows Defender likes to deadlock in the Steam Overlay
-      else if (StrStrIW (compliant_path, L"Windows Defender"))
-      {
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-        hMod = nullptr;
-      }
-
-      else if (bVulkanLayerDisabled)
-      {
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-      
-        hMod = nullptr;
-      }
-
-      else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
+    if (config.apis.NvAPI.vulkan_bridge == 1 && SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll"))
+    {
+      if (StrStrIW (compliant_path, L"graphics-hook"))
       {
         SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.")
+          dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
         );
 
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-
-        hMod = nullptr;
+        bVulkanLayerDisabled = true;
       }
 
-      else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
+      //else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
+      //{
+      //  SK_RunOnce (
+      //    dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+      //  );
+      //
+      //  bVulkanLayerDisabled = true;
+      //}
+
+      //else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
+      //{
+      //  SK_RunOnce (
+      //    dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+      //  );
+      //
+      //  bVulkanLayerDisabled = true;
+      //}
+    }
+
+
+    // Disable EOS Overlay in local injection
+    if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
+    {
+      SK_LOGs0 (L"DLL Loader", L"Epic Overlay Disabled in 32-bit game to prevent deadlock");
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      hMod = nullptr;
+    }
+
+    // Avoid issues on AMD drivers caused by GOG's overlay
+    else if (StrStrIW (compliant_path, L"overlay_mediator_"))
+    {
+      extern int
+          SK_ADL_CountActiveGPUs (void);
+      if (SK_ADL_CountActiveGPUs () > 0)
       {
-        SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.")
-        );
-
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-
-        hMod = nullptr;
-      }
-
-      else if ((! config.compatibility.allow_dxdiagn) && StrStrIW (compliant_path, L"dxdiagn.dll"))
-      {
-        SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)")
-        );
-
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-        hMod = nullptr;
-      }
-
-      else if (StrStrIW (compliant_path, L"nvngx_dlss.dll"))
-      {
-        if (config.nvidia.dlss.auto_redirect_dlss)
+        if (SK_GetModuleHandleW (L"OpenGL32.dll"))
         {
-          static auto path_to_plugin_dlss =
+          SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay on AMD systems.");
+          SK_SetLastError (ERROR_MOD_NOT_FOUND);
+          hMod = nullptr;
+        }
+      }
+    }
+
+    // Windows Defender likes to deadlock in the Steam Overlay
+    else if (StrStrIW (compliant_path, L"Windows Defender"))
+    {
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      hMod = nullptr;
+    }
+
+    else if (bVulkanLayerDisabled)
+    {
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+    
+      hMod = nullptr;
+    }
+
+    else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.")
+      );
+
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+      hMod = nullptr;
+    }
+
+    else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.")
+      );
+
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+      hMod = nullptr;
+    }
+
+    else if ((! config.compatibility.allow_dxdiagn) && StrStrIW (compliant_path, L"dxdiagn.dll"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)")
+      );
+
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      hMod = nullptr;
+    }
+
+    else if (StrStrIW (compliant_path, L"nvngx_dlss"))
+    {
+      const bool is_dlss  = StrStrIW (compliant_path, L"nvngx_dlss.dll");
+      const bool is_dlssg = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
+      const bool is_dlssd = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
+
+      const bool is_nvngx_dll =
+        (is_dlss || is_dlssg || is_dlssd);
+      if (is_nvngx_dll)
+      {
+        if (config.nvidia.dlss.auto_redirect_dlss && !hModEarly)
+        {
+          auto path_to_plugin_dlss =
             std::filesystem::path (
               SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
-            ) / L"NVIDIA" / L"nvngx_dlss.dll";
+            ) / L"NVIDIA" / (is_dlss  ? L"nvngx_dlss.dll"  :
+                             is_dlssg ? L"nvngx_dlssg.dll" :
+                                        L"nvngx_dlssd.dll");
 
           std::error_code                                   ec;
           if (std::filesystem::exists (path_to_plugin_dlss, ec))
@@ -1024,15 +1039,26 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
             SK_LoadLibraryW (compliant_path);
         }
 
-        extern void SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept;
-                    SK_NGX_EstablishDLSSVersion (compliant_path);
-      }
+        if (hMod)
+        {
+          if (is_dlss || is_dlssd)
+          {
+            SK_NGX_EstablishDLSSVersion (compliant_path);
+          }
 
-      else
-      {
-        hMod =
-          SK_LoadLibraryW (compliant_path);
+          else if (is_dlssg)
+          {
+            SK_NGX_EstablishDLSSGVersion (compliant_path);
+          }
+        }
       }
+    }
+
+    else
+    {
+      hMod =
+        SK_LoadLibraryW (compliant_path);
+    }
 #ifdef _DEBUG
     }
     catch (const SK_SEH_IgnoredException&)
@@ -1048,7 +1074,6 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     }
     SK_SEH_RemoveTranslator (orig_se);
 #endif
-
 
     if (hModEarly != hMod)
     {
@@ -1365,65 +1390,84 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   try
   {
 #endif
-    if (StrStrIW (compliant_path, L"nvngx_dlss.dll"))
+  const bool is_dlss  = StrStrIW (compliant_path, L"nvngx_dlss.dll");
+  const bool is_dlssg = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
+  const bool is_dlssd = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
+
+  const bool is_nvngx_dll =
+    (is_dlss || is_dlssg || is_dlssd);
+
+  if (is_nvngx_dll)
+  {
+    if (config.nvidia.dlss.auto_redirect_dlss && !hModEarly)
     {
-      if (config.nvidia.dlss.auto_redirect_dlss)
+      auto path_to_plugin_dlss =
+        std::filesystem::path (
+          SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+        ) / L"NVIDIA" / (is_dlss  ? L"nvngx_dlss.dll"  :
+                         is_dlssg ? L"nvngx_dlssg.dll" :
+                                    L"nvngx_dlssd.dll");
+
+      std::error_code                                   ec;
+      if (std::filesystem::exists (path_to_plugin_dlss, ec))
       {
-        static auto path_to_plugin_dlss =
-          std::filesystem::path (
-            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
-          ) / L"NVIDIA" / L"nvngx_dlss.dll";
-
-        std::error_code                                   ec;
-        if (std::filesystem::exists (path_to_plugin_dlss, ec))
+        if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
         {
-          if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
-          {
-            dll_log->Log (
-              L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
-                compliant_path,
-                          path_to_plugin_dlss.c_str ()
-            );
+          dll_log->Log (
+            L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+              compliant_path,
+                        path_to_plugin_dlss.c_str ()
+          );
 
-            hMod =
-              SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
-          }
+          hMod =
+            SK_LoadLibraryExW (path_to_plugin_dlss.c_str (), hFile, dwFlags);
+        }
 
-          else
-          {
-            dll_log->Log (
-              L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
-                SK_GetDLLVersionShort (compliant_path).c_str ()
-            );
+        else
+        {
+          dll_log->Log (
+            L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
+              SK_GetDLLVersionShort (compliant_path).c_str ()
+          );
 
-            hMod = nullptr;
-          }
+          hMod = nullptr;
+        }
 
-          if (! hMod)
-          {
-            dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
+        if (! hMod)
+        {
+          dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
 
-            hMod =
-              SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
-          }
+          hMod =
+            SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
         }
       }
-
-      if (! hMod)
-      {
-        hMod =
-          SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
-      }
-
-      extern void SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept;
-                  SK_NGX_EstablishDLSSVersion (compliant_path);
     }
 
-    else
+    if (! hMod)
     {
       hMod =
         SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
     }
+
+    if (hMod)
+    {
+      if (is_dlss || is_dlssd)
+      {
+        SK_NGX_EstablishDLSSVersion (compliant_path);
+      }
+
+      else if (is_dlssg)
+      {
+        SK_NGX_EstablishDLSSGVersion (compliant_path);
+      }
+    }
+  }
+
+  else
+  {
+    hMod =
+      SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+  }
 #ifdef _DEBUG
   }
   catch (const SK_SEH_IgnoredException&)
