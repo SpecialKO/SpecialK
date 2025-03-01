@@ -73,11 +73,11 @@ SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
                                 __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
   if (NvAPI_D3D_SetLatencyMarker_Original != nullptr)
-  { 
-    SK_ComPtr <ID3D12Device>                     pDev12;
-    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-      return NvAPI_D3D_SetLatencyMarker_Original(pDev12.p, pSetLatencyMarkerParams);
-    else
+  {
+    //SK_ComPtr <ID3D12Device>                     pDev12;
+    //if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+    //  return NvAPI_D3D_SetLatencyMarker_Original(pDev12.p, pSetLatencyMarkerParams);
+    //else
       return NvAPI_D3D_SetLatencyMarker_Original(pDev,     pSetLatencyMarkerParams);
   }
 
@@ -89,11 +89,11 @@ NVAPI_INTERFACE
 SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
 {
   if (NvAPI_D3D_Sleep_Original != nullptr)
-  { 
-    SK_ComPtr <ID3D12Device>                     pDev12;
-    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-      return NvAPI_D3D_Sleep_Original (          pDev12.p);
-    else
+  {
+    //SK_ComPtr <ID3D12Device>                     pDev12;
+    //if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+    //  return NvAPI_D3D_Sleep_Original (          pDev12.p);
+    //else
       return NvAPI_D3D_Sleep_Original (          pDev);
   }
 
@@ -109,13 +109,18 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   SK_Reflex_LastNativeSleepFrame =
     SK_GetFramesDrawn ();
 
+  if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
+  {
+    return NVAPI_OK;
+  }
+
   if (config.nvidia.reflex.disable_native)
     return NVAPI_OK;
 
-  SK_ComPtr <ID3D12Device>                     pDev12;
-  if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-    return SK_NvAPI_D3D_Sleep (                pDev12);
-  else
+  ///SK_ComPtr <ID3D12Device>                     pDev12;
+  ///if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+  ///  return SK_NvAPI_D3D_Sleep (                pDev12);
+  ///else
     return SK_NvAPI_D3D_Sleep (pDev);
 }
 
@@ -125,10 +130,10 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
 {
   if (NvAPI_D3D_SetSleepMode_Original != nullptr)
   {
-    SK_ComPtr <ID3D12Device>                     pDev12;
-    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-      return NvAPI_D3D_SetSleepMode_Original (   pDev12, pSetSleepModeParams);
-    else
+    //SK_ComPtr <ID3D12Device>                     pDev12;
+    //if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+    //  return NvAPI_D3D_SetSleepMode_Original (   pDev12, pSetSleepModeParams);
+    //else
       return NvAPI_D3D_SetSleepMode_Original (   pDev,   pSetSleepModeParams);
   }
 
@@ -141,6 +146,9 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
 bool
 SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice, bool native = false)
 {
+  if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
+    return false;
+
   // If true, we submitted the latency marker(s) ourselves and the normal processing
   //   should be ignored.
   bool bFixed  = false;
@@ -160,7 +168,7 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
     return
       bQueueInput;
   }
-  
+
   // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
   //
   //   So take this opportunity to re-order some events if necessary
@@ -223,6 +231,37 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   // Naive test, proper test for equality would involve QueryInterface
   SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
 #endif
+
+  if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
+  {
+    if (pSetLatencyMarkerParams->markerType > INPUT_SAMPLE)
+    {
+      if (pSetLatencyMarkerParams->markerType == TRIGGER_FLASH)
+      { // This marker randomly appears and causes problems
+        return NVAPI_OK;
+      }
+      SK_LOGi0 (L"Marker Type: %d, on frame: %d", pSetLatencyMarkerParams->markerType, pSetLatencyMarkerParams->frameID);
+    }
+
+    if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END)
+    {
+      SK_NvAPI_D3D_Sleep (pDev);
+    }
+
+    static NvU64 lastSimFrame = 0;
+    if (pSetLatencyMarkerParams->markerType == SIMULATION_START)
+    {
+      if (lastSimFrame != pSetLatencyMarkerParams->frameID)
+      {   lastSimFrame  = pSetLatencyMarkerParams->frameID;
+    
+        NV_LATENCY_MARKER_PARAMS fake_input = *pSetLatencyMarkerParams;
+                                 fake_input.markerType = INPUT_SAMPLE;
+    
+               NvAPI_D3D_SetLatencyMarker_Detour (pDev, pSetLatencyMarkerParams);
+        return NvAPI_D3D_SetLatencyMarker_Detour (pDev, &fake_input);
+      }
+    }
+  }
 
   if (! config.nvidia.reflex.disable_native)
   {

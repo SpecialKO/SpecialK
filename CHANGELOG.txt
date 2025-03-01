@@ -1,4 +1,14 @@
-﻿25.2.29.1
+﻿25.3.1
+======
+ + Enabled background-processing by default in Monster Hunter Wilds.
+ + Fixed NVIDIA Reflex-related issues in Monster Hunter Wilds caused by the
+     engine randomly inserting Reflex Latency Analysis Flash Triggers, and
+       also never inserting Input Sample latency markers.
+
+    * Provided you do not swap between DLSS Frame Generation on/off in a
+        single session, Reflex frame pacing should be fixed now.
+
+25.2.29.1
 =========
  + Disable GPU Decompression Metacommands when forcing GPU Decompression off
      in DirectStorage overrides.

@@ -3870,6 +3870,10 @@ auto DeclKeybind =
         config.steam.crapcom_mode                   = true;
         config.window.dont_hook_wndproc             = true;
         config.render.dstorage.enable_hooks         = true;
+        // Prevent a bug in the game's foreground/background detection
+        // that may lead to worse framerates while in the foreground.
+        config.window.treat_fg_as_active            = true;
+        config.window.background_render             = true;
         break;
 
       case SK_GAME_ID::DragonAgeTheVeilguard:
