@@ -3877,6 +3877,8 @@ auto DeclKeybind =
         // that may lead to worse framerates while in the foreground.
         config.window.treat_fg_as_active            = true;
         config.window.background_render             = true;
+        config.compatibility.disable_debug_features = true;
+        config.system.handle_crashes                = false;
         break;
 
       case SK_GAME_ID::DragonAgeTheVeilguard:
