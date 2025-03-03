@@ -1,5 +1,9 @@
-﻿25.3.1.2
-========
+﻿25.3.3
+======
+ + Disabled Reflex Sleep unless DLSS frame generation is active in MH Wilds.
+
+25.3.2
+======
  + Disabled most of SK's debug-related functionality in Monster Hunter Wilds
      to help keep REFramework from crashing.
 

@@ -251,7 +251,10 @@ SK_Reflex_GameSpecificLatencyMarkerFixups ( __in IUnknown                 *pDev,
         {
           if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END)
           {
-            SK_NvAPI_D3D_Sleep (pDev);
+            if (__SK_IsDLSSGActive)
+            {
+              SK_NvAPI_D3D_Sleep (pDev);
+            }
           }
 
           static NvU64 lastSimFrame = MAXUINT64;
