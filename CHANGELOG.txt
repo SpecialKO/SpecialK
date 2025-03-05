@@ -1,10 +1,7 @@
-﻿25.3.5
-======
- + Re-enable Reflex Sleep -if- REFramework is installed in Monster Hunter Wilds
-     since it is no longer followed by anti-tamper code at the end of every
-       frame -- driver-introduced latency delays won't induce stutter anymore.
-
-    * Make sure you are using nightly build from 25/3/4 or newer of REFramework
+﻿25.3.5.1
+========
+ + Disable Reflex Sleep permanently in Monster Hunter Wilds, after profiling
+     their Reflex implementation is so bad that it's only increasing latency.
 
 25.3.3
 ======
