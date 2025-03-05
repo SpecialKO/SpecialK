@@ -111,7 +111,13 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
   if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
   {
-    return NVAPI_OK;
+    static const bool bHasREFramework =
+      SK_GetProcAddress (L"dinput8.dll", "ImGuiStorage_SetVoidPtr") != nullptr;
+
+    if (! bHasREFramework)
+    {
+      return NVAPI_OK;
+    }
   }
 
   if (config.nvidia.reflex.disable_native)
@@ -247,13 +253,19 @@ SK_Reflex_GameSpecificLatencyMarkerFixups ( __in IUnknown                 *pDev,
              NvAPI_D3D_GetSleepStatus (pDev, &sleepStatusParams)
          )
       {
+        static const bool bHasREFramework =
+          SK_GetProcAddress (L"dinput8.dll", "ImGuiStorage_SetVoidPtr") != nullptr;
+
         if (sleepStatusParams.bLowLatencyMode)
         {
-          if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END)
+          if (! bHasREFramework)
           {
-            if (__SK_IsDLSSGActive)
+            if (pSetLatencyMarkerParams->markerType == RENDERSUBMIT_END)
             {
-              SK_NvAPI_D3D_Sleep (pDev);
+              if (__SK_IsDLSSGActive)
+              {
+                SK_NvAPI_D3D_Sleep (pDev);
+              }
             }
           }
 

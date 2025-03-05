@@ -720,10 +720,10 @@ DllMain ( HMODULE hModule,
       //     about to be unloaded from the process.
       if (SK_GetFramesDrawn () > 1)
       {
-        int                                      tries   =  0;
-        while (ReadAcquire (&__SK_Init) != -2 && tries++ < 25)
+        int                                      tries   = 0;
+        while (ReadAcquire (&__SK_Init) != -2 && tries++ < 5)
         {
-          SK_Sleep (10UL);
+          SK_Sleep (50UL);
         }
       }
     } break;
