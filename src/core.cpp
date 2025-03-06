@@ -3795,6 +3795,8 @@ SK_BackgroundRender_EndFrame (void)
   if (            first_frame ||
        (background_last_frame != config.window.background_render) )
   {
+    if (PathFileExistsW (L"REFramework.dll"))
+           LoadLibraryW (L"REFramework.dll");
 
     if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
     {

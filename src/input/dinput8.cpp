@@ -139,6 +139,10 @@ DirectInput8Create ( HINSTANCE hinst,
                      LPVOID   *ppvOut,
                      LPUNKNOWN punkOuter )
 {
+  // Prevent REFramework from breaking keyboard input in the various games it's used in
+  if (SK_GetCallingDLL () == GetModuleHandleW (L"REFramework.dll"))
+    return E_NOTIMPL;
+
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   {
     SK_BootDI8      ();
