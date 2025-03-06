@@ -951,13 +951,31 @@ IDirectInputDevice7W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7W This,
                                                   HWND                  hwnd,
                                                   DWORD                 dwFlags )
 {
-  // We will implement this ourselves with a low-level keyboard hook
-  config.input.keyboard.dinput_win_key =
-    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
-                               : SK_Enabled;
+  bool bMouse    = ( This == _dim7->pDev );
+  bool bKeyboard = ( This == _dik7->pDev );
 
-  // Strip the actual flag
-  dwFlags &= ~DISCL_NOWINKEY;
+  if (! (bMouse || bKeyboard))
+  {
+    if (config.window.background_render)
+    {
+      dwFlags &= ~DISCL_FOREGROUND;
+      dwFlags |=  DISCL_BACKGROUND;
+    }
+  }
+
+  if (bKeyboard)
+  {
+    // We will implement this ourselves with a low-level keyboard hook
+    config.input.keyboard.dinput_win_key =
+      (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                                 : SK_Enabled;
+
+    // Strip the actual flag
+    if (     config.input.keyboard.enable_win_key == SK_Enabled)
+      dwFlags &= ~DISCL_NOWINKEY;
+    else if (config.input.keyboard.enable_win_key == SK_Disabled)
+      dwFlags |=  DISCL_NOWINKEY;
+  }
 
   HRESULT hr =
     IDirectInputDevice7W_SetCooperativeLevel_Original (This, hwnd, dwFlags);
@@ -991,13 +1009,31 @@ IDirectInputDevice7A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7A This,
                                                   HWND                  hwnd,
                                                   DWORD                 dwFlags )
 {
-  // We will implement this ourselves with a low-level keyboard hook
-  config.input.keyboard.dinput_win_key =
-    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
-                               : SK_Enabled;
+  bool bMouse    = ( This == (LPDIRECTINPUTDEVICE7A)_dim7->pDev );
+  bool bKeyboard = ( This == (LPDIRECTINPUTDEVICE7A)_dik7->pDev );
 
-  // Strip the actual flag
-  dwFlags &= ~DISCL_NOWINKEY;
+  if (! (bMouse || bKeyboard))
+  {
+    if (config.window.background_render)
+    {
+      dwFlags &= ~DISCL_FOREGROUND;
+      dwFlags |=  DISCL_BACKGROUND;
+    }
+  }
+
+  if (bKeyboard)
+  {
+    // We will implement this ourselves with a low-level keyboard hook
+    config.input.keyboard.dinput_win_key =
+      (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                                 : SK_Enabled;
+
+    // Strip the actual flag
+    if (     config.input.keyboard.enable_win_key == SK_Enabled)
+      dwFlags &= ~DISCL_NOWINKEY;
+    else if (config.input.keyboard.enable_win_key == SK_Disabled)
+      dwFlags |=  DISCL_NOWINKEY;
+  }
 
   HRESULT hr =
     IDirectInputDevice7A_SetCooperativeLevel_Original (This, hwnd, dwFlags);

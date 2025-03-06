@@ -1373,14 +1373,6 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
 {
   SK_LOG_FIRST_CALL
 
-  // We will implement this ourselves with a low-level keyboard hook
-  config.input.keyboard.dinput_win_key =
-    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
-                               : SK_Enabled;
-
-  // Strip the actual flag
-  dwFlags &= ~DISCL_NOWINKEY;
-
   bool bMouse    = ( This == _dim8->pDev );
   bool bKeyboard = ( This == _dik8->pDev );
 
@@ -1391,6 +1383,26 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
       dwFlags &= ~DISCL_FOREGROUND;
       dwFlags |=  DISCL_BACKGROUND;
     }
+  }
+
+  if (bKeyboard)
+  {
+    dwFlags &= ~DISCL_EXCLUSIVE;
+    dwFlags &= ~DISCL_BACKGROUND;
+
+    dwFlags |= DISCL_NONEXCLUSIVE;
+    dwFlags |= DISCL_FOREGROUND;
+
+    // We will implement this ourselves with a low-level keyboard hook
+    config.input.keyboard.dinput_win_key =
+      (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                                 : SK_Enabled;
+
+    // Strip the actual flag
+    if (     config.input.keyboard.enable_win_key == SK_Enabled)
+      dwFlags &= ~DISCL_NOWINKEY;
+    else if (config.input.keyboard.enable_win_key == SK_Disabled)
+      dwFlags |=  DISCL_NOWINKEY;
   }
 
   HRESULT hr =
@@ -1429,14 +1441,6 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
 {
   SK_LOG_FIRST_CALL
 
-  // We will implement this ourselves with a low-level keyboard hook
-  config.input.keyboard.dinput_win_key =
-    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
-                               : SK_Enabled;
-
-  // Strip the actual flag
-  dwFlags &= ~DISCL_NOWINKEY;
-
   bool bMouse    = ( This == (IDirectInputDevice8A *)_dim8->pDev );
   bool bKeyboard = ( This == (IDirectInputDevice8A *)_dik8->pDev );
 
@@ -1447,6 +1451,26 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
       dwFlags &= ~DISCL_FOREGROUND;
       dwFlags |=  DISCL_BACKGROUND;
     }
+  }
+
+  if (bKeyboard)
+  {
+    dwFlags &= ~DISCL_EXCLUSIVE;
+    dwFlags &= ~DISCL_BACKGROUND;
+
+    dwFlags |= DISCL_NONEXCLUSIVE;
+    dwFlags |= DISCL_FOREGROUND;
+
+    // We will implement this ourselves with a low-level keyboard hook
+    config.input.keyboard.dinput_win_key =
+      (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                                 : SK_Enabled;
+
+    // Strip the actual flag
+    if (     config.input.keyboard.enable_win_key == SK_Enabled)
+      dwFlags &= ~DISCL_NOWINKEY;
+    else if (config.input.keyboard.enable_win_key == SK_Disabled)
+      dwFlags |=  DISCL_NOWINKEY;
   }
 
   HRESULT hr =
@@ -1465,7 +1489,7 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
     // Anything else is probably not important
   }
 
-    // SK's UI needs to be able to read this
+  // SK's UI needs to be able to read this
 
   if (SK_ImGui_WantMouseCapture ())
   {

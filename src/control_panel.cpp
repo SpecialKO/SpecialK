@@ -7506,8 +7506,12 @@ SK_Input_LowLevelKeyboardProc (int code, WPARAM wParam, LPARAM lParam)
     ( pHookData->vkCode >= VK_LWIN &&
       pHookData->vkCode <= VK_APPS );
 
-  if (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Disabled)
+  if (bIsWindowsKey && (config.input.keyboard.enable_win_key == SK_Disabled ||
+                       (config.input.keyboard.enable_win_key == SK_NoPreference &&
+                        config.input.keyboard.dinput_win_key == SK_Disabled)))
+  {
     return 1;
+  }
 
   return
     CallNextHookEx (0, code, wParam, lParam);
