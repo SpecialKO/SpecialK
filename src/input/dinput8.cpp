@@ -1373,10 +1373,13 @@ IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.keyboard.block_windows_key)
-    dwFlags |= DISCL_NOWINKEY;
-  //else if (config.input.keyboard.unblock_windows_key)
-  //  dwFlags &= ~DISCL_NOWINKEY;
+  // We will implement this ourselves with a low-level keyboard hook
+  config.input.keyboard.dinput_win_key =
+    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                               : SK_Enabled;
+
+  // Strip the actual flag
+  dwFlags &= ~DISCL_NOWINKEY;
 
   bool bMouse    = ( This == _dim8->pDev );
   bool bKeyboard = ( This == _dik8->pDev );
@@ -1426,10 +1429,13 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.keyboard.block_windows_key)
-    dwFlags |= DISCL_NOWINKEY;
-  //else if (config.input.keyboard.unblock_windows_key)
-  //  dwFlags &= ~DISCL_NOWINKEY;
+  // We will implement this ourselves with a low-level keyboard hook
+  config.input.keyboard.dinput_win_key =
+    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                               : SK_Enabled;
+
+  // Strip the actual flag
+  dwFlags &= ~DISCL_NOWINKEY;
 
   bool bMouse    = ( This == (IDirectInputDevice8A *)_dim8->pDev );
   bool bKeyboard = ( This == (IDirectInputDevice8A *)_dik8->pDev );

@@ -951,8 +951,13 @@ IDirectInputDevice7W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7W This,
                                                   HWND                  hwnd,
                                                   DWORD                 dwFlags )
 {
-  if (config.input.keyboard.block_windows_key)
-    dwFlags |= DISCL_NOWINKEY;
+  // We will implement this ourselves with a low-level keyboard hook
+  config.input.keyboard.dinput_win_key =
+    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                               : SK_Enabled;
+
+  // Strip the actual flag
+  dwFlags &= ~DISCL_NOWINKEY;
 
   HRESULT hr =
     IDirectInputDevice7W_SetCooperativeLevel_Original (This, hwnd, dwFlags);
@@ -986,8 +991,13 @@ IDirectInputDevice7A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7A This,
                                                   HWND                  hwnd,
                                                   DWORD                 dwFlags )
 {
-  if (config.input.keyboard.block_windows_key)
-    dwFlags |= DISCL_NOWINKEY;
+  // We will implement this ourselves with a low-level keyboard hook
+  config.input.keyboard.dinput_win_key =
+    (dwFlags & DISCL_NOWINKEY) ? SK_Disabled
+                               : SK_Enabled;
+
+  // Strip the actual flag
+  dwFlags &= ~DISCL_NOWINKEY;
 
   HRESULT hr =
     IDirectInputDevice7A_SetCooperativeLevel_Original (This, hwnd, dwFlags);

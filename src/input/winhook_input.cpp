@@ -574,8 +574,10 @@ SK_Proxy_LLKeyboardProc (
           pHookData->vkCode == VK_RWIN  ||
           pHookData->vkCode == VK_APPS );
 
-      if ( (bIsAltTab     && config.input.keyboard.enable_alt_tab == SK_Disabled) ||
-           (bIsWindowsKey && config.input.keyboard.enable_win_key == SK_Disabled) )
+      if ( (bIsAltTab     &&  config.input.keyboard.enable_alt_tab == SK_Disabled) ||
+           (bIsWindowsKey && (config.input.keyboard.enable_win_key == SK_Disabled  ||
+                             (config.input.keyboard.enable_win_key == SK_NoPreference &&
+                              config.input.keyboard.dinput_win_key == SK_Disabled))) )
       {
         hook_fn (nCode, wParam, lParam);
         return 1;

@@ -1223,6 +1223,7 @@ struct sk_config_t
       int     disabled_to_game    =     2; //0 = Never, 1 = Always, 2 = In Background
       int     org_disabled_to_game=     2;
       int     enable_win_key      = SK_NoPreference;
+      int     dinput_win_key      = SK_NoPreference; // Indicates if the GAME wanted to block the Windows key using DInput
       int     enable_alt_tab      = SK_Enabled;
       int     alt_tab_adhd_pace   = 0UL;
       volatile
