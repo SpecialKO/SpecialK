@@ -830,7 +830,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
   bHasVersion = SK_DLSS_Context::dlss_s::Version.major > 0;
 
   // Turn off overrides before we break stuff!
-  if (SK_DLSS_Context::dlss_s::Version.major < 2)
+  if (bHasVersion && SK_DLSS_Context::dlss_s::Version.major < 2)
   {
     config.nvidia.dlss.auto_redirect_dlss = false;
     config.nvidia.dlss.forced_preset      = -1;

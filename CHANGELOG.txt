@@ -1,4 +1,8 @@
-﻿25.3.6
+﻿25.3.6.1
+========
+ + Stop disabling DLSS DLL override when user supplies an invalid local DLL.
+
+25.3.6
 ======
  + Auto-load REFramework.dll in Monster Hunter Wilds so that it does not have
      to be loaded as dinput8.dll and will work more stable.
