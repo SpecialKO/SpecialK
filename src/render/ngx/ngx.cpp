@@ -821,11 +821,30 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
   if (! GetModuleHandleW (wszDLSS))
     return;
 
+  auto original_version = 
+    SK_DLSS_Context::dlss_s::Version;
+
   std::swscanf (
     SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
       &SK_DLSS_Context::dlss_s::Version.major, &SK_DLSS_Context::dlss_s::Version.minor,
       &SK_DLSS_Context::dlss_s::Version.build, &SK_DLSS_Context::dlss_s::Version.revision
   );
+
+  // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
+  //   upgrading anything.
+  if (  original_version.major     > SK_DLSS_Context::dlss_s::Version.major   || 
+      ( original_version.major    == SK_DLSS_Context::dlss_s::Version.major   &&
+        original_version.minor     > SK_DLSS_Context::dlss_s::Version.minor ) || 
+      ( original_version.major    == SK_DLSS_Context::dlss_s::Version.major &&
+        original_version.minor    == SK_DLSS_Context::dlss_s::Version.minor && 
+        original_version.build     > SK_DLSS_Context::dlss_s::Version.build ) ||
+      ( original_version.major    == SK_DLSS_Context::dlss_s::Version.major &&
+        original_version.minor    == SK_DLSS_Context::dlss_s::Version.minor && 
+        original_version.build    == SK_DLSS_Context::dlss_s::Version.build &&
+        original_version.revision  > SK_DLSS_Context::dlss_s::Version.revision ) )
+  {
+    SK_DLSS_Context::dlss_s::Version = original_version;
+  }
 
   bHasVersion = SK_DLSS_Context::dlss_s::Version.major > 0;
 
@@ -850,11 +869,30 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
   if (! GetModuleHandleW (wszDLSSG))
     return;
 
+  auto original_version = 
+    SK_DLSS_Context::dlssg_s::Version;
+
   std::swscanf (
     SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
       &SK_DLSS_Context::dlssg_s::Version.major, &SK_DLSS_Context::dlssg_s::Version.minor,
       &SK_DLSS_Context::dlssg_s::Version.build, &SK_DLSS_Context::dlssg_s::Version.revision
   );
+
+  // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
+  //   upgrading anything.
+  if (  original_version.major     > SK_DLSS_Context::dlssg_s::Version.major   || 
+      ( original_version.major    == SK_DLSS_Context::dlssg_s::Version.major   &&
+        original_version.minor     > SK_DLSS_Context::dlssg_s::Version.minor ) || 
+      ( original_version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
+        original_version.minor    == SK_DLSS_Context::dlssg_s::Version.minor && 
+        original_version.build     > SK_DLSS_Context::dlssg_s::Version.build ) ||
+      ( original_version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
+        original_version.minor    == SK_DLSS_Context::dlssg_s::Version.minor && 
+        original_version.build    == SK_DLSS_Context::dlssg_s::Version.build &&
+        original_version.revision  > SK_DLSS_Context::dlssg_s::Version.revision ) )
+  {
+    SK_DLSS_Context::dlssg  _s::Version = original_version;
+  }
 
   bHasVersion = SK_DLSS_Context::dlssg_s::Version.major > 0;
 }

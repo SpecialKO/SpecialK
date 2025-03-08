@@ -1,4 +1,8 @@
-﻿25.3.6.1
+﻿25.3.8
+======
+ + Ignore NVNGX when it loads an older version of DLSS than is already loaded.
+
+25.3.6.1
 ========
  + Stop disabling DLSS DLL override when user supplies an invalid local DLL.
 
