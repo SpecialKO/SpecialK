@@ -891,7 +891,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
         original_version.build    == SK_DLSS_Context::dlssg_s::Version.build &&
         original_version.revision  > SK_DLSS_Context::dlssg_s::Version.revision ) )
   {
-    SK_DLSS_Context::dlssg  _s::Version = original_version;
+    SK_DLSS_Context::dlssg_s::Version = original_version;
   }
 
   bHasVersion = SK_DLSS_Context::dlssg_s::Version.major > 0;
