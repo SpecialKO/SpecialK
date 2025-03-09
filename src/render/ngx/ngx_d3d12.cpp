@@ -375,6 +375,9 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
 
   if (InFeatureHandle == SK_NGX_DLSS12.super_sampling.Handle)
   {
+    if (SK_NGX_DLSS12.super_sampling.Parameters == nullptr)
+        SK_NGX_DLSS12.super_sampling.Parameters  = (NVSDK_NGX_Parameter *)InParameters;
+
     if (config.nvidia.dlss.forced_preset != -1)
     {
       unsigned int dlss_perf_qual;
@@ -429,6 +432,9 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
   {
     if (InFeatureHandle == SK_NGX_DLSS12.frame_gen.Handle)
     {
+      if (SK_NGX_DLSS12.frame_gen.Parameters == nullptr)
+          SK_NGX_DLSS12.frame_gen.Parameters  = (NVSDK_NGX_Parameter *)InParameters;
+
       WriteULong64Release (&SK_NGX_DLSS12.frame_gen.LastFrame,      SK_GetFramesDrawn ());
     }
 

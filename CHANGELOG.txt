@@ -1,4 +1,13 @@
-﻿25.3.9
+﻿25.3.9.1
+========
+ + Fixed weird implementation of DLSS in Banishers: Ghosts of New Eden, where
+     it destroys its initial DLSS parameters, creates new parameters and then
+       continues drawing using the original DLSS feature.
+
+    * SK previously treated this as DLSS is not active, since parameters are
+        usually not destroyed until DLSS is unloaded.
+
+25.3.9
 ======
  + Improved driver-forced Over The Air DLSS/DLSS-G update detection
  + Added warning to control panel when driver-forced overrides are active
