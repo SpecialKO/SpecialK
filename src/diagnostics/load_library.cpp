@@ -579,18 +579,22 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                 StrStrIW (wszModName,        L"_nvngx.dll") )
     {
       SK_NGX_Init ();
-    }
-    else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlss.dll")) ||
-                StrStrIW (wszModName,        L"nvngx_dlss.dll") )
-    {
-      SK_NGX_EstablishDLSSVersion (wszModName);
-    }
-    else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlssg.dll")) ||
-                StrStrIW (wszModName,        L"nvngx_dlssg.dll") )
-    {
-      SK_NGX_EstablishDLSSGVersion (wszModName);
-    }
 
+      // DLSS driver loads .bin files in order to implement OTA.
+      if (StrStrI (lpFileName, SK_TEXT(".bin")))
+      {
+        // NGX always calls LoadLibrary{Ex}W, so the filename is wide char.
+
+        // It's not clear what part of DLSS this .bin file is actually, but
+        //   EstablishDLSS*Version (...) will figure it out.
+        SK_NGX_EstablishDLSSVersion  (static_cast <const wchar_t *> (lpFileName));
+        SK_NGX_EstablishDLSSGVersion (static_cast <const wchar_t *> (lpFileName));
+      }
+    }
+    else if ( StrStrI  ( lpFileName, SK_TEXT("nvngx_dlss.dll"))  ) SK_NGX_EstablishDLSSVersion  (static_cast <const wchar_t *> (lpFileName));
+    else if ( StrStrIW ( wszModName,        L"nvngx_dlss.dll")   ) SK_NGX_EstablishDLSSVersion  (wszModName);
+    else if ( StrStrI  ( lpFileName, SK_TEXT("nvngx_dlssg.dll")) ) SK_NGX_EstablishDLSSGVersion (static_cast <const wchar_t *> (lpFileName));
+    else if ( StrStrIW ( wszModName,        L"nvngx_dlssg.dll")  ) SK_NGX_EstablishDLSSGVersion (wszModName);
 #if 0
     if (! config.platform.silent) {
       if ( StrStrIA (lpFileName, szSteamAPIDLL)    ||
