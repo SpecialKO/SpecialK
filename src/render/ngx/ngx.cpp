@@ -815,46 +815,65 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 {
   static bool bHasVersion = false;
 
-  if (bHasVersion && SK_GetFramesDrawn () > 0)
+  // Driver overrides have extension .bin
+  const bool bIsDriverOverride =
+    _wcsicmp (PathFindExtensionW (wszDLSS), L".bin") == 0;
+
+  if (bHasVersion && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
     return;
 
   if (! GetModuleHandleW (wszDLSS))
     return;
 
-  auto original_version = 
+  auto version =
     SK_DLSS_Context::dlss_s::Version;
 
-  std::swscanf (
-    SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
-      &SK_DLSS_Context::dlss_s::Version.major, &SK_DLSS_Context::dlss_s::Version.minor,
-      &SK_DLSS_Context::dlss_s::Version.build, &SK_DLSS_Context::dlss_s::Version.revision
-  );
+  std::wstring dll_ver_str =
+    SK_GetDLLVersionStr (wszDLSS);
 
-  // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
-  //   upgrading anything.
-  if (  original_version.major     > SK_DLSS_Context::dlss_s::Version.major   || 
-      ( original_version.major    == SK_DLSS_Context::dlss_s::Version.major   &&
-        original_version.minor     > SK_DLSS_Context::dlss_s::Version.minor ) || 
-      ( original_version.major    == SK_DLSS_Context::dlss_s::Version.major &&
-        original_version.minor    == SK_DLSS_Context::dlss_s::Version.minor && 
-        original_version.build     > SK_DLSS_Context::dlss_s::Version.build ) ||
-      ( original_version.major    == SK_DLSS_Context::dlss_s::Version.major &&
-        original_version.minor    == SK_DLSS_Context::dlss_s::Version.minor && 
-        original_version.build    == SK_DLSS_Context::dlss_s::Version.build &&
-        original_version.revision  > SK_DLSS_Context::dlss_s::Version.revision ) )
+  // Verify this is in fact a DLSS DLL
+  if (StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSS -")   ||
+      StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSSv3 -") ||
+      StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSSv2 -"))
   {
-    SK_DLSS_Context::dlss_s::Version = original_version;
-  }
+    version.driver_override                          |= bIsDriverOverride;
+    SK_DLSS_Context::dlss_s::Version.driver_override |= bIsDriverOverride;
 
-  bHasVersion = SK_DLSS_Context::dlss_s::Version.major > 0;
+    std::swscanf (
+      SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
+        &version.major, &version.minor,
+        &version.build, &version.revision
+    );
 
-  // Turn off overrides before we break stuff!
-  if (bHasVersion && SK_DLSS_Context::dlss_s::Version.major < 2)
-  {
-    config.nvidia.dlss.auto_redirect_dlss = false;
-    config.nvidia.dlss.forced_preset      = -1;
-    config.nvidia.dlss.use_sharpening     = -1;
-    config.nvidia.dlss.force_dlaa         = false;
+    // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
+    //   upgrading anything.
+    if (  version.major     > SK_DLSS_Context::dlss_s::Version.major   ||
+        ( version.major    == SK_DLSS_Context::dlss_s::Version.major   &&
+          version.minor     > SK_DLSS_Context::dlss_s::Version.minor ) ||
+        ( version.major    == SK_DLSS_Context::dlss_s::Version.major &&
+          version.minor    == SK_DLSS_Context::dlss_s::Version.minor &&
+          version.build     > SK_DLSS_Context::dlss_s::Version.build ) ||
+        ( version.major    == SK_DLSS_Context::dlss_s::Version.major &&
+          version.minor    == SK_DLSS_Context::dlss_s::Version.minor &&
+          version.build    == SK_DLSS_Context::dlss_s::Version.build &&
+          version.revision  > SK_DLSS_Context::dlss_s::Version.revision ) )
+    {
+      SK_LOGi1 (L"DLSS Version String (%ws): %ws", wszDLSS,
+                              SK_GetDLLVersionStr (wszDLSS).c_str ());
+
+      SK_DLSS_Context::dlss_s::Version = version;
+    }
+
+    bHasVersion = SK_DLSS_Context::dlss_s::Version.major > 0;
+
+    // Turn off overrides before we break stuff!
+    if (bHasVersion && SK_DLSS_Context::dlss_s::Version.major < 2)
+    {
+      config.nvidia.dlss.auto_redirect_dlss = false;
+      config.nvidia.dlss.forced_preset      = -1;
+      config.nvidia.dlss.use_sharpening     = -1;
+      config.nvidia.dlss.force_dlaa         = false;
+    }
   }
 }
 
@@ -863,38 +882,52 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 {
   static bool bHasVersion = false;
 
-  if (bHasVersion && SK_GetFramesDrawn () > 0)
+  // Driver overrides have extension .bin
+  const bool bIsDriverOverride =
+    _wcsicmp (PathFindExtensionW (wszDLSSG), L".bin") == 0;
+
+  if (bHasVersion && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
     return;
 
   if (! GetModuleHandleW (wszDLSSG))
     return;
 
-  auto original_version = 
+  auto version =
     SK_DLSS_Context::dlssg_s::Version;
 
-  std::swscanf (
-    SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
-      &SK_DLSS_Context::dlssg_s::Version.major, &SK_DLSS_Context::dlssg_s::Version.minor,
-      &SK_DLSS_Context::dlssg_s::Version.build, &SK_DLSS_Context::dlssg_s::Version.revision
-  );
-
-  // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
-  //   upgrading anything.
-  if (  original_version.major     > SK_DLSS_Context::dlssg_s::Version.major   || 
-      ( original_version.major    == SK_DLSS_Context::dlssg_s::Version.major   &&
-        original_version.minor     > SK_DLSS_Context::dlssg_s::Version.minor ) || 
-      ( original_version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
-        original_version.minor    == SK_DLSS_Context::dlssg_s::Version.minor && 
-        original_version.build     > SK_DLSS_Context::dlssg_s::Version.build ) ||
-      ( original_version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
-        original_version.minor    == SK_DLSS_Context::dlssg_s::Version.minor && 
-        original_version.build    == SK_DLSS_Context::dlssg_s::Version.build &&
-        original_version.revision  > SK_DLSS_Context::dlssg_s::Version.revision ) )
+  // Verify this is in fact a DLSSG DLL
+  if (StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G -"))
   {
-    SK_DLSS_Context::dlssg_s::Version = original_version;
-  }
+    version.driver_override                           |= bIsDriverOverride;
+    SK_DLSS_Context::dlssg_s::Version.driver_override |= bIsDriverOverride;
 
-  bHasVersion = SK_DLSS_Context::dlssg_s::Version.major > 0;
+    std::swscanf (
+      SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
+        &version.major, &version.minor,
+        &version.build, &version.revision
+    );
+
+    // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
+    //   upgrading anything.
+    if (  version.major     > SK_DLSS_Context::dlssg_s::Version.major   ||
+        ( version.major    == SK_DLSS_Context::dlssg_s::Version.major   &&
+          version.minor     > SK_DLSS_Context::dlssg_s::Version.minor ) ||
+        ( version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
+          version.minor    == SK_DLSS_Context::dlssg_s::Version.minor &&
+          version.build     > SK_DLSS_Context::dlssg_s::Version.build ) ||
+        ( version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
+          version.minor    == SK_DLSS_Context::dlssg_s::Version.minor &&
+          version.build    == SK_DLSS_Context::dlssg_s::Version.build &&
+          version.revision  > SK_DLSS_Context::dlssg_s::Version.revision ) )
+    {
+      SK_LOGi1 (L"DLSS-G Version String (%ws): %ws", wszDLSSG,
+                                SK_GetDLLVersionStr (wszDLSSG).c_str ());
+
+      SK_DLSS_Context::dlssg_s::Version = version;
+    }
+
+    bHasVersion = SK_DLSS_Context::dlssg_s::Version.major > 0;
+  }
 }
 
 SK_DLSS_Context::version_s
@@ -2107,21 +2140,58 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::SameLine    ();
         ImGui::BeginGroup  ();
 
-        ImGui::Text ( "DLSS Version:\t%d.%d.%d\t", dlss_version.major, dlss_version.minor,
-                                                   dlss_version.build );
+        ImGui::TextUnformatted ( "DLSS Version:\t" );
+        ImGui::SameLine ();
+
+        auto color = dlss_version.driver_override ?
+                      ImVec4 (1.f, 1.f, 0.f, 1.f) :
+          ImGui::GetStyleColorVec4 (ImGuiCol_Text);
+
+        ImGui::TextColored ( color,
+          "%d.%d.%d%hs", dlss_version.major, dlss_version.minor,
+                                             dlss_version.build,
+                                             dlss_version.driver_override ?
+                                         " " ICON_FA_QUESTION_CIRCLE "\t" :
+                                                                     "\t" );
+
+        if (dlss_version.driver_override)
+        {
+          ImGui::SetItemTooltip (
+            "A forced driver override is active, SK may be unable to "
+            "change DLSS settings." );
+        }
 
         if (dlssg_version.major > 0)
         {
           ImGui::SameLine ();
 
-          ImGui::Text ( "DLSS-G Version:\t%d.%d.%d", dlssg_version.major, dlssg_version.minor,
-                                                     dlssg_version.build );
+          color =
+            dlssg_version.driver_override ? ImVec4 (1.f, 1.f, 0.f, 1.f) :
+                                ImGui::GetStyleColorVec4 (ImGuiCol_Text);
+
+          ImGui::TextUnformatted ( "DLSS-G Version:\t" );
+          ImGui::SameLine        ();
+          ImGui::TextColored     ( color,
+            "%d.%d.%d%hs", dlssg_version.major, dlssg_version.minor,
+                                                dlssg_version.build,
+                                                dlssg_version.driver_override ?
+                                             " " ICON_FA_QUESTION_CIRCLE "\t" :
+                                                                         "\t" );
+
+          if (dlssg_version.driver_override)
+          {
+            ImGui::SetItemTooltip (
+              "A forced driver override is active, SK may be unable to "
+              "change DLSS-G settings." );
+          }
         }
 
         static bool bRestartNeeded = false;
 
-        // Only offer option to replace DLSS DLLs in DLSS 2.x games
-        if (dlss_version.major > 1)
+        // Only offer option to replace DLSS DLLs in DLSS 2.x+ games and
+        //   when driver forced overrides are not active.
+        if ( dlss_version.major > 1 && dlss_version.driver_override == false &&
+                                      dlssg_version.driver_override == false )
         {
           if (bHasPlugInDLSS)
           {

@@ -1,4 +1,9 @@
-﻿25.3.8
+﻿25.3.9
+======
+ + Improved driver-forced Over The Air DLSS/DLSS-G update detection
+ + Added warning to control panel when driver-forced overrides are active
+
+25.3.8
 ======
  + Ignore NVNGX when it loads an older version of DLSS than is already loaded.
 

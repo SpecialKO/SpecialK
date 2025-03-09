@@ -45,6 +45,7 @@ struct SK_DLSS_Context
 
   struct version_s {
     unsigned int major, minor, build, revision;
+    bool         driver_override;
   };
 
   struct dlss_s {
