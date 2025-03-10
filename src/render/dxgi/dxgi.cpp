@@ -2460,6 +2460,7 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
   SK_Streamline_ProxyChain = This;
 
   extern float
+      __target_fps_fg,
       __target_fps;
   if (__target_fps > 0.0f)
   {
@@ -2473,9 +2474,13 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
       -abs (config.render.framerate.streamline.target_fps);
   }
 
+  __target_fps_fg =
+    config.render.framerate.streamline.target_fps;
+
   if ((! __SK_IsDLSSGActive) || config.render.framerate.streamline.target_fps <= 0.0f ||
                              (! config.render.framerate.streamline.enable_native_limit))
   {
+    __target_fps_fg = -abs (__target_fps_fg);
     SK_Reflex_AllowPresentEndMarker   = true;
     SK_Reflex_AllowPresentStartMarker = true;
     return
@@ -2488,7 +2493,6 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
     SK::Framerate::GetLimiter (This);
 
   pLimiter->standalone = true;
-  pLimiter->set_limit (config.render.framerate.streamline.target_fps);
 
   auto _SubmitPresentMarker = [](NV_LATENCY_MARKER_TYPE type)
   {
@@ -3246,6 +3250,26 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     int interval =
       config.render.framerate.present_interval;
+
+    if (config.render.framerate.target_fps > 0.0f)
+    {
+      // Adaptive VSync
+      if  ( config.render.framerate.present_interval > 0 &&
+            config.render.framerate.turn_vsync_off       &&
+            config.render.framerate.tearing_mode ==
+              SK_TearingMode::AdaptiveOff                )
+      {
+        interval = 0;
+      }
+
+      // Latent VSync...
+      else if ( config.render.framerate.present_interval == 0 &&
+               !config.render.dxgi.allow_tearing              &&
+                rb.isTrueFullscreen ()                        )
+      {
+        interval = 1;
+      }
+    }
 
     // Fix flags for compliance in broken games
     //
