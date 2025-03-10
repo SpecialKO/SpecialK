@@ -435,21 +435,8 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-    if (SK_NGX_DLSS12.frame_gen.hasInstance (InFeatureHandle))
-    {
-      SK_NGX_DLSS12.frame_gen.LastInstance = 
-        &SK_NGX_DLSS12.frame_gen.Instances [(NVSDK_NGX_Handle *)InFeatureHandle];
-
-      WriteULong64Release (&SK_NGX_DLSS12.frame_gen.LastFrame,      SK_GetFramesDrawn ());
-    }
-
-    if (SK_NGX_DLSS12.super_sampling.hasInstance (InFeatureHandle))
-    {
-      SK_NGX_DLSS12.super_sampling.LastInstance = 
-        &SK_NGX_DLSS12.super_sampling.Instances [(NVSDK_NGX_Handle *)InFeatureHandle];
-
-      WriteULong64Release (&SK_NGX_DLSS12.super_sampling.LastFrame, SK_GetFramesDrawn ());
-    }
+    SK_NGX_DLSS12.frame_gen.evaluateFeature      (SK_NGX_DLSS12.frame_gen.getInstance      (InFeatureHandle));
+    SK_NGX_DLSS12.super_sampling.evaluateFeature (SK_NGX_DLSS12.super_sampling.getInstance (InFeatureHandle));
   }
 
   else
@@ -494,28 +481,28 @@ NVSDK_NGX_D3D12_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-      for ( auto& instance : SK_NGX_DLSS12.frame_gen.Instances )
+    auto pFrameGenInstance  = SK_NGX_DLSS12.frame_gen.getInstance (InHandle);
+    if ( pFrameGenInstance != nullptr )
     {
-      if (instance.first == InHandle)
+      pFrameGenInstance->Parameters = nullptr;
+      pFrameGenInstance->Handle     = nullptr;
+
+      if (SK_NGX_DLSS12.frame_gen.LastInstance == pFrameGenInstance)
       {
-        instance.second.Parameters = nullptr;
-        instance.second.Handle     = nullptr;
         __SK_IsDLSSGActive         = false;
         __SK_ForceDLSSGPacing      = false;
-
-        SK_LOGi1 (L"DLSS-G Feature Released!");
       }
+
+      SK_LOGi1 (L"DLSS-G Feature Released!");
     }
 
-    for ( auto& instance : SK_NGX_DLSS12.super_sampling.Instances )
+    auto pSuperSamplingInstance  = SK_NGX_DLSS12.super_sampling.getInstance (InHandle);
+    if ( pSuperSamplingInstance != nullptr )
     {
-      if (instance.first == InHandle)
-      {
-        instance.second.Parameters = nullptr;
-        instance.second.Handle     = nullptr;
+      pSuperSamplingInstance->Parameters = nullptr;
+      pSuperSamplingInstance->Handle     = nullptr;
 
-        SK_LOGi1 (L"DLSS Feature Released!");
-      }
+      SK_LOGi1 (L"DLSS Feature Released!");
     }
   }
 

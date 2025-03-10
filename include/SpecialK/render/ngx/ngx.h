@@ -88,6 +88,19 @@ struct SK_DLSS_Context
     static bool isIndicatorShown (void);
 
     bool        hasInstance (const NVSDK_NGX_Handle* handle) { return Instances.count (handle) != 0; }
+    instance_s* getInstance (const NVSDK_NGX_Handle* handle) { if (hasInstance (handle)) return &Instances [handle]; return nullptr; }
+
+    bool evaluateFeature (instance_s* feature)
+    {
+      if (feature == nullptr)
+        return false;
+
+      WriteULong64Release (&LastFrame, SK_GetFramesDrawn ());
+
+      LastInstance = feature;
+
+      return true;
+    }
   } super_sampling;
 
   struct dlssg_s {
@@ -106,6 +119,19 @@ struct SK_DLSS_Context
     static bool isIndicatorShown (void);
 
     bool        hasInstance (const NVSDK_NGX_Handle* handle) { return Instances.count (handle) != 0; }
+    instance_s* getInstance (const NVSDK_NGX_Handle* handle) { if (hasInstance (handle)) return &Instances [handle]; return nullptr; }
+
+    bool evaluateFeature (instance_s* feature)
+    {
+      if (feature == nullptr)
+        return false;
+
+      WriteULong64Release (&LastFrame, SK_GetFramesDrawn ());
+
+      LastInstance = feature;
+
+      return true;
+    }
   } frame_gen;
 
   inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll"); };
