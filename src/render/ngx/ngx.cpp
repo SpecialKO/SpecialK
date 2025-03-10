@@ -1509,10 +1509,10 @@ SK_NGX_DLSS_ControlPanel (void)
               (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling) ==
                                      NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling );
 
-        static const bool bHasAutoExposure =
+        static const bool bHasAutoExposure = true;/*
           config.nvidia.dlss.forced_auto_exposure != -1 ||
             (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AutoExposure) ==
-                                   NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;
+                                   NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;*/
 
         static bool restart_required = false;
   
