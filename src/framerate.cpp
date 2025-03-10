@@ -2291,8 +2291,7 @@ SK::Framerate::Limiter::set_limit (float& target)
   target = sk::narrow_cast <float> (SK_Framerate_GetLimitEnvVar (target));
 
   // Skip redundant set_limit calls
-  if (fabs (fabs (fps) - fabs (target)) < DBL_EPSILON && tracks_window == true) {
-                  fps  =       target;
+  if (fabs (fps - target) < DBL_EPSILON && tracks_window == true) {
     return;
   }
 
