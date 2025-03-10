@@ -906,6 +906,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
                            ( 1000.0f   / (ffx ? 30.0f : 60.0f) ) :
                              ( 1000.0f / fabs (target) );
 
+  if (config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f &&
+      __SK_IsDLSSGActive)
+  {
+    target_frametime = 1000.0f / config.render.framerate.streamline.target_fps;
+  }
+
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 

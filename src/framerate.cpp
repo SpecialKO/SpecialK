@@ -2453,11 +2453,14 @@ SK::Framerate::TickEx ( bool     /*wait*/,
 
     if (last_frame < SK_GetFramesDrawn () - 1)
     {
-      skip_frame_history = true;
+      if (! (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f))
+      {
+        skip_frame_history = true;
+      }
     }
 
     if (std::exchange (last_frame, SK_GetFramesDrawn ())
-                                != SK_GetFramesDrawn () || (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit))
+                                != SK_GetFramesDrawn () || (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f))
     {
       if (!   (reset_frame_history ||
                 skip_frame_history) ) SK_ImGui_Frames->timeFrame (dt);

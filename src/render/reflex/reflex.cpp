@@ -330,12 +330,12 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
           if (config.render.framerate.streamline.enforcement_policy == 2)
           {
-            auto                                 tNow = SK_QueryPerf ();
-            SK::Framerate::TickEx (false, 0.0,   tNow, rb.swapchain.p);
-            for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
-            {                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
-              SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
-            }
+            auto                                  tNow = SK_QueryPerf ();
+            SK::Framerate::TickEx (false, -1.0,   tNow, rb.swapchain.p);
+            //for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
+            //{                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
+            //  SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
+            //}
           }
         }
 
@@ -344,12 +344,12 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
         {
           pLimiter->wait ();
 
-          auto                                 tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, 0.0,   tNow, rb.swapchain.p);
-          for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
-          {                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
-            SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
-          }
+          auto                                  tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, -1.0,   tNow, rb.swapchain.p);
+          //for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
+          //{                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
+          //  SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
+          //}
         }
       }
     }

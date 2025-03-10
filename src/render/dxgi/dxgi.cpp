@@ -3371,7 +3371,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
     // Measure frametime before Present is issued
-    if (config.fps.timing_method == SK_FrametimeMeasures_PresentSubmit && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit)))
+    if (config.fps.timing_method == SK_FrametimeMeasures_PresentSubmit && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit || __target_fps <= 0.0f)))
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
     }
@@ -3447,7 +3447,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       if (config.fps.timing_method == SK_FrametimeMeasures_NewFrameBegin ||
          (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps <= 0.0f))
       {
-        if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit))
+        if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit || __target_fps <= 0.0f))
         {
           SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
         }
