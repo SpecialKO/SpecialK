@@ -1,4 +1,10 @@
-﻿25.3.9.1
+﻿25.3.9.2
+========
+ + Handle case where another mod has LoadLibrary{Ex}W hooked, and loads of
+     .bin files for DLSS were not being detected since they did not originate
+       from _nvngx.dll. (Driver Forced DLSS Overrides)
+
+25.3.9.1
 ========
  + Fixed weird implementation of DLSS in Banishers: Ghosts of New Eden, where
      it destroys its initial DLSS parameters, creates new parameters and then

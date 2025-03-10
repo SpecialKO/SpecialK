@@ -368,9 +368,6 @@ NVSDK_NGX_D3D11_EvaluateFeature_Detour (ID3D11DeviceContext *InDevCtx, const NVS
 
   if (InFeatureHandle == SK_NGX_DLSS11.super_sampling.Handle)
   {
-    if (SK_NGX_DLSS11.super_sampling.Parameters == nullptr)
-        SK_NGX_DLSS11.super_sampling.Parameters  = (NVSDK_NGX_Parameter *)InParameters;
-
     if (config.nvidia.dlss.forced_preset != -1)
     {
       unsigned int dlss_mode;
@@ -415,9 +412,6 @@ NVSDK_NGX_D3D11_EvaluateFeature_Detour (ID3D11DeviceContext *InDevCtx, const NVS
   {
     if (InFeatureHandle == SK_NGX_DLSS11.frame_gen.Handle)
     {
-      if (SK_NGX_DLSS11.frame_gen.Parameters == nullptr)
-          SK_NGX_DLSS11.frame_gen.Parameters  = (NVSDK_NGX_Parameter *)InParameters;
-
       WriteULong64Release (&SK_NGX_DLSS11.frame_gen.LastFrame,      SK_GetFramesDrawn ());
     }
 

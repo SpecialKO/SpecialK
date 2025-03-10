@@ -813,6 +813,8 @@ SK_DLSS_Context::version_s SK_DLSS_Context::dlssg_s::Version;
 void
 SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 {
+  SK_NGX_Init ();
+
   static bool bHasVersion = false;
 
   // Driver overrides have extension .bin
@@ -847,16 +849,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 
     // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
     //   upgrading anything.
-    if (  version.major     > SK_DLSS_Context::dlss_s::Version.major   ||
-        ( version.major    == SK_DLSS_Context::dlss_s::Version.major   &&
-          version.minor     > SK_DLSS_Context::dlss_s::Version.minor ) ||
-        ( version.major    == SK_DLSS_Context::dlss_s::Version.major &&
-          version.minor    == SK_DLSS_Context::dlss_s::Version.minor &&
-          version.build     > SK_DLSS_Context::dlss_s::Version.build ) ||
-        ( version.major    == SK_DLSS_Context::dlss_s::Version.major &&
-          version.minor    == SK_DLSS_Context::dlss_s::Version.minor &&
-          version.build    == SK_DLSS_Context::dlss_s::Version.build &&
-          version.revision  > SK_DLSS_Context::dlss_s::Version.revision ) )
+    if (SK_DLSS_Context::dlss_s::Version.isOlderThan (version))
     {
       SK_LOGi1 (L"DLSS Version String (%ws): %ws", wszDLSS,
                               SK_GetDLLVersionStr (wszDLSS).c_str ());
@@ -880,6 +873,8 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 void
 SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 {
+  SK_NGX_Init ();
+
   static bool bHasVersion = false;
 
   // Driver overrides have extension .bin
@@ -909,16 +904,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 
     // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
     //   upgrading anything.
-    if (  version.major     > SK_DLSS_Context::dlssg_s::Version.major   ||
-        ( version.major    == SK_DLSS_Context::dlssg_s::Version.major   &&
-          version.minor     > SK_DLSS_Context::dlssg_s::Version.minor ) ||
-        ( version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
-          version.minor    == SK_DLSS_Context::dlssg_s::Version.minor &&
-          version.build     > SK_DLSS_Context::dlssg_s::Version.build ) ||
-        ( version.major    == SK_DLSS_Context::dlssg_s::Version.major &&
-          version.minor    == SK_DLSS_Context::dlssg_s::Version.minor &&
-          version.build    == SK_DLSS_Context::dlssg_s::Version.build &&
-          version.revision  > SK_DLSS_Context::dlssg_s::Version.revision ) )
+    if (SK_DLSS_Context::dlssg_s::Version.isOlderThan (version))
     {
       SK_LOGi1 (L"DLSS-G Version String (%ws): %ws", wszDLSSG,
                                 SK_GetDLLVersionStr (wszDLSSG).c_str ());
@@ -1098,6 +1084,13 @@ SK_NGX_UpdateDLSSGStatus (void)
 void
 SK_NGX_Init (void)
 {
+  // Too early
+  if (! GetModuleHandleW (L"_nvngx.dll"))
+  {
+    SK_LOGi0 (L"Tried to initialize NGX while _nvngx.dll was not yet loaded...");
+    return;
+  }
+
   SK_RunOnce (
   {
     GetNGXResultAsString =

@@ -575,8 +575,14 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       extern HMODULE SK_KnownModule_MFPLAT;
                      SK_KnownModule_MFPLAT = SK_GetModuleHandleW (L"mfplat.dll");
     }
+    else if ( StrStrIW (wszModName,        L"nvngx_dlss.dll")  ) SK_NGX_EstablishDLSSVersion  (wszModName);
+    else if ( StrStrIW (wszModName,        L"nvngx_dlssg.dll") ) SK_NGX_EstablishDLSSGVersion (wszModName);
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
-                StrStrIW (wszModName,        L"_nvngx.dll") )
+                StrStrIW( wszModName,        L"_nvngx.dll" ) ||
+               // Handles case where a .bin file is loaded, but something has LoadLibrary hooked
+               //   and the true source of the load cannot be determined.
+               (StrStrI ( lpFileName, SK_TEXT(".bin")      ) && typeid (_T) == typeid (wchar_t)) )
+
     {
       SK_NGX_Init ();
 
@@ -596,8 +602,6 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlss.dll")))  SK_NGX_EstablishDLSSVersion  (wszFileName);
       else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssg.dll"))) SK_NGX_EstablishDLSSGVersion (wszFileName);
     }
-    else if ( StrStrIW (wszModName,        L"nvngx_dlss.dll")  ) SK_NGX_EstablishDLSSVersion  (wszModName);
-    else if ( StrStrIW (wszModName,        L"nvngx_dlssg.dll") ) SK_NGX_EstablishDLSSGVersion (wszModName);
 #if 0
     if (! config.platform.silent) {
       if ( StrStrIA (lpFileName, szSteamAPIDLL)    ||
