@@ -319,28 +319,23 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
         auto& rb =
           SK_GetCurrentRenderBackend ();
 
-        if ( //config.render.framerate.streamline.enforcement_policy == 2 &&
+        if ( config.render.framerate.streamline.enforcement_policy == 2 &&
                                pSetLatencyMarkerParams->markerType == INPUT_SAMPLE )
         {
-          if (//SK_GetCurrentRenderBackend ().windows.unreal ||
-               config.render.framerate.streamline.enforcement_policy == 2 )
-          {
-            pLimiter->wait ();
-          }
+          pLimiter->wait ();
 
-          if (config.render.framerate.streamline.enforcement_policy == 2)
-          {
-            auto                                  tNow = SK_QueryPerf ();
-            SK::Framerate::TickEx (false, -1.0,   tNow, rb.swapchain.p);
-            //for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
-            //{                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
-            //  SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
-            //}
-          }
+          auto                                  tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, -1.0,   tNow, rb.swapchain.p);
+          //for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
+          //{                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
+          //  SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
+          //}
         }
 
-        else if ( config.render.framerate.streamline.enforcement_policy == 4 &&
-                                    pSetLatencyMarkerParams->markerType == SIMULATION_START )
+        // Fallback to normal mode if the game has no latency markers
+        //
+        else if ( ( config.render.framerate.streamline.enforcement_policy == 4 || SK_Reflex_LastInputFrameId == 0 ) &&
+                                      pSetLatencyMarkerParams->markerType == SIMULATION_START )
         {
           pLimiter->wait ();
 

@@ -2138,7 +2138,13 @@ SK_NGX_DLSS_ControlPanel (void)
           {
             config.utility.save_async ();
           }
-          ImGui::SetItemTooltip ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
+            ImGui::EndTooltip      ();
+          }
 
           if (config.render.framerate.streamline.enable_native_limit)
           {

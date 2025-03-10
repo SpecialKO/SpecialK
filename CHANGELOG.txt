@@ -1,4 +1,9 @@
-﻿25.3.10.6
+﻿25.3.10.7
+=========
+ + Fallback to Normal mode for native pacing if a game is not using Input
+     Latency markers in their Reflex implementation.
+
+25.3.10.6
 =========
  + Disable DLSS Frame Generation Native pacing by default.
  + Report native input framerate on frame pacing graph for native pacing.
