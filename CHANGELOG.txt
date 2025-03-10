@@ -1,4 +1,8 @@
-﻿25.3.10.1
+﻿25.3.10.2
+=========
+ + Fixed missing Reflex PRESENT_END marker when native pacing is set to Normal
+
+25.3.10.1
 =========
  + Added DLSS Frame Generation -Native- Frame Pacing mode (disabled by default)
      to pace the game's internal framerate in D3D12 games that use Frame Gen.

@@ -2450,17 +2450,21 @@ extern bool SK_Reflex_AllowPresentStartMarker;
 
 extern int SK_NGX_DLSSG_GetMultiFrameCount (void);
 
+IDXGISwapChain* SK_Streamline_ProxyChain = nullptr;
+
 HRESULT
 SK_StreamlinePresent ( IDXGISwapChain *This,
                        UINT            SyncInterval,
                        UINT            Flags )
 {
+  SK_Streamline_ProxyChain = This;
+
   extern float
       __target_fps;
   if (__target_fps > 0.0f)
   {
     config.render.framerate.streamline.target_fps =
-                                    (__target_fps / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) + 0.000001f);
+                                    (__target_fps / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.001f);
   }
 
   else
@@ -2491,28 +2495,34 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
     pLimiter->wait ();
   }
 
-  extern IUnknown*                SK_Reflex_LastLatencyDevice;
-  extern NV_LATENCY_MARKER_PARAMS SK_Reflex_LastLatencyMarkerParams;
+  auto _SubmitPresentMarker = [](NV_LATENCY_MARKER_TYPE type)
+  {
+    extern IUnknown*                  SK_Reflex_LastLatencyDevice;
+    extern NV_LATENCY_MARKER_PARAMS   SK_Reflex_LastLatencyMarkerParams;
+    NV_LATENCY_MARKER_PARAMS params = SK_Reflex_LastLatencyMarkerParams;
 
-  NV_LATENCY_MARKER_PARAMS params = SK_Reflex_LastLatencyMarkerParams;
-                           params.markerType = PRESENT_START;
+    bool& enablement =
+      ( type == PRESENT_START ) ? SK_Reflex_AllowPresentStartMarker
+                                : SK_Reflex_AllowPresentEndMarker;
 
-  SK_Reflex_AllowPresentStartMarker = true;
+    params.markerType = type;
+    enablement        = true;
+    NvAPI_D3D_SetLatencyMarker (SK_Reflex_LastLatencyDevice, &params);
+  };
 
-  NvAPI_D3D_SetLatencyMarker (SK_Reflex_LastLatencyDevice, &params);
+  _SubmitPresentMarker (PRESENT_START);
 
-  HRESULT hr =
+  const HRESULT hr =
     StreamlinePresent_Original (This, SyncInterval, Flags);
 
-  if (SUCCEEDED (hr) && config.render.framerate.streamline.enforcement_policy == 2)
+  _SubmitPresentMarker (PRESENT_END);
+
+  if (SUCCEEDED (hr))
   {
-    SK_Reflex_AllowPresentEndMarker = true;
-
-    params.markerType = PRESENT_END;
-
-    NvAPI_D3D_SetLatencyMarker (SK_Reflex_LastLatencyDevice, &params);
-
-    pLimiter->wait ();
+    if (config.render.framerate.streamline.enforcement_policy == 2)
+    {
+      pLimiter->wait ();
+    }
   }
 
   SK_Reflex_AllowPresentEndMarker   = false;
