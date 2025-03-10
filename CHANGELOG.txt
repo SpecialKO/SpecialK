@@ -1,6 +1,8 @@
 ﻿25.3.10.5
 =========
- + Native pacing statistics are now compatible with 3x and 4x FG modes.
+ + Native pacing statistics are now compatible with 3x and 4x FG modes...
+     (in theory, no outlandishly expensive GPU to test on.)
+ + Enable DLSS Frame Generation Native Pacing by default!
 
 25.3.10.4
 =========

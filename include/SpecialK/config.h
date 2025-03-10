@@ -777,7 +777,7 @@ struct sk_config_t
       } latent_sync;
       bool    use_amd_mwaitx       =   true;
       struct {
-        bool  enable_native_limit  =  false;
+        bool  enable_native_limit  =   true;
         float target_fps           =   0.0f;
         int   enforcement_policy   =      4;
       } streamline;
