@@ -2440,6 +2440,196 @@ volatile LONG lSkipNextPresent = 0;
 volatile LONG lSemaphoreCount0 = 0;
 volatile LONG lSemaphoreCount1 = 0;
 
+struct DECLSPEC_UUID ("ADEC44E2-61F0-45C3-AD9F-1B37379284FF")
+  IStreamlineBaseInterface : IUnknown { };
+
+PresentSwapChain_pfn StreamlinePresent_Original = nullptr;
+
+extern bool SK_Reflex_AllowPresentEndMarker;
+extern bool SK_Reflex_AllowPresentStartMarker;
+
+extern int SK_NGX_DLSSG_GetMultiFrameCount (void);
+
+HRESULT
+SK_StreamlinePresent ( IDXGISwapChain *This,
+                       UINT            SyncInterval,
+                       UINT            Flags )
+{
+  extern float
+      __target_fps;
+  if (__target_fps > 0.0f)
+  {
+    config.render.framerate.streamline.target_fps =
+                                    (__target_fps / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) + 0.000001f);
+  }
+
+  else
+  {
+    config.render.framerate.streamline.target_fps =
+      -abs (config.render.framerate.streamline.target_fps);
+  }
+
+  if ((! __SK_IsDLSSGActive) || config.render.framerate.streamline.target_fps <= 0.0f ||
+                             (! config.render.framerate.streamline.enable_native_limit))
+  {
+    SK_Reflex_AllowPresentEndMarker   = true;
+    SK_Reflex_AllowPresentStartMarker = true;
+    return
+      StreamlinePresent_Original (This, SyncInterval, Flags);
+  }
+
+  SK_LOG_FIRST_CALL
+
+  auto *pLimiter =
+    SK::Framerate::GetLimiter (This);
+
+  pLimiter->standalone = true;
+  pLimiter->set_limit (config.render.framerate.streamline.target_fps);
+
+  if (config.render.framerate.streamline.enforcement_policy == 4)
+  {
+    pLimiter->wait ();
+  }
+
+  extern IUnknown*                SK_Reflex_LastLatencyDevice;
+  extern NV_LATENCY_MARKER_PARAMS SK_Reflex_LastLatencyMarkerParams;
+
+  NV_LATENCY_MARKER_PARAMS params = SK_Reflex_LastLatencyMarkerParams;
+                           params.markerType = PRESENT_START;
+
+  SK_Reflex_AllowPresentStartMarker = true;
+
+  NvAPI_D3D_SetLatencyMarker (SK_Reflex_LastLatencyDevice, &params);
+
+  HRESULT hr =
+    StreamlinePresent_Original (This, SyncInterval, Flags);
+
+  if (SUCCEEDED (hr) && config.render.framerate.streamline.enforcement_policy == 2)
+  {
+    SK_Reflex_AllowPresentEndMarker = true;
+
+    params.markerType = PRESENT_END;
+
+    NvAPI_D3D_SetLatencyMarker (SK_Reflex_LastLatencyDevice, &params);
+
+    pLimiter->wait ();
+  }
+
+  SK_Reflex_AllowPresentEndMarker   = false;
+  SK_Reflex_AllowPresentStartMarker = false;
+
+  return hr;
+}
+
+void
+SK_Streamline_SetupNativeLimiter (void)
+{
+  static bool          once = false;
+  if (! std::exchange (once, true))
+  {
+            SK_ComPtr <IDXGIFactory7>
+        pFactory7;
+            SK_ComPtr <IDXGIFactory>
+        pFactory    = (IDXGIFactory *)
+        pFactory7.p;
+    if (pFactory7.p == nullptr)
+    {
+      static const IID iids [] = { IID_IDXGIFactory,  IID_IDXGIFactory1, IID_IDXGIFactory2,
+                                   IID_IDXGIFactory3, IID_IDXGIFactory4, IID_IDXGIFactory5,
+                                   IID_IDXGIFactory6, IID_IDXGIFactory7 };
+
+      const auto factory_flags = 0x0;
+
+      CreateDXGIFactory2_Import ( factory_flags,
+             iids [std::clamp (SK_DXGI_HighestFactorySupported, 0, 7)],
+                       (void **)&pFactory.p );
+    }
+
+    SK_ComPtr <IDXGIAdapter> pAdapter0;
+
+    if (pFactory7 != nullptr)
+        pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
+    else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
+
+    SK_ComPtr <ID3D12Device>   pDevice    = nullptr;
+    SK_ComPtr <IDXGISwapChain> pSwapChain = nullptr;
+    DXGI_SWAP_CHAIN_DESC       desc       = { };
+
+    desc.BufferDesc.Format           = DXGI_FORMAT_R10G10B10A2_UNORM;
+    desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+    desc.SampleDesc.Count            = 1;
+    desc.SampleDesc.Quality          = 0;
+    desc.BufferDesc.Width            = 2;
+    desc.BufferDesc.Height           = 2;
+    desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.BufferCount                 = 2;
+    desc.OutputWindow                = SK_Win32_CreateDummyWindow ();
+    desc.Windowed                    = TRUE;
+    desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+    static D3D12CreateDevice_pfn
+           D3D12CreateDevice = (D3D12CreateDevice_pfn)
+             SK_GetProcAddress (L"d3d12.dll",
+                               "D3D12CreateDevice");
+
+    SK_ComPtr <ID3D12Device> pDevice12;
+
+    if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS (&pDevice12.p))))
+    {
+      SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
+
+      D3D12_COMMAND_QUEUE_DESC
+        queue_desc       = { };
+        queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+      pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+
+      HRESULT
+      SK_DXGI_SafeCreateSwapChain ( IDXGIFactory          *pFactory,
+                                    IUnknown              *pDevice,
+                                    DXGI_SWAP_CHAIN_DESC  *pDesc,
+                                    IDXGISwapChain       **ppSwapChain );
+
+      if (FAILED (SK_DXGI_SafeCreateSwapChain (pFactory, pCmdQueue.p, &desc, &pSwapChain.p)))
+                  SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p,   &desc, &pSwapChain.p);
+
+      SK_slUpgradeInterface ((void **)&pSwapChain.p);
+
+      SK_ComPtr <IDXGISwapChain>                       pNativeChain;
+      SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeChain.p);
+
+      if (pNativeChain.p != pSwapChain.p)
+      {
+        //SK_ImGui_Warning (L"Hooking Streamline Proxy Present...");
+
+        DXGI_VIRTUAL_HOOK ( &pSwapChain.p, 8,
+                          "IStreamlineSwapChain::Present",
+                           SK_StreamlinePresent,
+                           StreamlinePresent_Original,
+                           PresentSwapChain_pfn );
+
+        SK_ApplyQueuedHooks ();
+
+        auto pCommandProc =
+          SK_GetCommandProcessor ();
+
+        if (pCommandProc != nullptr)
+        {
+          pCommandProc->AddVariable
+           ( "Streamline.TargetFPS", SK_CreateVar ( SK_IVariable::Float,
+               &config.render.framerate.streamline.target_fps ) );
+
+          pCommandProc->AddVariable
+           ( "Streamline.LimitSite", SK_CreateVar ( SK_IVariable::Int,
+               &config.render.framerate.streamline.enforcement_policy ) );
+        }
+      }
+    }
+  }
+}
+
 HRESULT
 SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                       UINT                    SyncInterval,
@@ -2455,6 +2645,14 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
+
+  if (Source == SK_DXGI_PresentSource::Hook &&
+      rb.api == SK_RenderAPI::D3D12         &&
+      __SK_IsDLSSGActive                    &&
+      config.render.framerate.streamline.enable_native_limit)
+  {
+    SK_Streamline_SetupNativeLimiter ();
+  }
 
   const auto& display =
     rb.displays [rb.active_display];

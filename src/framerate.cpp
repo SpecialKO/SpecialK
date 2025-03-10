@@ -1456,16 +1456,19 @@ SK::Framerate::Limiter::wait (void)
   }
 
 
-  if (! background)
+  if (! standalone)
   {
-    set_limit ( __target_fps );
-  }
+    if (! background)
+    {
+      set_limit ( __target_fps );
+    }
 
-  else if (tracks_window)
-  {
-    set_limit ( (__target_fps_bg > 0.0f) ?
-                 __target_fps_bg         :
-                 __target_fps           );
+    else if (tracks_window)
+    {
+      set_limit ( (__target_fps_bg > 0.0f) ?
+                   __target_fps_bg         :
+                   __target_fps           );
+    }
   }
 
 
@@ -1520,11 +1523,14 @@ SK::Framerate::Limiter::wait (void)
   }
 
 
-  if (tracks_window && __target_fps <= 0.0f)
+  if (! standalone)
   {
-    SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
+    if (tracks_window && __target_fps <= 0.0f)
+    {
+      SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
 
-    return;
+      return;
+    }
   }
 
   
@@ -1533,17 +1539,20 @@ SK::Framerate::Limiter::wait (void)
 
 
 #if 1
-  // SK's framerate limiter is more energy efficient, prefer it over NVIDIA Reflex
-  //   while the game is in the background
-  if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
+  if (! standalone)
   {
-    if ((__SK_ForceDLSSGPacing) || (config.nvidia.reflex.use_limiter && config.nvidia.reflex.enable &&
-         ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)))
+    // SK's framerate limiter is more energy efficient, prefer it over NVIDIA Reflex
+    //   while the game is in the background
+    if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
     {
-      extern bool
-             __SK_DoubleUpOnReflex;
-      if ((! __SK_DoubleUpOnReflex) || (SK_GetCurrentGameID () != SK_GAME_ID::Starfield && (! config.nvidia.reflex.combined_limiter)))
-        return;
+      if ((__SK_ForceDLSSGPacing) || (config.nvidia.reflex.use_limiter && config.nvidia.reflex.enable &&
+           ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)))
+      {
+        extern bool
+               __SK_DoubleUpOnReflex;
+        if ((! __SK_DoubleUpOnReflex) || (SK_GetCurrentGameID () != SK_GAME_ID::Starfield && (! config.nvidia.reflex.combined_limiter)))
+          return;
+      }
     }
   }
 #endif
@@ -2386,8 +2395,8 @@ extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
 extern bool                                  reset_frame_history;
 
 void
-SK::Framerate::TickEx ( bool       /*wait*/,
-                        double        dt,
+SK::Framerate::TickEx ( bool     /*wait*/,
+                        double         dt,
                         LARGE_INTEGER now,
                         IUnknown*     swapchain )
 {

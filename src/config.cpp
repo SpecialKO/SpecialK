@@ -888,6 +888,8 @@ struct {
     sk::ParameterBool*    auto_low_latency_reapply= nullptr;
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
     sk::ParameterBool*    use_amd_mwaitx          = nullptr;
+    sk::ParameterBool*    apply_streamline_pacing = nullptr;
+    sk::ParameterInt*     streamline_limit_policy = nullptr;
 
     struct
     {
@@ -1972,6 +1974,10 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.enforcement_policy,    L"Place Framerate Limiter Wait Before/After Present, etc.",   dll_ini,         L"Render.FrameRate",      L"LimitEnforcementPolicy"),
     ConfigEntry (render.framerate.enable_etw_tracing,    L"Use ETW tracing (PresentMon) for extra latency/flip info",  dll_ini,         L"Render.FrameRate",      L"EnableETWTracing"),
     ConfigEntry (render.framerate.use_amd_mwaitx,        L"Use AMD Power-Saving Instructions for Busy-Wait",           dll_ini,         L"Render.FrameRate",      L"UseAMDMWAITX"),
+    ConfigEntry (render.framerate.
+                                apply_streamline_pacing, L"Apply Pacing to Native frames when using DLSS Frame Gen.",  dll_ini,         L"Render.FrameRate",      L"EnableStreamlinePacing"),
+    ConfigEntry (render.framerate.
+                                streamline_limit_policy, L"When to apply Native Frame pacing.",                        dll_ini,         L"Render.FrameRate",      L"StreamlineEnforcementPolicy"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
@@ -4409,6 +4415,10 @@ auto DeclKeybind =
   render.framerate.sleepless_window->load     (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load         (config.render.framerate.enable_mmcss);
   render.framerate.use_amd_mwaitx->load       (config.render.framerate.use_amd_mwaitx);
+  render.framerate.apply_streamline_pacing->
+                                         load (config.render.framerate.streamline.enable_native_limit);
+  render.framerate.streamline_limit_policy->
+                                         load (config.render.framerate.streamline.enforcement_policy);
 
   if (! SK_CPU_HasMWAITX) // Turn off if CPU does not support
     config.render.framerate.use_amd_mwaitx = false;
@@ -6657,6 +6667,11 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.sleepless_window->store   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->store       (config.render.framerate.enable_mmcss);
   render.framerate.use_amd_mwaitx->store     (config.render.framerate.use_amd_mwaitx);
+
+  render.framerate.apply_streamline_pacing->
+                                       store (config.render.framerate.streamline.enable_native_limit);
+  render.framerate.streamline_limit_policy->
+                                       store (config.render.framerate.streamline.enforcement_policy);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
 

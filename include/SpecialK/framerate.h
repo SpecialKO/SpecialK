@@ -611,6 +611,8 @@ namespace SK
       static
       double        timer_res_ms;
 
+      bool          standalone = false;
+
     private:
 
       bool          restart      = false;

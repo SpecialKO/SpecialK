@@ -1271,7 +1271,7 @@ SK_slUpgradeInterface (void **baseInterface)
   static
       slUpgradeInterface_pfn
       slUpgradeInterface  = nullptr;
-  if (slUpgradeInterface == nullptr && SK_GetFramesDrawn () < 240)
+  if (slUpgradeInterface == nullptr/* && SK_GetFramesDrawn() < 240*/)
       slUpgradeInterface =
      (slUpgradeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
      "slUpgradeInterface"); result =

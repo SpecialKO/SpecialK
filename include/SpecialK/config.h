@@ -765,17 +765,22 @@ struct sk_config_t
         float max_auto_bias        = 0.75f;
         struct auto_bias_target_s {
           float ms                 = 0.85f;
-          float percent            = 0.0F;
+          float percent            = 0.00f;
         } auto_bias_target;
-        bool  show_fcat_bars       = false; // Not INI-persistent
+        bool  show_fcat_bars       =  false; // Not INI-persistent
 
-        bool flush_before_present  =  true;
-        bool finish_before_present = false;
+        bool  flush_before_present  =  true;
+        bool  finish_before_present = false;
 
-        bool flush_after_present   = false;
-        bool finish_after_present  =  true;
+        bool  flush_after_present   = false;
+        bool  finish_after_present  =  true;
       } latent_sync;
-      bool    use_amd_mwaitx       =  true;
+      bool    use_amd_mwaitx       =   true;
+      struct {
+        bool  enable_native_limit  =  false;
+        float target_fps           =   0.0f;
+        int   enforcement_policy   =      4;
+      } streamline;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;

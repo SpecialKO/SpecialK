@@ -1,4 +1,13 @@
-﻿25.3.10
+﻿25.3.10.1
+=========
+ + Added DLSS Frame Generation -Native- Frame Pacing mode (disabled by default)
+     to pace the game's internal framerate in D3D12 games that use Frame Gen.
+
+    * This option will appear in the DLSS section of the control panel.
+
+   >> Eventually this will be the default behavior, but it is experimental now.
+
+25.3.10
 =======
  + Added support for games that have multiple instances of DLSS/DLSS-G/DLSS-D
      in existence at the same time (often for menu screens / cutscenes).

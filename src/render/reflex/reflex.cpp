@@ -266,11 +266,38 @@ SK_Reflex_GameSpecificLatencyMarkerFixups ( __in IUnknown                 *pDev,
   return std::nullopt;
 }
 
+IUnknown*                SK_Reflex_LastLatencyDevice     = nullptr;
+NV_LATENCY_MARKER_PARAMS SK_Reflex_LastLatencyMarkerParams;
+bool                     SK_Reflex_AllowPresentEndMarker   = true;
+bool                     SK_Reflex_AllowPresentStartMarker = true;
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
   SK_LOG_FIRST_CALL
+
+  bool bSkipCall = false;
+
+  if (pSetLatencyMarkerParams != nullptr && pDev != nullptr)
+  {
+    if (config.render.framerate.streamline.target_fps > 0.0f)
+    {
+      if (pSetLatencyMarkerParams->markerType == PRESENT_START)
+      {
+        SK_Reflex_LastLatencyDevice       = pDev;
+        SK_Reflex_LastLatencyMarkerParams = *pSetLatencyMarkerParams;
+
+        if (! SK_Reflex_AllowPresentStartMarker)
+          bSkipCall = true;
+      }
+      else if (pSetLatencyMarkerParams->markerType == PRESENT_END)
+      {
+        if (! SK_Reflex_AllowPresentEndMarker)
+          bSkipCall = true;
+      }
+    }
+  }
 
 #ifdef _DEBUG
   // Naive test, proper test for equality would involve QueryInterface
@@ -328,6 +355,7 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   }
 
   return
+    bSkipCall ? NVAPI_OK :
     SK_NvAPI_D3D_SetLatencyMarker (pDev, pSetLatencyMarkerParams);
 }
 

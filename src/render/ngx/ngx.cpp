@@ -2131,6 +2131,36 @@ SK_NGX_DLSS_ControlPanel (void)
             ImGui::EndTooltip      ();
           }
         }
+
+        if (__SK_IsDLSSGActive)
+        {
+          if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
+          {
+            config.utility.save_async ();
+          }
+          ImGui::SetItemTooltip ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
+
+          if (config.render.framerate.streamline.enable_native_limit)
+          {
+            ImGui::SameLine ();
+
+            int sel = ( config.render.framerate.streamline.enforcement_policy == 4 ) ? 0 :
+                      ( config.render.framerate.streamline.enforcement_policy == 2 ) ? 1 : 0;
+
+            ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
+
+            if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Normal\0Low-Latency\0\0", 2))
+            {
+              config.render.framerate.streamline.enforcement_policy =
+                ( sel == 0 ) ? 4 :
+                ( sel == 1 ) ? 2 : 4;
+
+              config.utility.save_async ();
+            }
+
+            ImGui::PopItemWidth ();
+          }
+        }
         ImGui::EndGroup    ();
         ImGui::SameLine    ();
         ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
