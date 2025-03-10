@@ -36,7 +36,7 @@ int                  SK_NGX_DLSSG_GetMultiFrameCount      (void);
 
 extern bool __SK_HasDLSSGStatusSupport;
 extern bool __SK_IsDLSSGActive;
-extern int  __SK_DLSSGMultiFrameCount;
+extern UINT __SK_DLSSGMultiFrameCount;
 extern bool __SK_DoubleUpOnReflex;
 extern bool __SK_ForceDLSSGPacing;
 

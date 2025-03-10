@@ -271,6 +271,12 @@ NV_LATENCY_MARKER_PARAMS SK_Reflex_LastLatencyMarkerParams;
 bool                     SK_Reflex_AllowPresentEndMarker   = true;
 bool                     SK_Reflex_AllowPresentStartMarker = true;
 
+extern UINT            __SK_DLSSGMultiFrameCount;
+extern IDXGISwapChain   *SK_Streamline_ProxyChain;
+
+extern void   SK_SpawnPresentMonWorker (void);
+extern HANDLE SK_ImGui_SignalBackupInputThread;
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
@@ -279,8 +285,6 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
   bool bSkipCall = false;
 
-  extern IDXGISwapChain*
-       SK_Streamline_ProxyChain;
   if ( SK_Streamline_ProxyChain != nullptr                          &&
          config.render.framerate.streamline.enable_native_limit     &&
          config.render.framerate.streamline.target_fps > 0.0f       &&
@@ -310,26 +314,42 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       auto pLimiter =
         SK::Framerate::GetLimiter (SK_Streamline_ProxyChain, false);
 
-      if (pLimiter != nullptr)
+      if (pLimiter != nullptr && __SK_IsDLSSGActive)
       {
-        if ( config.render.framerate.streamline.enforcement_policy == 2 &&
+        auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        if ( //config.render.framerate.streamline.enforcement_policy == 2 &&
                                pSetLatencyMarkerParams->markerType == INPUT_SAMPLE )
         {
-          pLimiter->wait ();
-          auto                               tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
-                                             tNow.QuadPart += pLimiter->get_ticks_per_frame () / 2;
-          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
+          if (//SK_GetCurrentRenderBackend ().windows.unreal ||
+               config.render.framerate.streamline.enforcement_policy == 2 )
+          {
+            pLimiter->wait ();
+          }
+
+          if (config.render.framerate.streamline.enforcement_policy == 2)
+          {
+            auto                                 tNow = SK_QueryPerf ();
+            SK::Framerate::TickEx (false, 0.0,   tNow, rb.swapchain.p);
+            for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
+            {                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
+              SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
+            }
+          }
         }
 
         else if ( config.render.framerate.streamline.enforcement_policy == 4 &&
                                     pSetLatencyMarkerParams->markerType == SIMULATION_START )
         {
           pLimiter->wait ();
-          auto                               tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
-                                             tNow.QuadPart += pLimiter->get_ticks_per_frame () / 2;
-          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
+
+          auto                                 tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, 0.0,   tNow, rb.swapchain.p);
+          for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
+          {                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
+            SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
+          }
         }
       }
     }
@@ -574,9 +594,8 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 {
   if (marker == RENDERSUBMIT_START)
   {
-    extern HANDLE SK_ImGui_SignalBackupInputThread;
-    if (          SK_ImGui_SignalBackupInputThread != 0)
-      SetEvent (  SK_ImGui_SignalBackupInputThread     );
+    if (        SK_ImGui_SignalBackupInputThread != 0)
+      SetEvent (SK_ImGui_SignalBackupInputThread     );
   }
 
   NvAPI_Status ret =
@@ -926,8 +945,7 @@ SK_NV_AdaptiveSyncControl (void)
       if (rb.api == SK_RenderAPI::D3D12)
       {
         // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
-        extern void SK_SpawnPresentMonWorker (void);
-                    SK_SpawnPresentMonWorker ();
+        SK_SpawnPresentMonWorker ();
       }
     });
 

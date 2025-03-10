@@ -1,4 +1,8 @@
-﻿25.3.10.4
+﻿25.3.10.5
+=========
+ + Native pacing statistics are now compatible with 3x and 4x FG modes.
+
+25.3.10.4
 =========
  + Display native frame pacing statistics instead of generated statistics when
      native pacing is enabled (does not work for 3x or 4x modes).

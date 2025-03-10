@@ -33,7 +33,7 @@
 
 bool __SK_HasDLSSGStatusSupport = false;
 bool __SK_IsDLSSGActive         = false;
-int  __SK_DLSSGMultiFrameCount  = 0;
+UINT __SK_DLSSGMultiFrameCount  = 0;
 bool __SK_DoubleUpOnReflex      = false;
 bool __SK_ForceDLSSGPacing      = false;
 
