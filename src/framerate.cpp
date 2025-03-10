@@ -1407,7 +1407,7 @@ SK::Framerate::Limiter::try_wait (void)
   {
     if (SK_IsGameWindowActive () || __target_fps_bg == 0.0f)
     {
-      if (__target_fps <= 0.0f) {
+      if (fps <= 0.0f) {
         return false;
       }
     }
@@ -1525,7 +1525,7 @@ SK::Framerate::Limiter::wait (void)
 
   if (! standalone)
   {
-    if (tracks_window && __target_fps <= 0.0f)
+    if (tracks_window && fps <= 0.0f)
     {
       SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
 
@@ -1543,7 +1543,7 @@ SK::Framerate::Limiter::wait (void)
   {
     // SK's framerate limiter is more energy efficient, prefer it over NVIDIA Reflex
     //   while the game is in the background
-    if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
+    if ((! background) && rb.isReflexSupported () && fps > 0.0f)
     {
       if ((__SK_ForceDLSSGPacing) || (config.nvidia.reflex.use_limiter && config.nvidia.reflex.enable &&
            ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)))
@@ -1571,14 +1571,17 @@ SK::Framerate::Limiter::wait (void)
     (pDisplay->signal.timing.vsync_freq.Numerator)                                 : 1;
 
 
-  auto threadId    = GetCurrentThreadId ();
-  auto framesDrawn = SK_GetFramesDrawn  ();
+  if (! standalone)
+  {
+    auto threadId    = GetCurrentThreadId ();
+    auto framesDrawn = SK_GetFramesDrawn  ();
 
-  // Two limits applied on the same frame would cause problems, don't allow it.
-  if (_frame_shame.count (threadId) &&
-      _frame_shame       [threadId] == framesDrawn) return;
-  else
-      _frame_shame       [threadId]  = framesDrawn;
+    // Two limits applied on the same frame would cause problems, don't allow it.
+    if (_frame_shame.count (threadId) &&
+        _frame_shame       [threadId] == framesDrawn) return;
+    else
+        _frame_shame       [threadId]  = framesDrawn;
+  }
 
   auto _time =
     SK_QueryPerf ().QuadPart;
@@ -1592,7 +1595,7 @@ SK::Framerate::Limiter::wait (void)
 
     ////if (full_restart || config.render.framerate.present_interval == 0)
     {
-      init (__target_fps, tracks_window);
+      init (fps, tracks_window);
       full_restart = false;
     }
 
@@ -1630,18 +1633,21 @@ SK::Framerate::Limiter::wait (void)
 
     double dMissingTimeBoundary = 1.0;
 
-    if (config.render.framerate.present_interval == 0)
+    if (! standalone)
     {
-      dMissingTimeBoundary =
-        std::max (1.0,
-          std::round (           (ticks_per_refresh > 1) ?
-            static_cast <double> (ticks_per_refresh) /
-            static_cast <double> (ticks_per_frame)       : 1.0)
-        );
+      if (config.render.framerate.present_interval == 0)
+      {
+        dMissingTimeBoundary =
+          std::max (1.0,
+            std::round (           (ticks_per_refresh > 1) ?
+              static_cast <double> (ticks_per_refresh) /
+              static_cast <double> (ticks_per_frame)       : 1.0)
+          );
+      }
     }
 
-    static constexpr double dEdgeToleranceLow  = 0.0;
-    static constexpr double dEdgeToleranceHigh = 1.0;
+    static constexpr double dEdgeToleranceLow  = 0.025;
+    static constexpr double dEdgeToleranceHigh = 0.975;
 
     if ( missed_frames >= dMissingTimeBoundary &&
          edge_distance >= dEdgeToleranceLow    &&
@@ -2285,8 +2291,10 @@ SK::Framerate::Limiter::set_limit (float& target)
   target = sk::narrow_cast <float> (SK_Framerate_GetLimitEnvVar (target));
 
   // Skip redundant set_limit calls
-  if (fabs (fps - target) < DBL_EPSILON && tracks_window == true)
+  if (fabs (fabs (fps) - fabs (target)) < DBL_EPSILON && tracks_window == true) {
+                  fps  =       target;
     return;
+  }
 
   __scanline.lock.requestResync ();
   wait_time.reset               ();
@@ -2575,7 +2583,7 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps > 0.0f)
+  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f)
   {
     SK::Framerate::TickEx (false, dt, now, swapchain);
   }

@@ -279,9 +279,15 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
   bool bSkipCall = false;
 
-  if (pSetLatencyMarkerParams != nullptr && pDev != nullptr)
+  extern IDXGISwapChain*
+       SK_Streamline_ProxyChain;
+  if ( SK_Streamline_ProxyChain != nullptr                          &&
+         config.render.framerate.streamline.enable_native_limit     &&
+         config.render.framerate.streamline.target_fps > 0.0f       &&
+                                                 __SK_IsDLSSGActive &&
+                                 pSetLatencyMarkerParams != nullptr )
   {
-    if (config.render.framerate.streamline.target_fps > 0.0f)
+    if (pDev != nullptr)
     {
       if (pSetLatencyMarkerParams->markerType == PRESENT_START)
       {
@@ -295,6 +301,28 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       {
         if (! SK_Reflex_AllowPresentEndMarker)
           bSkipCall = true;
+      }
+    }
+
+    if (pSetLatencyMarkerParams->markerType == SIMULATION_START ||
+        pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
+    {  
+      auto pLimiter =
+        SK::Framerate::GetLimiter (SK_Streamline_ProxyChain, false);
+
+      if (pLimiter != nullptr)
+      {
+        if ( config.render.framerate.streamline.enforcement_policy == 2 &&
+                               pSetLatencyMarkerParams->markerType == INPUT_SAMPLE )
+        {
+          pLimiter->wait ();
+        }
+
+        else if ( config.render.framerate.streamline.enforcement_policy == 4 &&
+                                    pSetLatencyMarkerParams->markerType == SIMULATION_START )
+        {
+          pLimiter->wait ();
+        }
       }
     }
   }

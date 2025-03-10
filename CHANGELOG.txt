@@ -1,4 +1,10 @@
-﻿25.3.10.2
+﻿25.3.10.3
+=========
+ + Fixed native pacing potentially resetting the framerate limiter every frame.
+ + Uninstall low-level keyboard hooks when a debugger attaches to prevent flaky
+     keyboard input while debugging.
+
+25.3.10.2
 =========
  + Fixed missing Reflex PRESENT_END marker when native pacing is set to Normal
 
