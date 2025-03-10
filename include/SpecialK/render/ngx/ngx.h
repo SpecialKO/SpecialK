@@ -62,11 +62,16 @@ struct SK_DLSS_Context
   };
 
   struct dlss_s {
-    NVSDK_NGX_Handle*    Handle         = nullptr;
-    NVSDK_NGX_Parameter* Parameters     = nullptr;
+    struct instance_s {
+      NVSDK_NGX_Handle*    Handle     = nullptr;
+      NVSDK_NGX_Parameter* Parameters = nullptr;
+      NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_SuperSampling;
+    };
+    concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
+                         Instances;
+    instance_s*          LastInstance   = nullptr;
     volatile ULONG64     LastFrame      = 0ULL;
     volatile ULONG64     ResetFrame     = 0ULL; // If >= Current Frame, issue a DLSS Reset
-    NVSDK_NGX_Feature    DLSS_Type      = NVSDK_NGX_Feature_SuperSampling;
     static DWORD         IndicatorFlags;
     static version_s     Version;
 
@@ -81,17 +86,26 @@ struct SK_DLSS_Context
 
     static void showIndicator    (bool show);
     static bool isIndicatorShown (void);
+
+    bool        hasInstance (const NVSDK_NGX_Handle* handle) { return Instances.count (handle) != 0; }
   } super_sampling;
 
   struct dlssg_s {
-    NVSDK_NGX_Handle*    Handle         = nullptr;
-    NVSDK_NGX_Parameter* Parameters     = nullptr;
+    struct instance_s {
+      NVSDK_NGX_Handle*    Handle     = nullptr;
+      NVSDK_NGX_Parameter* Parameters = nullptr;
+    };
+    concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
+                         Instances;
+    instance_s*          LastInstance   = nullptr;
     volatile ULONG64     LastFrame      = 0ULL;
     static DWORD         IndicatorFlags;
     static version_s     Version;
 
     static void showIndicator    (bool show);
     static bool isIndicatorShown (void);
+
+    bool        hasInstance (const NVSDK_NGX_Handle* handle) { return Instances.count (handle) != 0; }
   } frame_gen;
 
   inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll"); };

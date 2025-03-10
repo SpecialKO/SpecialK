@@ -1,4 +1,9 @@
-﻿25.3.9.2
+﻿25.3.10
+=======
+ + Added support for games that have multiple instances of DLSS/DLSS-G/DLSS-D
+     in existence at the same time (often for menu screens / cutscenes).
+
+25.3.9.2
 ========
  + Handle case where another mod has LoadLibrary{Ex}W hooked, and loads of
      .bin files for DLSS were not being detected since they did not originate

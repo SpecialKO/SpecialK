@@ -46,7 +46,8 @@ SK_NGX_IsUsingDLSS (void)
     (SK_NGX_DLSS12.apis_called    ?
      SK_NGX_DLSS12.super_sampling : SK_NGX_DLSS11.super_sampling);
 
-  return                 dlss_ss.Handle     != nullptr                &&
+  return                 dlss_ss.LastInstance         != nullptr &&
+                         dlss_ss.LastInstance->Handle != nullptr &&
     ReadULong64Acquire (&dlss_ss.LastFrame) >= SK_GetFramesDrawn () - 8;
 }
 
@@ -56,9 +57,11 @@ SK_NGX_IsUsingDLSS_D (void)
   const auto& dlss_ss =
     SK_NGX_DLSS12.super_sampling;
 
-  return                 dlss_ss.Handle     != nullptr                  &&
+  return                 
+                         dlss_ss.LastInstance         != nullptr &&
+                         dlss_ss.LastInstance->Handle != nullptr &&
     ReadULong64Acquire (&dlss_ss.LastFrame) >= SK_GetFramesDrawn () - 8 &&
-                         dlss_ss.DLSS_Type  == NVSDK_NGX_Feature_RayReconstruction;
+                         dlss_ss.LastInstance->DLSS_Type  == NVSDK_NGX_Feature_RayReconstruction;
 }
 
 bool
@@ -97,7 +100,7 @@ NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetF (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! strcmp (InName, NVSDK_NGX_Parameter_Sharpness))
@@ -157,7 +160,7 @@ NVSDK_NGX_Parameter_SetD_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetD (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! strcmp (InName, NVSDK_NGX_Parameter_Sharpness))
@@ -218,7 +221,7 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! strcmp (InName, "DLSSG.BackbufferFormat"))
@@ -365,7 +368,7 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetUI (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! strcmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
@@ -424,7 +427,7 @@ NVSDK_NGX_Parameter_SetULL_Detour (NVSDK_NGX_Parameter* InParameter, const char*
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetULL (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! strcmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
@@ -490,7 +493,7 @@ NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter *InParamete
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
   if (InName != nullptr)
@@ -517,7 +520,7 @@ NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const 
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
                 L"NGX_Parameter_GetUI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
     if (! strcmp (InName, "DLSSG.BackbufferFormat"))
@@ -604,7 +607,7 @@ NVSDK_NGX_Parameter_GetI_Detour (const NVSDK_NGX_Parameter *InParameter, const c
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
                 L"NGX_Parameter_GetI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
     if (config.nvidia.dlss.forced_multiframe != SK_NoPreference)
@@ -691,7 +694,7 @@ NVSDK_NGX_Parameter_GetULL_Detour (const NVSDK_NGX_Parameter *InParameter, const
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
                 L"NGX_Parameter_GetULL (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
     if (config.nvidia.dlss.force_dlaa)
@@ -801,10 +804,11 @@ NVSDK_NGX_Parameter*
 SK_NGX_GetDLSSParameters (void)
 {
   if (     SK_NGX_DLSS12.apis_called)
-    return SK_NGX_DLSS12.super_sampling.Parameters;
+    return SK_NGX_DLSS12.super_sampling.LastInstance != nullptr  ?
+           SK_NGX_DLSS12.super_sampling.LastInstance->Parameters : nullptr;
 
-  return
-    SK_NGX_DLSS11.super_sampling.Parameters;
+  return SK_NGX_DLSS11.super_sampling.LastInstance != nullptr  ?
+         SK_NGX_DLSS11.super_sampling.LastInstance->Parameters : nullptr;
 }
 
 SK_DLSS_Context::version_s SK_DLSS_Context::dlss_s::Version;
