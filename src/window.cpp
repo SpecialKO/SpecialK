@@ -5566,15 +5566,15 @@ SK_DetourWindowProc2 ( _In_  HWND   hWnd,
 
 float g_fDPIScale = 1.0f;
 
+static HHOOK hHookKeyboard         = 0;
+static HHOOK hHookMouse            = 0;
+static HHOOK hHookLowLevelKeyboard = 0;
+
 bool
 __SKX_WinHook_InstallInputHooks (HWND hWnd)
 {
   if (SetWindowsHookExW_Original == nullptr)
     return false;
-
-  static HHOOK hHookKeyboard         = 0;
-  static HHOOK hHookMouse            = 0;
-  static HHOOK hHookLowLevelKeyboard = 0;
 
   if (hHookKeyboard != 0 && UnhookWindowsHookEx_Original (hHookKeyboard))
       hHookKeyboard  = 0;
@@ -5595,6 +5595,7 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 
     if (hHookKeyboard == 0 && _SetWindowsHookEx != nullptr)
     {
+      
       hHookKeyboard =
         _SetWindowsHookEx (
           WH_KEYBOARD, SK_ImGui_KeyboardProc,
@@ -5622,6 +5623,13 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
   }
 
   return true;
+}
+
+void
+__SKX_WinHook_UninstallLowLevelHooks (void)
+{
+  if (hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (hHookLowLevelKeyboard))
+      hHookLowLevelKeyboard  = 0;
 }
 
 
