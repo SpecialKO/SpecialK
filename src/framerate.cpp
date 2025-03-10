@@ -2457,7 +2457,7 @@ SK::Framerate::TickEx ( bool     /*wait*/,
     }
 
     if (std::exchange (last_frame, SK_GetFramesDrawn ())
-                                != SK_GetFramesDrawn ())
+                                != SK_GetFramesDrawn () || (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit))
     {
       if (!   (reset_frame_history ||
                 skip_frame_history) ) SK_ImGui_Frames->timeFrame (dt);
@@ -2582,7 +2582,7 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f)
+  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit)))
   {
     SK::Framerate::TickEx (false, dt, now, swapchain);
   }

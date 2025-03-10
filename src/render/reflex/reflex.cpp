@@ -315,13 +315,19 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
         if ( config.render.framerate.streamline.enforcement_policy == 2 &&
                                pSetLatencyMarkerParams->markerType == INPUT_SAMPLE )
         {
-          pLimiter->wait ();
+          auto                               tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
+          pLimiter->wait ();                 tNow.QuadPart += pLimiter->get_ticks_per_frame () / 2;
+          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
         }
 
         else if ( config.render.framerate.streamline.enforcement_policy == 4 &&
                                     pSetLatencyMarkerParams->markerType == SIMULATION_START )
         {
-          pLimiter->wait ();
+          auto                               tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
+          pLimiter->wait ();                 tNow.QuadPart += pLimiter->get_ticks_per_frame () / 2;
+          SK::Framerate::TickEx (false, 0.0, tNow, SK_GetCurrentRenderBackend ().swapchain.p);
         }
       }
     }
