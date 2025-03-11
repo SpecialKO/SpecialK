@@ -276,8 +276,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       DWORD dwWritten;
 
       WriteFile ( hOutFile,
-                    out,
-                      PtrToUint ((void *)out_len),
+                    out + offset,
+                      PtrToUint ((void *)decomp_size),
                         &dwWritten,
                             nullptr );
 
@@ -411,8 +411,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       DWORD dwWritten;
 
       WriteFile ( hOutFile,
-                    out,
-                      PtrToUint ((void *)out_len),
+                    out + offset,
+                      PtrToUint ((void *)decomp_size),
                         &dwWritten,
                             nullptr );
 
@@ -569,8 +569,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
       DWORD dwWritten;
 
       WriteFile ( hOutFile,
-                    out,
-                      PtrToUint ((void *)out_len),
+                    out + offset,
+                      PtrToUint ((void *)decomp_size),
                         &dwWritten,
                             nullptr );
 
