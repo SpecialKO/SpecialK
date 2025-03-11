@@ -1,4 +1,10 @@
-﻿25.3.10.8
+﻿25.3.11
+=======
+ + Added support for extracting 7Zip files using RunDLL on Special K's DLL
+
+     rundll32 "SpecialK64.dll", RunDLL_Extract7Zip NameOf7ZipFile.7z
+
+25.3.10.8
 =========
  + Force native pacing mode to use low-latency mode in Monster Hunter Wilds
 

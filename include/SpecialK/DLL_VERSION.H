@@ -2,9 +2,9 @@
 
 #define SK_YEAR  25
 #define SK_MONTH 3
-#define SK_DATE  10
-#define SK_REV_N 8
-#define SK_REV   8
+#define SK_DATE  11
+#define SK_REV_N 0
+#define SK_REV   0
 
 #ifndef _A2
 #define _A2(a)     #a

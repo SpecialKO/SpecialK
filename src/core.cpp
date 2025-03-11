@@ -4551,6 +4551,30 @@ SK_WaitForParentToExit (void)
   }
 }
 
+void
+CALLBACK
+RunDLL_Extract7Zip ( HWND  hwnd,        HINSTANCE hInst,
+                     LPSTR lpszCmdLine, int       nCmdShow )
+{
+  UNREFERENCED_PARAMETER (hInst);
+  UNREFERENCED_PARAMETER (nCmdShow);
+  UNREFERENCED_PARAMETER (hwnd);
+
+  if (lpszCmdLine == nullptr)
+    return;
+
+  if (PathFileExistsA (lpszCmdLine))
+  {
+    wchar_t    wszPathToArchive [MAX_PATH + 2] = {};
+    wcsncpy_s (wszPathToArchive, MAX_PATH, SK_UTF8ToWideChar (lpszCmdLine).c_str (),
+                                 MAX_PATH);
+
+    config.system.log_level = -1;
+
+    SK_Decompress7zEx (wszPathToArchive, L"", nullptr);
+  }
+}
+
 // Stupid solution, but very effective way of re-launching a game as admin without
 //   the Steam client throwing a temper tantrum.
 void

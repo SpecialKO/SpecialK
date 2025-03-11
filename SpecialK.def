@@ -649,6 +649,7 @@ RunDLL_WinRing0              = RunDLL_WinRing0                PRIVATE
 RunDLL_DisableGFEForSKIF     = RunDLL_DisableGFEForSKIF       PRIVATE
 RunDLL_RestartNVIDIADriver   = RunDLL_RestartNVIDIADriver     PRIVATE
 RunDLL_NvAPI_SetDWORD        = RunDLL_NvAPI_SetDWORD          PRIVATE
+RunDLL_Extract7Zip           = RunDLL_Extract7Zip             PRIVATE
 
 
 SKX_InstallCBTHook           = SKX_InstallCBTHook
