@@ -5603,7 +5603,9 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
                           );
     }
 
-    if (! SK_IsProcessRunning (L"AutoHotkey64.exe"))
+    if (!(SK_IsProcessRunning (L"AutoHotkey64.exe")||
+          SK_IsProcessRunning (L"AutoHotkey32.exe")||
+          SK_IsProcessRunning (L"AutoHotkeyUX.exe")))
     {
       if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
       {

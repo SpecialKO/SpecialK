@@ -1646,8 +1646,8 @@ SK::Framerate::Limiter::wait (void)
       }
     }
 
-    static constexpr double dEdgeToleranceLow  = 0.025;
-    static constexpr double dEdgeToleranceHigh = 0.975;
+    static constexpr double dEdgeToleranceLow  = 0.0;
+    static constexpr double dEdgeToleranceHigh = 1.0;
 
     if ( missed_frames >= dMissingTimeBoundary &&
          edge_distance >= dEdgeToleranceLow    &&

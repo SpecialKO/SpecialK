@@ -139,13 +139,19 @@ NVAPI_INTERFACE
 SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
                             __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
 {
+  NV_SET_SLEEP_MODE_PARAMS params =
+             *pSetSleepModeParams;
+
+  if (params.minimumIntervalUs != 0 &&         params.minimumIntervalUs > 50)
+      params.minimumIntervalUs = pSetSleepModeParams->minimumIntervalUs - 2;
+
   if (NvAPI_D3D_SetSleepMode_Original != nullptr)
   {
     SK_ComPtr <ID3D12Device>                     pDev12;
     if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-      return NvAPI_D3D_SetSleepMode_Original (   pDev12, pSetSleepModeParams);
+      return NvAPI_D3D_SetSleepMode_Original (   pDev12, &params);
     else
-      return NvAPI_D3D_SetSleepMode_Original (   pDev,   pSetSleepModeParams);
+      return NvAPI_D3D_SetSleepMode_Original (   pDev,   &params);
   }
 
   return
@@ -308,6 +314,7 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       }
     }
 
+#if 1
     if (pSetLatencyMarkerParams->markerType == SIMULATION_START ||
         pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
     {  
@@ -353,6 +360,7 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
         }
       }
     }
+#endif
   }
 
 #ifdef _DEBUG
@@ -442,7 +450,7 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     if ((__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.use_limiter)
     {
       config.nvidia.reflex.frame_interval_us =
-            (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 24
+            (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 6
                                                                        : 0 );
     }
     else
