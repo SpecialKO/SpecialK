@@ -1,4 +1,8 @@
-﻿25.3.10.7
+﻿25.3.10.8
+=========
+ + Force native pacing mode to use low-latency mode in Monster Hunter Wilds
+
+25.3.10.7
 =========
  + Always show DLSS Auto Exposure options, even if the game does not use it.
  + Fallback to Normal mode for native pacing if a game is not using Input

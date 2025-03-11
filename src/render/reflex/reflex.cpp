@@ -316,6 +316,11 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
       if (pLimiter != nullptr && __SK_IsDLSSGActive)
       {
+        if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
+        {
+          config.render.framerate.streamline.enforcement_policy = 2;
+        }
+
         auto& rb =
           SK_GetCurrentRenderBackend ();
 
