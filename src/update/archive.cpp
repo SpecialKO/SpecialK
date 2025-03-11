@@ -277,7 +277,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
       WriteFile ( hOutFile,
                     out + offset,
-                      PtrToUint ((void *)decomp_size),
+                      PtrToUint ((void *)out_len),
                         &dwWritten,
                             nullptr );
 
@@ -412,7 +412,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
       WriteFile ( hOutFile,
                     out + offset,
-                      PtrToUint ((void *)decomp_size),
+                      PtrToUint ((void *)out_len),
                         &dwWritten,
                             nullptr );
 
@@ -517,15 +517,15 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     return E_FAIL;
   }
 
+  Byte*    out           = nullptr;
+  size_t   out_len       = 0;
+  size_t   offset        = 0;
+  size_t   decomp_size   = 0;
+
   for (unsigned int i = 0; i < files.size (); i++)
   {
     auto& file =
       files [i];
-
-    Byte*    out           = nullptr;
-    size_t   out_len       = 0;
-    size_t   offset        = 0;
-    size_t   decomp_size   = 0;
 
     SK_LOG0 ( ( L"Extracting file ('%s')",
                 files [i].name.c_str () ),
