@@ -23,6 +23,11 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"NvAPI Util"
+
 #include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
 
@@ -90,16 +95,8 @@ static bool nvapi_silent = false;
                             MB_OK | MB_ICONASTERISK );       \
                       }
 #else
-#define NVAPI_CALL(x) { ret = NvAPI_##x; if (nvapi_silent !=                 \
- true && ret != NVAPI_OK) MessageBox (NULL, ErrorMessage (ret, #x, __LINE__, \
-__FUNCTION__, __FILE__).c_str (), L"Error Calling NVAPI Function", MB_OK     \
- | MB_ICONASTERISK | MB_SETFOREGROUND | MB_TOPMOST ); }
-
-#define NVAPI_CALL2(x,y) { ##y = NvAPI_##x; if (nvapi_silent != true &&     \
-##y != NVAPI_OK) MessageBox (                                               \
-  NULL, ErrorMessage (##y, #x, __LINE__, __FUNCTION__, __FILE__).c_str (),  \
-L"Error Calling NVAPI Function", MB_OK | MB_ICONASTERISK | MB_SETFOREGROUND \
- | MB_TOPMOST ); }
+#define NVAPI_CALL(x)    { ret = NvAPI_##x; if (nvapi_silent != true && ret != NVAPI_OK) dll_log->Log ( ErrorMessage (ret, #x, __LINE__, __FUNCTION__, __FILE__).c_str () ); }
+#define NVAPI_CALL2(x,y) { ##y = NvAPI_##x; if (nvapi_silent != true && ##y != NVAPI_OK) dll_log->Log ( ErrorMessage (##y, #x, __LINE__, __FUNCTION__, __FILE__).c_str () ); }
 
 #endif
 

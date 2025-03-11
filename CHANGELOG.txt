@@ -1,4 +1,8 @@
-﻿25.3.11
+﻿25.3.11.1
+=========
+ + Change NvAPI call failures from message boxes to log entries instead.
+
+25.3.11
 =======
  + Added support for extracting 7Zip files using RunDLL on Special K's DLL
 
