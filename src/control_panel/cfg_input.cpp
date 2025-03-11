@@ -41,6 +41,8 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
 extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 
+extern HHOOK SK_hHookLowLevelKeyboard;
+
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats;
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats_filtered;
 
@@ -799,7 +801,10 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop  ();
     }
 
-    if (ImGui::CollapsingHeader ("Keyboard"))
+    bool bKeyboard =
+      ImGui::CollapsingHeader ("Keyboard");
+
+    if (bKeyboard && SK_hHookLowLevelKeyboard != 0)
     {
       ImGui::TreePush       ("");
       ImGui::SeparatorText  ("Special Keys");
@@ -869,6 +874,13 @@ SK::ControlPanel::Input::Draw (void)
 
       ImGui::TreePop (  );
       ImGui::TreePop (  );
+    }
+
+    else if (bKeyboard)
+    {
+      ImGui::TreePush ("");
+      ImGui::BulletText ("Features Unavailable Because AutoHotkey Is Running");
+      ImGui::TreePop  (  );
     }
 
     // Gamepad debug menus

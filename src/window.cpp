@@ -5566,9 +5566,9 @@ SK_DetourWindowProc2 ( _In_  HWND   hWnd,
 
 float g_fDPIScale = 1.0f;
 
-static HHOOK hHookKeyboard         = 0;
-static HHOOK hHookMouse            = 0;
-static HHOOK hHookLowLevelKeyboard = 0;
+static HHOOK    hHookKeyboard         = 0;
+static HHOOK    hHookMouse            = 0;
+       HHOOK SK_hHookLowLevelKeyboard = 0;
 
 bool
 __SKX_WinHook_InstallInputHooks (HWND hWnd)
@@ -5579,8 +5579,8 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
   if (hHookKeyboard != 0 && UnhookWindowsHookEx_Original (hHookKeyboard))
       hHookKeyboard  = 0;
 
-  if (hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (hHookLowLevelKeyboard))
-      hHookLowLevelKeyboard  = 0;
+  if (SK_hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (SK_hHookLowLevelKeyboard))
+      SK_hHookLowLevelKeyboard  = 0;
 
   if (hHookMouse != 0 && UnhookWindowsHookEx_Original (hHookMouse))
       hHookMouse  = 0;
@@ -5603,13 +5603,21 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
                           );
     }
 
-    if (hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
+    if (! SK_IsProcessRunning (L"AutoHotkey64.exe"))
     {
-      hHookLowLevelKeyboard =
-        SetWindowsHookExW_Original (
-          WH_KEYBOARD_LL, SK_Input_LowLevelKeyboardProc,
-              SK_GetDLL (), 0
-                          );
+      if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
+      {
+        SK_hHookLowLevelKeyboard =
+          SetWindowsHookExW_Original (
+            WH_KEYBOARD_LL, SK_Input_LowLevelKeyboardProc,
+                GetModuleHandle (nullptr), 0
+                            );
+      }
+    }
+
+    else
+    {
+      SK_LOGi0 (L"Low-Level Keyboard Hooks Not Supported Because AutoHotkey!");
     }
 
     if (hHookMouse == 0 && _SetWindowsHookEx != nullptr)
@@ -5628,8 +5636,8 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 void
 __SKX_WinHook_UninstallLowLevelHooks (void)
 {
-  if (hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (hHookLowLevelKeyboard))
-      hHookLowLevelKeyboard  = 0;
+  if (SK_hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (SK_hHookLowLevelKeyboard))
+      SK_hHookLowLevelKeyboard  = 0;
 }
 
 

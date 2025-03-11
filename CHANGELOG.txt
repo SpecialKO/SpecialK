@@ -1,4 +1,9 @@
-﻿25.3.11.1
+﻿25.3.11.2
+=========
+ + Disable Low-Level Keyboard Hook if AutoHotkey is running before a game
+     is launched to avoid bugs in AHK's hook management in some games.
+
+25.3.11.1
 =========
  + Change NvAPI call failures from message boxes to log entries instead.
 
