@@ -1,4 +1,9 @@
-﻿25.3.20.2
+﻿25.3.20.3
+=========
+ + Ignore a fake temporary SwapChain created by Anvil engine during
+     Assassin's Creed Shadows startup, to reduce compatiblity issues.
+
+25.3.20.2
 =========
  + Disable nearly all audio-related code when running SK under Proton;
      dealing with their constantly broken Windows audio API implementations

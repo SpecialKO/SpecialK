@@ -5791,24 +5791,25 @@ SK_DXGI_CreateSwapChain_PostInit (
   RealGetWindowClassW (pDesc->OutputWindow, wszClass, MAX_PATH);
 
   bool dummy_window =
-    SK_Win32_IsDummyWindowClass (pDesc->OutputWindow) ||
-                               // AMD's buggy OpenGL interop...
-                               //   why these dimensions, nobody knows
-                               ( pDesc->BufferDesc.Width  == 176 &&
-                                 pDesc->BufferDesc.Height == 1 );
+    SK_Win32_IsDummyWindowClass (pDesc->OutputWindow)     ||
+                               ( pDesc->BufferDesc.Width  == 176 && // AMD's buggy OpenGL interop...
+                                 pDesc->BufferDesc.Height == 1 )    //   why these dimensions, nobody knows
+                                                          ||
+                             ( ( pDesc->BufferDesc.Width  == 1   &&
+                                 pDesc->BufferDesc.Height == 1 ) &&
+          wcscmp (wszClass, L"ScimitarEngineWindowClass") == 0 ); // Ubisoft's crap
 
   if (! dummy_window)
-  {
-    
+  {  
     HWND hWndDevice = pDesc->OutputWindow;
-    HWND hWndRoot   = GetAncestor (pDesc->OutputWindow, GA_ROOTOWNER);
+    HWND hWndRoot   = GetAncestor (hWndDevice, GA_ROOTOWNER);
 
     auto& windows =
       rb.windows;
 
-    if (      windows.device != nullptr &&
-         pDesc->OutputWindow != nullptr &&
-         pDesc->OutputWindow != windows.device )
+    if ( windows.device != nullptr &&
+             hWndDevice != nullptr &&
+             hWndDevice != windows.device )
     {
       SK_LOGi0 (L"Game created a new window?!");
 
@@ -5851,6 +5852,11 @@ SK_DXGI_CreateSwapChain_PostInit (
     {
       dwRenderThread = SK_Thread_GetCurrentId ();
     }
+  }
+
+  if (dummy_window)
+  {
+    return;
   }
 
   RECT client = { };
