@@ -3386,6 +3386,7 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency         = false;
         config.compatibility.
                          init_on_separate_thread = false;
+        config.window.dont_hook_wndproc          =  true;
         break;
 
       case SK_GAME_ID::Shenmue:

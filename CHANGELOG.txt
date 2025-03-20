@@ -2,6 +2,7 @@
 =========
  + Ignore a fake temporary SwapChain created by Anvil engine during
      Assassin's Creed Shadows startup, to reduce compatiblity issues.
+   * Reset config for this game for best results...
 
 25.3.20.2
 =========
