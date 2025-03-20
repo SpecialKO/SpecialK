@@ -3372,20 +3372,25 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::AssassinsCreed_Shadows:
-        config.apis.d3d9.hook                    = false;
-        config.apis.d3d9ex.hook                  = false;
-        config.apis.OpenGL.hook                  = false;
-        config.apis.Vulkan.hook                  = false;
-        config.apis.dxgi.d3d11.hook              = false;
-        config.apis.dxgi.d3d12.hook              =  true;
-        config.render.framerate.sleepless_render =  true;
-        config.render.framerate.sleepless_window =  true;
+        config.apis.d3d9.hook                      = false;
+        config.apis.d3d9ex.hook                    = false;
+        config.apis.OpenGL.hook                    = false;
+        config.apis.Vulkan.hook                    = false;
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
+        config.apis.dxgi.d3d11.hook                =  true;
+        config.apis.dxgi.d3d12.hook                =  true;
+        config.render.framerate.sleepless_render   =  true;
+        config.render.framerate.sleepless_window   =  true;
         // Necessary hack for frame generation to work...
-        config.nvidia.reflex.enable              = false;
-        config.nvidia.reflex.override            =  true;
-        config.nvidia.reflex.low_latency         = false;
+        config.nvidia.reflex.enable                = false;
+        config.nvidia.reflex.override              =  true;
+        config.nvidia.reflex.low_latency           = false;
         config.compatibility.
-                         init_on_separate_thread = false;
+                         init_on_separate_thread   = false;
+        config.window.dont_hook_wndproc            =  true;
+        config.compatibility.allow_fake_streamline = false;
         break;
 
       case SK_GAME_ID::Shenmue:

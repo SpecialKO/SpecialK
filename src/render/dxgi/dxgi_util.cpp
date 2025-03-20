@@ -2390,12 +2390,23 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
 
   // Square windows are exceptionally rare and unlikely to be
   //   intended for actual rendering.
-  if (desc.BufferDesc.Width == desc.BufferDesc.Height)
+  if (desc.BufferDesc.Width == desc.BufferDesc.Height && !dummy_window)
   {
     // Ignores something called "medal-hook64.dll"
     if (desc.BufferDesc.Width == 2 && !wcscmp (wszClass, L"Static"))
     {
       dummy_window = true;
+    }
+
+    else
+    {
+      // Ubisoft's crap
+      if ( ( desc.BufferDesc.Width  == 1   &&
+             desc.BufferDesc.Height == 1 ) &&
+             !wcscmp (wszClass, L"ScimitarEngineWindowClass"))
+      {
+        dummy_window = true;
+      }
     }
   }
 
