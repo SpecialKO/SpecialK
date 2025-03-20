@@ -1,4 +1,10 @@
-﻿25.3.20
+﻿25.3.20.1
+=========
+ + Disable Reflex Low Latency mode in Assassin's Creed Shadows because the
+     game's Reflex integration is the worst ever seen, and frame generation
+       (DLSS-G) does not work unless low latency is disabled.
+
+25.3.20
 =======
  + Fixed potential infinite framerate limiter wait when VRR limiter mode is
      active and there is no established SwapChain yet.

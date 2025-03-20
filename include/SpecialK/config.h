@@ -1813,6 +1813,7 @@ enum class SK_GAME_ID
   ZenlessZoneZero,              // ZenlessZoneZero.exe
   EnderLilies,                  // EnderLiliesEOS-Win64-Shipping.exe, EnderLiliesSteam-Win64-Shipping.exe
   Avowed,                       // Avowed-WinGDK-Shipping.exe, Avowed-Win64-Shipping.exe
+  AssassinsCreed_Shadows,       // ACShadows.exe ACShadows_Plus.exe
 
   UNKNOWN_GAME               = 0xffff
 };

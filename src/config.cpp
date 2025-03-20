@@ -282,6 +282,8 @@ SK_GetCurrentGameID (void)
           { L"EnderLiliesEOS-Win64-Shipping.exe",      SK_GAME_ID::EnderLilies                  },
           { L"Avowed-WinGDK-Shipping.exe",             SK_GAME_ID::Avowed                       }, // Microsoft Store Version
           { L"Avowed-Win64-Shipping.exe",              SK_GAME_ID::Avowed                       }, // Steam Version
+          { L"ACShadows.exe",                          SK_GAME_ID::AssassinsCreed_Shadows       }, // Normal version
+          { L"ACShadows_Plus.exe",                     SK_GAME_ID::AssassinsCreed_Shadows       }, // Ubisoft+ version
         };
 
     first_check  = false;
@@ -3367,6 +3369,20 @@ auto DeclKeybind =
         apis.d3d9.hook->store   (config.apis.d3d9.  hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
         apis.OpenGL.hook->store (config.apis.OpenGL.hook);
+        break;
+
+      case SK_GAME_ID::AssassinsCreed_Shadows:
+        config.apis.d3d9.hook                    = false;
+        config.apis.d3d9ex.hook                  = false;
+        config.apis.OpenGL.hook                  = false;
+        config.apis.Vulkan.hook                  = false;
+        config.apis.dxgi.d3d11.hook              = false;
+        config.apis.dxgi.d3d12.hook              =  true;
+        config.render.framerate.sleepless_render =  true;
+        config.render.framerate.sleepless_window =  true;
+        // Necessary hack for frame generation to work...
+        config.nvidia.reflex.override            =  true;
+        config.nvidia.reflex.low_latency         = false;
         break;
 
       case SK_GAME_ID::Shenmue:
