@@ -1,4 +1,11 @@
-﻿25.3.20.3
+﻿25.3.20.4
+=========
+ + Flag Assassin's Creed Shadows as Reflex-native even though it does
+     not begin generating markers for 5+ seconds, well after the time
+       that SK would mark the game as NOT using Reflex.
+ + Hack to allow Native Pacing mode for DLSS Frame Generation in AC Shadows.
+
+25.3.20.3
 =========
  + Ignore a fake temporary SwapChain created by Anvil engine during
      Assassin's Creed Shadows startup, to reduce compatiblity issues.
