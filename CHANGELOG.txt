@@ -1,4 +1,10 @@
-﻿25.3.20.5
+﻿25.3.20.6
+=========
+ + Auto-enable framerate uncap in Assassin's Creed Shadows for all current
+     versions of the game.
+ + Handle an additional codepath involved in setting framerate limit.
+
+25.3.20.5
 =========
  + Removed cutscene/menu framerate limiter from the Epic Games Store version
      of Assassin's Creed Shadows.

@@ -3384,6 +3384,8 @@ auto DeclKeybind =
         config.apis.dxgi.d3d12.hook                =  true;
         config.render.framerate.sleepless_render   =  true;
         config.render.framerate.sleepless_window   =  true;
+        config.window.background_render            =  true; // Workaround focus lost behavior
+        config.window.treat_fg_as_active           =  true;
         // Necessary hack for frame generation to work...
         config.nvidia.reflex.native                =  true;
         config.render.framerate.streamline.enable_native_limit
@@ -3391,6 +3393,8 @@ auto DeclKeybind =
       //// This is permissable if native pacing is enabled.
       //config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
+
+        bool unlimited = false;
 
         void* const limit_load_addr =
           (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0BA;
@@ -3403,18 +3407,33 @@ auto DeclKeybind =
           DWORD                                                             dwOrigProt = 0x0;
           if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
           {
-            SK_ImGui_Warning (L"Patched Cutscene / Menu Framerate Limiter to Unlimited");
+            unlimited = true;
 
             memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
             VirtualProtect (limit_store_addr, 8, dwOrigProt, &dwOrigProt);
 
+            void* const     limit_check_addr =
+            (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0D3;
+
+            memcpy         (limit_check_addr, "\x90\x90", 2);
+            VirtualProtect (limit_check_addr, 2, dwOrigProt, &dwOrigProt);
+
             // The pointer base addr is stored in the limit_load_addr instruction
-            float* const framerate_limit =                // Limit = Offset 0x98; single-precision float
+            plugin_mgr->begin_frame_fns.insert ([](void)
+            {
+              // Fail-safe incase any code that sets this was missed
+               float* const framerate_limit =             // Limit = Offset 0x98; single-precision float
               (float *)((uintptr_t)SK_Debug_GetImageBaseAddr ()+0x9C91960 + 0x98);
 
-            // -1.0f = Unlimited
-            *framerate_limit = -1.0f;
+              // -1.0f = Unlimited
+              *framerate_limit = -1.0f;
+            });
           }
+        }
+
+        if (! unlimited)
+        {
+          SK_ImGui_Warning (L"Cutscene / Menu Framerate Limiter Bypass Unsupported");
         }
       } break;
 
