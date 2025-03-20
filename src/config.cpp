@@ -3394,47 +3394,60 @@ auto DeclKeybind =
       //config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
 
-        bool unlimited = false;
-
-        void* const limit_load_addr =
-          (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0BA;
-
-        if (! memcmp (limit_load_addr, "\x48\x8b\x05\x9f", 4))
+        // Delay the application of framerate patch in case other mods are
+        //   doing the same thing...
+        static HANDLE hInitThread =
+        SK_Thread_CreateEx ([](LPVOID)->DWORD
         {
-          void* const limit_store_addr =
-            (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0C1;
+          bool unlimited = false;
 
-          DWORD                                                             dwOrigProt = 0x0;
-          if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+          void* const limit_load_addr =
+            (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0BA;
+
+          if (! memcmp (limit_load_addr, "\x48\x8b\x05\x9f", 4))
           {
-            unlimited = true;
+            void* const limit_store_addr =
+              (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0C1;
 
-            memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-            VirtualProtect (limit_store_addr, 8, dwOrigProt, &dwOrigProt);
-
-            void* const     limit_check_addr =
-            (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0D3;
-
-            memcpy         (limit_check_addr, "\x90\x90", 2);
-            VirtualProtect (limit_check_addr, 2, dwOrigProt, &dwOrigProt);
-
-            // The pointer base addr is stored in the limit_load_addr instruction
-            plugin_mgr->begin_frame_fns.insert ([](void)
+            DWORD                                                             dwOrigProt = 0x0;
+            if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
             {
-              // Fail-safe incase any code that sets this was missed
-               float* const framerate_limit =             // Limit = Offset 0x98; single-precision float
-              (float *)((uintptr_t)SK_Debug_GetImageBaseAddr ()+0x9C91960 + 0x98);
+              SK_SleepEx (1500UL, FALSE);
 
-              // -1.0f = Unlimited
-              *framerate_limit = -1.0f;
-            });
+              unlimited = true;
+
+              memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+              VirtualProtect (limit_store_addr, 8, dwOrigProt, &dwOrigProt);
+
+              void* const     limit_check_addr =
+              (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0D3;
+
+              VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+              memcpy         (limit_check_addr, "\x90\x90", 2);
+              VirtualProtect (limit_check_addr, 2, dwOrigProt, &dwOrigProt);
+
+              // The pointer base addr is stored in the limit_load_addr instruction
+              plugin_mgr->begin_frame_fns.insert ([](void)
+              {
+                // Fail-safe incase any code that sets this was missed
+                 float* const framerate_limit =             // Limit = Offset 0x98; single-precision float
+                (float *)((uintptr_t)SK_Debug_GetImageBaseAddr ()+0x9C91960 + 0x98);
+
+                // -1.0f = Unlimited
+                *framerate_limit = -1.0f;
+              });
+            }
           }
-        }
 
-        if (! unlimited)
-        {
-          SK_ImGui_Warning (L"Cutscene / Menu Framerate Limiter Bypass Unsupported");
-        }
+          if (! unlimited)
+          {
+            SK_ImGui_Warning (L"Cutscene / Menu Framerate Limiter Bypass Unsupported");
+          }
+
+          SK_Thread_CloseSelf ();
+
+          return 0;
+        });
       } break;
 
       case SK_GAME_ID::Shenmue:
