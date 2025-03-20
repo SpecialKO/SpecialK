@@ -801,7 +801,7 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop  ();
     }
 
-    bool bKeyboard =
+    bool bKeyboard = !config.compatibility.disallow_ll_keyhook &&
       ImGui::CollapsingHeader ("Keyboard");
 
     if (bKeyboard && SK_hHookLowLevelKeyboard != 0)

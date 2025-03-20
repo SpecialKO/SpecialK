@@ -1351,6 +1351,7 @@ struct sk_config_t
     //     window management responsibilities.
     bool     allow_fake_displaychange =  true;
     bool     allow_fake_size          =  true;
+    bool     disallow_ll_keyhook      = false;
   } compatibility;
 
   struct apis_s {

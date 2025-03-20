@@ -3372,6 +3372,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::AssassinsCreed_Shadows:
+      {
         config.apis.d3d9.hook                      = false;
         config.apis.d3d9ex.hook                    = false;
         config.apis.OpenGL.hook                    = false;
@@ -3387,7 +3388,35 @@ auto DeclKeybind =
         config.nvidia.reflex.native                =  true;
         config.render.framerate.streamline.enable_native_limit
                                                    =  true;
-        break;
+      //// This is permissable if native pacing is enabled.
+      //config.nvidia.dlss.allow_flip_metering     =  true;
+        config.compatibility.disallow_ll_keyhook   =  true;
+
+        void* const limit_load_addr =
+          (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0BA;
+
+        if (! memcmp (limit_load_addr, "\x48\x8b\x05\x9f", 4))
+        {
+          void* const limit_store_addr =
+            (uint8_t *)SK_Debug_GetImageBaseAddr ()+0xF7B0C1;
+
+          DWORD                                                             dwOrigProt = 0x0;
+          if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+          {
+            SK_ImGui_Warning (L"Patched Cutscene / Menu Framerate Limiter to Unlimited");
+
+            memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+            VirtualProtect (limit_store_addr, 8, dwOrigProt, &dwOrigProt);
+
+            // The pointer base addr is stored in the limit_load_addr instruction
+            float* const framerate_limit =                // Limit = Offset 0x98; single-precision float
+              (float *)((uintptr_t)SK_Debug_GetImageBaseAddr ()+0x9C91960 + 0x98);
+
+            // -1.0f = Unlimited
+            *framerate_limit = -1.0f;
+          }
+        }
+      } break;
 
       case SK_GAME_ID::Shenmue:
         config.textures.d3d11.generate_mips       = true;
