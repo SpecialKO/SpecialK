@@ -4230,7 +4230,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   if (config.render.framerate.enforcement_policy == 2)
   {
-    _FrameTick ();
+    if (rb.swapchain.p != nullptr)
+      _FrameTick ();
+
+    if (config.system.log_level > 0)
+      SK_ReleaseAssert (rb.swapchain.p != nullptr);
   }
 
   SK_RunOnce (

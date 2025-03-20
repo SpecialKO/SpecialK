@@ -1,4 +1,9 @@
-﻿25.3.11.2
+﻿25.3.20
+=======
+ + Fixed potential infinite framerate limiter wait when VRR limiter mode is
+     active and there is no established SwapChain yet.
+
+25.3.11.2
 =========
  + Disable Low-Level Keyboard Hook if AutoHotkey is running before a game
      is launched to avoid bugs in AHK's hook management in some games.
