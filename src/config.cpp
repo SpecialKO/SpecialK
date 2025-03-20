@@ -3414,6 +3414,9 @@ auto DeclKeybind =
             {
               SK_SleepEx (1500UL, FALSE);
 
+              config.system.silent_crash = true;
+              config.utility.save_async ();
+
               unlimited = true;
 
               memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
@@ -3425,6 +3428,13 @@ auto DeclKeybind =
               VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
               memcpy         (limit_check_addr, "\x90\x90", 2);
               VirtualProtect (limit_check_addr, 2, dwOrigProt, &dwOrigProt);
+
+              void* const     limit_alt_addr =
+              (uint8_t *)SK_Debug_GetImageBaseAddr ()+0x178AD29;
+
+              VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+              memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
+              VirtualProtect (limit_alt_addr, 10, dwOrigProt, &dwOrigProt);
 
               // The pointer base addr is stored in the limit_load_addr instruction
               plugin_mgr->begin_frame_fns.insert ([](void)
