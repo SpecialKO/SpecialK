@@ -910,11 +910,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
       __SK_IsDLSSGActive)
   {
     target_frametime = 1000.0f / config.render.framerate.streamline.target_fps;
-
-    if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
-    {
-      target_frametime = 1000.0f / (config.render.framerate.streamline.target_fps * 0.5f);
-    }
   }
 
   const SK_RenderBackend& rb =
@@ -1371,6 +1366,13 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::SetCursorPosX (fX);
   ImGui::BeginGroup    (  );
 
+  float target_avg_frametime = 2.0f * target_frametime + 0.1f;
+
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+  {
+    target_avg_frametime /= 2.0f;
+  }
+
   // We don't want a second background dimming things even more...
   ImGui::PushStyleColor (ImGuiCol_FrameBg, ImVec4 (0.0f, 0.0f, 0.0f, 0.0f));
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" :
@@ -1380,7 +1382,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                            SK_ImGui_Frames->getOffset (),
                              szAvg,
                                -.1f,
-                                 2.0f * target_frametime + 0.1f,
+                                 target_avg_frametime,
                                    border_dims );
 
   const bool bDLSSPacing =
