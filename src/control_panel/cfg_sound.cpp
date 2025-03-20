@@ -1143,7 +1143,8 @@ SK_ImGui_VolumeManager (void)
 bool
 SK::ControlPanel::Sound::Draw (void)
 {
-  if (ImGui::CollapsingHeader ("Audio Management"))
+  if (ImGui::CollapsingHeader (SK_WASAPI_IsProcessUsingSpatialAudio () ? "Spatial Audio Management"
+                                                                       :         "Audio Management"))
   {
     SK_ImGui_VolumeManager ();
 

@@ -25,6 +25,7 @@
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>
+#include <spatialaudioclient.h>
 #include <Functiondiscoverykeys_devpkey.h>
 #include <roapi.h>
 #include <SpecialK/com_util.h>
@@ -45,6 +46,7 @@ using SK_IAudioSessionControl    = SK_ComPtr <IAudioSessionControl>;
 using SK_IAudioSessionControl2   = SK_ComPtr <IAudioSessionControl2>;
 using SK_IAudioSessionManager2   = SK_ComPtr <IAudioSessionManager2>;
 using SK_IAudioClient3           = SK_ComPtr <IAudioClient3>;
+using SK_ISpatialAudioClient     = SK_ComPtr <ISpatialAudioClient>;
 
 bool                      __stdcall SK_WASAPI_Init                    (void);
 void                      __stdcall SK_SetGameMute                    (bool bMute);
@@ -54,6 +56,7 @@ SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD pro
 SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD proc_id = GetCurrentProcessId (), SK_IMMDevice pDevice = nullptr);
 void                      __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
 SK_IAudioClient3          __stdcall SK_WASAPI_GetAudioClient          (SK_IMMDevice pDevice = nullptr, bool uncached = false);
+SK_ISpatialAudioClient    __stdcall SK_WASAPI_GetSpatialAudioClient   (SK_IMMDevice pDevice = nullptr, bool uncached = false);
 
 const char*               __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
@@ -184,12 +187,13 @@ protected:
   volatile LONG         refs_   = 1;
 
   struct {
-    SK_IAudioSessionManager2  sessions     = nullptr;
-    SK_IAudioMeterInformation meter        = nullptr;
-    SK_IAudioEndpointVolume   volume       = nullptr;
-    SK_IAudioLoudness         loudness     = nullptr;
-    SK_IAudioAutoGainControl  auto_gain    = nullptr;
-    SK_IAudioClient3          audio_client = nullptr;
+    SK_IAudioSessionManager2  sessions       = nullptr;
+    SK_IAudioMeterInformation meter          = nullptr;
+    SK_IAudioEndpointVolume   volume         = nullptr;
+    SK_IAudioLoudness         loudness       = nullptr;
+    SK_IAudioAutoGainControl  auto_gain      = nullptr;
+    SK_IAudioClient3          audio_client   = nullptr;
+    SK_ISpatialAudioClient    spatial_client = nullptr;
   } control_;
 
   SK_WASAPI_SessionManager*   session_manager_ = nullptr;
@@ -997,5 +1001,7 @@ SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetDefaultLatency (                  
 SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMinimumLatency (                                SK_IMMDevice pDevice = nullptr);
 SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMaximumLatency (                                SK_IMMDevice pDevice = nullptr);
 SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLatency latency, SK_IMMDevice pDevice = nullptr);
+
+bool SK_WASAPI_IsProcessUsingSpatialAudio (void);
 
 #endif /* __SK__SOUND_H__ */

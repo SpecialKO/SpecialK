@@ -34,6 +34,9 @@ SK_IAudioClient3
 __stdcall
 SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   static bool             unsupported   = false;
   static SK_IAudioClient3 pCachedClient = nullptr;
   static DWORD            dwLastUpdate  = 0;
@@ -94,10 +97,176 @@ SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
     pCachedClient;
 }
 
+using CPROPVARIANT                                        = const PROPVARIANT;
+using ISpatialAudioClient__ActivateSpatialAudioStream_pfn = HRESULT (STDMETHODCALLTYPE *)
+    ( ISpatialAudioClient *This,
+        _In_ CPROPVARIANT *activationParams,
+        _In_       REFIID  riid,
+_COM_Outptr_       void  **stream );
+
+ISpatialAudioClient__\
+ActivateSpatialAudioStream_pfn
+ActivateSpatialAudioStream_Original = nullptr;
+
+bool             ProcessUsingSpatialAudio=false;
+bool SK_WASAPI_IsProcessUsingSpatialAudio (void)
+{ return         ProcessUsingSpatialAudio;     }
+
+HRESULT
+STDMETHODCALLTYPE
+ISpatialAudioClient__ActivateSpatialAudioStream_Detour (
+ISpatialAudioClient *This,
+CPROPVARIANT        *activationParams,
+REFIID               riid,
+void               **stream )
+{
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    ActivateSpatialAudioStream_Original (
+      This, activationParams,
+        riid, stream
+  );
+
+  if (SUCCEEDED (hr))
+  {
+    ProcessUsingSpatialAudio = true;
+  }
+
+  return hr;
+}
+
+SK_ISpatialAudioClient
+__stdcall
+SK_WASAPI_GetSpatialAudioClient (SK_IMMDevice pDevice, bool uncached)
+{
+  if (config.compatibility.using_wine)
+    return nullptr;
+
+  static bool                   unsupported   = false;
+  static SK_ISpatialAudioClient pCachedClient = nullptr;
+  static DWORD                  dwLastUpdate  = 0;
+
+  if (unsupported)
+    return nullptr;
+
+  // TODO: Stash this in the session manager SK already has, and keep it
+  //         around persistently
+  if (SK::ControlPanel::current_time > dwLastUpdate + 2500UL || uncached)
+  {
+    dwLastUpdate = SK::ControlPanel::current_time;
+
+    HRESULT hr = S_OK; 
+
+    try
+    {
+      if (pDevice == nullptr)
+      {
+        SK_IMMDeviceEnumerator pDevEnum = nullptr;
+
+        ThrowIfFailed (
+          pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+
+        if (pDevEnum == nullptr)
+          return nullptr;
+
+        ThrowIfFailed (
+          pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                               eConsole,
+                                                 &pDevice));
+      }
+
+      if (pDevice == nullptr)
+        return nullptr;
+
+      SK_ComPtr                     <ISpatialAudioClient>                        pSpatialAudioClient; ThrowIfFailed ( hr =
+        pDevice->Activate (__uuidof (ISpatialAudioClient), CLSCTX_INPROC_SERVER,
+                                                  nullptr, IID_PPV_ARGS_Helper (&pSpatialAudioClient.p)) );
+
+      pCachedClient =
+        pSpatialAudioClient;
+    }
+
+    catch (const std::exception& e)
+    {
+      SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+                ),L"  WASAPI  " );
+
+      if (hr == E_NOINTERFACE)
+        unsupported = true;
+
+      return nullptr;
+    }
+  }
+
+  AudioObjectType                                obj_type_mask = AudioObjectType_None;
+  pCachedClient->GetNativeStaticObjectTypeMask (&obj_type_mask);
+
+  if (obj_type_mask != AudioObjectType_None)
+  {
+    if ((obj_type_mask & AudioObjectType_Dynamic)          != 0) SK_LOGi1 (L"Spatial Channel: Dynamic");
+    if ((obj_type_mask & AudioObjectType_FrontLeft)        != 0) SK_LOGi1 (L"Spatial Channel: Front Left");
+    if ((obj_type_mask & AudioObjectType_FrontRight)       != 0) SK_LOGi1 (L"Spatial Channel: Front Right");
+    if ((obj_type_mask & AudioObjectType_FrontCenter)      != 0) SK_LOGi1 (L"Spatial Channel: Front Center");
+    if ((obj_type_mask & AudioObjectType_LowFrequency)     != 0) SK_LOGi1 (L"Spatial Channel: Low Frequency");
+    if ((obj_type_mask & AudioObjectType_SideLeft)         != 0) SK_LOGi1 (L"Spatial Channel: Side Left");
+    if ((obj_type_mask & AudioObjectType_SideRight)        != 0) SK_LOGi1 (L"Spatial Channel: Side Right");
+    if ((obj_type_mask & AudioObjectType_BackLeft)         != 0) SK_LOGi1 (L"Spatial Channel: Back Left");
+    if ((obj_type_mask & AudioObjectType_BackRight)        != 0) SK_LOGi1 (L"Spatial Channel: Back Right");
+    if ((obj_type_mask & AudioObjectType_TopFrontLeft)     != 0) SK_LOGi1 (L"Spatial Channel: Top Front Left");
+    if ((obj_type_mask & AudioObjectType_TopFrontRight)    != 0) SK_LOGi1 (L"Spatial Channel: Top Front Right");
+    if ((obj_type_mask & AudioObjectType_TopBackLeft)      != 0) SK_LOGi1 (L"Spatial Channel: Top Back Left");
+    if ((obj_type_mask & AudioObjectType_TopBackRight)     != 0) SK_LOGi1 (L"Spatial Channel: Top Back Right");
+    if ((obj_type_mask & AudioObjectType_BottomFrontLeft)  != 0) SK_LOGi1 (L"Spatial Channel: Bottom Front Left");
+    if ((obj_type_mask & AudioObjectType_BottomFrontRight) != 0) SK_LOGi1 (L"Spatial Channel: Bottom Front Right");
+    if ((obj_type_mask & AudioObjectType_BottomBackLeft)   != 0) SK_LOGi1 (L"Spatial Channel: Bottom Back Left");
+    if ((obj_type_mask & AudioObjectType_BottomBackRight)  != 0) SK_LOGi1 (L"Spatial Channel: Bottom Back Right");
+    if ((obj_type_mask & AudioObjectType_BackCenter)       != 0) SK_LOGi1 (L"Spatial Channel: Back Center");
+    if ((obj_type_mask & AudioObjectType_StereoLeft)       != 0) SK_LOGi1 (L"Spatial Channel: Stereo Left");
+    if ((obj_type_mask & AudioObjectType_StereoRight)      != 0) SK_LOGi1 (L"Spatial Channel: Stereo Right");
+
+    UINT32                                                   maxDynamicObjCount = 0;
+    if (SUCCEEDED (pCachedClient->GetMaxDynamicObjectCount (&maxDynamicObjCount)))
+    {
+      SK_LOGi1 (L"Spatial Audio Client Supports up to %lu dynamic objects.");
+
+      SK_RunOnce (
+        // ISpatialAudioClient
+        // -------------------
+        //  0  QueryInterface
+        //  1  AddRef
+        //  2  Release
+        //  3  GetStaticObjectPosition
+        //  4  GetNativeStaticObjectTypeMask
+        //  5  GetMaxDynamicObjectCount
+        //  6  GetSupportedAudioObjectFormatEnumerator
+        //  7  GetMaxFrameCount
+        //  8  IsAudioObjectFormatSupported
+        //  9  IsSpatialAudioStreamAvailable
+        // 10  ActivateSpatialAudioStream
+
+        void** vftable = *(void***)pCachedClient.p;
+
+        SK_CreateFuncHook ( L"ISpatialAudioClient::ActivateSpatialAudioStream",
+                              vftable [10],
+                              ISpatialAudioClient__ActivateSpatialAudioStream_Detour,
+          static_cast_p2p <void> (                &ActivateSpatialAudioStream_Original) );
+        SK_EnableHook (       vftable [10]                                              );
+      );
+    }
+  }
+
+  return
+    pCachedClient;
+}
+
 SK_IAudioMeterInformation
 __stdcall
 SK_WASAPI_GetAudioMeterInfo (SK_IMMDevice pDevice)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   SK_IAudioMeterInformation pMeterInfo = nullptr;
 
   try
@@ -383,6 +552,9 @@ void
 __stdcall
 SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 {
+  if (config.compatibility.using_wine)
+    return;
+
   std::set <DWORD> unique_procs;
 
   size_t max_count = 0;
@@ -500,6 +672,9 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow     data_flow     = eRender,
                                    DWORD         proc_id       = GetCurrentProcessId (),
                                    IMMDevice**   ppDevice      = nullptr )
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   static BOOL bCanWineCountCorrectly = SK_NoPreference;
 
   // Prevent incorrectly implemented Windows Audio APIs from leaking memory.
@@ -635,6 +810,9 @@ SK_IChannelAudioVolume
 __stdcall
 SK_WASAPI_GetChannelVolumeControl (DWORD proc_id, SK_IMMDevice pDevice)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   SK_IAudioSessionControl pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (eRender, eConsole, pDevice, proc_id);
 
@@ -652,6 +830,9 @@ SK_ISimpleAudioVolume
 __stdcall
 SK_WASAPI_GetVolumeControl (DWORD proc_id, SK_IMMDevice pDevice)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   SK_IMMDevice pVolumeDevice;
 
   SK_IAudioSessionControl pSessionCtl =
@@ -676,6 +857,9 @@ SK_IAudioEndpointVolume
 __stdcall
 SK_MMDev_GetEndpointVolumeControl (SK_IMMDevice pDevice)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   SK_IAudioEndpointVolume pEndVol = nullptr;
 
   try {
@@ -717,6 +901,9 @@ SK_IAudioLoudness
 __stdcall
 SK_MMDev_GetLoudness (SK_IMMDevice pDevice)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   SK_IAudioLoudness pLoudness = nullptr;
 
   try
@@ -760,6 +947,9 @@ SK_IAudioAutoGainControl
 __stdcall
 SK_MMDev_GetAutoGainControl (SK_IMMDevice pDevice)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   SK_IAudioAutoGainControl pAutoGain = nullptr;
 
   try
@@ -804,6 +994,9 @@ const char*
 __stdcall
 SK_WASAPI_GetChannelName (int channel_idx)
 {
+  if (config.compatibility.using_wine)
+    return nullptr;
+
   static bool init = false;
 
   static std::unordered_map <int, std::string> channel_names;
@@ -973,6 +1166,9 @@ void
 __stdcall
 SK_SetGameMute (bool bMute)
 {
+  if (config.compatibility.using_wine)
+    return;
+
   if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL && (SK_VolumeControl == nullptr || SK_MMDevAPI_VolumeDevice != SK_MMDevAPI_DefaultDevice))
   {   dwLastMuteCheck = SK::ControlPanel::current_time;
     SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
@@ -999,6 +1195,9 @@ BOOL
 __stdcall
 SK_IsGameMuted (void)
 {
+  if (config.compatibility.using_wine)
+    return FALSE;
+
   if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL && (SK_VolumeControl == nullptr || SK_MMDevAPI_VolumeDevice != SK_MMDevAPI_DefaultDevice))
   {   dwLastMuteCheck = SK::ControlPanel::current_time;
       SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
@@ -1482,10 +1681,11 @@ SK_WASAPI_EndPointManager::Activate (void)
                 SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
               );
   
-              endpoint.control_.volume.Attach       (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
-              endpoint.control_.auto_gain.Attach    (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
-              endpoint.control_.loudness.    Attach (SK_MMDev_GetLoudness              (pDevice).Detach ());
-              endpoint.control_.audio_client.Attach (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
+              endpoint.control_.volume.Attach         (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
+              endpoint.control_.auto_gain.Attach      (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
+              endpoint.control_.loudness.    Attach   (SK_MMDev_GetLoudness              (pDevice).Detach ());
+              endpoint.control_.audio_client.Attach   (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
+              endpoint.control_.spatial_client.Attach (SK_WASAPI_GetSpatialAudioClient   (pDevice).Detach ());
   
               endpoint.control_.sessions->RegisterSessionNotification (&endpoint);
   
