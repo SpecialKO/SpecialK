@@ -910,6 +910,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
       __SK_IsDLSSGActive)
   {
     target_frametime = 1000.0f / config.render.framerate.streamline.target_fps;
+
+    if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+    {
+      target_frametime = 1000.0f / (config.render.framerate.streamline.target_fps * 0.5f);
+    }
   }
 
   const SK_RenderBackend& rb =

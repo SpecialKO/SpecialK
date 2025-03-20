@@ -3385,7 +3385,8 @@ auto DeclKeybind =
         config.render.framerate.sleepless_window   =  true;
         // Necessary hack for frame generation to work...
         config.nvidia.reflex.native                =  true;
-
+        config.render.framerate.streamline.enable_native_limit
+                                                   =  true;
         break;
 
       case SK_GAME_ID::Shenmue:

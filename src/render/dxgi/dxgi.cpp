@@ -2473,40 +2473,41 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
       -abs (config.render.framerate.streamline.target_fps);
   }
 
-#if 1
   //
   // Serious bug in Assassin's Creed Shadows that prevents Frame Generation from working correctly
   //
   if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows) && __target_fps > 0.0 && config.render.framerate.streamline.enable_native_limit)
   {
-    auto& rb = SK_GetCurrentRenderBackend ();
+    if (__SK_IsDLSSGActive)
+    {
+      auto& rb = SK_GetCurrentRenderBackend ();
 
-    NVAPI_INTERFACE
-    NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
-                                        __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams );
+      NVAPI_INTERFACE
+      NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
+                                          __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams );
 
-    //NVAPI_INTERFACE
-    //NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev);
-    //NvAPI_D3D_Sleep_Detour (rb.device.p);
+      NVAPI_INTERFACE
+      NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev);
+      NvAPI_D3D_Sleep_Detour (rb.device.p);
 
-    extern NvU64 SK_Reflex_LastNativeFramePresented;
+      extern NvU64 SK_Reflex_LastNativeFramePresented;
 
-    NV_LATENCY_MARKER_PARAMS
-    markerParams            = {                          };
-    markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
-    markerParams.markerType = SIMULATION_START;
-    markerParams.frameID    = SK_Reflex_LastNativeFramePresented+1;
+      NV_LATENCY_MARKER_PARAMS
+      markerParams            = {                          };
+      markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
+      markerParams.markerType = SIMULATION_START;
+      markerParams.frameID    = SK_Reflex_LastNativeFramePresented+1;
 
-    NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
-                                                     markerParams.markerType = INPUT_SAMPLE;
-    NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
-                                                     markerParams.markerType = SIMULATION_END;
-    NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
-                                                     markerParams.markerType = RENDERSUBMIT_START;
-    NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
-                                                     markerParams.markerType = RENDERSUBMIT_END;
+      NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
+                                                       markerParams.markerType = INPUT_SAMPLE;
+      NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
+                                                       markerParams.markerType = SIMULATION_END;
+      NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
+                                                       markerParams.markerType = RENDERSUBMIT_START;
+      NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
+                                                       markerParams.markerType = RENDERSUBMIT_END;
+    }
   }
-#endif
 
   if ((! __SK_IsDLSSGActive) || config.render.framerate.streamline.target_fps <= 0.0f ||
                              (! config.render.framerate.streamline.enable_native_limit))
@@ -2522,8 +2523,15 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
   auto *pLimiter =
     SK::Framerate::GetLimiter (This);
 
+  float limit_to_set = config.render.framerate.streamline.target_fps;
+
+  if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+  {
+    limit_to_set *= 2.0f;
+  }
+
   pLimiter->standalone = true;
-  pLimiter->set_limit (config.render.framerate.streamline.target_fps);
+  pLimiter->set_limit (limit_to_set);
 
   auto _SubmitPresentMarker = [](NV_LATENCY_MARKER_TYPE type)
   {
