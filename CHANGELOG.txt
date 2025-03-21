@@ -1,4 +1,8 @@
-﻿25.3.21.4
+﻿25.3.21.5
+=========
+ + Add Flip Metering option to Asassin's Creed Shadows control panel.
+
+25.3.21.4
 =========
  + Return fake success status codes when Assassin's Creed Shadows tries to
      call NVSDK_NGX_D3D12_EvaluateFeature (...) on a DLSSG Framegen NGX

@@ -1971,6 +1971,22 @@ SK_ACS_PlugInCfg (void)
           _SK_ACS_DLSSG_MultiFrameCount->store (__SK_ACS_DLSSG_MultiFrameCount);
         }
       }
+
+      if (ImGui::Checkbox ("Allow DLSS Flip Metering", &config.nvidia.dlss.allow_flip_metering))
+      {
+        config.utility.save_async ();
+
+        restart_required = true;
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextUnformatted ("Generate unpaced DLSS4 frames");
+        ImGui::Separator       (  );
+        ImGui::BulletText      ("Frame delivery may be inconsistent, but performance may improve when using ReShade or other overlays.");
+        ImGui::BulletText      ("Try both, on/off, to find the setting that works best for you.");
+        ImGui::EndTooltip      (  );
+      }
     }
 
     if (ImGui::Checkbox ("Uncap Framerate", &__SK_ACS_UncapFramerate))
