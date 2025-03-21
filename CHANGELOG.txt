@@ -1,8 +1,16 @@
-﻿25.3.21.7
+﻿25.3.21.8
+=========
+ + Fixed Native Pacing unintentionally resetting its framerate limiter clock
+     following Alt-Tab; fixes missing DLSS Frame Generation in AC Shadows.
+ + Set default Native Pacing mode back to Low Latency, now that the above
+     issue is fixed (lol)
+
+25.3.21.7
 =========
  + Do not apply Tearing Flag or Sync Interval overrides when Flip Metering
      is enabled.
  + Default to Normal mode for Native Pacing in AC Shadows
+    * Reset SK's INI for this stuff to take effect.
 
 25.3.21.6
 =========
@@ -28,7 +36,6 @@
 =========
  + Enable flip metering in Assassin's Creed Shadows, since Native Pacing
      is enabled by default.
-    * Reset SK's INI for this to take effect.
 
 25.3.21.2
 =========
@@ -65,7 +72,6 @@
      not begin generating markers for 5+ seconds, well after the time
        that SK would mark the game as NOT using Reflex.
  + Hack to allow Native Pacing mode for DLSS Frame Generation in AC Shadows.
-   * Reset config to let SK's Native Pacing mode work in AC Shadows.
 
 25.3.20.3
 =========
