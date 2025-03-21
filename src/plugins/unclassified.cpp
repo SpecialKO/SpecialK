@@ -1981,12 +1981,13 @@ SK_ACS_PlugInCfg (void)
 
       if (ImGui::BeginItemTooltip ())
       {
-        ImGui::TextUnformatted ("Generate unpaced DLSS4 frames");
+        ImGui::TextUnformatted ("Generate DLSS4 Frames Early and Use Hardware Flip Queue to Pace their Presentation");
         ImGui::Separator       (  );
-        ImGui::BulletText      ("UI glitches (in SK) may occur, but performance should improve when using ReShade or other overlays.");
-        ImGui::BulletText      ("Try both, on/off, to find the setting that works best for you.");
+        ImGui::BulletText      ("SK's overlay will appear blurred for rapidly changing text, but frame generation smoothness is improved.");
+        ImGui::BulletText      ("Disabling helps software that cannot tell generated and real frames apart (i.e. RTSS), but is discouraged.");
+        ImGui::BulletText      ("Use Special K's \"Native Pacing\" DLSS Frame Generation mode when Flip Metering is enabled.");
         ImGui::Separator       (  );
-        ImGui::TextUnformatted ("NOTE: Framepacing graph's \"Render Latency\" reports 1-2 extra frames while Flip Metering is active; this is safe to ignore.");
+        ImGui::TextUnformatted ("Ignore extra frames in SK's \"Render Latency\" stat -- HW Flip Queue takes care of those.");
         ImGui::EndTooltip      (  );
       }
     }
