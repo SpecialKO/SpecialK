@@ -1,6 +1,14 @@
-﻿25.3.21.2
+﻿25.3.21.3
+=========
+ + Enable flip metering in Assassin's Creed Shadows, since Native Pacing
+     is enabled by default.
+    * Reset SK's INI for this to take effect.
+
+25.3.21.2
 =========
  + Ensure that DLSSG generates at least 1 frame while FG is forced enabled.
+ + Add warning about forced frame generation crashing during cutscenes.
+ + Fixed forced frame generation disabling screenspace shadows.
 
 25.3.21.1
 =========

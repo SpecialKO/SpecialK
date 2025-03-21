@@ -3372,7 +3372,6 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::AssassinsCreed_Shadows:
-      {
         config.apis.d3d9.hook                      = false;
         config.apis.d3d9ex.hook                    = false;
         config.apis.OpenGL.hook                    = false;
@@ -3382,8 +3381,6 @@ auto DeclKeybind =
         apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         config.apis.dxgi.d3d11.hook                =  true;
         config.apis.dxgi.d3d12.hook                =  true;
-        config.render.framerate.sleepless_render   =  true;
-        config.render.framerate.sleepless_window   =  true;
         config.window.background_render            =  true; // Workaround focus lost behavior
         config.window.treat_fg_as_active           =  true;
         // Necessary hack for frame generation to work...
@@ -3391,13 +3388,13 @@ auto DeclKeybind =
         config.render.framerate.streamline.enable_native_limit
                                                    =  true;
       //// This is permissable if native pacing is enabled.
-      //config.nvidia.dlss.allow_flip_metering     =  true;
+        config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
 
         // Delay the application of framerate patch in case other mods are
         //   doing the same thing...
         plugin_mgr->init_fns.insert (SK_ACS_InitPlugin);
-      } break;
+        break;
 
       case SK_GAME_ID::Shenmue:
         config.textures.d3d11.generate_mips       = true;
