@@ -3389,8 +3389,6 @@ auto DeclKeybind =
                                                    =  true;
         config.render.framerate.streamline.enforcement_policy
                                                    =     2;
-      //// This is permissable if native pacing is enabled.
-        config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
 
         // Delay the application of framerate patch in case other mods are
