@@ -1,4 +1,9 @@
-﻿25.3.21.8
+﻿25.3.21.9
+=========
+ + Safely disable Frame Generation during FMV cutscenes in AC Shadows.
+ + Enable cutscene Frame Generation by default.
+
+25.3.21.8
 =========
  + Fixed Native Pacing unintentionally resetting its framerate limiter clock
      following Alt-Tab; fixes missing DLSS Frame Generation in AC Shadows.
@@ -10,7 +15,6 @@
  + Do not apply Tearing Flag or Sync Interval overrides when Flip Metering
      is enabled.
  + Default to Normal mode for Native Pacing in AC Shadows
-    * Reset SK's INI for this stuff to take effect.
 
 25.3.21.6
 =========

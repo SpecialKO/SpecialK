@@ -1809,7 +1809,7 @@ SK_EnderLilies_InitPlugIn (void)
 
 #include <SpecialK/nvapi.h>
 
-bool               __SK_ACS_AlwaysUseFrameGen     = false;
+bool               __SK_ACS_AlwaysUseFrameGen     = true;
 bool               __SK_ACS_UncapFramerate        = true;
 int                __SK_ACS_DLSSG_MultiFrameCount = 1;
 
@@ -1866,6 +1866,8 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::D
 unsigned char __SK_ACS_OriginalFrameGenCode [4] = { };
 void*         __SK_ACS_FrameGenTestAddr         = nullptr;
 
+ULONG64 LastFrameUnlimited = 0;
+
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
 {
@@ -1898,6 +1900,8 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
 
   if (__SK_ACS_FrameGenTestAddr != nullptr)
   {
+    LastFrameUnlimited = SK_GetFramesDrawn ();
+
     DWORD                                                                      dwOrigProt = 0x0;
     if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
     {
@@ -1909,8 +1913,7 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
       VirtualProtect   (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
                                                       &dwOrigProt);
 
-      if (                  enable)
-        *pFrameGenEnabled = enable;
+      *pFrameGenEnabled = enable;
 
       return enable;
     }
@@ -1946,7 +1949,7 @@ SK_ACS_PlugInCfg (void)
     {
       ImGui::TextUnformatted ("Enable Frame Generation during Cutscenes and in menus, such as the Map Screen.");
       ImGui::Separator       ();
-      ImGui::BulletText      ("WARNING: Will crash during FMV playback!");
+      ImGui::BulletText      ("WARNING:   Small chance of crashing during FMV playback...");
       ImGui::EndTooltip      ();
     }
 
@@ -1998,7 +2001,7 @@ SK_ACS_PlugInCfg (void)
 
       _SK_ACS_UncapFramerate->store (__SK_ACS_UncapFramerate);
 
-      restart_required = true;
+      //restart_required = true;
     }
 
     if (ImGui::BeginItemTooltip ())
@@ -2068,6 +2071,19 @@ SK_ACS_InitPlugin (void)
 
       SK_SaveConfig ();
 
+      plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName)
+      {
+        if (StrStrIW (lpFileName, L"webm"))
+        {
+          SK_ACS_ApplyFrameGenOverride (false);
+
+          SK_LOGi0 (
+            L"Temporarily disabling Frame Generation because video '%ws' was opened...",
+              lpFileName
+          );
+        }
+      });
+
       void* const limit_store_addr =
         (uint8_t *)img_base_addr+0xF7B0C1;
   
@@ -2079,39 +2095,25 @@ SK_ACS_InitPlugin (void)
   
         unlimited = true;
   
-        memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        VirtualProtect (limit_store_addr, 8, dwOrigProt,
-                                            &dwOrigProt);
-  
-        void* const     limit_check_addr =
-        (uint8_t *)img_base_addr+0xF7B0D3;
-  
-        VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-        memcpy         (limit_check_addr, "\x90\x90", 2);
-        VirtualProtect (limit_check_addr, 2, dwOrigProt,
-                                            &dwOrigProt);
-  
-        void* const     limit_alt_addr =
-        (uint8_t *)img_base_addr+0x178AD29;
-  
-        VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-        memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
-        VirtualProtect (limit_alt_addr, 10, dwOrigProt,
-                                           &dwOrigProt);
-  
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {  
           // Fail-safe incase any code that sets this was missed
           static
            float * const framerate_limit =            // Limit = Offset 0x98; single-precision float
-          (float *)((uintptr_t)SK_Debug_GetImageBaseAddr ()+0x9C91960 + 0x98);
-  
-          // -1.0f = Unlimited
-          *framerate_limit = -1.0f;
+          (float *)(*(uint8_t **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x9C91960) + 0x98);
 
-          if (                            __SK_ACS_AlwaysUseFrameGen)
-            SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+          if (LastFrameUnlimited < SK_GetFramesDrawn () - 120)
+          {
+            if (                            __SK_ACS_AlwaysUseFrameGen)
+              SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+          }
+
+          if (__SK_ACS_UncapFramerate)
+          {
+            // -1.0f = Unlimited
+            *framerate_limit = -1.0f;
+          }
 
           if (__SK_IsDLSSGActive)
           {
