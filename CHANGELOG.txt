@@ -1,4 +1,10 @@
-﻿25.3.21.6
+﻿25.3.21.7
+=========
+ + Do not apply Tearing Flag or Sync Interval overrides when Flip Metering
+     is enabled.
+ + Default to Normal mode for Native Pacing in AC Shadows
+
+25.3.21.6
 =========
  + Add more precise tooltip for Flip Metering.
  + Ensure that PresentMon threads are shutdown even if a game terminates

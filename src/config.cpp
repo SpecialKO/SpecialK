@@ -3388,7 +3388,7 @@ auto DeclKeybind =
         config.render.framerate.streamline.enable_native_limit
                                                    =  true;
         config.render.framerate.streamline.enforcement_policy
-                                                   =     2;
+                                                   =     4;
         config.nvidia.reflex.low_latency           =  true;
         config.nvidia.reflex.low_latency_boost     =  true;
         //// This is permissable if native pacing is enabled.
