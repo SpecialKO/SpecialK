@@ -1,4 +1,9 @@
-﻿25.3.21.9
+﻿25.3.21.10
+==========
+ + Add 15 second delay before turning Frame Generation back on after an
+     FMV frame is played.
+
+25.3.21.9
 =========
  + Safely disable Frame Generation during FMV cutscenes in AC Shadows.
  + Enable cutscene Frame Generation by default.

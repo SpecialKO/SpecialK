@@ -1809,7 +1809,7 @@ SK_EnderLilies_InitPlugIn (void)
 
 #include <SpecialK/nvapi.h>
 
-bool               __SK_ACS_AlwaysUseFrameGen     = true;
+bool               __SK_ACS_AlwaysUseFrameGen     = false;
 bool               __SK_ACS_UncapFramerate        = true;
 int                __SK_ACS_DLSSG_MultiFrameCount = 1;
 
@@ -2144,8 +2144,8 @@ SK_ACS_InitPlugin (void)
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
-          // 7.5 second grace period after an FMV is read to reset frame generation
-          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
+          // 15.0 second grace period after an FMV is read to reset frame generation
+          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 15000UL)
           {
             if (__SK_ACS_UncapFramerate)
             {
