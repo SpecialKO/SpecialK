@@ -433,6 +433,21 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_EvaluateFeature_Original (InCmdList, InFeatureHandle, InParameters, InCallback);
 
+  if (ret != NVSDK_NGX_Result_Success && SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows)
+                                      &&
+              ( SK_NGX_DLSS12.frame_gen.     hasInstance (InFeatureHandle) ||
+                SK_NGX_DLSS12.super_sampling.hasInstance (InFeatureHandle) ))
+  {
+    SK_LOGi0 (
+      L"Suppressing DLSS[G] Feature Evaluation Failure (%x) to "
+      L"Prevent Game from Removing DLSS / Frame Gen Options...", ret
+    );
+
+    SK_RunOnce (SK_NGX_DumpParameters (InParameters));
+
+    ret = NVSDK_NGX_Result_Success;
+  }
+
   if (ret == NVSDK_NGX_Result_Success)
   {
     SK_NGX_DLSS12.frame_gen.evaluateFeature      (SK_NGX_DLSS12.frame_gen.getInstance      (InFeatureHandle));

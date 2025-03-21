@@ -2932,14 +2932,29 @@ SK_ShutdownCore (const wchar_t* backend)
   if (__SK_bypass)
     return true;
 
-  SK_PrintUnloadedDLLs (&dll_log.get ());
+  static bool log_unloads =
+    !SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows);
 
-  dll_log->LogEx ( false,
-                L"========================================================="
-                L"========= (End  Unloads) ================================"
-                L"==================================\n" );
+  if (log_unloads)
+  {
+    SK_PrintUnloadedDLLs (&dll_log.get ());
+
+    dll_log->LogEx ( false,
+                  L"========================================================="
+                  L"========= (End  Unloads) ================================"
+                  L"==================================\n" );
+  }
 
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
+
+  dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
+
+  DWORD dwTime =
+    SK_timeGetTime ();
+
+  if (SK_ETW_EndTracing ())
+    dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime); else
+    dll_log->LogEx  (false, L"fail! (%4u ms -> Timeout)\n", SK_timeGetTime () - dwTime);
 
   SK_Win32_DestroyBackgroundWindow (); // Destroy the aspect ratio stretch window
 
@@ -2954,22 +2969,12 @@ SK_ShutdownCore (const wchar_t* backend)
   {
     dll_log->LogEx  (true, L"[  Reflex  ] Shutting down PCL Stats...                   ");
 
-    DWORD dwTime =
+    dwTime =
        SK_timeGetTime ();
-
     PCLSTATS_SHUTDOWN ();
 
     dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime);
   }
-
-  dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
-
-  DWORD dwTime =
-       SK_timeGetTime ();
-
-  if (SK_ETW_EndTracing ())
-    dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime); else
-    dll_log->LogEx  (false, L"fail! (%4u ms -> Timeout)\n", SK_timeGetTime () - dwTime);
 
   const wchar_t* config_name = backend;
 

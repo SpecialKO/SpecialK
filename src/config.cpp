@@ -3387,13 +3387,15 @@ auto DeclKeybind =
         config.nvidia.reflex.native                =  true;
         config.render.framerate.streamline.enable_native_limit
                                                    =  true;
+        config.render.framerate.streamline.enforcement_policy
+                                                   =     2;
       //// This is permissable if native pacing is enabled.
         config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
 
         // Delay the application of framerate patch in case other mods are
         //   doing the same thing...
-        plugin_mgr->init_fns.insert (SK_ACS_InitPlugin);
+        SK_RunOnce (plugin_mgr->init_fns.insert (SK_ACS_InitPlugin));
         break;
 
       case SK_GAME_ID::Shenmue:

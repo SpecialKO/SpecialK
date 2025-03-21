@@ -1169,6 +1169,10 @@ void
 __stdcall
 SK_SelfDestruct (void) noexcept
 {
+  // Always cleanup PresentMon garbage before self-destructing, since
+  //   it has resources outside the game process that need cleaning.
+  SK_ETW_EndTracing ();
+
   if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
   {
     SK_Detach (SK_GetDLLRole ());
