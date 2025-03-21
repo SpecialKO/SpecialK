@@ -919,6 +919,9 @@ ReadFile_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
+  for ( auto callback : plugin_mgr->read_file_fns )
+             callback (hFile);
+
   // Fast path, we only care about HID Input Reports
   if (nNumberOfBytesToRead <= 31 || nNumberOfBytesToRead >= 4096)
   {
@@ -1550,11 +1553,6 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
     return INVALID_HANDLE_VALUE;
   }
 
-  for ( auto callback : plugin_mgr->open_file_w_fns )
-  {
-    callback (lpFileName);
-  }
-
   HANDLE hRet =
     CreateFileW_Original (
       lpFileName, dwDesiredAccess, dwShareMode,
@@ -1562,6 +1560,14 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
           dwFlagsAndAttributes, hTemplateFile );
 
   const bool bSuccess = (LONG_PTR)hRet > 0;
+
+  if (bSuccess)
+  {
+    for ( auto callback : plugin_mgr->open_file_w_fns )
+    {
+      callback (lpFileName, hRet);
+    }
+  }
 
   // Examine all UNC paths closely, some of these files are
   //   input devices in disguise...

@@ -53,7 +53,11 @@ using SK_EndFrame_pfn                  = void   (__stdcall *)( void        );
 using SK_EndFrameEx_pfn                = void   (__stdcall *)( BOOL
                                                                bWaitOnFail );
 using SK_OpenFileW_pfn                 = void   (__stdcall *)( LPCWSTR
-                                                               lpFileName  );
+                                                               lpFileName,
+                                                               HANDLE
+                                                               hFile       );
+using SK_ReadFile_pfn                  = void   (__stdcall *)( HANDLE
+                                                               hFile       );
 using SK_ExitGame_pfn                  = void   (__stdcall *)( void        );
 using SK_BeginFrame_pfn                = void   (__stdcall *)( void        );
 using SK_ReleaseGfx_pfn                = void   (__stdcall *)( void        );
@@ -91,6 +95,8 @@ struct SK_PluginRegistry
   std::set <SK_ExitGame_pfn>                   exit_game_fns;
   std::set <SK_AchievementUnlock_pfn> achievement_unlock_fns;
   std::set <SK_OpenFileW_pfn>                open_file_w_fns;
+  std::set <SK_ReadFile_pfn>                   read_file_fns;
+  
 
   std::wstring plugin_name;
 };
