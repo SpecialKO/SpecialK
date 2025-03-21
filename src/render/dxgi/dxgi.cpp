@@ -2782,8 +2782,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       // Turn tearing off when using frame generation
       if (bDLSS3OnVRRDisplay)
       {
-        _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
-        _SyncInterval = 0;
+        if (! config.nvidia.dlss.allow_flip_metering)
+        {
+          _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+          _SyncInterval = 0;
+        }
       }
     }
 
@@ -2920,7 +2923,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       );
     };
 
-  if ((! config.render.dxgi.allow_tearing) || bDLSS3OnVRRDisplay)
+  if ((! config.render.dxgi.allow_tearing) || (bDLSS3OnVRRDisplay && (! config.nvidia.dlss.allow_flip_metering)))
   {                                           // Turn tearing off when using frame generation
     if (Flags & DXGI_PRESENT_ALLOW_TEARING)
     {
@@ -2931,7 +2934,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
     }
 
-    if (bDLSS3OnVRRDisplay)
+    if (bDLSS3OnVRRDisplay && (! config.nvidia.dlss.allow_flip_metering))
     {
       SyncInterval = 0;
     }
