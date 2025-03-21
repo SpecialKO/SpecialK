@@ -1,6 +1,8 @@
 ﻿25.3.21.6
 =========
  + Add more precise tooltip for Flip Metering.
+ + Ensure that PresentMon threads are shutdown even if a game terminates
+     early.
 
 25.3.21.5
 =========
