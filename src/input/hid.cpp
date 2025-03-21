@@ -1550,6 +1550,11 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
     return INVALID_HANDLE_VALUE;
   }
 
+  for ( auto callback : plugin_mgr->open_file_w_fns )
+  {
+    callback (lpFileName);
+  }
+
   HANDLE hRet =
     CreateFileW_Original (
       lpFileName, dwDesiredAccess, dwShareMode,
