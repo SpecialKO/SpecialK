@@ -1869,10 +1869,13 @@ void*         __SK_ACS_FrameGenTestAddr         = nullptr;
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
 {
+  static uintptr_t base_addr =
+    (uintptr_t)SK_Debug_GetImageBaseAddr ();
+
   if (__SK_ACS_OriginalFrameGenCode [0] == 0x0)
   {
     __SK_ACS_FrameGenTestAddr =
-      (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3397C56);
+      (void *)(base_addr + 0x3397C56);
 
     if (__SK_ACS_FrameGenTestAddr != nullptr)
     {
@@ -1898,19 +1901,16 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
     DWORD                                                                      dwOrigProt = 0x0;
     if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
     {
-      //auto suspended =
-      //  SK_SuspendAllOtherThreads ();
-
-      bool* pFrameGenEnabled = *(bool **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x0B0AF3C8) + 0x24;
-                           if (enable)
-           *pFrameGenEnabled = enable;
+      bool* pFrameGenEnabled =
+        *(bool **)(base_addr + 0x0B0AF3C8) + 0x24;
 
       memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
                                                           :                  __SK_ACS_OriginalFrameGenCode, 4);
       VirtualProtect   (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
                                                       &dwOrigProt);
 
-      //SK_ResumeThreads (suspended);
+      if (                  enable)
+        *pFrameGenEnabled = enable;
 
       return enable;
     }
@@ -2106,6 +2106,9 @@ SK_ACS_InitPlugin (void)
   
           // -1.0f = Unlimited
           *framerate_limit = -1.0f;
+
+          if (                            __SK_ACS_AlwaysUseFrameGen)
+            SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
 
           if (__SK_IsDLSSGActive)
           {
