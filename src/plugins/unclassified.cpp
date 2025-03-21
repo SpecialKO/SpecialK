@@ -1983,8 +1983,10 @@ SK_ACS_PlugInCfg (void)
       {
         ImGui::TextUnformatted ("Generate unpaced DLSS4 frames");
         ImGui::Separator       (  );
-        ImGui::BulletText      ("Frame delivery may be inconsistent, but performance may improve when using ReShade or other overlays.");
+        ImGui::BulletText      ("UI glitches (in SK) may occur, but performance should improve when using ReShade or other overlays.");
         ImGui::BulletText      ("Try both, on/off, to find the setting that works best for you.");
+        ImGui::Separator       (  );
+        ImGui::TextUnformatted ("NOTE: Framepacing graph's \"Render Latency\" reports 1-2 extra frames while Flip Metering is active; this is safe to ignore.");
         ImGui::EndTooltip      (  );
       }
     }
