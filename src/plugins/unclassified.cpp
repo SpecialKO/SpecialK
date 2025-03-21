@@ -1809,7 +1809,7 @@ SK_EnderLilies_InitPlugIn (void)
 
 #include <SpecialK/nvapi.h>
 
-bool               __SK_ACS_AlwaysUseFrameGen     = true;
+bool               __SK_ACS_AlwaysUseFrameGen     = false;
 bool               __SK_ACS_UncapFramerate        = true;
 int                __SK_ACS_DLSSG_MultiFrameCount = 1;
 
@@ -1863,7 +1863,7 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::D
   return ret;
 }
 
-unsigned char __SK_ACS_OriginalFrameGenCode [9] = { };
+unsigned char __SK_ACS_OriginalFrameGenCode [4] = { };
 void*         __SK_ACS_FrameGenTestAddr         = nullptr;
 
 bool
@@ -1877,10 +1877,11 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
     if (__SK_ACS_FrameGenTestAddr != nullptr)
     {
       DWORD                                                                      dwOrigProt = 0x0;
-      if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 9, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt) &&
+              *(uint8_t *)__SK_ACS_FrameGenTestAddr == 0x44)
       {
-        memcpy         (__SK_ACS_OriginalFrameGenCode, __SK_ACS_FrameGenTestAddr, 9);
-        VirtualProtect (__SK_ACS_FrameGenTestAddr,  9, dwOrigProt,
+        memcpy         (__SK_ACS_OriginalFrameGenCode, __SK_ACS_FrameGenTestAddr, 4);
+        VirtualProtect (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
                                                       &dwOrigProt);
       }
 
@@ -1895,12 +1896,21 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
   if (__SK_ACS_FrameGenTestAddr != nullptr)
   {
     DWORD                                                                      dwOrigProt = 0x0;
-    if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 9, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+    if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
     {
-      memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\xc7\x46\x24\x01\x00\x00\x00\x90\x90"
-                                                          :                  __SK_ACS_OriginalFrameGenCode, 9);
-      VirtualProtect   (__SK_ACS_FrameGenTestAddr,  9, dwOrigProt,
+      //auto suspended =
+      //  SK_SuspendAllOtherThreads ();
+
+      bool* pFrameGenEnabled = *(bool **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x0B0AF3C8) + 0x24;
+                           if (enable)
+           *pFrameGenEnabled = enable;
+
+      memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
+                                                          :                  __SK_ACS_OriginalFrameGenCode, 4);
+      VirtualProtect   (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
                                                       &dwOrigProt);
+
+      //SK_ResumeThreads (suspended);
 
       return enable;
     }
@@ -1932,7 +1942,13 @@ SK_ACS_PlugInCfg (void)
       }
     }
 
-    ImGui::SetItemTooltip ("Enable Frame Generation during Cutscenes and in menus, such as the Map Screen.");
+    if (ImGui::BeginItemTooltip ())
+    {
+      ImGui::TextUnformatted ("Enable Frame Generation during Cutscenes and in menus, such as the Map Screen.");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("WARNING: Will crash during FMV playback!");
+      ImGui::EndTooltip      ();
+    }
 
     if (__SK_HasDLSSGStatusSupport)
     {
@@ -2001,8 +2017,6 @@ SK_ACS_InitPlugin (void)
     void* img_base_addr = 
       SK_Debug_GetImageBaseAddr ();
 
-    SK_SleepEx (250UL, FALSE);
-
     bool unlimited = false;
   
     void* const limit_load_addr =
@@ -2025,12 +2039,15 @@ SK_ACS_InitPlugin (void)
                                      L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
                                      L"Override Multi-Frame Gen" );
 
+      plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
+
+      while (SK_GetFramesDrawn () < 480)
+        SK_SleepEx (150UL, FALSE);
+
       if (                            __SK_ACS_AlwaysUseFrameGen)
         SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
 
       SK_SaveConfig ();
-
-      plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
 
       void* const limit_store_addr =
         (uint8_t *)img_base_addr+0xF7B0C1;
