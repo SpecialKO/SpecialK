@@ -539,6 +539,10 @@ extern void BasicInit (void);
 
   SK_FetchBuiltinSounds ();
 
+  for (auto& init_fn : plugin_mgr->init_fns)
+             init_fn ();
+
+  // Legacy plugin init for plugins that do not register a callback fn
   switch (SK_GetCurrentGameID ())
   {
 #ifdef _WIN64

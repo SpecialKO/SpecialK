@@ -52,7 +52,7 @@ SK_HasPlugin (void);
 using SK_EndFrame_pfn                  = void   (__stdcall *)( void        );
 using SK_EndFrameEx_pfn                = void   (__stdcall *)( BOOL
                                                                bWaitOnFail );
-using SK_ExitGame_pfn                 = void    (__stdcall *)( void        );
+using SK_ExitGame_pfn                  = void   (__stdcall *)( void        );
 using SK_BeginFrame_pfn                = void   (__stdcall *)( void        );
 using SK_ReleaseGfx_pfn                = void   (__stdcall *)( void        );
 using SK_PlugIn_ControlPanelWidget_pfn = void   (__stdcall *)( void        );
@@ -155,6 +155,7 @@ void SK_BGS_InitPlugin             (void);
 void SK_LOTF2_InitPlugin           (void);
 void SK_OPT_InitPlugin             (void);
 void SK_ACV_InitPlugin             (void);
+void SK_ACS_InitPlugin             (void);
 
 bool SK_NIER_RAD_PlugInCfg         (void);
 bool SK_Okami_PlugInCfg            (void);

@@ -1,4 +1,10 @@
-﻿25.3.21
+﻿25.3.21.1
+=========
+ + Added settings to enable Frame Gen in Cutscenes and Menus in AC Shadows
+ + Added settings to control multi-frame gen in AC Shadows
+ + Added settings to control cutscene/menu framerate unlock in AC Shadows
+
+25.3.21
 =======
  + More polish for menu framerate uncap in Assassin's Creed Shadows
 

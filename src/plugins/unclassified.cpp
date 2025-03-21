@@ -1805,3 +1805,305 @@ SK_EnderLilies_InitPlugIn (void)
     _ApplyPatch ();
   }
 }
+
+
+#include <SpecialK/nvapi.h>
+
+bool               __SK_ACS_AlwaysUseFrameGen     = true;
+bool               __SK_ACS_UncapFramerate        = true;
+int                __SK_ACS_DLSSG_MultiFrameCount = 1;
+
+sk::ParameterBool*  _SK_ACS_AlwaysUseFrameGen;
+sk::ParameterBool*  _SK_ACS_UncapFramerate;
+sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
+
+using slGetPluginFunction_pfn = void*      (*)(const char* functionName);
+using slDLSSGSetOptions_pfn   = sl::Result (*)(const sl::ViewportHandle& viewport, const sl::DLSSGOptions& options);
+      slDLSSGSetOptions_pfn
+      slDLSSGSetOptions_ACS_Original = nullptr;
+
+sl::Result
+SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::DLSSGOptions& options_)
+{
+  SK_LOG_FIRST_CALL
+
+  auto options = (sl::DLSSGOptions&)options_;
+
+  static bool
+      enabled_once = false;
+
+  enabled_once |= (options.mode == sl::DLSSGMode::eOn);
+
+  if (enabled_once && __SK_ACS_DLSSG_MultiFrameCount != 0)
+  {
+    static bool is_mfg_capable =
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
+
+    if (is_mfg_capable)
+    {
+      options.numFramesToGenerate =
+        __SK_ACS_DLSSG_MultiFrameCount;
+    }
+  }
+
+  auto ret =
+    slDLSSGSetOptions_ACS_Original (viewport, options);
+
+  return ret;
+}
+
+unsigned char __SK_ACS_OriginalFrameGenCode [9] = { };
+void*         __SK_ACS_FrameGenTestAddr         = nullptr;
+
+bool
+SK_ACS_ApplyFrameGenOverride (bool enable)
+{
+  if (__SK_ACS_OriginalFrameGenCode [0] == 0x0)
+  {
+    __SK_ACS_FrameGenTestAddr =
+      (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3397C56);
+
+    if (__SK_ACS_FrameGenTestAddr != nullptr)
+    {
+      DWORD                                                                      dwOrigProt = 0x0;
+      if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 9, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      {
+        memcpy         (__SK_ACS_OriginalFrameGenCode, __SK_ACS_FrameGenTestAddr, 9);
+        VirtualProtect (__SK_ACS_FrameGenTestAddr,  9, dwOrigProt,
+                                                      &dwOrigProt);
+      }
+
+      else
+      {
+        __SK_ACS_OriginalFrameGenCode [0] = 0x90;
+        __SK_ACS_FrameGenTestAddr         = nullptr;
+      }
+    }
+  }
+
+  if (__SK_ACS_FrameGenTestAddr != nullptr)
+  {
+    DWORD                                                                      dwOrigProt = 0x0;
+    if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 9, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+    {
+      memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\xc7\x46\x24\x01\x00\x00\x00\x90\x90"
+                                                          :                  __SK_ACS_OriginalFrameGenCode, 9);
+      VirtualProtect   (__SK_ACS_FrameGenTestAddr,  9, dwOrigProt,
+                                                      &dwOrigProt);
+
+      return enable;
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_ACS_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Assassin's Creed Shadows", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    static bool restart_required = false;
+
+    ImGui::TreePush ("");
+
+    bool changed = false;
+
+    bool always_use_framegen =
+      __SK_ACS_AlwaysUseFrameGen;
+
+    if (ImGui::Checkbox ("Always Use Frame Generation",
+                                          &__SK_ACS_AlwaysUseFrameGen))
+    { if (SK_ACS_ApplyFrameGenOverride    (__SK_ACS_AlwaysUseFrameGen) != always_use_framegen)
+      {  _SK_ACS_AlwaysUseFrameGen->store (__SK_ACS_AlwaysUseFrameGen);
+
+        changed = true;
+      }
+    }
+
+    ImGui::SetItemTooltip ("Enable Frame Generation during Cutscenes and in menus, such as the Map Screen.");
+
+    if (__SK_HasDLSSGStatusSupport)
+    {
+      static bool is_mfg_capable =
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
+
+      if (is_mfg_capable)
+      {
+        changed |= ImGui::RadioButton ("2x FrameGen", &__SK_ACS_DLSSG_MultiFrameCount, 1);
+        ImGui::SameLine    ( );
+        changed |= ImGui::RadioButton ("3x FrameGen", &__SK_ACS_DLSSG_MultiFrameCount, 2);
+        ImGui::SameLine    ( );
+        changed |= ImGui::RadioButton ("4x FrameGen", &__SK_ACS_DLSSG_MultiFrameCount, 3);
+
+        if (changed)
+        {
+          _SK_ACS_DLSSG_MultiFrameCount->store (__SK_ACS_DLSSG_MultiFrameCount);
+        }
+      }
+    }
+
+    if (ImGui::Checkbox ("Uncap Framerate", &__SK_ACS_UncapFramerate))
+    {
+      changed = true;
+
+      _SK_ACS_UncapFramerate->store (__SK_ACS_UncapFramerate);
+
+      restart_required = true;
+    }
+
+    if (ImGui::BeginItemTooltip ())
+    {
+      ImGui::TextUnformatted ("Uncap Framerate in Menus and Cutscenes");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("Thanks to ersh for assistance with menu framerate.");
+      ImGui::EndTooltip      ();
+    }
+
+    if (restart_required)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+      ImGui::BulletText     ("Game Restart Required");
+      ImGui::PopStyleColor  ();
+    }
+
+    if (changed)
+    {
+      SK_SaveConfig ();
+    }
+
+    ImGui::TreePop ();
+  }
+
+  return true;
+}
+
+void
+SK_ACS_InitPlugin (void)
+{
+  static HANDLE hInitThread =
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
+  {
+    void* img_base_addr = 
+      SK_Debug_GetImageBaseAddr ();
+
+    SK_SleepEx (250UL, FALSE);
+
+    bool unlimited = false;
+  
+    void* const limit_load_addr =
+      (uint8_t *)img_base_addr+0xF7B0BA;
+  
+    if (! memcmp (limit_load_addr, "\x48\x8b\x05\x9f", 4))
+    {
+      _SK_ACS_AlwaysUseFrameGen =
+        _CreateConfigParameterBool  ( L"AssassinsCreed.FrameRate",
+                                      L"AlwaysUseFrameGen", __SK_ACS_AlwaysUseFrameGen,
+                                      L"Use FrameGen in Cutscenes" );
+
+      _SK_ACS_UncapFramerate =
+        _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                     L"UncapMenusAndCutscenes", __SK_ACS_UncapFramerate,
+                                     L"Uncap Framerate in Cutscenes" );
+
+      _SK_ACS_DLSSG_MultiFrameCount =
+        _CreateConfigParameterInt  ( L"AssassinsCreed.FrameRate",
+                                     L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
+                                     L"Override Multi-Frame Gen" );
+
+      if (                            __SK_ACS_AlwaysUseFrameGen)
+        SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+
+      SK_SaveConfig ();
+
+      plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
+
+      void* const limit_store_addr =
+        (uint8_t *)img_base_addr+0xF7B0C1;
+  
+      DWORD                                                             dwOrigProt = 0x0;
+      if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      {
+        config.system.silent_crash = true;
+        config.utility.save_async ();
+  
+        unlimited = true;
+  
+        memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        VirtualProtect (limit_store_addr, 8, dwOrigProt,
+                                            &dwOrigProt);
+  
+        void* const     limit_check_addr =
+        (uint8_t *)img_base_addr+0xF7B0D3;
+  
+        VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+        memcpy         (limit_check_addr, "\x90\x90", 2);
+        VirtualProtect (limit_check_addr, 2, dwOrigProt,
+                                            &dwOrigProt);
+  
+        void* const     limit_alt_addr =
+        (uint8_t *)img_base_addr+0x178AD29;
+  
+        VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+        memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
+        VirtualProtect (limit_alt_addr, 10, dwOrigProt,
+                                           &dwOrigProt);
+  
+        // The pointer base addr is stored in the limit_load_addr instruction
+        plugin_mgr->begin_frame_fns.insert ([](void)
+        {  
+          // Fail-safe incase any code that sets this was missed
+          static
+           float * const framerate_limit =            // Limit = Offset 0x98; single-precision float
+          (float *)((uintptr_t)SK_Debug_GetImageBaseAddr ()+0x9C91960 + 0x98);
+  
+          // -1.0f = Unlimited
+          *framerate_limit = -1.0f;
+
+          if (__SK_IsDLSSGActive)
+          {
+            static HMODULE
+                hModSLDLSSG  = (HMODULE)-1;
+            if (hModSLDLSSG == (HMODULE)-1)GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.dlss_g.dll",
+               &hModSLDLSSG);
+
+            if (hModSLDLSSG != nullptr)
+            {
+              SK_RunOnce (
+                slGetPluginFunction_pfn
+                slGetPluginFunction =
+               (slGetPluginFunction_pfn)SK_GetProcAddress (hModSLDLSSG,
+               "slGetPluginFunction");
+
+                slDLSSGSetOptions_pfn                       slDLSSGSetOptions =
+               (slDLSSGSetOptions_pfn)slGetPluginFunction ("slDLSSGSetOptions");
+
+                SK_CreateFuncHook   (     L"slDLSSGSetOptions",
+                                            slDLSSGSetOptions,
+                                     SK_ACS_slDLSSGSetOptions_Detour,
+                   static_cast_p2p <void> (&slDLSSGSetOptions_ACS_Original) );
+                MH_QueueEnableHook  (       slDLSSGSetOptions               );
+                SK_ApplyQueuedHooks (                                       );
+              );
+            }
+          }
+        });
+      }
+    }
+  
+    if (! unlimited)
+    {
+      SK_ImGui_Warning (L"Cutscene / Menu Framerate Limiter Bypass Unsupported");
+    }
+  
+    SK_Thread_CloseSelf ();
+  
+    return 0;
+  });
+}
