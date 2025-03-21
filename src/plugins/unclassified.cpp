@@ -1849,6 +1849,14 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::D
     }
   }
 
+  if (__SK_ACS_AlwaysUseFrameGen)
+  {
+    options.numFramesToGenerate =
+      std::max (1U, options.numFramesToGenerate);
+    options.mode =
+      sl::DLSSGMode::eOn;
+  }
+
   auto ret =
     slDLSSGSetOptions_ACS_Original (viewport, options);
 
