@@ -1866,7 +1866,8 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::D
 unsigned char __SK_ACS_OriginalFrameGenCode [4] = { };
 void*         __SK_ACS_FrameGenTestAddr         = nullptr;
 
-ULONG64 LastFrameUnlimited = 0;
+static DWORD  LastTimeFMVChecked = 0;
+static HANDLE LastFMVHandle      = 0;
 
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
@@ -1900,7 +1901,7 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
 
   if (__SK_ACS_FrameGenTestAddr != nullptr)
   {
-    LastFrameUnlimited = SK_GetFramesDrawn ();
+    LastTimeFMVChecked = SK::ControlPanel::current_time;
 
     DWORD                                                                      dwOrigProt = 0x0;
     if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
@@ -1908,8 +1909,7 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
       bool* pFrameGenEnabled =
         *(bool **)(base_addr + 0x0B0AF3C8) + 0x24;
 
-      memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
-                                                          :                  __SK_ACS_OriginalFrameGenCode, 4);
+      memcpy           (__SK_ACS_FrameGenTestAddr, (unsigned char *)"\x90\x90\x90\x90", 4);
       VirtualProtect   (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
                                                       &dwOrigProt);
 
@@ -2001,7 +2001,7 @@ SK_ACS_PlugInCfg (void)
 
       _SK_ACS_UncapFramerate->store (__SK_ACS_UncapFramerate);
 
-      //restart_required = true;
+      restart_required = true;
     }
 
     if (ImGui::BeginItemTooltip ())
@@ -2071,16 +2071,37 @@ SK_ACS_InitPlugin (void)
 
       SK_SaveConfig ();
 
-      plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName)
+      // Fail-safe incase any code that sets this was missed
+      static
+       float * const framerate_limit =            // Limit = Offset 0x98; single-precision float
+      (float *)(*(uint8_t **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x9C91960) + 0x98);
+
+      plugin_mgr->read_file_fns.insert ([](HANDLE hFile)
+      {
+        if (hFile == LastFMVHandle)
+        {
+          if (__SK_ACS_AlwaysUseFrameGen)
+          {
+            SK_ACS_ApplyFrameGenOverride (false);
+          }
+        }
+      });
+
+      plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName, HANDLE hFile)
       {
         if (StrStrIW (lpFileName, L"webm"))
         {
-          SK_ACS_ApplyFrameGenOverride (false);
+          LastFMVHandle = hFile;
 
-          SK_LOGi0 (
-            L"Temporarily disabling Frame Generation because video '%ws' was opened...",
-              lpFileName
-          );
+          if (__SK_ACS_AlwaysUseFrameGen)
+          {
+            SK_ACS_ApplyFrameGenOverride (false);
+
+            SK_LOGi0 (
+              L"Temporarily disabling Frame Generation because video '%ws' was opened...",
+                lpFileName
+            );
+          }
         }
       });
 
@@ -2090,6 +2111,31 @@ SK_ACS_InitPlugin (void)
       DWORD                                                             dwOrigProt = 0x0;
       if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
       {
+#if 1
+        if (__SK_ACS_UncapFramerate)
+        {
+          ////memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+          ////VirtualProtect (limit_store_addr, 8, dwOrigProt,
+          ////                                    &dwOrigProt);
+
+          void* const     limit_check_addr =
+          (uint8_t *)img_base_addr+0xF7B0D3;
+          
+          VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+          memcpy         (limit_check_addr, "\x90\x90", 2);
+          VirtualProtect (limit_check_addr, 2, dwOrigProt,
+                                              &dwOrigProt);
+  
+          //void* const     limit_alt_addr =
+          //(uint8_t *)img_base_addr+0x178AD29;
+          
+          ////VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+          ////memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
+          ////VirtualProtect (limit_alt_addr, 10, dwOrigProt,
+          ////                                   &dwOrigProt);
+        }
+#endif
+
         config.system.silent_crash = true;
         config.utility.save_async ();
   
@@ -2097,22 +2143,18 @@ SK_ACS_InitPlugin (void)
   
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
-        {  
-          // Fail-safe incase any code that sets this was missed
-          static
-           float * const framerate_limit =            // Limit = Offset 0x98; single-precision float
-          (float *)(*(uint8_t **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x9C91960) + 0x98);
-
-          if (LastFrameUnlimited < SK_GetFramesDrawn () - 120)
+        {
+          // 7.5 second grace period after an FMV is read to reset frame generation
+          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
           {
+            if (__SK_ACS_UncapFramerate)
+            {
+              // -1.0f = Unlimited
+              *framerate_limit = -1.0f;
+            }
+
             if (                            __SK_ACS_AlwaysUseFrameGen)
               SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-          }
-
-          if (__SK_ACS_UncapFramerate)
-          {
-            // -1.0f = Unlimited
-            *framerate_limit = -1.0f;
           }
 
           if (__SK_IsDLSSGActive)
