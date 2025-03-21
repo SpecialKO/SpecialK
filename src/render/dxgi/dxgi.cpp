@@ -3363,14 +3363,21 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     }
 
-    if ((! __SK_IsDLSSGActive) || (! config.render.framerate.streamline.enable_native_limit))
+    //
+    // Pending removal of this feature altogether, rather than complicating it with these conditions
+    //
+#ifndef SK_REMOVE_DEPRECATED
+    if ((! __SK_IsDLSSGActive) && ((! config.render.framerate.streamline.enable_native_limit) || (! __SK_HasDLSSGStatusSupport)))
     {
       if (ReadAcquire        (&SK_RenderBackend::flip_skip) > 0) {
         InterlockedDecrement (&SK_RenderBackend::flip_skip);
+#if 0
         interval      = 0;
         flags |= DXGI_PRESENT_RESTART;
+#endif
       }
     }
+#endif
 
 
     bool _SkipThisFrame = false;
