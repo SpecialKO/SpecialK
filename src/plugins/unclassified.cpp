@@ -1866,8 +1866,9 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::D
 unsigned char __SK_ACS_OriginalFrameGenCode [4] = { };
 void*         __SK_ACS_FrameGenTestAddr         = nullptr;
 
-static DWORD  LastTimeFMVChecked = 0;
-static HANDLE LastFMVHandle      = 0;
+static          DWORD  LastTimeFMVChecked     = 0;
+static          HANDLE LastFMVHandle          = 0;
+static volatile ULONG  FrameGenDisabledForFMV = FALSE;
 
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
@@ -1922,6 +1923,8 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
   return false;
 }
 
+#include <imgui/font_awesome.h>
+
 bool
 SK_ACS_PlugInCfg (void)
 {
@@ -1949,7 +1952,11 @@ SK_ACS_PlugInCfg (void)
     {
       ImGui::TextUnformatted ("Enable Frame Generation during Cutscenes and in menus, such as the Map Screen.");
       ImGui::Separator       ();
-      ImGui::BulletText      ("WARNING:   Small chance of crashing during FMV playback...");
+      ImGui::TextUnformatted ("");
+      ImGui::BulletText      ("Cutscene Frame Generation will self-disable when FMVs begin playing (to prevent crashes).");
+      ImGui::TextUnformatted ("");
+      ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE " When FMVs Finish");
+      ImGui::TextUnformatted ("\tOpen and Close SK's Control Panel to re-enable Realtime Cutscene Frame Generation");
       ImGui::EndTooltip      ();
     }
 
@@ -2082,6 +2089,7 @@ SK_ACS_InitPlugin (void)
         {
           if (__SK_ACS_AlwaysUseFrameGen)
           {
+            WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
             SK_ACS_ApplyFrameGenOverride (false);
           }
         }
@@ -2091,27 +2099,43 @@ SK_ACS_InitPlugin (void)
       {
         if (StrStrIW (lpFileName, L"webm"))
         {
-          LastFMVHandle = hFile;
+          bool file_is_exempt = false;
 
-          if (__SK_ACS_AlwaysUseFrameGen)
+          for ( auto exempt_substr : { L"HUB_Bootflow_AbstergoIntro",
+                                       L"ACI_Panel_Red_IMG_UI",
+                                       L"ACI_Panel_Gen_IMG_UI" } )
           {
-            SK_ACS_ApplyFrameGenOverride (false);
+            file_is_exempt =
+              StrStrIW (lpFileName, exempt_substr);
 
-            SK_LOGi0 (
-              L"Temporarily disabling Frame Generation because video '%ws' was opened...",
-                lpFileName
-            );
+            if (file_is_exempt)
+              break;
+          }
+
+          if (! file_is_exempt)
+          {
+            LastFMVHandle = hFile;
+
+            if (__SK_ACS_AlwaysUseFrameGen)
+            {
+              WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
+              SK_ACS_ApplyFrameGenOverride (false);
+
+              SK_LOGi0 (
+                L"Temporarily disabling Frame Generation because video '%ws' was opened...",
+                  lpFileName
+              );
+            }
           }
         }
       });
 
       void* const limit_store_addr =
         (uint8_t *)img_base_addr+0xF7B0C1;
-  
+
       DWORD                                                             dwOrigProt = 0x0;
       if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
       {
-#if 1
         if (__SK_ACS_UncapFramerate)
         {
           ////memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
@@ -2120,7 +2144,7 @@ SK_ACS_InitPlugin (void)
 
           void* const     limit_check_addr =
           (uint8_t *)img_base_addr+0xF7B0D3;
-          
+
           VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
           memcpy         (limit_check_addr, "\x90\x90", 2);
           VirtualProtect (limit_check_addr, 2, dwOrigProt,
@@ -2128,13 +2152,12 @@ SK_ACS_InitPlugin (void)
   
           //void* const     limit_alt_addr =
           //(uint8_t *)img_base_addr+0x178AD29;
-          
+
           ////VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
           ////memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
           ////VirtualProtect (limit_alt_addr, 10, dwOrigProt,
           ////                                   &dwOrigProt);
         }
-#endif
 
         config.system.silent_crash = true;
         config.utility.save_async ();
@@ -2144,17 +2167,44 @@ SK_ACS_InitPlugin (void)
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
-          // 15.0 second grace period after an FMV is read to reset frame generation
-          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 15000UL)
+          // 7.5 second grace period after an FMV is read to reset frame generation
+          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
           {
+            if (SK_ImGui_Active ())
+            {
+              if (                            __SK_ACS_AlwaysUseFrameGen) {
+                SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+                WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
+              }
+            }
+
+            else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0)
+            {
+              SK_ImGui_CreateNotification (
+                "ACShadows.FMVDecay", SK_ImGui_Toast::Other, "FMV Still Active?", nullptr, INFINITE,
+                                      SK_ImGui_Toast::UseDuration  |
+                                      SK_ImGui_Toast::ShowCaption  |
+                                      SK_ImGui_Toast::ShowNewest   |
+                                      SK_ImGui_Toast::Unsilencable |
+                                      SK_ImGui_Toast::DoNotSaveINI );
+            }
+
             if (__SK_ACS_UncapFramerate)
             {
               // -1.0f = Unlimited
               *framerate_limit = -1.0f;
             }
+          }
 
-            if (                            __SK_ACS_AlwaysUseFrameGen)
-              SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+          else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0)
+          {
+            SK_ImGui_CreateNotification (
+              "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Detected", nullptr, INFINITE,
+                                    SK_ImGui_Toast::UseDuration  |
+                                    SK_ImGui_Toast::ShowCaption  |
+                                    SK_ImGui_Toast::ShowNewest   |
+                                    SK_ImGui_Toast::Unsilencable |
+                                    SK_ImGui_Toast::DoNotSaveINI );
           }
 
           if (__SK_IsDLSSGActive)
