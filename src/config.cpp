@@ -3391,6 +3391,8 @@ auto DeclKeybind =
                                                    =     2;
         config.nvidia.reflex.low_latency           =  true;
         config.nvidia.reflex.low_latency_boost     =  true;
+        config.nvidia.reflex.enable                =  true;
+        config.nvidia.reflex.override              =  true;
         //// This is permissable if native pacing is enabled.
         config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
