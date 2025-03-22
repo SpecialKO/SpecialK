@@ -1,4 +1,8 @@
-﻿25.3.22.1
+﻿25.3.22.2
+=========
+ + Default Reflex Low Latency mode to on in AC Shadows.
+
+25.3.22.1
 =========
  + Prevent non-monotonic Reflex frame IDs in AC Shadows when fuzzing frame
      generation markers.
