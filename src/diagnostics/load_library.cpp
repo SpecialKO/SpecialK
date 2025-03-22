@@ -1971,7 +1971,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
             FILE* fRTSSGlobalConfig = _wfopen (wszPathToRTSS, L"r");
             if ( fRTSSGlobalConfig != nullptr )
             {
-              auto size =
+              auto size = (size_t)
                 SK_File_GetSize (wszPathToRTSS);
 
               auto        rtss_global_config = 
