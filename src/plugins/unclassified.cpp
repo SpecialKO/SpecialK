@@ -1849,14 +1849,6 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, const sl::D
     }
   }
 
-  if (__SK_ACS_AlwaysUseFrameGen)
-  {
-    options.numFramesToGenerate =
-      std::max (1U, options.numFramesToGenerate);
-    options.mode =
-      sl::DLSSGMode::eOn;
-  }
-
   auto ret =
     slDLSSGSetOptions_ACS_Original (viewport, options);
 
@@ -2108,7 +2100,7 @@ SK_ACS_InitPlugin (void)
           {
             file_is_exempt =
               StrStrIW (lpFileName, exempt_substr);
-
+          
             if (file_is_exempt)
               break;
           }
@@ -2139,9 +2131,9 @@ SK_ACS_InitPlugin (void)
       {
         if (__SK_ACS_UncapFramerate)
         {
-          ////memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-          ////VirtualProtect (limit_store_addr, 8, dwOrigProt,
-          ////                                    &dwOrigProt);
+          memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+          VirtualProtect (limit_store_addr, 8, dwOrigProt,
+                                              &dwOrigProt);
 
           void* const     limit_check_addr =
           (uint8_t *)img_base_addr+0xF7B0D3;
@@ -2151,13 +2143,13 @@ SK_ACS_InitPlugin (void)
           VirtualProtect (limit_check_addr, 2, dwOrigProt,
                                               &dwOrigProt);
   
-          //void* const     limit_alt_addr =
-          //(uint8_t *)img_base_addr+0x178AD29;
+          void* const     limit_alt_addr =
+          (uint8_t *)img_base_addr+0x178AD29;
 
-          ////VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-          ////memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
-          ////VirtualProtect (limit_alt_addr, 10, dwOrigProt,
-          ////                                   &dwOrigProt);
+          VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+          memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
+          VirtualProtect (limit_alt_addr, 10, dwOrigProt,
+                                             &dwOrigProt);
         }
 
         config.system.silent_crash = true;

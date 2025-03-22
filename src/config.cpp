@@ -3395,7 +3395,6 @@ auto DeclKeybind =
         config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
         config.nvidia.dlss.disable_ota_updates     =  true;
-        config.nvidia.dlss.compat.override_appid   =  0x24480451;
 
         // Delay the application of framerate patch in case other mods are
         //   doing the same thing...

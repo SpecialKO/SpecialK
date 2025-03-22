@@ -1,4 +1,9 @@
-﻿25.3.22
+﻿25.3.22.1
+=========
+ + Prevent non-monotonic Reflex frame IDs in AC Shadows when fuzzing frame
+     generation markers.
+
+25.3.22
 =======
  + Disabled DLSS/Streamline Over-the-Air Updates in AC Shadows
    * Reset config if you were having trouble getting the game to show DLSS

@@ -385,8 +385,13 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                   L"  Reflex  " );
     }
 
-    SK_Reflex_LastNativeMarkerFrame =
-      SK_GetFramesDrawn ();
+    // Prevent non-monotonic frame counts in AC Shadows,
+    //   this might be a problem with Nixxes games too...
+    if (! SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+    {
+      SK_Reflex_LastNativeMarkerFrame =
+        SK_GetFramesDrawn ();
+    }
   }
 
   if (pSetLatencyMarkerParams != nullptr)

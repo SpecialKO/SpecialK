@@ -3366,7 +3366,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     //
     // Pending removal of this feature altogether, rather than complicating it with these conditions
     //
-#define SK_REMOVE_DEPRECATED
 #ifndef SK_REMOVE_DEPRECATED
     if ((! __SK_IsDLSSGActive) && ((! config.render.framerate.streamline.enable_native_limit) || (! __SK_HasDLSSGStatusSupport)))
     {
