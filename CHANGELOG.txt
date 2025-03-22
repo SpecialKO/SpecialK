@@ -1,4 +1,9 @@
-﻿25.3.21.11
+﻿25.3.22
+=======
+ + Disabled DLSS/Streamline Over-the-Air Updates in AC Shadows
+   * Reset config if you were having trouble getting the game to show DLSS
+
+25.3.21.11
 ==========
  + Added system to re-enable realtime cutscene frame generation when user
      determines FMV playback is finished...

@@ -1940,7 +1940,7 @@ SK_ACS_PlugInCfg (void)
     bool always_use_framegen =
       __SK_ACS_AlwaysUseFrameGen;
 
-    if (ImGui::Checkbox ("Always Use Frame Generation",
+    if (ImGui::Checkbox ("Allow Cutscene Frame Generation",
                                           &__SK_ACS_AlwaysUseFrameGen))
     { if (SK_ACS_ApplyFrameGenOverride    (__SK_ACS_AlwaysUseFrameGen) != always_use_framegen)
       {  _SK_ACS_AlwaysUseFrameGen->store (__SK_ACS_AlwaysUseFrameGen);
