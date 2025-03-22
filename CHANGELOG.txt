@@ -1,4 +1,8 @@
-﻿25.3.22.5
+﻿25.3.22.6
+=========
+ + Rephrase ReShade DLSSG incompatibility warning for AC Shadows.
+
+25.3.22.5
 =========
  + Added error message if RTSS is enabled, but 'Detours API Hooking' is not.
 

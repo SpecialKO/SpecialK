@@ -2181,7 +2181,12 @@ SK_ACS_InitPlugin (void)
                                        SK_ImGui_Toast::Error,
               "ReShade is incompatible with DLSS Frame Generation in this game"
               "\r\n\r\n\t"
-              "Please use AMD FSR Frame Generation, or load ReShade as a 'Compatibility Mode' Plug-In instead",
+              "Please use AMD FSR Frame Generation, or load ReShade as a 'Compatibility Mode' Plug-In instead"
+              "\r\n\r\n"
+              "If you understand that ReShade will not work correctly, but wish to ignore the advice above:\r\n\r\n"
+              "   1. Open the Add-ons tab of ReShade's overlay\r\n"
+              "   2. Uncheck \"Special K\"\r\n"
+              "   3. Restart the game",
                                   "ReShade Incompatibility", INFINITE,
                                        SK_ImGui_Toast::UseDuration  |
                                        SK_ImGui_Toast::ShowCaption  |
