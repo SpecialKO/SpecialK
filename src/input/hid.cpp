@@ -1335,6 +1335,14 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 
   const bool bSuccess = LONG_PTR (hRet) > 0;
 
+  if (bSuccess)
+  {
+    for ( auto callback : plugin_mgr->open_file_a_fns )
+    {
+      callback (lpFileName, hRet);
+    }
+  }
+
   // Examine all UNC paths closely, some of these files are
   //   input devices in disguise...
   if ( bSuccess && SK_StrSupA (lpFileName, R"(\\)", 2) )
