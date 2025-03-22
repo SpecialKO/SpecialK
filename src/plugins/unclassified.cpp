@@ -2070,6 +2070,19 @@ SK_ACS_InitPlugin (void)
       if (                            __SK_ACS_AlwaysUseFrameGen)
         SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
 
+      static const bool is_fg_capable =
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
+
+      // Pull out the trump card and eliminate flaky NGX feature support queries, by
+      // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
+      // installed.
+      if (is_fg_capable)
+      {
+        config.nvidia.dlss.spoof_support = true;
+      }
+
       SK_SaveConfig ();
 
       // Fail-safe incase any code that sets this was missed

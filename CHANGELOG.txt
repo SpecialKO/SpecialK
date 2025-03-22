@@ -1,4 +1,20 @@
-﻿25.3.22.3
+﻿25.3.22.4
+=========
+ + Force NVSDK_NGX_D3D12_GetFeatureRequirements (...) to succeed for all
+     RTX 4xxx and newer GPUs in AC Shadows.
+
+    -> A one-time game restart may be necessary to write the following to INI:
+
+       [NVIDIA.DLSS]
+       SpoofFeatureSupport=true
+
+    This should fix DLSS options missing from in-game settings, RTX 2xxx/3xxx
+      users are NOT opted-in automatically because they have not been tested.
+
+    If you have an older RTX GPU and are missing non-framegen DLSS options,
+      manually setting the INI value above may fix it for you.
+
+25.3.22.3
 =========
  + Add error message if attempting to use ReShade with DLSS Frame Generation
      in AC Shadows, since ReShade does not support Ubisoft's broken DLSS4
