@@ -2,6 +2,8 @@
 =========
  + Prevent non-monotonic Reflex frame IDs in AC Shadows when fuzzing frame
      generation markers.
+ + Revert to disabling screen tearing when Flip Metering is enabled and
+     DLSS frame generation is active (on VRR capable displays).
 
 25.3.22
 =======
