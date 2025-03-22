@@ -1861,6 +1861,7 @@ void*         __SK_ACS_FrameGenTestAddr         = nullptr;
 static          DWORD  LastTimeFMVChecked     = 0;
 static          HANDLE LastFMVHandle          = 0;
 static volatile ULONG  FrameGenDisabledForFMV = FALSE;
+static bool*          pFrameGenEnabled        = nullptr;
 
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
@@ -1899,7 +1900,7 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
     DWORD                                                                      dwOrigProt = 0x0;
     if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
     {
-      bool* pFrameGenEnabled =
+      pFrameGenEnabled =
         *(bool **)(base_addr + 0x0B0AF3C8) + 0x24;
 
       memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
@@ -2131,9 +2132,9 @@ SK_ACS_InitPlugin (void)
       {
         if (__SK_ACS_UncapFramerate)
         {
-          memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-          VirtualProtect (limit_store_addr, 8, dwOrigProt,
-                                              &dwOrigProt);
+          ////memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+          ////VirtualProtect (limit_store_addr, 8, dwOrigProt,
+          ////                                    &dwOrigProt);
 
           void* const     limit_check_addr =
           (uint8_t *)img_base_addr+0xF7B0D3;
@@ -2143,13 +2144,13 @@ SK_ACS_InitPlugin (void)
           VirtualProtect (limit_check_addr, 2, dwOrigProt,
                                               &dwOrigProt);
   
-          void* const     limit_alt_addr =
-          (uint8_t *)img_base_addr+0x178AD29;
-
-          VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-          memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
-          VirtualProtect (limit_alt_addr, 10, dwOrigProt,
-                                             &dwOrigProt);
+          ////void* const     limit_alt_addr =
+          ////(uint8_t *)img_base_addr+0x178AD29;
+          ////
+          ////VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+          ////memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
+          ////VirtualProtect (limit_alt_addr, 10, dwOrigProt,
+          ////                                   &dwOrigProt);
         }
 
         config.system.silent_crash = true;
@@ -2171,7 +2172,7 @@ SK_ACS_InitPlugin (void)
               }
             }
 
-            else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0)
+            else if (__SK_ACS_AlwaysUseFrameGen && (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false)))
             {
               SK_ImGui_CreateNotification (
                 "ACShadows.FMVDecay", SK_ImGui_Toast::Other, "FMV Still Active?", nullptr, INFINITE,
@@ -2189,7 +2190,7 @@ SK_ACS_InitPlugin (void)
             }
           }
 
-          else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0)
+          else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
           {
             SK_ImGui_CreateNotification (
               "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Detected", nullptr, INFINITE,
