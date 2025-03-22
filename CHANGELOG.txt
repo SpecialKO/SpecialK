@@ -1,4 +1,10 @@
-﻿25.3.22.2
+﻿25.3.22.3
+=========
+ + Add error message if attempting to use ReShade with DLSS Frame Generation
+     in AC Shadows, since ReShade does not support Ubisoft's broken DLSS4
+       integration.
+
+25.3.22.2
 =========
  + Default Reflex Low Latency mode to on in AC Shadows.
 

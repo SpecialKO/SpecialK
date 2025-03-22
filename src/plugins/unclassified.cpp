@@ -2161,6 +2161,26 @@ SK_ACS_InitPlugin (void)
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
+          static bool         warned_about_reshade = false;
+          if (__SK_IsDLSSGActive && config.reshade.is_addon)
+          {
+            SK_ImGui_CreateNotification ( "ACShadows.ReShadeFG",
+                                       SK_ImGui_Toast::Error,
+              "ReShade is incompatible with DLSS Frame Generation in this game"
+              "\r\n\r\n\t"
+              "Please use AMD FSR Frame Generation instead",
+                                  "ReShade Incompatibility", INFINITE,
+                                       SK_ImGui_Toast::UseDuration  |
+                                       SK_ImGui_Toast::ShowCaption  |
+                                       SK_ImGui_Toast::ShowNewest   |
+                                       SK_ImGui_Toast::Unsilencable |
+                                       SK_ImGui_Toast::DoNotSaveINI );
+                     warned_about_reshade = true;
+          } else if (warned_about_reshade)
+          {
+            SK_ImGui_DismissNotification ("ACShadows.ReShadeFG");
+          }
+
           // 7.5 second grace period after an FMV is read to reset frame generation
           if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
           {
