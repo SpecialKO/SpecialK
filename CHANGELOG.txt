@@ -1,4 +1,9 @@
-﻿25.3.22.6
+﻿25.3.23
+=======
+ + Improved ReShade support in Assassin's Creed Shadows.
+ + Removed 2x, 3x, 4x frame gen options from control panel for AC Shadows.
+
+25.3.22.6
 =========
  + Rephrase ReShade DLSSG incompatibility warning for AC Shadows.
 

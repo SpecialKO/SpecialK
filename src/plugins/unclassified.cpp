@@ -1956,6 +1956,7 @@ SK_ACS_PlugInCfg (void)
 
     if (__SK_HasDLSSGStatusSupport)
     {
+#if 0
       static bool is_mfg_capable =
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
@@ -1975,6 +1976,7 @@ SK_ACS_PlugInCfg (void)
           _SK_ACS_DLSSG_MultiFrameCount->store (__SK_ACS_DLSSG_MultiFrameCount);
         }
       }
+#endif
 
       if (ImGui::Checkbox ("Allow DLSS Flip Metering", &config.nvidia.dlss.allow_flip_metering))
       {
@@ -2174,31 +2176,6 @@ SK_ACS_InitPlugin (void)
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
-          static bool          warned_about_reshade = false;
-          if (__SK_IsDLSSGActive && (config.reshade.is_addon && (! config.reshade.is_addon_hookless)))
-          {
-            SK_ImGui_CreateNotification ( "ACShadows.ReShadeFG",
-                                       SK_ImGui_Toast::Error,
-              "ReShade is incompatible with DLSS Frame Generation in this game"
-              "\r\n\r\n\t"
-              "Please use AMD FSR Frame Generation, or load ReShade as a 'Compatibility Mode' Plug-In instead"
-              "\r\n\r\n"
-              "If you understand that ReShade will not work correctly, but wish to ignore the advice above:\r\n\r\n"
-              "   1. Open the Add-ons tab of ReShade's overlay\r\n"
-              "   2. Uncheck \"Special K\"\r\n"
-              "   3. Restart the game",
-                                  "ReShade Incompatibility", INFINITE,
-                                       SK_ImGui_Toast::UseDuration  |
-                                       SK_ImGui_Toast::ShowCaption  |
-                                       SK_ImGui_Toast::ShowNewest   |
-                                       SK_ImGui_Toast::Unsilencable |
-                                       SK_ImGui_Toast::DoNotSaveINI );
-                     warned_about_reshade = true;
-          } else if (warned_about_reshade)
-          {
-            SK_ImGui_DismissNotification ("ACShadows.ReShadeFG");
-          }
-
           // 7.5 second grace period after an FMV is read to reset frame generation
           if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
           {
@@ -2239,33 +2216,33 @@ SK_ACS_InitPlugin (void)
                                     SK_ImGui_Toast::DoNotSaveINI );
           }
 
-          if (__SK_IsDLSSGActive)
-          {
-            static HMODULE
-                hModSLDLSSG  = (HMODULE)-1;
-            if (hModSLDLSSG == (HMODULE)-1)GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.dlss_g.dll",
-               &hModSLDLSSG);
-
-            if (hModSLDLSSG != nullptr)
-            {
-              SK_RunOnce (
-                slGetPluginFunction_pfn
-                slGetPluginFunction =
-               (slGetPluginFunction_pfn)SK_GetProcAddress (hModSLDLSSG,
-               "slGetPluginFunction");
-
-                slDLSSGSetOptions_pfn                       slDLSSGSetOptions =
-               (slDLSSGSetOptions_pfn)slGetPluginFunction ("slDLSSGSetOptions");
-
-                SK_CreateFuncHook   (     L"slDLSSGSetOptions",
-                                            slDLSSGSetOptions,
-                                     SK_ACS_slDLSSGSetOptions_Detour,
-                   static_cast_p2p <void> (&slDLSSGSetOptions_ACS_Original) );
-                MH_QueueEnableHook  (       slDLSSGSetOptions               );
-                SK_ApplyQueuedHooks (                                       );
-              );
-            }
-          }
+          ///if (__SK_IsDLSSGActive)
+          ///{
+          ///  static HMODULE
+          ///      hModSLDLSSG  = (HMODULE)-1;
+          ///  if (hModSLDLSSG == (HMODULE)-1)GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.dlss_g.dll",
+          ///     &hModSLDLSSG);
+          ///
+          ///  if (hModSLDLSSG != nullptr)
+          ///  {
+          ///    SK_RunOnce (
+          ///      slGetPluginFunction_pfn
+          ///      slGetPluginFunction =
+          ///     (slGetPluginFunction_pfn)SK_GetProcAddress (hModSLDLSSG,
+          ///     "slGetPluginFunction");
+          ///
+          ///      slDLSSGSetOptions_pfn                       slDLSSGSetOptions =
+          ///     (slDLSSGSetOptions_pfn)slGetPluginFunction ("slDLSSGSetOptions");
+          ///
+          ///      SK_CreateFuncHook   (     L"slDLSSGSetOptions",
+          ///                                  slDLSSGSetOptions,
+          ///                           SK_ACS_slDLSSGSetOptions_Detour,
+          ///         static_cast_p2p <void> (&slDLSSGSetOptions_ACS_Original) );
+          ///      MH_QueueEnableHook  (       slDLSSGSetOptions               );
+          ///      SK_ApplyQueuedHooks (                                       );
+          ///    );
+          ///  }
+          ///}
         });
       }
     }
