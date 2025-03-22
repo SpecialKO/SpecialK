@@ -1910,7 +1910,8 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
       bool* pFrameGenEnabled =
         *(bool **)(base_addr + 0x0B0AF3C8) + 0x24;
 
-      memcpy           (__SK_ACS_FrameGenTestAddr, (unsigned char *)"\x90\x90\x90\x90", 4);
+      memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
+                                                          : __SK_ACS_OriginalFrameGenCode, 4);
       VirtualProtect   (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
                                                       &dwOrigProt);
 
