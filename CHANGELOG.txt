@@ -1,4 +1,8 @@
-﻿25.3.22.4
+﻿25.3.22.5
+=========
+ + Added error message if RTSS is enabled, but 'Detours API Hooking' is not.
+
+25.3.22.4
 =========
  + Force NVSDK_NGX_D3D12_GetFeatureRequirements (...) to succeed for all
      RTX 4xxx and newer GPUs in AC Shadows.
