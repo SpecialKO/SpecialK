@@ -1958,6 +1958,42 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
                                         pLogger );
 
 
+        if (StrStrIW (wszModName, L"RTSSHooks"))
+        SK_RunOnce
+        ({
+          wchar_t    wszPathToRTSS [MAX_PATH + 2] = {};
+          wcsncpy_s (wszPathToRTSS, MAX_PATH, wszModName, _TRUNCATE);
+
+          PathRemoveFileSpecW (wszPathToRTSS);
+          PathAppendW         (wszPathToRTSS, LR"(Profiles\Global)");
+          if (PathFileExistsW (wszPathToRTSS))
+          {
+            FILE* fRTSSGlobalConfig = _wfopen (wszPathToRTSS, L"r");
+            if ( fRTSSGlobalConfig != nullptr )
+            {
+              auto size =
+                SK_File_GetSize (wszPathToRTSS);
+
+              auto        rtss_global_config = 
+                         std::make_unique <char []> (size + 1);
+              ZeroMemory (rtss_global_config.get (), size + 1);
+              fread      (rtss_global_config.get (), size,  1, fRTSSGlobalConfig);
+              fclose     (                                     fRTSSGlobalConfig);
+
+              if (StrStrA (rtss_global_config.get (), "UseDetours=0"))
+              {
+                SK_MessageBox (
+                  L"RivaTuner Statistics Server is Misconfigured!"
+                  L"\r\n\r\nPlease enable 'Microsoft Detours API Hooking'",
+                  L"Special K Has Detected a Serious Software Incompatibility",
+                    MB_OK | MB_ICONSTOP
+                );
+              }
+            }
+          }
+        });
+
+
         if (SK_LoadLibrary_IsPinnable (wszModName))
              SK_LoadLibrary_PinModule (wszModName);
 

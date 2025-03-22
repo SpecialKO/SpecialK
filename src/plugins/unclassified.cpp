@@ -2041,7 +2041,7 @@ SK_ACS_InitPlugin (void)
       SK_Debug_GetImageBaseAddr ();
 
     bool unlimited = false;
-  
+
     void* const limit_load_addr =
       (uint8_t *)img_base_addr+0xF7B0BA;
   
@@ -2114,7 +2114,7 @@ SK_ACS_InitPlugin (void)
           {
             file_is_exempt =
               StrStrIW (lpFileName, exempt_substr);
-          
+
             if (file_is_exempt)
               break;
           }
@@ -2168,9 +2168,9 @@ SK_ACS_InitPlugin (void)
 
         config.system.silent_crash = true;
         config.utility.save_async ();
-  
+
         unlimited = true;
-  
+
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
@@ -2264,14 +2264,14 @@ SK_ACS_InitPlugin (void)
         });
       }
     }
-  
+
     if (! unlimited)
     {
       SK_ImGui_Warning (L"Cutscene / Menu Framerate Limiter Bypass Unsupported");
     }
-  
+
     SK_Thread_CloseSelf ();
-  
+
     return 0;
   });
 }

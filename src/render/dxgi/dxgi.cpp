@@ -2490,13 +2490,18 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
       NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev);
       NvAPI_D3D_Sleep_Detour (rb.device.p);
 
-      extern NvU64 SK_Reflex_LastNativeFramePresented;
+      extern NvU64                    SK_Reflex_LastNativeFramePresented;
+      static NvU64 monotonicFrameID = SK_Reflex_LastNativeFramePresented;
+                   monotonicFrameID =
+         std::max (monotonicFrameID+1,SK_Reflex_LastNativeFramePresented+1);
+                                      SK_Reflex_LastNativeFramePresented =
+         std::max (monotonicFrameID,  SK_Reflex_LastNativeFramePresented);
 
       NV_LATENCY_MARKER_PARAMS
       markerParams            = {                          };
       markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
       markerParams.markerType = SIMULATION_START;
-      markerParams.frameID    = SK_Reflex_LastNativeFramePresented+1;
+      markerParams.frameID    = monotonicFrameID;
 
       NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
                                                        markerParams.markerType = INPUT_SAMPLE;
@@ -2506,6 +2511,10 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
                                                        markerParams.markerType = RENDERSUBMIT_START;
       NvAPI_D3D_SetLatencyMarker_Detour (rb.device.p, &markerParams);
                                                        markerParams.markerType = RENDERSUBMIT_END;
+
+      extern NV_LATENCY_MARKER_PARAMS
+        SK_Reflex_LastLatencyMarkerParams;
+        SK_Reflex_LastLatencyMarkerParams.frameID = markerParams.frameID;
     }
   }
 
