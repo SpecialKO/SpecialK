@@ -78,6 +78,9 @@ void SK_Input_PreInit      (void);
 void SK_Input_Init         (void);
 void SK_Input_InitKeyboard (void);
 
+bool SK_Input_IsGameUsingLowLevelKeyboardHooks (void);
+bool SK_Input_IsGameUsingLowLevelMouseHooks    (void);
+
 
 void SK_Input_ReleaseCommonStuckKeys (void) noexcept;
 void SK_Input_SetLatencyMarker       (void) noexcept;

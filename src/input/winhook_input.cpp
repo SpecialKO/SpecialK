@@ -42,6 +42,10 @@ public:
 
   concurrency::concurrent_unordered_map <
     UINT64, std::pair <HOOKPROC, HHOOK> > keyboard;
+
+  // Indicates SK has seen the game has installed a low-level hook
+  bool low_level_mouse    = false;
+  bool low_level_keyboard = false;
 } __hooks;
 
 static POINTS last_pos;
@@ -756,6 +760,9 @@ SetWindowsHookExW_Detour (
   if (hook != nullptr)
     *hook = ret;
 
+  if (ret != 0 && idHook == WH_KEYBOARD_LL) __hooks.low_level_keyboard = true;
+  if (ret != 0 && idHook == WH_MOUSE_LL)    __hooks.low_level_mouse    = true;
+
   return ret;
 }
 
@@ -879,6 +886,9 @@ SetWindowsHookExA_Detour (
   if (hook != nullptr)
     *hook = ret;
 
+  if (ret != 0 && idHook == WH_KEYBOARD_LL) __hooks.low_level_keyboard = true;
+  if (ret != 0 && idHook == WH_MOUSE_LL)    __hooks.low_level_mouse    = true;
+
   return ret;
 }
 
@@ -902,4 +912,16 @@ SK_Input_PreHookWinHook (void)
                                UnhookWindowsHookEx_Detour,
       static_cast_p2p <void> (&UnhookWindowsHookEx_Original) );
   });
+}
+
+bool
+SK_Input_IsGameUsingLowLevelMouseHooks (void)
+{
+  return __hooks.low_level_mouse;
+}
+
+bool
+SK_Input_IsGameUsingLowLevelKeyboardHooks (void)
+{
+  return __hooks.low_level_keyboard;
 }
