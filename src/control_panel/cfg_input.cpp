@@ -868,7 +868,10 @@ SK::ControlPanel::Input::Draw (void)
         config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
 
         // Install potentially necessary hooks
-        __SKX_WinHook_InstallInputHooks (game_window.hWnd);
+        if (config.input.keyboard.needsLowLevelKeyboardHook ())
+          SK_Input_InstallLowLevelKeyboardHook ();
+        else
+          SK_Input_UninstallLowLevelKeyboardHook ();
 
         config.utility.save_async ();
       }

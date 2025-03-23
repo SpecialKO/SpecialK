@@ -940,7 +940,9 @@ SK_Input_UninstallLowLevelKeyboardHook (void)
   if (config.compatibility.disallow_ll_keyhook)
     return true;
 
-  if (SK_hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (SK_hHookLowLevelKeyboard)) {
+  UnhookWindowsHookEx_pfn _UnhookWindowsHookEx = UnhookWindowsHookEx_Original;
+
+  if (SK_hHookLowLevelKeyboard != 0 && _UnhookWindowsHookEx != nullptr && _UnhookWindowsHookEx (SK_hHookLowLevelKeyboard)) {
       SK_hHookLowLevelKeyboard  = 0;
 
     SK_LOGi0 (L"Uninstalled Low-Level Keyboard Hook");
@@ -959,22 +961,22 @@ SK_Input_InstallLowLevelKeyboardHook (void)
 
   SetWindowsHookEx_pfn _SetWindowsHookEx = SetWindowsHookExW_Original;
 
-  if (!(SK_IsProcessRunning (L"AutoHotkey64.exe")||
-        SK_IsProcessRunning (L"AutoHotkey32.exe")||
-        SK_IsProcessRunning (L"AutoHotkeyUX.exe")))
+  if (config.input.keyboard.needsLowLevelKeyboardHook ())
   {
-    if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
+    if (!(SK_IsProcessRunning (L"AutoHotkey64.exe")||
+          SK_IsProcessRunning (L"AutoHotkey32.exe")||
+          SK_IsProcessRunning (L"AutoHotkeyUX.exe")))
     {
-      if (config.input.keyboard.needsLowLevelKeyboardHook ())
+      if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
       {
         SK_LOGi0 (L"Installing Low-Level Keyboard Hook...");
-  
+    
         SK_hHookLowLevelKeyboard =
-          SetWindowsHookExW_Original (
+          _SetWindowsHookEx (
             WH_KEYBOARD_LL, SK_Input_LowLevelKeyboardProc,
                 GetModuleHandle (nullptr), 0
                             );
-  
+    
         if (! SK_hHookLowLevelKeyboard)
         {
           SK_LOGi0 (L"Low-Level Keyboard Hook Failed... Error=%x", GetLastError ());
@@ -984,11 +986,11 @@ SK_Input_InstallLowLevelKeyboardHook (void)
         return true;
       }
     }
-  }
-  
-  else
-  {
-    SK_LOGi0 (L"Low-Level Keyboard Hooks Not Supported Because AutoHotkey!");
+
+    else
+    {
+      SK_LOGi0 (L"Low-Level Keyboard Hooks Not Supported Because AutoHotkey!");
+    }
   }
 
   return false;
