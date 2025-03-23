@@ -5566,9 +5566,8 @@ SK_DetourWindowProc2 ( _In_  HWND   hWnd,
 
 float g_fDPIScale = 1.0f;
 
-static HHOOK    hHookKeyboard         = 0;
-static HHOOK    hHookMouse            = 0;
-       HHOOK SK_hHookLowLevelKeyboard = 0;
+static HHOOK hHookKeyboard = 0;
+static HHOOK hHookMouse    = 0;
 
 bool
 __SKX_WinHook_InstallInputHooks (HWND hWnd)
@@ -5578,9 +5577,6 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 
   if (hHookKeyboard != 0 && UnhookWindowsHookEx_Original (hHookKeyboard))
       hHookKeyboard  = 0;
-
-  if (SK_hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (SK_hHookLowLevelKeyboard))
-      SK_hHookLowLevelKeyboard  = 0;
 
   if (hHookMouse != 0 && UnhookWindowsHookEx_Original (hHookMouse))
       hHookMouse  = 0;
@@ -5595,7 +5591,6 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 
     if (hHookKeyboard == 0 && _SetWindowsHookEx != nullptr)
     {
-      
       hHookKeyboard =
         _SetWindowsHookEx (
           WH_KEYBOARD, SK_ImGui_KeyboardProc,
@@ -5603,24 +5598,7 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
                           );
     }
 
-    if (!(SK_IsProcessRunning (L"AutoHotkey64.exe")||
-          SK_IsProcessRunning (L"AutoHotkey32.exe")||
-          SK_IsProcessRunning (L"AutoHotkeyUX.exe")))
-    {
-      if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
-      {
-        SK_hHookLowLevelKeyboard =
-          SetWindowsHookExW_Original (
-            WH_KEYBOARD_LL, SK_Input_LowLevelKeyboardProc,
-                GetModuleHandle (nullptr), 0
-                            );
-      }
-    }
-
-    else
-    {
-      SK_LOGi0 (L"Low-Level Keyboard Hooks Not Supported Because AutoHotkey!");
-    }
+    SK_Input_InstallLowLevelKeyboardHook ();
 
     if (hHookMouse == 0 && _SetWindowsHookEx != nullptr)
     {
@@ -5633,13 +5611,6 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
   }
 
   return true;
-}
-
-void
-__SKX_WinHook_UninstallLowLevelHooks (void)
-{
-  if (SK_hHookLowLevelKeyboard != 0 && UnhookWindowsHookEx_Original (SK_hHookLowLevelKeyboard))
-      SK_hHookLowLevelKeyboard  = 0;
 }
 
 

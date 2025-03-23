@@ -41,8 +41,6 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
 extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 
-extern HHOOK SK_hHookLowLevelKeyboard;
-
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats;
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats_filtered;
 
@@ -804,7 +802,7 @@ SK::ControlPanel::Input::Draw (void)
     bool bKeyboard = !config.compatibility.disallow_ll_keyhook &&
       ImGui::CollapsingHeader ("Keyboard");
 
-    if (bKeyboard && SK_hHookLowLevelKeyboard != 0)
+    if (bKeyboard && (config.input.keyboard.needsLowLevelKeyboardHook () == false || SK_Input_HasInstalledLowLevelKeyboardHook ()))
     {
       ImGui::TreePush       ("");
       ImGui::SeparatorText  ("Special Keys");
@@ -868,6 +866,9 @@ SK::ControlPanel::Input::Draw (void)
       {
         config.input.keyboard.enable_win_key = enable_win_key - 1;
         config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
+
+        // Install potentially necessary hooks
+        __SKX_WinHook_InstallInputHooks (game_window.hWnd);
 
         config.utility.save_async ();
       }

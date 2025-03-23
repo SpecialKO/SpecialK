@@ -274,7 +274,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         hWndLast  = 0;
     if (hWndLast != lpMsg->hwnd)
     {
-
           __SKX_WinHook_InstallInputHooks (nullptr);
       if (__SKX_WinHook_InstallInputHooks (lpMsg->hwnd))
                                 hWndLast = lpMsg->hwnd;

@@ -4170,11 +4170,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   // If we left a low-level keyboard hook active while debugging, it would
   //   cause the entire system to sporadically respond to input.
-  if (SK_IsDebuggerPresent () || config.compatibility.disallow_ll_keyhook)
+  if (SK_Input_HasInstalledLowLevelKeyboardHook () && (SK_IsDebuggerPresent () || config.compatibility.disallow_ll_keyhook))
   {
-    extern void
-    __SKX_WinHook_UninstallLowLevelHooks (void);
-    __SKX_WinHook_UninstallLowLevelHooks ();
+    SK_Input_UninstallLowLevelKeyboardHook ();
   }
 
   // Invoke any plug-in's frame end callback

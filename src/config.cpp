@@ -8814,3 +8814,10 @@ iSK_INI* SK_GetNotifyINI (void)
 
 SK_LazyGlobal <sk_config_t::file_trace_s::ignore_files_s> sk_config_t::file_trace_s::ignore_reads;
 SK_LazyGlobal <sk_config_t::file_trace_s::ignore_files_s> sk_config_t::file_trace_s::ignore_writes;
+
+bool
+sk_config_t::input_s::keyboard_s::needsLowLevelKeyboardHook (void)
+{
+  return
+    alt_tab_adhd_pace > 0 || enable_win_key != SK_NoPreference || (enable_alt_tab != SK_NoPreference && SK_Input_IsGameUsingLowLevelKeyboardHooks ());
+}

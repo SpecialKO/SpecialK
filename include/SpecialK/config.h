@@ -1222,6 +1222,7 @@ struct sk_config_t
     } gamepad;
 
     struct keyboard_s {
+      bool    needsLowLevelKeyboardHook (void);
       bool    block_windows_key   = false;
       bool    catch_alt_f4        =  true;
       bool    override_alt_f4     = false; // For games that have prompts (i.e. DQ XI / Yakuza)
