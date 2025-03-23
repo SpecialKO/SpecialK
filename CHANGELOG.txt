@@ -1,4 +1,9 @@
-﻿25.3.23
+﻿25.3.23.1
+=========
+ + Disable SteamAPI integration in newer (D3D12) Unity Engine games.
+ + Only install Low-Level Keyboard Hooks if user configuration requires them.
+
+25.3.23
 =======
  + Improved ReShade support in Assassin's Creed Shadows.
  + Removed 2x, 3x, 4x frame gen options from control panel for AC Shadows.

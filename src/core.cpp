@@ -3804,24 +3804,41 @@ SK_BackgroundRender_EndFrame (void)
   if (            first_frame ||
        (background_last_frame != config.window.background_render) )
   {
-    if (PathFileExistsW (L"REFramework.dll"))
-           LoadLibraryW (L"REFramework.dll");
-
-    if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
+    if (std::exchange (first_frame, false))
     {
-      config.input.gamepad.xinput.emulate   = false;
-      config.nvidia.reflex.enforcement_site = 0; // Reduce sutter
-    }
+      if (PathFileExistsW (L"REFramework.dll"))
+             LoadLibraryW (L"REFramework.dll");
 
-    if (first_frame && ( SK_GetModuleHandleW (L"SDL2.dll") ||
-                         SK_GetModuleHandleW (L"SDL3.dll")) )
-    {
-      // A few games change the window class name from the default...
-      //   assume that the game uses SDL if one of its DLLs are loaded.
-      SK_GetCurrentRenderBackend ().windows.sdl = true;
+      if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
+      {
+        config.input.gamepad.xinput.emulate   = false;
+        config.nvidia.reflex.enforcement_site = 0; // Reduce sutter
+      }
 
-      // A more reasonable check might be for a thread named SDL_joystick,
-      //   but that seems to be spawned unpredictably late.
+      // Disable SteamAPI integration in newer Unity engine games because of incompatibility
+      if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 && SK_GetModuleHandleW (L"UnityPlayer.dll"))
+      {
+        if (! std::exchange (config.platform.silent, true))
+        {
+          SK_MessageBox (
+            L"Disabling SteamAPI Integration in D3D12 Unity Game...",
+            L"Special K Compatibility Layer", MB_OK
+          );
+
+          SK_RestartGame ();
+        }
+      }
+
+      if (SK_GetModuleHandleW (L"SDL2.dll") ||
+          SK_GetModuleHandleW (L"SDL3.dll"))
+      {
+        // A few games change the window class name from the default...
+        //   assume that the game uses SDL if one of its DLLs are loaded.
+        SK_GetCurrentRenderBackend ().windows.sdl = true;
+
+        // A more reasonable check might be for a thread named SDL_joystick,
+        //   but that seems to be spawned unpredictably late.
+      }
     }
 
     first_frame = false;
