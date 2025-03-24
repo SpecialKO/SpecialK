@@ -2190,7 +2190,7 @@ SK_ACS_InitPlugin (void)
         config.utility.save_async ();
 
 #ifdef _M_AMD64
-        // Self-disable cutscene frame generation if causes a crash, and then
+        // Self-disable cutscene frame generation if it causes a crash, and then
         //   ignore the crash...
         AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
         {
@@ -2198,18 +2198,39 @@ SK_ACS_InitPlugin (void)
 
           if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
           {
+            auto Context = ExceptionInfo->ContextRecord;
+
+            static auto ContinuableCallSites =
+              std::set <DWORD64> {
+                0x372cb45ULL, 0x372cb4cULL, 0x3724491ULL,
+                0x37258bfULL, 0x6a32f1ULL,  0x6a32f7ULL,
+                0x6a330eULL,  0x6a32b0ULL,  0x6a32b4ULL,
+                0x6a32b8ULL
+              };
+
             // Turn off frame generation and give a second-chance at life
             if (__SK_ACS_AlwaysUseFrameGen)
             {
-              //if (pFrameGenEnabled != nullptr && *pFrameGenEnabled == true)
-              {  *pFrameGenEnabled = false;
-                 WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
-                 continuable = true;
+                                *pFrameGenEnabled = false;
+              WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
 
-                LPVOID SKX_GetNextInstruction (LPVOID addr);
+              const DWORD64 addr =
+                (DWORD64)Context->Rip - (DWORD64)SK_Debug_GetImageBaseAddr ();
 
-                auto Context = ExceptionInfo->ContextRecord;
-                Context->Rip = (DWORD64)SKX_GetNextInstruction ((void *)Context->Rip);
+              continuable =
+                ContinuableCallSites.count (addr);
+
+              if (! continuable)
+              {
+                SK_LOGi0 (L"Non-Continuable Exception RIP=%p", addr);
+              }
+
+              else
+              {
+                PVOID SKX_GetNextInstruction (LPVOID addr);
+
+                ExceptionInfo->ContextRecord->Rip =
+                  (DWORD64)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Rip);
               }
             }
           }

@@ -1,4 +1,8 @@
-﻿25.3.24.2
+﻿25.3.24.3
+=========
+ + Limit Vectored Exception Continue Handler to 10 specific addrs in AC Shadows
+
+25.3.24.2
 =========
  + Apply SK's framerate limiter if framerate uncap is disabled, as a substitute
      for the game's own stuttery framerate limiter.
