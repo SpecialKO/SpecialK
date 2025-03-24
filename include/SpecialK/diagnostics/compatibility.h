@@ -49,6 +49,9 @@ bool SK_COMPAT_IgnoreDxDiagnCall  (LPCVOID pReturn = _ReturnAddress ());
 bool SK_COMPAT_IgnoreNvCameraCall (LPCVOID pReturn = _ReturnAddress ());
 bool SK_COMPAT_IgnoreEOSOVHCall   (LPCVOID pReturn = _ReturnAddress ());
 
+std::optional <bool> SK_COMPAT_IsRTSSUsingDetoursHooking (void);
+void                 SK_COMPAT_WarnIfRTSSIsIncompatible  (void);
+
 
 #include <render/ngx/streamline.h>
 

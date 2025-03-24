@@ -931,6 +931,96 @@ SK_BypassInject (void)
 }
 
 
+std::optional <bool>
+SK_COMPAT_IsRTSSUsingDetoursHooking (void)
+{
+  static constexpr wchar_t *wszRTSSHooksDLLName =
+    SK_RunLHIfBitness ( 32,  L"RTSSHooks.dll",
+                             L"RTSSHooks64.dll" );
+
+  auto hModRTSSHooks =
+    SK_GetModuleHandleW (wszRTSSHooksDLLName);
+
+  if (hModRTSSHooks == 0)
+  {
+    return std::nullopt;
+  }
+
+  static int result  = -1;
+  if (       result != -1)
+    return ( result !=  FALSE);
+
+  wchar_t              wszPathToRTSS [MAX_PATH + 2] = {};
+  wcsncpy_s           (wszPathToRTSS, MAX_PATH,
+  SK_GetModuleFullName(     hModRTSSHooks).c_str (), _TRUNCATE);
+  PathRemoveFileSpecW (wszPathToRTSS);
+
+  wchar_t     wszAppProfile [MAX_PATH + 2] = {};
+  swprintf_s (wszAppProfile, MAX_PATH,
+                LR"(%ws\Profiles\%ws.cfg)",
+                       wszPathToRTSS, SK_GetHostApp ());
+
+  if (! PathFileExistsW (wszAppProfile))
+  {
+    wcsncpy_s   (wszAppProfile, MAX_PATH, wszPathToRTSS, _TRUNCATE);
+    PathAppendW (wszAppProfile, LR"(Profiles\Global)");
+  }
+  
+  if (PathFileExistsW (wszAppProfile))
+  {
+    FILE* fRTSSConfig  = _wfopen (wszAppProfile, L"r");
+    if (  fRTSSConfig != nullptr )
+    {
+      auto size = (size_t)
+        SK_File_GetSize (wszAppProfile);
+  
+      auto        rtss_config = 
+                 std::make_unique <char []> (size + 1);
+      ZeroMemory (rtss_config.get (), size + 1);
+      fread      (rtss_config.get (), size,  1, fRTSSConfig);
+      fclose     (                              fRTSSConfig);
+  
+      if (     StrStrA (rtss_config.get (), "UseDetours=0"))
+      {
+        result = FALSE; SK_LOGi0 (L" >> Incompatible!");
+        return   false;
+      }
+
+      else if (StrStrA (rtss_config.get (), "UseDetours="))
+      {
+        result = TRUE; SK_LOGi0 (L" >> Compatible!");
+        return   true;
+      }
+    }
+  }
+
+  SK_LOGi0 (
+    L"RTSS is loaded, but cannot determine its configuration for %ws!",
+    SK_GetHostApp ()
+  );
+
+  return std::nullopt;
+}
+
+void
+SK_COMPAT_WarnIfRTSSIsIncompatible (void)
+{
+  auto is_compatible =
+    SK_COMPAT_IsRTSSUsingDetoursHooking ();
+
+  if (is_compatible.has_value () && is_compatible.value () == false)
+  {
+    // User only needs 1 warning :)
+    SK_RunOnce (
+      SK_MessageBox (
+        L"RivaTuner Statistics Server is Misconfigured!"
+        L"\r\n\r\nPlease enable 'Microsoft Detours API Hooking'",
+        L"Special K Has Detected a Serious Software Incompatibility",
+          MB_OK | MB_ICONSTOP
+      );
+    );
+  }
+}
 
 void
 SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)

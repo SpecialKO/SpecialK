@@ -1646,6 +1646,15 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     crash_log->lines++;
 
+    // Hide the game window before attempting to display any
+    //   messages for the user...
+    SetWindowPos (game_window.hWnd, HWND_BOTTOM, 0,0, 0,0,
+         SWP_NOSIZE|SWP_NOMOVE|SWP_ASYNCWINDOWPOS|
+                SWP_HIDEWINDOW);
+       SK_SleepEx (25UL, FALSE);
+
+    SK_COMPAT_WarnIfRTSSIsIncompatible ();
+
     if (! config.system.silent_crash )
     {
       if (! crash_sound->play ())
