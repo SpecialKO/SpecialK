@@ -1807,6 +1807,8 @@ SK_EnderLilies_InitPlugIn (void)
 }
 
 
+
+#ifdef _M_AMD64
 #include <SpecialK/nvapi.h>
 
 bool               __SK_ACS_IsMultiFrameCapable   = false;
@@ -2065,6 +2067,7 @@ SK_ACS_PlugInCfg (void)
       ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.075f, 0.8f, 0.9f).Value);
       ImGui::BulletText      ("Using game-defined framerate limit:  ");
       ImGui::SameLine        (  );
+      ImGui::SetCursorPosY   (y_pos);
       ImGui::TextColored     (ImColor (1.f, 1.f, 0.f).Value, "%3.0f fps", __target_fps);
       ImGui::PopStyleColor   (  );
       ImGui::EndGroup        (  );
@@ -2080,10 +2083,12 @@ SK_ACS_PlugInCfg (void)
 
   return true;
 }
+#endif
 
 void
 SK_ACS_InitPlugin (void)
 {
+#ifdef _M_AMD64
   static HANDLE hInitThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
@@ -2198,7 +2203,6 @@ SK_ACS_InitPlugin (void)
         config.system.silent_crash = true;
         config.utility.save_async ();
 
-#ifdef _M_AMD64
         // Self-disable cutscene frame generation if it causes a crash, and then
         //   ignore the crash...
         AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
@@ -2248,13 +2252,15 @@ SK_ACS_InitPlugin (void)
             ( continuable ? EXCEPTION_CONTINUE_EXECUTION
                           : EXCEPTION_CONTINUE_SEARCH );
         });
-#endif
 
         unlimited = true;
 
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
+          float game_limit =
+          *framerate_limit;
+
           if (__SK_ACS_UncapFramerate)
           {
             SK_RunOnce (
@@ -2273,9 +2279,9 @@ SK_ACS_InitPlugin (void)
           if (__SK_ACS_AlwaysUseFrameGen)
           {
             // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
-            if      (ReadULongAcquire (&FrameGenDisabledForFMV))             __target_fps = 30.0f;
-            else if ((! __SK_ACS_UncapFramerate) && *framerate_limit > 0.0f) __target_fps = *framerate_limit;
-            else                                                             __target_fps = config.render.framerate.target_fps;
+            if      (ReadULongAcquire (&FrameGenDisabledForFMV))       __target_fps = 30.0f;
+            else if ((! __SK_ACS_UncapFramerate) && game_limit > 0.0f) __target_fps = game_limit;
+            else                                                       __target_fps = config.render.framerate.target_fps;
           }
 
           else
@@ -2286,10 +2292,10 @@ SK_ACS_InitPlugin (void)
               __target_fps = 30.0f;
             }
 
-            else if ((! __SK_ACS_UncapFramerate) && *framerate_limit >   0.0f &&
-                                                    *framerate_limit < 500.0f)
+            else if ((! __SK_ACS_UncapFramerate) && game_limit >   0.0f &&
+                                                    game_limit < 500.0f)
             {
-              __target_fps = *framerate_limit;
+              __target_fps = game_limit;
             }
 
             else
@@ -2316,7 +2322,7 @@ SK_ACS_InitPlugin (void)
             else if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
             {
               // Video is done playing, game has unlimited framerate again.
-              if (*framerate_limit != 30.0f)
+              if (game_limit != 30.0f)
               {
                 SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
                 WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
@@ -2393,4 +2399,5 @@ SK_ACS_InitPlugin (void)
 
     return 0;
   });
+#endif
 }

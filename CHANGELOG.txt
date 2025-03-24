@@ -1,5 +1,5 @@
-﻿25.3.25
-=======
+﻿25.3.25.1
+=========
  + Added warning when launching Special K for the first time and PresentMon
      related user permissions are preventing AutoVRR from working.
 
