@@ -1,4 +1,15 @@
-﻿25.3.23.1
+﻿25.3.24
+=======
+ + Added AC Shadows 2x/3x/4x frame gen options back for RTX 5xxx GPU owners.
+ + Automatically restore cutscene frame generation when FMVs finish playing,
+     (when gameplay resumes).
+
+    >> If an FMV cutscene transitions to real-time cutscene, with no gameplay
+         in-between, this may cause the game to continue running at 30 fps.
+
+      * You may toggle SK's control panel during real-time cutscenes to fix.
+
+25.3.23.1
 =========
  + Disable SteamAPI integration in newer (D3D12) Unity Engine games.
  + Only install Low-Level Keyboard Hooks if user configuration requires them.
