@@ -2198,11 +2198,16 @@ SK_ACS_InitPlugin (void)
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
+          bool toggled_cpl = false;
+
+          static bool        lastActive= SK_ImGui_Active ();
+          if (std::exchange (lastActive, SK_ImGui_Active ()) != SK_ImGui_Active ())
+            toggled_cpl = true;
+
           // 7.5 second grace period after an FMV is read to reset frame generation
           if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
           {
-            static bool        lastActive= SK_ImGui_Active ();
-            if (std::exchange (lastActive, SK_ImGui_Active ()) != SK_ImGui_Active ())
+            if (toggled_cpl)
             {
               if (                            __SK_ACS_AlwaysUseFrameGen) {
                 SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
