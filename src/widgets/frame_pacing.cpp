@@ -1633,7 +1633,7 @@ SK_ImGui_DrawFramePercentiles (void)
       ImGui::PushStyleColor  (ImGuiCol_Text, label_color);
       ImGui::TextUnformatted ("AvgFPS: "); ImGui::SameLine ();
       ImGui::PushStyleColor  (ImGuiCol_Text, white_color);
-      ImGui::Text            ("%4.1f", mean.computed_fps);
+      ImGui::Text            ("%4.1f", mean.computed_fps * __SK_FramerateScale);
       ImGui::PopStyleColor   (2);
     }
 
