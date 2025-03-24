@@ -940,14 +940,14 @@ SK_DrawOSD (void)
           {
             OSD_PRINTF format, left_padding, pad_str,
               rb.name,
-                fps, fVBlankHz,
-                  mean,
+                fps * __SK_FramerateScale, fVBlankHz,
+                  mean * __SK_FramerateScale,
                     sqrt (sd),
-                      min,
-                        max,
+                      min * __SK_FramerateScale,
+                        max * __SK_FramerateScale,
                           hitches,
-                            1000.0 / effective_mean,
-                              effective_mean
+                            1000.0 / effective_mean * __SK_FramerateScale,
+                              effective_mean * __SK_FramerateScale
             OSD_END
           }
 
@@ -955,14 +955,14 @@ SK_DrawOSD (void)
           {
             OSD_PRINTF format, left_padding, pad_str,
               rb.name,
-                fps,
-                  mean,
+                fps * __SK_FramerateScale,
+                  mean * __SK_FramerateScale,
                     sqrt (sd),
-                      min,
-                        max,
+                      min * __SK_FramerateScale,
+                        max * __SK_FramerateScale,
                           hitches,
-                            1000.0 / effective_mean,
-                              effective_mean
+                            1000.0 / effective_mean * __SK_FramerateScale,
+                              effective_mean * __SK_FramerateScale
             OSD_END
           }
         }
@@ -973,11 +973,11 @@ SK_DrawOSD (void)
           {
             OSD_PRINTF format, left_padding, pad_str,
               rb.name,
-                fps, fVBlankHz,
-                  mean,
+                fps * __SK_FramerateScale, fVBlankHz,
+                  mean * __SK_FramerateScale,
                     sqrt (sd),
-                      min,
-                        max,
+                      min * __SK_FramerateScale,
+                        max * __SK_FramerateScale,
                           hitches
             OSD_END
           }
@@ -986,11 +986,11 @@ SK_DrawOSD (void)
           {
             OSD_PRINTF format, left_padding, pad_str,
               rb.name,
-                fps,
-                  mean,
+                fps * __SK_FramerateScale,
+                  mean * __SK_FramerateScale,
                     sqrt (sd),
-                      min,
-                        max,
+                      min * __SK_FramerateScale,
+                        max * __SK_FramerateScale,
                           hitches
             OSD_END
           }

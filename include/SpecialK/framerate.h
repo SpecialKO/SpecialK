@@ -808,6 +808,8 @@ bool StopTraceSession                 (void);
 
 extern volatile LONG64 lD3DKMTPresentCalls;
 
+extern float __SK_FramerateScale;
+
 extern bool __SK_HasDLSSGStatusSupport;
 extern bool __SK_IsDLSSGActive;
 extern bool __SK_ForceDLSSGPacing;

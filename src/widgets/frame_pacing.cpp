@@ -1190,7 +1190,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                                                                        "s " : "  ",
                         SK_RenderBackend_V2::latency.delays.SyncDelay,
               (double)max - (double)min,
-                      1000.0f / (sum / frames),
+                      (1000.0f / (sum / frames)) * __SK_FramerateScale,
                         ((double)max-(double)min)/(1000.0f/(sum/frames)) );
     }
   }
@@ -1207,7 +1207,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                 target_frametime,
                   min, max,
             (double)max - (double)min,
-                    1000.0f / (sum / frames),
+                   (1000.0f / (sum / frames)) * __SK_FramerateScale,
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
   }
 
@@ -1685,7 +1685,7 @@ SK_ImGui_DrawFramePercentiles (void)
       SK_FormatStringView ( p0_view,
                               "%3.1f%% Low FPS: %5.2f",
                                    percentile0.cutoff,
-                                   percentile0.computed_fps );
+                                   percentile0.computed_fps * __SK_FramerateScale );
 
       p0_txt [ std::max ((size_t)0,
                std::min ((size_t)64, p0_len)) ] = '\0';
@@ -1717,7 +1717,7 @@ SK_ImGui_DrawFramePercentiles (void)
         SK_FormatStringView ( p1_view,
                                 "%3.1f%% Low FPS: %5.2f",
                                   percentile1.cutoff,
-                                  percentile1.computed_fps );
+                                  percentile1.computed_fps * __SK_FramerateScale );
 
       p1_txt [ std::max ((size_t)0,
                std::min ((size_t)64, p1_len)) ] = '\0';
