@@ -1,4 +1,8 @@
-﻿25.3.24.3
+﻿25.3.24.4
+=========
+ + Enabled Cutscene Frame Generation by default in Assassin's Creed Shadows
+
+25.3.24.3
 =========
  + Limit Vectored Exception Continue Handler to 10 specific addrs in AC Shadows
 

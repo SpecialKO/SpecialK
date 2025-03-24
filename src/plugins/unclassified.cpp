@@ -1810,7 +1810,7 @@ SK_EnderLilies_InitPlugIn (void)
 #include <SpecialK/nvapi.h>
 
 bool               __SK_ACS_IsMultiFrameCapable   = false;
-bool               __SK_ACS_AlwaysUseFrameGen     = false;
+bool               __SK_ACS_AlwaysUseFrameGen     = true;
 bool               __SK_ACS_UncapFramerate        = true;
 int                __SK_ACS_DLSSG_MultiFrameCount = 1;
 
@@ -2019,15 +2019,13 @@ SK_ACS_PlugInCfg (void)
       changed = true;
 
       _SK_ACS_UncapFramerate->store (__SK_ACS_UncapFramerate);
-
-      restart_required = true;
     }
 
     if (ImGui::BeginItemTooltip ())
     {
       ImGui::TextUnformatted ("Uncap Framerate in Menus and Cutscenes");
       ImGui::Separator       ();
-      ImGui::BulletText      ("Thanks to ersh for assistance with menu framerate.");
+      ImGui::BulletText      ("ersh has a similar standalone mod that you may use.");
       ImGui::EndTooltip      ();
     }
 
