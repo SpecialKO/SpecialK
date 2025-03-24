@@ -1,4 +1,9 @@
-﻿25.3.24.4
+﻿25.3.25
+=======
+ + Added warning when launching Special K for the first time and PresentMon
+     related user permissions are preventing AutoVRR from working.
+
+25.3.24.4
 =========
  + Enabled Cutscene Frame Generation by default in Assassin's Creed Shadows
 

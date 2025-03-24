@@ -1047,6 +1047,23 @@ SK_ImGui_DrawGraph_FramePacing (void)
           "Presentation Model Unknown  (Full SK Install is Required)"
         );
 
+        // Show users affected by this a warning, but only if SKIF.exe is running,
+        //   because this would cause confusion for people using local injection.
+        SK_RunOnce (
+          if (SK_IsProcessRunning (L"SKIF.exe") || SK_IsInjected ())
+          {
+            SK_ImGui_CreateNotification (
+              "PresentMon.Nag", SK_ImGui_Toast::Warning,
+              "If you just installed Special K, it is suggested that you log out of Windows and back in.\r\n\r\n"
+              "Various VRR-related features will not work until you do so.", "First Time User?", 15000,
+                                SK_ImGui_Toast::UseDuration  |
+                                SK_ImGui_Toast::ShowCaption  |
+                                SK_ImGui_Toast::ShowNewest   |
+                                SK_ImGui_Toast::Unsilencable |
+                                SK_ImGui_Toast::DoNotSaveINI );
+          }
+        );
+
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip    ();
