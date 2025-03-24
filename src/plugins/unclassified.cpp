@@ -2189,6 +2189,7 @@ SK_ACS_InitPlugin (void)
         config.system.silent_crash = true;
         config.utility.save_async ();
 
+#ifdef _M_AMD64
         // Self-disable cutscene frame generation if causes a crash, and then
         //   ignore the crash...
         AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
@@ -2217,6 +2218,7 @@ SK_ACS_InitPlugin (void)
             ( continuable ? EXCEPTION_CONTINUE_EXECUTION
                           : EXCEPTION_CONTINUE_SEARCH );
         });
+#endif
 
         unlimited = true;
 
