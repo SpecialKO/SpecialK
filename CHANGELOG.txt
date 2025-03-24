@@ -1,4 +1,9 @@
-﻿25.3.24
+﻿25.3.24.1
+=========
+ + During FMV playback in Assasin's Creed Shadows, apply SK's 30 FPS limit to
+     put an end to the obnoxious and unnecessary judder in all Ubisoft games.
+
+25.3.24
 =======
  + Added AC Shadows 2x/3x/4x frame gen options back for RTX 5xxx GPU owners.
  + Automatically restore cutscene frame generation when FMVs finish playing,

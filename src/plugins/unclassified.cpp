@@ -1973,6 +1973,7 @@ SK_ACS_PlugInCfg (void)
       ImGui::Separator       ();
       ImGui::TextUnformatted ("");
       ImGui::BulletText      ("Cutscene Frame Generation will self-disable when FMVs begin playing (to prevent crashes).");
+      ImGui::BulletText      ("Be careful not to pause the game during FMV playback while this is enabled, it may crash.");
       ImGui::TextUnformatted ("");
       ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE " When FMVs Finish");
       ImGui::TextUnformatted ("\tOpen and Close SK's Control Panel to re-enable Realtime Cutscene Frame Generation");
@@ -2159,9 +2160,10 @@ SK_ACS_InitPlugin (void)
           {
             LastFMVHandle = hFile;
 
+            WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
+
             if (__SK_ACS_AlwaysUseFrameGen)
             {
-              WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
               SK_ACS_ApplyFrameGenOverride (false);
 
               SK_LOGi0 (
@@ -2198,6 +2200,10 @@ SK_ACS_InitPlugin (void)
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
+          // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
+          if (ReadULongAcquire (&FrameGenDisabledForFMV)) __target_fps = 30.0f;
+          else                                            __target_fps = config.render.framerate.target_fps;
+
           bool toggled_cpl = false;
 
           static bool        lastActive= SK_ImGui_Active ();
@@ -2209,13 +2215,12 @@ SK_ACS_InitPlugin (void)
           {
             if (toggled_cpl)
             {
-              if (                            __SK_ACS_AlwaysUseFrameGen) {
+              if (                            __SK_ACS_AlwaysUseFrameGen)
                 SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
                 WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
-              }
             }
 
-            else if (__SK_ACS_AlwaysUseFrameGen && (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false)))
+            else if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
             {
               // Video is done playing, game has unlimited framerate again.
               if (*framerate_limit == -1.0f)
