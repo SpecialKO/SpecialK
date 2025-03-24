@@ -49,8 +49,6 @@
 #pragma fp_contract   (         off)
 #pragma fenv_access   (         off)
 
-float __SK_FramerateScale = 1.0f;
-
 float SK_LatentSyncAlpha             = 0.991f;
 float SK_LatentSyncDeltaMultiplier   = 0.133f;
 float SK_LatentSyncBackOffMultiplier = 1.020f;

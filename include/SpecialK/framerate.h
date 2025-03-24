@@ -790,17 +790,17 @@ extern float SK_Framerate_GetSleepWaitMs     (void) noexcept;
 #include <dwmapi.h>
 
 extern HRESULT WINAPI
-SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
+SK_DWM_GetCompositionTimingInfo       (DWM_TIMING_INFO *pTimingInfo);
 
-void SK_Framerate_WaitUntilQPC       (LONGLONG llQPC, HANDLE& hTimer);
-void SK_Framerate_EnergyControlPanel (void);
+void SK_Framerate_WaitUntilQPC        (LONGLONG llQPC, HANDLE& hTimer);
+void SK_Framerate_EnergyControlPanel  (void);
 
-void SK_ImGui_DrawGraph_FramePacing  (void);
-void SK_ImGui_DrawFramePercentiles   (void);
-void SK_ImGui_DrawGraph_Latency      (bool predraw);
-void SK_ImGui_DrawConfig_Latency     (void);
-void SK_ImGui_LatentSyncConfig       (void);
-void SK_ImGui_DrawFCAT               (void);
+void SK_ImGui_DrawGraph_FramePacing   (void);
+void SK_ImGui_DrawFramePercentiles    (void);
+void SK_ImGui_DrawGraph_Latency       (bool predraw);
+void SK_ImGui_DrawConfig_Latency      (void);
+void SK_ImGui_LatentSyncConfig        (void);
+void SK_ImGui_DrawFCAT                (void);
 void SK_ImGui_DrawVRAMGauge           (void);
 int  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 int  SK_PresentMon_Main               (int argc, char **argv);
@@ -808,7 +808,7 @@ bool StopTraceSession                 (void);
 
 extern volatile LONG64 lD3DKMTPresentCalls;
 
-extern float __SK_FramerateScale;
+static constexpr float __SK_FramerateScale = 1.0f;
 
 extern bool __SK_HasDLSSGStatusSupport;
 extern bool __SK_IsDLSSGActive;
