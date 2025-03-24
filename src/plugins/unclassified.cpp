@@ -1971,12 +1971,7 @@ SK_ACS_PlugInCfg (void)
     {
       ImGui::TextUnformatted ("Enable Frame Generation during Cutscenes and in menus, such as the Map Screen.");
       ImGui::Separator       ();
-      ImGui::TextUnformatted ("");
       ImGui::BulletText      ("Cutscene Frame Generation will self-disable when FMVs begin playing (to prevent crashes).");
-      ImGui::BulletText      ("Be careful not to pause the game during FMV playback while this is enabled, it may crash.");
-      ImGui::TextUnformatted ("");
-      ImGui::TextUnformatted (ICON_FA_INFO_CIRCLE " When FMVs Finish");
-      ImGui::TextUnformatted ("\tOpen and Close SK's Control Panel to re-enable Realtime Cutscene Frame Generation");
       ImGui::EndTooltip      ();
     }
 
@@ -2160,10 +2155,9 @@ SK_ACS_InitPlugin (void)
           {
             LastFMVHandle = hFile;
 
-            WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
-
             if (__SK_ACS_AlwaysUseFrameGen)
             {
+              WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
               SK_ACS_ApplyFrameGenOverride (false);
 
               SK_LOGi0 (
@@ -2195,14 +2189,54 @@ SK_ACS_InitPlugin (void)
         config.system.silent_crash = true;
         config.utility.save_async ();
 
+        // Self-disable cutscene frame generation if causes a crash, and then
+        //   ignore the crash...
+        AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+        {
+          bool continuable = false;
+
+          if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+          {
+            // Turn off frame generation and give a second-chance at life
+            if (__SK_ACS_AlwaysUseFrameGen)
+            {
+              //if (pFrameGenEnabled != nullptr && *pFrameGenEnabled == true)
+              {  *pFrameGenEnabled = false;
+                 WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
+                 continuable = true;
+
+                LPVOID SKX_GetNextInstruction (LPVOID addr);
+
+                auto Context = ExceptionInfo->ContextRecord;
+                Context->Rip = (DWORD64)SKX_GetNextInstruction ((void *)Context->Rip);
+              }
+            }
+          }
+
+          return
+            ( continuable ? EXCEPTION_CONTINUE_EXECUTION
+                          : EXCEPTION_CONTINUE_SEARCH );
+        });
+
         unlimited = true;
 
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
-          // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
-          if (ReadULongAcquire (&FrameGenDisabledForFMV)) __target_fps = 30.0f;
-          else                                            __target_fps = config.render.framerate.target_fps;
+          // Not tested adequately in non-framegen cases
+          if (__SK_ACS_AlwaysUseFrameGen)
+          {
+            // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
+            if (ReadULongAcquire (&FrameGenDisabledForFMV)) __target_fps = 30.0f;
+            else                                            __target_fps = config.render.framerate.target_fps;
+          }
+
+          else
+          {
+            if      (*framerate_limit == 30.0f && !__SK_ACS_UncapFramerate) __target_fps = 30.0f;
+            else if (*framerate_limit == 60.0f && !__SK_ACS_UncapFramerate) __target_fps = 60.0f;
+            else                                                            __target_fps = config.render.framerate.target_fps;
+          }
 
           bool toggled_cpl = false;
 
@@ -2210,17 +2244,20 @@ SK_ACS_InitPlugin (void)
           if (std::exchange (lastActive, SK_ImGui_Active ()) != SK_ImGui_Active ())
             toggled_cpl = true;
 
-          // 7.5 second grace period after an FMV is read to reset frame generation
-          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 7500UL)
+          static ULONG64 ulLastLimitedFrame = SK_GetFramesDrawn ();
+
+          // 1.25 second grace period after an FMV is read to reset frame generation
+          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 1250UL)
           {
             if (toggled_cpl)
             {
-              if (                            __SK_ACS_AlwaysUseFrameGen)
+              if (                            __SK_ACS_AlwaysUseFrameGen) {
                 SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
                 WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
+              }
             }
 
-            else if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
+            else if (__SK_ACS_AlwaysUseFrameGen && (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false)))
             {
               // Video is done playing, game has unlimited framerate again.
               if (*framerate_limit == -1.0f)
@@ -2233,6 +2270,8 @@ SK_ACS_InitPlugin (void)
 
               else
               {
+                ulLastLimitedFrame = SK_GetFramesDrawn ();
+
                 SK_ImGui_CreateNotification (
                   "ACShadows.FMVDecay", SK_ImGui_Toast::Other, "FMV Still Active?", nullptr, INFINITE,
                                         SK_ImGui_Toast::UseDuration  |
@@ -2246,14 +2285,16 @@ SK_ACS_InitPlugin (void)
             if (__SK_ACS_UncapFramerate)
             {
               // -1.0f = Unlimited (set by game in special cases)
-              *framerate_limit = 1000.0f; // Use 1000.0 for unlimited to avoid conflicts
+              *framerate_limit = -1.0f;
             }
           }
 
           else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
           {
+            ulLastLimitedFrame = SK_GetFramesDrawn ();
+
             SK_ImGui_CreateNotification (
-              "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Detected", nullptr, INFINITE,
+              "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Playing", nullptr, INFINITE,
                                     SK_ImGui_Toast::UseDuration  |
                                     SK_ImGui_Toast::ShowCaption  |
                                     SK_ImGui_Toast::ShowNewest   |

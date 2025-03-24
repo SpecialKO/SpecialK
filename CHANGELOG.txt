@@ -1,7 +1,12 @@
-﻿25.3.24.1
+﻿25.3.24.2
 =========
- + During FMV playback in Assasin's Creed Shadows, apply SK's 30 FPS limit to
-     put an end to the obnoxious and unnecessary judder in all Ubisoft games.
+ + Apply SK's framerate limiter if framerate uncap is disabled, as a substitute
+     for the game's own stuttery framerate limiter.
+
+25.3.24.1
+=========
+ + During FMV playback in Assassin's Creed Shadows, apply SK's 30 FPS limit to
+     put an end to the obnoxious judder from poor framerate limiting.
 
 25.3.24
 =======
