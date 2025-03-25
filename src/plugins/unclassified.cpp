@@ -1809,6 +1809,7 @@ SK_EnderLilies_InitPlugIn (void)
 
 
 #ifdef _M_AMD64
+#include <concurrent_unordered_set.h>
 #include <SpecialK/nvapi.h>
 
 bool               __SK_ACS_IsMultiFrameCapable   = false;
@@ -1846,7 +1847,16 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
   if (__SK_ACS_OriginalFrameGenCode [0] == 0x0)
   {
     __SK_ACS_FrameGenTestAddr =
-      (void *)(base_addr + 0x3397C56);
+      (void *)(base_addr + 0x3397D66/*0x3397C56*/);
+
+    /*
+    ACShadows.exe+3397C4C - 83 FD 0A              - cmp ebp,0A { 10 }
+    ACShadows.exe+3397C4F - 0F94 C0               - sete al
+    ACShadows.exe+3397C52 - 44 89 66 20           - mov [rsi+20],r12d
+    ACShadows.exe+3397C56 - 44 88 6E 24           - mov [rsi+24],r13b  <---
+    ACShadows.exe+3397C5A - 89 E9                 - mov ecx,ebp
+    ACShadows.exe+3397C5C - 83 E1 FE              - and ecx,-02 { 254 }
+    */
 
     if (__SK_ACS_FrameGenTestAddr != nullptr)
     {
@@ -1875,7 +1885,15 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
     if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
     {
       pFrameGenEnabled =
-        *(bool **)(base_addr + 0x0B0AF3C8) + 0x24;
+        *(bool **)(base_addr + 0x0B0AE3C8/*0x0B0AF3C8*/) + 0x24;
+
+      //C1 E0 03 48 8B 15 ?? ?? ?? ?? 80 7A 24 00
+
+      /*
+      ACShadows.exe+346B5B4 - C1 E0 03              - shl eax,03 { 3 }
+      ACShadows.exe+346B5B7 - 48 8B 15 0A2EC407     - mov rdx,[ACShadows.exe+B0AE3C8] { (0F507BC0) }  <---   RIP + 0x07c42e0a
+      ACShadows.exe+346B5BE - 80 7A 24 00           - cmp byte ptr [rdx+24],00 { 0 }
+      */
 
       memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
                                                           : __SK_ACS_OriginalFrameGenCode, 4);
@@ -2190,6 +2208,7 @@ SK_ACS_InitPlugin (void)
       while (SK_GetFramesDrawn () < 480)
         SK_SleepEx (150UL, FALSE);
 
+#if 1
       if (                            __SK_ACS_AlwaysUseFrameGen)
         SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
 
@@ -2215,9 +2234,7 @@ SK_ACS_InitPlugin (void)
       SK_SaveConfig ();
 
       // Fail-safe incase any code that sets this was missed
-      static
-       float * const framerate_limit =            // Limit = Offset 0x98; single-precision float
-      (float *)(*(uint8_t **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x9C91960) + 0x98);
+      static float* framerate_limit = nullptr;
 
       plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName, HANDLE hFile)
       {
@@ -2270,25 +2287,24 @@ SK_ACS_InitPlugin (void)
           {
             auto Context = ExceptionInfo->ContextRecord;
 
-            static auto ContinuableCallSites =
-              std::set <DWORD64> {
-                0x372cb45ULL, 0x372cb4cULL, 0x3724491ULL,
-                0x37258bfULL, 0x6a32f1ULL,  0x6a32f7ULL,
-                0x6a330eULL,  0x6a32b0ULL,  0x6a32b4ULL,
-                0x6a32b8ULL,                              0x1FB78FEULL
-              };
+            const DWORD64 addr =
+                 (DWORD64)Context->Rip - (DWORD64)SK_Debug_GetImageBaseAddr ();
+
+            static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSites;
 
             // Turn off frame generation and give a second-chance at life
             if (__SK_ACS_AlwaysUseFrameGen)
             {
+              if (LastFMVHandle != 0 && ContinuableCallSites.insert (addr).second)
+              {
+                SK_LOGi0 (L"FMV Cutscene Exception Ignored: RIP=%p", addr);
+              }
+
                                 *pFrameGenEnabled = false;
               WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
 
-              const DWORD64 addr =
-                (DWORD64)Context->Rip - (DWORD64)SK_Debug_GetImageBaseAddr ();
-
               continuable =
-                ContinuableCallSites.count (addr);
+                ContinuableCallSites.count (addr) != 0;
 
               if (! continuable)
               {
@@ -2312,10 +2328,14 @@ SK_ACS_InitPlugin (void)
 
         unlimited = true;
 
+        framerate_limit =
+          // Limit = Offset 0x98; single-precision float
+          (float *)(*(uint8_t **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x9C90960/*0x9C91960*/) + 0x98);
+
         // The pointer base addr is stored in the limit_load_addr instruction
         plugin_mgr->begin_frame_fns.insert ([](void)
         {
-          float game_limit =
+          float game_limit = framerate_limit == nullptr ? -1.0f :
           *framerate_limit;
 
           if (__SK_ACS_UncapFramerate ||
@@ -2336,14 +2356,6 @@ SK_ACS_InitPlugin (void)
                 memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
                 VirtualProtect (limit_store_addr, 8, dwOrigProt,
                                                     &dwOrigProt);
-
-                void* const     limit_alt_addr =
-                (uint8_t *)img_base_addr+0x178AD29;
-                
-                VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-                memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
-                VirtualProtect (limit_alt_addr, 10, dwOrigProt,
-                                                   &dwOrigProt);
               }
             );
           }
@@ -2415,7 +2427,7 @@ SK_ACS_InitPlugin (void)
 #endif
             }
 
-            if (__SK_ACS_UncapFramerate)
+            if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
             {
               // -1.0f = Unlimited (set by game in special cases)
               *framerate_limit = -1.0f;
@@ -2464,6 +2476,7 @@ SK_ACS_InitPlugin (void)
           }
         });
       }
+#endif
     }
 
     if (! unlimited)

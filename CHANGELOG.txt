@@ -1,4 +1,9 @@
-﻿25.3.25.2
+﻿25.3.26
+=======
+ + Updated Assassin's Creed Shadows framerate fix to work with the latest patch
+    * Memory scanning to prevent future patch issues is a work in progress...
+
+25.3.25.2
 =========
  + Added new "Fully Unlocked" mode to Assassin's Creed Shadows, that patches
      a few extra pieces of code in a way that the setting cannot be turned
