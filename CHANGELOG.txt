@@ -1,4 +1,9 @@
-﻿25.3.26
+﻿25.3.26.1
+=========
+ + Reverted "Native Pacing" timing code to original framerate limiter resync
+     design (pre-25.3.21) when the limiter slips > 1 frame behind ideal pace.
+
+25.3.26
 =======
  + Updated Assassin's Creed Shadows framerate fix to work with the latest patch
     * Memory scanning to prevent future patch issues is a work in progress...

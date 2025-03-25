@@ -1666,17 +1666,14 @@ SK::Framerate::Limiter::wait (void)
 
       if (config.render.framerate.present_interval != 0)
       {
-        if (! standalone)
+        static uint64_t            ullLastReset = 0;
+        if (missed_frames > 1.0 && ullLastReset < SK_GetFramesDrawn () - 16)
         {
-          static uint64_t            ullLastReset = 0;
-          if (missed_frames > 1.0 && ullLastReset < SK_GetFramesDrawn () - 16)
-          {
-            ullLastReset = SK_GetFramesDrawn ();
-            full_restart = true;
-          }
-          else if (tracks_window)
-            InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
+          ullLastReset = SK_GetFramesDrawn ();
+          full_restart = true;
         }
+        else if (tracks_window)
+          InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
       }
     }
   }
