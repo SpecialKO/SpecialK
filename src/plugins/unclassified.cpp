@@ -1812,12 +1812,16 @@ SK_EnderLilies_InitPlugIn (void)
 #include <SpecialK/nvapi.h>
 
 bool               __SK_ACS_IsMultiFrameCapable   = false;
-bool               __SK_ACS_AlwaysUseFrameGen     = true;
-bool               __SK_ACS_UncapFramerate        = true;
-int                __SK_ACS_DLSSG_MultiFrameCount = 1;
+bool               __SK_ACS_AlwaysUseFrameGen     =  true;
+bool               __SK_ACS_ShowFMVIndicator      = false;
+bool               __SK_ACS_UncapFramerate        =  true;
+bool               __SK_ACS_UncapFramerateFully   =  true;
+int                __SK_ACS_DLSSG_MultiFrameCount =     1;
 
 sk::ParameterBool*  _SK_ACS_AlwaysUseFrameGen;
+sk::ParameterBool*  _SK_ACS_ShowFMVIndicator;
 sk::ParameterBool*  _SK_ACS_UncapFramerate;
+sk::ParameterBool*  _SK_ACS_UncapFramerateFully;
 sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
 
 using slGetPluginFunction_pfn = void*      (*)(const char* functionName);
@@ -1979,6 +1983,18 @@ SK_ACS_PlugInCfg (void)
       ImGui::EndTooltip      ();
     }
 
+    if (__SK_ACS_AlwaysUseFrameGen)
+    {
+      ImGui::SameLine ();
+
+      if (ImGui::Checkbox ("Identify FMVs", &__SK_ACS_ShowFMVIndicator))
+      {     _SK_ACS_ShowFMVIndicator->store (__SK_ACS_ShowFMVIndicator);
+        changed = true;
+      }
+
+      ImGui::SetItemTooltip ("Identify when cutscenes are running at low framerate because they are pre-rendered.");
+    }
+
     if (__SK_HasDLSSGStatusSupport)
     {
       static bool has_used_dlssg  = __SK_IsDLSSGActive;
@@ -2027,6 +2043,10 @@ SK_ACS_PlugInCfg (void)
     static float last_game_fps_limit = __target_fps;
            float y_pos               = ImGui::GetCursorPosY ();
 
+    if (__SK_ACS_UncapFramerateFully) // Implicit relation
+        __SK_ACS_UncapFramerate = true;
+
+    ImGui::BeginDisabled (                   __SK_ACS_UncapFramerateFully);
     if (ImGui::Checkbox ("Uncap Framerate", &__SK_ACS_UncapFramerate))
     {
       changed = true;
@@ -2039,6 +2059,7 @@ SK_ACS_PlugInCfg (void)
           last_game_fps_limit;
       }
     }
+    ImGui::EndDisabled ();
 
     if (ImGui::BeginItemTooltip ())
     {
@@ -2046,6 +2067,29 @@ SK_ACS_PlugInCfg (void)
       ImGui::Separator       ();
       ImGui::BulletText      ("ersh has a similar standalone mod that you may use.");
       ImGui::EndTooltip      ();
+    }
+
+    if (__SK_ACS_UncapFramerate)
+    {
+      ImGui::TreePush ("");
+      if (ImGui::Checkbox ("Fully Unlock Framerate", &__SK_ACS_UncapFramerateFully))
+      {
+        restart_required = true;
+
+        _SK_ACS_UncapFramerateFully->store (__SK_ACS_UncapFramerateFully);
+
+        changed = true;
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextUnformatted ("Prevent the Game From Making Changes to Framerate");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("This is like the Menu/Cutscene Uncap, but it cannot be turned off without restarting the game.");
+        ImGui::BulletText      ("This mode offers the best uncapped framerate experience.");
+        ImGui::EndTooltip      ();
+      }
+      ImGui::TreePop ();
     }
 
     if (restart_required)
@@ -2088,6 +2132,9 @@ SK_ACS_PlugInCfg (void)
 void
 SK_ACS_InitPlugin (void)
 {
+  // Address issues caused by Steam Input
+  config.input.gamepad.dinput.blackout_gamepads = true;
+
 #ifdef _M_AMD64
   static HANDLE hInitThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
@@ -2110,10 +2157,20 @@ SK_ACS_InitPlugin (void)
                                       L"AlwaysUseFrameGen", __SK_ACS_AlwaysUseFrameGen,
                                       L"Use FrameGen in Cutscenes" );
 
+      _SK_ACS_ShowFMVIndicator =
+        _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                     L"ShowFMVIndicator", __SK_ACS_ShowFMVIndicator,
+                                     L"Show an indicator while FMVs are Playing" );
+
       _SK_ACS_UncapFramerate =
         _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
                                      L"UncapMenusAndCutscenes", __SK_ACS_UncapFramerate,
                                      L"Uncap Framerate in Cutscenes" );
+
+      _SK_ACS_UncapFramerateFully =
+        _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                     L"UncapFramerateFully", __SK_ACS_UncapFramerateFully,
+                                     L"Uncap Framerate Permanently" );
 
       _SK_ACS_DLSSG_MultiFrameCount =
         _CreateConfigParameterInt  ( L"AssassinsCreed.FrameRate",
@@ -2261,7 +2318,8 @@ SK_ACS_InitPlugin (void)
           float game_limit =
           *framerate_limit;
 
-          if (__SK_ACS_UncapFramerate)
+          if (__SK_ACS_UncapFramerate ||
+              __SK_ACS_UncapFramerateFully)
           {
             SK_RunOnce (
               void* const     limit_check_addr =
@@ -2272,6 +2330,21 @@ SK_ACS_InitPlugin (void)
               memcpy         (limit_check_addr, "\x90\x90", 2);
               VirtualProtect (limit_check_addr, 2, dwOrigProt,
                                                   &dwOrigProt);
+
+              if (__SK_ACS_UncapFramerateFully)
+              {   __SK_ACS_UncapFramerate = true;
+                memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+                VirtualProtect (limit_store_addr, 8, dwOrigProt,
+                                                    &dwOrigProt);
+
+                void* const     limit_alt_addr =
+                (uint8_t *)img_base_addr+0x178AD29;
+                
+                VirtualProtect (limit_alt_addr, 10, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+                memcpy         (limit_alt_addr, "\xC7\x46\x28\x00\x00\x80\xBF\x90\x90\x90", 10);
+                VirtualProtect (limit_alt_addr, 10, dwOrigProt,
+                                                   &dwOrigProt);
+              }
             );
           }
 
@@ -2351,13 +2424,16 @@ SK_ACS_InitPlugin (void)
 
           else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
           {
-            SK_ImGui_CreateNotification (
-              "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Playing", nullptr, INFINITE,
-                                    SK_ImGui_Toast::UseDuration  |
-                                    SK_ImGui_Toast::ShowCaption  |
-                                    SK_ImGui_Toast::ShowNewest   |
-                                    SK_ImGui_Toast::Unsilencable |
-                                    SK_ImGui_Toast::DoNotSaveINI );
+            if (__SK_ACS_ShowFMVIndicator)
+            {
+              SK_ImGui_CreateNotification (
+                "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Playing", nullptr, INFINITE,
+                                      SK_ImGui_Toast::UseDuration  |
+                                      SK_ImGui_Toast::ShowCaption  |
+                                      SK_ImGui_Toast::ShowNewest   |
+                                      SK_ImGui_Toast::Unsilencable |
+                                      SK_ImGui_Toast::DoNotSaveINI );
+            }
           }
 
           if (__SK_IsDLSSGActive)

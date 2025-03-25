@@ -1,4 +1,16 @@
-﻿25.3.25.1
+﻿25.3.25.2
+=========
+ + Added new "Fully Unlocked" mode to Assassin's Creed Shadows, that patches
+     a few extra pieces of code in a way that the setting cannot be turned
+       off without restarting the game.
+
+    * In exchange for having to restart the game to switch modes, performance
+        is better than the basic unlock setting.
+
+ + Turned the "FMV Playing" indicator into an option (disabled by default now).
+   
+
+25.3.25.1
 =========
  + Added warning when launching Special K for the first time and PresentMon
      related user permissions are preventing AutoVRR from working.
