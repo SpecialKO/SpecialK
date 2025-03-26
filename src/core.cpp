@@ -2551,7 +2551,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
       GetWindowRect (hWndParent, &rect);
 
     HWND hWnd =
-      CreateWindowExW ( WS_EX_NOACTIVATE | WS_EX_NOPARENTNOTIFY,
+      CreateWindowExW ( WS_EX_NOACTIVATE | WS_EX_NOPARENTNOTIFY | WS_EX_TOOLWINDOW,
                             L"Special K Dummy Window Class",
                             L"Special K Dummy Window",
                             //IsWindow (hWndParent) ? WS_CHILD : WS_CLIPSIBLINGS,
@@ -2947,9 +2947,28 @@ SK_ShutdownCore (const wchar_t* backend)
 
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
 
-  dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
+  const wchar_t* config_name = backend;
+
+  if (SK_IsInjected ())
+  {
+    config_name = L"SpecialK";
+  }
 
   DWORD dwTime =
+       SK_timeGetTime ();
+
+  if (sk::NVAPI::app_name.find (L"ds3t.exe") == std::wstring::npos)
+  {
+    dll_log->LogEx  (true,  L"[ SpecialK ] Saving user preferences to"
+                            L" %10s.ini... ", config_name);
+
+    SK_SaveConfig   (config_name);
+    dll_log->LogEx  (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+  }
+
+  dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
+
+  dwTime =
     SK_timeGetTime ();
 
   if (SK_ETW_EndTracing ())
@@ -2975,24 +2994,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
     dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime);
   }
-
-  const wchar_t* config_name = backend;
-
-  if (SK_IsInjected ())
-  {
-    config_name = L"SpecialK";
-  }
-
-  if (sk::NVAPI::app_name.find (L"ds3t.exe") == std::wstring::npos)
-  {
-    dll_log->LogEx       (true,  L"[ SpecialK ] Saving user preferences to"
-                                 L" %10s.ini... ", config_name);
-    dwTime =
-          SK_timeGetTime (           );
-    SK_SaveConfig        (config_name);
-    dll_log->LogEx       (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
-  }
-
 
   dll_log->LogEx    (true, L"[   ImGui  ] Shutting down ImGui...                       ");
 
