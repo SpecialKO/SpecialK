@@ -73,7 +73,7 @@ BEGIN
 #else
             VALUE "InternalName",    "SpecialK32.dll"
 #endif
-            VALUE "LegalCopyright",  "Copyleft © 2015-2024"
+            VALUE "LegalCopyright",  "Copyleft © 2015-2025"
             VALUE "ProductName",     "Special K"
             VALUE "ProductVersion",  SK_VERSION_STR_A
         END
