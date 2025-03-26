@@ -1,12 +1,18 @@
 ﻿25.3.26.3
 =========
- + Added INI option to disable keyboard IME services in a game, in order to
-     fix Assassin's Creed deadlocking when combinations of Alt+Shift are used.
+ + Adjusted DLL shutdown procedure to flush INI files before anything else, since
+     some games terminate in the middle of unloading SK's DLL.
+ + Simplified Assassin's Creed Shadows initialization code
+ + Terminate hung nvngx_update.exe instances when launching games, because it
+     can prevent proper launch/exit if the game infinitely waits for a broken
+       DLSS over-the-air-update.
 
 25.3.26.2
 =========
  + Assassin's Creed Shadows framerate patch addresses are now scanned at start,
      and patches should no longer break things.
+ + Added INI option to disable keyboard IME services in a game, in order to
+     fix Assassin's Creed deadlocking when combinations of Alt+Shift are used.
 
 25.3.26.1
 =========
