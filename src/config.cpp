@@ -1043,6 +1043,7 @@ struct {
     sk::ParameterInt*     enable_alt_tab          = nullptr;
     sk::ParameterInt*     enable_win_key          = nullptr;
     sk::ParameterInt*     alt_tab_adhd_pace       = nullptr;
+    sk::ParameterBool*    disable_ime             = nullptr;
   } keyboard;
 
   struct
@@ -1748,6 +1749,7 @@ auto DeclKeybind =
     ConfigEntry (input.keyboard.enable_alt_tab,          L"Block, Unblock or use Game Behavior for Alt-Tab key",       dll_ini,         L"Input.Keyboard",        L"EnableAltTab"),
     ConfigEntry (input.keyboard.enable_win_key,          L"Block, Unblock or use Game Behavior for Windows key",       dll_ini,         L"Input.Keyboard",        L"EnableWinKey"),
     ConfigEntry (input.keyboard.alt_tab_adhd_pace,       L"Minimum time, in milliseconds, between Alt-Tab usage",      dll_ini,         L"Input.Keyboard",        L"AltTabPacing"),
+    ConfigEntry (input.keyboard.disable_ime,             L"Disable IME input services for the game",                   dll_ini,         L"Input.Keyboard",        L"DisableIME"),
 
     ConfigEntry (input.mouse.disabled_to_game,           L"Completely stop all mouse input from reaching the Game",    dll_ini,         L"Input.Mouse",           L"DisabledToGame"),
 
@@ -3400,6 +3402,7 @@ auto DeclKeybind =
         // Address issues caused by Steam Input
         config.input.gamepad.dinput.
                                  blackout_gamepads =  true;
+        config.input.keyboard.disable_ime          =  true;
 
         // Delay the application of framerate patch in case other mods are
         //   doing the same thing...
@@ -4887,6 +4890,18 @@ auto DeclKeybind =
   input.keyboard.alt_tab_adhd_pace->load (config.input.keyboard.alt_tab_adhd_pace);
   config.input.keyboard.
                     org_disabled_to_game= config.input.keyboard.disabled_to_game;
+  input.keyboard.disable_ime->load       (config.input.keyboard.disable_ime);
+
+  if (config.input.keyboard.disable_ime)
+  {
+    BOOL disabled =
+      ImmDisableIME ((DWORD)(-1));
+
+    if (disabled)
+    {
+      SK_LOGi0 (L"Successfully disabled IME for all threads in the process...");
+    }
+  }
 
   input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
   config.input.mouse.
@@ -6429,6 +6444,7 @@ SK_SaveConfig ( std::wstring name,
   input.keyboard.enable_alt_tab->store        (config.input.keyboard.enable_alt_tab);
   input.keyboard.enable_win_key->store        (config.input.keyboard.enable_win_key);
   input.keyboard.alt_tab_adhd_pace->store     (config.input.keyboard.alt_tab_adhd_pace);
+  input.keyboard.disable_ime->store           (config.input.keyboard.disable_ime);
 
   input.mouse.disabled_to_game->store         (config.input.mouse.org_disabled_to_game);
 

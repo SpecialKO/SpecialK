@@ -1234,6 +1234,7 @@ struct sk_config_t
       int     alt_tab_adhd_pace   = 0UL;
       volatile
       UINT64  temporarily_allow   =     0; // Up until temporarily_allow + 1 frames,
+      bool    disable_ime         = false;
     } keyboard;                            //   ignore "disabled_to_game"
 
     struct mouse_s {
