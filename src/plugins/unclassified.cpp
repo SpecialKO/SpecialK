@@ -1830,9 +1830,6 @@ using slDLSSGSetOptions_pfn   = sl::Result (*)(const sl::ViewportHandle& viewpor
       slDLSSGSetOptions_pfn
       slDLSSGSetOptions_ACS_Original = nullptr;
 
-unsigned char __SK_ACS_OriginalFrameGenCode [4] = { };
-void*         __SK_ACS_FrameGenTestAddr         = nullptr;
-
 static          DWORD  LastTimeFMVChecked     = 0;
 static          HANDLE LastFMVHandle          = 0;
 static volatile ULONG  FrameGenDisabledForFMV = FALSE;
@@ -1844,69 +1841,70 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
   static uintptr_t base_addr =
     (uintptr_t)SK_Debug_GetImageBaseAddr ();
 
-  if (__SK_ACS_OriginalFrameGenCode [0] == 0x0)
-  {
-    __SK_ACS_FrameGenTestAddr =
-      (void *)(base_addr + 0x3397D66/*0x3397C56*/);
+  static void* FrameGenTestAddr = nullptr;
+
+  SK_RunOnce (
+    /*
+    ACShadows.exe+346B5B4 - C1 E0 03              - shl eax,03 { 3 }
+    ACShadows.exe+346B5B7 - 48 8B 15 0A2EC407     - mov rdx,[ACShadows.exe+B0AE3C8] { (0F507BC0) }  <---   RIP + 0x07c42e0a
+    ACShadows.exe+346B5BE - 80 7A 24 00           - cmp byte ptr [rdx+24],00 { 0 }
+    ACShadows.exe+346B5C2 - 48 8B 04 01           - mov rax,[rcx+rax]
+    ACShadows.exe+346B5C6 - 48 89 84 24 80000000  - mov [rsp+00000080],rax
+    */
+
+    void* code_addr =
+      SK_ScanAlignedExec ("\xc1\xe0\x03\x48\x8B\x15\x00\x00\x00\x00\x80\x7A\x24\x00\x48\x8B\x04\x01\x48\x89\x84\x24", 22,
+                          "\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\x00\x48\x8B\x04\x01\x48\x89\x84\x24", (void*)base_addr, 4);
+  
+    if (code_addr != nullptr)
+    {
+      uint32_t  ptr_offset =                                    0x24;
+      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)code_addr + 6);
+      uintptr_t rip        =               (uintptr_t)code_addr + 10;
+  
+      pFrameGenEnabled =
+        *(bool **)(rip + rip_offset) + ptr_offset;
+    }
 
     /*
     ACShadows.exe+3397C4C - 83 FD 0A              - cmp ebp,0A { 10 }
     ACShadows.exe+3397C4F - 0F94 C0               - sete al
     ACShadows.exe+3397C52 - 44 89 66 20           - mov [rsi+20],r12d
-    ACShadows.exe+3397C56 - 44 88 6E 24           - mov [rsi+24],r13b  <---
+    ACShadows.exe+3397C56 - 44 88 6E 24           - mov [rsi+24],r13b  <---  (base + 10)
     ACShadows.exe+3397C5A - 89 E9                 - mov ecx,ebp
     ACShadows.exe+3397C5C - 83 E1 FE              - and ecx,-02 { 254 }
     */
 
-    if (__SK_ACS_FrameGenTestAddr != nullptr)
+    code_addr =
+      SK_ScanAlignedExec ("\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", 19,
+                          "\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", (void*)base_addr);
+
+    if (code_addr != nullptr)
     {
-      DWORD                                                                      dwOrigProt = 0x0;
-      if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt) &&
-              *(uint8_t *)__SK_ACS_FrameGenTestAddr == 0x44)
-      {
-        memcpy         (__SK_ACS_OriginalFrameGenCode, __SK_ACS_FrameGenTestAddr, 4);
-        VirtualProtect (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
-                                                      &dwOrigProt);
-      }
-
-      else
-      {
-        __SK_ACS_OriginalFrameGenCode [0] = 0x90;
-        __SK_ACS_FrameGenTestAddr         = nullptr;
-      }
+      FrameGenTestAddr =
+        (void *)((uintptr_t)code_addr + 10);
     }
-  }
+  );
 
-  if (__SK_ACS_FrameGenTestAddr != nullptr)
+  if (pFrameGenEnabled == nullptr || FrameGenTestAddr == nullptr)
   {
-    LastTimeFMVChecked = SK::ControlPanel::current_time;
-
-    DWORD                                                                      dwOrigProt = 0x0;
-    if (VirtualProtect (__SK_ACS_FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-    {
-      pFrameGenEnabled =
-        *(bool **)(base_addr + 0x0B0AE3C8/*0x0B0AF3C8*/) + 0x24;
-
-      //C1 E0 03 48 8B 15 ?? ?? ?? ?? 80 7A 24 00
-
-      /*
-      ACShadows.exe+346B5B4 - C1 E0 03              - shl eax,03 { 3 }
-      ACShadows.exe+346B5B7 - 48 8B 15 0A2EC407     - mov rdx,[ACShadows.exe+B0AE3C8] { (0F507BC0) }  <---   RIP + 0x07c42e0a
-      ACShadows.exe+346B5BE - 80 7A 24 00           - cmp byte ptr [rdx+24],00 { 0 }
-      */
-
-      memcpy           (__SK_ACS_FrameGenTestAddr, enable ? (unsigned char *)"\x90\x90\x90\x90"
-                                                          : __SK_ACS_OriginalFrameGenCode, 4);
-      VirtualProtect   (__SK_ACS_FrameGenTestAddr,  4, dwOrigProt,
-                                                      &dwOrigProt);
-
-      *pFrameGenEnabled = enable;
-
-      return enable;
-    }
+    SK_RunOnce (SK_ImGui_Warning (L"Could not find Frame Generation code?!"));
+    return false;
   }
 
-  return false;
+  LastTimeFMVChecked = SK::ControlPanel::current_time;
+
+  DWORD                                                             dwOrigProt = 0x0;
+  if (VirtualProtect (FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+  { memcpy           (FrameGenTestAddr, (unsigned char *)(enable ? "\x90\x90\x90\x90"
+                                                                 : "\x44\x88\x6E\x24"), 4);
+    VirtualProtect   (FrameGenTestAddr,  4, dwOrigProt,             &dwOrigProt);
+
+    *pFrameGenEnabled = enable;
+  }
+
+  return  
+    *pFrameGenEnabled;
 }
 
 sl::Result
@@ -2159,330 +2157,349 @@ SK_ACS_InitPlugin (void)
   {
     static void* img_base_addr = 
       SK_Debug_GetImageBaseAddr ();
-
-    bool unlimited = false;
-
-    static void* const limit_load_addr =
-      (uint8_t *)img_base_addr+0xF7B0BA;
-
-    static void* const limit_store_addr =
-       (uint8_t *)img_base_addr+0xF7B0C1;
   
-    if (! memcmp (limit_load_addr, "\x48\x8b\x05\x9f", 4))
-    {
-      _SK_ACS_AlwaysUseFrameGen =
-        _CreateConfigParameterBool  ( L"AssassinsCreed.FrameRate",
-                                      L"AlwaysUseFrameGen", __SK_ACS_AlwaysUseFrameGen,
-                                      L"Use FrameGen in Cutscenes" );
+    _SK_ACS_AlwaysUseFrameGen =
+      _CreateConfigParameterBool  ( L"AssassinsCreed.FrameRate",
+                                    L"AlwaysUseFrameGen", __SK_ACS_AlwaysUseFrameGen,
+                                    L"Use FrameGen in Cutscenes" );
 
-      _SK_ACS_ShowFMVIndicator =
-        _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                     L"ShowFMVIndicator", __SK_ACS_ShowFMVIndicator,
-                                     L"Show an indicator while FMVs are Playing" );
+    _SK_ACS_ShowFMVIndicator =
+      _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                   L"ShowFMVIndicator", __SK_ACS_ShowFMVIndicator,
+                                   L"Show an indicator while FMVs are Playing" );
 
-      _SK_ACS_UncapFramerate =
-        _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                     L"UncapMenusAndCutscenes", __SK_ACS_UncapFramerate,
-                                     L"Uncap Framerate in Cutscenes" );
+    _SK_ACS_UncapFramerate =
+      _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                   L"UncapMenusAndCutscenes", __SK_ACS_UncapFramerate,
+                                   L"Uncap Framerate in Cutscenes" );
 
-      _SK_ACS_UncapFramerateFully =
-        _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                     L"UncapFramerateFully", __SK_ACS_UncapFramerateFully,
-                                     L"Uncap Framerate Permanently" );
+    _SK_ACS_UncapFramerateFully =
+      _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                   L"UncapFramerateFully", __SK_ACS_UncapFramerateFully,
+                                   L"Uncap Framerate Permanently" );
 
-      _SK_ACS_DLSSG_MultiFrameCount =
-        _CreateConfigParameterInt  ( L"AssassinsCreed.FrameRate",
-                                     L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
-                                     L"Override Multi-Frame Gen" );
+    _SK_ACS_DLSSG_MultiFrameCount =
+      _CreateConfigParameterInt  ( L"AssassinsCreed.FrameRate",
+                                   L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
+                                   L"Override Multi-Frame Gen" );
 
-      plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
+    plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
 
-      void*                            pfnCloseHandle = nullptr;
-      SK_CreateDLLHook2 (
-             L"kernel32",                "CloseHandle",
-                                   SK_ACS_CloseHandle_Detour,
-        static_cast_p2p <void> (&__SK_ACS_CloseHandle_Original),
-                                      &pfnCloseHandle );
-      MH_EnableHook                  ( pfnCloseHandle );
+    void*                            pfnCloseHandle = nullptr;
+    SK_CreateDLLHook2 (
+           L"kernel32",                "CloseHandle",
+                                 SK_ACS_CloseHandle_Detour,
+      static_cast_p2p <void> (&__SK_ACS_CloseHandle_Original),
+                                    &pfnCloseHandle );
+    MH_EnableHook                  ( pfnCloseHandle );
 
-      while (SK_GetFramesDrawn () < 480)
-        SK_SleepEx (150UL, FALSE);
+    while (SK_GetFramesDrawn () < 480)
+      SK_SleepEx (150UL, FALSE);
 
 #if 1
-      if (                            __SK_ACS_AlwaysUseFrameGen)
-        SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+    if (                            __SK_ACS_AlwaysUseFrameGen)
+      SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
 
-      static const bool is_fg_capable =
+    static const bool is_fg_capable =
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
+
+    // Pull out the trump card and eliminate flaky NGX feature support queries, by
+    // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
+    // installed.
+    if (is_fg_capable)
+    {
+      __SK_ACS_IsMultiFrameCapable =
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
-        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
 
-      // Pull out the trump card and eliminate flaky NGX feature support queries, by
-      // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
-      // installed.
-      if (is_fg_capable)
+      config.nvidia.dlss.spoof_support = true;
+    }
+
+    SK_SaveConfig ();
+
+    // Fail-safe incase any code that sets this was missed
+    static float* framerate_limit = nullptr;
+
+    plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName, HANDLE hFile)
+    {
+      if (StrStrIW (lpFileName, L"webm"))
       {
-        __SK_ACS_IsMultiFrameCapable =
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
+        bool file_is_exempt = false;
 
-        config.nvidia.dlss.spoof_support = true;
-      }
-
-      SK_SaveConfig ();
-
-      // Fail-safe incase any code that sets this was missed
-      static float* framerate_limit = nullptr;
-
-      plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName, HANDLE hFile)
-      {
-        if (StrStrIW (lpFileName, L"webm"))
+        for ( auto exempt_substr : { L"HUB_Bootflow_AbstergoIntro",
+                                     L"ACI_Panel_Red_IMG_UI",
+                                     L"ACI_Panel_Gen_IMG_UI" } )
         {
-          bool file_is_exempt = false;
+          file_is_exempt =
+            StrStrIW (lpFileName, exempt_substr);
 
-          for ( auto exempt_substr : { L"HUB_Bootflow_AbstergoIntro",
-                                       L"ACI_Panel_Red_IMG_UI",
-                                       L"ACI_Panel_Gen_IMG_UI" } )
-          {
-            file_is_exempt =
-              StrStrIW (lpFileName, exempt_substr);
-
-            if (file_is_exempt)
-              break;
-          }
-
-          if (! file_is_exempt)
-          {
-            LastFMVHandle = hFile;
-
-            WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
-            SK_ACS_ApplyFrameGenOverride (false);
-
-            if (__SK_ACS_AlwaysUseFrameGen)
-            {
-              SK_LOGi0 (
-                L"Temporarily disabling Frame Generation because video '%ws' was opened...",
-                  lpFileName
-              );
-            }
-          }
+          if (file_is_exempt)
+            break;
         }
-      });
 
-      DWORD                                                             dwOrigProt = 0x0;
-      if (VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-      {
-        config.system.silent_crash = true;
-        config.utility.save_async ();
-
-        // Self-disable cutscene frame generation if it causes a crash, and then
-        //   ignore the crash...
-        AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+        if (! file_is_exempt)
         {
-          bool continuable = false;
+          LastFMVHandle = hFile;
 
-          if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
-          {
-            auto Context = ExceptionInfo->ContextRecord;
+          WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
+          SK_ACS_ApplyFrameGenOverride (false);
 
-            const DWORD64 addr =
-                 (DWORD64)Context->Rip - (DWORD64)SK_Debug_GetImageBaseAddr ();
-
-            static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSites;
-
-            // Turn off frame generation and give a second-chance at life
-            if (__SK_ACS_AlwaysUseFrameGen)
-            {
-              if (LastFMVHandle != 0 && ContinuableCallSites.insert (addr).second)
-              {
-                SK_LOGi0 (L"FMV Cutscene Exception Ignored: RIP=%p", addr);
-              }
-
-                                *pFrameGenEnabled = false;
-              WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
-
-              continuable =
-                ContinuableCallSites.count (addr) != 0;
-
-              if (! continuable)
-              {
-                SK_LOGi0 (L"Non-Continuable Exception RIP=%p", addr);
-              }
-
-              else
-              {
-                PVOID SKX_GetNextInstruction (LPVOID addr);
-
-                ExceptionInfo->ContextRecord->Rip =
-                  (DWORD64)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Rip);
-              }
-            }
-          }
-
-          return
-            ( continuable ? EXCEPTION_CONTINUE_EXECUTION
-                          : EXCEPTION_CONTINUE_SEARCH );
-        });
-
-        unlimited = true;
-
-        framerate_limit =
-          // Limit = Offset 0x98; single-precision float
-          (float *)(*(uint8_t **)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x9C90960/*0x9C91960*/) + 0x98);
-
-        // The pointer base addr is stored in the limit_load_addr instruction
-        plugin_mgr->begin_frame_fns.insert ([](void)
-        {
-          float game_limit = framerate_limit == nullptr ? -1.0f :
-          *framerate_limit;
-
-          if (__SK_ACS_UncapFramerate ||
-              __SK_ACS_UncapFramerateFully)
-          {
-            SK_RunOnce (
-              void* const     limit_check_addr =
-              (uint8_t *)img_base_addr+0xF7B0D3;
-
-              DWORD                                                         dwOrigProt = 0x0;
-              VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-              memcpy         (limit_check_addr, "\x90\x90", 2);
-              VirtualProtect (limit_check_addr, 2, dwOrigProt,
-                                                  &dwOrigProt);
-
-              if (__SK_ACS_UncapFramerateFully)
-              {   __SK_ACS_UncapFramerate = true;
-                memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-                VirtualProtect (limit_store_addr, 8, dwOrigProt,
-                                                    &dwOrigProt);
-              }
-            );
-          }
-
-          // Not tested adequately in non-framegen cases
           if (__SK_ACS_AlwaysUseFrameGen)
           {
-            // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
-            if      (ReadULongAcquire (&FrameGenDisabledForFMV))       __target_fps = 30.0f;
-            else if ((! __SK_ACS_UncapFramerate) && game_limit > 0.0f) __target_fps = game_limit;
-            else                                                       __target_fps = config.render.framerate.target_fps;
+            SK_LOGi0 (
+              L"Temporarily disabling Frame Generation because video '%ws' was opened...",
+                lpFileName
+            );
+          }
+        }
+      }
+    });
+
+    config.system.silent_crash = true;
+    config.utility.save_async ();
+
+    // Self-disable cutscene frame generation if it causes a crash, and then
+    //   ignore the crash...
+    AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+    {
+      bool continuable = false;
+
+      if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+      {
+        auto Context = ExceptionInfo->ContextRecord;
+
+        const DWORD64 addr =
+             (DWORD64)Context->Rip - (DWORD64)SK_Debug_GetImageBaseAddr ();
+
+        static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSites;
+
+        // Turn off frame generation and give a second-chance at life
+        if (__SK_ACS_AlwaysUseFrameGen)
+        {
+          if (LastFMVHandle != 0 && ContinuableCallSites.insert (addr).second)
+          {
+            SK_LOGi0 (L"FMV Cutscene Exception Ignored: RIP=%p", addr);
+          }
+
+                            *pFrameGenEnabled = false;
+          WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
+
+          continuable =
+            ContinuableCallSites.count (addr) != 0;
+
+          if (! continuable)
+          {
+            SK_LOGi0 (L"Non-Continuable Exception RIP=%p", addr);
           }
 
           else
           {
-            // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
-            if      (ReadULongAcquire (&FrameGenDisabledForFMV))
-            {
-              __target_fps = 30.0f;
-            }
+            PVOID SKX_GetNextInstruction (LPVOID addr);
 
-            else if ((! __SK_ACS_UncapFramerate) && game_limit >   0.0f &&
-                                                    game_limit < 500.0f)
-            {
-              __target_fps = game_limit;
-            }
+            ExceptionInfo->ContextRecord->Rip =
+              (DWORD64)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Rip);
+          }
+        }
+      }
 
-            else
-            {
-              __target_fps = config.render.framerate.target_fps;
-            }
+      return
+        ( continuable ? EXCEPTION_CONTINUE_EXECUTION
+                      : EXCEPTION_CONTINUE_SEARCH );
+    });
+
+    /*
+    ACShadows.exe+F7B0C9 - 48 83 C4 20           - add rsp,20 { 32 }
+    ACShadows.exe+F7B0CD - 5E                    - pop rsi
+    ACShadows.exe+F7B0CE - C3                    - ret 
+    ACShadows.exe+F7B0CF - 80 79 2C 00           - cmp byte ptr [rcx+2C],00 { 0 }
+    ACShadows.exe+F7B0D3 - 75 CA                 - jne ACShadows.exe+F7B09F         <---  base + 10
+    ACShadows.exe+F7B0D5 - EB 05                 - jmp ACShadows.exe+F7B0DC
+    ACShadows.exe+F7B0D7 - 45 84 C0              - test r8b,r8b
+    ACShadows.exe+F7B0DA - 75 C3                 - jne ACShadows.exe+F7B09F
+    */
+    
+    static void* limit_check_addr =
+      (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\xCA\xEB\x05\x45\x84\xC0\x75\xC3", 19,
+                                              "\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\xCA\xEB\x05\x45\x84\xC0\x75\xC3", (void*)img_base_addr) + 10);
+    static void* limit_store_addr = nullptr;
+
+    if (limit_check_addr != (void *)10)
+    {
+      /*
+      ACShadows.exe+F7B0BA - 48 8B 05 9F58D108     - mov rax,[ACShadows.exe+9C90960] { (04864E98) }
+      ACShadows.exe+F7B0C1 - C5FA1180 98 000000    - vmovss [rax+00000098],xmm0
+      */
+
+      limit_store_addr =
+        (void *)((uintptr_t)limit_check_addr - 18);
+
+      uint32_t  ptr_offset =                                           0x98;
+      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)limit_store_addr - 4);
+      uintptr_t rip        =               (uintptr_t)limit_store_addr;
+
+      framerate_limit =
+        (float *)(*(uint8_t **)((uintptr_t)rip + rip_offset) + ptr_offset);
+    }
+
+    else
+    {
+      SK_ImGui_Warning (L"Could not find Framerate Limiter Code?!");
+    }
+
+    // The pointer base addr is stored in the limit_load_addr instruction
+    plugin_mgr->begin_frame_fns.insert ([](void)
+    {
+      float game_limit =
+        (framerate_limit == nullptr) ? -1.0f : *framerate_limit;
+
+      if (__SK_ACS_UncapFramerate ||
+          __SK_ACS_UncapFramerateFully)
+      {
+        DWORD dwOrigProt = 0x0;
+
+        if (limit_check_addr != (void *)10)
+        {
+          if (__SK_ACS_UncapFramerateFully)
+          {   __SK_ACS_UncapFramerate = true;
+          
+            SK_RunOnce (
+              VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE,&dwOrigProt);
+              memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+              VirtualProtect (limit_store_addr, 8, dwOrigProt,            &dwOrigProt);
+            );
           }
 
-          bool toggled_cpl = false;
-
-          static bool        lastActive= SK_ImGui_Active ();
-          if (std::exchange (lastActive, SK_ImGui_Active ()) != SK_ImGui_Active ())
-            toggled_cpl = true;
-
-          // 3.333 second grace period after an FMV is read to reset frame generation
-          if (LastTimeFMVChecked < SK::ControlPanel::current_time - 3333UL)
+          if (__SK_ACS_UncapFramerate)
           {
-            if (toggled_cpl)
-            {
-              SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-              WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
-            }
+            SK_RunOnce (
+              VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+              memcpy         (limit_check_addr, "\x90\x90",                          2);
+              VirtualProtect (limit_check_addr, 2,             dwOrigProt, &dwOrigProt);
+            );
+          }
+        }
+      }
 
-            else if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
-            {
-              // Video is done playing, game has unlimited framerate again.
-              if (game_limit != 30.0f)
-              {
-                SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-                WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
-              }
+      // Not tested adequately in non-framegen cases
+      if (__SK_ACS_AlwaysUseFrameGen)
+      {
+        // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
+        if      (ReadULongAcquire (&FrameGenDisabledForFMV))       __target_fps = 30.0f;
+        else if ((! __SK_ACS_UncapFramerate) && game_limit > 0.0f) __target_fps = game_limit;
+        else                                                       __target_fps = config.render.framerate.target_fps;
+      }
+
+      else
+      {
+        // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
+        if      (ReadULongAcquire (&FrameGenDisabledForFMV))
+        {
+          __target_fps = 30.0f;
+        }
+
+        else if ((! __SK_ACS_UncapFramerate) && game_limit >   0.0f &&
+                                                game_limit < 500.0f)
+        {
+          __target_fps = game_limit;
+        }
+
+        else
+        {
+          __target_fps = config.render.framerate.target_fps;
+        }
+      }
+
+      bool toggled_cpl = false;
+
+      static bool        lastActive= SK_ImGui_Active ();
+      if (std::exchange (lastActive, SK_ImGui_Active ()) != SK_ImGui_Active ())
+        toggled_cpl = true;
+
+      // 3.333 second grace period after an FMV is read to reset frame generation
+      if (LastTimeFMVChecked < SK::ControlPanel::current_time - 3333UL)
+      {
+        if (toggled_cpl)
+        {
+          SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+          WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
+        }
+
+        else if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
+        {
+          // Video is done playing, game has unlimited framerate again.
+          if (game_limit != 30.0f)
+          {
+            SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+            WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
+          }
 
 #if 0
-              else if (__SK_ACS_AlwaysUseFrameGen)
-              {
-                SK_ImGui_CreateNotification (
-                  "ACShadows.FMVDecay", SK_ImGui_Toast::Other, "FMV Still Active?", nullptr, INFINITE,
-                                        SK_ImGui_Toast::UseDuration  |
-                                        SK_ImGui_Toast::ShowCaption  |
-                                        SK_ImGui_Toast::ShowNewest   |
-                                        SK_ImGui_Toast::Unsilencable |
-                                        SK_ImGui_Toast::DoNotSaveINI );
-              }
+          else if (__SK_ACS_AlwaysUseFrameGen)
+          {
+            SK_ImGui_CreateNotification (
+              "ACShadows.FMVDecay", SK_ImGui_Toast::Other, "FMV Still Active?", nullptr, INFINITE,
+                                    SK_ImGui_Toast::UseDuration  |
+                                    SK_ImGui_Toast::ShowCaption  |
+                                    SK_ImGui_Toast::ShowNewest   |
+                                    SK_ImGui_Toast::Unsilencable |
+                                    SK_ImGui_Toast::DoNotSaveINI );
+          }
 #endif
-            }
+        }
 
-            if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
-            {
-              // -1.0f = Unlimited (set by game in special cases)
-              *framerate_limit = -1.0f;
-            }
-          }
-
-          else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
-          {
-            if (__SK_ACS_ShowFMVIndicator)
-            {
-              SK_ImGui_CreateNotification (
-                "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Playing", nullptr, INFINITE,
-                                      SK_ImGui_Toast::UseDuration  |
-                                      SK_ImGui_Toast::ShowCaption  |
-                                      SK_ImGui_Toast::ShowNewest   |
-                                      SK_ImGui_Toast::Unsilencable |
-                                      SK_ImGui_Toast::DoNotSaveINI );
-            }
-          }
-
-          if (__SK_IsDLSSGActive)
-          {
-            static HMODULE
-                hModSLDLSSG  = (HMODULE)-1;
-            if (hModSLDLSSG == (HMODULE)-1)GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.dlss_g.dll",
-               &hModSLDLSSG);
-
-            if (hModSLDLSSG != nullptr)
-            {
-              SK_RunOnce (
-                slGetPluginFunction_pfn
-                slGetPluginFunction =
-               (slGetPluginFunction_pfn)SK_GetProcAddress (hModSLDLSSG,
-               "slGetPluginFunction");
-
-                slDLSSGSetOptions_pfn                       slDLSSGSetOptions =
-               (slDLSSGSetOptions_pfn)slGetPluginFunction ("slDLSSGSetOptions");
-
-                SK_CreateFuncHook   (     L"slDLSSGSetOptions",
-                                            slDLSSGSetOptions,
-                                     SK_ACS_slDLSSGSetOptions_Detour,
-                   static_cast_p2p <void> (&slDLSSGSetOptions_ACS_Original) );
-                MH_EnableHook       (       slDLSSGSetOptions               );
-              );
-            }
-          }
-        });
+        if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
+        {
+          // -1.0f = Unlimited (set by game in special cases)
+          *framerate_limit = -1.0f;
+        }
       }
-#endif
-    }
 
-    if (! unlimited)
-    {
-      SK_ImGui_Warning (L"Cutscene / Menu Framerate Limiter Bypass Unsupported");
-    }
+      else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
+      {
+        if (__SK_ACS_ShowFMVIndicator)
+        {
+          SK_ImGui_CreateNotification (
+            "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Playing", nullptr, INFINITE,
+                                  SK_ImGui_Toast::UseDuration  |
+                                  SK_ImGui_Toast::ShowCaption  |
+                                  SK_ImGui_Toast::ShowNewest   |
+                                  SK_ImGui_Toast::Unsilencable |
+                                  SK_ImGui_Toast::DoNotSaveINI );
+        }
+      }
+
+      if (__SK_IsDLSSGActive)
+      {
+        static HMODULE
+            hModSLDLSSG  = (HMODULE)-1;
+        if (hModSLDLSSG == (HMODULE)-1)GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.dlss_g.dll",
+           &hModSLDLSSG);
+
+        if (hModSLDLSSG != nullptr)
+        {
+          SK_RunOnce (
+            slGetPluginFunction_pfn
+            slGetPluginFunction =
+           (slGetPluginFunction_pfn)SK_GetProcAddress (hModSLDLSSG,
+           "slGetPluginFunction");
+
+            slDLSSGSetOptions_pfn                       slDLSSGSetOptions =
+           (slDLSSGSetOptions_pfn)slGetPluginFunction ("slDLSSGSetOptions");
+
+            SK_CreateFuncHook   (     L"slDLSSGSetOptions",
+                                        slDLSSGSetOptions,
+                                 SK_ACS_slDLSSGSetOptions_Detour,
+               static_cast_p2p <void> (&slDLSSGSetOptions_ACS_Original) );
+            MH_EnableHook       (       slDLSSGSetOptions               );
+          );
+        }
+      }
+    });
+#endif
 
     SK_Thread_CloseSelf ();
 
