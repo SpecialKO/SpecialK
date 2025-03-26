@@ -2193,34 +2193,6 @@ SK_ACS_InitPlugin (void)
                                     &pfnCloseHandle );
     MH_EnableHook                  ( pfnCloseHandle );
 
-    while (SK_GetFramesDrawn () < 480)
-      SK_SleepEx (150UL, FALSE);
-
-#if 1
-    if (                            __SK_ACS_AlwaysUseFrameGen)
-      SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-
-    static const bool is_fg_capable =
-      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
-      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
-      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
-
-    // Pull out the trump card and eliminate flaky NGX feature support queries, by
-    // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
-    // installed.
-    if (is_fg_capable)
-    {
-      __SK_ACS_IsMultiFrameCapable =
-        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
-        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
-        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
-        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
-
-      config.nvidia.dlss.spoof_support = true;
-    }
-
-    SK_SaveConfig ();
-
     // Fail-safe incase any code that sets this was missed
     static float* framerate_limit = nullptr;
 
@@ -2258,9 +2230,6 @@ SK_ACS_InitPlugin (void)
         }
       }
     });
-
-    config.system.silent_crash = true;
-    config.utility.save_async ();
 
     // Self-disable cutscene frame generation if it causes a crash, and then
     //   ignore the crash...
@@ -2350,9 +2319,36 @@ SK_ACS_InitPlugin (void)
       SK_ImGui_Warning (L"Could not find Framerate Limiter Code?!");
     }
 
+    config.system.silent_crash = true;
+    config.utility.save_async ();
+
     // The pointer base addr is stored in the limit_load_addr instruction
     plugin_mgr->begin_frame_fns.insert ([](void)
     {
+      SK_RunOnce (
+        static const bool is_fg_capable =
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
+
+        // Pull out the trump card and eliminate flaky NGX feature support queries, by
+        // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
+        // installed.
+        if (is_fg_capable)
+        {
+          __SK_ACS_IsMultiFrameCapable =
+            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
+            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
+
+          config.nvidia.dlss.spoof_support = true;
+        }
+
+        if (                          __SK_ACS_AlwaysUseFrameGen)
+        SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
+      );
+
       float game_limit =
         (framerate_limit == nullptr) ? -1.0f : *framerate_limit;
 
@@ -2436,19 +2432,6 @@ SK_ACS_InitPlugin (void)
             SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
             WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
           }
-
-#if 0
-          else if (__SK_ACS_AlwaysUseFrameGen)
-          {
-            SK_ImGui_CreateNotification (
-              "ACShadows.FMVDecay", SK_ImGui_Toast::Other, "FMV Still Active?", nullptr, INFINITE,
-                                    SK_ImGui_Toast::UseDuration  |
-                                    SK_ImGui_Toast::ShowCaption  |
-                                    SK_ImGui_Toast::ShowNewest   |
-                                    SK_ImGui_Toast::Unsilencable |
-                                    SK_ImGui_Toast::DoNotSaveINI );
-          }
-#endif
         }
 
         if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
@@ -2499,7 +2482,6 @@ SK_ACS_InitPlugin (void)
         }
       }
     });
-#endif
 
     SK_Thread_CloseSelf ();
 
