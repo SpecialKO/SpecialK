@@ -7530,9 +7530,13 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
   const bool keyboard_capture =
     SK_ImGui_WantKeyboardCapture ();
 
-  bool //wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
-          isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL;//,
-        //isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
+  const WORD
+    repeat_count = LOWORD (lParam),
+       key_flags = HIWORD (lParam);
+
+  const bool isPressed  =                    (key_flags & KF_UP    ) == 0;
+  const bool wasPressed = repeat_count > 0 ? (key_flags & KF_UP    ) == 0
+                                           : (key_flags & KF_REPEAT) == KF_REPEAT;
 
   SHORT vKey =
       std::min (static_cast <SHORT> (wParam),
@@ -7540,9 +7544,34 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
   auto& io =
     ImGui::GetIO ();
 
-  if (           vKey > 7) {
-    io.KeysDown [vKey] = isPressed;
-    SK_ImGui_LastKeyboardInputFrame = SK_GetFramesDrawn ();
+  if (code != HC_NOREMOVE)
+  {
+    if (           vKey > 7) {
+      io.KeysDown [vKey] = isPressed;
+      SK_ImGui_LastKeyboardInputFrame = SK_GetFramesDrawn ();
+    }
+
+    if (keyboard_capture && (! io.WantTextInput))
+    {
+      static WPARAM last_wParam = (WPARAM)~0ULL;
+      static LPARAM last_lParam = (LPARAM)~0ULL;
+      static DWORD  last_time   =          0UL;
+      const  DWORD       time   =
+                      SK_timeGetTime ();
+
+      const bool isDuplicate =
+       ~((std::exchange (last_wParam, wParam) != wParam)|
+         (std::exchange (last_lParam, lParam) != lParam)|
+         (std::exchange (last_time,     time) !=  time));
+
+      if (! isDuplicate)
+      {
+        if      ( isPressed && !wasPressed) SK_Console::getInstance ()->KeyDown ((BYTE)(vKey & 0xFF), 0x0);
+        else if (!isPressed &&  wasPressed) SK_Console::getInstance ()->KeyUp   ((BYTE)(vKey & 0xFF), 0x0);
+
+        return 1;
+      }
+    }
   }
 
   if (io.KeyAlt && vKey == VK_F4 && isPressed)
@@ -7556,14 +7585,6 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
     );
 
     if (SK_ImGui_Visible || keyboard_capture) return 1;
-  }
-
-  if (keyboard_capture && (! io.WantTextInput))
-  {
-    if (isPressed) SK_Console::getInstance ()->KeyDown ((BYTE)(vKey & 0xFF), 0x0);
-    else           SK_Console::getInstance ()->KeyUp   ((BYTE)(vKey & 0xFF), 0x0);
-
-    return 1;
   }
 
   if ((vKey == VK_LWIN || vKey == VK_RWIN) && config.input.keyboard.enable_win_key == SK_Disabled)
