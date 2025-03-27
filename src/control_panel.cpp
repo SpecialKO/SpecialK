@@ -7553,8 +7553,8 @@ SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
 
     if (keyboard_capture && (! io.WantTextInput))
     {
-      static WPARAM last_wParam = (WPARAM)~0ULL;
-      static LPARAM last_lParam = (LPARAM)~0ULL;
+      static WPARAM last_wParam = (WPARAM)~0UL;
+      static LPARAM last_lParam = (LPARAM)~0UL;
       static DWORD  last_time   =          0UL;
       const  DWORD       time   =
                       SK_timeGetTime ();
