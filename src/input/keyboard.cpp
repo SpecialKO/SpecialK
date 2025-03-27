@@ -211,16 +211,22 @@ SK_ImGui_WantKeyboardCapture (bool update)
     return false;
   }
 
+  const bool bWindowActive =
+     SK_IsGameWindowActive ();
+
   static std::atomic <ULONG64> lastFrameCaptured = 0;
 
-  if (! update)
-    return capture.load () || lastFrameCaptured > framesDrawn - 2;
+  auto temp_poke_frame = ReadULong64Acquire (&config.input.keyboard.temporarily_allow);
+
+  // Poke through input for a special-case
+  if (bWindowActive && (temp_poke_frame == 0 || temp_poke_frame <= framesDrawn - 40))
+  {
+    if (! update)
+      return capture.load () || lastFrameCaptured > framesDrawn - 2;
+  }
 
   bool imgui_capture =
     config.input.keyboard.disabled_to_game == SK_InputEnablement::Disabled;
-
-  const bool bWindowActive =
-     SK_IsGameWindowActive ();
 
   if (bWindowActive || SK_WantBackgroundRender ())
   {
@@ -235,8 +241,6 @@ SK_ImGui_WantKeyboardCapture (bool update)
 
     else
     {
-      auto temp_poke_frame = ReadULong64Acquire (&config.input.keyboard.temporarily_allow);
-
       // Poke through input for a special-case
       if (temp_poke_frame > 0 && temp_poke_frame > framesDrawn - 40)
       {

@@ -628,6 +628,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
+          ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+          ImGui::SameLine   ();
           ImGui::BeginGroup ();
 
           if (ImGui::TreeNode ("Overrides"))
