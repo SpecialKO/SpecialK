@@ -534,6 +534,7 @@ SK::ControlPanel::D3D11::Draw (void)
         if (bUncollapsedDirectStorage)
         {
           ImGui::BeginGroup ();
+          ImGui::BeginGroup ();
           ImGui::
             TextUnformatted ("GDeflate Support: ");
           ImGui::
@@ -625,6 +626,10 @@ SK::ControlPanel::D3D11::Draw (void)
             }
           }
 
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+
           if (ImGui::TreeNode ("Overrides"))
           {
             bool changed = false;
@@ -645,6 +650,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
             ImGui::TreePop ();
           }
+          ImGui::EndGroup  ();
         }
 
         ImGui::TreePop       ( );
