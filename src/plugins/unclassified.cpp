@@ -2185,51 +2185,11 @@ SK_ACS_InitPlugin (void)
 
     plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
 
-    void*                            pfnCloseHandle = nullptr;
-    SK_CreateDLLHook2 (
-           L"kernel32",                "CloseHandle",
-                                 SK_ACS_CloseHandle_Detour,
-      static_cast_p2p <void> (&__SK_ACS_CloseHandle_Original),
-                                    &pfnCloseHandle );
-    MH_EnableHook                  ( pfnCloseHandle );
+    while (SK_GetFramesDrawn () < 480)
+           SK_SleepEx (150UL, FALSE);
 
     // Fail-safe incase any code that sets this was missed
     static float* framerate_limit = nullptr;
-
-    plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName, HANDLE hFile)
-    {
-      if (StrStrIW (lpFileName, L"webm"))
-      {
-        bool file_is_exempt = false;
-
-        for ( auto exempt_substr : { L"HUB_Bootflow_AbstergoIntro",
-                                     L"ACI_Panel_Red_IMG_UI",
-                                     L"ACI_Panel_Gen_IMG_UI" } )
-        {
-          file_is_exempt =
-            StrStrIW (lpFileName, exempt_substr);
-
-          if (file_is_exempt)
-            break;
-        }
-
-        if (! file_is_exempt)
-        {
-          LastFMVHandle = hFile;
-
-          WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
-          SK_ACS_ApplyFrameGenOverride (false);
-
-          if (__SK_ACS_AlwaysUseFrameGen)
-          {
-            SK_LOGi0 (
-              L"Temporarily disabling Frame Generation because video '%ws' was opened...",
-                lpFileName
-            );
-          }
-        }
-      }
-    });
 
     // Self-disable cutscene frame generation if it causes a crash, and then
     //   ignore the crash...
@@ -2322,33 +2282,73 @@ SK_ACS_InitPlugin (void)
     config.system.silent_crash = true;
     config.utility.save_async ();
 
+    static const bool is_fg_capable =
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+      StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
+
+    // Pull out the trump card and eliminate flaky NGX feature support queries, by
+    // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
+    // installed.
+    if (is_fg_capable)
+    {
+      __SK_ACS_IsMultiFrameCapable =
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
+        StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
+
+      config.nvidia.dlss.spoof_support = true;
+    }
+
+    void*                            pfnCloseHandle = nullptr;
+    SK_CreateDLLHook2 (
+           L"kernel32",                "CloseHandle",
+                                 SK_ACS_CloseHandle_Detour,
+      static_cast_p2p <void> (&__SK_ACS_CloseHandle_Original),
+                                    &pfnCloseHandle );
+    MH_EnableHook                  ( pfnCloseHandle );
+
+    plugin_mgr->open_file_w_fns.insert ([](LPCWSTR lpFileName, HANDLE hFile)
+    {
+      if (StrStrIW (lpFileName, L"webm"))
+      {
+        bool file_is_exempt = false;
+
+        for ( auto exempt_substr : { L"Epilepsy",
+                                     L"UbisoftLogo",
+                                     L"HUB_Bootflow_AbstergoIntro",
+                                     L"ACI_Panel_Red_IMG_UI",
+                                     L"ACI_Panel_Gen_IMG_UI" } )
+        {
+          file_is_exempt =
+            StrStrIW (lpFileName, exempt_substr);
+
+          if (file_is_exempt)
+            break;
+        }
+
+        if (! file_is_exempt)
+        {
+          LastFMVHandle = hFile;
+
+          WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
+          SK_ACS_ApplyFrameGenOverride (false);
+
+          if (__SK_ACS_AlwaysUseFrameGen)
+          {
+            SK_LOGi0 (
+              L"Temporarily disabling Frame Generation because video '%ws' was opened...",
+                lpFileName
+            );
+          }
+        }
+      }
+    });
+
     // The pointer base addr is stored in the limit_load_addr instruction
     plugin_mgr->begin_frame_fns.insert ([](void)
     {
-      SK_RunOnce (
-        static const bool is_fg_capable =
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
-          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr;
-
-        // Pull out the trump card and eliminate flaky NGX feature support queries, by
-        // reporting everything as supported as long as an RTX GPU not 2xxx or 3xxx is
-        // installed.
-        if (is_fg_capable)
-        {
-          __SK_ACS_IsMultiFrameCapable =
-            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
-            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
-            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
-            StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
-
-          config.nvidia.dlss.spoof_support = true;
-        }
-
-        if (                          __SK_ACS_AlwaysUseFrameGen)
-        SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-      );
-
       float game_limit =
         (framerate_limit == nullptr) ? -1.0f : *framerate_limit;
 
@@ -2463,6 +2463,9 @@ SK_ACS_InitPlugin (void)
           *framerate_limit = -1.0f;
         }
       }
+
+      if (                                        __SK_ACS_AlwaysUseFrameGen)
+        SK_RunOnce (SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen));
 
       if (__SK_IsDLSSGActive)
       {
