@@ -1,4 +1,11 @@
-﻿25.3.27
+﻿25.3.27.1
+=========
+ + Various changes to keyboard processing when ReShade is present to prevent
+     the new 6.4.x branch of ReShade from causing SK to process keybinds twice.
+ + Restored code that allows activating ReShade's overlay by pressing Home even
+     when SK is configured to block keyboard input to the game.
+
+25.3.27
 =======
  + Fixed Assassin's Creed Shadows capped framerate occasionally being restored
      when it was not supposed to be, following the new memory scanning change.
