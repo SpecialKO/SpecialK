@@ -32,6 +32,7 @@
 
 SetWindowsHookEx_pfn    SetWindowsHookExA_Original   = nullptr;
 SetWindowsHookEx_pfn    SetWindowsHookExW_Original   = nullptr;
+SetWindowsHookExAW_pfn  SetWindowsHookExAW_Original  = nullptr;
 UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original = nullptr;
 
 
@@ -642,6 +643,34 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
 
 HHOOK
 WINAPI
+SetWindowsHookExAW_Detour (
+  int       idHook,
+  HOOKPROC  lpfn,
+  HINSTANCE hmod,
+  DWORD     dwThreadId,
+  DWORD     dwHookFlags )
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_GetCallingDLL () != SK_GetModuleHandleW (L"user32.dll"))
+  {
+    SK_ImGui_Warning (
+      SK_FormatStringW (
+        L"Undocumented SetWindowsHookExAW function called directly by %ws!", SK_GetCallerName ().c_str ()
+      ).c_str ()
+    );
+
+    // The actual behavior of this function is known, but we're going to ignore it... for now.
+    //   -> Anything calling this is very non-standard and probably should be left alone, but logged if it happens.
+  }
+
+  return
+    SetWindowsHookExAW_Original (idHook, lpfn, hmod, dwThreadId, dwHookFlags);
+}
+
+
+HHOOK
+WINAPI
 SetWindowsHookExW_Detour (
   int       idHook,
   HOOKPROC  lpfn,
@@ -908,6 +937,11 @@ SK_Input_PreHookWinHook (void)
       static_cast_p2p <void> (&SetWindowsHookExW_Original) );
 
     SK_CreateDLLHook2 (      L"User32",
+                              "SetWindowsHookExAW",
+                               SetWindowsHookExAW_Detour,
+      static_cast_p2p <void> (&SetWindowsHookExAW_Original) );
+
+    SK_CreateDLLHook2 (      L"User32",
                               "UnhookWindowsHookEx",
                                UnhookWindowsHookEx_Detour,
       static_cast_p2p <void> (&UnhookWindowsHookEx_Original) );
@@ -959,7 +993,7 @@ SK_Input_InstallLowLevelKeyboardHook (void)
   if (config.compatibility.disallow_ll_keyhook)
     return false;
 
-  SetWindowsHookEx_pfn _SetWindowsHookEx = SetWindowsHookExW_Original;
+  SetWindowsHookExAW_pfn _SetWindowsHookExAW = SetWindowsHookExAW_Original;
 
   if (config.input.keyboard.needsLowLevelKeyboardHook ())
   {
@@ -967,15 +1001,15 @@ SK_Input_InstallLowLevelKeyboardHook (void)
           SK_IsProcessRunning (L"AutoHotkey32.exe")||
           SK_IsProcessRunning (L"AutoHotkeyUX.exe")))
     {
-      if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookEx != nullptr)
+      if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookExAW != nullptr)
       {
         SK_LOGi0 (L"Installing Low-Level Keyboard Hook...");
     
         SK_hHookLowLevelKeyboard =
-          _SetWindowsHookEx (
+          _SetWindowsHookExAW (
             WH_KEYBOARD_LL, SK_Input_LowLevelKeyboardProc,
-                GetModuleHandle (nullptr), 0
-                            );
+                GetModuleHandle (nullptr), 0, 0x0
+                              );
     
         if (! SK_hHookLowLevelKeyboard)
         {

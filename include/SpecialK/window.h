@@ -311,7 +311,10 @@ using GetWindowThreadProcessId_pfn = DWORD (WINAPI *)(
   _Out_opt_ LPDWORD lpdwProcessId
 );
 
+#define HF_ANSI 0x0002
+
 using SetWindowsHookEx_pfn    = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
+using SetWindowsHookExAW_pfn  = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD, DWORD /*dwFlags*/);
 using UnhookWindowsHookEx_pfn = BOOL  (WINAPI*)(HHOOK);
 
 extern ClipCursor_pfn               ClipCursor_Original;
@@ -353,6 +356,7 @@ extern RegisterRawInputDevices_pfn  RegisterRawInputDevices_Original;
 
 extern SetWindowsHookEx_pfn         SetWindowsHookExA_Original;
 extern SetWindowsHookEx_pfn         SetWindowsHookExW_Original;
+extern SetWindowsHookExAW_pfn       SetWindowsHookExAW_Original;
 extern UnhookWindowsHookEx_pfn      UnhookWindowsHookEx_Original;
 
 #define SK_HWND_DESKTOP                            nullptr

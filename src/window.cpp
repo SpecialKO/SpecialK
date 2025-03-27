@@ -5572,7 +5572,7 @@ static HHOOK hHookMouse    = 0;
 bool
 __SKX_WinHook_InstallInputHooks (HWND hWnd)
 {
-  if (SetWindowsHookExW_Original == nullptr)
+  if (SetWindowsHookExAW_Original == nullptr)
     return false;
 
   if (hHookKeyboard != 0 && UnhookWindowsHookEx_Original (hHookKeyboard))
@@ -5583,30 +5583,28 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 
   if (hWnd != 0x0)
   {
-     SetWindowsHookEx_pfn
-    _SetWindowsHookEx =
-      IsWindowUnicode (hWnd)          ?
-           SetWindowsHookExW_Original :
-           SetWindowsHookExA_Original;
+    SetWindowsHookExAW_pfn _SetWindowsHookExAW = SetWindowsHookExAW_Original;
 
-    if (hHookKeyboard == 0 && _SetWindowsHookEx != nullptr)
+    if (hHookKeyboard == 0 && _SetWindowsHookExAW != nullptr)
     {
       hHookKeyboard =
-        _SetWindowsHookEx (
+        _SetWindowsHookExAW (
           WH_KEYBOARD, SK_ImGui_KeyboardProc,
-              0, GetCurrentThreadId ()
-                          );
+              0, GetCurrentThreadId (),
+                   IsWindowUnicode (hWnd) ? 0x0 : HF_ANSI
+                            );
     }
 
     SK_Input_InstallLowLevelKeyboardHook ();
 
-    if (hHookMouse == 0 && _SetWindowsHookEx != nullptr)
+    if (hHookMouse == 0 && _SetWindowsHookExAW != nullptr)
     {
       hHookMouse =
-        _SetWindowsHookEx (
+        _SetWindowsHookExAW (
           WH_MOUSE,    SK_ImGui_MouseProc,
-              0, GetCurrentThreadId ()
-                          );
+              0, GetCurrentThreadId (),
+                   IsWindowUnicode (hWnd) ? 0x0 : HF_ANSI
+                            );
     }
   }
 
