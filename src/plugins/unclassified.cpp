@@ -2455,6 +2455,15 @@ SK_ACS_InitPlugin (void)
         }
       }
 
+      else
+      {
+        if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
+        {
+          // -1.0f = Unlimited (set by game in special cases)
+          *framerate_limit = -1.0f;
+        }
+      }
+
       if (__SK_IsDLSSGActive)
       {
         static HMODULE

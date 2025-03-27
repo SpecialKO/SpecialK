@@ -1,4 +1,9 @@
-﻿25.3.26.3
+﻿25.3.27
+=======
+ + Fixed Assassin's Creed Shadows capped framerate occasionally being restored
+     when it was not supposed to be, following the new memory scanning change.
+
+25.3.26.3
 =========
  + Adjusted DLL shutdown procedure to flush INI files before anything else, since
      some games terminate in the middle of unloading SK's DLL.
