@@ -2191,6 +2191,19 @@ SK_ACS_InitPlugin (void)
     // Fail-safe incase any code that sets this was missed
     static float* framerate_limit = nullptr;
 
+    static DWORD fmv_timeout_ms = 5000UL;
+
+    static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSites;
+    
+    for ( auto& callsite :
+            // 1.0.1
+            { 0x0000000003724651, 0x0000000003725A7F, 0x00000000006A32F1, 0x00000000006A32F7,
+              0x00000000006A330E, 0x00000000006A32B0, 0x00000000006A32B4, 0x00000000006A32B8,
+              0x000000000372CD05, 0x000000000372CD0C } )
+    {
+      ContinuableCallSites.insert (callsite);
+    }
+
     // Self-disable cutscene frame generation if it causes a crash, and then
     //   ignore the crash...
     AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
@@ -2204,14 +2217,22 @@ SK_ACS_InitPlugin (void)
         const DWORD64 addr =
              (DWORD64)Context->Rip - (DWORD64)SK_Debug_GetImageBaseAddr ();
 
-        static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSites;
+        static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSitesFound;
 
         // Turn off frame generation and give a second-chance at life
         if (__SK_ACS_AlwaysUseFrameGen)
         {
           if (LastFMVHandle != 0 && ContinuableCallSites.insert (addr).second)
           {
-            SK_LOGi0 (L"FMV Cutscene Exception Ignored: RIP=%p", addr);
+            SK_LOGi0 (L"FMV Cutscene Exception Found: RIP=%p", addr);
+          }
+
+          if (ContinuableCallSites.count       (addr)        &&
+              ContinuableCallSitesFound.insert (addr).second &&
+              ContinuableCallSitesFound.size   (    )        == 10)
+          {
+            SK_LOGi0 (L"All 10 FMV Exception CallSites Found!");
+            fmv_timeout_ms = 500UL;
           }
 
                             *pFrameGenEnabled = false;
