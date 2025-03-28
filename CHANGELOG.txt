@@ -1,4 +1,14 @@
-﻿25.3.27.2
+﻿25.3.28
+=======
+ + Changed D3D12 VRR status check code to run in response to part of SK that
+     needs that status (i.e. text OSD or framepacing graph), rather than
+       running every 1.5 seconds.
+
+   * This matches D3D11 behavior, and lowers NVAPI overhead when VRR status
+       is not required; slightly improving performance on newer drivers that
+         have introduced performance problems in NVAPI.
+
+25.3.27.2
 =========
  + Added all 10 FMV exception addresses for Assassin's Creed Shadows 1.0.1 to
      prevent any possible crashes from failing to find the memory addresses

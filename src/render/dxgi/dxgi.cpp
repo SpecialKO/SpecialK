@@ -1578,6 +1578,11 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
     if (! pRealSwap.IsEqualObject (rb.swapchain))
           rb.swapchain =         pRealSwap.p;
 
+    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    {
+      InterlockedExchange (&__SK_NVAPI_UpdateGSync, TRUE);
+    }
+
     //dll_log->Log (
     //  L"UpdateSwapChain FAIL :: No D3D11 Device [ Actually: %ph ]",
     //    rb.device
@@ -1989,11 +1994,22 @@ SK_D3D12_PostPresent (ID3D12Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
   UNREFERENCED_PARAMETER (pDev);
   UNREFERENCED_PARAMETER (pSwap);
 
-  const SK_RenderBackend& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (SUCCEEDED (hr))
   {
+    bool __WantGSyncUpdate =
+      ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible || config.apis.NvAPI.implicit_gsync || config.render.framerate.auto_low_latency.waiting ) &&
+                                                                 ReadAcquire (&__SK_NVAPI_UpdateGSync) != 0;
+
+    if (__WantGSyncUpdate)
+    {
+      rb.gsync_state.update ();
+      InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
+                  config.apis.NvAPI.implicit_gsync = false;
+    }
+
     // Queue-up Post-SK OSD Screenshots
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,    rb);
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::ClipboardOnly, rb);

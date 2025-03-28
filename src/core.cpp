@@ -3511,7 +3511,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
         SK_RunOnce (SK_Input_HookScePad ());
 
-        if (rb.api != SK_RenderAPI::D3D11  &&
+        if (rb.api != SK_RenderAPI::D3D12  &&
+            rb.api != SK_RenderAPI::D3D11  &&
             rb.api != SK_RenderAPI::D3D9Ex &&
             rb.api != SK_RenderAPI::D3D9)
         {
