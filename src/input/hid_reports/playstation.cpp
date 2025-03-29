@@ -3666,6 +3666,94 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 }
 
 
+bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID data)
+{
+  bool data_changed = false;
+
+  switch (device_vid)
+  {
+    case SK_HID_VID_SONY:
+    {
+      switch (device_pid)
+      {
+        case SK_HID_PID_DUALSHOCK4:
+        case SK_HID_PID_DUALSHOCK4_REV2:
+        {
+          // Not implemented yet
+        } break;
+
+        case SK_HID_PID_DUALSENSE_EDGE:
+        case SK_HID_PID_DUALSENSE:
+        {
+          SK_HID_DualSense_SetStateData *pSetState = nullptr;
+
+          if (dwSize >= 47 && report_id == 0x02)
+          {
+            // libScePad has an extra 17 bytes for some reason...?  (dwSize=64)
+
+            pSetState =
+              (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [1]);
+          }
+
+          // This one needs extra checksum handling...
+          else if (dwSize == 79 && report_id == 0x31)
+          {
+            //SK_ReleaseAssertg ( pDevice->bBluetooth);
+
+            //pSetState =
+            //  (SK_HID_DualSense_SetStateData *)(&(uint8_t *)data [3]);
+          }
+
+          else
+          {
+            SK_RunOnce (
+              SK_LOGi0 (L"DualSense HID Output, dwSize=%d, report_id=%x", dwSize, report_id)
+            );
+          }
+
+          if (pSetState != nullptr)
+          {
+            if (config.input.gamepad.scepad.led_color_r    >= 0 ||
+                config.input.gamepad.scepad.led_color_g    >= 0 ||
+                config.input.gamepad.scepad.led_color_b    >= 0 ||
+                config.input.gamepad.scepad.led_brightness >= 0)
+            {
+              if (config.input.gamepad.scepad.led_brightness != SK_NoPreference)
+              {
+                pSetState->AllowLightBrightnessChange = false;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.scepad.led_color_r >= 0 ||
+                  config.input.gamepad.scepad.led_color_g >= 0 ||
+                  config.input.gamepad.scepad.led_color_b >= 0)
+              {
+                pSetState->AllowLedColor = false;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.disable_rumble)
+              {
+                pSetState->AllowLeftTriggerFFB  = false;
+                pSetState->AllowRightTriggerFFB = false;
+                pSetState->UseRumbleNotHaptics  = 0;
+                pSetState->RumbleEmulationLeft  = 0;
+                pSetState->RumbleEmulationRight = 0;
+              }
+
+              // SK controls this!
+              pSetState->AllowMuteLight = false;
+            }
+          }
+        } break;
+      }
+    } break;
+  }
+
+  return data_changed;
+}
 
 int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 {

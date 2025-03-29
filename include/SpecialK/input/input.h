@@ -1199,8 +1199,9 @@ struct SK_HID_DeviceFile {
 
   bool isInputAllowed (void) const;
 
-  int neutralizeHidInput (uint8_t report_id, DWORD dwSize);
-  int remapHidInput      (void);
+  bool filterHidOutput    (uint8_t report_id, DWORD dwSize, LPVOID data);
+  int  neutralizeHidInput (uint8_t report_id, DWORD dwSize);
+  int  remapHidInput      (void);
 
   concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_HID_OverlappedRequest> _overlappedRequests;
   concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _cachedInputReportsByReportId;
