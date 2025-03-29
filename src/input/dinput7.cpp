@@ -1272,6 +1272,8 @@ SK_Input_HookDI7 (void)
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
+      SK_PROFILE_FIRST_CALL
+
       ///if (SK_GetDLLRole () & DLL_ROLE::DInput7)
       ///  return;
       /// 

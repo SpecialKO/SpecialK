@@ -126,6 +126,8 @@ SK_D3D11_InitMutexes (void)
   if (ReadAcquire (&_mutex_init) > 1)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   LocalHook_D3D11CreateDevice.trampoline             = static_cast_p2p <void> (&D3D11CreateDevice_Import);
   LocalHook_D3D11CreateDeviceAndSwapChain.trampoline = static_cast_p2p <void> (&D3D11CreateDeviceAndSwapChain_Import);
 
@@ -7311,6 +7313,8 @@ HookD3D11 (LPVOID user)
   // This only needs to be done once
   if (InterlockedCompareExchange (&__d3d11_hooked, 1, 0) == 0)
   {
+    SK_PROFILE_FIRST_CALL
+
     SK_LOGi0 (L"  Hooking D3D11");
 
     auto* pHooks =

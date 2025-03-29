@@ -764,6 +764,8 @@ SK_Input_HookScePad (void)
   if (! config.input.gamepad.hook_scepad)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   HMODULE hModScePad =
     SK_GetModuleHandleW (L"libScePad.dll");
 
@@ -822,6 +824,8 @@ SK_Input_PreHookScePad (void)
   if (! config.input.gamepad.hook_scepad)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   static std::filesystem::path path_to_driver =
     std::filesystem::path (SK_GetInstallPath ()) /
      LR"(Drivers\PlayStation\libScePad_sk64.dll)";
@@ -833,7 +837,10 @@ SK_Input_PreHookScePad (void)
     SK_LoadLibraryW (sceinput_ctx.scePad.wszModuleName);
 
   if (! hModScePad)
+  {
+    SK_PerfEvent_End (L"SK_Input_PreHookScePad");
     return;
+  }
 
   static auto
       scePadSetParticularMode =

@@ -7999,6 +7999,8 @@ SK_HookWinAPI (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     // Initialize the Window Manager
     SK_WindowManager::getInstance ();
 

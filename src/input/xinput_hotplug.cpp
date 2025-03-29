@@ -1319,6 +1319,8 @@ RegisterDeviceNotificationA_Detour (
 void
 SK_XInput_InitHotPlugHooks (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_RunOnce (
     // According to the DLL Export Table, ...A and ...W are the same freaking function :)
     SK_CreateDLLHook2 (       L"user32",

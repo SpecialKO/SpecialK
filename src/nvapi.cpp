@@ -1898,6 +1898,8 @@ NVAPI::UnloadLibrary (void)
 void
 SK_NvAPI_PreInitHDR (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   if (NvAPI_Disp_HdrColorControl_Original == nullptr)
   {
 #ifdef _WIN64
@@ -2145,6 +2147,8 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
 bool SK_NvAPI_InitializeHDR (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
 

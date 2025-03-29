@@ -704,10 +704,11 @@ WaitForSingleObject_Detour (
 BOOL
 SK_Steam_PreHookCore (const wchar_t* wszTry)
 {
-  static volatile LONG init = FALSE;
-
+  static volatile LONG             init    =   FALSE;
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
     return TRUE;
+
+  SK_PROFILE_FIRST_CALL
 
   if (config.steam.disable_overlay)
   {
@@ -4371,6 +4372,8 @@ SK_SteamAPI_TakeScreenshot (void)
 void
 SK_Steam_InitCommandConsoleVariables (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   if (SK::SteamAPI::AppID () + config.steam.appid > 0)
     steam_log->init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
   else // Not a Steam game, but stuff may still be printed...

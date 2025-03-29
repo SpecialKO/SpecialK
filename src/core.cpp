@@ -524,6 +524,8 @@ SK_InitCore (std::wstring, void* callback)
   if (SK_IsRunDLLInvocation () || SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
 
@@ -1044,6 +1046,8 @@ CheckVersionThread (LPVOID)
 
 void BasicInit (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   // Cleanup any leftover temporary files from the last launch
   SK_DeleteTemporaryFiles ();
 
@@ -1173,6 +1177,8 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
+  SK_PROFILE_FIRST_CALL
+
   WriteULongNoFence (&dwInitThreadId, SK_Thread_GetCurrentId ());
 
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
@@ -2946,6 +2952,8 @@ SK_ShutdownCore (const wchar_t* backend)
   }
 
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
+
+  SK_Perf_PrintEvents ();
 
   const wchar_t* config_name = backend;
 
@@ -4923,3 +4931,82 @@ SK_LazyGlobal <iSK_Logger> game_debug;
 SK_LazyGlobal <iSK_Logger> tex_log;
 SK_LazyGlobal <iSK_Logger> steam_log;
 SK_LazyGlobal <iSK_Logger> epic_log;
+
+
+SK_LazyGlobal <concurrency::concurrent_unordered_map <const wchar_t*, uint64_t>> SK_EventMarker_StartTimes;
+SK_LazyGlobal <concurrency::concurrent_unordered_map <const wchar_t*, uint64_t>> SK_EventMarker_EndTimes;
+
+void SK_Perf_PrintEvents (void)
+{
+  std::vector <std::pair <std::wstring, uint64_t>> start_times;
+  std::vector <std::pair <std::wstring, uint64_t>> end_times;
+
+  for (auto& start : *SK_EventMarker_StartTimes)
+  {
+    start_times.push_back (start);
+  }
+
+  for (auto& end : *SK_EventMarker_EndTimes)
+  {
+    end_times.push_back (end);
+  }
+
+  std::sort ( start_times.begin (),
+              start_times.end   (),
+    [&]( const std::pair <std::wstring, uint64_t>& a,
+         const std::pair <std::wstring, uint64_t>& b )
+    {
+      return ( a.second < b.second );
+    }
+  );
+
+  for ( auto& event : start_times )
+  {
+    uint64_t end = UINT64_MAX;
+
+    for ( auto& search : end_times )
+    {
+      if (search.first._Equal (event.first))
+      {
+        end = search.second;
+        break;
+      }
+    }
+
+    if (end != UINT64_MAX)
+    {
+      dll_log->Log (L"[PerfEvents] "
+        L"Event: %-50ws took\t%10.5f ms",
+          event.first.c_str (), ( static_cast <double> (end - event.second) /
+                                  static_cast <double> (SK_QpcFreq) ) * 1000.0 );
+    }
+  }
+}
+
+void SK_PerfEvent_Begin  (const wchar_t* wszEventName)
+{
+  uint64_t qpc =
+    SK_QueryPerf ().QuadPart;
+
+  if (SK_EventMarker_StartTimes->count  (                wszEventName) == 0)
+      SK_EventMarker_StartTimes->insert (std::make_pair (wszEventName, qpc));
+  else
+  {
+    if (config.system.log_level > 1)
+      dll_log->Log (L"[EventTrace] Event: %ws already recorded once...", wszEventName);
+  }
+}
+
+void SK_PerfEvent_End (const wchar_t* wszEventName)
+{
+  uint64_t qpc =
+    SK_QueryPerf ().QuadPart;
+
+  if (SK_EventMarker_EndTimes->count  (                wszEventName) == 0)
+      SK_EventMarker_EndTimes->insert (std::make_pair (wszEventName, qpc));
+  else
+  {
+    if (config.system.log_level > 1)
+      dll_log->Log (L"[EventTrace] Event: %ws already recorded once...", wszEventName);              
+  }
+}

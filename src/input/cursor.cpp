@@ -1577,6 +1577,8 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
 void
 SK_Input_PreHookCursor (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_RunOnce (
   {
     SK_CreateDLLHook2 (       L"user32",

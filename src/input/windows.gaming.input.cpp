@@ -1616,25 +1616,26 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
 void
 SK_Input_HookWGI (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_RunOnce (
   {
     SK_HID_WGI_VirtualGamepad_Wired._setupBinding    (&SK_HID_WGI_VirtualController_USB);
     SK_HID_WGI_VirtualGamepad_Wireless._setupBinding (&SK_HID_WGI_VirtualController_Bluetooth);
 
-    void* pfnRoGetActivationFactory = nullptr;
-
-    // This has other applications, but for now the only thing we need it
-    // for is to observe the creation of Windows.Gaming.Input factories...
-    SK_CreateDLLHook2 (     L"Combase.dll",
-                             "RoGetActivationFactory",
-                              RoGetActivationFactory_Detour,
-     static_cast_p2p <void> (&RoGetActivationFactory_Original),
-                          &pfnRoGetActivationFactory );
-    SK_EnableHook (        pfnRoGetActivationFactory );
-
-
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
+      void* pfnRoGetActivationFactory = nullptr;
+
+      // This has other applications, but for now the only thing we need it
+      // for is to observe the creation of Windows.Gaming.Input factories...
+      SK_CreateDLLHook2 (     L"Combase.dll",
+                               "RoGetActivationFactory",
+                                RoGetActivationFactory_Detour,
+       static_cast_p2p <void> (&RoGetActivationFactory_Original),
+                            &pfnRoGetActivationFactory );
+      SK_EnableHook (        pfnRoGetActivationFactory );
+
       DWORD dwTimeoutPeriodInMs        = 25;
       DWORD dwTimeStartedLookingForWGI = SK_timeGetTime ();
 

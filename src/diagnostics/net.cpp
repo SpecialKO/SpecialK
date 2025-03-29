@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -77,6 +77,8 @@ WSASend_Detour (
 void
 SK_Network_InitHooks (void)
 {
+  //SK_PROFILE_FIRST_CALL
+  //
   //SK_CreateDLLHook2 (      L"ws2_32.dll",
   //                          "WSASend",
   //                           WSASend_Detour,

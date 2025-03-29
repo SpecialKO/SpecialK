@@ -1959,6 +1959,8 @@ SK_Input_HookDI8 (void)
 
   if (SK_GetModuleHandle (L"dinput8.dll") && InterlockedCompareExchangePointer ((void **)&DirectInput8Create_Import, (void*)1, nullptr) == nullptr)
   {
+    SK_PROFILE_FIRST_CALL
+
     static volatile LONG               hooked    =   FALSE;
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
@@ -2004,6 +2006,8 @@ SK_Input_HookDI8 (void)
 void
 SK_Input_PreHookDI8 (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   if (SK_GetDLLRole () & DLL_ROLE::DInput8)
   {
     SK_BootDI8 ();

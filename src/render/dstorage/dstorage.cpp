@@ -248,6 +248,8 @@ void SK_DStorage_Init (void)
   if (! config.render.dstorage.enable_hooks)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   SK_DStorage_UsingDLL =
     SK_IsModuleLoaded (L"dstorage.dll");
 

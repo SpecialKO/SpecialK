@@ -10007,6 +10007,8 @@ SK_D3D9_QuickHook (void)
 
   if (! InterlockedCompareExchangeAcquire (&quick_hooked, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     sk_hook_cache_enablement_s state =
       SK_Hook_PreCacheModule ( L"D3D9",
                                  local_d3d9_records,

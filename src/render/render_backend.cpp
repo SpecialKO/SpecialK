@@ -79,6 +79,8 @@ void
 __stdcall
 SK_InitRenderBackends (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_ICommandProcessor
     *pCommandProcessor = nullptr;
 
@@ -126,6 +128,8 @@ bool
 __stdcall
 SK_DXVK_CheckForInterop (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   HMODULE hModD3D9 =
     SK_GetModuleHandle (L"d3d9.dll");
 
@@ -258,6 +262,8 @@ SK_BootD3D9 (void)
 
   if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
+    SK_PROFILE_FIRST_CALL
+
     // Offer to enable native Vulkan support
     SK_DXVK_CheckForInterop ();
 
@@ -329,6 +335,8 @@ SK_BootD3D8 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     dll_log->Log (
       L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>\t(Initialization tid=%x)",
              SK_GetCurrentThreadId ()
@@ -381,6 +389,8 @@ SK_BootDDraw (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     dll_log->Log (
       L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>\t(Initialization tid=%x)",
              SK_GetCurrentThreadId ()
@@ -443,6 +453,8 @@ SK_BootDXGI (void)
 
   if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
+    SK_PROFILE_FIRST_CALL
+
     SK_DXGI_QuickHook ();
 
     // Establish the minimal set of APIs necessary to work as dxgi.dll
@@ -531,6 +543,8 @@ SK_BootOpenGL (void)
 
   if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
+    SK_PROFILE_FIRST_CALL
+
     if (pTLS)
         pTLS->render->gl->ctx_init_thread = true;
 
@@ -602,6 +616,8 @@ _SK_HookVulkan (void)
   {
     if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
     {
+      SK_PROFILE_FIRST_CALL
+
       config.render.gl.disable_fullscreen = true;
 
       //
@@ -622,6 +638,8 @@ SK_BootVulkan (void)
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
+
+  SK_PROFILE_FIRST_CALL
 
   // Establish the minimal set of APIs necessary to work as vulkan-1.dll
   if (SK_GetDLLRole () == DLL_ROLE::Vulkan)

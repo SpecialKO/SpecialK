@@ -924,6 +924,8 @@ SetWindowsHookExA_Detour (
 void
 SK_Input_PreHookWinHook (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_RunOnce (
   {
     SK_CreateDLLHook2 (      L"User32",

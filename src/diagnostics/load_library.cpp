@@ -2429,6 +2429,8 @@ void
 __stdcall
 SK_PreInitLoadLibrary (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK::Diagnostics::Debugger::Allow (true);
 
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature

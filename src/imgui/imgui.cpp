@@ -1153,6 +1153,8 @@ ImGuiContext* SK_GImDefaultContext (void)
 
 void SK_ImGui_Init (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   GImGui =
     ImGui::CreateContext ();
 

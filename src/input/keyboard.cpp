@@ -653,6 +653,8 @@ SK_Input_InitKeyboard (void)
   if (std::exchange (run_once, true))
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   SK_ImGui_InputLanguage_s::keybd_layout =
     GetKeyboardLayout (0);
   
@@ -733,6 +735,8 @@ SK_Input_InitKeyboard (void)
 void
 SK_Input_PreHookKeyboard (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_RunOnce (
   {
     SK_CreateDLLHook2 (      L"user32",

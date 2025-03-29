@@ -315,6 +315,8 @@ SK_GetSystemInfo (LPSYSTEM_INFO lpSystemInfo)
 void
 SK_CPU_InstallHooks (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   SK_CreateDLLHook2 (      L"Kernel32",
                             "GetLogicalProcessorInformation",
                              GetLogicalProcessorInformation_Detour,

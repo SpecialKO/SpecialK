@@ -280,6 +280,7 @@ SK_File_InitHooks (void)
     return;
   }
 
+  SK_PROFILE_FIRST_CALL
 
   SK_CreateDLLHook2 (      L"NtDll.dll",
                             "ZwReadFile",

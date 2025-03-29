@@ -2500,6 +2500,8 @@ SK_Input_EnumOpenHIDFiles (void)
   static HANDLE hDeviceEnumThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
+    SK_PerfEvent_Begin (L"SK_Input_EnumOpenHIDFiles");
+
     static NtQuerySystemInformation_pfn
            NtQuerySystemInformation =
           (NtQuerySystemInformation_pfn)SK_GetProcAddress (L"NtDll",
@@ -2605,6 +2607,8 @@ SK_Input_EnumOpenHIDFiles (void)
       }
     }
 
+    SK_PerfEvent_End (L"SK_Input_EnumOpenHIDFiles");
+
     SK_Thread_CloseSelf ();
 
     return 0;
@@ -2621,6 +2625,8 @@ SK_Input_HookHID (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (! SK_GetModuleHandle (L"hid.dll"))
              SK_LoadLibraryW (L"hid.dll");
 
@@ -2751,6 +2757,8 @@ SK_Input_PreHookHID (void)
   static volatile LONG             _init  =  0;
   if (InterlockedCompareExchange (&_init, 1, 0) == 0)
   {
+    SK_PROFILE_FIRST_CALL
+
     static std::filesystem::path path_to_driver_base =
           (std::filesystem::path (SK_GetInstallPath ()) /
                                  LR"(Drivers\HID)"),

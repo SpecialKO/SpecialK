@@ -1078,6 +1078,8 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
 void
 SK_Input_HookRawInput (void)
 {
+  SK_PROFILE_FIRST_CALL
+
 //#define InputHook(dll_name,function)                                 \
 //  SK_CreateDLLHook2 ( L#dll_name, #function, ##function##_Detour,    \
 //                     static_cast_p2p <void> (&##function##_Original) );

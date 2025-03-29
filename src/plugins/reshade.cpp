@@ -95,6 +95,8 @@ SK_ReShade_LoadIfPresent (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   const wchar_t *wszDLL =
     SK_RunLHIfBitness (64, L"ReShade64.dll",
                            L"ReShade32.dll");

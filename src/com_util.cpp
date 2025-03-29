@@ -382,6 +382,8 @@ extern "C++"
 bool
 SK_WMI_Init (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   static bool          once = false;
   if (! std::exchange (once, true))
   {

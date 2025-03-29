@@ -91,6 +91,8 @@ HookD3D12 (LPVOID user)
   if (std::exchange (init,  true))
     return 0;
 
+  SK_PROFILE_FIRST_CALL
+
   if ( GetModuleHandle (L"d3d12.dll") &&
             SK::DXGI::hModD3D12 == nullptr )
                        SK_D3D12_Init ();

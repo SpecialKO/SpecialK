@@ -3748,6 +3748,9 @@ SK_HookEngine_HookGetProcAddress (void)
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
+  bool bEnable =
+    SK_DisableApplyQueuedHooks ();
+
   struct LocalInitOnce_s
   {
     LocalInitOnce_s (void) noexcept
@@ -4019,6 +4022,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
   else
     SK_Thread_SpinUntilAtomicMin (&__init, 2);
+
+  if (bEnable) {
+    SK_EnableApplyQueuedHooks ();
+          SK_ApplyQueuedHooks ();
+  }
 
   return bAllow;
 }

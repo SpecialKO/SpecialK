@@ -248,4 +248,17 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 int
 SK_Platform_DrawOSD (void);
 
+void SK_Perf_PrintEvents (void);
+void SK_PerfEvent_Begin  (const wchar_t* wszEventName);
+void SK_PerfEvent_End    (const wchar_t* wszEventName);
+
+struct SK_AutoEventMarker {
+   SK_AutoEventMarker (const wchar_t* wszEventName) { name = wszEventName; SK_PerfEvent_Begin (name); };
+  ~SK_AutoEventMarker (void)                        {                      SK_PerfEvent_End   (name); };
+
+  const wchar_t* name = nullptr;
+};
+
+#define SK_PROFILE_FIRST_CALL SK_AutoEventMarker _(__FUNCTIONW__);
+
 #endif /* __SK__CORE_H__ */

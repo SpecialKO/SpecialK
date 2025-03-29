@@ -1529,17 +1529,26 @@ SK_Input_HookGameInput (void)
 
   if (GetModuleHandleW (L"GameInput.dll") != nullptr || config.input.gamepad.xinput.emulate)
   {
-    static volatile LONG               hooked = FALSE;
-    if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+    static HANDLE hGameInputInitThread =
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      if (config.input.gamepad.xinput.emulate)
-        SK_LoadLibraryW (      L"GameInput.dll");
-      SK_CreateDLLHook2 (      L"GameInput.dll",
-                                "GameInputCreate",
-                                 GameInputCreate_Detour,
-        static_cast_p2p <void> (&GameInputCreate_Original) );
-      SK_ApplyQueuedHooks ();
-    }
+      SK_PROFILE_FIRST_CALL
+
+      static volatile LONG               hooked = FALSE;
+      if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+      {
+        if (config.input.gamepad.xinput.emulate)
+          SK_LoadLibraryW (      L"GameInput.dll");
+        SK_CreateDLLHook2 (      L"GameInput.dll",
+                                  "GameInputCreate",
+                                   GameInputCreate_Detour,
+          static_cast_p2p <void> (&GameInputCreate_Original) );
+        SK_ApplyQueuedHooks ();
+      }
+
+      SK_Thread_CloseSelf ();
+      return 0;
+    });
   }
 }
 

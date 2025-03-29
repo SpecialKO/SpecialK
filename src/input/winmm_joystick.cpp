@@ -243,6 +243,8 @@ SK_Input_HookWinMM (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     // Not sure why we're calling this if winmm wasn't even loaded yet...
     if (! GetModuleHandleW (L"winmm.dll"))
            SK_LoadLibraryW (L"winmm.dll");
@@ -352,6 +354,8 @@ SK_Input_HookWinMM (void)
 bool
 SK_Input_PreHookWinMM (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   if (! config.input.gamepad.hook_hid)
     return false;
 

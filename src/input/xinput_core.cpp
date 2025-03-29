@@ -2224,6 +2224,8 @@ SK_Input_HookXInput1_4 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_4, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (! SK_GetModuleHandle (L"XInput1_4.dll"))
              SK_LoadLibraryW (L"XInput1_4.dll");
 
@@ -2287,6 +2289,8 @@ SK_Input_HookXInputUap (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_uap, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core->ctx_init_thread = TRUE;
 
@@ -2347,6 +2351,8 @@ SK_Input_HookXInput1_3 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_3, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (! SK_GetModuleHandle (L"XInput1_3.dll"))
              SK_LoadLibraryW (L"XInput1_3.dll");
 
@@ -2413,6 +2419,8 @@ SK_Input_HookXInput1_2 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_2, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core->ctx_init_thread = TRUE;
 
@@ -2474,6 +2482,8 @@ SK_Input_HookXInput1_1 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_1, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core->ctx_init_thread = TRUE;
 
@@ -2535,6 +2545,8 @@ SK_Input_HookXInput9_1_0 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_9_1_0, TRUE, FALSE))
   {
+    SK_PROFILE_FIRST_CALL
+
     if (! SK_GetModuleHandle (L"XInput9_1_0.dll"))
              SK_LoadLibraryW (L"XInput9_1_0.dll");
 
@@ -3483,6 +3495,8 @@ SK_Input_PreHookXInput (void)
 {
   if (! config.input.gamepad.hook_xinput)
     return;
+
+  SK_PROFILE_FIRST_CALL
 
   SK_RunOnce (
     auto pCommandProc = SK_GetCommandProcessor ();
