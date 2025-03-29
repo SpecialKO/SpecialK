@@ -631,6 +631,7 @@ void SK_Input_PreInit (void)
   SK_SDL_SetOverride (sdl.allow_all_ps_bt_features,   "SDL_JOYSTICK_HIDAPI_PS5_RUMBLE");
   SK_SDL_SetOverrideFloat (sdl.switch_led_brightness, "SDL_JOYSTICK_HIDAPI_JOYCON_HOME_LED");
 
+  SK_Input_PreHookHID      ();
   SK_Input_PreHookWinHook  ();
   SK_Input_PreHookCursor   ();
   SK_Input_PreHookKeyboard ();
@@ -693,17 +694,6 @@ SK_Input_Init (void)
   if (std::exchange (once, true))
     return;
 
-  if (SK_GetDLLRole () != DLL_ROLE::DInput8)
-  {
-    if (SK_GetModuleHandle (L"dinput8.dll"))
-      SK_Input_HookDI8  ();
-
-    if (SK_GetModuleHandle (L"dinput.dll"))
-      SK_Input_HookDI7  ();
-  }
-
-  SK_Input_InitKeyboard ();
-
   auto *cp =
     SK_Render_InitializeSharedCVars ();
 
@@ -746,6 +736,17 @@ SK_Input_Init (void)
   SK_Input_PreHookXInput ();
   SK_Input_PreHookScePad ();
   SK_Input_PreHookWinMM  ();
+
+  if (SK_GetDLLRole () != DLL_ROLE::DInput8)
+  {
+    if (SK_GetModuleHandle (L"dinput8.dll"))
+      SK_Input_HookDI8  ();
+
+    if (SK_GetModuleHandle (L"dinput.dll"))
+      SK_Input_HookDI7  ();
+  }
+
+  SK_Input_InitKeyboard ();
 }
 
 

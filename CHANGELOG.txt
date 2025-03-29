@@ -1,8 +1,20 @@
-﻿25.3.29.2
+﻿25.3.29.3
+=========
+ + Workaround Steam Input issues causing some games to hang.
+ 
+   * NOTE:
+  
+      It is impossible to reliably override controller LED colors once
+        you run a native Steam Input application like Monster Hunter Wilds;
+          the controller must be powered off or the Steam client will
+            continue to sporadically write controller color and vibration
+              state forever (while no game is running) -- Valve, god dammit...
+
+25.3.29.2
 =========
  + Disabling RGB lighting on a DualSense controller, or setting the LED
      brightness to "Very Dim" (not an actual brightness level on the HW),
-       will disable any player indicator lights that a game may have set.
+       will disable any player indicator lights that a game may try to set.
 
 25.3.29.1
 =========

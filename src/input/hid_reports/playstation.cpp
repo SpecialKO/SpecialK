@@ -131,8 +131,6 @@ void SK_HID_SetupPlayStationControllers (void)
     cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrR",  &dualsense_resist_str_r-> setRange (-1.0f,   1.0f));
     cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosR",  &dualsense_resist_pos_r-> setRange (-1.0f,   1.0f));
 
-    SK_Input_PreHookHID ();
-
     HDEVINFO hid_device_set = 
       SK_SetupDiGetClassDevsW (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
                                                                          DIGCF_PRESENT);

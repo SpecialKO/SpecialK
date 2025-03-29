@@ -2565,30 +2565,31 @@ SK_Input_EnumOpenHIDFiles (void)
               case HID_USAGE_GENERIC_JOYSTICK:
               case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
               {
-                wchar_t                           wszName [MAX_PATH + 2] = { };
-                SK_File_GetNameFromHandle  (file, wszName, MAX_PATH);
-                SK_HID_DeviceFile hid_file (file, wszName);
-
-                if (hid_file.device_type != sk_input_dev_type::Other)
+                if (SK_Input_DeviceFiles.insert (file).second)
                 {
-                  SK_LOGi0 (
-                    L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
-                      wszName, hid_file.device_vid, hid_file.device_pid
-                  );
+                  wchar_t                           wszName [MAX_PATH + 2] = { };
+                  SK_File_GetNameFromHandle  (file, wszName, MAX_PATH);
+                  SK_HID_DeviceFile hid_file (file, wszName);
 
-                  SK_Input_DeviceFiles.insert (file);
-
-                  auto& dev_file =
-                    SK_HID_DeviceFiles [file];
-
-                  for (auto& overlapped_request : dev_file._overlappedRequests)
+                  if (hid_file.device_type != sk_input_dev_type::Other)
                   {
-                    overlapped_request.second.dwNumberOfBytesToRead = 0;
-                    overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
-                    overlapped_request.second.lpBuffer              = nullptr;
-                  }
+                    SK_LOGi0 (
+                      L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
+                        wszName, hid_file.device_vid, hid_file.device_pid
+                    );
 
-                  dev_file = hid_file;
+                    auto& dev_file =
+                      SK_HID_DeviceFiles [file];
+
+                    for (auto& overlapped_request : dev_file._overlappedRequests)
+                    {
+                      overlapped_request.second.dwNumberOfBytesToRead = 0;
+                      overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
+                      overlapped_request.second.lpBuffer              = nullptr;
+                    }
+
+                    dev_file = hid_file;
+                  }
                 }
               } break;
             }
@@ -2723,8 +2724,6 @@ SK_Input_HookHID (void)
     SK_ApplyQueuedHooks ();
 
     InterlockedIncrementRelease (&hooked);
-
-    SK_Input_EnumOpenHIDFiles ();
   }
 
   else
@@ -3016,6 +3015,8 @@ SK_Input_PreHookHID (void)
 
     if (config.input.gamepad.hook_hid)
     {
+      SK_Input_EnumOpenHIDFiles ();
+
       static sk_import_test_s tests [] = {
         { "hid.dll", false }
       };
