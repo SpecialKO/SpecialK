@@ -1,9 +1,16 @@
-﻿25.3.29.1
+﻿25.3.29.2
+=========
+ + Disabling RGB lighting on a DualSense controller, or setting the LED
+     brightness to "Very Dim" (not an actual brightness level on the HW),
+       will disable any player indicator lights that a game may have set.
+
+25.3.29.1
 =========
  + Added support for hooking HID devices that were opened before SK was
      injected.
  + Added support for overriding RGB lighting on DualSense [Edge] controllers
      in games that use the native SONY input API (USB-mode only for now).
+ + Added support for forcing rumble (not haptics) off in SONY native games.
 
    * Bluetooth override support will be added, but is more complicated, and
        support for DualShock 4 will also be added.

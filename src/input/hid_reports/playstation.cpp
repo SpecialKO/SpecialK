@@ -3718,9 +3718,25 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
                 config.input.gamepad.scepad.led_color_b    >= 0 ||
                 config.input.gamepad.scepad.led_brightness >= 0)
             {
+              bool disable_player_indicator_lights = false;
+
               if (config.input.gamepad.scepad.led_brightness != SK_NoPreference)
               {
-                pSetState->AllowLightBrightnessChange = false;
+                // 3 is a special case that means OFF
+                if (config.input.gamepad.scepad.led_brightness == 3)
+                {
+                  pSetState->AllowLightBrightnessChange = 1;
+                  pSetState->LightBrightness            = (LightBrightness)3;
+
+                  disable_player_indicator_lights = true;
+                }
+
+                else if (config.input.gamepad.scepad.led_brightness >= 0)
+                {
+                  pSetState->AllowLightBrightnessChange = 1;
+                  pSetState->LightBrightness            =
+                    (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
+                }
 
                 data_changed = true;
               }
@@ -3729,7 +3745,32 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
                   config.input.gamepad.scepad.led_color_g >= 0 ||
                   config.input.gamepad.scepad.led_color_b >= 0)
               {
-                pSetState->AllowLedColor = false;
+                pSetState->AllowLedColor = true;
+
+                pSetState->LedRed   = (uint8_t)config.input.gamepad.scepad.led_color_r;
+                pSetState->LedGreen = (uint8_t)config.input.gamepad.scepad.led_color_g;
+                pSetState->LedBlue  = (uint8_t)config.input.gamepad.scepad.led_color_b;
+
+                if (config.input.gamepad.scepad.led_color_r == 
+                    config.input.gamepad.scepad.led_color_g ==
+                    config.input.gamepad.scepad.led_color_b == 0)
+                {
+                  disable_player_indicator_lights = true;
+                }
+
+                data_changed = true;
+              }
+
+              if (disable_player_indicator_lights)
+              {
+                // Disable player indicator light
+                //
+                pSetState->AllowPlayerIndicators = true;
+                pSetState->PlayerLight1          = 0;
+                pSetState->PlayerLight2          = 0;
+                pSetState->PlayerLight3          = 0;
+                pSetState->PlayerLight4          = 0;
+                pSetState->PlayerLight5          = 0;
 
                 data_changed = true;
               }
@@ -3742,10 +3783,10 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
                 pSetState->RumbleEmulationLeft  = 0;
                 pSetState->RumbleEmulationRight = 0;
               }
-
-              // SK controls this!
-              pSetState->AllowMuteLight = false;
             }
+
+            // SK controls this!
+            pSetState->AllowMuteLight = false;
           }
         } break;
       }
