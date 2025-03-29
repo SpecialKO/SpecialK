@@ -3753,8 +3753,10 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
   struct LocalInitOnce_s
   {
-    LocalInitOnce_s (void) noexcept
+    LocalInitOnce_s (bool bEnable) noexcept
     {
+      enable_hooks_ = bEnable;
+
       SK_RunOnce (
       {
         extern void SK_DbgHlp_Init (void);
@@ -3793,8 +3795,16 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
         void SK_HookEngine_HookGetProcAddress (void);
              SK_HookEngine_HookGetProcAddress ();
       });
+
+      
+      if (enable_hooks_) {
+        SK_EnableApplyQueuedHooks ();
+              SK_ApplyQueuedHooks ();
+      }
     }
-  } finish_init_on_return;
+
+    bool enable_hooks_;
+  } finish_init_on_return (bEnable);
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::ForzaHorizon5)
   {
@@ -4022,11 +4032,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
   else
     SK_Thread_SpinUntilAtomicMin (&__init, 2);
-
-  if (bEnable) {
-    SK_EnableApplyQueuedHooks ();
-          SK_ApplyQueuedHooks ();
-  }
 
   return bAllow;
 }

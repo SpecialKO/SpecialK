@@ -1,4 +1,8 @@
-﻿25.3.29.4
+﻿25.3.29.5
+=========
+ + Optimized input and debug hook initialization slightly.
+
+25.3.29.4
 =========
  + Run HID device enumeration during startup on a secondary thread.
 
