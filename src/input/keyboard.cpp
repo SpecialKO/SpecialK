@@ -49,10 +49,22 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
   const bool bShift = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyShift  )) & 0x8000) != 0;
   const bool bHome  = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade)) & 0x8000) != 0;
 
-  if ( bHome == bLastHome &&
-       bTab  == bLastTab )
+  static const auto& io =
+    ImGui::GetIO ();
+
+  // Is SK's UI itself currently using the keyboard exclusively?
+  const bool is_keyboard_exclusive =
+    (nav_usable || io.WantCaptureKeyboard || io.WantTextInput || SK_IsConsoleVisible ());
+
+  if ( is_keyboard_exclusive || ( bHome == bLastHome &&
+                                 (bTab  == bLastTab ||
+                                 (bTab && sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_CONTROL)) & 0x8000) != 0)) )
+                                                   // Ctrl is part of the keybind associated with toggling the console
      //bF3   == bLastF3 )
   {
+    bLastTab  = bTab;
+    bLastHome = bHome;
+
     return false;
   }
 
@@ -84,8 +96,12 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
       }
     }
 
+    static bool bHasSteamOverlay =
+      SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"GameOverlayRenderer64",
+                                                  L"GameOverlayRenderer"));
+
     const bool
-      bSteamOverlay    =  ( bShift && bTab ),
+      bSteamOverlay    =  ( bShift && bTab ) && bHasSteamOverlay,
     //bEpicOverlay     =  ( bShift && bF3  ),
       bReShadeOverlay  =  ( bHome  &&
                            (bHasReShadeDLL) );
@@ -119,6 +135,9 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
           SK_keybd_event ((BYTE)vKeyShift, bScancodeShift, dwFlagsShift, 0);
           SK_keybd_event ((BYTE)vKeySteam, bScancodeSteam, dwFlagsSteam, 0);
+
+          SK_keybd_event ((BYTE)vKeyShift, bScancodeShift, dwFlagsShift | KEYEVENTF_KEYUP, 0);
+          SK_keybd_event ((BYTE)vKeySteam, bScancodeSteam, dwFlagsSteam | KEYEVENTF_KEYUP, 0);
         }
 
 #if 0
@@ -149,6 +168,7 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
         SK_keybd_event ((BYTE)vKeyReShade, bScancodeReShade, dwFlagsReShade, 0);
+        SK_keybd_event ((BYTE)vKeyReShade, bScancodeReShade, dwFlagsReShade | KEYEVENTF_KEYUP, 0);
       }
 
       return true;

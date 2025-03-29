@@ -1,4 +1,10 @@
-﻿25.3.28
+﻿25.3.29
+=======
+ + Synthesize Shift key release event when allowing Steam overlay activation
+     while keyboard input is being blocked to games.
+ + Disable mouse input blocking while the Steam overlay is active.
+
+25.3.28
 =======
  + Changed D3D12 VRR status check code to run in response to part of SK that
      needs that status (i.e. text OSD or framepacing graph), rather than
