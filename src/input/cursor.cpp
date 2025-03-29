@@ -692,7 +692,7 @@ SK_ImGui_WantMouseButtonCapture (void)
 bool
 SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor)
 {
-  if (SK_ReShadeAddOn_IsOverlayActive ())
+  if (SK_ReShadeAddOn_IsOverlayActive () || SK::SteamAPI::GetOverlayState (true))
     return false;
 
   static std::atomic_bool               capture  = false;
