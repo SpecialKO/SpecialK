@@ -1,4 +1,14 @@
-﻿25.3.29
+﻿25.3.29.1
+=========
+ + Added support for hooking HID devices that were opened before SK was
+     injected.
+ + Added support for overriding RGB lighting on DualSense [Edge] controllers
+     in games that use the native SONY input API (USB-mode only for now).
+
+   * Bluetooth override support will be added, but is more complicated, and
+       support for DualShock 4 will also be added.
+
+25.3.29
 =======
  + Synthesize Shift key release event when allowing Steam overlay activation
      while keyboard input is being blocked to games.

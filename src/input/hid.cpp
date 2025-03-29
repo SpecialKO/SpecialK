@@ -114,7 +114,10 @@ struct SK_NVIDIA_DeviceFile {
 SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
 {
   // Make sure our custom HID DLL is loaded before initializing devices
-  SK_RunOnce (SK_Input_PreHookHID ());
+  if (! SK_HidD_GetAttributes)
+  {
+    SK_RunOnce (SK_Input_PreHookHID ());
+  }
 
   static
     concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> known_paths;
@@ -797,6 +800,7 @@ OpenFileMappingW_pfn      OpenFileMappingW_Original      = nullptr;
 CreateFileMappingW_pfn    CreateFileMappingW_Original    = nullptr;
 ReadFile_pfn              ReadFile_Original              = nullptr;
 ReadFileEx_pfn            ReadFileEx_Original            = nullptr;
+WriteFile_pfn             WriteFile_Original             = nullptr;
 GetOverlappedResult_pfn   GetOverlappedResult_Original   = nullptr;
 GetOverlappedResultEx_pfn GetOverlappedResultEx_Original = nullptr;
 DeviceIoControl_pfn       DeviceIoControl_Original       = nullptr;
@@ -907,6 +911,87 @@ SK_UNTRUSTED_memcpy (void* dst, void* src, size_t size)
     return false;
   }
 }
+
+static
+BOOL
+WINAPI
+WriteFile_Detour (HANDLE       hFile,
+                  LPCVOID      lpBuffer,
+                  DWORD        nNumberOfBytesToWrite,
+                  LPDWORD      lpNumberOfBytesWritten,
+                  LPOVERLAPPED lpOverlapped)
+{
+  SK_LOG_FIRST_CALL
+
+  for ( auto callback : plugin_mgr->write_file_fns )
+             callback (hFile);
+
+  // Fast path, we only care about HID Input Reports
+  if (nNumberOfBytesToWrite <= 31 || nNumberOfBytesToWrite >= 4096)
+  {
+    return
+      WriteFile_Original (
+            hFile, lpBuffer, nNumberOfBytesToWrite,
+              lpNumberOfBytesWritten, lpOverlapped
+      );
+  }
+
+  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
+    SK_Input_GetDeviceFileAndState (hFile);
+
+  if (dev_ptr != nullptr)
+  {
+    switch (dev_file_type)
+    {
+      case SK_Input_DeviceFileType::HID:
+      {
+        if (config.input.gamepad.disable_hid)
+        {
+          SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+          return FALSE;
+        }
+
+        if (! dev_allowed)
+        {
+          if (                           nNumberOfBytesToWrite != 0) {
+            memset ((void *)lpBuffer, 0, nNumberOfBytesToWrite);
+          }
+        }
+
+        else
+        {
+          auto hid_file =
+            (SK_HID_DeviceFile *)(dev_ptr);
+
+          BYTE report_id = 0;
+
+          if (lpBuffer != nullptr)
+          {
+            report_id = ((uint8_t *)(lpBuffer))[0];
+          }
+
+          if (nNumberOfBytesToWrite > 1)
+          {
+            hid_file->filterHidOutput (report_id, nNumberOfBytesToWrite, (void *)lpBuffer);
+          }
+        }
+      } break;
+
+      default:
+      {
+        SK_RunOnce (
+          SK_LOGi1 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+                                                  __FILEW__, __LINE__) );
+      } break;
+    }
+  }
+
+  return
+    WriteFile_Original (
+      hFile, lpBuffer, nNumberOfBytesToWrite,
+        lpNumberOfBytesWritten, lpOverlapped );
+}
+
 
 static
 BOOL
@@ -2217,6 +2302,303 @@ SetupDiDestroyDeviceInfoList_Detour (
     SK_SetupDiDestroyDeviceInfoList (DeviceInfoSet);
 }
 
+#pragma pack (push,8)
+typedef struct _SK_PUBLIC_OBJECT_TYPE_INFORMATION
+{ UNICODE_STRING_SK TypeName;
+  ULONG             Reserved [22];    // reserved for internal use
+} PUBLIC_OBJECT_TYPE_INFORMATION,
+*PPUBLIC_OBJECT_TYPE_INFORMATION;
+
+typedef struct _SK_OBJECT_NAME_INFORMATION
+{ UNICODE_STRING_SK Name;
+} OBJECT_NAME_INFORMATION,
+*POBJECT_NAME_INFORMATION;
+
+enum SYSTEM_INFORMATION_CLASS
+{ SystemBasicInformation                = 0,
+  SystemPerformanceInformation          = 2,
+  SystemTimeOfDayInformation            = 3,
+  SystemProcessInformation              = 5,
+  SystemProcessorPerformanceInformation = 8,
+  SystemHandleInformation               = 16, // 0x10
+  SystemInterruptInformation            = 23,
+  SystemExceptionInformation            = 33,
+  SystemRegistryQuotaInformation        = 37,
+  SystemLookasideInformation            = 45,
+  SystemExtendedHandleInformation       = 64, // 0x40
+  SystemCodeIntegrityInformation        = 103,
+  SystemPolicyInformation               = 134,
+};
+
+typedef enum _OBJECT_INFORMATION_CLASS {
+  ObjectBasicInformation,
+  ObjectNameInformation,
+  ObjectTypeInformation,
+  ObjectTypesInformation,
+  ObjectHandleFlagInformation,
+  ObjectSessionInformation,
+} OBJECT_INFORMATION_CLASS;
+
+// MIT: https://github.com/antonioCoco/ConPtyShell/blob/master/ConPtyShell.cs
+typedef struct _OBJECT_TYPE_INFORMATION_V2 {
+  UNICODE_STRING_SK TypeName;
+  ULONG             TotalNumberOfObjects;
+  ULONG             TotalNumberOfHandles;
+  ULONG             TotalPagedPoolUsage;
+  ULONG             TotalNonPagedPoolUsage;
+  ULONG             TotalNamePoolUsage;
+  ULONG             TotalHandleTableUsage;
+  ULONG             HighWaterNumberOfObjects;
+  ULONG             HighWaterNumberOfHandles;
+  ULONG             HighWaterPagedPoolUsage;
+  ULONG             HighWaterNonPagedPoolUsage;
+  ULONG             HighWaterNamePoolUsage;
+  ULONG             HighWaterHandleTableUsage;
+  ULONG             InvalidAttributes;
+  GENERIC_MAPPING   GenericMapping;
+  ULONG             ValidAccessMask;
+  BOOLEAN           SecurityRequired;
+  BOOLEAN           MaintainHandleCount;
+  UCHAR             TypeIndex;   // Added in V2
+  CHAR              ReservedByte; // Added in V2
+  ULONG             PoolType;
+  ULONG             DefaultPagedPoolCharge;
+  ULONG             DefaultNonPagedPoolCharge;
+} OBJECT_TYPE_INFORMATION_V2,
+*POBJECT_TYPE_INFORMATION_V2;
+
+using NtQueryObject_pfn =
+  NTSTATUS (NTAPI *)(
+       IN  HANDLE                   Handle       OPTIONAL,
+       IN  OBJECT_INFORMATION_CLASS ObjectInformationClass,
+       OUT PVOID                    ObjectInformation,
+       IN  ULONG                    ObjectInformationLength,
+       OUT PULONG                   ReturnLength OPTIONAL
+  );
+
+using NtQuerySystemInformation_pfn =
+  NTSTATUS (NTAPI *)(
+        IN  SYSTEM_INFORMATION_CLASS SystemInformationClass,
+        OUT PVOID                    SystemInformation,
+        IN  ULONG                    SystemInformationLength,
+        OUT PULONG                   ReturnLength OPTIONAL
+  );
+
+// CC BY-SA 3.0: https://stackoverflow.com/a/39104745
+typedef struct _OBJECT_TYPES_INFORMATION {
+  LONG NumberOfTypes;
+} OBJECT_TYPES_INFORMATION,
+*POBJECT_TYPES_INFORMATION;
+
+// CC BY-SA 3.0: https://stackoverflow.com/a/39104745
+//               https://jadro-windows.cz/download/ntqueryobject.zip
+#define ALIGN_DOWN(Length, Type)       ((ULONG)(Length) & ~(sizeof(Type) - 1))
+#define ALIGN_UP(Length, Type)         (ALIGN_DOWN(((ULONG)(Length) + sizeof(Type) - 1), Type))
+
+// CC BY-SA 3.0: https://stackoverflow.com/a/39104745
+//               https://jadro-windows.cz/download/ntqueryobject.zip
+// Modified to use POBJECT_TYPE_INFORMATION_V2 instead of POBJECT_TYPE_INFORMATION
+USHORT GetTypeIndexByName (std::wstring TypeName)
+{
+  static NtQueryObject_pfn
+         NtQueryObject =
+        (NtQueryObject_pfn)SK_GetProcAddress (L"NtDll",
+        "NtQueryObject");
+
+  POBJECT_TYPE_INFORMATION_V2  TypeInfo = NULL;
+  POBJECT_TYPES_INFORMATION   TypesInfo = NULL;
+  USHORT   ret                          = USHRT_MAX;
+  NTSTATUS ntStatTypesInfo;
+  ULONG    BufferLength (28);
+
+  do
+  {
+    if (TypesInfo != NULL)
+      free(TypesInfo);
+
+    TypesInfo = (POBJECT_TYPES_INFORMATION)calloc(BufferLength, sizeof(POBJECT_TYPES_INFORMATION));
+
+    ntStatTypesInfo = NtQueryObject(NULL, ObjectTypesInformation, TypesInfo, BufferLength, &BufferLength);
+  } while (ntStatTypesInfo == STATUS_INFO_LENGTH_MISMATCH);
+
+  if (NT_SUCCESS (ntStatTypesInfo) && TypesInfo->NumberOfTypes > 0)
+  {
+    // Align to first element of the array
+    TypeInfo = (POBJECT_TYPE_INFORMATION_V2)((PCHAR)TypesInfo + ALIGN_UP(sizeof(*TypesInfo), ULONG_PTR));
+    for (int i = 0; i < TypesInfo->NumberOfTypes; i++)
+    {
+      //USHORT     _TypeIndex = i + 2;               // OBJECT_TYPE_INFORMATION requires adding 2 to get the proper type index
+      USHORT       _TypeIndex = TypeInfo->TypeIndex; // OBJECT_TYPE_INFORMATION_V2 includes it in the struct
+      std::wstring _TypeName  = std::wstring(TypeInfo->TypeName.Buffer, TypeInfo->TypeName.Length / sizeof(WCHAR));
+
+      if (TypeName == _TypeName)
+      {
+        //PLOG_VERBOSE << std::to_wstring(TypeInfo->TypeIndex) << " - " << _TypeName;
+
+        ret = _TypeIndex;
+        break;
+      }
+
+      // Align to the next element of the array
+      TypeInfo = (POBJECT_TYPE_INFORMATION_V2)((PCHAR)(TypeInfo + 1) + ALIGN_UP(TypeInfo->TypeName.MaximumLength, ULONG_PTR));
+    }
+  }
+
+  // Free up the memory that was allocated by calloc
+  if (TypesInfo != NULL)
+    free (TypesInfo);
+
+  return ret;
+}
+
+typedef struct _SK_SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX
+{
+  PVOID       Object;
+  union
+  {
+    ULONG_PTR UniqueProcessId;
+
+    struct
+    {
+#ifdef _WIN64
+      DWORD   ProcessId;
+      DWORD   ThreadId; // ?? ( What are the upper-bits for anyway ? )
+#else
+      WORD    ProcessId;
+      WORD    ThreadId; // ?? ( What are the upper-bits for anyway ? )
+#endif
+    };
+  };
+
+  union
+  {
+    ULONG_PTR HandleValue;
+    HANDLE    Handle;
+  };
+
+  ULONG       GrantedAccess;
+  USHORT      CreatorBackTraceIndex;
+  USHORT      ObjectTypeIndex;
+  ULONG       HandleAttributes;
+  ULONG       Reserved;
+} SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX,
+*PSYSTEM_HANDLE_TABLE_ENTRY_INFO_EX;
+
+typedef struct _SK_SYSTEM_HANDLE_INFORMATION_EX
+{ ULONG_PTR                         NumberOfHandles;
+  ULONG_PTR                         Reserved;
+  SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX Handles     [1];
+} SYSTEM_HANDLE_INFORMATION_EX,
+*PSYSTEM_HANDLE_INFORMATION_EX;
+
+#define SystemHandleInformationSize 0x200000
+#pragma pack (pop)
+
+void
+SK_Input_EnumOpenHIDFiles (void)
+{
+  static NtQuerySystemInformation_pfn
+         NtQuerySystemInformation =
+        (NtQuerySystemInformation_pfn)SK_GetProcAddress (L"NtDll",
+        "NtQuerySystemInformation");
+
+  std::vector <HANDLE> files;
+
+  static USHORT FileIndex = GetTypeIndexByName (L"File");
+
+  NTSTATUS ntStatusHandles;
+
+  ULONG                 handle_info_size ( SystemHandleInformationSize );
+  std::vector <uint8_t> handle_info_buffer;
+  
+  do
+  {
+    handle_info_buffer.resize (
+              handle_info_size );
+  
+    ntStatusHandles =
+      NtQuerySystemInformation (
+        SystemExtendedHandleInformation,
+          handle_info_buffer.data (),
+          handle_info_size,
+          &handle_info_size     );
+  
+  } while (ntStatusHandles == STATUS_INFO_LENGTH_MISMATCH);
+  
+  if (NT_SUCCESS (ntStatusHandles))
+  {
+    auto handleTableInformationEx =
+      PSYSTEM_HANDLE_INFORMATION_EX (
+          handle_info_buffer.data ()
+      );
+
+    const DWORD dwPidOfMe =
+      GetCurrentProcessId ();
+  
+    // Go through all handles of the system
+    for ( unsigned int i = 0;
+                       i < handleTableInformationEx->NumberOfHandles;
+                       i++ )
+    {
+      // Skip handles not belong to the game
+      if (handleTableInformationEx->Handles [i].ProcessId       != dwPidOfMe)
+        continue;
+  
+      // We only want files
+      if (handleTableInformationEx->Handles [i].ObjectTypeIndex != FileIndex)
+        continue;
+  
+      HANDLE file =
+        handleTableInformationEx->Handles [i].Handle;
+
+      PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
+      if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+      {
+        HIDP_CAPS                                                    hidpCaps;
+        if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
+        {
+          if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+          {
+            switch (hidpCaps.Usage)
+            {
+              case HID_USAGE_GENERIC_GAMEPAD:
+              case HID_USAGE_GENERIC_JOYSTICK:
+              case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+              {
+                wchar_t                           wszName [MAX_PATH + 2] = { };
+                SK_File_GetNameFromHandle  (file, wszName, MAX_PATH);
+                SK_HID_DeviceFile hid_file (file, wszName);
+
+                if (hid_file.device_type != sk_input_dev_type::Other)
+                {
+                  SK_LOGi0 (
+                    L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
+                      wszName, hid_file.device_vid, hid_file.device_pid
+                  );
+
+                  SK_Input_DeviceFiles.insert (file);
+
+                  auto& dev_file =
+                    SK_HID_DeviceFiles [file];
+
+                  for (auto& overlapped_request : dev_file._overlappedRequests)
+                  {
+                    overlapped_request.second.dwNumberOfBytesToRead = 0;
+                    overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
+                    overlapped_request.second.lpBuffer              = nullptr;
+                  }
+
+                  dev_file = hid_file;
+                }
+              } break;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void
 SK_Input_HookHID (void)
 {
@@ -2313,6 +2695,14 @@ SK_Input_HookHID (void)
       static_cast_p2p <void> (&ReadFileEx_Original) );
 #endif
 
+#define _HOOK_WRITE_FILE
+#ifdef  _HOOK_WRITE_FILE
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "WriteFile",
+                               WriteFile_Detour,
+      static_cast_p2p <void> (&WriteFile_Original) );
+#endif
+
     // Hooked and then forwarded to the GetOverlappedResultEx hook
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "GetOverlappedResult",
@@ -2333,6 +2723,8 @@ SK_Input_HookHID (void)
     SK_ApplyQueuedHooks ();
 
     InterlockedIncrementRelease (&hooked);
+
+    SK_Input_EnumOpenHIDFiles ();
   }
 
   else
