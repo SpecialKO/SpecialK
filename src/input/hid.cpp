@@ -2497,107 +2497,118 @@ typedef struct _SK_SYSTEM_HANDLE_INFORMATION_EX
 void
 SK_Input_EnumOpenHIDFiles (void)
 {
-  static NtQuerySystemInformation_pfn
-         NtQuerySystemInformation =
-        (NtQuerySystemInformation_pfn)SK_GetProcAddress (L"NtDll",
-        "NtQuerySystemInformation");
-
-  std::vector <HANDLE> files;
-
-  static USHORT FileIndex = GetTypeIndexByName (L"File");
-
-  NTSTATUS ntStatusHandles;
-
-  ULONG                 handle_info_size ( SystemHandleInformationSize );
-  std::vector <uint8_t> handle_info_buffer;
-  
-  do
+  static HANDLE hDeviceEnumThread =
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
-    handle_info_buffer.resize (
-              handle_info_size );
-  
-    ntStatusHandles =
-      NtQuerySystemInformation (
-        SystemExtendedHandleInformation,
-          handle_info_buffer.data (),
-          handle_info_size,
-          &handle_info_size     );
-  
-  } while (ntStatusHandles == STATUS_INFO_LENGTH_MISMATCH);
-  
-  if (NT_SUCCESS (ntStatusHandles))
-  {
-    auto handleTableInformationEx =
-      PSYSTEM_HANDLE_INFORMATION_EX (
-          handle_info_buffer.data ()
-      );
+    static NtQuerySystemInformation_pfn
+           NtQuerySystemInformation =
+          (NtQuerySystemInformation_pfn)SK_GetProcAddress (L"NtDll",
+          "NtQuerySystemInformation");
 
-    const DWORD dwPidOfMe =
-      GetCurrentProcessId ();
-  
-    // Go through all handles of the system
-    for ( unsigned int i = 0;
-                       i < handleTableInformationEx->NumberOfHandles;
-                       i++ )
+    static USHORT FileIndex = GetTypeIndexByName (L"File");
+
+    NTSTATUS ntStatusHandles;
+
+    ULONG                 handle_info_size ( SystemHandleInformationSize );
+    std::vector <uint8_t> handle_info_buffer;
+    
+    do
     {
-      // Skip handles not belong to the game
-      if (handleTableInformationEx->Handles [i].ProcessId       != dwPidOfMe)
-        continue;
-  
-      // We only want files
-      if (handleTableInformationEx->Handles [i].ObjectTypeIndex != FileIndex)
-        continue;
-  
-      HANDLE file =
-        handleTableInformationEx->Handles [i].Handle;
+      handle_info_buffer.resize (
+                handle_info_size );
+    
+      ntStatusHandles =
+        NtQuerySystemInformation (
+          SystemExtendedHandleInformation,
+            handle_info_buffer.data (),
+            handle_info_size,
+            &handle_info_size     );
+    
+    } while (ntStatusHandles == STATUS_INFO_LENGTH_MISMATCH);
+    
+    if (NT_SUCCESS (ntStatusHandles))
+    {
+      auto handleTableInformationEx =
+        PSYSTEM_HANDLE_INFORMATION_EX (
+            handle_info_buffer.data ()
+        );
 
-      PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
-      if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+      const DWORD dwPidOfMe =
+        GetCurrentProcessId ();
+    
+      // Go through all handles of the system
+      for ( unsigned int i = 0;
+                         i < handleTableInformationEx->NumberOfHandles;
+                         i++ )
       {
-        HIDP_CAPS                                                    hidpCaps;
-        if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
+        // Skip handles not belong to the game
+        if (handleTableInformationEx->Handles [i].ProcessId       != dwPidOfMe)
+          continue;
+    
+        // We only want files
+        if (handleTableInformationEx->Handles [i].ObjectTypeIndex != FileIndex)
+          continue;
+    
+        HANDLE file =
+          handleTableInformationEx->Handles [i].Handle;
+
+        wchar_t                           wszName [MAX_PATH + 2] = { };
+        SK_File_GetNameFromHandle  (file, wszName, MAX_PATH);
+
+        // Device files will have no filename, anything >= 1 character in length is not a device file
+        if (wcslen (wszName))
+          continue;
+
+        PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
+        if (SK_HidD_GetPreparsedData (file, &preparsed_data))
         {
-          if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+          HIDP_CAPS                                                    hidpCaps;
+          if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
           {
-            switch (hidpCaps.Usage)
+            if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
             {
-              case HID_USAGE_GENERIC_GAMEPAD:
-              case HID_USAGE_GENERIC_JOYSTICK:
-              case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+              switch (hidpCaps.Usage)
               {
-                if (SK_Input_DeviceFiles.insert (file).second)
+                case HID_USAGE_GENERIC_GAMEPAD:
+                case HID_USAGE_GENERIC_JOYSTICK:
+                case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
                 {
-                  wchar_t                           wszName [MAX_PATH + 2] = { };
-                  SK_File_GetNameFromHandle  (file, wszName, MAX_PATH);
-                  SK_HID_DeviceFile hid_file (file, wszName);
-
-                  if (hid_file.device_type != sk_input_dev_type::Other)
+                  if (SK_Input_DeviceFiles.insert (file).second)
                   {
-                    SK_LOGi0 (
-                      L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
-                        wszName, hid_file.device_vid, hid_file.device_pid
-                    );
+                    SK_HID_DeviceFile hid_file (file, wszName);
 
-                    auto& dev_file =
-                      SK_HID_DeviceFiles [file];
-
-                    for (auto& overlapped_request : dev_file._overlappedRequests)
+                    if (hid_file.device_type != sk_input_dev_type::Other)
                     {
-                      overlapped_request.second.dwNumberOfBytesToRead = 0;
-                      overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
-                      overlapped_request.second.lpBuffer              = nullptr;
-                    }
+                      SK_LOGi0 (
+                        L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
+                          wszName, hid_file.device_vid, hid_file.device_pid
+                      );
 
-                    dev_file = hid_file;
+                      auto& dev_file =
+                        SK_HID_DeviceFiles [file];
+
+                      for (auto& overlapped_request : dev_file._overlappedRequests)
+                      {
+                        overlapped_request.second.dwNumberOfBytesToRead = 0;
+                        overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
+                        overlapped_request.second.lpBuffer              = nullptr;
+                      }
+
+                      dev_file = hid_file;
+                    }
                   }
-                }
-              } break;
+                } break;
+              }
             }
           }
         }
       }
     }
-  }
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }, L"[SK] Existing HID Device Enumerator");
 }
 
 void

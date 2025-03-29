@@ -1,4 +1,8 @@
-﻿25.3.29.3
+﻿25.3.29.4
+=========
+ + Run HID device enumeration during startup on a secondary thread.
+
+25.3.29.3
 =========
  + Workaround Steam Input issues causing some games to hang.
  
@@ -6,9 +10,11 @@
   
       It is impossible to reliably override controller LED colors once
         you run a native Steam Input application like Monster Hunter Wilds;
-          the controller must be powered off or the Steam client will
-            continue to sporadically write controller color and vibration
-              state forever (while no game is running) -- Valve, god dammit...
+          the controller must be powered off and Steam exited, or the Steam
+            client will continue to sporadically write controller color and
+              vibration state forever (while no game is running) 
+              
+          -- Valve, god dammit... why are you like this?
 
 25.3.29.2
 =========
