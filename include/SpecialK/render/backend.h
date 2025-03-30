@@ -360,6 +360,7 @@ public:
 
   BOOL                    in_present_call      = FALSE;
   int                     active_display       =  0;
+  int                     display_changes      =  0;
   uint32_t                display_crc
                            [_MAX_DISPLAYS]     = { };   // Quick detect for changing displays
   bool                    stale_display_info   = true;  // Output topology is stale, update it during getContainingOutput (...)

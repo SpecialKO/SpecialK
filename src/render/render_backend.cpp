@@ -868,7 +868,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
         SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
         do
         {
@@ -880,26 +880,38 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
           display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-          static int check_stage = 0;
-
           DWORD dwTimeNow =
             SK_timeGetTime ();
 
-          const DWORD dwCheckInterval =
-            SK_GetFramesDrawn () > 300 ? 10000UL : 250UL;
+          static DWORD dwLastCacheTime          =  0;
+          static int   dwLastCacheDisplay       = -1;
+          static int   dwLastCacheDisplayChange = -1;
 
-          if (rb.gsync_state.last_checked < (dwTimeNow - dwCheckInterval))
-          {   rb.gsync_state.last_checked =  dwTimeNow;                        vrr_info = {NV_GET_VRR_INFO_VER};
-            if (check_stage++ % 2 == 0)
-              SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                   &display.nvapi.monitor_caps);
-            SK_NvAPI_Disp_GetVRRInfo               (display.nvapi.display_id, &vrr_info);
+          static SK_PresentMode
+                             last_present_mode = SK_PresentMode::Unknown;
+          if (std::exchange (last_present_mode, rb.presentation.mode) != rb.presentation.mode)
+          {
+            dwLastCacheTime = 0;
+          }
 
-            if (  vrr_info.bIsVRREnabled)
-            { if (vrr_info.bIsDisplayInVRRMode)
-                   rb.gsync_state.last_checked = dwTimeNow + 5000UL;
-              else rb.gsync_state.last_checked = dwTimeNow - 5000UL;
-            } else rb.gsync_state.last_checked = dwTimeNow + 7500UL;
+          if (std::exchange (dwLastCacheDisplay, rb.active_display) != rb.active_display)
+          {
+            dwLastCacheTime = 0;
+          }
+
+          if (std::exchange (dwLastCacheDisplayChange, rb.display_changes) != rb.display_changes)
+          {
+            dwLastCacheTime = 0;
+          }
+
+          display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
+          display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+          if (dwLastCacheTime < dwTimeNow - 55000UL)
+          {   dwLastCacheTime = dwTimeNow +  5000UL;                         vrr_info = {NV_GET_VRR_INFO_VER};
+            SK_NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+            SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                 &display.nvapi.monitor_caps);
           }
 
           display.nvapi.vrr_enabled =
@@ -907,15 +919,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
           rb.gsync_state.capable = display.nvapi.vrr_enabled;
           rb.gsync_state.active  = false;
-
-          static SK_PresentMode
-                             last_present_mode = SK_PresentMode::Unknown;
-          if (std::exchange (last_present_mode, rb.presentation.mode) != rb.presentation.mode)
-          {
-            if (! rb.gsync_state.active)
-                  rb.gsync_state.last_checked -= std::min (1000UL, rb.gsync_state.last_checked);
-            else  rb.gsync_state.last_checked -= std::min (6000UL, rb.gsync_state.last_checked);
-          }
 
           if (rb.gsync_state.capable)
           {
@@ -3733,6 +3736,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     {
       auto& display =
         displays [idx++];
+
+      display_changes++;
 
       DXGI_OUTPUT_DESC                  outDesc  = { };
       if (SUCCEEDED (pOutput->GetDesc (&outDesc)))
