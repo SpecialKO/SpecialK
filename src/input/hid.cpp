@@ -2303,16 +2303,26 @@ SetupDiDestroyDeviceInfoList_Detour (
 }
 
 #pragma pack (push,8)
-typedef struct _SK_PUBLIC_OBJECT_TYPE_INFORMATION
-{ UNICODE_STRING_SK TypeName;
-  ULONG             Reserved [22];    // reserved for internal use
-} PUBLIC_OBJECT_TYPE_INFORMATION,
-*PPUBLIC_OBJECT_TYPE_INFORMATION;
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 
-typedef struct _SK_OBJECT_NAME_INFORMATION
-{ UNICODE_STRING_SK Name;
-} OBJECT_NAME_INFORMATION,
-*POBJECT_NAME_INFORMATION;
+// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55
+#define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L)
+#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
+#define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
+#define STATUS_BUFFER_OVERFLOW           ((NTSTATUS)0x80000005L)
+#define STATUS_BUFFER_TOO_SMALL          ((NTSTATUS)0xC0000023L)
+
+#define SystemHandleInformationSize 0x400000
+
+enum SKIF_PROCESS_INFORMATION_CLASS
+{
+    ProcessBasicInformation                     = 0x00, //  0
+    ProcessDebugPort                            = 0x07, //  7
+    ProcessWow64Information                     = 0x1A, // 26
+    ProcessImageFileName                        = 0x1B, // 27
+    ProcessBreakOnTermination                   = 0x1D, // 29
+    ProcessSubsystemInformation                 = 0x4B  // 75
+};
 
 enum SYSTEM_INFORMATION_CLASS
 { SystemBasicInformation                = 0,
@@ -2338,6 +2348,118 @@ typedef enum _OBJECT_INFORMATION_CLASS {
   ObjectHandleFlagInformation,
   ObjectSessionInformation,
 } OBJECT_INFORMATION_CLASS;
+
+using NtResumeProcess_pfn =
+  NTSTATUS (NTAPI *)(
+       IN  HANDLE                    Handle
+  );
+
+using NtSuspendProcess_pfn =
+  NTSTATUS (NTAPI *)(
+       IN  HANDLE                    Handle
+  );
+
+using NtQueryInformationProcess_pfn =
+  NTSTATUS (NTAPI *)(
+       IN  HANDLE                    Handle,
+       IN  SKIF_PROCESS_INFORMATION_CLASS ProcessInformationClass, // PROCESSINFOCLASS 
+       OUT PVOID                     ProcessInformation,
+       IN  ULONG                     ProcessInformationLength,
+       OUT PULONG                    ReturnLength OPTIONAL
+  );
+
+using NtQuerySystemInformation_pfn =
+  NTSTATUS (NTAPI *)(
+        IN  SYSTEM_INFORMATION_CLASS SystemInformationClass,
+        OUT PVOID                    SystemInformation,
+        IN  ULONG                    SystemInformationLength,
+        OUT PULONG                   ReturnLength OPTIONAL
+  );
+
+using NtQueryObject_pfn =
+  NTSTATUS (NTAPI *)(
+       IN  HANDLE                   Handle       OPTIONAL,
+       IN  OBJECT_INFORMATION_CLASS ObjectInformationClass,
+       OUT PVOID                    ObjectInformation,
+       IN  ULONG                    ObjectInformationLength,
+       OUT PULONG                   ReturnLength OPTIONAL
+  );
+
+using NtDuplicateObject_pfn =
+  NTSTATUS (NTAPI *)(
+        IN  HANDLE      SourceProcessHandle,
+        IN  HANDLE      SourceHandle,
+        OUT HANDLE      TargetProcessHandle,
+        OUT PHANDLE     TargetHandle,
+        IN  ACCESS_MASK DesiredAccess OPTIONAL,
+        IN  ULONG       Attributes    OPTIONAL,
+        IN  ULONG       Options       OPTIONAL
+  );
+
+typedef struct _SK_SYSTEM_HANDLE_TABLE_ENTRY_INFO
+{
+  USHORT UniqueProcessId;
+  USHORT CreatorBackTraceIndex;
+  UCHAR  ObjectTypeIndex;
+  UCHAR  HandleAttributes;
+  USHORT HandleValue;
+  PVOID  Object;
+  ULONG  GrantedAccess;
+} SYSTEM_HANDLE_TABLE_ENTRY_INFO,
+*PSYSTEM_HANDLE_TABLE_ENTRY_INFO;
+
+typedef struct _SK_SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX
+{
+  PVOID       Object;
+  union
+  {
+    ULONG_PTR UniqueProcessId;
+
+    struct
+    {
+#ifdef _WIN64
+      DWORD   ProcessId;
+      DWORD   ThreadId; // ?? ( What are the upper-bits for anyway ? )
+#else
+      WORD    ProcessId;
+      WORD    ThreadId; // ?? ( What are the upper-bits for anyway ? )
+#endif
+    };
+  };
+
+  union
+  {
+    ULONG_PTR HandleValue;
+    HANDLE    Handle;
+  };
+
+  ULONG       GrantedAccess;
+  USHORT      CreatorBackTraceIndex;
+  USHORT      ObjectTypeIndex;
+  ULONG       HandleAttributes;
+  ULONG       Reserved;
+} SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX,
+*PSYSTEM_HANDLE_TABLE_ENTRY_INFO_EX;
+
+typedef struct _SK_SYSTEM_HANDLE_INFORMATION
+{ ULONG                          NumberOfHandles;
+  SYSTEM_HANDLE_TABLE_ENTRY_INFO Handles     [1];
+} SYSTEM_HANDLE_INFORMATION,
+ *PSYSTEM_HANDLE_INFORMATION;
+
+typedef struct _SK_SYSTEM_HANDLE_INFORMATION_EX
+{ ULONG_PTR                         NumberOfHandles;
+  ULONG_PTR                         Reserved;
+  SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX Handles     [1];
+} SYSTEM_HANDLE_INFORMATION_EX,
+*PSYSTEM_HANDLE_INFORMATION_EX;
+
+typedef struct _SK_UNICODE_STRING
+{ USHORT Length;
+  USHORT MaximumLength;
+  PWSTR  Buffer;
+} UNICODE_STRING,
+*PUNICODE_STRING;
 
 // MIT: https://github.com/antonioCoco/ConPtyShell/blob/master/ConPtyShell.cs
 typedef struct _OBJECT_TYPE_INFORMATION_V2 {
@@ -2409,17 +2531,21 @@ USHORT GetTypeIndexByName (std::wstring TypeName)
   POBJECT_TYPES_INFORMATION   TypesInfo = NULL;
   USHORT   ret                          = USHRT_MAX;
   NTSTATUS ntStatTypesInfo;
-  ULONG    BufferLength (28);
+  ULONG    BufferLength = SystemHandleInformationSize;
+
+  auto* pTLS =
+      SK_TLS_Bottom ();
+
+  auto& types_info_buffer =
+    pTLS->local_scratch->query->NtInfo;
 
   do
   {
-    if (TypesInfo != NULL)
-      free(TypesInfo);
+    TypesInfo = (POBJECT_TYPES_INFORMATION)types_info_buffer.alloc (BufferLength);
 
-    TypesInfo = (POBJECT_TYPES_INFORMATION)calloc(BufferLength, sizeof(POBJECT_TYPES_INFORMATION));
-
-    ntStatTypesInfo = NtQueryObject(NULL, ObjectTypesInformation, TypesInfo, BufferLength, &BufferLength);
-  } while (ntStatTypesInfo == STATUS_INFO_LENGTH_MISMATCH);
+    ntStatTypesInfo =
+      NtQueryObject (NULL, ObjectTypesInformation, TypesInfo, BufferLength, &BufferLength);
+  } while (ntStatTypesInfo == STATUS_INFO_LENGTH_MISMATCH && BufferLength != 0);
 
   if (NT_SUCCESS (ntStatTypesInfo) && TypesInfo->NumberOfTypes > 0)
   {
@@ -2433,8 +2559,6 @@ USHORT GetTypeIndexByName (std::wstring TypeName)
 
       if (TypeName == _TypeName)
       {
-        //PLOG_VERBOSE << std::to_wstring(TypeInfo->TypeIndex) << " - " << _TypeName;
-
         ret = _TypeIndex;
         break;
       }
@@ -2444,54 +2568,8 @@ USHORT GetTypeIndexByName (std::wstring TypeName)
     }
   }
 
-  // Free up the memory that was allocated by calloc
-  if (TypesInfo != NULL)
-    free (TypesInfo);
-
   return ret;
 }
-
-typedef struct _SK_SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX
-{
-  PVOID       Object;
-  union
-  {
-    ULONG_PTR UniqueProcessId;
-
-    struct
-    {
-#ifdef _WIN64
-      DWORD   ProcessId;
-      DWORD   ThreadId; // ?? ( What are the upper-bits for anyway ? )
-#else
-      WORD    ProcessId;
-      WORD    ThreadId; // ?? ( What are the upper-bits for anyway ? )
-#endif
-    };
-  };
-
-  union
-  {
-    ULONG_PTR HandleValue;
-    HANDLE    Handle;
-  };
-
-  ULONG       GrantedAccess;
-  USHORT      CreatorBackTraceIndex;
-  USHORT      ObjectTypeIndex;
-  ULONG       HandleAttributes;
-  ULONG       Reserved;
-} SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX,
-*PSYSTEM_HANDLE_TABLE_ENTRY_INFO_EX;
-
-typedef struct _SK_SYSTEM_HANDLE_INFORMATION_EX
-{ ULONG_PTR                         NumberOfHandles;
-  ULONG_PTR                         Reserved;
-  SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX Handles     [1];
-} SYSTEM_HANDLE_INFORMATION_EX,
-*PSYSTEM_HANDLE_INFORMATION_EX;
-
-#define SystemHandleInformationSize 0x400000
 #pragma pack (pop)
 
 void
@@ -2514,55 +2592,40 @@ SK_Input_EnumOpenHIDFiles (void)
     
     auto& handle_info_buffer =
       pTLS->local_scratch->query->NtInfo;
-      
-    handle_info_buffer.alloc (SystemHandleInformationSize);
 
     DWORD dwReadBytes = 0UL;
 
     PSYSTEM_HANDLE_INFORMATION_EX pHandleInfoEx = nullptr;
 
-    NTSTATUS ns =
-      NtQuerySystemInformation (
-        SystemExtendedHandleInformation,
-                               handle_info_buffer.data,
-          static_cast <ULONG> (handle_info_buffer.len),
-         &dwReadBytes );
+    NTSTATUS ns = STATUS_INFO_LENGTH_MISMATCH;
 
-    if (ns == STATUS_INFO_LENGTH_MISMATCH)
+    for ( DWORD dSize   =  SystemHandleInformationSize ;
+                dSize  != 0 && !pHandleInfoEx          ;
+                dSize <<= 1 )
     {
-      for ( DWORD dSize   =  SystemHandleInformationSize ;
-                  dSize  != 0 && !pHandleInfoEx          ;
-                  dSize <<= 1 )
+      handle_info_buffer.alloc (static_cast <size_t> (dSize));
+
+      pHandleInfoEx =
+        (PSYSTEM_HANDLE_INFORMATION_EX)handle_info_buffer.data;
+
+      ns =
+        NtQuerySystemInformation (
+          SystemExtendedHandleInformation,
+                                 handle_info_buffer.data,
+            static_cast <ULONG> (handle_info_buffer.len),
+            &dwReadBytes );
+
+      if (! NT_SUCCESS (ns))
       {
-        if (dSize > 268435456UL) // 256 MiB?! Something's wrong, just give up...
+        pHandleInfoEx = nullptr;
+        dwReadBytes   = 0;
+        
+        if (ns != STATUS_INFO_LENGTH_MISMATCH)
           break;
-
-        handle_info_buffer.alloc (
-          static_cast <size_t> (dSize), true
-        );
-
-        pHandleInfoEx =
-          (PSYSTEM_HANDLE_INFORMATION_EX)handle_info_buffer.data;
-
-        ns =
-          NtQuerySystemInformation (
-            SystemExtendedHandleInformation,
-                                   handle_info_buffer.data,
-              static_cast <ULONG> (handle_info_buffer.len),
-              &dwReadBytes );
-
-        if (ns != STATUS_SUCCESS)
-        {
-          pHandleInfoEx = nullptr;
-          dwReadBytes   = 0;
-          
-          if (ns != STATUS_INFO_LENGTH_MISMATCH)
-            break;
-        }
       }
     }
     
-    if (NT_SUCCESS (ns) && dwReadBytes >= sizeof (SYSTEM_HANDLE_INFORMATION_EX) * 0x4000)
+    if (NT_SUCCESS (ns) && dwReadBytes != 0)
     {
       const DWORD dwPidOfMe =
         GetCurrentProcessId ();
@@ -2654,16 +2717,13 @@ SK_Input_EnumOpenHIDFiles (void)
                   {
                     if (SK_Input_DeviceFiles.insert (file).second)
                     {
-                      wchar_t                          wszName [MAX_PATH + 2] = { };
-                      SK_File_GetNameFromHandle (file, wszName, MAX_PATH);
-
-                      SK_HID_DeviceFile hid_file (file, wszName);
+                      SK_HID_DeviceFile hid_file (file, L"");
 
                       if (hid_file.device_type == sk_input_dev_type::Gamepad)
                       {
                         SK_LOGi0 (
-                          L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
-                            wszName, hid_file.device_vid, hid_file.device_pid
+                          L"Registering Already Open HID Device File: ( vid=%04x, pid=%04x )",
+                            hid_file.device_vid, hid_file.device_pid
                         );
 
                         auto& dev_file =
@@ -2683,6 +2743,8 @@ SK_Input_EnumOpenHIDFiles (void)
                 }
               }
             }
+
+            SK_HidD_FreePreparsedData (preparsed_data);
           }
         }
       }
