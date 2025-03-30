@@ -130,8 +130,8 @@ struct gpu_sensors_t
     bool     queried_nv_pstates = false;
 
     struct {
-      int phase0 = 0;
-      int phase1 = 0;
+      int64 phase0 = 0;
+      int64 phase1 = 0;
     } amortization;
   } gpus [MAX_GPUS];
 

@@ -243,6 +243,9 @@ SK_GPUPollingThread (LPVOID user)
 
     if (nvapi_init && gpu_count != 0)
     {
+      const bool need_sensor_update =
+        ((config.osd.show && config.gpu.show) || SK_ImGui_Widgets->gpu_monitor->isActive ());
+
       stats.num_gpus =
         std::min (gpu_count, static_cast <NvU32> (NVAPI_MAX_PHYSICAL_GPUS));
 
@@ -294,7 +297,7 @@ SK_GPUPollingThread (LPVOID user)
               status = NVAPI_OK;
 
         // Run this more frequently if periodic callback-based sampling is not active
-        if (stats.gpus [i].amortization.phase0 % (bHasNVPeriodic ? 6 : 3) == 0)
+        if (stats.gpus [i].amortization.phase0 % (bHasNVPeriodic ? (need_sensor_update ? 8 : 9999999999999999999i64) : 4) == 0)
         {
           SK_PROFILE_SCOPED_TASK
                        (NvAPI_GPU_GetDynamicPstatesInfoEx)
@@ -403,7 +406,7 @@ SK_GPUPollingThread (LPVOID user)
         }
 
 
-        if (stats.gpus [i].amortization.phase0 % 4 == 0)
+        if (stats.gpus [i].amortization.phase0 % 4 == 0  &&  need_sensor_update)
         {
           NvU32                                                            pcie_lanes = 0;
           {
@@ -514,7 +517,7 @@ SK_GPUPollingThread (LPVOID user)
 
         SwitchToThreadMinPageFaults ();
 
-        if (stats.gpus [i].amortization.phase0++ % 6 == 0)
+        if (stats.gpus [i].amortization.phase0++ % 9 == 0  &&  need_sensor_update)
         {
           NV_GPU_CLOCK_FREQUENCIES
             freq           = {                          };
@@ -548,7 +551,7 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].clocks_kHz.ram = stats0.gpus [i].clocks_kHz.ram;
         }
 
-        if (stats.gpus [i].amortization.phase1++ % 2 == 0)
+        if (stats.gpus [i].amortization.phase1++ % 2 == 0  &&  need_sensor_update)
         {
           NvU32 tach = 0;
 

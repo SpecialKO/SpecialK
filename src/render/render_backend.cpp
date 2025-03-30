@@ -886,7 +886,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
             SK_timeGetTime ();
 
           const DWORD dwCheckInterval =
-            SK_GetFramesDrawn () > 300 ? 15000UL : 250UL;
+            SK_GetFramesDrawn () > 300 ? 10000UL : 250UL;
 
           if (rb.gsync_state.last_checked < (dwTimeNow - dwCheckInterval))
           {   rb.gsync_state.last_checked =  dwTimeNow;                        vrr_info = {NV_GET_VRR_INFO_VER};
@@ -913,8 +913,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           if (std::exchange (last_present_mode, rb.presentation.mode) != rb.presentation.mode)
           {
             if (! rb.gsync_state.active)
-                  rb.gsync_state.last_checked -= std::min (1250UL, rb.gsync_state.last_checked);
-            else  rb.gsync_state.last_checked -= std::min (8000UL, rb.gsync_state.last_checked);
+                  rb.gsync_state.last_checked -= std::min (1000UL, rb.gsync_state.last_checked);
+            else  rb.gsync_state.last_checked -= std::min (6000UL, rb.gsync_state.last_checked);
           }
 
           if (rb.gsync_state.capable)
