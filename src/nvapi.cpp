@@ -449,6 +449,8 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
 {
   SK_LOG_FIRST_CALL
 
+  SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_Disp_GetHdrCapabilities)
+
   if (config.apis.NvAPI.disable_hdr)
     return NVAPI_NO_IMPLEMENTATION;
 
@@ -581,6 +583,8 @@ __cdecl
 NvAPI_Disp_ColorControl_Override ( NvU32          displayId,
                                    NV_COLOR_DATA *pColorData )
 {
+  SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_Disp_ColorControl)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_ColorControl);
 
@@ -653,6 +657,8 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                       NV_HDR_COLOR_DATA *pHdrColorData )
 {
   SK_LOG_FIRST_CALL
+
+  SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_Disp_HdrColorControl)
 
   if (config.apis.NvAPI.disable_hdr)
     return NVAPI_NO_IMPLEMENTATION;
@@ -1406,6 +1412,8 @@ SK_RenderBackend_V2::scan_out_s::
     dataGetSet.version = NV_HDR_COLOR_DATA_VER;
     dataGetSet.cmd     = NV_HDR_CMD_GET;
 
+  SK_PROFILE_SCOPED_TASK (NvAPI_Disp_HdrColorControl)
+
   if ( NVAPI_OK ==
          NvAPI_Disp_HdrColorControl_Original ( display_id, &dataGetSet ) )
   {
@@ -1806,6 +1814,8 @@ NvAPI_QueryInterface_Detour (unsigned int ordinal)
 NVAPI_INTERFACE
 SK_NvAPI_Disp_GetVRRInfo (__in NvU32 displayId, __inout NV_GET_VRR_INFO *pVrrInfo)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_Disp_GetVRRInfo)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo);
 
@@ -1816,6 +1826,8 @@ SK_NvAPI_Disp_GetVRRInfo (__in NvU32 displayId, __inout NV_GET_VRR_INFO *pVrrInf
 NVAPI_INTERFACE
 SK_NvAPI_DISP_GetAdaptiveSyncData (__in NvU32 displayId, __inout NV_GET_ADAPTIVE_SYNC_DATA *pAdaptiveSyncData)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_DISP_GetAdaptiveSyncData)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.DISP_GetAdaptiveSyncData);
 
@@ -1826,6 +1838,8 @@ SK_NvAPI_DISP_GetAdaptiveSyncData (__in NvU32 displayId, __inout NV_GET_ADAPTIVE
 NVAPI_INTERFACE
 SK_NvAPI_DISP_SetAdaptiveSyncData    (__in NvU32 displayId, __in NV_SET_ADAPTIVE_SYNC_DATA *pAdaptiveSyncData)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_DISP_SetAdaptiveSyncData)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.DISP_SetAdaptiveSyncData);
 
@@ -1836,6 +1850,8 @@ SK_NvAPI_DISP_SetAdaptiveSyncData    (__in NvU32 displayId, __in NV_SET_ADAPTIVE
 NVAPI_INTERFACE
 SK_NvAPI_DISP_GetMonitorCapabilities (__in NvU32 displayId, __inout NV_MONITOR_CAPABILITIES *pMonitorCapabilities)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_DISP_GetMonitorCapabilities)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.DISP_GetMonitorCapabilities);
 
@@ -1848,6 +1864,8 @@ SK_NvAPI_D3D_IsGSyncCapable (__in IUnknown          *pDeviceOrContext,
                              __in NVDX_ObjectHandle   primarySurface,
                              __out BOOL             *pIsGsyncCapable)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_D3D_IsGSyncCapable)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.D3D_IsGSyncCapable);
 
@@ -1860,6 +1878,8 @@ SK_NvAPI_D3D_IsGSyncActive (__in IUnknown          *pDeviceOrContext,
                             __in NVDX_ObjectHandle   primarySurface,
                            __out BOOL              *pIsGsyncActive)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_D3D_IsGSyncActive)
+
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
 

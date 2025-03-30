@@ -2953,7 +2953,23 @@ SK_ShutdownCore (const wchar_t* backend)
 
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
 
-  SK_Perf_PrintEvents ();
+  static bool
+      log_perf_stats = true;
+  if (log_perf_stats)
+  {
+    dll_log->Log (L"[ SK Perf. ] -----------------------");
+    dll_log->Log (L"[ SK Perf. ]  Micro Profiled Tasks: ");
+    dll_log->Log (L"[ SK Perf. ] -----------------------");
+    SK_Perf_PrintProfiledTasks ();
+    dll_log->Log (L"[ SK Perf. ] -----------------------");
+    dll_log->Log (L"[ SK Perf. ]  Initialization Steps: ");
+    dll_log->Log (L"[ SK Perf. ] -----------------------");
+    SK_Perf_PrintEvents        ();
+    dll_log->LogEx ( false,
+                  L"========================================================="
+                  L"======== (End Perf Stats) ==============================="
+                  L"==================================\n" );
+  }
 
   const wchar_t* config_name = backend;
 
@@ -4936,6 +4952,8 @@ SK_LazyGlobal <iSK_Logger> epic_log;
 SK_LazyGlobal <concurrency::concurrent_unordered_map <const wchar_t*, uint64_t>> SK_EventMarker_StartTimes;
 SK_LazyGlobal <concurrency::concurrent_unordered_map <const wchar_t*, uint64_t>> SK_EventMarker_EndTimes;
 
+SK_LazyGlobal <concurrency::concurrent_unordered_map <const wchar_t*, SK_ProfiledTask_Accum>> SK_ProfileAccumulator;
+
 void SK_Perf_PrintEvents (void)
 {
   std::vector <std::pair <std::wstring, uint64_t>> start_times;
@@ -4976,7 +4994,7 @@ void SK_Perf_PrintEvents (void)
     if (end != UINT64_MAX)
     {
       dll_log->Log (L"[PerfEvents] "
-        L"Event: %-50ws took\t%10.5f ms",
+        L" Event:  %-50ws\t\t\t\t%16.5f ms",
           event.first.c_str (), ( static_cast <double> (end - event.second) /
                                   static_cast <double> (SK_QpcFreq) ) * 1000.0 );
     }
@@ -5008,5 +5026,81 @@ void SK_PerfEvent_End (const wchar_t* wszEventName)
   {
     if (config.system.log_level > 1)
       dll_log->Log (L"[EventTrace] Event: %ws already recorded once...", wszEventName);              
+  }
+}
+
+uint64_t
+SK_ProfiledTask_Begin (void)
+{
+  uint64_t qpc =
+    SK_QueryPerf ().QuadPart;
+
+  return qpc;
+}
+
+SK_ProfiledTask_Accum
+SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time)
+{
+  uint64_t qpc =
+    SK_QueryPerf ().QuadPart;
+
+  SK_ProfiledTask_Accum time_taken
+    { qpc - start_time, 1 };
+
+  if (SK_ProfileAccumulator->count                  (wszTaskName)        == 0)
+      SK_ProfileAccumulator->insert (std::make_pair (wszTaskName, time_taken));
+  else
+  {
+    auto& accum =
+      SK_ProfileAccumulator->at (wszTaskName);
+
+    accum.duration += time_taken.duration;
+    accum.calls    += time_taken.calls;
+  }
+
+  return time_taken;
+}
+
+void SK_Perf_PrintProfiledTasks (void)
+{
+  std::vector <
+    std::pair <std::wstring, SK_ProfiledTask_Accum>
+  > tasks;
+
+  for ( auto& task : *SK_ProfileAccumulator )
+  {
+    tasks.push_back (
+      { task.first,
+        task.second }
+    );
+  }
+
+  std::sort ( tasks.begin (),
+              tasks.end   (),
+    [&]( const std::pair <std::wstring, SK_ProfiledTask_Accum>& a,
+         const std::pair <std::wstring, SK_ProfiledTask_Accum>& b )
+    {
+      return ( a.second.calls > b.second.calls );
+    }
+  );
+
+  for ( auto& task : tasks )
+  {
+    if (task.second.calls > 0)
+    {
+      const auto &[ task_name, num_calls, duration ] =
+        std::make_tuple ( task.first,
+                          task.second.calls,
+                          task.second.duration );
+
+      const double dMsTotal  =
+        ( static_cast <double> (duration) /
+          static_cast <double> (SK_QpcFreq) ) * 1000.0;
+
+      dll_log->Log ( L"[Perf Tasks] "
+        L"  Task:  %-44ws %9d / %15.5f ms      %11.5f ms/call",
+          task.first.c_str (), num_calls, dMsTotal,
+                                          dMsTotal / static_cast <double> (num_calls) );
+    }
   }
 }
