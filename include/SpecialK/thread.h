@@ -168,7 +168,7 @@ protected:
   CRITICAL_SECTION* cs_;
 };
 
-#if 0
+#if 1
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
 {
 public:

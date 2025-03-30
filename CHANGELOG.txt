@@ -1,4 +1,11 @@
-﻿25.3.29.5
+﻿25.3.30
+=======
+ + Added excessively verbose microprofiler performance stats and init. timing
+     at application exit to try and diagnose recent HW monitoring API overhead
+       increases on NVIDIA drivers.
+ + Significantly slowed down VRR status checks in D3D12 on NVIDIA drivers.
+
+25.3.29.5
 =========
  + Optimized input and debug hook initialization slightly.
 

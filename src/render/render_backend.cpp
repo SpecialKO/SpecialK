@@ -868,7 +868,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
         SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
 
         do
         {
@@ -885,17 +885,20 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           DWORD dwTimeNow =
             SK_timeGetTime ();
 
-          if (rb.gsync_state.last_checked < (dwTimeNow - 666UL))
+          const DWORD dwCheckInterval =
+            SK_GetFramesDrawn () > 300 ? 15000UL : 250UL;
+
+          if (rb.gsync_state.last_checked < (dwTimeNow - dwCheckInterval))
           {   rb.gsync_state.last_checked =  dwTimeNow;                        vrr_info = {NV_GET_VRR_INFO_VER};
-            if (check_stage++ % 5 == 0)
+            if (check_stage++ % 2 == 0)
               SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
                                                    &display.nvapi.monitor_caps);
             SK_NvAPI_Disp_GetVRRInfo               (display.nvapi.display_id, &vrr_info);
 
             if (vrr_info.bIsVRREnabled)
-              rb.gsync_state.last_checked = dwTimeNow +  300UL;
+              rb.gsync_state.last_checked = dwTimeNow + 3333UL;
             else
-              rb.gsync_state.last_checked = dwTimeNow + 1500UL;
+              rb.gsync_state.last_checked = dwTimeNow + 6666UL;
           }
 
           display.nvapi.vrr_enabled =
@@ -903,6 +906,15 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
           rb.gsync_state.capable = display.nvapi.vrr_enabled;
           rb.gsync_state.active  = false;
+
+          static SK_PresentMode
+                             last_present_mode = SK_PresentMode::Unknown;
+          if (std::exchange (last_present_mode, rb.presentation.mode) != rb.presentation.mode)
+          {
+            if (! rb.gsync_state.active)
+                  rb.gsync_state.last_checked -= std::min (1250UL, rb.gsync_state.last_checked);
+            else  rb.gsync_state.last_checked -= std::min (8000UL, rb.gsync_state.last_checked);
+          }
 
           if (rb.gsync_state.capable)
           {

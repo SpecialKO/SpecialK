@@ -294,10 +294,11 @@ SK_GPUPollingThread (LPVOID user)
               status = NVAPI_OK;
 
         // Run this more frequently if periodic callback-based sampling is not active
-        if (stats.gpus [i].amortization.phase0 % (bHasNVPeriodic ? 4 : 2) == 0)
+        if (stats.gpus [i].amortization.phase0 % (bHasNVPeriodic ? 6 : 3) == 0)
         {
-          NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
-
+          SK_PROFILE_SCOPED_TASK
+                       (NvAPI_GPU_GetDynamicPstatesInfoEx)
+              status  = NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
           if (status == NVAPI_OK)
           {
             static constexpr auto NVAPI_GPU_UTILIZATION_DOMAIN_GPU = 0;
@@ -348,6 +349,8 @@ SK_GPUPollingThread (LPVOID user)
           //   and immediately breaking NvAPI.
           if (stats.gpus [i].temps_c.supported)
           {
+            SK_PROFILE_SCOPED_TASK (NvAPI_GPU_GetThermalSettings)
+
             status =
               NvAPI_GPU_GetThermalSettings ( gpu,
                                                NVAPI_THERMAL_TARGET_ALL,
@@ -402,9 +405,13 @@ SK_GPUPollingThread (LPVOID user)
 
         if (stats.gpus [i].amortization.phase0 % 4 == 0)
         {
-          NvU32                                                          pcie_lanes = 0;
-          if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
-                                      stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
+          NvU32                                                            pcie_lanes = 0;
+          {
+            SK_PROFILE_SCOPED_TASK
+                           (NvAPI_GPU_GetCurrentPCIEDownstreamWidth)
+            if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
+                                        stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
+          }
 
           NV_PCIE_INFO
              pcieinfo         = {              };
@@ -431,50 +438,62 @@ SK_GPUPollingThread (LPVOID user)
                 mem_loc   = 0,
                 mem_type  = 0;
 
-          if (            NvAPI_GPU_GetFBWidthAndLocation != nullptr &&
-              NVAPI_OK == NvAPI_GPU_GetFBWidthAndLocation (gpu, &mem_width, &mem_loc))
-                           stats.gpus [i].hwinfo.mem_bus_width = mem_width;
+          {
+            SK_PROFILE_SCOPED_TASK
+                           (NvAPI_GPU_GetFBWidthAndLocation)
+            if (            NvAPI_GPU_GetFBWidthAndLocation != nullptr &&
+                NVAPI_OK == NvAPI_GPU_GetFBWidthAndLocation (gpu, &mem_width, &mem_loc))
+                             stats.gpus [i].hwinfo.mem_bus_width = mem_width;
 
-          else stats.gpus [i].hwinfo.mem_bus_width =
-              stats0.gpus [i].hwinfo.mem_bus_width;
+            else stats.gpus [i].hwinfo.mem_bus_width =
+                stats0.gpus [i].hwinfo.mem_bus_width;
+          }
 
 
-          if (            NvAPI_GPU_GetRamType != nullptr &&
-              NVAPI_OK == NvAPI_GPU_GetRamType (gpu, &mem_type))
-                     stats.gpus [i].hwinfo.mem_type = mem_type;
+          {
+            SK_PROFILE_SCOPED_TASK 
+                           (NvAPI_GPU_GetRamType)
+            if (            NvAPI_GPU_GetRamType != nullptr &&
+                NVAPI_OK == NvAPI_GPU_GetRamType (gpu, &mem_type))
+                       stats.gpus [i].hwinfo.mem_type = mem_type;
 
-          else stats.gpus [i].hwinfo.mem_type =
-              stats0.gpus [i].hwinfo.mem_type;
+            else stats.gpus [i].hwinfo.mem_type =
+                stats0.gpus [i].hwinfo.mem_type;
+          }
 
           NV_GPU_MEMORY_INFO_EX
             meminfo         = {                         };
             meminfo.version = NV_GPU_MEMORY_INFO_EX_VER_1;
 
-          if (NVAPI_OK == NvAPI_GPU_GetMemoryInfoEx (gpu, &meminfo))
           {
-            int64_t local =
-              (meminfo.availableDedicatedVideoMemory) -
-              (meminfo.curAvailableDedicatedVideoMemory);
-          
-            stats.gpus [i].memory_B.local    = local                        * 1024LL;
-            stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
-          
-            stats.gpus [i].memory_B.total =
-              ((meminfo.dedicatedVideoMemory) -
-               (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
-          
-            // Compute Non-Local
-            stats.gpus [i].memory_B.nonlocal =
-             ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
-          }
+            SK_PROFILE_SCOPED_TASK
+                           (NvAPI_GPU_GetMemoryInfoEx)
+            if (NVAPI_OK == NvAPI_GPU_GetMemoryInfoEx (gpu, &meminfo))
+            {
+              int64_t local =
+                (meminfo.availableDedicatedVideoMemory) -
+                (meminfo.curAvailableDedicatedVideoMemory);
+            
+              stats.gpus [i].memory_B.local    = local                        * 1024LL;
+              stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
+            
+              stats.gpus [i].memory_B.total =
+                ((meminfo.dedicatedVideoMemory) -
+                 (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
+            
+              // Compute Non-Local
+              stats.gpus [i].memory_B.nonlocal =
+               ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
+            }
 
-          else
-          {
-            stats.gpus [i].memory_B.local    = stats0.gpus [i].memory_B.local;
-            stats.gpus [i].memory_B.capacity = stats0.gpus [i].memory_B.capacity;
+            else
+            {
+              stats.gpus [i].memory_B.local    = stats0.gpus [i].memory_B.local;
+              stats.gpus [i].memory_B.capacity = stats0.gpus [i].memory_B.capacity;
 
-            stats.gpus [i].memory_B.total    = stats0.gpus [i].memory_B.total;
-            stats.gpus [i].memory_B.nonlocal = stats0.gpus [i].memory_B.nonlocal;
+              stats.gpus [i].memory_B.total    = stats0.gpus [i].memory_B.total;
+              stats.gpus [i].memory_B.nonlocal = stats0.gpus [i].memory_B.nonlocal;
+            }
           }
         }
 
@@ -495,13 +514,15 @@ SK_GPUPollingThread (LPVOID user)
 
         SwitchToThreadMinPageFaults ();
 
-        if (stats.gpus [i].amortization.phase0++ % 4 == 0)
+        if (stats.gpus [i].amortization.phase0++ % 6 == 0)
         {
           NV_GPU_CLOCK_FREQUENCIES
             freq           = {                          };
             freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
             freq.ClockType = NV_GPU_CLOCK_FREQUENCIES_CURRENT_FREQ;
 
+          SK_PROFILE_SCOPED_TASK
+                         (NvAPI_GPU_GetAllClockFrequencies)
           if (NVAPI_OK == NvAPI_GPU_GetAllClockFrequencies (gpu, &freq))
           {
             stats.gpus [i].clocks_kHz.gpu    =
@@ -533,6 +554,8 @@ SK_GPUPollingThread (LPVOID user)
 
           stats.gpus [i].fans_rpm.supported = false;
 
+          SK_PROFILE_SCOPED_TASK
+                         (NvAPI_GPU_GetTachReading)
           if (NVAPI_OK == NvAPI_GPU_GetTachReading (gpu, &tach))
           {
             stats.gpus [i].fans_rpm.gpu       = tach;
@@ -563,6 +586,8 @@ SK_GPUPollingThread (LPVOID user)
         if ((stats.gpus [i].nv_perf_state_iter++ % 8) == 0 && config.gpu.print_slowdown)
         {
           NvU32                                                perf_decrease_info = 0;
+          SK_PROFILE_SCOPED_TASK
+                         (NvAPI_GPU_GetPerfDecreaseInfo)
           if (NVAPI_OK == NvAPI_GPU_GetPerfDecreaseInfo (gpu, &perf_decrease_info))
                           stats.gpus [i].nv_perf_state =       perf_decrease_info;
         }
@@ -576,9 +601,18 @@ SK_GPUPollingThread (LPVOID user)
 
         stats.gpus [i].volts_mV.supported = false;
 
+        auto _NvAPI_GPU_GetPstates20 =
+        [&]( NvPhysicalGpuHandle         gpu,
+             NV_GPU_PERF_PSTATES20_INFO *ps20info ) ->
+        _NvAPI_Status
+        {
+          SK_PROFILE_SCOPED_TASK (NvAPI_GPU_GetPstates20)
+          return                  NvAPI_GPU_GetPstates20 (gpu, ps20info);
+        };
+
         if ( stats.gpus   [i].queried_nv_pstates ||
              ( stats.gpus [i].    has_nv_pstates &&
-               NVAPI_OK == NvAPI_GPU_GetPstates20 (gpu, &ps20info) )
+               NVAPI_OK == _NvAPI_GPU_GetPstates20 (gpu, &ps20info) )
            )
         {
           // Rather than querying the list over and over, just get the current
@@ -589,25 +623,62 @@ SK_GPUPollingThread (LPVOID user)
           NV_GPU_PERF_PSTATE_ID
               current_pstate = NVAPI_GPU_PERF_PSTATE_P0;
 
-          if (NVAPI_OK == NvAPI_GPU_GetCurrentPstate (gpu, &current_pstate))
           {
-            for (NvU32 pstate = 0; pstate < ps20info.numPstates; pstate++)
+            SK_PROFILE_SCOPED_TASK
+                           (NvAPI_GPU_GetCurrentPstate)
+            if (NVAPI_OK == NvAPI_GPU_GetCurrentPstate (gpu, &current_pstate))
             {
-              if (ps20info.pstates [pstate].pstateId == current_pstate)
+              for (NvU32 pstate = 0; pstate < ps20info.numPstates; pstate++)
               {
-                // First, check for over-voltage...
-                if (stats.gpus [i].volts_mV.supported == false)
+                if (ps20info.pstates [pstate].pstateId == current_pstate)
                 {
-                  for (NvU32 volt = 0; volt < ps20info.ov.numVoltages; volt++)
+                  // First, check for over-voltage...
+                  if (stats.gpus [i].volts_mV.supported == false)
                   {
-                    if ( ps20info.ov.voltages [volt].domainId ==
+                    for (NvU32 volt = 0; volt < ps20info.ov.numVoltages; volt++)
+                    {
+                      if ( ps20info.ov.voltages [volt].domainId ==
+                           NVAPI_GPU_PERF_VOLTAGE_INFO_DOMAIN_CORE )
+                      {
+                        stats.gpus [i].volts_mV.supported = true;
+                        stats.gpus [i].volts_mV.over      = true;
+
+                        NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage =
+                          &ps20info.ov.voltages [volt];
+
+                        stats.gpus [i].volts_mV.core = voltage->volt_uV/1000.0f;
+
+                        int over  =
+                          voltage->voltDelta_uV.value -
+                          voltage->voltDelta_uV.valueRange.max;
+
+                        int under =
+                          voltage->voltDelta_uV.valueRange.min -
+                          voltage->voltDelta_uV.value;
+
+                        if (over > 0)
+                          stats.gpus [i].volts_mV.ov =   over  / 1000.0f;
+                        else if (under > 0)
+                          stats.gpus [i].volts_mV.ov = -(under / 1000.0f);
+
+                        bHadVoltage = true;
+
+                        break;
+                      }
+                    }
+                  }
+
+                  // If that fails, look through the normal voltages.
+                  for (NvU32 volt = 0; volt < ps20info.numBaseVoltages; volt++)
+                  {
+                    if ( ps20info.pstates [pstate].baseVoltages [volt].domainId ==
                          NVAPI_GPU_PERF_VOLTAGE_INFO_DOMAIN_CORE )
                     {
                       stats.gpus [i].volts_mV.supported = true;
-                      stats.gpus [i].volts_mV.over      = true;
+                      stats.gpus [i].volts_mV.over      = false;
 
                       NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage =
-                        &ps20info.ov.voltages [volt];
+                        &ps20info.pstates [pstate].baseVoltages [volt];
 
                       stats.gpus [i].volts_mV.core = voltage->volt_uV/1000.0f;
 
@@ -620,67 +691,34 @@ SK_GPUPollingThread (LPVOID user)
                         voltage->voltDelta_uV.value;
 
                       if (over > 0)
-                        stats.gpus [i].volts_mV.ov =   over  / 1000.0f;
+                      {
+                        stats.gpus [i].volts_mV.ov   =   over  / 1000.0f;
+                        stats.gpus [i].volts_mV.over = true;
+                      }
+
                       else if (under > 0)
-                        stats.gpus [i].volts_mV.ov = -(under / 1000.0f);
+                      {
+                        stats.gpus [i].volts_mV.ov   = -(under / 1000.0f);
+                        stats.gpus [i].volts_mV.over = true;
+                      }
+
+                      else if (over != 0)
+                      {
+                        if (over > under)
+                           stats.gpus [i].volts_mV.ov =  -(over  / 1000.0f);
+                        else if (under > over)
+                          stats.gpus [i].volts_mV.ov  =   (under / 1000.0f);
+
+                        stats.gpus [i].volts_mV.over  = true;
+                      }
 
                       bHadVoltage = true;
 
                       break;
                     }
                   }
+                  break;
                 }
-
-                // If that fails, look through the normal voltages.
-                for (NvU32 volt = 0; volt < ps20info.numBaseVoltages; volt++)
-                {
-                  if ( ps20info.pstates [pstate].baseVoltages [volt].domainId ==
-                       NVAPI_GPU_PERF_VOLTAGE_INFO_DOMAIN_CORE )
-                  {
-                    stats.gpus [i].volts_mV.supported = true;
-                    stats.gpus [i].volts_mV.over      = false;
-
-                    NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage =
-                      &ps20info.pstates [pstate].baseVoltages [volt];
-
-                    stats.gpus [i].volts_mV.core = voltage->volt_uV/1000.0f;
-
-                    int over  =
-                      voltage->voltDelta_uV.value -
-                      voltage->voltDelta_uV.valueRange.max;
-
-                    int under =
-                      voltage->voltDelta_uV.valueRange.min -
-                      voltage->voltDelta_uV.value;
-
-                    if (over > 0)
-                    {
-                      stats.gpus [i].volts_mV.ov   =   over  / 1000.0f;
-                      stats.gpus [i].volts_mV.over = true;
-                    }
-
-                    else if (under > 0)
-                    {
-                      stats.gpus [i].volts_mV.ov   = -(under / 1000.0f);
-                      stats.gpus [i].volts_mV.over = true;
-                    }
-
-                    else if (over != 0)
-                    {
-                      if (over > under)
-                         stats.gpus [i].volts_mV.ov =  -(over  / 1000.0f);
-                      else if (under > over)
-                        stats.gpus [i].volts_mV.ov  =   (under / 1000.0f);
-
-                      stats.gpus [i].volts_mV.over  = true;
-                    }
-
-                    bHadVoltage = true;
-
-                    break;
-                  }
-                }
-                break;
               }
             }
           }

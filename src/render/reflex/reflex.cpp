@@ -72,6 +72,8 @@ NVAPI_INTERFACE
 SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
                                 __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_D3D_SetLatencyMarker)
+
   if (NvAPI_D3D_SetLatencyMarker_Original != nullptr)
   {
     SK_ComPtr <ID3D12Device>                     pDev12;
@@ -88,6 +90,8 @@ SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
 NVAPI_INTERFACE
 SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
 {
+  SK_PROFILE_SCOPED_TASK (NvAPI_D3D_Sleep)
+
   // Ensure games never call this more than once per-frame, which
   //   Monster Hunter Wilds does and potentially other games too...
   static UINT64
@@ -115,6 +119,8 @@ SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
 NVAPI_INTERFACE
 NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 {
+  SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_D3D_Sleep)
+
   SK_LOG_FIRST_CALL
 
   SK_Reflex_LastNativeSleepFrame =
@@ -145,6 +151,8 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
   if (params.minimumIntervalUs != 0 &&         params.minimumIntervalUs > 50)
       params.minimumIntervalUs = pSetSleepModeParams->minimumIntervalUs - 2;
 
+  SK_PROFILE_SCOPED_TASK 
+     (NvAPI_D3D_SetSleepMode)
   if (NvAPI_D3D_SetSleepMode_Original != nullptr)
   {
     SK_ComPtr <ID3D12Device>                     pDev12;
@@ -288,6 +296,8 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
   SK_LOG_FIRST_CALL
+
+  SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_D3D_SetLatencyMarker)
 
   bool bSkipCall = false;
 
@@ -440,6 +450,8 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
 {
   SK_LOG_FIRST_CALL
 
+  SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_D3D_SetSleepMode)
+
   if (pSetSleepModeParams != nullptr)
   {
     SK_ReleaseAssert (
@@ -537,6 +549,8 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
   if (config.nvidia.reflex.native)
     return;
 
+  SK_PROFILE_SCOPED_TASK (SK_PCL_Heartbeat)
+
   // Avoid unnecessarily calling PeekMessage because the Steam overlay adds
   //   a ton of overhead to it.
   static bool bSteamOverlaySafe =
@@ -568,6 +582,8 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 
     if (bSteamOverlaySafe)
     {
+      SK_PROFILE_SCOPED_TASK
+            (SK_PeekMessageW__PCL_Heartbeat)
       while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
         ping = true;
     }
@@ -583,6 +599,8 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 
   if (init)
   {
+    SK_PROFILE_SCOPED_TASK (PCLSTATS_MARKER)
+
     PCLSTATS_MARKER ( marker.markerType,
                       marker.frameID );
   }
@@ -611,6 +629,8 @@ SK_RenderBackend_V2::isReflexSupported (void) const
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 {
+  SK_PROFILE_SCOPED_TASK (SK_RenderBackend_V2__setLatencyMarkerNV)
+
   if (marker == RENDERSUBMIT_START)
   {
     if (        SK_ImGui_SignalBackupInputThread != 0)
@@ -751,6 +771,8 @@ SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyPa
   if (! isReflexSupported ())
     return false;
 
+  SK_PROFILE_SCOPED_TASK (NvAPI_D3D_GetLatency)
+
   NvAPI_Status ret =
     NvAPI_D3D_GetLatency (device.p, pGetLatencyParams);
 
@@ -796,14 +818,18 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
           sleepStatusParams         = {                            };
           sleepStatusParams.version = NV_GET_SLEEP_STATUS_PARAMS_VER;
 
-        if ( NVAPI_OK ==
-               NvAPI_D3D_GetSleepStatus (device.p, &sleepStatusParams)
-           )
         {
-          SK_Reflex_NativeSleepModeParams.bLowLatencyMode  =
-            sleepStatusParams.bLowLatencyMode;
-          SK_Reflex_NativeSleepModeParams.version          =
-            NV_SET_SLEEP_MODE_PARAMS_VER;
+          SK_PROFILE_SCOPED_TASK (NvAPI_D3D_GetSleepStatus)
+
+          if ( NVAPI_OK ==
+                 NvAPI_D3D_GetSleepStatus (device.p, &sleepStatusParams)
+             )
+          {
+            SK_Reflex_NativeSleepModeParams.bLowLatencyMode  =
+              sleepStatusParams.bLowLatencyMode;
+            SK_Reflex_NativeSleepModeParams.version          =
+              NV_SET_SLEEP_MODE_PARAMS_VER;
+          }
         }
       }
 

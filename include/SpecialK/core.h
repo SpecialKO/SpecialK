@@ -261,4 +261,28 @@ struct SK_AutoEventMarker {
 
 #define SK_PROFILE_FIRST_CALL SK_AutoEventMarker _(__FUNCTIONW__);
 
+
+void SK_Perf_PrintProfiledTasks (void);
+
+struct SK_ProfiledTask_Accum {
+  uint64_t duration;
+  uint64_t calls;
+};
+
+SK_ProfiledTask_Accum
+SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time);
+
+uint64_t
+SK_ProfiledTask_Begin (void);
+
+struct SK_AutoProfileAccumulator {
+   SK_AutoProfileAccumulator (const wchar_t* wszTaskName) { name = wszTaskName; start = SK_ProfiledTask_Begin (           ); };
+  ~SK_AutoProfileAccumulator (void)                        {                            SK_ProfiledTask_End   (name, start); };
+
+  const wchar_t* name  = nullptr;
+  uint64_t       start = 0;
+};
+
+#define SK_PROFILE_SCOPED_TASK(task) SK_AutoProfileAccumulator __##task##__(L#task);
+
 #endif /* __SK__CORE_H__ */
