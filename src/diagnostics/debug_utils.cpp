@@ -1244,12 +1244,14 @@ SK_ExitProcess (UINT uExitCode) noexcept
   volatile int            dummy = { };
   UNREFERENCED_PARAMETER (dummy);
 
+  // Since many, many games don't shutdown cleanly, let's unload ourself.
+  SK_SelfDestruct ();
+
   auto jmpExitProcess =
     SK_Hook_GetTrampoline (ExitProcess);
 
-  // Since many, many games don't shutdown cleanly, let's unload ourself.
-  SK_SelfDestruct (         ); if (jmpExitProcess != nullptr)
-  jmpExitProcess  (uExitCode);
+  if (jmpExitProcess != nullptr)
+      jmpExitProcess (uExitCode);
 }
 
 void
@@ -1288,20 +1290,20 @@ SK_TerminateThread ( HANDLE    hThread,
 
 BOOL
 WINAPI
-SK_TerminateProcess ( HANDLE    hProcess,
-                      UINT      uExitCode ) noexcept
+SK_TerminateProcess ( HANDLE hProcess,
+                      UINT   uExitCode ) noexcept
 {
   volatile int            dummy = { };
   UNREFERENCED_PARAMETER (dummy);
-
-  auto jmpTerminateProcess =
-    SK_Hook_GetTrampoline (TerminateProcess);
 
   if ( GetProcessId (      hProcess      ) ==
        GetProcessId (GetCurrentProcess ()) )
   {
     SK_SelfDestruct ();
   }
+
+  auto jmpTerminateProcess =
+    SK_Hook_GetTrampoline (TerminateProcess);
 
   if (jmpTerminateProcess != nullptr)
   {
@@ -1418,10 +1420,20 @@ ExitProcess_Detour (UINT uExitCode)
   // Since many, many games don't shutdown cleanly, let's unload ourself.
   SK_SelfDestruct ();
 
+  while (ReadAcquire (&__SK_Init) != -2)
+    SK_SleepEx (25UL, FALSE);
+
+#if 0
   auto jmpTerminateProcess =
     SK_Hook_GetTrampoline (TerminateProcess);
 
   jmpTerminateProcess (GetCurrentProcess (), uExitCode);
+#else
+  auto jmpExitProcess =
+    SK_Hook_GetTrampoline (ExitProcess);
+
+  jmpExitProcess (uExitCode);
+#endif
 }
 
 using RtlExitUserProcess_pfn = int (WINAPI*)(NTSTATUS);
@@ -1431,6 +1443,8 @@ int
 WINAPI
 RtlExitUserProcess_Detour (NTSTATUS ExitStatus)
 {
+  SK_LOG_FIRST_CALL
+
   // Since many, many games don't shutdown cleanly, let's unload ourself.
   SK_SelfDestruct ();
 
@@ -3748,17 +3762,14 @@ SK_HookEngine_HookGetProcAddress (void)
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
-  bool bEnable =
-    SK_DisableApplyQueuedHooks ();
-
   struct LocalInitOnce_s
   {
-    LocalInitOnce_s (bool bEnable) noexcept
+    LocalInitOnce_s (void) noexcept
     {
-      enable_hooks_ = bEnable;
-
       SK_RunOnce (
       {
+        enable_hooks_ = SK_DisableApplyQueuedHooks ();
+
         extern void SK_DbgHlp_Init (void);
                     SK_DbgHlp_Init ();
 
@@ -3794,17 +3805,16 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
         void SK_HookEngine_HookGetProcAddress (void);
              SK_HookEngine_HookGetProcAddress ();
-      });
 
-      
-      if (enable_hooks_) {
-        SK_EnableApplyQueuedHooks ();
-              SK_ApplyQueuedHooks ();
-      }
+        if (enable_hooks_) {
+          SK_EnableApplyQueuedHooks ();
+                SK_ApplyQueuedHooks ();
+        }
+      });
     }
 
     bool enable_hooks_;
-  } finish_init_on_return (bEnable);
+  } finish_init_on_return;
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::ForzaHorizon5)
   {

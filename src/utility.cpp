@@ -1173,10 +1173,27 @@ SK_SelfDestruct (void) noexcept
   //   it has resources outside the game process that need cleaning.
   SK_ETW_EndTracing ();
 
+  // Initiate once on the calling thread
   if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
   {
     SK_Detach (SK_GetDLLRole ());
   }
+
+  // All other threads simultaneously trying to self-destruct should wait
+  //   for up to (wait_max)-ms before giving up and allowing DLL unload to
+  //     continue out-of-order...
+  static constexpr DWORD SerializationStepMs (  25UL);
+                   DWORD MsUntilAbort        (2500UL);
+
+  do
+  {
+    SK_SleepEx (        SerializationStepMs, FALSE);
+        MsUntilAbort -= SerializationStepMs;
+    if (MsUntilAbort <= SerializationStepMs)
+    {
+      break;
+    }
+  } while (ReadAcquire (&__SK_Init) != -2);
 }
 
 HMODULE

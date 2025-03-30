@@ -224,6 +224,9 @@ CrashHandler::Reinstall (void)
   if (! config.system.handle_crashes)
     return;
 
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   static volatile LPVOID   pOldHook   = nullptr;
   if ((uintptr_t)InterlockedCompareExchangePointer (&pOldHook, (PVOID)1, nullptr) > (uintptr_t)1)
   {
