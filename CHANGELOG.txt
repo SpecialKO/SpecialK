@@ -1,4 +1,11 @@
-﻿25.3.31
+﻿25.3.31.1
+=========
+ + Terminate hung nvngx_update.exe processes at game exit, rather than when
+     the global injection service starts/stops.
+ + Added delay to ExitProcess (...) hook to ensure that SK saves its DLL cfg
+     in Assassin's Creed Shadows before the game crashes during its exit code.
+
+25.3.31
 =======
  + Slightly optimized HID device enumeration code and disconnect controllers
      from the Steam client when [Input.Steam] Disable=true.

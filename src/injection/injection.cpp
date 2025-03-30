@@ -1510,8 +1510,6 @@ void
 __stdcall
 SKX_InstallCBTHook (void)
 {
-  SK_TerminateProcesses (L"nvngx_update.exe", true);
-
   SK_SleepEx (15UL, FALSE);
 
   // Nothing to do here, move along.

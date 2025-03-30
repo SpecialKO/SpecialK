@@ -2938,9 +2938,8 @@ SK_ShutdownCore (const wchar_t* backend)
   if (__SK_bypass)
     return true;
 
-  static bool log_unloads =
-    !SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows);
-
+  static bool
+      log_unloads = true;//!SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows);
   if (log_unloads)
   {
     SK_PrintUnloadedDLLs (&dll_log.get ());
@@ -3198,6 +3197,14 @@ SK_ShutdownCore (const wchar_t* backend)
       {
         exit_plugin_fn ();
       }
+      dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    }
+
+    if (SK_IsProcessRunning (L"nvngx_update.exe"))
+    {
+      dll_log->LogEx           (true, L"[ SpecialK ] Shutting down hung nvngx_update processes... ");
+      dwTime = SK_timeGetTime  ();
+      SK_TerminateProcesses    (L"nvngx_update.exe", true);
       dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
     }
 
