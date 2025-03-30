@@ -2603,9 +2603,9 @@ SK_Input_EnumOpenHIDFiles (void)
         HIDD_ATTRIBUTES hidAttribs      = {                      };
                         hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
 
-        if (config.input.gamepad.steam.disabled_to_game)
+        if (pHandleInfoEx->Handles [i].ProcessId == dwSteamClientPid)
         {
-          if (pHandleInfoEx->Handles [i].ProcessId == dwSteamClientPid)
+          if (config.input.gamepad.steam.disabled_to_game && hSteamProcess.isValid ())
           {
             if (DuplicateHandle ( hSteamProcess,     file,
                               GetCurrentProcess (), &file, 0, FALSE, DUPLICATE_SAME_ACCESS ))
@@ -2630,10 +2630,11 @@ SK_Input_EnumOpenHIDFiles (void)
                 }
               }
             }
-
-            continue;
           }
         }
+
+        if (pHandleInfoEx->Handles [i].ProcessId != dwPidOfMe)
+          continue;
 
         if (SK_HidD_GetAttributes (file, &hidAttribs))
         {
@@ -3114,8 +3115,6 @@ SK_Input_PreHookHID (void)
 
     if (config.input.gamepad.hook_hid)
     {
-      SK_Input_EnumOpenHIDFiles ();
-
       static sk_import_test_s tests [] = {
         { "hid.dll", false }
       };
@@ -3130,6 +3129,8 @@ SK_Input_PreHookHID (void)
 
         ret = true;
       }
+
+      SK_Input_EnumOpenHIDFiles ();
     }
 
     InterlockedIncrement (&_init);
