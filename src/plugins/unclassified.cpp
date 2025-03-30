@@ -1816,13 +1816,11 @@ bool               __SK_ACS_IsMultiFrameCapable   = false;
 bool               __SK_ACS_AlwaysUseFrameGen     =  true;
 bool               __SK_ACS_ShowFMVIndicator      = false;
 bool               __SK_ACS_UncapFramerate        =  true;
-bool               __SK_ACS_UncapFramerateFully   =  true;
 int                __SK_ACS_DLSSG_MultiFrameCount =     1;
 
 sk::ParameterBool*  _SK_ACS_AlwaysUseFrameGen;
 sk::ParameterBool*  _SK_ACS_ShowFMVIndicator;
 sk::ParameterBool*  _SK_ACS_UncapFramerate;
-sk::ParameterBool*  _SK_ACS_UncapFramerateFully;
 sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
 
 using slGetPluginFunction_pfn = void*      (*)(const char* functionName);
@@ -2059,10 +2057,6 @@ SK_ACS_PlugInCfg (void)
     static float last_game_fps_limit = __target_fps;
            float y_pos               = ImGui::GetCursorPosY ();
 
-    if (__SK_ACS_UncapFramerateFully) // Implicit relation
-        __SK_ACS_UncapFramerate = true;
-
-    ImGui::BeginDisabled (                   __SK_ACS_UncapFramerateFully);
     if (ImGui::Checkbox ("Uncap Framerate", &__SK_ACS_UncapFramerate))
     {
       changed = true;
@@ -2075,37 +2069,14 @@ SK_ACS_PlugInCfg (void)
           last_game_fps_limit;
       }
     }
-    ImGui::EndDisabled ();
 
     if (ImGui::BeginItemTooltip ())
     {
       ImGui::TextUnformatted ("Uncap Framerate in Menus and Cutscenes");
       ImGui::Separator       ();
       ImGui::BulletText      ("ersh has a similar standalone mod that you may use.");
+      ImGui::BulletText      ("Turning this back on may require opening and closing the game's menu before limits reapply.");
       ImGui::EndTooltip      ();
-    }
-
-    if (__SK_ACS_UncapFramerate)
-    {
-      ImGui::TreePush ("");
-      if (ImGui::Checkbox ("Fully Unlock Framerate", &__SK_ACS_UncapFramerateFully))
-      {
-        restart_required = true;
-
-        _SK_ACS_UncapFramerateFully->store (__SK_ACS_UncapFramerateFully);
-
-        changed = true;
-      }
-
-      if (ImGui::BeginItemTooltip ())
-      {
-        ImGui::TextUnformatted ("Prevent the Game From Making Changes to Framerate");
-        ImGui::Separator       ();
-        ImGui::BulletText      ("This is like the Menu/Cutscene Uncap, but it cannot be turned off without restarting the game.");
-        ImGui::BulletText      ("This mode offers the best uncapped framerate experience.");
-        ImGui::EndTooltip      ();
-      }
-      ImGui::TreePop ();
     }
 
     if (restart_required)
@@ -2172,11 +2143,6 @@ SK_ACS_InitPlugin (void)
       _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
                                    L"UncapMenusAndCutscenes", __SK_ACS_UncapFramerate,
                                    L"Uncap Framerate in Cutscenes" );
-
-    _SK_ACS_UncapFramerateFully =
-      _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                   L"UncapFramerateFully", __SK_ACS_UncapFramerateFully,
-                                   L"Uncap Framerate Permanently" );
 
     _SK_ACS_DLSSG_MultiFrameCount =
       _CreateConfigParameterInt  ( L"AssassinsCreed.FrameRate",
@@ -2373,31 +2339,31 @@ SK_ACS_InitPlugin (void)
       float game_limit =
         (framerate_limit == nullptr) ? -1.0f : *framerate_limit;
 
-      if (__SK_ACS_UncapFramerate ||
-          __SK_ACS_UncapFramerateFully)
+      if (limit_check_addr != (void *)10)
       {
+        static bool UncapFramerate = !__SK_ACS_UncapFramerate;
+
+        static uint8_t orig_check_bytes [2] = {};
+        static uint8_t orig_store_bytes [8] = {};
+
+        SK_RunOnce (
+          memcpy (orig_store_bytes, limit_store_addr, 8);
+          memcpy (orig_check_bytes, limit_check_addr, 2);
+        );
+
         DWORD dwOrigProt = 0x0;
 
-        if (limit_check_addr != (void *)10)
+        if (std::exchange (UncapFramerate, __SK_ACS_UncapFramerate) !=
+                                           __SK_ACS_UncapFramerate)
         {
-          if (__SK_ACS_UncapFramerateFully)
-          {   __SK_ACS_UncapFramerate = true;
-          
-            SK_RunOnce (
-              VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE,&dwOrigProt);
-              memcpy         (limit_store_addr, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-              VirtualProtect (limit_store_addr, 8, dwOrigProt,            &dwOrigProt);
-            );
-          }
-
-          if (__SK_ACS_UncapFramerate)
-          {
-            SK_RunOnce (
-              VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
-              memcpy         (limit_check_addr, "\x90\x90",                          2);
-              VirtualProtect (limit_check_addr, 2,             dwOrigProt, &dwOrigProt);
-            );
-          }
+          VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+          memcpy         (limit_store_addr, UncapFramerate   ?    (unsigned char *)
+                          "\x90\x90\x90\x90\x90\x90\x90\x90" : orig_store_bytes, 8);
+          VirtualProtect (limit_store_addr, 8, dwOrigProt,             &dwOrigProt);
+          VirtualProtect (limit_check_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+          memcpy         (limit_check_addr, UncapFramerate   ?    (unsigned char *)
+                                                  "\x90\x90" : orig_check_bytes, 2);
+          VirtualProtect (limit_check_addr, 2, dwOrigProt,             &dwOrigProt);
         }
       }
 
@@ -2430,22 +2396,11 @@ SK_ACS_InitPlugin (void)
         }
       }
 
-      bool toggled_cpl = false;
-
-      static bool        lastActive= SK_ImGui_Active ();
-      if (std::exchange (lastActive, SK_ImGui_Active ()) != SK_ImGui_Active ())
-        toggled_cpl = true;
-
       // 3.333 second grace period after an FMV is read to reset frame generation
       if (LastTimeFMVChecked < SK::ControlPanel::current_time - 3333UL)
       {
-        if (toggled_cpl)
-        {
-          SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-          WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
-        }
-
-        else if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
+        if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr &&
+                                                               *pFrameGenEnabled == false))
         {
           // Video is done playing, game has unlimited framerate again.
           if (game_limit != 30.0f)
@@ -2462,17 +2417,34 @@ SK_ACS_InitPlugin (void)
         }
       }
 
-      else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && (pFrameGenEnabled != nullptr && *pFrameGenEnabled == false))
+      else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && ( pFrameGenEnabled != nullptr &&
+                                                                                                 *pFrameGenEnabled == false ))
       {
         if (__SK_ACS_ShowFMVIndicator)
         {
-          SK_ImGui_CreateNotification (
-            "ACShadows.FMVDecay", SK_ImGui_Toast::Warning, "FMV Playing", nullptr, INFINITE,
-                                  SK_ImGui_Toast::UseDuration  |
-                                  SK_ImGui_Toast::ShowCaption  |
-                                  SK_ImGui_Toast::ShowNewest   |
-                                  SK_ImGui_Toast::Unsilencable |
-                                  SK_ImGui_Toast::DoNotSaveINI );
+          SK_ImGui_CreateNotificationEx (
+            "ACShadows.FMV", SK_ImGui_Toast::Other, nullptr, nullptr,
+                   INFINITE, SK_ImGui_Toast::UseDuration  |
+                             SK_ImGui_Toast::ShowNewest   | 
+                             SK_ImGui_Toast::DoNotSaveINI |
+                             SK_ImGui_Toast::Unsilencable,
+            [](void*)->bool
+            {
+              ImColor fmv_color (
+                1.0f, 0.941177f, 0.f,
+                  static_cast <float> (
+                    0.75 + 0.2 * std::cos (3.14159265359 *
+                      (static_cast <double> (SK::ControlPanel::current_time % 2500) / 1750.0))
+                  )
+              );
+
+              ImGui::BeginGroup  ();
+              ImGui::TextColored (fmv_color, ICON_FA_FILM "  30 fps ");
+              ImGui::EndGroup    ();
+
+              return false;
+            }
+          );
         }
       }
 

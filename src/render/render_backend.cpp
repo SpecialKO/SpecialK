@@ -895,10 +895,11 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
                                                    &display.nvapi.monitor_caps);
             SK_NvAPI_Disp_GetVRRInfo               (display.nvapi.display_id, &vrr_info);
 
-            if (vrr_info.bIsVRREnabled)
-              rb.gsync_state.last_checked = dwTimeNow + 3333UL;
-            else
-              rb.gsync_state.last_checked = dwTimeNow + 6666UL;
+            if (  vrr_info.bIsVRREnabled)
+            { if (vrr_info.bIsDisplayInVRRMode)
+                   rb.gsync_state.last_checked = dwTimeNow + 5000UL;
+              else rb.gsync_state.last_checked = dwTimeNow - 5000UL;
+            } else rb.gsync_state.last_checked = dwTimeNow + 7500UL;
           }
 
           display.nvapi.vrr_enabled =

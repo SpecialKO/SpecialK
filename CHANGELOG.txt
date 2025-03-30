@@ -1,4 +1,9 @@
-﻿25.3.30.1
+﻿25.3.30.2
+=========
+ + Consolidate the Assassin's Creed Shadows framerate unlock setting back into
+     a single setting that can be turned on/off in real-time.
+
+25.3.30.1
 =========
  + Re-enable Unity engine texture cache hack for versions of Unity > 2021
 
