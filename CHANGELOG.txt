@@ -1,4 +1,8 @@
-﻿25.3.30
+﻿25.3.30.1
+=========
+ + Re-enable Unity engine texture cache hack for versions of Unity > 2021
+
+25.3.30
 =======
  + Added excessively verbose microprofiler performance stats and init. timing
      at application exit to try and diagnose recent HW monitoring API overhead
