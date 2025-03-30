@@ -2491,7 +2491,7 @@ typedef struct _SK_SYSTEM_HANDLE_INFORMATION_EX
 } SYSTEM_HANDLE_INFORMATION_EX,
 *PSYSTEM_HANDLE_INFORMATION_EX;
 
-#define SystemHandleInformationSize 0x200000
+#define SystemHandleInformationSize 0x400000
 #pragma pack (pop)
 
 void
@@ -2509,97 +2509,177 @@ SK_Input_EnumOpenHIDFiles (void)
 
     static USHORT FileIndex = GetTypeIndexByName (L"File");
 
-    NTSTATUS ntStatusHandles;
+    auto* pTLS =
+      SK_TLS_Bottom ();
+    
+    auto& handle_info_buffer =
+      pTLS->local_scratch->query->NtInfo;
+      
+    handle_info_buffer.alloc (SystemHandleInformationSize);
 
-    ULONG                 handle_info_size ( SystemHandleInformationSize );
-    std::vector <uint8_t> handle_info_buffer;
-    
-    do
+    DWORD dwReadBytes = 0UL;
+
+    PSYSTEM_HANDLE_INFORMATION_EX pHandleInfoEx = nullptr;
+
+    NTSTATUS ns =
+      NtQuerySystemInformation (
+        SystemExtendedHandleInformation,
+                               handle_info_buffer.data,
+          static_cast <ULONG> (handle_info_buffer.len),
+         &dwReadBytes );
+
+    if (ns == STATUS_INFO_LENGTH_MISMATCH)
     {
-      handle_info_buffer.resize (
-                handle_info_size );
-    
-      ntStatusHandles =
-        NtQuerySystemInformation (
-          SystemExtendedHandleInformation,
-            handle_info_buffer.data (),
-            handle_info_size,
-            &handle_info_size     );
-    
-    } while (ntStatusHandles == STATUS_INFO_LENGTH_MISMATCH);
-    
-    if (NT_SUCCESS (ntStatusHandles))
-    {
-      auto handleTableInformationEx =
-        PSYSTEM_HANDLE_INFORMATION_EX (
-            handle_info_buffer.data ()
+      for ( DWORD dSize   =  SystemHandleInformationSize ;
+                  dSize  != 0 && !pHandleInfoEx          ;
+                  dSize <<= 1 )
+      {
+        if (dSize > 268435456UL) // 256 MiB?! Something's wrong, just give up...
+          break;
+
+        handle_info_buffer.alloc (
+          static_cast <size_t> (dSize), true
         );
 
+        pHandleInfoEx =
+          (PSYSTEM_HANDLE_INFORMATION_EX)handle_info_buffer.data;
+
+        ns =
+          NtQuerySystemInformation (
+            SystemExtendedHandleInformation,
+                                   handle_info_buffer.data,
+              static_cast <ULONG> (handle_info_buffer.len),
+              &dwReadBytes );
+
+        if (ns != STATUS_SUCCESS)
+        {
+          pHandleInfoEx = nullptr;
+          dwReadBytes   = 0;
+          
+          if (ns != STATUS_INFO_LENGTH_MISMATCH)
+            break;
+        }
+      }
+    }
+    
+    if (NT_SUCCESS (ns) && dwReadBytes >= sizeof (SYSTEM_HANDLE_INFORMATION_EX) * 0x4000)
+    {
       const DWORD dwPidOfMe =
         GetCurrentProcessId ();
-    
+
+      PROCESSENTRY32W
+      FindProcessByName (const wchar_t* wszName);
+
+      DWORD dwSteamClientPid = config.input.gamepad.steam.disabled_to_game ?
+        FindProcessByName (L"steam.exe").th32ProcessID                     : 0x0;
+
+      SK_AutoHandle hSteamProcess (
+        dwSteamClientPid != 0 ?
+          OpenProcess ( PROCESS_DUP_HANDLE |
+                        PROCESS_QUERY_INFORMATION,
+                          FALSE,
+                            dwSteamClientPid )
+                              :
+          INVALID_HANDLE_VALUE
+      );
+
       // Go through all handles of the system
       for ( unsigned int i = 0;
-                         i < handleTableInformationEx->NumberOfHandles;
+                         i < pHandleInfoEx->NumberOfHandles;
                          i++ )
       {
-        // Skip handles not belong to the game
-        if (handleTableInformationEx->Handles [i].ProcessId       != dwPidOfMe)
-          continue;
-    
         // We only want files
-        if (handleTableInformationEx->Handles [i].ObjectTypeIndex != FileIndex)
+        if (pHandleInfoEx->Handles [i].ObjectTypeIndex != FileIndex)
+          continue;
+
+        // Skip handles not belong to the game or Steam
+        if (pHandleInfoEx->Handles [i].ProcessId       != dwPidOfMe &&
+            pHandleInfoEx->Handles [i].ProcessId       != dwSteamClientPid)
           continue;
     
         HANDLE file =
-          handleTableInformationEx->Handles [i].Handle;
+          pHandleInfoEx->Handles [i].Handle;
 
-        wchar_t                           wszName [MAX_PATH + 2] = { };
-        SK_File_GetNameFromHandle  (file, wszName, MAX_PATH);
+        HIDD_ATTRIBUTES hidAttribs      = {                      };
+                        hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
 
-        // Device files will have no filename, anything >= 1 character in length is not a device file
-        if (wcslen (wszName))
-          continue;
-
-        PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
-        if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+        if (config.input.gamepad.steam.disabled_to_game)
         {
-          HIDP_CAPS                                                    hidpCaps;
-          if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
+          if (pHandleInfoEx->Handles [i].ProcessId == dwSteamClientPid)
           {
-            if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+            if (DuplicateHandle ( hSteamProcess,     file,
+                              GetCurrentProcess (), &file, 0, FALSE, DUPLICATE_SAME_ACCESS ))
             {
-              switch (hidpCaps.Usage)
+              SK_AutoHandle hRemoteFile (file);
+              if (SK_HidD_GetAttributes (file, &hidAttribs))
               {
-                case HID_USAGE_GENERIC_GAMEPAD:
-                case HID_USAGE_GENERIC_JOYSTICK:
-                case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+                if (hidAttribs.VendorID == SK_HID_VID_SONY)
                 {
-                  if (SK_Input_DeviceFiles.insert (file).second)
-                  {
-                    SK_HID_DeviceFile hid_file (file, wszName);
+                  SK_LOGi0 (
+                    L"The Steam Client has a HID Device File Open ( vid=%04x, pid=%04x )",
+                      hidAttribs.VendorID, hidAttribs.ProductID
+                  );
 
-                    if (hid_file.device_type != sk_input_dev_type::Other)
-                    {
-                      SK_LOGi0 (
-                        L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
-                          wszName, hid_file.device_vid, hid_file.device_pid
-                      );
+                  HANDLE hSayonaraSteamInput;
 
-                      auto& dev_file =
-                        SK_HID_DeviceFiles [file];
-
-                      for (auto& overlapped_request : dev_file._overlappedRequests)
-                      {
-                        overlapped_request.second.dwNumberOfBytesToRead = 0;
-                        overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
-                        overlapped_request.second.lpBuffer              = nullptr;
-                      }
-
-                      dev_file = hid_file;
-                    }
+                  if ( DuplicateHandle ( hSteamProcess,    pHandleInfoEx->Handles [i].Handle,
+                                     GetCurrentProcess (), &hSayonaraSteamInput, 0, FALSE, DUPLICATE_CLOSE_SOURCE ))
+                  {    CloseHandle                         (hSayonaraSteamInput);
+                    SK_LOGi0 (L" * Not anymore, you evil bastard!");
                   }
-                } break;
+                }
+              }
+            }
+
+            continue;
+          }
+        }
+
+        if (SK_HidD_GetAttributes (file, &hidAttribs))
+        {
+          PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
+          if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+          {
+            HIDP_CAPS                                                    hidpCaps;
+            if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
+            {
+              if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+              {
+                switch (hidpCaps.Usage)
+                {
+                  case HID_USAGE_GENERIC_GAMEPAD:
+                  case HID_USAGE_GENERIC_JOYSTICK:
+                  case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+                  {
+                    if (SK_Input_DeviceFiles.insert (file).second)
+                    {
+                      wchar_t                          wszName [MAX_PATH + 2] = { };
+                      SK_File_GetNameFromHandle (file, wszName, MAX_PATH);
+
+                      SK_HID_DeviceFile hid_file (file, wszName);
+
+                      if (hid_file.device_type == sk_input_dev_type::Gamepad)
+                      {
+                        SK_LOGi0 (
+                          L"Registering Already Open HID Device File: '%ws' ( vid=%04x, pid=%04x )",
+                            wszName, hid_file.device_vid, hid_file.device_pid
+                        );
+
+                        auto& dev_file =
+                          SK_HID_DeviceFiles [file];
+
+                        for (auto& overlapped_request : dev_file._overlappedRequests)
+                        {
+                          overlapped_request.second.dwNumberOfBytesToRead = 0;
+                          overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
+                          overlapped_request.second.lpBuffer              = nullptr;
+                        }
+
+                        dev_file = hid_file;
+                      }
+                    }
+                  } break;
+                }
               }
             }
           }

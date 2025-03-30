@@ -1,7 +1,12 @@
-﻿25.3.30.2
+﻿25.3.31
+=======
+ + Slightly optimized HID device enumeration code and disconnect controllers
+     from the Steam client when [Input.Steam] Disable=true.
+
+25.3.30.2
 =========
  + Throttle various NVAPI HW sensor readings back even farther and stop the
-     collection of sensor data altogehter when the GPU widget or text OSD is
+     collection of sensor data altogether when the GPU widget or text OSD is
        not visible, because NV royally messed up the performance of HW sensors
          on 50 series GPUs.
  + Consolidate the Assassin's Creed Shadows framerate unlock setting back into
