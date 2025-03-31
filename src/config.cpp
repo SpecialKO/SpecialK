@@ -3396,7 +3396,6 @@ auto DeclKeybind =
         //// This is permissable if native pacing is enabled.
         config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
-        config.nvidia.dlss.disable_ota_updates     =  true;
         // Address issues caused by Steam Input
         config.input.gamepad.dinput.
                                  blackout_gamepads =  true;

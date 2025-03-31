@@ -2122,6 +2122,7 @@ void
 SK_ACS_InitPlugin (void)
 {
   // Address issues caused by Steam Input
+  config.nvidia.dlss.disable_ota_updates        = false;
   config.input.gamepad.dinput.blackout_gamepads = true;
 
 #ifdef _M_AMD64
