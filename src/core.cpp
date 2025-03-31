@@ -445,6 +445,8 @@ SK_LoadGPUVendorAPIs (void)
 
 void SK_FetchBuiltinSounds (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   wchar_t           wszArchive  [MAX_PATH + 2] = { };
   static const auto wszDestination =
       std::filesystem::path (SK_GetInstallPath ()) /
@@ -628,6 +630,8 @@ extern void BasicInit (void);
   //   blacklists bad DLLs and detects render APIs...
   SK_EnumLoadedModules  (SK_ModuleEnum::PostLoad);
   SK_Memory_InitHooks   ();
+
+  SK_InitRenderBackends ();
 
   if (SK_GetDLLRole () != DLL_ROLE::DInput8)
   {
@@ -925,7 +929,7 @@ SK_InitFinishCallback (void)
     SK_IVariable*   vram_scale_var;
   } static memory_manager;
 
-  SK_InitRenderBackends ();
+  //SK_InitRenderBackends ();
 
   cp->AddCommand ("mem",       new skMemCmd    ());
   cp->AddCommand ("GetUpdate", new skUpdateCmd ());
@@ -3452,6 +3456,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           }
         });
 
+#if 0
         if (rb.windows.sdl && (! SK_HID_PlayStationControllers.empty ()))
         {
           static ULONG64 toggle_frame = 0ULL;
@@ -3476,11 +3481,12 @@ SK_FrameCallback ( SK_RenderBackend& rb,
             {
               SK_RunOnce (
                 config.input.gamepad.disable_hid = false;
-                SK_Win32_NotifyDeviceChange (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid)
+                SK_Win32_NotifyDeviceChangeSK_Input_PreHookScePad (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid)
               );
             }
           }
         }
+#endif
 
         if (game_window.WndProc_Original != nullptr)
         {

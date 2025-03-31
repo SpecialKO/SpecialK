@@ -2303,15 +2303,6 @@ SetupDiDestroyDeviceInfoList_Detour (
 }
 
 #pragma pack (push,8)
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
-
-// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55
-#define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L)
-#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
-#define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
-#define STATUS_BUFFER_OVERFLOW           ((NTSTATUS)0x80000005L)
-#define STATUS_BUFFER_TOO_SMALL          ((NTSTATUS)0xC0000023L)
-
 #define SystemHandleInformationSize 0x400000
 
 enum SKIF_PROCESS_INFORMATION_CLASS
@@ -2349,16 +2340,6 @@ typedef enum _OBJECT_INFORMATION_CLASS {
   ObjectSessionInformation,
 } OBJECT_INFORMATION_CLASS;
 
-using NtResumeProcess_pfn =
-  NTSTATUS (NTAPI *)(
-       IN  HANDLE                    Handle
-  );
-
-using NtSuspendProcess_pfn =
-  NTSTATUS (NTAPI *)(
-       IN  HANDLE                    Handle
-  );
-
 using NtQueryInformationProcess_pfn =
   NTSTATUS (NTAPI *)(
        IN  HANDLE                    Handle,
@@ -2366,34 +2347,6 @@ using NtQueryInformationProcess_pfn =
        OUT PVOID                     ProcessInformation,
        IN  ULONG                     ProcessInformationLength,
        OUT PULONG                    ReturnLength OPTIONAL
-  );
-
-using NtQuerySystemInformation_pfn =
-  NTSTATUS (NTAPI *)(
-        IN  SYSTEM_INFORMATION_CLASS SystemInformationClass,
-        OUT PVOID                    SystemInformation,
-        IN  ULONG                    SystemInformationLength,
-        OUT PULONG                   ReturnLength OPTIONAL
-  );
-
-using NtQueryObject_pfn =
-  NTSTATUS (NTAPI *)(
-       IN  HANDLE                   Handle       OPTIONAL,
-       IN  OBJECT_INFORMATION_CLASS ObjectInformationClass,
-       OUT PVOID                    ObjectInformation,
-       IN  ULONG                    ObjectInformationLength,
-       OUT PULONG                   ReturnLength OPTIONAL
-  );
-
-using NtDuplicateObject_pfn =
-  NTSTATUS (NTAPI *)(
-        IN  HANDLE      SourceProcessHandle,
-        IN  HANDLE      SourceHandle,
-        OUT HANDLE      TargetProcessHandle,
-        OUT PHANDLE     TargetHandle,
-        IN  ACCESS_MASK DesiredAccess OPTIONAL,
-        IN  ULONG       Attributes    OPTIONAL,
-        IN  ULONG       Options       OPTIONAL
   );
 
 typedef struct _SK_SYSTEM_HANDLE_TABLE_ENTRY_INFO
@@ -2463,31 +2416,36 @@ typedef struct _SK_UNICODE_STRING
 
 // MIT: https://github.com/antonioCoco/ConPtyShell/blob/master/ConPtyShell.cs
 typedef struct _OBJECT_TYPE_INFORMATION_V2 {
-  UNICODE_STRING_SK TypeName;
-  ULONG             TotalNumberOfObjects;
-  ULONG             TotalNumberOfHandles;
-  ULONG             TotalPagedPoolUsage;
-  ULONG             TotalNonPagedPoolUsage;
-  ULONG             TotalNamePoolUsage;
-  ULONG             TotalHandleTableUsage;
-  ULONG             HighWaterNumberOfObjects;
-  ULONG             HighWaterNumberOfHandles;
-  ULONG             HighWaterPagedPoolUsage;
-  ULONG             HighWaterNonPagedPoolUsage;
-  ULONG             HighWaterNamePoolUsage;
-  ULONG             HighWaterHandleTableUsage;
-  ULONG             InvalidAttributes;
-  GENERIC_MAPPING   GenericMapping;
-  ULONG             ValidAccessMask;
-  BOOLEAN           SecurityRequired;
-  BOOLEAN           MaintainHandleCount;
-  UCHAR             TypeIndex;   // Added in V2
-  CHAR              ReservedByte; // Added in V2
-  ULONG             PoolType;
-  ULONG             DefaultPagedPoolCharge;
-  ULONG             DefaultNonPagedPoolCharge;
+  UNICODE_STRING  TypeName;
+  ULONG           TotalNumberOfObjects;
+  ULONG           TotalNumberOfHandles;
+  ULONG           TotalPagedPoolUsage;
+  ULONG           TotalNonPagedPoolUsage;
+  ULONG           TotalNamePoolUsage;
+  ULONG           TotalHandleTableUsage;
+  ULONG           HighWaterNumberOfObjects;
+  ULONG           HighWaterNumberOfHandles;
+  ULONG           HighWaterPagedPoolUsage;
+  ULONG           HighWaterNonPagedPoolUsage;
+  ULONG           HighWaterNamePoolUsage;
+  ULONG           HighWaterHandleTableUsage;
+  ULONG           InvalidAttributes;
+  GENERIC_MAPPING GenericMapping;
+  ULONG           ValidAccessMask;
+  BOOLEAN         SecurityRequired;
+  BOOLEAN         MaintainHandleCount;
+  UCHAR           TypeIndex;    // Added in V2
+  CHAR            ReservedByte; // Added in V2
+  ULONG           PoolType;
+  ULONG           DefaultPagedPoolCharge;
+  ULONG           DefaultNonPagedPoolCharge;
 } OBJECT_TYPE_INFORMATION_V2,
 *POBJECT_TYPE_INFORMATION_V2;
+
+typedef struct _SK_OBJECT_NAME_INFORMATION
+{ UNICODE_STRING Name;
+} OBJECT_NAME_INFORMATION,
+*POBJECT_NAME_INFORMATION;
 
 using NtQueryObject_pfn =
   NTSTATUS (NTAPI *)(
@@ -2506,6 +2464,26 @@ using NtQuerySystemInformation_pfn =
         OUT PULONG                   ReturnLength OPTIONAL
   );
 
+using NtQueryObject_pfn =
+  NTSTATUS (NTAPI *)(
+       IN  HANDLE                   Handle       OPTIONAL,
+       IN  OBJECT_INFORMATION_CLASS ObjectInformationClass,
+       OUT PVOID                    ObjectInformation,
+       IN  ULONG                    ObjectInformationLength,
+       OUT PULONG                   ReturnLength OPTIONAL
+  );
+
+using NtDuplicateObject_pfn =
+  NTSTATUS (NTAPI *)(
+        IN  HANDLE      SourceProcessHandle,
+        IN  HANDLE      SourceHandle,
+        OUT HANDLE      TargetProcessHandle,
+        OUT PHANDLE     TargetHandle,
+        IN  ACCESS_MASK DesiredAccess OPTIONAL,
+        IN  ULONG       Attributes    OPTIONAL,
+        IN  ULONG       Options       OPTIONAL
+  );
+
 // CC BY-SA 3.0: https://stackoverflow.com/a/39104745
 typedef struct _OBJECT_TYPES_INFORMATION {
   LONG NumberOfTypes;
@@ -2514,8 +2492,8 @@ typedef struct _OBJECT_TYPES_INFORMATION {
 
 // CC BY-SA 3.0: https://stackoverflow.com/a/39104745
 //               https://jadro-windows.cz/download/ntqueryobject.zip
-#define ALIGN_DOWN(Length, Type)       ((ULONG)(Length) & ~(sizeof(Type) - 1))
-#define ALIGN_UP(Length, Type)         (ALIGN_DOWN(((ULONG)(Length) + sizeof(Type) - 1), Type))
+#define ALIGN_DOWN(Length, Type)       (            (ULONG)(Length) & ~(sizeof(Type) - 1))
+#define ALIGN_UP(Length, Type)         (ALIGN_DOWN(((ULONG)(Length) +   sizeof(Type) - 1), Type))
 
 // CC BY-SA 3.0: https://stackoverflow.com/a/39104745
 //               https://jadro-windows.cz/download/ntqueryobject.zip
@@ -2578,26 +2556,36 @@ SK_Input_EnumOpenHIDFiles (void)
   static HANDLE hDeviceEnumThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
-    SK_PerfEvent_Begin (L"SK_Input_EnumOpenHIDFiles");
+    auto* pTLS =
+      SK_TLS_Bottom ();
 
     static NtQuerySystemInformation_pfn
            NtQuerySystemInformation =
           (NtQuerySystemInformation_pfn)SK_GetProcAddress (L"NtDll",
           "NtQuerySystemInformation");
 
+    static NtDuplicateObject_pfn
+           NtDuplicateObject =
+          (NtDuplicateObject_pfn)SK_GetProcAddress (L"NtDll",
+          "NtDuplicateObject");
+
+    static NtQueryObject_pfn
+           NtQueryObject =
+          (NtQueryObject_pfn)SK_GetProcAddress (L"NtDll",
+          "NtQueryObject");
+
     static USHORT FileIndex = GetTypeIndexByName (L"File");
 
-    auto* pTLS =
-      SK_TLS_Bottom ();
+    WaitForInit ();
+
+    SK_PerfEvent_Begin (L"SK_Input_EnumOpenHIDFiles");
     
     auto& handle_info_buffer =
       pTLS->local_scratch->query->NtInfo;
 
-    DWORD dwReadBytes = 0UL;
-
-    PSYSTEM_HANDLE_INFORMATION_EX pHandleInfoEx = nullptr;
-
-    NTSTATUS ns = STATUS_INFO_LENGTH_MISMATCH;
+    NTSTATUS                        ns           = STATUS_INFO_LENGTH_MISMATCH;
+    DWORD                         dwReadBytes    =     0UL;
+    PSYSTEM_HANDLE_INFORMATION_EX  pHandleInfoEx = nullptr;
 
     for ( DWORD dSize   =  SystemHandleInformationSize ;
                 dSize  != 0 && !pHandleInfoEx          ;
@@ -2698,6 +2686,41 @@ SK_Input_EnumOpenHIDFiles (void)
 
         if (pHandleInfoEx->Handles [i].ProcessId != dwPidOfMe)
           continue;
+
+#if 0
+        std::wstring handle_name = L"";
+
+        ULONG                 _ObjectNameLen ( MAX_PATH );
+        std::vector <uint8_t> pObjectName;
+
+        for ( NTSTATUS ntStat  = STATUS_INFO_LENGTH_MISMATCH ;
+                       ntStat == STATUS_INFO_LENGTH_MISMATCH ; )
+        {
+          pObjectName.resize (
+              _ObjectNameLen );
+
+          ntStat =
+            NtQueryObject ( file,
+                    ObjectNameInformation,
+                  pObjectName.data (),
+                  _ObjectNameLen,
+                  &_ObjectNameLen
+            );
+
+          if (NT_SUCCESS (ntStat))
+          {
+             POBJECT_NAME_INFORMATION _pni =
+            (POBJECT_NAME_INFORMATION) pObjectName.data ();
+
+            handle_name = _pni != nullptr ?
+                          _pni->Name.Length > 0 ?
+                          _pni->Name.Buffer     : L""
+                                                : L"";
+          }
+        }
+
+        SK_LOGi0 (L"File Name=%ws", handle_name.c_str ());
+#endif
 
         if (SK_HidD_GetAttributes (file, &hidAttribs))
         {

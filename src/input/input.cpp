@@ -638,7 +638,6 @@ void SK_Input_PreInit (void)
   bool bEnableHooks =
     SK_DisableApplyQueuedHooks ();
 
-  SK_Input_PreHookHID      ();
   SK_Input_PreHookWinHook  ();
   SK_Input_PreHookCursor   ();
   SK_Input_PreHookKeyboard ();
@@ -667,23 +666,12 @@ void SK_Input_PreInit (void)
     static_cast_p2p <void> (&SetThreadExecutionState_Original) );
   );
 
-  if (config.input.gamepad.hook_raw_input)
-    SK_Input_HookRawInput ();
-
-  if (config.input.gamepad.hook_windows_gaming)
-    SK_Input_HookWGI ();
-
-  if (config.input.gamepad.hook_game_input)
-    SK_Input_HookGameInput ();
-
   if (config.input.gamepad.hook_xinput)
-    SK_XInput_InitHotPlugHooks ( );
-
-  if (config.input.gamepad.hook_scepad)
   {
-    if (SK_IsModuleLoaded (L"libScePad.dll"))
-      SK_Input_HookScePad ();
+    SK_XInput_InitHotPlugHooks ();
   }
+
+  SK_Input_PreHookWinMM ();
 
   if (config.input.gamepad.hook_dinput8)
   {
@@ -749,11 +737,29 @@ SK_Input_Init (void)
   bool bEnable =
     SK_DisableApplyQueuedHooks ();
 
-  SK_Input_PreHookHID    ();
-  SK_Input_PreHookDI8    ();
-  SK_Input_PreHookXInput ();
-  SK_Input_PreHookScePad ();
-  SK_Input_PreHookWinMM  ();
+  SK_Input_PreHookHID ();
+
+  if (config.input.gamepad.hook_raw_input)
+    SK_Input_HookRawInput ();
+
+  if (config.input.gamepad.hook_windows_gaming)
+    SK_Input_HookWGI ();
+
+  if (config.input.gamepad.hook_game_input)
+    SK_Input_HookGameInput ();
+
+  if (config.input.gamepad.hook_xinput)
+  {
+    SK_Input_PreHookXInput ();
+  }
+
+  if (config.input.gamepad.hook_scepad)
+  {
+    //SK_Input_PreHookScePad ();
+    //
+    //if (SK_IsModuleLoaded (L"libScePad.dll"))
+    //  SK_Input_HookScePad ();
+  }
 
   if (SK_GetDLLRole () != DLL_ROLE::DInput8)
   {

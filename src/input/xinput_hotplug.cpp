@@ -1067,8 +1067,8 @@ SK_Win32_NotifyHWND (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void
 SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
 {
-  static std::mutex                          _lock;
-  std::scoped_lock <std::mutex> scoped_lock (_lock);
+  static std::recursive_mutex                          _lock;
+  std::scoped_lock <std::recursive_mutex> scoped_lock (_lock);
 
   SK_Win32_NotifiedWindows->clear ();
 

@@ -5013,7 +5013,7 @@ SK_Render_CountVBlanks ()
         SK_GetCurrentRenderBackend ();
 
       HANDLE                            vrr_events [] = { __SK_DLL_TeardownEvent, hVRREvent };
-      while (WaitForMultipleObjects (2, vrr_events, FALSE, 125) != WAIT_OBJECT_0)
+      while (WaitForMultipleObjects (2, vrr_events, FALSE, 500UL) != WAIT_OBJECT_0)
       {
         SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain.p);
         SK_ComPtr   <IDXGIOutput>    pOutput;

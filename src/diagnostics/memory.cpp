@@ -283,6 +283,8 @@ SK_Memory_InitHooks (void)
   if (! config.threads.enable_mem_alloc_trace)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   SK_CreateDLLHook2 (      L"kernel32",
                             "LocalAlloc",
                              LocalAlloc_Detour,

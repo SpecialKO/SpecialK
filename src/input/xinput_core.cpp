@@ -3496,6 +3496,9 @@ SK_Input_PreHookXInput (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
+  static HANDLE hInitThread =
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
+  {
   SK_PROFILE_FIRST_CALL
 
   SK_RunOnce (
@@ -3654,6 +3657,11 @@ SK_Input_PreHookXInput (void)
   }
 
   SK_RunOnce (SK_XInput_NotifyDeviceArrival ());
+
+  SK_Thread_CloseSelf ();
+
+  return 0;
+  }, L"[SK] XInput Async Hook PreInit");
 }
 
 
