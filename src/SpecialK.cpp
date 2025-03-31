@@ -1678,8 +1678,7 @@ SK_Attach (DLL_ROLE role)
 
     try
     {
-      SK_TLS_Acquire  ();
-      SK_MinHook_Init ();
+      SK_TLS_Acquire ();
 
       _time64 (&__SK_DLL_AttachTime);
 
@@ -1691,6 +1690,8 @@ SK_Attach (DLL_ROLE role)
 
       if (SK_DLL_IsAttached ())
       {
+        SK_MinHook_Init ();
+
         return TRUE;
       }
     }
