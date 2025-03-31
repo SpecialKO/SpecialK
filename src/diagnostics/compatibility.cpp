@@ -1222,10 +1222,13 @@ slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersio
     //pref_copy.flags |=
     //  sl::PreferenceFlags::eUseDXGIFactoryProxy;
 
-    // Fix Assassin's Creed Shadows not passing sl::PreferenceFlags::eLoadDownloadedPlugins
-    pref_copy.flags |= (sl::PreferenceFlags::eAllowOTA |
-                        sl::PreferenceFlags::eLoadDownloadedPlugins);
-    pref_copy.flags |=  sl::PreferenceFlags::eBypassOSVersionCheck;
+    if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+    {
+      // Fix Assassin's Creed Shadows not passing sl::PreferenceFlags::eLoadDownloadedPlugins
+      pref_copy.flags |= (sl::PreferenceFlags::eAllowOTA |
+                          sl::PreferenceFlags::eLoadDownloadedPlugins);
+      pref_copy.flags |=  sl::PreferenceFlags::eBypassOSVersionCheck;
+    }
 
     return
       slInit_Original (pref_copy, sdkVersion);
@@ -1244,17 +1247,20 @@ SK_COMPAT_CheckStreamlineSupport (void)
 {
   if (SK_IsModuleLoaded (L"sl.interposer.dll"))
   {
-    if (! config.compatibility.allow_fake_streamline)
-    {
-      SK_RunOnce (
-        SK_CreateDLLHook2 (      L"sl.interposer.dll",
-                                  "slInit",
-                                   slInit_Detour,
-          static_cast_p2p <void> (&slInit_Original));
+    SK_RunOnce (
+      SK_CreateDLLHook2 (      L"sl.interposer.dll",
+                                "slInit",
+                                 slInit_Detour,
+        static_cast_p2p <void> (&slInit_Original));
 
-        SK_ApplyQueuedHooks ();
-      );
-    }
+      bool bDisabled =
+        SK_EnableApplyQueuedHooks ();
+
+      SK_ApplyQueuedHooks ();
+
+      if (bDisabled)
+        SK_DisableApplyQueuedHooks ();
+    );
 
     // Feature Spoofing
 /*
