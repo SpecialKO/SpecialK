@@ -4,6 +4,8 @@
      initialized earlier and separate input API initialization that should not
        be done from DllMain.
  + Added nvngx_update.exe hung process termination back to injection service.
+ + Remove multiple calls to slDLSSGSetOptions (...) during one frame in
+     Assassin's Creed Shadows.
  + Fixed AC Shadows flagging sl::PreferenceFlags::eAllowOTA without flagging
      sl::PreferenceFlags::eLoadDownloadedPlugins, which causes DLLs to update,
        but the updated DLLs never to load (i.e. why DLSS/Reflex doesn't work).

@@ -1912,31 +1912,33 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, sl::DLSSGOp
 
   static bool enabled_once = false;
 
+  if (enabled_once)
+  {
+    if (__SK_ACS_IsMultiFrameCapable &&
+        __SK_ACS_DLSSG_MultiFrameCount >= 1)
+    {
+      options.numFramesToGenerate =
+        __SK_ACS_DLSSG_MultiFrameCount;
+    }
+
+    if (__SK_ACS_AlwaysUseFrameGen && !ReadULongAcquire (&FrameGenDisabledForFMV))
+    {
+      options.mode                = sl::DLSSGMode::eOn;
+      options.numFramesToGenerate = std::max (1u, options.numFramesToGenerate);
+      SK_ACS_ApplyFrameGenOverride (true);
+    }
+
+    return
+      slDLSSGSetOptions_ACS_Original (viewport, options);
+  }
+
   auto ret =
     slDLSSGSetOptions_ACS_Original (viewport, options);
 
   if (ret == sl::Result::eOk)
   {
-    enabled_once |= (options.mode == sl::DLSSGMode::eOn);
-
-    if (enabled_once)
-    {
-      if (__SK_ACS_IsMultiFrameCapable &&
-          __SK_ACS_DLSSG_MultiFrameCount >= 1)
-      {
-        options.numFramesToGenerate =
-          __SK_ACS_DLSSG_MultiFrameCount;
-      }
-
-      if (__SK_ACS_AlwaysUseFrameGen && !ReadULongAcquire (&FrameGenDisabledForFMV))
-      {
-        options.mode                = sl::DLSSGMode::eOn;
-        options.numFramesToGenerate = std::max (1u, options.numFramesToGenerate);
-        SK_ACS_ApplyFrameGenOverride (true);
-      }
-
-      slDLSSGSetOptions_ACS_Original (viewport, options);
-    }
+    enabled_once =
+      (options.mode == sl::DLSSGMode::eOn);
   }
 
   return ret;

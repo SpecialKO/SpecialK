@@ -1223,12 +1223,9 @@ slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersio
     //  sl::PreferenceFlags::eUseDXGIFactoryProxy;
 
     // Fix Assassin's Creed Shadows not passing sl::PreferenceFlags::eLoadDownloadedPlugins
-    if (pref_copy.flags & sl::PreferenceFlags::eAllowOTA)
-    {
-      pref_copy.flags |= sl::PreferenceFlags::eLoadDownloadedPlugins;
-    }
-
-    pref_copy.flags |= sl::PreferenceFlags::eBypassOSVersionCheck;
+    pref_copy.flags |= (sl::PreferenceFlags::eAllowOTA |
+                        sl::PreferenceFlags::eLoadDownloadedPlugins);
+    pref_copy.flags |=  sl::PreferenceFlags::eBypassOSVersionCheck;
 
     return
       slInit_Original (pref_copy, sdkVersion);
