@@ -1,4 +1,9 @@
-﻿25.3.31.1
+﻿25.3.31.2
+=========
+ + Add fix for systems with not enough HANDLES open to require extra memory
+     allocation when enumerating open HID devices.
+
+25.3.31.1
 =========
  + Terminate hung nvngx_update.exe processes at game exit, rather than when
      the global injection service starts/stops.
