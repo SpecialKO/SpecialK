@@ -1512,9 +1512,6 @@ SKX_InstallCBTHook (void)
 {
   SK_SleepEx (15UL, FALSE);
 
-  // This process hangs a lot and prevents games from starting
-  SK_TerminateProcesses (L"nvngx_update.exe", true);
-
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
     return;
@@ -1523,6 +1520,9 @@ SKX_InstallCBTHook (void)
 
   if (SK_GetHostAppUtil ()->isInjectionTool ())
   {
+    // This process hangs a lot and prevents games from starting
+    SK_TerminateProcesses (L"nvngx_update.exe", true);
+
     void SK_Inject_InitWhiteAndBlacklists (void);
          SK_Inject_InitWhiteAndBlacklists ();
   }

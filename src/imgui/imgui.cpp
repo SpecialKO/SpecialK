@@ -1159,8 +1159,8 @@ void SK_ImGui_Init (void)
   {
     SK_LOGs0 ( L" Keyboard ",
       L"%ws IME for all threads in the process...",
-        ImmDisableIME (DWORD_MAX) ? L"Successfully disabled "
-                                  : L"Failed to disable "
+        ImmDisableIME (DWORD_MAX) ? L"Successfully disabled"
+                                  : L"Failed to disable"
     );
   }
 

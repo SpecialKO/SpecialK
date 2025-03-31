@@ -313,5 +313,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"hyp.exe",
 
   // Our image viewer
-  L"skiv.exe"
+  L"skiv.exe",
+
+  // DLSS OTA updates
+  L"ngx_update.exe"
 };
