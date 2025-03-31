@@ -1,4 +1,11 @@
-﻿25.3.31.2
+﻿25.3.31.3
+=========
+ + Restructure hook initialization procedure during startup to get render APIs
+     initialized earlier and separate input API initialization that should not
+       be done from DllMain.
+ + Added nvngx_update.exe hung process termination back to injection service.
+
+25.3.31.2
 =========
  + Add fix for systems with not enough HANDLES open to require extra memory
      allocation when enumerating open HID devices.
