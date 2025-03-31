@@ -4890,17 +4890,6 @@ auto DeclKeybind =
                     org_disabled_to_game= config.input.keyboard.disabled_to_game;
   input.keyboard.disable_ime->load       (config.input.keyboard.disable_ime);
 
-  if (config.input.keyboard.disable_ime)
-  {
-    BOOL disabled =
-      ImmDisableIME ((DWORD)(-1));
-
-    if (disabled)
-    {
-      SK_LOGi0 (L"Successfully disabled IME for all threads in the process...");
-    }
-  }
-
   input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
   config.input.mouse.
                  org_disabled_to_game =   config.input.mouse.disabled_to_game;

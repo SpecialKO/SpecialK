@@ -1155,6 +1155,15 @@ void SK_ImGui_Init (void)
 {
   SK_PROFILE_FIRST_CALL
 
+  if (config.input.keyboard.disable_ime)
+  {
+    SK_LOGs0 ( L" Keyboard ",
+      L"%ws IME for all threads in the process...",
+        ImmDisableIME (DWORD_MAX) ? L"Successfully disabled "
+                                  : L"Failed to disable "
+    );
+  }
+
   GImGui =
     ImGui::CreateContext ();
 
