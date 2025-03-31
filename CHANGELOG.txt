@@ -4,6 +4,12 @@
      initialized earlier and separate input API initialization that should not
        be done from DllMain.
  + Added nvngx_update.exe hung process termination back to injection service.
+ + Fixed AC Shadows flagging sl::PreferenceFlags::eAllowOTA without flagging
+     sl::PreferenceFlags::eLoadDownloadedPlugins, which causes DLLs to update,
+       but the updated DLLs never to load (i.e. why DLSS/Reflex doesn't work).
+
+    * This fix may require local injection if render hook initialization is
+        too slow; it cannot be fixed if delayed injection is used.
 
 25.3.31.2
 =========
