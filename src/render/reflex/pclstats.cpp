@@ -38,6 +38,15 @@ bool   g_PCLStatsEnable        = false;
 UINT   g_PCLStatsFlags         = 0;
 DWORD  g_PCLStatsIdThread      = 0;
 
+volatile ULONG g_PCLStatsSignal = 0;
+
+bool
+PCLSTATS_IS_SIGNALED (void)
+{
+  return                         g_PCLStatsEnable &&
+    InterlockedCompareExchange (&g_PCLStatsSignal, FALSE, TRUE);
+}
+
 DWORD WINAPI
 PCLStatsPingThreadProc (LPVOID)
 {
@@ -55,7 +64,8 @@ PCLStatsPingThreadProc (LPVOID)
     if (g_PCLStatsIdThread)
     {
       TraceLoggingWrite  (g_hPCLStatsComponentProvider, "PCLStatsInput", TraceLoggingUInt32 (g_PCLStatsIdThread, "IdThread"));
-      PostThreadMessageW (g_PCLStatsIdThread, g_PCLStatsWindowMessage, 0, 0);
+    //PostThreadMessageW (g_PCLStatsIdThread, g_PCLStatsWindowMessage, 0, 0);
+      WriteULongRelease (&g_PCLStatsSignal, TRUE);
       continue;
     }
 
@@ -81,7 +91,8 @@ PCLStatsPingThreadProc (LPVOID)
         else if (g_PCLStatsWindowMessage)
         {
           TraceLoggingWrite (      g_hPCLStatsComponentProvider, "PCLStatsInput", TraceLoggingUInt32 (g_PCLStatsWindowMessage, "MsgId"));
-          PostMessageW      (hWnd, g_PCLStatsWindowMessage, 0, 0);
+        //PostMessageW      (hWnd, g_PCLStatsWindowMessage, 0, 0);
+          WriteULongRelease (&g_PCLStatsSignal, TRUE);
         }
 
         else

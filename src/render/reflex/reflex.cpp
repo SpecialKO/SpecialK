@@ -551,13 +551,6 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 
   SK_PROFILE_SCOPED_TASK (SK_PCL_Heartbeat)
 
-  // Avoid unnecessarily calling PeekMessage because the Steam overlay adds
-  //   a ton of overhead to it.
-  static bool bSteamOverlaySafe =
-    !SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"GameOverlayRenderer64.dll",
-                                                 L"GameOverlayRenderer.dll")) ||
-    config.steam.disable_overlay;
-
   static bool init = false;
 
   if (marker.markerType == SIMULATION_START)
@@ -576,19 +569,7 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
       PCLSTATS_SET_ID_THREAD (GetCurrentThreadId ());
 
     // Place latency ping marker
-    const HWND kCurrentThreadId = (HWND)(-1);
-          bool ping             = false;
-          MSG  msg              = { };
-
-    if (bSteamOverlaySafe)
-    {
-      SK_PROFILE_SCOPED_TASK
-            (SK_PeekMessageW__PCL_Heartbeat)
-      while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
-        ping = true;
-    }
-
-    if (ping)
+    if (PCLSTATS_IS_SIGNALED ())
     {
       const SK_RenderBackend &rb =
         SK_GetCurrentRenderBackend ();
@@ -749,6 +730,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       if (SK_Reflex_FixOutOfBandInput (markerParams, device.p))
         return true;
 
+      // No recursion please
       SK_PCL_Heartbeat (markerParams);
 
       // SetLatencyMarker is hooked on the simulation marker of the first frame,

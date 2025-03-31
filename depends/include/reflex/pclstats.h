@@ -1,4 +1,4 @@
-/** Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.*
+﻿/** Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.*
 * NVIDIA CORPORATION and its licensors retain all intellectual property
 * and proprietary rights in and to this software, related documentation
 * and any modifications thereto.  Any use, reproduction, disclosure or
@@ -44,8 +44,9 @@ TRACELOGGING_DECLARE_PROVIDER (g_hPCLStatsComponentProvider);
 #define PCLSTATS_SET_ID_THREAD(idThread) (g_PCLStatsIdThread   = (idThread))
 #define PCLSTATS_SET_VIRTUAL_KEY(vk)     (g_PCLStatsVirtualKey = (vk))
 
-void PCLSTATS_INIT     (UINT flags);
-void PCLSTATS_SHUTDOWN (void);
+void PCLSTATS_INIT        (UINT flags);
+void PCLSTATS_SHUTDOWN    (void);
+bool PCLSTATS_IS_SIGNALED (void);
 
 extern "C" UINT   g_PCLStatsWindowMessage;
 extern "C" WORD   g_PCLStatsVirtualKey;
