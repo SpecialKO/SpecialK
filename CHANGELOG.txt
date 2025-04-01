@@ -2,6 +2,7 @@
 ========
  + Added JPEGNotQuality setting (defaults to 96) for JPEG screenshots imported
      to Steam, refer to Global\osd.ini -- does not apply to thumbnails.
+    * Compression 'Quality' of JPEG: 0=Oh No!, 100=Still crap...
  + Block WM_DEVICECHANGE messages for DBT_DEVNODES_CHANGED because it is
      unnecessary and kills performance in many Steam Input games.
  + Removed Denuvo for free-tier users; Patreon subscribers still get the

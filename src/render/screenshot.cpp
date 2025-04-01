@@ -1499,7 +1499,7 @@ SK_WIC_SetLossyQuality (IPropertyBag2 *props)
   PROPBAG2 opt = {   .pstrName = L"ImageQuality"   };
   VARIANT  var = { VT_R4,0,0,0, { .fltVal =
          std::min ( 100.0f,
-         std::max (   1.0f, (float)config.screenshots.compression_quality)
+         std::max (   1.0f, (float)config.screenshots.jpeg_not_quality)
                   ) / 100.0f    }
                  };
 

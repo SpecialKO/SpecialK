@@ -699,6 +699,7 @@ struct {
   sk::ParameterBool*      embed_nickname          = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
   sk::ParameterStringW*   filename_format         = nullptr;
+  sk::ParameterInt*       jpeg_not_quality        = nullptr;
   sk::ParameterInt*       compression_quality     = nullptr;
   sk::ParameterBool*      compatibility_mode      = nullptr;
   sk::ParameterInt*       clipboard_hdr_format    = nullptr;
@@ -1696,6 +1697,7 @@ auto DeclKeybind =
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
     ConfigEntry (screenshots.filename_format,            L"wcsftime format; Non-Standard Specifier: %G = <Game Name>", osd_ini,         L"Screenshot.System",     L"FilenameFormat"),
     ConfigEntry (screenshots.compression_quality,        L"Compression Quality: 0=Worst, 100=Lossless",                osd_ini,         L"Screenshot.System",     L"Quality"),
+    ConfigEntry (screenshots.jpeg_not_quality,           L"Compression 'Quality' of JPEG: 0=Oh No!, 100=Still Crap...",osd_ini,         L"Screenshot.System",     L"JPEGNotQuality"),
     ConfigEntry (screenshots.compatibility_mode,         L"Use less advanced encoding in JPEG XR and AVIF for compat.",osd_ini,         L"Screenshot.System",     L"CompatibilityMode"),
     ConfigEntry (screenshots.jxl.use_jxl,                L"Use JPEG XL file format for HDR screenshots",               osd_ini,         L"Screenshot.System",     L"UseJPEGXL"),
     ConfigEntry (screenshots.avif.use_avif,              L"Use AVIF file format for HDR screenshots",                  osd_ini,         L"Screenshot.System",     L"UseAVIF"),
@@ -5666,6 +5668,7 @@ auto DeclKeybind =
   screenshots.override_path->load             (config.screenshots.override_path);
   screenshots.filename_format->load           (config.screenshots.filename_format);
 
+  screenshots.jpeg_not_quality->load          (config.screenshots.jpeg_not_quality);
   screenshots.compression_quality->load       (config.screenshots.compression_quality);
   screenshots.compatibility_mode->load        (config.screenshots.compatibility_mode);
 
@@ -7119,6 +7122,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.override_path->store             (config.screenshots.override_path);
   screenshots.filename_format->store           (config.screenshots.filename_format);
 
+  screenshots.jpeg_not_quality->store          (config.screenshots.jpeg_not_quality);
   screenshots.compression_quality->store       (config.screenshots.compression_quality);
   screenshots.compatibility_mode->store        (config.screenshots.compatibility_mode);
 
