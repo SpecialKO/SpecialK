@@ -1,4 +1,8 @@
-﻿25.3.31.3
+﻿25.4.1
+======
+ + Added Denuvo to older DLSS games for improved Streamline thread-safety.
+
+25.3.31.3
 =========
  + Restructure hook initialization procedure during startup to get render APIs
      initialized earlier and separate input API initialization that should not

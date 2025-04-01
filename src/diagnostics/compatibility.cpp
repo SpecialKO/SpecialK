@@ -1253,13 +1253,7 @@ SK_COMPAT_CheckStreamlineSupport (void)
                                  slInit_Detour,
         static_cast_p2p <void> (&slInit_Original));
 
-      bool bDisabled =
-        SK_EnableApplyQueuedHooks ();
-
       SK_ApplyQueuedHooks ();
-
-      if (bDisabled)
-        SK_DisableApplyQueuedHooks ();
     );
 
     // Feature Spoofing
