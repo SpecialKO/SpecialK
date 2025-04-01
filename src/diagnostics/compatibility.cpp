@@ -1180,7 +1180,7 @@ using  slIsFeatureSupported_pfn = sl::Result (*)(sl::Feature feature, const sl::
 static slIsFeatureSupported_pfn
        slIsFeatureSupported_Original = nullptr;
 
-using  slInit_pfn = sl::Result (*)(const sl::Preferences &pref, uint64_t sdkVersion);
+using  slInit_pfn = sl::Result (*)(sl::Preferences *pref, uint64_t sdkVersion);
 static slInit_pfn
        slInit_Original = nullptr;
 
@@ -1194,44 +1194,42 @@ slIsFeatureSupported_Detour (sl::Feature feature, const sl::AdapterInfo& adapter
 }
 
 sl::Result
-slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersion)
+slInit_Detour (sl::Preferences *pref, uint64_t sdkVersion = sl::kSDKVersion)
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi0 (L"[!] slInit (pref.structVersion=%d, sdkVersion=%d)",
-                          pref.structVersion,    sdkVersion);
+  SK_LOGi0 (L"[!] slInit (pref->structVersion=%d, sdkVersion=%d)",
+                          pref->structVersion,    sdkVersion);
 
   // For versions of Streamline using a compatible preferences struct,
   //   start overriding stuff for compatibility.
-  if (pref.structVersion == sl::kStructVersion1)
+  if (pref->structVersion <= sl::kStructVersion1)
   {
-    sl::Preferences pref_copy = pref;
-
     //
     // Always print Streamline debug output to Special K's game_output.log,
     //   disable any log redirection the game would ordinarily do on its own.
     //
-    pref_copy.logMessageCallback = nullptr;
+    pref->logMessageCallback = nullptr;
 #ifdef _DEBUG
-    pref_copy.logLevel           = sl::LogLevel::eVerbose;
+    pref->logLevel           = sl::LogLevel::eVerbose;
 #else
-    pref_copy.logLevel           = sl::LogLevel::eDefault;
+    pref->logLevel           = sl::LogLevel::eDefault;
 #endif
 
     // Make forcing proxies into an option
-    //pref_copy.flags |=
+    //pref->flags |=
     //  sl::PreferenceFlags::eUseDXGIFactoryProxy;
 
     if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
     {
       // Fix Assassin's Creed Shadows not passing sl::PreferenceFlags::eLoadDownloadedPlugins
-      pref_copy.flags |= (sl::PreferenceFlags::eAllowOTA |
-                          sl::PreferenceFlags::eLoadDownloadedPlugins);
-      pref_copy.flags |=  sl::PreferenceFlags::eBypassOSVersionCheck;
+      pref->flags |= (sl::PreferenceFlags::eAllowOTA |
+                      sl::PreferenceFlags::eLoadDownloadedPlugins);
+      pref->flags |=  sl::PreferenceFlags::eBypassOSVersionCheck;
     }
 
     return
-      slInit_Original (pref_copy, sdkVersion);
+      slInit_Original (pref, sdkVersion);
   }
 
   SK_LOGi0 (
