@@ -6062,7 +6062,33 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       switch (wParam)
       {
+        //case DBT_QUERYCHANGECONFIG:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_QUERYCHANGECONFIG");    return 1;
+        //case DBT_CONFIGCHANGECANCELED:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_CONFIGCHANGECANCELED"); return 1;
+        //case DBT_CONFIGCHANGED:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_CONFIGCHANGED");        return 1;
+
+        case DBT_DEVNODES_CHANGED: // Huge performance problem in Steam Input games!
+        {
+          static int times_logged = 0;
+          if (     ++times_logged < 5) {
+            SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVNODES_CHANGED");
+          }
+          return 1;
+        } break;
+
+        //case DBT_DEVICEREMOVEPENDING:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVICEREMOVEPENDING");     return 1;
+        //case DBT_DEVICEQUERYREMOVEFAILED:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVICEQUERYREMOVEFAILED"); return 1;
+        //case DBT_CUSTOMEVENT:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_CUSTOMEVENT");             return 1;
+        //case DBT_DEVICETYPESPECIFIC:
+        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVICETYPESPECIFIC");      return 1;
+
         case DBT_DEVICEARRIVAL:
+        case DBT_DEVICEREMOVECOMPLETE:
         {
           const auto pDevHdr =
             (DEV_BROADCAST_HDR *)lParam;
@@ -6084,9 +6110,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             }
 
             // Audio Devices
-            else if (IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_CAPTURE) ||
-                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_RENDER)  ||
-                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_MIXER))
+            else if (IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_CAPTURE)        ||
+                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_RENDER)         ||
+                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_MIXER)          ||
+                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_AUDIO)          ||
+                     IsEqualGUID (pDevW->dbcc_classguid, DEVINTERFACE_AUDIO_RENDER) ||
+                     IsEqualGUID (pDevW->dbcc_classguid, DEVINTERFACE_AUDIO_CAPTURE))
             {
               bIgnore = false;
             }
@@ -6109,19 +6138,20 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         } break;
 
         default:
+        {
+          // Log the unexpected event, but do not ignore it...
+          SK_RunOnce (
+            SK_LOGi0 (L"WM_DEVICECHANGE received for event type -- %x", wParam)
+          );
           bIgnore = false;
-          break;
+        } break;
       }
 
       if (bIgnore)
       {
         SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-input device!" ), __SK_SUBSYSTEM__ );
 
-#if 0
-        return IsWindowUnicode (hWnd) ?
-                DefWindowProcW (hWnd, uMsg, wParam, lParam) :
-                DefWindowProcA (hWnd, uMsg, wParam, lParam);
-#endif
+        return 1;
       }
     } break;
 

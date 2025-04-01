@@ -1047,6 +1047,17 @@ SK_SetClassLongPtrW (_In_ HWND      hWnd,
                      _In_ int       nIndex,
                      _In_ LONG_PTR dwNewLong);
 
+#include <initguid.h>
+#include <devguid.h>
+#include <Ntddkbd.h>
+#include <Ntddmou.h>
+#include <Ntddvdeo.h>
+#include <Hidclass.h>
+#include <Bthdef.h>
+#include <ks.h>
+#include <ksmedia.h>
+#include <mmdeviceapi.h>
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
