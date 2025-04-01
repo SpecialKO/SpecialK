@@ -290,6 +290,7 @@ bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *ws
 bool SK_Screenshot_SaveJXL  (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath);
 void SK_Screenshot_SaveUHDR (const DirectX::Image& hdr10_image, const DirectX::Image& sdr_image, const wchar_t* wszFileName);
 
+void SK_WIC_SetLossyQuality   (IPropertyBag2 *props);
 void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
 void SK_WIC_SetMetadataTitle  (IWICMetadataQueryWriter *pMQW, std::string& title);

@@ -1491,6 +1491,22 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 }
 
 void
+SK_WIC_SetLossyQuality (IPropertyBag2 *props)
+{
+  if (props == nullptr)
+    return;
+
+  PROPBAG2 opt = {   .pstrName = L"ImageQuality"   };
+  VARIANT  var = { VT_R4,0,0,0, { .fltVal =
+         std::min ( 100.0f,
+         std::max (   1.0f, (float)config.screenshots.compression_quality)
+                  ) / 100.0f    }
+                 };
+
+  props->Write (1, &opt, &var);
+}
+
+void
 SK_WIC_SetMaximumQuality (IPropertyBag2 *props)
 {
   if (props == nullptr)

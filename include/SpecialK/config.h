@@ -582,7 +582,8 @@ struct sk_config_t
       int        max_threads           =     5;
     } avif;
 
-    int          compression_quality   =    90;
+    int          jpeg_not_quality      =    96;
+    int          compression_quality   =    90; // For the newer file formats
     bool         compatibility_mode    =  true;
 
     SK_ConfigSerializedKeybind

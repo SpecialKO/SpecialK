@@ -1,4 +1,13 @@
-﻿25.4.1
+﻿25.4.1.1
+========
+ + Added JPEGNotQuality setting (defaults to 96) for JPEG screenshots imported
+     to Steam, refer to Global\osd.ini -- does not apply to thumbnails.
+ + Block WM_DEVICECHANGE messages for DBT_DEVNODES_CHANGED because it is
+     unnecessary and kills performance in many Steam Input games.
+ + Removed Denuvo for free-tier users; Patreon subscribers still get the
+     awesome performance and stability benefits of Denuvo.
+
+25.4.1
 ======
  + Added Denuvo to older DLSS games for improved Streamline thread-safety.
 

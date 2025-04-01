@@ -1719,7 +1719,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_DITHER_DIFFUSION,
                                      GetWICCodec         (codec),
                                       wszAbsolutePathToScreenshot, nullptr,
-                                        SK_WIC_SetMaximumQuality,
+                                        SK_WIC_SetLossyQuality,
                                         [&](IWICMetadataQueryWriter *pMQW)
                                         {
                                           SK_WIC_SetMetadataTitle (pMQW, pFrameData->title);

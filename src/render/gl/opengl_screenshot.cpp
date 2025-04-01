@@ -834,7 +834,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
                                      GetWICCodec         (codec),
                                       wszAbsolutePathToScreenshot, nullptr,
-                                        SK_WIC_SetMaximumQuality,
+                                        SK_WIC_SetLossyQuality,
                                         [&](IWICMetadataQueryWriter *pMQW)
                                         {
                                           SK_WIC_SetMetadataTitle (pMQW, pFrameData->title);
