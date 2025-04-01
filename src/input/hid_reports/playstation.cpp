@@ -3796,8 +3796,36 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
 
 int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 {
-  if (_cachedInputReportsByReportId [report_id].empty ())
+  auto const cachedInputReport =
+    _cachedInputReportsByReportId.count (report_id) != 0 ?
+   &_cachedInputReportsByReportId.at    (report_id)      : nullptr;
+
+  if ( (! cachedInputReport) ||
+          cachedInputReport->empty () )
+  {
     return 0;
+  }
+
+  auto cachedInputData =
+    cachedInputReport->data ();  
+
+  if (report_id == 0)
+  {
+    auto sizeToClear =
+      std::min (sk::narrow_cast <DWORD> (cachedInputReport->size ()), dwSize);
+
+    SK_RunOnce (
+      SK_LOGi0 (
+        L"Invalid Input Report (%x) filled with all zeros (%d-bytes)",
+          report_id, sizeToClear
+      )
+    );
+
+    ZeroMemory (cachedInputData, sizeToClear);
+
+    return
+      sizeToClear;
+  }
 
   switch (device_vid)
   {
@@ -3810,10 +3838,10 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         {
           //if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= dwSize)
           {
-            if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id && report_id == 1)
+            if (cachedInputData [0] == report_id && report_id == 1)
             {
               SK_HID_DualShock4_GetStateData* pData =
-                (SK_HID_DualShock4_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
+                (SK_HID_DualShock4_GetStateData *)&(cachedInputData [1]);
 
               // The analog axes
               memset (
@@ -3846,14 +3874,14 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (dwSize != 78 && _cachedInputReportsByReportId [report_id].data ()[0] == report_id && report_id == 1)
+          if (dwSize != 78 && cachedInputData [0] == report_id && report_id == 1)
           //if (dwSize >= 64 && (report_id == 1 || report_id == dwSize))
           {
-            //SK_ReleaseAssert (_cachedInputReportsByReportId [report_id].data ()[0] == 1 ||
+            //SK_ReleaseAssert (cachedInputData [0] == 1 ||
             //                  dwSize == report_id);
 
             SK_HID_DualSense_GetStateData* pData =
-              (SK_HID_DualSense_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
+              (SK_HID_DualSense_GetStateData *)&(cachedInputData [1]);
 
             // The analog axes
             memset (
@@ -3889,19 +3917,19 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
             return 64;
           }
 
-          if (_cachedInputReportsByReportId [report_id].data ()    != nullptr   &&
-              _cachedInputReportsByReportId [report_id].data ()[0] == report_id &&
-                                                  (report_id == 49 || report_id == 1))
+          if (cachedInputData     != nullptr   &&
+              cachedInputData [0] == report_id &&
+                                    (report_id == 49 || report_id == 1))
           //if (dwSize >= 78 && (report_id == 1 || report_id == 49 || report_id == dwSize))
           {
             //SK_ReleaseAssert (
-            //  ((uint8_t *)&_cachedInputReportsByReportId [report_id])[0] == 0x1 ||
-            //  ((uint8_t *)&_cachedInputReportsByReportId [report_id])[0] == 49  ||
+            //  cachedInputData [0] == 0x1 ||
+            //  cachedInputData [0] == 49  ||
             //  dwSize == report_id
             //);
 
             auto *pInputRaw =
-              _cachedInputReportsByReportId [report_id].data ();
+              cachedInputData;
 
             auto *pData = pInputRaw == nullptr ?
                                        nullptr :
