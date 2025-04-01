@@ -43,7 +43,7 @@ bool SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally = null
 bool SK_COMPAT_IsFrapsPresent (void);
 void SK_COMPAT_UnloadFraps    (void);
 
-bool SK_COMPAT_CheckStreamlineSupport (void);
+bool SK_COMPAT_CheckStreamlineSupport (HMODULE hModInterposer = SK_GetModuleHandleW (L"sl.interposer.dll"));
 
 bool SK_COMPAT_IgnoreDxDiagnCall  (LPCVOID pReturn = _ReturnAddress ());
 bool SK_COMPAT_IgnoreNvCameraCall (LPCVOID pReturn = _ReturnAddress ());

@@ -1242,34 +1242,42 @@ slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersio
     slInit_Original (pref, sdkVersion);
 }
 
-bool
-SK_COMPAT_CheckStreamlineSupport (void)
+void
+SK_COMPAT_InstallStreamlineHooks (const wchar_t* sl_interposer_dll)
 {
-  if (SK_IsModuleLoaded (L"sl.interposer.dll"))
+  SK_PROFILE_FIRST_CALL
+
+  SK_CreateDLLHook (         sl_interposer_dll,
+                            "slInit",
+                             slInit_Detour,
+    static_cast_p2p <void> (&slInit_Original));
+
+  // Feature Spoofing
+/*
+    SK_CreateDLLHook (        sl_interposer_dll,
+                             "slIsFeatureSupported",
+                              slIsFeatureSupported_Detour,
+     static_cast_p2p <void> (&slIsFeatureSupported_Original));
+*/
+}
+
+bool
+SK_COMPAT_CheckStreamlineSupport (HMODULE hModInterposer)
+{
+  if (hModInterposer != nullptr)
   {
     SK_RunOnce (
-      SK_CreateDLLHook2 (      L"sl.interposer.dll",
-                                "slInit",
-                                 slInit_Detour,
-        static_cast_p2p <void> (&slInit_Original));
-
-      SK_ApplyQueuedHooks ();
+      SK_COMPAT_InstallStreamlineHooks (
+        SK_GetModuleFullName (hModInterposer).c_str ()
+      )
     );
-
-    // Feature Spoofing
-/*
-      SK_CreateDLLHook2 (      L"sl.interposer.dll",
-                                "slIsFeatureSupported",
-                                 slIsFeatureSupported_Detour,
-        static_cast_p2p <void> (&slIsFeatureSupported_Original));
-*/
   }
 
-  return true;
+  //
+  // As of 23.9.13, basic compatibility in all known games is perfect!
+  //
 
-  //
-  // As of 23.9.13, compatibility in all known games is perfect!
-  //
+  return true;
 }
 
 // It is never necessary to call this, it can be implemented using QueryInterface

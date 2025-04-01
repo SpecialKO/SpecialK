@@ -266,7 +266,8 @@ __stdcall
 SK_TraceLoadLibrary (       HMODULE hCallingMod,
                       const _T*     lpFileName,
                       const _T*     lpFunction,
-                            LPVOID  lpCallerFunc )
+                            LPVOID  lpCallerFunc,
+                            HMODULE hLoadedMod )
 {
 #pragma push_macro ("StrStrI")
 #pragma push_macro ("PathRemoveFileSpec")
@@ -399,8 +400,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     SK_Input_PreInit ();
   }
 
-  wchar_t     wszModName [MAX_PATH + 2] = { };
-  wcsncpy_s ( wszModName, MAX_PATH,
+  wchar_t     wszCallingMod [MAX_PATH + 2] = { };
+  wcsncpy_s ( wszCallingMod, MAX_PATH,
              SK_GetModuleName (hCallingMod).c_str (),
                           _TRUNCATE) ;
 
@@ -428,7 +429,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
       dll_log->Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%14hs> "
                                     L"{ '%21hs' }",
-                       wszModName,
+                       wszCallingMod,
                          szFileName,
         reinterpret_cast <const char*> (lpFunction),
                              szSymbol );
@@ -445,7 +446,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
       dll_log->Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%14ws> "
                                     L"{ '%21hs' }",
-                       wszModName,
+                       wszCallingMod,
                          wszFileName,
                            lpFunction,
                              szSymbol );
@@ -458,12 +459,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     {
       // This is silly, this many string comparisons per-load is
       //   not good. Hash the string and compare it in the future.
-      if ( StrStrIW (wszModName, L"Activation")          ||
-           StrStrIW (wszModName, L"rxcore")              ||
-           StrStrIW (wszModName, L"gameoverlayrenderer") ||
-           StrStrIW (wszModName, L"RTSSHooks")           ||
-           StrStrIW (wszModName, L"Nahimic2DevProps")    ||
-           StrStrIW (wszModName, L"ReShade") )
+      if ( StrStrIW (wszCallingMod, L"Activation")          ||
+           StrStrIW (wszCallingMod, L"rxcore")              ||
+           StrStrIW (wszCallingMod, L"gameoverlayrenderer") ||
+           StrStrIW (wszCallingMod, L"RTSSHooks")           ||
+           StrStrIW (wszCallingMod, L"Nahimic2DevProps")    ||
+           StrStrIW (wszCallingMod, L"ReShade") )
       {
         SK_ReHookLoadLibrary ();
       }
@@ -474,53 +475,53 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
   {
     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
          ( StrStrI  (lpFileName, SK_TEXT("d3d9.dll"))  ||
-           StrStrIW (wszModName,        L"d3d9.dll")   ||
+           StrStrIW (wszCallingMod,     L"d3d9.dll")   ||
 
            StrStrI  (lpFileName, SK_TEXT("d3dx9_"))    ||
-           StrStrIW (wszModName,        L"d3dx9_")     ||
+           StrStrIW (wszCallingMod,     L"d3dx9_")     ||
 
            StrStrI  (lpFileName, SK_TEXT("Direct3D9")) ||
-           StrStrIW (wszModName,        L"Direct3D9")  ||
+           StrStrIW (wszCallingMod,     L"Direct3D9")  ||
 
            // NVIDIA's User-Mode D3D Frontend
            StrStrI  (lpFileName, SK_TEXT("nvd3dum.dll")) ||
-           StrStrIW (wszModName,        L"nvd3dum.dll")  ) )
+           StrStrIW (wszCallingMod,     L"nvd3dum.dll")  ) )
       SK_RunOnce (SK_BootD3D9   ());
 #ifdef _M_IX86
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d8.dll")) ||
-                StrStrIW (wszModName,        L"d3d8.dll")    ) )
+                StrStrIW (wszCallingMod,     L"d3d8.dll")    ) )
       SK_BootD3D8   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("ddraw.dll")) ||
-                StrStrIW (wszModName,        L"ddraw.dll")   ) )
+                StrStrIW (wszCallingMod,     L"ddraw.dll")   ) )
       SK_BootDDraw  ();
 #endif
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
-                StrStrIW (wszModName,        L"d3d11.dll") ))
+                StrStrIW (wszCallingMod,     L"d3d11.dll") ))
       SK_RunOnce (SK_BootDXGI   ());
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("dxcore.dll")) || // Unity?! WTF are you doing?
-                StrStrIW (wszModName,        L"dxcore.dll") ))
+                StrStrIW (wszCallingMod,     L"dxcore.dll") ))
       SK_RunOnce (SK_BootDXGI   ());
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||
-                StrStrIW (wszModName,        L"d3d12.dll") ))
+                StrStrIW (wszCallingMod,     L"d3d12.dll") ))
       SK_RunOnce (SK_BootDXGI   ());
 #ifdef _M_AMD64
     else if (   StrStrI  (lpFileName, SK_TEXT("vulkan-1.dll")) ||
-                StrStrIW (wszModName,        L"vulkan-1.dll")  )
+                StrStrIW (wszCallingMod,     L"vulkan-1.dll")  )
       SK_RunOnce (SK_BootVulkan ());
 #endif
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
-                StrStrIW (wszModName,        L"OpenGL32.dll") ))
+                StrStrIW (wszCallingMod,     L"OpenGL32.dll") ))
     {   if (!SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll"))
           SK_RunOnce (SK_BootOpenGL ());
     }
     else if (   StrStrI  (lpFileName, SK_TEXT("GameInput.dll")) ||
-                StrStrIW (wszModName,        L"GameInput.dll")  )
+                StrStrIW (wszCallingMod,     L"GameInput.dll")  )
       SK_RunOnce (SK_Input_HookGameInput ());
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
@@ -538,47 +539,51 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI (lpFileName, SK_TEXT("hid.dll")) )
       SK_RunOnce (SK_Input_HookHID ());
     else if (   StrStrI ( lpFileName, SK_TEXT("EOSSDK-Win")) ||
-                StrStrIW (wszModName,        L"EOSSDK-Win") )
+                StrStrIW (wszCallingMod,     L"EOSSDK-Win") )
       SK_RunOnce (SK::EOS::Init (false));
     else if (   StrStrI ( lpFileName, SK_TEXT("libScePad")) ||
-                StrStrIW (wszModName,        L"libScePad") )
+                StrStrIW (wszCallingMod,     L"libScePad") )
       SK_RunOnce (SK_Input_HookScePad ());
     else if (   StrStrI ( lpFileName, SK_TEXT("dstorage.dll")) ||
-                StrStrIW (wszModName,        L"dstorage.dll") )
+                StrStrIW (wszCallingMod,     L"dstorage.dll") )
     {
       SK_RunOnce (SK_DStorage_Init ());
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("dstoragecore.dll")) ||
-                StrStrIW (wszModName,        L"dstoragecore.dll") )
+                StrStrIW (wszCallingMod,     L"dstoragecore.dll") )
     {
       SK_RunOnce (SK_DStorage_Init ());
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("sl.interposer.dll")) ||
-                StrStrIW (wszModName,        L"sl.interposer.dll") )
+                StrStrIW (wszCallingMod,     L"sl.interposer.dll") )
     {
-      SK_COMPAT_CheckStreamlineSupport ();
+      HMODULE hModInterposer =
+        StrStrI (lpFileName, SK_TEXT("sl.interposer.dll")) != nullptr ? hLoadedMod
+                                                                      : hCallingMod;
+
+      SK_COMPAT_CheckStreamlineSupport (hModInterposer);
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("sl.dlss_g.dll")) ||
-                StrStrIW (wszModName,        L"sl.dlss_g.dll") )
+                StrStrIW (wszCallingMod,     L"sl.dlss_g.dll") )
     {
       SK_COMPAT_CheckStreamlineSupport ();
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("msmpeg2vdec.dll")) ||
-                StrStrIW (wszModName,        L"msmpeg2vdec.dll"))
+                StrStrIW (wszCallingMod,     L"msmpeg2vdec.dll"))
     {
       extern HMODULE SK_KnownModule_MSMPEG2VDEC;
                      SK_KnownModule_MSMPEG2VDEC = SK_GetModuleHandle (L"msmpeg2vdec.dll");
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("mfplat.dll")) ||
-                StrStrIW (wszModName,        L"mfplat.dll"))
+                StrStrIW (wszCallingMod,     L"mfplat.dll"))
     {
       extern HMODULE SK_KnownModule_MFPLAT;
                      SK_KnownModule_MFPLAT = SK_GetModuleHandleW (L"mfplat.dll");
     }
-    else if ( StrStrIW (wszModName,        L"nvngx_dlss.dll")  ) SK_NGX_EstablishDLSSVersion  (wszModName);
-    else if ( StrStrIW (wszModName,        L"nvngx_dlssg.dll") ) SK_NGX_EstablishDLSSGVersion (wszModName);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlss.dll")  ) SK_NGX_EstablishDLSSVersion  (wszCallingMod);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssg.dll") ) SK_NGX_EstablishDLSSGVersion (wszCallingMod);
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
-                StrStrIW( wszModName,        L"_nvngx.dll" ) ||
+                StrStrIW( wszCallingMod,     L"_nvngx.dll" ) ||
                // Handles case where a .bin file is loaded, but something has LoadLibrary hooked
                //   and the true source of the load cannot be determined.
                (StrStrI ( lpFileName, SK_TEXT(".bin")      ) && typeid (_T) == typeid (wchar_t)) )
@@ -1090,7 +1095,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     {
       SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                               compliant_path,
-                                wszSourceFunc, lpRet );
+                                wszSourceFunc, lpRet, hMod );
     }
 
     SK_UnlockDllLoader ();
@@ -1495,7 +1500,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             compliant_path,
-                              wszSourceFunc, lpRet );
+                              wszSourceFunc, lpRet, hMod );
   }
 
   SK_UnlockDllLoader ();
