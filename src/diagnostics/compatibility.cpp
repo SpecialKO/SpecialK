@@ -982,13 +982,13 @@ SK_COMPAT_IsRTSSUsingDetoursHooking (void)
   
       if (     StrStrA (rtss_config.get (), "UseDetours=0"))
       {
-        result = FALSE; SK_LOGi0 (L" >> Incompatible!");
+        result = FALSE;
         return   false;
       }
 
       else if (StrStrA (rtss_config.get (), "UseDetours="))
       {
-        result = TRUE; SK_LOGi0 (L" >> Compatible!");
+        result = TRUE;
         return   true;
       }
     }
