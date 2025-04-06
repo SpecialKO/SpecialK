@@ -5798,14 +5798,15 @@ auto DeclKeybind =
   return_to_skif->load      (config.system.return_to_skif);
   auto_load_asi_files->load (config.system.auto_load_asi_files);
 
-  clean_exit->load          (config.system.clean_exit);
-
   SK_RunOnce (
+    clean_exit->load        (config.system.clean_exit);
     if (! std::exchange     (config.system.clean_exit, false))
     {
       __SK_ExitedCleanly = FALSE;
       SK_COMPAT_WarnIfRTSSIsIncompatible ();
     }
+    clean_exit->store            (config.system.clean_exit);
+    config.utility.save_async_if (__SK_ExitedCleanly);
   );
 
   // This is slow as hell thanks to the Steam overlay, so it
