@@ -1,6 +1,7 @@
 ﻿25.4.6
 ======
- + Added Dynamic Cloth Rate option for Assassin's Creed Shadows
+ + Added Dynamic Cloth Rate option for Assassin's Creed Shadows based on
+     Lyall's new ACShadowsFix mod (https://github.com/Lyall/ACShadowsFix/).
 
 25.4.5
 ======
