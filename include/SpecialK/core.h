@@ -248,6 +248,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 int
 SK_Platform_DrawOSD (void);
 
+bool SK_IsFirstRun (void); // Is this the first time running after an INI reset?
+
 void SK_Perf_PrintEvents (void);
 void SK_PerfEvent_Begin  (const wchar_t* wszEventName);
 void SK_PerfEvent_End    (const wchar_t* wszEventName);

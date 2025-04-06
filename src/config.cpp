@@ -8830,3 +8830,10 @@ sk_config_t::input_s::keyboard_s::needsLowLevelKeyboardHook (void)
   return
     alt_tab_adhd_pace > 0 || enable_win_key != SK_NoPreference || (enable_alt_tab != SK_NoPreference && SK_Input_IsGameUsingLowLevelKeyboardHooks ());
 }
+
+bool
+SK_IsFirstRun (void)
+{
+  return
+    config.system.first_run;
+}

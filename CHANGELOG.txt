@@ -1,4 +1,10 @@
-﻿25.4.1.1
+﻿25.4.5
+======
+ + Allow "ignore textures without mipmaps" to be turned off in Unity engine
+     games. The setting will always turn on after an INI reset, but can be
+       turned off (at risk of font corruption) from the control panel.
+
+25.4.1.1
 ========
  + Added JPEGNotQuality setting (defaults to 96) for JPEG screenshots imported
      to Steam, refer to Global\osd.ini -- does not apply to thumbnails.
