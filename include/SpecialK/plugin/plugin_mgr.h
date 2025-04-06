@@ -49,6 +49,8 @@ __stdcall
 SK_HasPlugin (void);
 
 
+#include <SpecialK/storefront/achievements.h>
+
 using SK_EndFrame_pfn                  = void   (__stdcall *)( void        );
 using SK_EndFrameEx_pfn                = void   (__stdcall *)( BOOL
                                                                bWaitOnFail );

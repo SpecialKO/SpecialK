@@ -1,4 +1,9 @@
-﻿25.4.6.1
+﻿25.4.6.2
+========
+ + Added cutscene blackbar removal option for Assasin's Creed Shadows,
+     again based on Lyall's ACShadowsFix.
+
+25.4.6.1
 ========
  + Warn about RTSS on the next launch if the game crashes before SK's
      crash handler catches it, and RTSS is configured wrong.

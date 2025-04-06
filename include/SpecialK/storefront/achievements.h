@@ -24,6 +24,7 @@
 #ifndef __SK__ACHIEVEMENTS_H__
 #define __SK__ACHIEVEMENTS_H__
 
+#include <SpecialK/command.h>
 #include <EOS/eos_achievements_types.h>
 
 //
@@ -84,6 +85,7 @@ struct SK_Achievement
 };
 
 struct ImGuiWindow;
+#include <SpecialK/steam_api.h>
 
 class SK_AchievementManager : public SK_IVariableListener
 {
