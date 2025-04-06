@@ -7182,6 +7182,7 @@ SK_SaveConfig ( std::wstring name,
   init_delay->store                            (config.system.global_inject_delay);
   return_to_skif->store                        (config.system.return_to_skif);
   auto_load_asi_files->store                   (config.system.auto_load_asi_files);
+  clean_exit->store                            (config.system.clean_exit);
   version->store                               (SK_GetVersionStrW ());
 
   if (! SK_IsInjected ())
