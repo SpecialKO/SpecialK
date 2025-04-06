@@ -1964,8 +1964,14 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
 
         // Test the configuration of RTSS before anything crashes...
-        if (StrStrIW (wszModName, L"RTSSHooks"))
+        if (StrStrIW (wszModName, L"RTSSHooks")) {
           SK_RunOnce (  SK_COMPAT_IsRTSSUsingDetoursHooking ());
+
+          if (! __SK_ExitedCleanly)
+          {
+            SK_COMPAT_WarnIfRTSSIsIncompatible ();
+          }
+        }
 
 
         if (SK_LoadLibrary_IsPinnable (wszModName))

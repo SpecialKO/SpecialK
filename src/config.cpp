@@ -5799,10 +5799,14 @@ auto DeclKeybind =
   auto_load_asi_files->load (config.system.auto_load_asi_files);
 
   clean_exit->load          (config.system.clean_exit);
-  if (! std::exchange       (config.system.clean_exit, false))
-  {
-    SK_COMPAT_WarnIfRTSSIsIncompatible ();
-  }
+
+  SK_RunOnce (
+    if (! std::exchange     (config.system.clean_exit, false))
+    {
+      __SK_ExitedCleanly = FALSE;
+      SK_COMPAT_WarnIfRTSSIsIncompatible ();
+    }
+  );
 
   // This is slow as hell thanks to the Steam overlay, so it
   //   should only ever be done on the first launch...

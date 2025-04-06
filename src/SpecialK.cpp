@@ -87,6 +87,7 @@ volatile          LONG __SK_DLL_Attached      = FALSE;
 volatile          LONG __SK_Threads_Attached  = 0UL;
 volatile          LONG __SK_DLL_Refs          = 0UL;
 volatile          LONG __SK_HookContextOwner  = FALSE;
+                  BOOL __SK_ExitedCleanly     =  TRUE;
 
 extern volatile  DWORD __SK_TLS_INDEX;
         volatile LONG  lLastThreadCreate      = 0;

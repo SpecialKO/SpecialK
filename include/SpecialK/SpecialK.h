@@ -65,5 +65,6 @@ const wchar_t* __stdcall SK_GetVersionStrW (void) noexcept;
 const char*    __stdcall SK_GetVersionStrA (void) noexcept;
 
 extern volatile LONG  __SK_HookContextOwner;
+extern          BOOL  __SK_ExitedCleanly;
 
 #endif /* __SK__SPECIALK_H__ */
