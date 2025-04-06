@@ -1439,6 +1439,7 @@ struct sk_config_t
     bool    wait_for_debugger   = false;
     bool    return_to_skif      = false;
     bool    auto_load_asi_files = false;
+    bool    clean_exit          =  true;
   } system;
 
   struct priority_scheduling_s {

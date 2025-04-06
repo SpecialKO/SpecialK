@@ -857,6 +857,7 @@ sk::ParameterFloat*       init_delay              = nullptr;
 sk::ParameterBool*        return_to_skif          = nullptr;
 sk::ParameterInt*         skif_autostop_behavior  = nullptr;
 sk::ParameterBool*        auto_load_asi_files     = nullptr;
+sk::ParameterBool*        clean_exit              = nullptr;
 sk::ParameterStringW*     version                 = nullptr;
                        // Version at last boot
 
@@ -1947,6 +1948,7 @@ auto DeclKeybind =
     ConfigEntry (init_delay,                             L"Delay Global Injection Initialization for x-many Seconds",  dll_ini,         L"SpecialK.System",       L"GlobalInjectDelay"),
     ConfigEntry (return_to_skif,                         L"At Application Exit, make SKIF the new Foreground Window",  dll_ini,         L"SpecialK.System",       L"ReturnToSKIF"),
     ConfigEntry (auto_load_asi_files,                    L"Automatically load .asi files from the game's directory",   dll_ini,         L"SpecialK.System",       L"AutoLoadASIFiles"),
+    ConfigEntry (clean_exit,                             L"Did the game exit cleanly the last time it ran?",           dll_ini,         L"SpecialK.System",       L"CleanExit"),
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
 
 
@@ -5795,6 +5797,12 @@ auto DeclKeybind =
   init_delay->load          (config.system.global_inject_delay);
   return_to_skif->load      (config.system.return_to_skif);
   auto_load_asi_files->load (config.system.auto_load_asi_files);
+
+  clean_exit->load          (config.system.clean_exit);
+  if (! std::exchange       (config.system.clean_exit, false))
+  {
+    SK_COMPAT_WarnIfRTSSIsIncompatible ();
+  }
 
   // This is slow as hell thanks to the Steam overlay, so it
   //   should only ever be done on the first launch...
