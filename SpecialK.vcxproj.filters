@@ -3851,6 +3851,12 @@
     <ClCompile Include="src\plugins\tales_of_graces_f.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="depends\src\safetyhook\safetyhook.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="depends\src\Zydis\Zydis.c">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

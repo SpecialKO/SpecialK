@@ -4,6 +4,9 @@
      games. The setting will always turn on after an INI reset, but can be
        turned off (at risk of font corruption) from the control panel.
 
+   * It will turn itself on again the second a Unity engine game tries to
+       re-write immutable cached memory.
+
 25.4.1.1
 ========
  + Added JPEGNotQuality setting (defaults to 96) for JPEG screenshots imported

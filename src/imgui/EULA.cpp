@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -274,6 +274,16 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     if (ImGui::CollapsingHeader ("STB"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_STB).c_str ());
+    }
+
+    if (ImGui::CollapsingHeader ("safetyhook"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_SAFETYHOOK).c_str ());
+    }
+
+    if (ImGui::CollapsingHeader ("Zydis"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZYDIS).c_str ());
     }
 
 

@@ -112,6 +112,8 @@ IDR_LICENSE_SPECIALK      TEXT                    "licenses/SpecialK.txt"
 IDR_LICENSE_STB           TEXT                    "licenses/stb.txt"
 IDR_LICENSE_VULKAN        TEXT                    "licenses/Vulkan.txt"
 IDR_LICENSE_OPENLIBSYS    TEXT                    "licenses/OpenLibSys.txt"
+IDR_LICENSE_SAFETYHOOK    TEXT                    "licenses/safetyhook.txt"
+IDR_LICENSE_ZYDIS         TEXT                    "licenses/Zydis.txt"
 IDR_LICENSE_FILEBROWSER   TEXT                    "licenses/imgui-filebrowser.txt"
 
 

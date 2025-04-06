@@ -41,6 +41,8 @@
 #define IDR_LICENSE_VULKAN              10131
 #define IDR_LICENSE_ZLIB                10132
 #define IDR_LICENSE_OPENLIBSYS          10133
+#define IDR_LICENSE_SAFETYHOOK          10134
+#define IDR_LICENSE_ZYDIS               10135
 #define IDR_D3DX9_PACKAGE               10136
 #define IDR_LIBSCEPAD_PACKAGE           10137
 #define IDR_LICENSE_FILEBROWSER         10140
