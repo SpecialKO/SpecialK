@@ -1816,11 +1816,14 @@ bool               __SK_ACS_IsMultiFrameCapable   = false;
 bool               __SK_ACS_AlwaysUseFrameGen     =  true;
 bool               __SK_ACS_ShowFMVIndicator      = false;
 bool               __SK_ACS_UncapFramerate        =  true;
+bool               __SK_ACS_DynamicCloth          =  true;
 int                __SK_ACS_DLSSG_MultiFrameCount =     1;
+uintptr_t          __SK_ACS_ClothSimAddr          =     0;
 
 sk::ParameterBool*  _SK_ACS_AlwaysUseFrameGen;
 sk::ParameterBool*  _SK_ACS_ShowFMVIndicator;
 sk::ParameterBool*  _SK_ACS_UncapFramerate;
+sk::ParameterBool*  _SK_ACS_DynamicCloth;
 sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
 
 using slGetPluginFunction_pfn = void*      (*)(const char* functionName);
@@ -1832,6 +1835,9 @@ static          DWORD  LastTimeFMVChecked     = 0;
 static          HANDLE LastFMVHandle          = 0;
 static volatile ULONG  FrameGenDisabledForFMV = FALSE;
 static bool*          pFrameGenEnabled        = nullptr;
+
+void
+SK_ACS_ApplyClothPhysicsFix (bool enable);
 
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
@@ -2081,6 +2087,26 @@ SK_ACS_PlugInCfg (void)
       ImGui::EndTooltip      ();
     }
 
+    if (__SK_ACS_ClothSimAddr != 0)
+    {
+      if (ImGui::Checkbox ("Dynamic Cloth Rate", &__SK_ACS_DynamicCloth))
+      {
+        changed = true;
+
+        _SK_ACS_DynamicCloth->store (__SK_ACS_DynamicCloth);
+
+        SK_ACS_ApplyClothPhysicsFix (__SK_ACS_DynamicCloth);
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextUnformatted ("Use dynamic cloth framerate rather than fixed 30/60 in cutscenes/gameplay.");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("This feature comes form Lyall's ACShadowsFix mod, refer to GitHub.");
+        ImGui::EndTooltip      ();
+      }
+    }
+
     if (restart_required)
     {
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
@@ -2152,7 +2178,22 @@ SK_ACS_InitPlugin (void)
                                    L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
                                    L"Override Multi-Frame Gen" );
 
+    _SK_ACS_DynamicCloth =
+      _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
+                                   L"DynamicClothRate", __SK_ACS_DynamicCloth,
+                                   L"Use Dynamic Rate For Cloth" );
+
     plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
+
+    __SK_ACS_ClothSimAddr =
+      (uintptr_t)SK_ScanAlignedExec ("\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01", 30,
+                                     "\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01",
+                                     (void*)img_base_addr);
+
+    if (__SK_ACS_ClothSimAddr != 0)
+    {
+      SK_ACS_ApplyClothPhysicsFix (__SK_ACS_DynamicCloth);
+    }
 
     while (SK_GetFramesDrawn () < 480)
            SK_SleepEx (150UL, FALSE);
@@ -2240,7 +2281,7 @@ SK_ACS_InitPlugin (void)
     ACShadows.exe+F7B0D7 - 45 84 C0              - test r8b,r8b
     ACShadows.exe+F7B0DA - 75 C3                 - jne ACShadows.exe+F7B09F
     */
-    
+
     static void* limit_check_addr =
       (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\xCA\xEB\x05\x45\x84\xC0\x75\xC3", 19,
                                               "\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\xCA\xEB\x05\x45\x84\xC0\x75\xC3", (void*)img_base_addr) + 10);

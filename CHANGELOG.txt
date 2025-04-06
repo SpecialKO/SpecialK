@@ -1,4 +1,8 @@
-﻿25.4.5
+﻿25.4.6
+======
+ + Added Dynamic Cloth Rate option for Assassin's Creed Shadows
+
+25.4.5
 ======
  + Allow "ignore textures without mipmaps" to be turned off in Unity engine
      games. The setting will always turn on after an INI reset, but can be

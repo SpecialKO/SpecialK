@@ -3857,6 +3857,9 @@
     <ClCompile Include="depends\src\Zydis\Zydis.c">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="assassins_creed_shadows.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
