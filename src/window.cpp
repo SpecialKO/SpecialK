@@ -7563,6 +7563,19 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     }
   }
 
+  if (SK_IsInjected ())
+  {
+    if (! _wcsicmp (wszClassName, L"GameNxApp") && SK_GetModuleHandleW (L"sl.dlss_g.dll"))
+    {
+      SK_MessageBox (
+        L"You must use Local Injection or remove sl.dlss_g.dll for Special K to work in Nixxes games.\r\n\r\n"
+        L"Otherwise they will crash or Frame Generation will not work.",
+        L"Nixxes/Special K Software Incompatibility",
+        MB_ICONEXCLAMATION | MB_OK
+      );
+    }
+  }
+
 
   if ( SetWindowDisplayAffinity_Original != nullptr)
        SetWindowDisplayAffinity_Original (game_window.hWnd, WDA_NONE);

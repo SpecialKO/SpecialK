@@ -1,4 +1,10 @@
-﻿25.4.7.2
+﻿25.4.7.3
+========
+ + Added warning if attempting to load Special K into a Nixxes game that uses
+     DLSS Frame Generation if sl.dlss_g.dll has not been removed or SK is not
+       using Local Injection.
+
+25.4.7.2
 ========
  + Disable Steam overlay in Rise of Ronin in order to prevent crashes.
  + Disable Steam overlay in Dying Light 2 in order to prevent black screens.
