@@ -211,6 +211,7 @@ SK_GetCurrentGameID (void)
           { L"HaloInfinite.exe",                       SK_GAME_ID::HaloInfinite                 },
           { L"start_protected_game.exe",               SK_GAME_ID::EasyAntiCheat                },
           { L"eldenring.exe",                          SK_GAME_ID::EldenRing                    },
+          { L"DyingLightGame_x64_rwdi.exe",            SK_GAME_ID::DyingLight2                  },
           { L"wonderlands.exe",                        SK_GAME_ID::TinyTinasWonderlands         },
           { L"ELEX2.exe",                              SK_GAME_ID::Elex2                        },
           { L"CHRONOCROSS.exe",                        SK_GAME_ID::ChronoCross                  },
