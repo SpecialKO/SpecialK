@@ -1,4 +1,8 @@
-﻿25.4.7.3
+﻿25.4.7.4
+========
+ + Remove pattern scanning timeout from Assassin's Creed Shadows init. thread.
+
+25.4.7.3
 ========
  + Added warning if attempting to load Special K into a Nixxes game that uses
      DLSS Frame Generation if sl.dlss_g.dll has not been removed or SK is not
