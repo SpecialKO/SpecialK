@@ -1,4 +1,8 @@
-﻿25.4.6.2
+﻿25.4.7
+======
+ + Integrated Lyall's FOV slider range expansion for Assassin's Creed Shadows.
+
+25.4.6.2
 ========
  + Added cutscene blackbar removal option for Assasin's Creed Shadows,
      again based on Lyall's ACShadowsFix.
