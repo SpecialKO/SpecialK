@@ -1,4 +1,9 @@
-﻿25.4.7.4
+﻿25.4.8
+======
+ + Disable floating-point exceptions on the render thread for all games, since
+     it will cause crashes in CryEngine games and some others.
+
+25.4.7.4
 ========
  + Remove pattern scanning timeout from Assassin's Creed Shadows init. thread.
 

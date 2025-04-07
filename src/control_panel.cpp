@@ -8621,6 +8621,11 @@ DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
                                               LPVOID lpUser )
 {
+  // We do a lot of floating-point math on the render thread, and cannot afford
+  //   to let games use floating-point exceptions or they will crash.
+  _control87 (_EM_INVALID|_EM_DENORMAL|_EM_ZERODIVIDE|_EM_OVERFLOW|_EM_UNDERFLOW|_EM_INEXACT, _MCW_EM);
+  _controlfp (_EM_INVALID|_EM_DENORMAL|_EM_ZERODIVIDE|_EM_OVERFLOW|_EM_UNDERFLOW|_EM_INEXACT, _MCW_EM);
+
   static std::mutex
         lock;
   if (! lock.try_lock ())
