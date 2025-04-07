@@ -1,4 +1,9 @@
-﻿25.4.7.1
+﻿25.4.7.2
+========
+ + Disable Steam overlay in Rise of Ronin in order to prevent crashes.
+ + Disable Steam overlay in Dying Light 2 in order to prevent black screens.
+
+25.4.7.1
 ========
  + Use Special K's target frametime as cloth simulation's fixed timestep in
      Assassin's Creed Shadows instead of using the game's internal clock.

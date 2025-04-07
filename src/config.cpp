@@ -284,6 +284,7 @@ SK_GetCurrentGameID (void)
           { L"Avowed-Win64-Shipping.exe",              SK_GAME_ID::Avowed                       }, // Steam Version
           { L"ACShadows.exe",                          SK_GAME_ID::AssassinsCreed_Shadows       }, // Normal version
           { L"ACShadows_Plus.exe",                     SK_GAME_ID::AssassinsCreed_Shadows       }, // Ubisoft+ version
+          { L"Ronin.exe",                              SK_GAME_ID::RiseOfRonin                  },
         };
 
     first_check  = false;
@@ -3377,6 +3378,11 @@ auto DeclKeybind =
         apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
+      case SK_GAME_ID::RiseOfRonin:
+        // Serious compatibility issues otherwise
+        config.steam.disable_overlay               = true;
+        break;
+
       case SK_GAME_ID::AssassinsCreed_Shadows:
         config.apis.d3d9.hook                      = false;
         config.apis.d3d9ex.hook                    = false;
@@ -3801,7 +3807,9 @@ auto DeclKeybind =
       } break;
 
       case SK_GAME_ID::DyingLight2:
-        config.input.mouse.ignore_small_clips = true;
+        config.input.mouse.ignore_small_clips    = true;
+        // Serious compatibility issues otherwise
+        config.steam.disable_overlay             = true;
         break;
 
       case SK_GAME_ID::EldenRing:

@@ -446,7 +446,8 @@ SK_ACS_PlugInCfg (void)
       {
         ImGui::TextUnformatted ("Use dynamic cloth framerate rather than fixed 30/60 in cutscenes/gameplay.");
         ImGui::Separator       ();
-        ImGui::BulletText      ("This feature comes thanks to Lyall's ACShadowsFix mod, refer to GitHub.");
+        ImGui::BulletText      ("It is critical to set a sustainable framerate limit, cloth simulation will ALWAYS run at the framerate limit (even if the game runs slower).");
+        ImGui::BulletText      ("Original feature thanks to Lyall's ACShadowsFix mod, refer to GitHub.");
         ImGui::EndTooltip      ();
       }
     }
