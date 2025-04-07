@@ -629,6 +629,8 @@ public:
   volatile LONG64 global_bytes  = 0ULL;
   volatile LONG64 local_bytes   = 0ULL;
 
+  BOOL   memory_scans_should_timeout = TRUE;
+
   BOOL   allocating_virtual = FALSE;
   BOOL   allocating_heap    = FALSE;
   BOOL   allocating_local   = FALSE;

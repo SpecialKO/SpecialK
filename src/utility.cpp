@@ -2500,9 +2500,12 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
   {
     if (SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
     {
-      SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
-                  L" Sig Scan " );
-      return nullptr;
+      if (SK_TLS_Bottom ()->memory->memory_scans_should_timeout)
+      {
+        SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
+                    L" Sig Scan " );
+        return nullptr;
+      }
     }
 
     VirtualQuery (it, &minfo, sizeof (minfo));
