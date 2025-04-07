@@ -75,29 +75,26 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
 {
   __SK_ACS_DynamicCloth = enable;
 
-  static SafetyHookMid ClothPhysicsMidHook;
   if (__SK_ACS_ClothSimAddr != 0)
   {
-    SK_RunOnce (
-      // From ACShadowsFix (https://github.com/Lyall/ACShadowsFix/blob/5b53a3c84fa8dee39a1ed49b60995b334a119d97/src/dllmain.cpp#L246C1-L256C20)
-      ClothPhysicsMidHook =
-        safetyhook::create_mid (__SK_ACS_ClothSimAddr,
-          [](SafetyHookContext& ctx)
+    // From ACShadowsFix (https://github.com/Lyall/ACShadowsFix/blob/5b53a3c84fa8dee39a1ed49b60995b334a119d97/src/dllmain.cpp#L246C1-L256C20)
+    static SafetyHookMid ClothPhysicsMidHook =
+      safetyhook::create_mid (__SK_ACS_ClothSimAddr,
+        [](SafetyHookContext& ctx)
+        {
+          if (! ctx.rcx)
+            return;
+
+          // By default the game appears to use 60fps cloth physics during gameplay and 30fps cloth physics during cutscenes.
+
+          if (__SK_ACS_DynamicCloth)
           {
-            if (! ctx.rcx)
-              return;
-
-            // By default the game appears to use 60fps cloth physics during gameplay and 30fps cloth physics during cutscenes.
-
-            if (__SK_ACS_DynamicCloth)
-            {
-              // Use current frametime for cloth physics instead of fixed 0.01666/0.03333 values.
-              if (uintptr_t pFramerate = *reinterpret_cast <uintptr_t *>(ctx.rcx + 0x70))
-                ctx.xmm0.f32 [0] = *reinterpret_cast<float *>(pFramerate + 0x78); // Current frametime
-            }
+            // Use current frametime for cloth physics instead of fixed 0.01666/0.03333 values.
+            if (uintptr_t pFramerate = *reinterpret_cast <uintptr_t *>(ctx.rcx + 0x70))
+              ctx.xmm0.f32 [0] = *reinterpret_cast<float *>(pFramerate + 0x78); // Current frametime
           }
-        )
-    );
+        }
+      );
   }
 }
 
@@ -318,6 +315,9 @@ SK_ACS_PlugInCfg (void)
     bool always_use_framegen =
       __SK_ACS_AlwaysUseFrameGen;
 
+    ImGui::SeparatorText ("Framerate");
+    ImGui::TreePush      ("Framerate");
+
     ImGui::BeginGroup ();
 
     if (ImGui::Checkbox ("Allow Cutscene Frame Generation",
@@ -439,6 +439,29 @@ SK_ACS_PlugInCfg (void)
       }
     }
 
+    ImGui::EndGroup ();
+    
+    if (__target_fps != config.render.framerate.target_fps)
+    {
+      last_game_fps_limit = __target_fps;
+
+      ImGui::SameLine        (  );
+      ImGui::BeginGroup      (  );
+      ImGui::SetCursorPosY   (y_pos);
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.075f, 0.8f, 0.9f).Value);
+      ImGui::BulletText      ("Using game-defined framerate limit:  ");
+      ImGui::SameLine        (  );
+      ImGui::SetCursorPosY   (y_pos);
+      ImGui::TextColored     (ImColor (1.f, 1.f, 0.f).Value, "%3.0f fps", __target_fps);
+      ImGui::PopStyleColor   (  );
+      ImGui::EndGroup        (  );
+    }
+
+    ImGui::TreePop ();
+
+    ImGui::SeparatorText ("Aspect Ratio");
+    ImGui::TreePush      ("Aspect Ratio");
+
     if (__SK_ACS_BlackBarsAddr != 0)
     {
       if (ImGui::Checkbox ("Disable Cutscene Blackbars", &__SK_ACS_RemoveBlackBars))
@@ -462,6 +485,8 @@ SK_ACS_PlugInCfg (void)
     if ( __SK_ACS_FOVSliderAddr     != 0 &&
          __SK_ACS_FOVMultiplierAddr != 0 )
     {
+      ImGui::SameLine ();
+
       if (ImGui::Checkbox ("Expand FOV Range", &__SK_ACS_ExpandFOVRange))
       {
         changed = true;
@@ -480,29 +505,13 @@ SK_ACS_PlugInCfg (void)
       }
     }
 
+    ImGui::TreePop ();
+
     if (restart_required)
     {
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
       ImGui::BulletText     ("Game Restart Required");
       ImGui::PopStyleColor  ();
-    }
-
-    ImGui::EndGroup ();
-    
-    if (__target_fps != config.render.framerate.target_fps)
-    {
-      last_game_fps_limit = __target_fps;
-
-      ImGui::SameLine        (  );
-      ImGui::BeginGroup      (  );
-      ImGui::SetCursorPosY   (y_pos);
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.075f, 0.8f, 0.9f).Value);
-      ImGui::BulletText      ("Using game-defined framerate limit:  ");
-      ImGui::SameLine        (  );
-      ImGui::SetCursorPosY   (y_pos);
-      ImGui::TextColored     (ImColor (1.f, 1.f, 0.f).Value, "%3.0f fps", __target_fps);
-      ImGui::PopStyleColor   (  );
-      ImGui::EndGroup        (  );
     }
 
     if (changed)
