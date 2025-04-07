@@ -618,9 +618,6 @@ SK_ACS_InitPlugin (void)
       SK_ACS_ApplyBlackBarRemoval (__SK_ACS_RemoveBlackBars);
     }
 
-    while (SK_GetFramesDrawn () < 30)
-           SK_SleepEx (150UL, FALSE);
-
     __SK_ACS_FOVSliderAddr =
       (uintptr_t)SK_ScanAlignedExec ("\xE9\x00\x00\x00\x00\x48\x00\x00\x48\x00\x00\x48\x00\x00\xFF\x00\x00\x00\x00\x00\x48\x00\x00\x00\x00\xC5", 26,
                                      "\xFF\x00\x00\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF",
@@ -979,5 +976,5 @@ SK_ACS_InitPlugin (void)
     SK_Thread_CloseSelf ();
 
     return 0;
-  });
+  }, L"[SK] Plug-In Init");
 }
