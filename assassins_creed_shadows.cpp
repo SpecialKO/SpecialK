@@ -39,20 +39,21 @@
 #define __SK_SUBSYSTEM__ L"AC Shadows"
 
 bool               __SK_ACS_IsMultiFrameCapable   = false;
-bool               __SK_ACS_AlwaysUseFrameGen     =  true;
-bool               __SK_ACS_ShowFMVIndicator      = false;
-bool               __SK_ACS_UncapFramerate        =  true;
 int                __SK_ACS_DLSSG_MultiFrameCount =     1;
+bool               __SK_ACS_AlwaysUseFrameGen     =  true;
+bool               __SK_ACS_ShowFMVIndicator      =  true;
+bool               __SK_ACS_UncapFramerate        =  true;
 bool               __SK_ACS_RemoveBlackBars       =  true;
 bool               __SK_ACS_ExpandFOVRange        =  true;
+bool               __SK_ACS_FixCloth              =  true;
 
+sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
 sk::ParameterBool*  _SK_ACS_AlwaysUseFrameGen;
 sk::ParameterBool*  _SK_ACS_ShowFMVIndicator;
 sk::ParameterBool*  _SK_ACS_UncapFramerate;
-sk::ParameterBool*  _SK_ACS_DynamicCloth;
+sk::ParameterBool*  _SK_ACS_FixCloth;
 sk::ParameterBool*  _SK_ACS_RemoveBlackBars;
 sk::ParameterBool*  _SK_ACS_ExpandFOVRange;
-sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
 
 using slGetPluginFunction_pfn = void*      (*)(const char* functionName);
 using slDLSSGSetOptions_pfn   = sl::Result (*)(const sl::ViewportHandle& viewport, sl::DLSSGOptions& options);
@@ -68,12 +69,11 @@ uintptr_t      __SK_ACS_BlackBarsAddr       =       0;
 uintptr_t      __SK_ACS_ClothSimAddr        =       0;
 uintptr_t      __SK_ACS_FOVSliderAddr       =       0;
 uintptr_t      __SK_ACS_FOVMultiplierAddr   =       0;
-bool           __SK_ACS_DynamicCloth        =    true;
 
 void
 SK_ACS_ApplyClothPhysicsFix (bool enable)
 {
-  __SK_ACS_DynamicCloth = enable;
+  __SK_ACS_FixCloth = enable;
 
   if (__SK_ACS_ClothSimAddr != 0)
   {
@@ -87,7 +87,7 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
 
           // By default the game appears to use 60fps cloth physics during gameplay and 30fps cloth physics during cutscenes.
 
-          if (__SK_ACS_DynamicCloth)
+          if (__SK_ACS_FixCloth)
           {
             // Use Special K's target framerate and lock to that, this keeps
             //   a fixed timestep, but uses SK's framerate limit as the timestep.
@@ -327,7 +327,7 @@ SK_ACS_PlugInCfg (void)
     bool always_use_framegen =
       __SK_ACS_AlwaysUseFrameGen;
 
-    ImGui::SeparatorText ("Framerate");
+    ImGui::SeparatorText (ICON_FA_TACHOMETER_ALT "  Framerate");
     ImGui::TreePush      ("Framerate");
 
     ImGui::BeginGroup ();
@@ -353,12 +353,12 @@ SK_ACS_PlugInCfg (void)
     {
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("Identify FMVs", &__SK_ACS_ShowFMVIndicator))
+      if (ImGui::Checkbox ("Show FMV Indicator " ICON_FA_FILM, &__SK_ACS_ShowFMVIndicator))
       {     _SK_ACS_ShowFMVIndicator->store (__SK_ACS_ShowFMVIndicator);
         changed = true;
       }
 
-      ImGui::SetItemTooltip ("Identify when cutscenes are running at low framerate because they are pre-rendered.");
+      ImGui::SetItemTooltip ("Indicate when cutscenes are running at 30 FPS because they are pre-rendered.");
     }
 
     if (__SK_HasDLSSGStatusSupport)
@@ -433,18 +433,18 @@ SK_ACS_PlugInCfg (void)
 
     if (__SK_ACS_ClothSimAddr != 0)
     {
-      if (ImGui::Checkbox ("Dynamic Cloth Rate", &__SK_ACS_DynamicCloth))
+      if (ImGui::Checkbox ("Fix Cloth Simulation", &__SK_ACS_FixCloth))
       {
         changed = true;
 
-        _SK_ACS_DynamicCloth->store (__SK_ACS_DynamicCloth);
+        _SK_ACS_FixCloth->store (__SK_ACS_FixCloth);
 
-        SK_ACS_ApplyClothPhysicsFix (__SK_ACS_DynamicCloth);
+        SK_ACS_ApplyClothPhysicsFix (__SK_ACS_FixCloth);
       }
 
       if (ImGui::BeginItemTooltip ())
       {
-        ImGui::TextUnformatted ("Use dynamic cloth framerate rather than fixed 30/60 in cutscenes/gameplay.");
+        ImGui::TextUnformatted ("Use Variable Cloth Rate Rather than Fixed 30/60 in Cutscenes / Gameplay.");
         ImGui::Separator       ();
         ImGui::BulletText      ("It is critical to set a sustainable framerate limit, cloth simulation will ALWAYS run at the framerate limit (even if the game runs slower).");
         ImGui::BulletText      ("Original feature thanks to Lyall's ACShadowsFix mod, refer to GitHub.");
@@ -472,12 +472,12 @@ SK_ACS_PlugInCfg (void)
 
     ImGui::TreePop ();
 
-    ImGui::SeparatorText ("Aspect Ratio");
+    ImGui::SeparatorText (ICON_FA_PORTRAIT "  Aspect Ratio");
     ImGui::TreePush      ("Aspect Ratio");
 
     if (__SK_ACS_BlackBarsAddr != 0)
     {
-      if (ImGui::Checkbox ("Disable Cutscene Blackbars", &__SK_ACS_RemoveBlackBars))
+      if (ImGui::Checkbox ("Remove Cutscene Blackbars", &__SK_ACS_RemoveBlackBars))
       {
         changed = true;
 
@@ -500,7 +500,7 @@ SK_ACS_PlugInCfg (void)
     {
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("Expand FOV Range", &__SK_ACS_ExpandFOVRange))
+      if (ImGui::Checkbox ("Expand FOV Slider Range", &__SK_ACS_ExpandFOVRange))
       {
         changed = true;
 
@@ -573,10 +573,10 @@ SK_ACS_InitPlugin (void)
                                    L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
                                    L"Override Multi-Frame Gen" );
 
-    _SK_ACS_DynamicCloth =
+    _SK_ACS_FixCloth =
       _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                   L"DynamicClothRate", __SK_ACS_DynamicCloth,
-                                   L"Use Dynamic Rate For Cloth" );
+                                   L"FixClothRate", __SK_ACS_FixCloth,
+                                   L"Use Variable Rate For Cloth" );
 
     _SK_ACS_RemoveBlackBars =
       _CreateConfigParameterBool ( L"AssassinsCreed.AspectRatio",
@@ -605,7 +605,7 @@ SK_ACS_InitPlugin (void)
 
     if (__SK_ACS_ClothSimAddr != 0)
     {
-      SK_ACS_ApplyClothPhysicsFix (__SK_ACS_DynamicCloth);
+      SK_ACS_ApplyClothPhysicsFix (__SK_ACS_FixCloth);
     }
 
     __SK_ACS_BlackBarsAddr =
