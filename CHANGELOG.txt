@@ -1,4 +1,9 @@
-﻿25.4.7
+﻿25.4.7.1
+========
+ + Use Special K's target frametime as cloth simulation's fixed timestep in
+     Assassin's Creed Shadows instead of using the game's internal clock.
+
+25.4.7
 ======
  + Integrated Lyall's FOV slider range expansion for Assassin's Creed Shadows.
 

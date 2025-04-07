@@ -89,9 +89,21 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
 
           if (__SK_ACS_DynamicCloth)
           {
-            // Use current frametime for cloth physics instead of fixed 0.01666/0.03333 values.
-            if (uintptr_t pFramerate = *reinterpret_cast <uintptr_t *>(ctx.rcx + 0x70))
-              ctx.xmm0.f32 [0] = *reinterpret_cast<float *>(pFramerate + 0x78); // Current frametime
+            // Use Special K's target framerate and lock to that, this keeps
+            //   a fixed timestep, but uses SK's framerate limit as the timestep.
+            if (__target_fps > 0.0f)
+            {
+              ctx.xmm0.f32 [0] =
+                (1.0f / (__target_fps * (pFrameGenEnabled != nullptr &&
+                                        *pFrameGenEnabled ? 0.5f : 1.0f)));
+            }
+
+            else
+            {
+              // Use current frametime for cloth physics instead of fixed 0.01666/0.03333 values.
+              if (uintptr_t pFramerate = *reinterpret_cast <uintptr_t *>(ctx.rcx + 0x70))
+                ctx.xmm0.f32 [0] = *reinterpret_cast<float *>(pFramerate + 0x78); // Current frametime
+            }
           }
         }
       );
