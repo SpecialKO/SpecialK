@@ -631,8 +631,6 @@ SK_ACS_InitPlugin (void)
                                      "\xFF\x00\xFF\xFF\x00\x00\x00\x00\x00\xFF\xFF\x00\xFF\x00\xFF\xFF\x00\xFF\x00\x00\x00\x00\x00\xFF\xFF\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x00\xFF\xFF",
                                      (void*)img_base_addr, 0x2);
 
-    config.compatibility.memory_scans_may_timeout = orig_timeout_policy;
-
     if ( __SK_ACS_FOVSliderAddr     != 0 &&
          __SK_ACS_FOVMultiplierAddr != 0 )
     {
