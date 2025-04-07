@@ -353,7 +353,7 @@ SK_ACS_PlugInCfg (void)
     {
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("Show FMV Indicator " ICON_FA_FILM, &__SK_ACS_ShowFMVIndicator))
+      if (ImGui::Checkbox ("Show " ICON_FA_FILM " Indicator", &__SK_ACS_ShowFMVIndicator))
       {     _SK_ACS_ShowFMVIndicator->store (__SK_ACS_ShowFMVIndicator);
         changed = true;
       }
@@ -387,8 +387,6 @@ SK_ACS_PlugInCfg (void)
 
         if (ImGui::Checkbox ("Allow DLSS Flip Metering", &config.nvidia.dlss.allow_flip_metering))
         {
-          config.utility.save_async ();
-
           restart_required = true;
         }
 
@@ -529,7 +527,7 @@ SK_ACS_PlugInCfg (void)
 
     if (changed)
     {
-      SK_SaveConfig ();
+      config.utility.save_async ();
     }
 
     ImGui::TreePop ();
