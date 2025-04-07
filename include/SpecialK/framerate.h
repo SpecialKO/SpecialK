@@ -314,7 +314,10 @@ namespace SK
             avg_ms =
               std::accumulate ( sampled_lows.begin (),
                                 sampled_lows.begin ()  + end_sample_idx,
-                                        0.0 ) / (double)(end_sample_idx);
+                                        0.0 ) /
+                           // Prevent division by zero, some games use an
+                           //   exception for it...
+                           (double)(std::max ((size_t)1, end_sample_idx));
 
         return
           avg_ms;

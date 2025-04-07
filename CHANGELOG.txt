@@ -2,6 +2,8 @@
 ======
  + Disable floating-point exceptions on the render thread for all games, since
      it will cause crashes in CryEngine games and some others.
+ + Eliminate potential floating-point division by zero (which is normally safe),
+     in SK::Framerate::Stats::calcPercentile (...) for the reason above.
 
 25.4.7.4
 ========
