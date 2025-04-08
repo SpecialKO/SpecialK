@@ -56,12 +56,12 @@ float SK_LatentSyncBackOffMultiplier = 1.020f;
 bool SK_HasHighResWaitableTimer = false;
 
 // Set these clocks to non-zero before init. to prevent division by zero races
-int64_t                     SK_QpcFreq        = 1;
-int64_t                     SK_QpcTicksPerMs  = 1;
+uint64_t                    SK_QpcFreq        = 1ULL;
+uint64_t                    SK_QpcTicksPerMs  = 1ULL;
 uint32_t                    SK_QpcFreqInTsc   = 1UL;
-int64_t                     SK_TscFreq        = 1;
-int64_t                     SK_PerfFreq       = 1;
-int64_t                     SK_PerfTicksPerMs = 1;
+uint64_t                    SK_TscFreq        = 1ULL;
+uint64_t                    SK_PerfFreq       = 1ULL;
+uint64_t                    SK_PerfTicksPerMs = 1ULL;
 uint32_t                    SK_PerfFreqInTsc  = 1UL;
 bool                        SK_TscInvariant   = false;
 bool                        SK_CPU_HasMWAITX  = false;
@@ -1318,10 +1318,11 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  const auto now  =
-    SK_QueryPerf ().QuadPart;
+  const uint64_t now  = static_cast <uint64_t> (
+    SK_QueryPerf ().QuadPart
+  );
 
-  auto next_vsync = 0LL;
+  auto next_vsync = 0ULL;
 
   if (tracks_window)
   {

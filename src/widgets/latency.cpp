@@ -51,14 +51,14 @@ static constexpr auto _MAX_FRAME_HISTORY = 384;
 
 #pragma warning (disable:4324)
 struct alignas (64) {
-  float  simulation [_MAX_FRAME_HISTORY+1] = { },
-      render_submit [_MAX_FRAME_HISTORY+1] = { }, frame_total [_MAX_FRAME_HISTORY+1] = { },
-         gpu_active [_MAX_FRAME_HISTORY+1] = { }, gpu_start   [_MAX_FRAME_HISTORY+1] = { },
-          fill_cpu0 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0   [_MAX_FRAME_HISTORY+1] = { },
-          fill_cpu1 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1   [_MAX_FRAME_HISTORY+1] = { },
-          max_stage [_MAX_FRAME_HISTORY+1] = { };
-  INT64 sample_time [_MAX_FRAME_HISTORY+1] = { };
-  float  sample_age [_MAX_FRAME_HISTORY+1] = { };
+  float  simulation  [_MAX_FRAME_HISTORY+1] = { },
+      render_submit  [_MAX_FRAME_HISTORY+1] = { }, frame_total [_MAX_FRAME_HISTORY+1] = { },
+         gpu_active  [_MAX_FRAME_HISTORY+1] = { }, gpu_start   [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu0  [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0   [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu1  [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1   [_MAX_FRAME_HISTORY+1] = { },
+          max_stage  [_MAX_FRAME_HISTORY+1] = { };
+  UINT64 sample_time [_MAX_FRAME_HISTORY+1] = { };
+  float  sample_age  [_MAX_FRAME_HISTORY+1] = { };
   int   frames = 0;
 } static frame_history,
          frame_graph;

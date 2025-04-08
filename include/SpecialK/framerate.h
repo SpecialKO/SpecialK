@@ -62,14 +62,14 @@ typedef struct _PROCESSOR_POWER_INFORMATION {
  *PPROCESSOR_POWER_INFORMATION;
 #pragma pack(pop)
 
-extern int64_t  SK_QpcFreq;
-extern int64_t  SK_QpcTicksPerMs;
+extern uint64_t SK_QpcFreq;
+extern uint64_t SK_QpcTicksPerMs;
 extern uint32_t SK_QpcFreqInTsc;
-extern int64_t  SK_TscFreq;
+extern uint64_t SK_TscFreq;
 extern bool     SK_TscInvariant;
-extern int64_t  SK_PerfFreq;
+extern uint64_t SK_PerfFreq;
 extern uint32_t SK_PerfFreqInTsc;
-extern int64_t  SK_PerfTicksPerMs;
+extern uint64_t SK_PerfTicksPerMs;
 extern bool     SK_CPU_HasMWAITX;
 
 __forceinline

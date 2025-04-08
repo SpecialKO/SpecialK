@@ -39,7 +39,7 @@
 #include <concurrent_unordered_map.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void) noexcept;
-extern int64_t       SK_PerfFreq;
+extern uint64_t      SK_PerfFreq;
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 

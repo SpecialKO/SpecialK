@@ -2137,8 +2137,8 @@ SK_D3D11_TexMgr::reset (void)
   SK_D3D11_need_tex_reset = false;
 
 
-  const int64_t time_now =
-    SK_QueryPerf ().QuadPart;
+  const uint64_t time_now =
+    (uint64_t)SK_QueryPerf ().QuadPart;
 
   // Additional conditions that may trigger a purge
   if (! must_free)
