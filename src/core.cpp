@@ -2957,8 +2957,11 @@ SK_ShutdownCore (const wchar_t* backend)
   if (__SK_bypass)
     return true;
 
+  // Need more precision for the profiling code below
+  SK_FPU_SetPrecision (_PC_64);
+
   static bool
-      log_unloads = true;//!SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows);
+      log_unloads = true;
   if (log_unloads)
   {
     SK_PrintUnloadedDLLs (&dll_log.get ());
