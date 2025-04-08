@@ -7165,7 +7165,7 @@ SK_SaveConfig ( std::wstring name,
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
   rtss.overlay.hdr_luminance->store            (config.rtss.overlay_luminance);
 
-//silent->store                                (config.system.silent);
+  silent->store                                (config.system.silent);
   log_level->store                             (config.system.log_level);
   prefer_fahrenheit->store                     (config.system.prefer_fahrenheit);
 

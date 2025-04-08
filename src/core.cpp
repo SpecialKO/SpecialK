@@ -3254,7 +3254,8 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (! SK_Debug_IsCrashing ())
   {
-    if (config.system.handle_crashes)
+    // Anything from this point on is the game's own problem...
+    if (std::exchange (config.system.handle_crashes, false))
       SK::Diagnostics::CrashHandler::Shutdown ();
   }
 
