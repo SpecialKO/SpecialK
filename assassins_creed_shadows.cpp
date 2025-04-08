@@ -78,7 +78,8 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
   if (__SK_ACS_ClothSimAddr != 0)
   {
     // From ACShadowsFix (https://github.com/Lyall/ACShadowsFix/blob/5b53a3c84fa8dee39a1ed49b60995b334a119d97/src/dllmain.cpp#L246C1-L256C20)
-    static SafetyHookMid ClothPhysicsMidHook =
+#if 0
+    static SafetyHookMid ClothPhysicsMidHook_v0 =
       safetyhook::create_mid (__SK_ACS_ClothSimAddr,
         [](SafetyHookContext& ctx)
         {
@@ -107,6 +108,37 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
           }
         }
       );
+#else
+    static SafetyHookMid ClothPhysicsMidHook_v1 =
+      safetyhook::create_mid (__SK_ACS_ClothSimAddr,
+        [](SafetyHookContext& ctx)
+        {
+          if (! ctx.rdx)
+            return;
+
+          // By default the game appears to use 60fps cloth physics during gameplay and 30fps cloth physics during cutscenes.
+
+          if (__SK_ACS_FixCloth)
+          {
+            // Use Special K's target framerate and lock to that, this keeps
+            //   a fixed timestep, but uses SK's framerate limit as the timestep.
+            if (__target_fps > 0.0f)
+            {
+              ctx.xmm0.f32 [0] =
+                (1.0f / (__target_fps * (pFrameGenEnabled != nullptr &&
+                                        *pFrameGenEnabled ? 0.5f : 1.0f)));
+            }
+
+            else
+            {
+              // Use current frametime for cloth physics instead of fixed 0.01666/0.03333 values.
+              if (uintptr_t pFramerate = *reinterpret_cast <uintptr_t *>(ctx.rdx + 0x70))
+                ctx.xmm0.f32 [0] = *reinterpret_cast<float *>(pFramerate + 0x78); // Current frametime
+            }
+          }
+        }
+      );
+#endif
   }
 }
 
@@ -550,12 +582,12 @@ SK_ACS_InitPlugin (void)
     // Pattern scanning timeouts are not required on this thread
     SK_TLS_Bottom ()->memory->memory_scans_should_timeout = FALSE;
 
-    __SK_ACS_ClothSimAddr = 0;
-      //(uintptr_t)SK_ScanAlignedExec ("\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x00\x83", 18,
-      //                               "\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x00\x83",
-      //                               //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01", 30,
-      //                               //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01",
-      //                               (void*)img_base_addr);
+    __SK_ACS_ClothSimAddr =
+      (uintptr_t)SK_ScanAlignedExec ("\x4C\x8B\x00\x00\x49\x8B\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x41\x00\x00\x00\x49\x00\x00\x01", 32,
+                                     "\x4C\x8B\x00\x00\x49\x8B\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x41\x00\x00\x00\x49\x00\x00\x01",
+                                     //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01", 30,
+                                     //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01",
+                                     (void*)img_base_addr);
 
     SK_LOGi0 (L"ClothSim = %ws", __SK_ACS_ClothSimAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_ClothSimAddr).c_str () : L"Not Found?!");
 

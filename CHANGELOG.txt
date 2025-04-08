@@ -1,7 +1,6 @@
 ﻿25.4.9
 ======
- + Updated Assassin's Creed Shadows plug-in for 1.0.2 patch, Cloth Simulation
-     fix and FOV slider adjusts are unsupported for now.
+ + Updated Assassin's Creed Shadows Plug-In for 1.0.2 patch.
 
 25.4.8.5
 ========
