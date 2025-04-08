@@ -180,57 +180,11 @@ SK_ACS_ApplyExpandedFOV (bool enable)
   }
 }
 
+static void* FrameGenTestAddr = nullptr;
+
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
 {
-  static uintptr_t base_addr =
-    (uintptr_t)SK_Debug_GetImageBaseAddr ();
-
-  static void* FrameGenTestAddr = nullptr;
-
-  SK_RunOnce (
-    /*
-    ACShadows.exe+346B5B4 - C1 E0 03              - shl eax,03 { 3 }
-    ACShadows.exe+346B5B7 - 48 8B 15 0A2EC407     - mov rdx,[ACShadows.exe+B0AE3C8] { (0F507BC0) }  <---   RIP + 0x07c42e0a
-    ACShadows.exe+346B5BE - 80 7A 24 00           - cmp byte ptr [rdx+24],00 { 0 }
-    ACShadows.exe+346B5C2 - 48 8B 04 01           - mov rax,[rcx+rax]
-    ACShadows.exe+346B5C6 - 48 89 84 24 80000000  - mov [rsp+00000080],rax
-    */
-
-    void* code_addr =
-      SK_ScanAlignedExec ("\xc1\xe0\x03\x48\x8B\x15\x00\x00\x00\x00\x80\x7A\x24\x00\x48\x8B\x04\x01\x48\x89\x84\x24", 22,
-                          "\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\x00\x48\x8B\x04\x01\x48\x89\x84\x24", (void*)base_addr, 4);
-  
-    if (code_addr != nullptr)
-    {
-      uint32_t  ptr_offset =                                    0x24;
-      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)code_addr + 6);
-      uintptr_t rip        =               (uintptr_t)code_addr + 10;
-  
-      pFrameGenEnabled =
-        *(bool **)(rip + rip_offset) + ptr_offset;
-    }
-
-    /*
-    ACShadows.exe+3397C4C - 83 FD 0A              - cmp ebp,0A { 10 }
-    ACShadows.exe+3397C4F - 0F94 C0               - sete al
-    ACShadows.exe+3397C52 - 44 89 66 20           - mov [rsi+20],r12d
-    ACShadows.exe+3397C56 - 44 88 6E 24           - mov [rsi+24],r13b  <---  (base + 10)
-    ACShadows.exe+3397C5A - 89 E9                 - mov ecx,ebp
-    ACShadows.exe+3397C5C - 83 E1 FE              - and ecx,-02 { 254 }
-    */
-
-    code_addr =
-      SK_ScanAlignedExec ("\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", 19,
-                          "\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", (void*)base_addr);
-
-    if (code_addr != nullptr)
-    {
-      FrameGenTestAddr =
-        (void *)((uintptr_t)code_addr + 10);
-    }
-  );
-
   if (pFrameGenEnabled == nullptr || FrameGenTestAddr == nullptr)
   {
     SK_RunOnce (SK_ImGui_Warning (L"Could not find Frame Generation code?!"));
@@ -596,10 +550,14 @@ SK_ACS_InitPlugin (void)
     // Pattern scanning timeouts are not required on this thread
     SK_TLS_Bottom ()->memory->memory_scans_should_timeout = FALSE;
 
-    __SK_ACS_ClothSimAddr =
-      (uintptr_t)SK_ScanAlignedExec ("\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01", 30,
-                                     "\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01",
-                                     (void*)img_base_addr);
+    __SK_ACS_ClothSimAddr = 0;
+      //(uintptr_t)SK_ScanAlignedExec ("\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x00\x83", 18,
+      //                               "\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x00\x83",
+      //                               //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01", 30,
+      //                               //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01",
+      //                               (void*)img_base_addr);
+
+    SK_LOGi0 (L"ClothSim = %ws", __SK_ACS_ClothSimAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_ClothSimAddr).c_str () : L"Not Found?!");
 
     if (__SK_ACS_ClothSimAddr != 0)
     {
@@ -611,6 +569,8 @@ SK_ACS_InitPlugin (void)
                                      "\x84\xC0\x74\x00\xC5\xFA\x00\x00\x00\x00\xC5\xFA\x00\x00\x00\x00\xC5\xFA\x00\x00\xC5\x00\x57\x00\xC5\xFA",
                                      (void*)img_base_addr);
 
+    SK_LOGi0 (L"BlackBars = %ws", __SK_ACS_BlackBarsAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_BlackBarsAddr).c_str () : L"Not Found?!");
+
     if (__SK_ACS_BlackBarsAddr != 0)
     {
       SK_ACS_ApplyBlackBarRemoval (__SK_ACS_RemoveBlackBars);
@@ -621,10 +581,14 @@ SK_ACS_InitPlugin (void)
                                      "\xFF\x00\x00\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF",
                                      (void*)img_base_addr, 0x2);
 
+    SK_LOGi0 (L"FOVSlider = %ws", __SK_ACS_FOVSliderAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_FOVSliderAddr).c_str () : L"Not Found?!");
+
     __SK_ACS_FOVMultiplierAddr =
       (uintptr_t)SK_ScanAlignedExec ("\x77\x00\x48\x8B\x00\x00\x00\x00\x00\x48\x85\x00\x74\x00\x48\x8B\x00\xFF\x00\x00\x00\x00\x00\xC5\xFA\x00\x00\x00\xC5\xFA\x00\x00\x00\x00\x00\x00\x48\x8B", 38,
                                      "\xFF\x00\xFF\xFF\x00\x00\x00\x00\x00\xFF\xFF\x00\xFF\x00\xFF\xFF\x00\xFF\x00\x00\x00\x00\x00\xFF\xFF\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x00\xFF\xFF",
                                      (void*)img_base_addr, 0x2);
+
+    SK_LOGi0 (L"FOVMultiplier = %ws", __SK_ACS_FOVMultiplierAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_FOVMultiplierAddr).c_str () : L"Not Found?!");
 
     if ( __SK_ACS_FOVSliderAddr     != 0 &&
          __SK_ACS_FOVMultiplierAddr != 0 )
@@ -634,11 +598,98 @@ SK_ACS_InitPlugin (void)
       SK_ACS_ApplyExpandedFOV (__SK_ACS_ExpandFOVRange);
     }
 
-    while (SK_GetFramesDrawn () < 480)
-           SK_SleepEx (150UL, FALSE);
+    /*
+    ACShadows.exe+346B5B4 - C1 E0 03              - shl eax,03 { 3 }
+    ACShadows.exe+346B5B7 - 48 8B 15 0A2EC407     - mov rdx,[ACShadows.exe+B0AE3C8] { (0F507BC0) }  <---   RIP + 0x07c42e0a
+    ACShadows.exe+346B5BE - 80 7A 24 00           - cmp byte ptr [rdx+24],00 { 0 }
+    ACShadows.exe+346B5C2 - 48 8B 04 01           - mov rax,[rcx+rax]
+    ACShadows.exe+346B5C6 - 48 89 84 24 80000000  - mov [rsp+00000080],rax
+    */
+
+    void* code_addr =
+      SK_ScanAlignedExec ("\xc1\xe0\x03\x48\x8B\x15\x00\x00\x00\x00\x80\x7A\x24\x00\x48\x8B\x04\x01\x48\x89\x84\x24", 22,
+                          "\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\x00\x48\x8B\x04\x01\x48\x89\x84\x24", (void*)img_base_addr, 4);
+
+    SK_LOGi0 (L"FrameGenEnable1 = %ws", code_addr != nullptr ? SK_MakePrettyAddress (code_addr).c_str () : L"Not Found?!");
+  
+    if (code_addr != nullptr)
+    {
+      uint32_t  ptr_offset =                                    0x24;
+      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)code_addr + 6);
+      uintptr_t rip        =               (uintptr_t)code_addr + 10;
+  
+      pFrameGenEnabled =
+        *(bool **)(rip + rip_offset) + ptr_offset;
+    }
+
+    /*
+    ACShadows.exe+3397C4C - 83 FD 0A              - cmp ebp,0A { 10 }
+    ACShadows.exe+3397C4F - 0F94 C0               - sete al
+    ACShadows.exe+3397C52 - 44 89 66 20           - mov [rsi+20],r12d
+    ACShadows.exe+3397C56 - 44 88 6E 24           - mov [rsi+24],r13b  <---  (base + 10)
+    ACShadows.exe+3397C5A - 89 E9                 - mov ecx,ebp
+    ACShadows.exe+3397C5C - 83 E1 FE              - and ecx,-02 { 254 }
+    */
+
+    code_addr =
+      SK_ScanAlignedExec ("\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", 19,
+                          "\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", (void*)img_base_addr);
+
+    SK_LOGi0 (L"FrameGenEnable2 = %ws", code_addr != nullptr ? SK_MakePrettyAddress (code_addr).c_str () : L"Not Found?!");
+
+    if (code_addr != nullptr)
+    {
+      FrameGenTestAddr =
+        (void *)((uintptr_t)code_addr + 10);
+    }
+
+        /*
+    ACShadows.exe+F7B0C9 - 48 83 C4 20           - add rsp,20 { 32 }
+    ACShadows.exe+F7B0CD - 5E                    - pop rsi
+    ACShadows.exe+F7B0CE - C3                    - ret 
+    ACShadows.exe+F7B0CF - 80 79 2C 00           - cmp byte ptr [rcx+2C],00 { 0 }
+    ACShadows.exe+F7B0D3 - 75 CA                 - jne ACShadows.exe+F7B09F         <---  base + 10
+    ACShadows.exe+F7B0D5 - EB 05                 - jmp ACShadows.exe+F7B0DC
+    ACShadows.exe+F7B0D7 - 45 84 C0              - test r8b,r8b
+    ACShadows.exe+F7B0DA - 75 C3                 - jne ACShadows.exe+F7B09F
+    */
+
+    static void* limit_check_addr =
+      (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\x00\xEB\x00\x45\x84\xC0\x75\x00\xC5", 20,
+                                              "\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\x00\xEB\x00\x45\x84\xC0\x75\x00\xC5", (void*)img_base_addr) + 10);
+                                                                                   //??      ??      ??                  ??
+    SK_LOGi0 (L"LimitCheckAddr = %ws", limit_check_addr != nullptr ? SK_MakePrettyAddress (limit_check_addr).c_str () : L"Not Found?!");
+
+    static void* limit_store_addr = nullptr;
 
     // Fail-safe incase any code that sets this was missed
     static float* framerate_limit = nullptr;
+
+    if (limit_check_addr != (void *)10)
+    {
+      /*
+      ACShadows.exe+F7B0BA - 48 8B 05 9F58D108     - mov rax,[ACShadows.exe+9C90960] { (04864E98) }
+      ACShadows.exe+F7B0C1 - C5FA1180 98 000000    - vmovss [rax+00000098],xmm0
+      */
+
+      limit_store_addr =
+        (void *)((uintptr_t)limit_check_addr - 18);
+
+      uint32_t  ptr_offset =                                           0x98;
+      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)limit_store_addr - 4);
+      uintptr_t rip        =               (uintptr_t)limit_store_addr;
+
+      framerate_limit =
+        (float *)(*(uint8_t **)((uintptr_t)rip + rip_offset) + ptr_offset);
+    }
+
+    else
+    {
+      SK_ImGui_Warning (L"Could not find Framerate Limiter Code?!");
+    }
+
+    while (SK_GetFramesDrawn () < 480)
+           SK_SleepEx (150UL, FALSE);
 
     static DWORD fmv_timeout_ms = 5000UL;
 
@@ -648,7 +699,12 @@ SK_ACS_InitPlugin (void)
             // 1.0.1
             { 0x0000000003724651, 0x0000000003725A7F, 0x00000000006A32F1, 0x00000000006A32F7,
               0x00000000006A330E, 0x00000000006A32B0, 0x00000000006A32B4, 0x00000000006A32B8,
-              0x000000000372CD05, 0x000000000372CD0C } )
+              0x000000000372CD05, 0x000000000372CD0C,
+
+              // 1.0.2
+              0x0000000003807571, 0x000000000380899F, 0x000000000069FF51, 0x000000000069FF57,
+              0x000000000069FF6E, 0x000000000069FF10, 0x000000000069FF14, 0x000000000069FF18,
+              0x000000000380F265, 0x000000000380F26C } )
     {
       ContinuableCallSites.insert (callsite);
     }
@@ -709,45 +765,6 @@ SK_ACS_InitPlugin (void)
         ( continuable ? EXCEPTION_CONTINUE_EXECUTION
                       : EXCEPTION_CONTINUE_SEARCH );
     });
-
-    /*
-    ACShadows.exe+F7B0C9 - 48 83 C4 20           - add rsp,20 { 32 }
-    ACShadows.exe+F7B0CD - 5E                    - pop rsi
-    ACShadows.exe+F7B0CE - C3                    - ret 
-    ACShadows.exe+F7B0CF - 80 79 2C 00           - cmp byte ptr [rcx+2C],00 { 0 }
-    ACShadows.exe+F7B0D3 - 75 CA                 - jne ACShadows.exe+F7B09F         <---  base + 10
-    ACShadows.exe+F7B0D5 - EB 05                 - jmp ACShadows.exe+F7B0DC
-    ACShadows.exe+F7B0D7 - 45 84 C0              - test r8b,r8b
-    ACShadows.exe+F7B0DA - 75 C3                 - jne ACShadows.exe+F7B09F
-    */
-
-    static void* limit_check_addr =
-      (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\xCA\xEB\x05\x45\x84\xC0\x75\xC3", 19,
-                                              "\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\xCA\xEB\x05\x45\x84\xC0\x75\xC3", (void*)img_base_addr) + 10);
-    static void* limit_store_addr = nullptr;
-
-    if (limit_check_addr != (void *)10)
-    {
-      /*
-      ACShadows.exe+F7B0BA - 48 8B 05 9F58D108     - mov rax,[ACShadows.exe+9C90960] { (04864E98) }
-      ACShadows.exe+F7B0C1 - C5FA1180 98 000000    - vmovss [rax+00000098],xmm0
-      */
-
-      limit_store_addr =
-        (void *)((uintptr_t)limit_check_addr - 18);
-
-      uint32_t  ptr_offset =                                           0x98;
-      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)limit_store_addr - 4);
-      uintptr_t rip        =               (uintptr_t)limit_store_addr;
-
-      framerate_limit =
-        (float *)(*(uint8_t **)((uintptr_t)rip + rip_offset) + ptr_offset);
-    }
-
-    else
-    {
-      SK_ImGui_Warning (L"Could not find Framerate Limiter Code?!");
-    }
 
     config.system.silent_crash = true;
     config.utility.save_async ();
