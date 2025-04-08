@@ -236,20 +236,6 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
                     nullptr, 0, &ulBuffers, sizeof (ULONG),
                       &dwBytesRead, nullptr );
               }
-
-              SK_ImGui_CreateNotification (
-                "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                *wszManufacturerName != L'\0' ?
-                  SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x -:- Buffers: %d]",
-                     wszManufacturerName,
-                     wszProductName, device_vid,
-                                     device_pid, ulBuffers ).c_str () :
-                  SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x\r\n"
-                                   "\t[Driver Buffers: %d]",
-                     wszProductName, device_vid,
-                                     device_pid, ulBuffers ).c_str (),
-                "HID Compliant Gamepad Connected", 10000
-              );
             } break;
 
             case HID_USAGE_GENERIC_POINTER:
@@ -974,6 +960,25 @@ WriteFile_Detour (HANDLE       hFile,
           {
             hid_file->filterHidOutput (report_id, nNumberOfBytesToWrite, (void *)lpBuffer);
           }
+
+          if ( hid_file->bytes_read    == 0 &&
+               hid_file->bytes_written == 0 )
+          {
+            SK_ImGui_CreateNotification (
+              "HID.GamepadAttached", SK_ImGui_Toast::Info,
+              *hid_file->wszManufacturerName != L'\0' ?
+                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x]",
+                   hid_file->wszManufacturerName,
+                   hid_file->wszProductName, hid_file->device_vid,
+                                             hid_file->device_pid ).c_str () :
+                SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                   hid_file->wszProductName, hid_file->device_vid,
+                                             hid_file->device_pid ).c_str (),
+              "Gamepad Connected", 10000
+            );
+          }
+
+          hid_file->bytes_written += nNumberOfBytesToWrite;
         }
       } break;
 
@@ -1096,6 +1101,24 @@ ReadFile_Detour (HANDLE       hFile,
           size_t nNumberOfBytesRead = lpNumberOfBytesRead != nullptr ?
                              (size_t)*lpNumberOfBytesRead : (size_t)nNumberOfBytesToRead;
 
+          if ( hid_file->bytes_read    == 0 &&
+               hid_file->bytes_written == 0 )
+          {
+            SK_ImGui_CreateNotification (
+              "HID.GamepadAttached", SK_ImGui_Toast::Info,
+              *hid_file->wszManufacturerName != L'\0' ?
+                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x]",
+                   hid_file->wszManufacturerName,
+                   hid_file->wszProductName, hid_file->device_vid,
+                                             hid_file->device_pid ).c_str () :
+                SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                   hid_file->wszProductName, hid_file->device_vid,
+                                             hid_file->device_pid ).c_str (),
+              "Gamepad Connected", 10000
+            );
+          }
+
+          hid_file->bytes_read += nNumberOfBytesToRead;
 
           if (lpBuffer != nullptr)
           {
@@ -1334,6 +1357,25 @@ ReadFileEx_Detour (HANDLE                          hFile,
           return TRUE;
         }
       }
+
+      if ( hid_file->bytes_read    == 0 &&
+           hid_file->bytes_written == 0 )
+      {
+        SK_ImGui_CreateNotification (
+          "HID.GamepadAttached", SK_ImGui_Toast::Info,
+          *hid_file->wszManufacturerName != L'\0' ?
+            SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x]",
+               hid_file->wszManufacturerName,
+               hid_file->wszProductName, hid_file->device_vid,
+                                         hid_file->device_pid ).c_str () :
+            SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+               hid_file->wszProductName, hid_file->device_vid,
+                                         hid_file->device_pid ).c_str (),
+          "Gamepad Connected", 10000
+        );
+      }
+
+      hid_file->bytes_read += nNumberOfBytesToRead;
 
       SK_HID_READ (hid_file->device_type);
       SK_HID_VIEW (hid_file->device_type);

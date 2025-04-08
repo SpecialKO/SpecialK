@@ -1,6 +1,11 @@
-﻿25.4.8.1
+﻿25.4.8.2
 ========
- + Allow games to see WM_DEVICE_CHANGED w/ DBT_DEVNODES_CHANGED as the type
+ + Reduce HID controller connected notifications by only reporting the first
+     time that data is read or written using said HID controller.
+
+25.4.8.1
+========
+ + Allow games to see WM_DEVICECHANGE w/ DBT_DEVNODES_CHANGED as the type
      initially before blocking subsequent messages, since they come in floods.
 
 25.4.8

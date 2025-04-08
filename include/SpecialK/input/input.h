@@ -1189,6 +1189,8 @@ struct SK_HID_DeviceFile {
   USHORT            device_pid                         = 0x0;
   BOOL              bDisableDevice                     = FALSE;
   HANDLE            hFile                              = INVALID_HANDLE_VALUE;
+  UINT64            bytes_read                         = 0;
+  UINT64            bytes_written                      = 0;
 
   SK_HID_DeviceFile (void) = default;
 
