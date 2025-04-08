@@ -2957,9 +2957,6 @@ SK_ShutdownCore (const wchar_t* backend)
   if (__SK_bypass)
     return true;
 
-  // Need more precision for the profiling code below
-  SK_FPU_SetPrecision (_PC_64);
-
   static bool
       log_unloads = true;
   if (log_unloads)
@@ -2978,10 +2975,15 @@ SK_ShutdownCore (const wchar_t* backend)
       log_perf_stats = true;
   if (log_perf_stats)
   {
+#ifndef _M_IX86
+    // Need more precision for the profiling code below
+    SK_FPU_SetPrecision (_PC_64);
+
     dll_log->Log (L"[ SK Perf. ] -----------------------");
     dll_log->Log (L"[ SK Perf. ]  Micro Profiled Tasks: ");
     dll_log->Log (L"[ SK Perf. ] -----------------------");
     SK_Perf_PrintProfiledTasks ();
+#endif
     dll_log->Log (L"[ SK Perf. ] -----------------------");
     dll_log->Log (L"[ SK Perf. ]  Initialization Steps: ");
     dll_log->Log (L"[ SK Perf. ] -----------------------");
@@ -5059,22 +5061,27 @@ void SK_PerfEvent_End (const wchar_t* wszEventName)
   else
   {
     if (config.system.log_level > 1)
-      dll_log->Log (L"[EventTrace] Event: %ws already recorded once...", wszEventName);              
+      dll_log->Log (L"[EventTrace] Event: %ws already recorded once...", wszEventName);
   }
 }
 
 uint64_t
 SK_ProfiledTask_Begin (void)
 {
+#ifndef _M_IX86
   uint64_t qpc =
     SK_QueryPerf ().QuadPart;
 
   return qpc;
+#else
+  return 0;
+#endif
 }
 
 SK_ProfiledTask_Accum
 SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time)
 {
+#ifndef _M_IX86
   uint64_t qpc = std::max (
       static_cast <uint64_t> (
         SK_QueryPerf ().QuadPart
@@ -5095,6 +5102,9 @@ SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time)
   }
 
   return time_taken;
+#else
+  return { 0, 0 };
+#endif
 }
 
 void SK_Perf_PrintProfiledTasks (void)
@@ -5135,8 +5145,8 @@ void SK_Perf_PrintProfiledTasks (void)
 
       dll_log->Log ( L"[Perf Tasks] "
         L"  Task:  %-44ws %9d / %15.5f ms      %11.5f ms/call",
-          task.first.c_str (), num_calls, dMsTotal,
-                                          dMsTotal / static_cast <double> (num_calls) );
+          task_name.c_str (), num_calls, dMsTotal,
+                                         dMsTotal / static_cast <double> (num_calls) );
     }
   }
 }
