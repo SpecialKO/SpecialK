@@ -1899,8 +1899,8 @@ ClipCursor_Detour (const RECT *lpRect)
     { // Expand clip rects while SK's UI is open so the mouse works as expected :)
       if ( SK_ImGui_Active () )
       {
-        SK_LOG1 ( ( L"Ignoring Clip Rectangle Set While SK's UI is Active" ),
-                    L"Input Mgr." );
+        SK_LOGs1 ( L"Input Mgr.",
+                   L"Ignoring Clip Rectangle Set While SK's UI is Active" );
 
         SK_Input_SaveClipRect (&game_window.cursor_clip  );
         SK_ClipCursor         (&game_window.actual.window);
@@ -2326,14 +2326,13 @@ AdjustWindowRect_Detour (
   _In_    DWORD  dwStyle,
   _In_    BOOL   bMenu  )
 {
-  SK_LOG1 ( ( L"AdjustWindowRect ( "
-              L"{%4li,%4li / %4li,%4li}, 0x%04X, %li ) - %s",
-              lpRect->left,  lpRect->top,
-              lpRect->right, lpRect->bottom,
-                dwStyle,
-                bMenu,
-                  SK_SummarizeCaller ().c_str () ),
-              L"Window Mgr" );
+  SK_LOGi1 ( L"AdjustWindowRect ( "
+             L"{%4li,%4li / %4li,%4li}, 0x%04X, %li ) - %s",
+             lpRect->left,  lpRect->top,
+             lpRect->right, lpRect->bottom,
+               dwStyle,
+               bMenu,
+                 SK_SummarizeCaller ().c_str () );
 
   // Override if forcing Fullscreen Borderless
   //
@@ -2473,14 +2472,13 @@ AdjustWindowRectEx_Detour (
   _In_    BOOL   bMenu,
   _In_    DWORD  dwExStyle )
 {
-  SK_LOG1 ( ( L"AdjustWindowRectEx ( "
-              L"{%4li,%4li / %4li,%4li}, 0x%04X, %li, 0x%04X ) - %s",
-           lpRect->left,  lpRect->top,
-           lpRect->right, lpRect->bottom,
-           dwStyle, bMenu,
-           dwExStyle,
-           SK_SummarizeCaller ().c_str () ),
-           L"Window Mgr" );
+  SK_LOGi1 ( L"AdjustWindowRectEx ( "
+             L"{%4li,%4li / %4li,%4li}, 0x%04X, %li, 0x%04X ) - %s",
+               lpRect->left,  lpRect->top,
+               lpRect->right, lpRect->bottom,
+               dwStyle, bMenu,
+               dwExStyle,
+               SK_SummarizeCaller ().c_str () );
 
   const bool faking_fullscreen =
     SK_GetCurrentRenderBackend ().isFakeFullscreen ();
@@ -4047,11 +4045,11 @@ SK_AdjustWindow (void)
                         SWP_NOSENDCHANGING | SWP_NOZORDER   | SWP_ASYNCWINDOWPOS |
                         SWP_NOREPOSITION   | SWP_SHOWWINDOW | SWP_NOACTIVATE );
 
-      SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
-                      mi.rcMonitor.left,    mi.rcMonitor.top,
-                      mi.rcMonitor.right  - mi.rcMonitor.left,
-                      mi.rcMonitor.bottom - mi.rcMonitor.top
-                ), L"Border Mgr" );
+      SK_LOGs1 ( L"Border Mgr",
+                 L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
+                     mi.rcMonitor.left,    mi.rcMonitor.top,
+                     mi.rcMonitor.right  - mi.rcMonitor.left,
+                     mi.rcMonitor.bottom - mi.rcMonitor.top );
 
       // Must set this or the mouse cursor clip rect will be wrong
       CopyRect (&game_window.actual.window, &mi.rcMonitor);
@@ -4380,11 +4378,10 @@ GetSystemMetrics_Detour (_In_ int nIndex)
   const int nRet =
     SK_GetSystemMetrics (nIndex);
 
-  SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
+  SK_LOGs4 ( L"Resolution",
+             L"GetSystemMetrics (%4li) : %-5li - %s",
                                  nIndex, nRet,
-                      SK_SummarizeCaller ().c_str () ),
-              L"Resolution"
-          );
+                      SK_SummarizeCaller ().c_str () );
 
 
 #ifndef _REMOVE_DEPRECATED_CRAP
@@ -6058,38 +6055,45 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_DEVICECHANGE:
     {
-      bool bIgnore = true;
+      bool bIgnore = false;
+
+      const wchar_t* event_type  = L"UNKNOWN";
+      bool           first_event = false;
 
       switch (wParam)
       {
-        //case DBT_QUERYCHANGECONFIG:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_QUERYCHANGECONFIG");    return 1;
-        //case DBT_CONFIGCHANGECANCELED:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_CONFIGCHANGECANCELED"); return 1;
-        //case DBT_CONFIGCHANGED:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_CONFIGCHANGED");        return 1;
+        case DBT_QUERYCHANGECONFIG:       event_type = L"DBT_QUERYCHANGECONFIG";       SK_RunOnce (first_event = true); break;
+        case DBT_CONFIGCHANGECANCELED:    event_type = L"DBT_CONFIGCHANGECANCELED";    SK_RunOnce (first_event = true); break;
+        case DBT_CONFIGCHANGED:           event_type = L"DBT_CONFIGCHANGED";           SK_RunOnce (first_event = true); break;
+
+        case DBT_DEVICEREMOVEPENDING:     event_type = L"DBT_DEVICEREMOVEPENDING";     SK_RunOnce (first_event = true); break;
+        case DBT_DEVICEQUERYREMOVEFAILED: event_type = L"DBT_DEVICEQUERYREMOVEFAILED"; SK_RunOnce (first_event = true); break;
+        case DBT_CUSTOMEVENT:             event_type = L"DBT_CUSTOMEVENT";             SK_RunOnce (first_event = true); break;
+        case DBT_DEVICETYPESPECIFIC:      event_type = L"DBT_DEVICETYPESPECIFIC";      SK_RunOnce (first_event = true); break;
 
         case DBT_DEVNODES_CHANGED: // Huge performance problem in Steam Input games!
         {
-          static int times_logged = 0;
-          if (     ++times_logged < 5) {
-            SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVNODES_CHANGED");
-          }
-          return 1;
-        } break;
+          SK_RunOnce (first_event = true);
 
-        //case DBT_DEVICEREMOVEPENDING:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVICEREMOVEPENDING");     return 1;
-        //case DBT_DEVICEQUERYREMOVEFAILED:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVICEQUERYREMOVEFAILED"); return 1;
-        //case DBT_CUSTOMEVENT:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_CUSTOMEVENT");             return 1;
-        //case DBT_DEVICETYPESPECIFIC:
-        //  SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVICETYPESPECIFIC");      return 1;
+          event_type = L"DBT_DEVNODES_CHANGED";
+
+          // The first one's free, subsequent messages should be blocked because this message
+          //   tends to come multiple times in succession.
+          if (! first_event)
+          {
+            static int times_logged = 0;
+            if (     ++times_logged < 5) {
+              SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVNODES_CHANGED");
+            }
+            return 1;
+          }
+        } break;
 
         case DBT_DEVICEARRIVAL:
         case DBT_DEVICEREMOVECOMPLETE:
         {
+          bIgnore = true;
+
           const auto pDevHdr =
             (DEV_BROADCAST_HDR *)lParam;
 
@@ -6143,15 +6147,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           SK_RunOnce (
             SK_LOGi0 (L"WM_DEVICECHANGE received for event type -- %x", wParam)
           );
-          bIgnore = false;
         } break;
       }
 
       if (bIgnore)
       {
-        SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-input device!" ), __SK_SUBSYSTEM__ );
+        SK_LOGi0 (L"WM_DEVICECHANGE received for non-input device!");
 
         return 1;
+      }
+
+      else if (first_event)
+      {
+        SK_LOGi0 (L"WM_DEVICECHANGE received for event type %ws", event_type);
       }
     } break;
 
@@ -6159,8 +6167,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_DESTROY:
       if (hWnd == game_window.hWnd)
       {
-        SK_LOG0 ( ( L"(?) Active window destroyed, our chicken has no head!" ),
-                    __SK_SUBSYSTEM__ );
+        SK_LOGi0 (L"(?) Active window destroyed, our chicken has no head!");
 
         if (GetAncestor (hWnd, GA_ROOTOWNER) == game_window.hWnd)
         {
@@ -6251,8 +6258,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
         {
-          SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
-                   L"Window Mgr" );
+          SK_LOGi2 (L"WM_MOUSEACTIVATE ==> Activate and Eat");
 
           ActivateWindow (hWnd, true);
 
@@ -6269,8 +6275,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         //   in fact, it needs to be told the opposite.
         if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
         {
-          SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
-                   L"Window Mgr" );
+          SK_LOGi2 (L"WM_MOUSEACTIVATE (Other Window) ==> Activate");
 
           ActivateWindow (hWnd, true);
 
@@ -6292,8 +6297,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           if (wParam != FALSE)
           {
             if (! last_active)
-              SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
-                          L"Window Mgr" );
+              SK_LOGi3 (L"Application Activated (Non-Client)");
 
             ActivateWindow (hWnd, true);
 
@@ -6304,8 +6308,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           else
           {
             if (last_active)
-              SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
-                          L"Window Mgr" );
+              SK_LOGi3 (L"Application Deactivated (Non-Client)");
 
             if (  (! rb.isTrueFullscreen ()) &&
                     SK_WantBackgroundRender ()
@@ -6393,8 +6396,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             if (! (! rb.isTrueFullscreen ()) && SK_WantBackgroundRender () )
               ActivateWindow (hWnd, activate);
 
-            SK_LOG2 ( ( L"Application Deactivated %s", source ),
-                        L"Window Mgr" );
+            SK_LOGi2 (L"Application Deactivated %s", source);
           }
         }
 
@@ -6404,8 +6406,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           {
             ActivateWindow (hWnd, activate);
 
-            SK_LOG2 ( ( L"Application Activated %s", source ),
-                        L"Window Mgr" );
+            SK_LOGi2 (L"Application Activated %s", source);
           }
         }
 
@@ -9275,7 +9276,7 @@ SK_Window_CreateTopMostFixupThread (void)
       case PreventAlwaysOnTop:
         if (bTopMost)
         {
-          SK_LOG1 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );
+          SK_LOGi1 (L"Game Window was TopMost, removing...");
 
           SK_DeferCommand ("Window.TopMost 0");
         }
@@ -9283,7 +9284,7 @@ SK_Window_CreateTopMostFixupThread (void)
       case AlwaysOnTop:
         if (! bTopMost)
         {
-          SK_LOG1 ( ( L"Game Window was not TopMost, applying..." ), L"Window Mgr" );
+          SK_LOGi1 (L"Game Window was not TopMost, applying...");
 
           SK_DeferCommand ("Window.TopMost 1");
         }
