@@ -5103,6 +5103,8 @@ SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time)
 
   return time_taken;
 #else
+  std::ignore = start_time;
+  std::ignore = wszTaskName;
   return { 0, 0 };
 #endif
 }
