@@ -1959,9 +1959,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   bool blacklist = false;
 
-  // Injection Compatibility Menu
-  if ( (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_SHIFT  )) & 0x8000) != 0 &&
-       (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_CONTROL)) & 0x8000) != 0 )
+  if ( (! SK_IsCurrentGame (SK_GAME_ID::Launcher)) &&
+        // Injection Compatibility Menu
+         (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_SHIFT  )) & 0x8000) != 0 &&
+         (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_CONTROL)) & 0x8000) != 0 )
   {
     WriteRelease (&__SK_Init, -1);
                    __SK_bypass = true;
