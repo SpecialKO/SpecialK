@@ -1,4 +1,9 @@
-﻿25.4.8.2
+﻿25.4.8.3
+========
+ + Added error message if trying to use local injection in a game that uses
+     a launcher, and stop initialization as early as possible if using global.
+
+25.4.8.2
 ========
  + Reduce HID controller connected notifications by only reporting the first
      time that data is read or written using said HID controller.

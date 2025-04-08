@@ -1796,6 +1796,21 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  // Early-out for launchers
+  //
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+  {
+    if (! SK_IsInjected ())
+    {
+      SK_MessageBox (
+        L"Local Injection is not supported for this game because it uses a launcher",
+        L"Please switch to Global Injection", MB_ICONHAND | MB_OK
+      );
+    }
+
+    return false;
+  }
+
   if ( backend == nullptr || callback == nullptr )
   {
     return false;
