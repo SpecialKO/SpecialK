@@ -163,8 +163,12 @@ IWrapDXGISwapChain : IDXGISwapChain4
            pDXGIDev12->GetMaximumFrameLatency (&gameFrameLatency_);
     }
 
-    if (pSwapChain2.p != nullptr)
-        pSwapChain2->QueryInterface <IDXGISwapChainExtra> (&pExtra.p);
+    SK_ComPtr <IDXGISwapChainExtra> pExtra;
+    if (            pSwapChain2.p != nullptr &&
+         SUCCEEDED (pSwapChain2->QueryInterface <IDXGISwapChainExtra> (&pExtra.p)) )
+    {
+      has_extra_ = true;
+    }
 
     RegisterDestructionCallback ();
 
@@ -285,8 +289,12 @@ IWrapDXGISwapChain : IDXGISwapChain4
            pDXGIDev12->GetMaximumFrameLatency (&gameFrameLatency_);
     }
 
-    if (pSwapChain2.p != nullptr)
-        pSwapChain2->QueryInterface <IDXGISwapChainExtra> (&pExtra.p);
+    SK_ComPtr <IDXGISwapChainExtra> pExtra;
+    if (            pSwapChain2.p != nullptr &&
+         SUCCEEDED (pSwapChain2->QueryInterface <IDXGISwapChainExtra> (&pExtra.p)) )
+    {
+      has_extra_ = true;
+    }
 
     RegisterDestructionCallback ();
 
@@ -395,8 +403,6 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   volatile LONG         refs_           = 1;
   IDXGISwapChain       *pReal           = nullptr;
-  SK_ComPtr <IDXGISwapChainExtra> 
-                        pExtra          = nullptr;
   SK_ComPtr <IUnknown>  pDev;
   unsigned int          ver_            = 0;
   HWND                  hWnd_           = 0;
@@ -404,6 +410,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
   bool                  d3d12_          = false;
   bool                  waitable_       = false;
   ID3D12CommandQueue*   d3d12_queue_    = nullptr;
+  bool                  has_extra_      = false;
 
   struct {
     bool                active          = false;
@@ -463,6 +470,13 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   DXGI_COLOR_SPACE_TYPE GetColorspace1 (void)
   {
+    SK_ComPtr <IDXGISwapChainExtra> pExtra;
+
+    if (has_extra_)
+    {
+      pReal->QueryInterface <IDXGISwapChainExtra> (&pExtra.p);
+    }
+
     return pExtra != nullptr         ?
            pExtra->GetColorSpace1 () : DXGI_COLOR_SPACE_RESERVED;
   }

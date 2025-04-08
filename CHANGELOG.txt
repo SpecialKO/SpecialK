@@ -1,4 +1,9 @@
-﻿25.4.8.4
+﻿25.4.8.5
+========
+ + Eliminate implicit reference on the original SwapChain when using the new
+     undocumented SwapChain interface.
+
+25.4.8.4
 ========
  + Integrate GetColorSpace1 (...) for DXGI SwapChains using the undocumented
      { 8C803E30-9E41-4DDF-B206-46F28E90E405 } interface.
