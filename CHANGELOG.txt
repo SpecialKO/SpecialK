@@ -1,7 +1,8 @@
 ﻿25.4.9.1
 ========
  + Do not send Escape key-up message when alt-tabbing into a game.
- + Do not run stuck keys fix unless "Continue Rendering" mode is enabled.
+ + Do not run stuck keys fix unless "Continue Rendering" mode is enabled or
+     user opts-in to "Fix Stuck Keys" feature.
 
 25.4.9
 ======

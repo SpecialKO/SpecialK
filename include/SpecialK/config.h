@@ -1301,7 +1301,7 @@ struct sk_config_t
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
     bool    activate_at_start   = false;
-    bool    fix_stuck_keys      =  true; // Fixes keys that might be stuck after alt-tab
+    bool    fix_stuck_keys      = false; // Fixes keys that might be stuck after alt-tab
     struct resolution_s {
       struct dim_override_s {
         unsigned int x          = 0;

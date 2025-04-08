@@ -783,9 +783,6 @@ SK_Input_Init (void)
 void
 SK_Input_ReleaseCommonStuckKeys (void) noexcept
 {
-  if (! config.window.background_render)
-    return;
-
   static const std::pair <BYTE, BYTE> virt_keys_to_release [] =
     { { (BYTE)VK_MENU,     (BYTE)MapVirtualKey ((BYTE)VK_MENU,     0) },   // 0
     // Dead or Alive processes the UP version of this and displays a quit confirmation,
