@@ -486,7 +486,7 @@ SK_Proxy_LLKeyboardProc (
 
     bool wasPressed = false,
           isPressed = (wParam == WM_KEYDOWN    || wParam == WM_SYSKEYDOWN),
-          isAltDown = (wParam == WM_SYSKEYDOWN || wParam == WM_SYSKEYUP);
+          isAltDown = (wParam == WM_SYSKEYDOWN);
 
     wasPressed = isPressed ^ (bool)((pHookData->flags & 0x7) != 0);
 

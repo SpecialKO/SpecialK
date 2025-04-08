@@ -1,4 +1,9 @@
-﻿25.4.9
+﻿25.4.9.1
+========
+ + Do not send Escape key-up message when alt-tabbing into a game.
+ + Do not run stuck keys fix unless "Continue Rendering" mode is enabled.
+
+25.4.9
 ======
  + Updated Assassin's Creed Shadows Plug-In for 1.0.2 patch.
 

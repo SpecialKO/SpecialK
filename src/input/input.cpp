@@ -783,9 +783,14 @@ SK_Input_Init (void)
 void
 SK_Input_ReleaseCommonStuckKeys (void) noexcept
 {
+  if (! config.window.background_render)
+    return;
+
   static const std::pair <BYTE, BYTE> virt_keys_to_release [] =
     { { (BYTE)VK_MENU,     (BYTE)MapVirtualKey ((BYTE)VK_MENU,     0) },   // 0
-      { (BYTE)VK_ESCAPE,   (BYTE)MapVirtualKey ((BYTE)VK_ESCAPE,   0) },   // 1
+    // Dead or Alive processes the UP version of this and displays a quit confirmation,
+    //   do not change the state of this button...
+    //{ (BYTE)VK_ESCAPE,   (BYTE)MapVirtualKey ((BYTE)VK_ESCAPE,   0) },   // 1
       { (BYTE)VK_LWIN,     (BYTE)MapVirtualKey ((BYTE)VK_LWIN,     0) },   // 2
       { (BYTE)VK_LMENU,    (BYTE)MapVirtualKey ((BYTE)VK_LMENU,    0) },   // 3
       { (BYTE)VK_LSHIFT,   (BYTE)MapVirtualKey ((BYTE)VK_LSHIFT,   0) },   // 4
