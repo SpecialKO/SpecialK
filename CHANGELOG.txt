@@ -1,4 +1,9 @@
-﻿25.4.9.1
+﻿25.4.9.2
+========
+ + Disable Cloth Physics Fix for users who do not have SK's framerate limiter
+     enabled in Assassin's Creed Shadows (...why?!).
+
+25.4.9.1
 ========
  + Do not send Escape key-up message when alt-tabbing into a game.
  + Do not run stuck keys fix unless "Continue Rendering" mode is enabled or

@@ -129,12 +129,14 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
                                         *pFrameGenEnabled ? 0.5f : 1.0f)));
             }
 
+#if 0
             else
             {
               // Use current frametime for cloth physics instead of fixed 0.01666/0.03333 values.
               if (uintptr_t pFramerate = *reinterpret_cast <uintptr_t *>(ctx.rdx + 0x70))
                 ctx.xmm0.f32 [0] = *reinterpret_cast<float *>(pFramerate + 0x78); // Current frametime
             }
+#endif
           }
         }
       );
@@ -433,6 +435,14 @@ SK_ACS_PlugInCfg (void)
         ImGui::BulletText      ("It is critical to set a sustainable framerate limit, cloth simulation will ALWAYS run at the framerate limit (even if the game runs slower).");
         ImGui::BulletText      ("Original feature thanks to Lyall's ACShadowsFix mod, refer to GitHub.");
         ImGui::EndTooltip      ();
+      }
+
+      if (__target_fps <= 0.0f && __SK_ACS_FixCloth)
+      {
+        ImGui::SameLine       ();
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075f, 0.8f, 0.9f).Value);
+        ImGui::BulletText     ("SK's Framerate Limiter Is Required!");
+        ImGui::PopStyleColor  ();
       }
     }
 
