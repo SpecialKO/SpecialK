@@ -38,49 +38,60 @@
 #endif
 #define __SK_SUBSYSTEM__ L"AC Shadows"
 
-bool               __SK_ACS_IsMultiFrameCapable   = false;
-int                __SK_ACS_DLSSG_MultiFrameCount =     1;
-bool               __SK_ACS_AlwaysUseFrameGen     =  true;
-bool               __SK_ACS_ShowFMVIndicator      =  true;
-bool               __SK_ACS_UncapFramerate        =  true;
-bool               __SK_ACS_RemoveBlackBars       =  true;
-bool               __SK_ACS_ExpandFOVRange        =  true;
-bool               __SK_ACS_FixCloth              =  true;
+struct SK_ACS_Config_s {
+  bool               IsMultiFrameCapable    = false;
+  int                DLSSG_MultiFrameCount  =     1;
+  bool               AlwaysUseFrameGen      =  true;
+  bool               ShowFMVIndicator       =  true;
+  bool               UncapFramerate         =  true;
+  bool               RemoveBlackBars        =  true;
+  bool               ExpandFOVRange         =  true;
+  bool               FixCloth               =  true;
+  bool               SkipIntroMovies        =  true;
+} SK_ACS_Config;
 
-sk::ParameterInt*   _SK_ACS_DLSSG_MultiFrameCount;
-sk::ParameterBool*  _SK_ACS_AlwaysUseFrameGen;
-sk::ParameterBool*  _SK_ACS_ShowFMVIndicator;
-sk::ParameterBool*  _SK_ACS_UncapFramerate;
-sk::ParameterBool*  _SK_ACS_FixCloth;
-sk::ParameterBool*  _SK_ACS_RemoveBlackBars;
-sk::ParameterBool*  _SK_ACS_ExpandFOVRange;
+struct SK_ACS_INI_s {
+  sk::ParameterInt*  DLSSG_MultiFrameCount  = nullptr;
+  sk::ParameterBool* AlwaysUseFrameGen      = nullptr;
+  sk::ParameterBool* ShowFMVIndicator       = nullptr;
+  sk::ParameterBool* UncapFramerate         = nullptr;
+  sk::ParameterBool* FixCloth               = nullptr;
+  sk::ParameterBool* RemoveBlackBars        = nullptr;
+  sk::ParameterBool* SkipIntroMovies        = nullptr;
+  sk::ParameterBool* ExpandFOVRange         = nullptr;
+} SK_ACS_INI;
+
+struct SK_ACS_MemoryAddresses_s {
+  uintptr_t          BlackBars              = 0;
+  uintptr_t          ClothSim               = 0;
+  uintptr_t          FOVSlider              = 0;
+  uintptr_t          FOVMultiplier          = 0;
+  void*              FrameGenTest           = nullptr;
+} SK_ACS_Addresses;
+
+struct SK_ACS_GameState_s {
+  DWORD              LastTimeFMVChecked     = 0;
+  HANDLE             LastFMVHandle          = 0;
+  volatile ULONG     FrameGenDisabledForFMV = FALSE;
+  bool*              pFrameGenEnabled       = nullptr;
+} SK_ACS_GameState;
 
 using slGetPluginFunction_pfn = void*      (*)(const char* functionName);
 using slDLSSGSetOptions_pfn   = sl::Result (*)(const sl::ViewportHandle& viewport, sl::DLSSGOptions& options);
       slDLSSGSetOptions_pfn
       slDLSSGSetOptions_ACS_Original = nullptr;
 
-static          DWORD  LastTimeFMVChecked     = 0;
-static          HANDLE LastFMVHandle          = 0;
-static volatile ULONG  FrameGenDisabledForFMV = FALSE;
-static bool*          pFrameGenEnabled        = nullptr;
-
-uintptr_t      __SK_ACS_BlackBarsAddr       =       0;
-uintptr_t      __SK_ACS_ClothSimAddr        =       0;
-uintptr_t      __SK_ACS_FOVSliderAddr       =       0;
-uintptr_t      __SK_ACS_FOVMultiplierAddr   =       0;
-
 void
 SK_ACS_ApplyClothPhysicsFix (bool enable)
 {
-  __SK_ACS_FixCloth = enable;
+  SK_ACS_Config.FixCloth = enable;
 
-  if (__SK_ACS_ClothSimAddr != 0)
+  if (SK_ACS_Addresses.ClothSim != 0)
   {
     // From ACShadowsFix (https://github.com/Lyall/ACShadowsFix/blob/5b53a3c84fa8dee39a1ed49b60995b334a119d97/src/dllmain.cpp#L246C1-L256C20)
 #if 0
     static SafetyHookMid ClothPhysicsMidHook_v0 =
-      safetyhook::create_mid (__SK_ACS_ClothSimAddr,
+      safetyhook::create_mid (SK_ACS_Addresses.ClothSim,
         [](SafetyHookContext& ctx)
         {
           if (! ctx.rcx)
@@ -88,7 +99,7 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
 
           // By default the game appears to use 60fps cloth physics during gameplay and 30fps cloth physics during cutscenes.
 
-          if (__SK_ACS_FixCloth)
+          if (SK_ACS_Config.FixCloth)
           {
             // Use Special K's target framerate and lock to that, this keeps
             //   a fixed timestep, but uses SK's framerate limit as the timestep.
@@ -110,7 +121,7 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
       );
 #else
     static SafetyHookMid ClothPhysicsMidHook_v1 =
-      safetyhook::create_mid (__SK_ACS_ClothSimAddr,
+      safetyhook::create_mid (SK_ACS_Addresses.ClothSim,
         [](SafetyHookContext& ctx)
         {
           if (! ctx.rdx)
@@ -118,15 +129,15 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
 
           // By default the game appears to use 60fps cloth physics during gameplay and 30fps cloth physics during cutscenes.
 
-          if (__SK_ACS_FixCloth)
+          if (SK_ACS_Config.FixCloth)
           {
             // Use Special K's target framerate and lock to that, this keeps
             //   a fixed timestep, but uses SK's framerate limit as the timestep.
             if (__target_fps > 0.0f)
             {
               ctx.xmm0.f32 [0] =
-                (1.0f / (__target_fps * (pFrameGenEnabled != nullptr &&
-                                        *pFrameGenEnabled ? 0.5f : 1.0f)));
+                (1.0f / (__target_fps * (SK_ACS_GameState.pFrameGenEnabled != nullptr &&
+                                        *SK_ACS_GameState.pFrameGenEnabled) ? 0.5f : 1.0f));
             }
 
 #if 0
@@ -147,13 +158,13 @@ SK_ACS_ApplyClothPhysicsFix (bool enable)
 void
 SK_ACS_ApplyBlackBarRemoval (bool remove)
 {
-  if (__SK_ACS_BlackBarsAddr != 0)
+  if (SK_ACS_Addresses.BlackBars != 0)
   {
-    DWORD                                                                             dwOrigProt = 0x0;
-    if (VirtualProtect ((void *) __SK_ACS_BlackBarsAddr,  4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-    { memcpy           ((void *)(__SK_ACS_BlackBarsAddr + 2), (unsigned char *)(remove ? "\xEB"
+    DWORD                                                                                 dwOrigProt = 0x0;
+    if (VirtualProtect ((void *) SK_ACS_Addresses.BlackBars,  4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+    { memcpy           ((void *)(SK_ACS_Addresses.BlackBars + 2), (unsigned char *)(remove ? "\xEB"
                                                                                        : "\x74"), 1);
-      VirtualProtect   ((void *) __SK_ACS_BlackBarsAddr,  4, dwOrigProt,             &dwOrigProt);
+      VirtualProtect   ((void *) SK_ACS_Addresses.BlackBars,  4, dwOrigProt,             &dwOrigProt);
     }
   }
 }
@@ -161,21 +172,21 @@ SK_ACS_ApplyBlackBarRemoval (bool remove)
 void
 SK_ACS_ApplyExpandedFOV (bool enable)
 {
-  __SK_ACS_ExpandFOVRange = enable;
+  SK_ACS_Config.ExpandFOVRange = enable;
 
   // From ACShadowsFix (https://github.com/Lyall/ACShadowsFix/)
 
-  if ( __SK_ACS_FOVSliderAddr     != 0 &&
-       __SK_ACS_FOVMultiplierAddr != 0 )
+  if ( SK_ACS_Addresses.FOVSlider     != 0 &&
+       SK_ACS_Addresses.FOVMultiplier != 0 )
   {
     static SafetyHookMid FOVSliderPercentageMidHook =
-      safetyhook::create_mid (__SK_ACS_FOVSliderAddr + 0x8,
+      safetyhook::create_mid (SK_ACS_Addresses.FOVSlider + 0x8,
         [](SafetyHookContext& ctx)
         {
           if (! ctx.rdi)
             return;
 
-          if (! __SK_ACS_ExpandFOVRange)
+          if (! SK_ACS_Config.ExpandFOVRange)
             return;
 
           // Get slider min/max
@@ -193,13 +204,13 @@ SK_ACS_ApplyExpandedFOV (bool enable)
       );
 
     static SafetyHookMid FOVSliderMultiplierMidHook =
-      safetyhook::create_mid (__SK_ACS_FOVMultiplierAddr + 0x9,
+      safetyhook::create_mid (SK_ACS_Addresses.FOVMultiplier + 0x9,
         [](SafetyHookContext& ctx)
         {
           if (! ctx.rcx)
             return; // RCX is loaded from RSI in the previous instruction
 
-          if (! __SK_ACS_ExpandFOVRange)
+          if (! SK_ACS_Config.ExpandFOVRange)
             return;
 
           // Widen the FOV multiplier range to match
@@ -214,30 +225,32 @@ SK_ACS_ApplyExpandedFOV (bool enable)
   }
 }
 
-static void* FrameGenTestAddr = nullptr;
+static void* Addr = nullptr;
 
 bool
 SK_ACS_ApplyFrameGenOverride (bool enable)
 {
-  if (pFrameGenEnabled == nullptr || FrameGenTestAddr == nullptr)
+  if (SK_ACS_GameState.pFrameGenEnabled == nullptr || SK_ACS_Addresses.FrameGenTest == nullptr)
   {
     SK_RunOnce (SK_ImGui_Warning (L"Could not find Frame Generation code?!"));
     return false;
   }
 
-  LastTimeFMVChecked = SK::ControlPanel::current_time;
+  SK_ACS_GameState.LastTimeFMVChecked = SK::ControlPanel::current_time;
 
-  DWORD                                                             dwOrigProt = 0x0;
-  if (VirtualProtect (FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-  { memcpy           (FrameGenTestAddr, (unsigned char *)(enable ? "\x90\x90\x90\x90"
-                                                                 : "\x44\x88\x6E\x24"), 4);
-    VirtualProtect   (FrameGenTestAddr,  4, dwOrigProt,             &dwOrigProt);
+  auto& addrs = SK_ACS_Addresses;
 
-    *pFrameGenEnabled = enable;
+  DWORD                                                                dwOrigProt = 0x0;
+  if (VirtualProtect (addrs.FrameGenTest, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+  { memcpy           (addrs.FrameGenTest, (unsigned char *)(enable ? "\x90\x90\x90\x90"
+                                                             : "\x44\x88\x6E\x24"), 4);
+    VirtualProtect   (addrs.FrameGenTest,  4, dwOrigProt,             &dwOrigProt);
+
+    *SK_ACS_GameState.pFrameGenEnabled = enable;
   }
 
   return  
-    *pFrameGenEnabled;
+    *SK_ACS_GameState.pFrameGenEnabled;
 }
 
 sl::Result
@@ -249,14 +262,14 @@ SK_ACS_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, sl::DLSSGOp
 
   if (enabled_once)
   {
-    if (__SK_ACS_IsMultiFrameCapable &&
-        __SK_ACS_DLSSG_MultiFrameCount >= 1)
+    if (SK_ACS_Config.IsMultiFrameCapable &&
+        SK_ACS_Config.DLSSG_MultiFrameCount >= 1)
     {
       options.numFramesToGenerate =
-        __SK_ACS_DLSSG_MultiFrameCount;
+        SK_ACS_Config.DLSSG_MultiFrameCount;
     }
 
-    if (__SK_ACS_AlwaysUseFrameGen && !ReadULongAcquire (&FrameGenDisabledForFMV))
+    if (SK_ACS_Config.AlwaysUseFrameGen && !ReadULongAcquire (&SK_ACS_GameState.FrameGenDisabledForFMV))
     {
       options.mode                = sl::DLSSGMode::eOn;
       options.numFramesToGenerate = std::max (1u, options.numFramesToGenerate);
@@ -290,9 +303,9 @@ SK_ACS_CloseHandle_Detour (HANDLE hObject)
   BOOL bRet =
     __SK_ACS_CloseHandle_Original (hObject);
 
-  if (bRet && hObject == LastFMVHandle)
+  if (bRet && hObject == SK_ACS_GameState.LastFMVHandle)
   {
-    LastFMVHandle = nullptr;
+    SK_ACS_GameState.LastFMVHandle = nullptr;
     SK_LOGi0 (L"FMV Closed");
   }
 
@@ -313,7 +326,7 @@ SK_ACS_PlugInCfg (void)
     bool changed = false;
 
     bool always_use_framegen =
-      __SK_ACS_AlwaysUseFrameGen;
+      SK_ACS_Config.AlwaysUseFrameGen;
 
     ImGui::SeparatorText (ICON_FA_TACHOMETER_ALT "  Framerate");
     ImGui::TreePush      ("Framerate");
@@ -321,9 +334,9 @@ SK_ACS_PlugInCfg (void)
     ImGui::BeginGroup ();
 
     if (ImGui::Checkbox ("Allow Cutscene Frame Generation",
-                                          &__SK_ACS_AlwaysUseFrameGen))
-    { if (SK_ACS_ApplyFrameGenOverride    (__SK_ACS_AlwaysUseFrameGen) != always_use_framegen)
-      {  _SK_ACS_AlwaysUseFrameGen->store (__SK_ACS_AlwaysUseFrameGen);
+                                              &SK_ACS_Config.AlwaysUseFrameGen))
+    { if (SK_ACS_ApplyFrameGenOverride        (SK_ACS_Config.AlwaysUseFrameGen) != always_use_framegen)
+      {   SK_ACS_INI.AlwaysUseFrameGen->store (SK_ACS_Config.AlwaysUseFrameGen);
 
         changed = true;
       }
@@ -337,12 +350,12 @@ SK_ACS_PlugInCfg (void)
       ImGui::EndTooltip      ();
     }
 
-    if (__SK_ACS_AlwaysUseFrameGen)
+    if (SK_ACS_Config.AlwaysUseFrameGen)
     {
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("Show " ICON_FA_FILM " Indicator", &__SK_ACS_ShowFMVIndicator))
-      {     _SK_ACS_ShowFMVIndicator->store (__SK_ACS_ShowFMVIndicator);
+      if (ImGui::Checkbox ("Show " ICON_FA_FILM " Indicator", &SK_ACS_Config.ShowFMVIndicator))
+      {                    SK_ACS_INI.ShowFMVIndicator->store (SK_ACS_Config.ShowFMVIndicator);
         changed = true;
       }
 
@@ -356,20 +369,20 @@ SK_ACS_PlugInCfg (void)
 
       if (has_used_dlssg)
       {
-        if (__SK_ACS_IsMultiFrameCapable)
+        if (SK_ACS_Config.IsMultiFrameCapable)
         {
-          changed |= ImGui::RadioButton ("2x FrameGen", &__SK_ACS_DLSSG_MultiFrameCount, 1);
+          changed |= ImGui::RadioButton ("2x FrameGen", &SK_ACS_Config.DLSSG_MultiFrameCount, 1);
           ImGui::SetItemTooltip ("May require opening and closing game menus to take effect.");
           ImGui::SameLine    ( );
-          changed |= ImGui::RadioButton ("3x FrameGen", &__SK_ACS_DLSSG_MultiFrameCount, 2);
+          changed |= ImGui::RadioButton ("3x FrameGen", &SK_ACS_Config.DLSSG_MultiFrameCount, 2);
           ImGui::SetItemTooltip ("May require opening and closing game menus to take effect; note that SK reports the pre-framegen framerate in 3x mode.");
           ImGui::SameLine    ( );
-          changed |= ImGui::RadioButton ("4x FrameGen", &__SK_ACS_DLSSG_MultiFrameCount, 3);
+          changed |= ImGui::RadioButton ("4x FrameGen", &SK_ACS_Config.DLSSG_MultiFrameCount, 3);
           ImGui::SetItemTooltip ("May require opening and closing game menus to take effect; note that SK reports the pre-framegen framerate in 4x mode.");
 
           if (changed)
           {
-            _SK_ACS_DLSSG_MultiFrameCount->store (__SK_ACS_DLSSG_MultiFrameCount);
+            SK_ACS_INI.DLSSG_MultiFrameCount->store (SK_ACS_Config.DLSSG_MultiFrameCount);
           }
         }
 
@@ -395,13 +408,13 @@ SK_ACS_PlugInCfg (void)
     static float last_game_fps_limit = __target_fps;
            float y_pos               = ImGui::GetCursorPosY ();
 
-    if (ImGui::Checkbox ("Uncap Framerate", &__SK_ACS_UncapFramerate))
+    if (ImGui::Checkbox ("Uncap Framerate", &SK_ACS_Config.UncapFramerate))
     {
       changed = true;
 
-      _SK_ACS_UncapFramerate->store (__SK_ACS_UncapFramerate);
+      SK_ACS_INI.UncapFramerate->store (SK_ACS_Config.UncapFramerate);
 
-      if (! __SK_ACS_UncapFramerate)
+      if (! SK_ACS_Config.UncapFramerate)
       {
         __target_fps =
           last_game_fps_limit;
@@ -417,15 +430,15 @@ SK_ACS_PlugInCfg (void)
       ImGui::EndTooltip      ();
     }
 
-    if (__SK_ACS_ClothSimAddr != 0)
+    if (SK_ACS_Addresses.ClothSim != 0)
     {
-      if (ImGui::Checkbox ("Fix Cloth Simulation", &__SK_ACS_FixCloth))
+      if (ImGui::Checkbox ("Fix Cloth Simulation", &SK_ACS_Config.FixCloth))
       {
         changed = true;
 
-        _SK_ACS_FixCloth->store (__SK_ACS_FixCloth);
+        SK_ACS_INI.FixCloth->store (SK_ACS_Config.FixCloth);
 
-        SK_ACS_ApplyClothPhysicsFix (__SK_ACS_FixCloth);
+        SK_ACS_ApplyClothPhysicsFix (SK_ACS_Config.FixCloth);
       }
 
       if (ImGui::BeginItemTooltip ())
@@ -437,7 +450,7 @@ SK_ACS_PlugInCfg (void)
         ImGui::EndTooltip      ();
       }
 
-      if (__target_fps <= 0.0f && __SK_ACS_FixCloth)
+      if (__target_fps <= 0.0f && SK_ACS_Config.FixCloth)
       {
         ImGui::SameLine       ();
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075f, 0.8f, 0.9f).Value);
@@ -469,15 +482,15 @@ SK_ACS_PlugInCfg (void)
     ImGui::SeparatorText (ICON_FA_PORTRAIT "  Aspect Ratio");
     ImGui::TreePush      ("Aspect Ratio");
 
-    if (__SK_ACS_BlackBarsAddr != 0)
+    if (SK_ACS_Addresses.BlackBars != 0)
     {
-      if (ImGui::Checkbox ("Remove Cutscene Blackbars", &__SK_ACS_RemoveBlackBars))
+      if (ImGui::Checkbox ("Remove Cutscene Blackbars", &SK_ACS_Config.RemoveBlackBars))
       {
         changed = true;
 
-        _SK_ACS_RemoveBlackBars->store (__SK_ACS_RemoveBlackBars);
+        SK_ACS_INI.RemoveBlackBars->store (SK_ACS_Config.RemoveBlackBars);
 
-        SK_ACS_ApplyBlackBarRemoval (__SK_ACS_RemoveBlackBars);
+        SK_ACS_ApplyBlackBarRemoval (SK_ACS_Config.RemoveBlackBars);
       }
 
       if (ImGui::BeginItemTooltip ())
@@ -489,18 +502,18 @@ SK_ACS_PlugInCfg (void)
       }
     }
 
-    if ( __SK_ACS_FOVSliderAddr     != 0 &&
-         __SK_ACS_FOVMultiplierAddr != 0 )
+    if ( SK_ACS_Addresses.FOVSlider     != 0 &&
+         SK_ACS_Addresses.FOVMultiplier != 0 )
     {
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("Expand FOV Slider Range", &__SK_ACS_ExpandFOVRange))
+      if (ImGui::Checkbox ("Expand FOV Slider Range", &SK_ACS_Config.ExpandFOVRange))
       {
         changed = true;
 
-        _SK_ACS_ExpandFOVRange->store (__SK_ACS_ExpandFOVRange);
+        SK_ACS_INI.ExpandFOVRange->store (SK_ACS_Config.ExpandFOVRange);
 
-        SK_ACS_ApplyExpandedFOV (__SK_ACS_ExpandFOVRange);
+        SK_ACS_ApplyExpandedFOV (SK_ACS_Config.ExpandFOVRange);
       }
 
       if (ImGui::BeginItemTooltip ())
@@ -547,44 +560,44 @@ SK_ACS_InitPlugin (void)
     static void* img_base_addr = 
       SK_Debug_GetImageBaseAddr ();
   
-    _SK_ACS_AlwaysUseFrameGen =
+    SK_ACS_INI.AlwaysUseFrameGen =
       _CreateConfigParameterBool  ( L"AssassinsCreed.FrameRate",
-                                    L"AlwaysUseFrameGen", __SK_ACS_AlwaysUseFrameGen,
+                                    L"AlwaysUseFrameGen", SK_ACS_Config.AlwaysUseFrameGen,
                                     L"Use FrameGen in Cutscenes" );
 
-    _SK_ACS_ShowFMVIndicator =
+    SK_ACS_INI.ShowFMVIndicator =
       _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                   L"ShowFMVIndicator", __SK_ACS_ShowFMVIndicator,
+                                   L"ShowFMVIndicator", SK_ACS_Config.ShowFMVIndicator,
                                    L"Show an indicator while FMVs are Playing" );
 
-    _SK_ACS_UncapFramerate =
+    SK_ACS_INI.UncapFramerate =
       _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                   L"UncapMenusAndCutscenes", __SK_ACS_UncapFramerate,
+                                   L"UncapMenusAndCutscenes", SK_ACS_Config.UncapFramerate,
                                    L"Uncap Framerate in Cutscenes" );
 
-    _SK_ACS_DLSSG_MultiFrameCount =
+    SK_ACS_INI.DLSSG_MultiFrameCount =
       _CreateConfigParameterInt  ( L"AssassinsCreed.FrameRate",
-                                   L"DLSSGMultiFrameCount", __SK_ACS_DLSSG_MultiFrameCount,
+                                   L"DLSSGMultiFrameCount", SK_ACS_Config.DLSSG_MultiFrameCount,
                                    L"Override Multi-Frame Gen" );
 
-    _SK_ACS_FixCloth =
+    SK_ACS_INI.FixCloth =
       _CreateConfigParameterBool ( L"AssassinsCreed.FrameRate",
-                                   L"FixClothRate", __SK_ACS_FixCloth,
+                                   L"FixClothRate", SK_ACS_Config.FixCloth,
                                    L"Use Variable Rate For Cloth" );
 
-    _SK_ACS_RemoveBlackBars =
+    SK_ACS_INI.RemoveBlackBars =
       _CreateConfigParameterBool ( L"AssassinsCreed.AspectRatio",
-                                   L"RemoveCutsceneBlackBars", __SK_ACS_RemoveBlackBars,
+                                   L"RemoveCutsceneBlackBars", SK_ACS_Config.RemoveBlackBars,
                                    L"Remove Aspect Ratio Black Bars from Cutscenes" );
 
-    _SK_ACS_RemoveBlackBars =
-      _CreateConfigParameterBool ( L"AssassinsCreed.AspectRatio",
-                                   L"RemoveCutsceneBlackBars", __SK_ACS_RemoveBlackBars,
-                                   L"Remove Aspect Ratio Black Bars from Cutscenes" );
+    SK_ACS_INI.SkipIntroMovies =
+      _CreateConfigParameterBool ( L"AssassinsCreed.QOL",
+                                   L"SkipIntroMovies", SK_ACS_Config.SkipIntroMovies,
+                                   L"Skip Ubisoft's stupid Logo" );
 
-    _SK_ACS_ExpandFOVRange =
+    SK_ACS_INI.ExpandFOVRange =
       _CreateConfigParameterBool ( L"AssassinsCreed.AspectRatio",
-                                   L"ExpandFOVRange", __SK_ACS_ExpandFOVRange,
+                                   L"ExpandFOVRange", SK_ACS_Config.ExpandFOVRange,
                                    L"Enable Wider Range of Adjustment in FOV Slider" );
 
     plugin_mgr->config_fns.emplace (SK_ACS_PlugInCfg);
@@ -592,52 +605,53 @@ SK_ACS_InitPlugin (void)
     // Pattern scanning timeouts are not required on this thread
     SK_TLS_Bottom ()->memory->memory_scans_should_timeout = FALSE;
 
-    __SK_ACS_ClothSimAddr =
+    SK_ACS_Addresses.ClothSim =
       (uintptr_t)SK_ScanAlignedExec ("\x4C\x8B\x00\x00\x49\x8B\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x41\x00\x00\x00\x49\x00\x00\x01", 32,
                                      "\x4C\x8B\x00\x00\x49\x8B\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x41\x00\x00\x00\x49\x00\x00\x01",
                                      //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01", 30,
                                      //"\x4C\x00\x00\x00\x49\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\x00\x83\x00\x00\x49\x00\x00\x01",
                                      (void*)img_base_addr);
 
-    SK_LOGi0 (L"ClothSim = %ws", __SK_ACS_ClothSimAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_ClothSimAddr).c_str () : L"Not Found?!");
+    SK_LOGi0 (L"ClothSim = %ws", SK_ACS_Addresses.ClothSim != 0 ? SK_MakePrettyAddress ((void *)SK_ACS_Addresses.ClothSim).c_str () : L"Not Found?!");
 
-    if (__SK_ACS_ClothSimAddr != 0)
+    if (SK_ACS_Addresses.ClothSim != 0)
     {
-      SK_ACS_ApplyClothPhysicsFix (__SK_ACS_FixCloth);
+      SK_ACS_ApplyClothPhysicsFix (SK_ACS_Config.FixCloth);
     }
 
-    __SK_ACS_BlackBarsAddr =
+    SK_ACS_Addresses.BlackBars =
       (uintptr_t)SK_ScanAlignedExec ("\x84\xC0\x74\x00\xC5\xFA\x00\x00\x00\x00\xC5\xFA\x00\x00\x00\x00\xC5\xFA\x00\x00\xC5\x00\x57\x00\xC5\xFA", 26,
                                      "\x84\xC0\x74\x00\xC5\xFA\x00\x00\x00\x00\xC5\xFA\x00\x00\x00\x00\xC5\xFA\x00\x00\xC5\x00\x57\x00\xC5\xFA",
                                      (void*)img_base_addr);
 
-    SK_LOGi0 (L"BlackBars = %ws", __SK_ACS_BlackBarsAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_BlackBarsAddr).c_str () : L"Not Found?!");
+    SK_LOGi0 (L"BlackBars = %ws", SK_ACS_Addresses.BlackBars != 0 ? SK_MakePrettyAddress ((void *)SK_ACS_Addresses.BlackBars).c_str () : L"Not Found?!");
 
-    if (__SK_ACS_BlackBarsAddr != 0)
+    if (SK_ACS_Addresses.BlackBars != 0)
     {
-      SK_ACS_ApplyBlackBarRemoval (__SK_ACS_RemoveBlackBars);
+      SK_ACS_ApplyBlackBarRemoval (SK_ACS_Config.RemoveBlackBars);
     }
 
-    __SK_ACS_FOVSliderAddr =
+    SK_ACS_Addresses.FOVSlider =
       (uintptr_t)SK_ScanAlignedExec ("\xE9\x00\x00\x00\x00\x48\x00\x00\x48\x00\x00\x48\x00\x00\xFF\x00\x00\x00\x00\x00\x48\x00\x00\x00\x00\xC5", 26,
                                      "\xFF\x00\x00\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF",
                                      (void*)img_base_addr, 0x2);
 
-    SK_LOGi0 (L"FOVSlider = %ws", __SK_ACS_FOVSliderAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_FOVSliderAddr).c_str () : L"Not Found?!");
+    SK_LOGi0 (L"FOVSlider = %ws", SK_ACS_Addresses.FOVSlider != 0 ? SK_MakePrettyAddress ((void *)SK_ACS_Addresses.FOVSlider).c_str () : L"Not Found?!");
 
-    __SK_ACS_FOVMultiplierAddr =
+    SK_ACS_Addresses.FOVMultiplier =
       (uintptr_t)SK_ScanAlignedExec ("\x77\x00\x48\x8B\x00\x00\x00\x00\x00\x48\x85\x00\x74\x00\x48\x8B\x00\xFF\x00\x00\x00\x00\x00\xC5\xFA\x00\x00\x00\xC5\xFA\x00\x00\x00\x00\x00\x00\x48\x8B", 38,
                                      "\xFF\x00\xFF\xFF\x00\x00\x00\x00\x00\xFF\xFF\x00\xFF\x00\xFF\xFF\x00\xFF\x00\x00\x00\x00\x00\xFF\xFF\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x00\xFF\xFF",
                                      (void*)img_base_addr, 0x2);
 
-    SK_LOGi0 (L"FOVMultiplier = %ws", __SK_ACS_FOVMultiplierAddr != 0 ? SK_MakePrettyAddress ((void *)__SK_ACS_FOVMultiplierAddr).c_str () : L"Not Found?!");
+    SK_LOGi0 (L"FOVMultiplier = %ws", SK_ACS_Addresses.FOVMultiplier != 0 ? SK_MakePrettyAddress ((void *)SK_ACS_Addresses.FOVMultiplier).c_str () : L"Not Found?!");
 
-    if ( __SK_ACS_FOVSliderAddr     != 0 &&
-         __SK_ACS_FOVMultiplierAddr != 0 )
+    if ( SK_ACS_Addresses.FOVSlider     != 0 &&
+         SK_ACS_Addresses.FOVMultiplier != 0 )
     {
-      SK_LOGi1 (L"Found FOV addresses: %p and %p", __SK_ACS_FOVSliderAddr, __SK_ACS_FOVMultiplierAddr);
+      SK_LOGi1 (L"Found FOV addresses: %p and %p", SK_ACS_Addresses.FOVSlider,
+                                                   SK_ACS_Addresses.FOVMultiplier);
 
-      SK_ACS_ApplyExpandedFOV (__SK_ACS_ExpandFOVRange);
+      SK_ACS_ApplyExpandedFOV (SK_ACS_Config.ExpandFOVRange);
     }
 
     /*
@@ -660,7 +674,7 @@ SK_ACS_InitPlugin (void)
       uint32_t  rip_offset = *(uint32_t *)((uintptr_t)code_addr + 6);
       uintptr_t rip        =               (uintptr_t)code_addr + 10;
   
-      pFrameGenEnabled =
+      SK_ACS_GameState.pFrameGenEnabled =
         *(bool **)(rip + rip_offset) + ptr_offset;
     }
 
@@ -681,7 +695,7 @@ SK_ACS_InitPlugin (void)
 
     if (code_addr != nullptr)
     {
-      FrameGenTestAddr =
+      SK_ACS_Addresses.FrameGenTest =
         (void *)((uintptr_t)code_addr + 10);
     }
 
@@ -767,9 +781,9 @@ SK_ACS_InitPlugin (void)
         static concurrency::concurrent_unordered_set <DWORD64> ContinuableCallSitesFound;
 
         // Turn off frame generation and give a second-chance at life
-        if (__SK_ACS_AlwaysUseFrameGen)
+        if (SK_ACS_Config.AlwaysUseFrameGen)
         {
-          if (LastFMVHandle != 0 && ContinuableCallSites.insert (addr).second)
+          if (SK_ACS_GameState.LastFMVHandle != 0 && ContinuableCallSites.insert (addr).second)
           {
             SK_LOGi0 (L"FMV Cutscene Exception Found: RIP=%p", addr);
           }
@@ -782,8 +796,8 @@ SK_ACS_InitPlugin (void)
             fmv_timeout_ms = 500UL;
           }
 
-                            *pFrameGenEnabled = false;
-          WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
+                             *SK_ACS_GameState.pFrameGenEnabled = false;
+          WriteULongRelease (&SK_ACS_GameState.FrameGenDisabledForFMV, TRUE);
 
           continuable =
             ContinuableCallSites.count (addr) != 0;
@@ -821,7 +835,7 @@ SK_ACS_InitPlugin (void)
     // installed.
     if (is_fg_capable)
     {
-      __SK_ACS_IsMultiFrameCapable =
+      SK_ACS_Config.IsMultiFrameCapable =
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
         StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
@@ -859,12 +873,12 @@ SK_ACS_InitPlugin (void)
 
         if (! file_is_exempt)
         {
-          LastFMVHandle = hFile;
+          SK_ACS_GameState.LastFMVHandle = hFile;
 
-          WriteULongRelease            (&FrameGenDisabledForFMV, TRUE);
+          WriteULongRelease            (&SK_ACS_GameState.FrameGenDisabledForFMV, TRUE);
           SK_ACS_ApplyFrameGenOverride (false);
 
-          if (__SK_ACS_AlwaysUseFrameGen)
+          if (SK_ACS_Config.AlwaysUseFrameGen)
           {
             SK_LOGi0 (
               L"Temporarily disabling Frame Generation because video '%ws' was opened...",
@@ -883,7 +897,7 @@ SK_ACS_InitPlugin (void)
 
       if (limit_check_addr != (void *)10)
       {
-        static bool UncapFramerate = !__SK_ACS_UncapFramerate;
+        static bool UncapFramerate = !SK_ACS_Config.UncapFramerate;
 
         static uint8_t orig_check_bytes [2] = {};
         static uint8_t orig_store_bytes [8] = {};
@@ -895,8 +909,8 @@ SK_ACS_InitPlugin (void)
 
         DWORD dwOrigProt = 0x0;
 
-        if (std::exchange (UncapFramerate, __SK_ACS_UncapFramerate) !=
-                                           __SK_ACS_UncapFramerate)
+        if (std::exchange (UncapFramerate, SK_ACS_Config.UncapFramerate) !=
+                                           SK_ACS_Config.UncapFramerate)
         {
           VirtualProtect (limit_store_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt);
           memcpy         (limit_store_addr, UncapFramerate   ?    (unsigned char *)
@@ -910,24 +924,24 @@ SK_ACS_InitPlugin (void)
       }
 
       // Not tested adequately in non-framegen cases
-      if (__SK_ACS_AlwaysUseFrameGen)
+      if (SK_ACS_Config.AlwaysUseFrameGen)
       {
         // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
-        if      (ReadULongAcquire (&FrameGenDisabledForFMV))       __target_fps = 30.0f;
-        else if ((! __SK_ACS_UncapFramerate) && game_limit > 0.0f) __target_fps = game_limit;
-        else                                                       __target_fps = config.render.framerate.target_fps;
+        if      (ReadULongAcquire (&SK_ACS_GameState.FrameGenDisabledForFMV)) __target_fps = 30.0f;
+        else if ((! SK_ACS_Config.UncapFramerate) && game_limit > 0.0f)       __target_fps = game_limit;
+        else                                                                  __target_fps = config.render.framerate.target_fps;
       }
 
       else
       {
         // Replace Ubisoft's poor excuse for a framerate limiter in FMVs with SK's.
-        if      (ReadULongAcquire (&FrameGenDisabledForFMV))
+        if      (ReadULongAcquire (&SK_ACS_GameState.FrameGenDisabledForFMV))
         {
           __target_fps = 30.0f;
         }
 
-        else if ((! __SK_ACS_UncapFramerate) && game_limit >   0.0f &&
-                                                game_limit < 500.0f)
+        else if ((! SK_ACS_Config.UncapFramerate) && game_limit >   0.0f &&
+                                                     game_limit < 500.0f)
         {
           __target_fps = game_limit;
         }
@@ -939,30 +953,33 @@ SK_ACS_InitPlugin (void)
       }
 
       // 3.333 second grace period after an FMV is read to reset frame generation
-      if (LastTimeFMVChecked < SK::ControlPanel::current_time - 3333UL)
+      if (SK_ACS_GameState.LastTimeFMVChecked < SK::ControlPanel::current_time - 3333UL)
       {
-        if (ReadULongAcquire (&FrameGenDisabledForFMV) != 0 || (pFrameGenEnabled != nullptr &&
-                                                               *pFrameGenEnabled == false))
+        if (ReadULongAcquire (&SK_ACS_GameState.FrameGenDisabledForFMV) != 0 ||
+                              (SK_ACS_GameState.pFrameGenEnabled != nullptr &&
+                              *SK_ACS_GameState.pFrameGenEnabled == false))
         {
           // Video is done playing, game has unlimited framerate again.
           if (game_limit != 30.0f)
           {
-            SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen);
-            WriteULongRelease            (&FrameGenDisabledForFMV, FALSE);
+            SK_ACS_ApplyFrameGenOverride ( SK_ACS_Config.AlwaysUseFrameGen);
+            WriteULongRelease            (&SK_ACS_GameState.FrameGenDisabledForFMV, FALSE);
           }
         }
 
-        if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
+        if (SK_ACS_Config.UncapFramerate && framerate_limit != nullptr)
         {
           // -1.0f = Unlimited (set by game in special cases)
           *framerate_limit = -1.0f;
         }
       }
 
-      else if (__SK_ACS_AlwaysUseFrameGen && ReadULongAcquire (&FrameGenDisabledForFMV) != 0 && ( pFrameGenEnabled != nullptr &&
-                                                                                                 *pFrameGenEnabled == false ))
+      else if ( SK_ACS_Config.AlwaysUseFrameGen &&
+                  ReadULongAcquire (&SK_ACS_GameState.FrameGenDisabledForFMV) != 0 &&
+                                   ( SK_ACS_GameState.pFrameGenEnabled != nullptr  &&
+                                    *SK_ACS_GameState.pFrameGenEnabled == false ))
       {
-        if (__SK_ACS_ShowFMVIndicator)
+        if (SK_ACS_Config.ShowFMVIndicator)
         {
           SK_ImGui_CreateNotificationEx (
             "ACShadows.FMV", SK_ImGui_Toast::Other, nullptr, nullptr,
@@ -992,15 +1009,15 @@ SK_ACS_InitPlugin (void)
 
       else
       {
-        if (__SK_ACS_UncapFramerate && framerate_limit != nullptr)
+        if (SK_ACS_Config.UncapFramerate && framerate_limit != nullptr)
         {
           // -1.0f = Unlimited (set by game in special cases)
           *framerate_limit = -1.0f;
         }
       }
 
-      if (                                        __SK_ACS_AlwaysUseFrameGen)
-        SK_RunOnce (SK_ACS_ApplyFrameGenOverride (__SK_ACS_AlwaysUseFrameGen));
+      if (                                        SK_ACS_Config.AlwaysUseFrameGen)
+        SK_RunOnce (SK_ACS_ApplyFrameGenOverride (SK_ACS_Config.AlwaysUseFrameGen));
 
       if (__SK_IsDLSSGActive)
       {
