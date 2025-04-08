@@ -1,4 +1,9 @@
-﻿25.4.8.3
+﻿25.4.8.4
+========
+ + Integrate GetColorSpace1 (...) for DXGI SwapChains using the undocumented
+     { 8C803E30-9E41-4DDF-B206-46F28E90E405 } interface.
+
+25.4.8.3
 ========
  + Added error message if trying to use local injection in a game that uses
      a launcher, and stop initialization as early as possible if using global.

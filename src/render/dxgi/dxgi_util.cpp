@@ -29,6 +29,7 @@
 #define __SK_SUBSYSTEM__ L"DXGI Util."
 
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
@@ -2364,6 +2365,56 @@ SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevic
                 pSwapChainDevice.p, pDevice );
 }
 
+
+DXGI_COLOR_SPACE_TYPE
+SK_DXGI_GetColorSpace1 (IDXGISwapChain *pSwapChain)
+{
+  if (SK_DXGI_LiveWrappedSwapChain1s != 0 ||
+      SK_DXGI_LiveWrappedSwapChains  != 0)
+  {
+    SK_ComQIPtr <IWrapDXGISwapChain>
+        pWrapped (       pSwapChain);
+    if (pWrapped.p != nullptr)
+    {
+      auto csp =
+        pWrapped->GetColorspace1 ();
+
+      if (csp != DXGI_COLOR_SPACE_RESERVED)
+        return csp;
+    }
+  }
+
+  static bool
+      implements_swapchain_extra = true;
+  if (implements_swapchain_extra)
+  {
+    SK_ComQIPtr <IDXGISwapChainExtra>
+          pExtra (   pSwapChain);
+    if (! pExtra)
+      implements_swapchain_extra = false;
+    else
+    {
+      return
+        pExtra->GetColorSpace1 ();
+    }
+  }
+
+  // {018B57E4-1493-4953-ADF2-DE6D99CC05E5}
+  static constexpr GUID SKID_SwapChainColorSpace =
+  { 0x18b57e4, 0x1493, 0x4953, { 0xad, 0xf2, 0xde, 0x6d, 0x99, 0xcc, 0x5, 0xe5 } };
+
+  UINT                  uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
+  DXGI_COLOR_SPACE_TYPE csp              = DXGI_COLOR_SPACE_RESERVED;
+
+  // Since SwapChains don't have a Get method, we'll just have the SwapChain remember the last one
+  //   set and check it for consistency... set a colorspace override if necessary.
+  if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)))
+  {
+    return csp;
+  }
+  
+  return DXGI_COLOR_SPACE_RESERVED;
+}
 
 // Classifies a swapchain as dummy (used by some libraries during init) or
 //   real (potentially used to do actual rendering).

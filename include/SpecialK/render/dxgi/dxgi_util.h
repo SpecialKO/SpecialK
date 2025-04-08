@@ -125,6 +125,8 @@ SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
 void        SK_DXGI_SignalBudgetThread (void);
 bool WINAPI SK_DXGI_IsTrackingBudget   (void) noexcept;
 
+DXGI_COLOR_SPACE_TYPE
+SK_DXGI_GetColorSpace1  (IDXGISwapChain *pSwapChain);
 bool SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept;
 
 void SK_HDR_ReleaseResources       (void);

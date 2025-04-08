@@ -78,6 +78,9 @@ enum
   SK_DXGI_VK_INTEROP_TYPE_AMD ///< AMD's DXGI Layer
 };
 
+extern volatile LONG SK_DXGI_LiveWrappedSwapChains;
+extern volatile LONG SK_DXGI_LiveWrappedSwapChain1s;
+
 
 
 typedef HRESULT (STDMETHODCALLTYPE *PresentSwapChain_pfn)(

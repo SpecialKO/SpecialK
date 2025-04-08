@@ -23,6 +23,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <imgui/font_awesome.h>
 
 #define SK_HDR_SECTION     L"SpecialK.HDR"
@@ -842,18 +843,15 @@ public:
           pSwap3 (rb.swapchain);
       if (pSwap3 != nullptr)
       {
-        // {018B57E4-1493-4953-ADF2-DE6D99CC05E5}
-        static constexpr GUID SKID_SwapChainColorSpace =
-        { 0x18b57e4, 0x1493, 0x4953, { 0xad, 0xf2, 0xde, 0x6d, 0x99, 0xcc, 0x5, 0xe5 } };
+        DXGI_COLOR_SPACE_TYPE csp =
+          SK_DXGI_GetColorSpace1 (pSwap3.p);
 
-        UINT                  uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
-        DXGI_COLOR_SPACE_TYPE csp              = DXGI_COLOR_SPACE_RESERVED;
-
-        // Since SwapChains don't have a Get method, we'll just have the SwapChain remember the last one
-        //   we set and check it for consistency each frame... set a colorspace override if necessary.
-        if (FAILED (pSwap3->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)) || csp != rb.scanout.colorspace_override)
+        if (csp != rb.scanout.colorspace_override)
         {
-          if (__SK_HDR_UserForced) pSwap3->SetColorSpace1 (rb.scanout.colorspace_override);
+          if (__SK_HDR_UserForced)
+          {
+            pSwap3->SetColorSpace1 (rb.scanout.colorspace_override);
+          }
         }
       }
 
