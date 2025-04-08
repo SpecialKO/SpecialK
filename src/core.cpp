@@ -5075,8 +5075,10 @@ SK_ProfiledTask_Begin (void)
 SK_ProfiledTask_Accum
 SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time)
 {
-  uint64_t qpc =
-    SK_QueryPerf ().QuadPart;
+  uint64_t qpc = std::max (
+      static_cast <uint64_t> (
+        SK_QueryPerf ().QuadPart
+      ), start_time       );
 
   SK_ProfiledTask_Accum time_taken
     { qpc - start_time, 1 };
