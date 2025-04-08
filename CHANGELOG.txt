@@ -1,4 +1,9 @@
-﻿25.4.9.2
+﻿25.4.9.3
+========
+ + Added Cloth Physics Fix support for suckers who gave Valve money in exchange
+     for a buggy version of Assassin's Creed Shadows.
+
+25.4.9.2
 ========
  + Disable Cloth Physics Fix for users who do not have SK's framerate limiter
      enabled in Assassin's Creed Shadows (...why?!).
