@@ -1,4 +1,8 @@
-﻿25.4.9.3
+﻿25.4.9.4
+========
+ + Added options to swap A/B and X/Y on Xbox controllers to match Nintendo.
+
+25.4.9.3
 ========
  + Disable Clean Exit system, because it leads to config files not being saved
      for games that launch multiple copies of themselves.

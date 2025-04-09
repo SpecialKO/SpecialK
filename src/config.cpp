@@ -1105,6 +1105,8 @@ struct {
       sk::ParameterBool*  invert_rx               = nullptr;
       sk::ParameterBool*  invert_ry               = nullptr;
       sk::ParameterBool*  swap_sticks             = nullptr;
+      sk::ParameterBool*  swap_a_b                = nullptr;
+      sk::ParameterBool*  swap_x_y                = nullptr;
     } xinput;
 
     struct {
@@ -1814,6 +1816,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.invert_rx,         L"Invert the X-Axis on the Right Analog Stick",               dll_ini,         L"Input.XInput",          L"InvertRX"),
     ConfigEntry (input.gamepad.xinput.invert_ry,         L"Invert the Y-Axis on the Right Analog Stick",               dll_ini,         L"Input.XInput",          L"InvertRY"),
     ConfigEntry (input.gamepad.xinput.swap_sticks,       L"Swap Left and Right Analog Stick Input",                    dll_ini,         L"Input.XInput",          L"SwapSticks"),
+    ConfigEntry (input.gamepad.xinput.swap_a_b,          L"Swap A and B to conform to Nintendo button layout",         dll_ini,         L"Input.XInput",          L"SwapAB"),
+    ConfigEntry (input.gamepad.xinput.swap_x_y,          L"Swap X and Y to conform to Nintendo button layout",         dll_ini,         L"Input.XInput",          L"SwapXY"),
     ConfigEntry (input.gamepad.dinput.blackout_gamepads, L"Prevent game from seeing DirectInput gamepads",             dll_ini,         L"Input.DInput",          L"HideGamepads"),
     ConfigEntry (input.gamepad.dinput.blackout_mice,     L"Prevent game from seeing DirectInput mice",                 dll_ini,         L"Input.DInput",          L"HideMice"),
     ConfigEntry (input.gamepad.dinput.blackout_keyboards,L"Prevent game from seeing DirectInput keyboards",            dll_ini,         L"Input.DInput",          L"HideKeyboards"),
@@ -4987,6 +4991,8 @@ auto DeclKeybind =
   input.gamepad.xinput.invert_rx->load         (config.input.gamepad.xinput.invert_rx);
   input.gamepad.xinput.invert_ry->load         (config.input.gamepad.xinput.invert_ry);
   input.gamepad.xinput.swap_sticks->load       (config.input.gamepad.xinput.swap_sticks);
+  input.gamepad.xinput.swap_a_b->load          (config.input.gamepad.xinput.swap_a_b);
+  input.gamepad.xinput.swap_x_y->load          (config.input.gamepad.xinput.swap_x_y);
   input.gamepad.dinput.blackout_gamepads->load (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->load     (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->load(config.input.gamepad.dinput.blackout_keyboards);
@@ -6567,6 +6573,8 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.invert_rx->store            (config.input.gamepad.xinput.invert_rx);
   input.gamepad.xinput.invert_ry->store            (config.input.gamepad.xinput.invert_ry);
   input.gamepad.xinput.swap_sticks->store          (config.input.gamepad.xinput.swap_sticks);
+  input.gamepad.xinput.swap_a_b->store             (config.input.gamepad.xinput.swap_a_b);
+  input.gamepad.xinput.swap_x_y->store             (config.input.gamepad.xinput.swap_x_y);
   input.gamepad.dinput.blackout_gamepads->store    (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->store        (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->store   (config.input.gamepad.dinput.blackout_keyboards);

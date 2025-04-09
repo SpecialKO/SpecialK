@@ -1145,6 +1145,8 @@ struct sk_config_t
         bool  invert_rx           =  false;
         bool  invert_ry           =  false;
         bool  swap_sticks         =  false;
+        bool  swap_a_b            =  false;
+        bool  swap_x_y            =  false;
       } xinput;
 
       struct {

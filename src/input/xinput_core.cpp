@@ -688,6 +688,30 @@ SK_XInput_ApplyRemapping (XINPUT_STATE* state)
     std::swap (state->Gamepad.sThumbRX, state->Gamepad.sThumbLX);
     std::swap (state->Gamepad.sThumbRY, state->Gamepad.sThumbLY);
   }
+
+  if (config.input.gamepad.xinput.swap_a_b)
+  {
+    const bool B = (state->Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+    const bool A = (state->Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+
+    state->Gamepad.wButtons &=
+      ~( XINPUT_GAMEPAD_B | XINPUT_GAMEPAD_A );
+
+    if (B) state->Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+    if (A) state->Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+  }
+
+  if (config.input.gamepad.xinput.swap_x_y)
+  {
+    const bool Y = (state->Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
+    const bool X = (state->Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
+
+    state->Gamepad.wButtons &=
+      ~( XINPUT_GAMEPAD_Y | XINPUT_GAMEPAD_X );
+
+    if (Y) state->Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+    if (X) state->Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+  }
 }
 
 DWORD
