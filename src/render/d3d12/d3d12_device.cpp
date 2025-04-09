@@ -2738,12 +2738,14 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   // 45 SetEventOnMultipleFenceCompletion
   // 46 SetResidencyPriority
 
+#if 0
   SK_ComQIPtr <ID3D12Device1>
                     pDevice1 (pDev12);
   if (   nullptr != pDevice1 )
   {
     SK_D3D12_HookPipelineLibrary (pDevice1.p);
   }
+#endif
 
   // ID3D12Device2
   //---------------
