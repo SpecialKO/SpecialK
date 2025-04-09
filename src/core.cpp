@@ -253,196 +253,212 @@ SK_StartPerfMonThreads (void)
 void
 SK_LoadGPUVendorAPIs (void)
 {
-  SK_PROFILE_FIRST_CALL
-
-  dll_log->LogEx (false, L"================================================"
-                         L"===========================================\n" );
-
-  // None of the GPU vendor-specific APIs work in WINE.
-  //
-  if (config.compatibility.using_wine)
-    return;
-
-  dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API           (NvAPI)...");
-
-  SK_NvAPI_SetAppName         (       SK_GetFullyQualifiedApp () );
-  SK_NvAPI_SetAppFriendlyName (
-    app_cache_mgr->getAppNameFromID ( SK_Steam_GetAppID_NoAPI () ).c_str ()
-                              );
-
-  nvapi_init =
-    sk::NVAPI::InitializeLibrary (sk::NVAPI::app_name.c_str ());
-
-  dll_log->Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
-                                                     nvapi_init ? L"Success" :
-                                                                  L"Failed ");
-
-  if (nvapi_init)
+  static HANDLE hVendorInitThread =
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
-    if (config.apis.NvAPI.vulkan_bridge != SK_NoPreference)
-    {
-      SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
-    }
+    SK_PROFILE_FIRST_CALL
 
-    if (SK_GetModuleHandleW (L"_nvngx.dll") != nullptr)
-    {
-      SK_NGX_Init ();
-    }
-
-    const int num_sli_gpus =
-      sk::NVAPI::CountSLIGPUs ();
-
-    dll_log->Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
-                    sk::NVAPI::GetDriverVersion ().c_str () );
-
-    const int gpu_count =
-      sk::NVAPI::CountPhysicalGPUs ();
-
-    dll_log->Log ( gpu_count > 1 ? L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  "
-                                   L"{ SLI: '%s' }"
-                                 :
-                                   L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  { '%s' }",
-                                     gpu_count > 1 ? num_sli_gpus :
-                                                     num_sli_gpus + 1,
-                                       sk::NVAPI::EnumGPUs_DXGI ()[0].Description );
-
-    if (num_sli_gpus > 0)
-    {
-      DXGI_ADAPTER_DESC* sli_adapters =
-        sk::NVAPI::EnumSLIGPUs ();
-
-      int sli_gpu_idx = 0;
-
-      while (*sli_adapters->Description != L'\0')
-      {
-        dll_log->Log ( L"[  NvAPI   ]   + SLI GPU %d: %s",
-                         sli_gpu_idx++,
-                           (sli_adapters++)->Description );
-      }
-    }
-
-    //
-    // Setup a framerate limiter and (if necessary) restart
-    //
-    bool restart = (! sk::NVAPI::SetFramerateLimit (0));
-
-    //
-    // Install SLI Override Settings
-    //
-    if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override)
-    {
-      if (! sk::NVAPI::SetSLIOverride
-              ( SK_GetDLLRole (),
-                  config.nvidia.sli.mode.c_str (),
-                    config.nvidia.sli.num_gpus.c_str (),
-                      config.nvidia.sli.compatibility.c_str ()
-              )
-         )
-      {
-        restart = true;
-      }
-    }
-
-    if (! config.nvidia.bugs.snuffed_ansel)
-    {
-#if 0
-      if (SK_NvAPI_DisableAnsel (SK_GetDLLRole ()))
-      {
-        restart = true;
-
-        SK_MessageBox (
-          L"To Avoid Potential Compatibility Issues, Special K has Disabled Ansel for this Game.\r\n\r\n"
-          L"You may re-enable Ansel for this Game using the Help Menu in Special K's Control Panel.",
-            L"Special K Compatibility Layer:  [ Ansel Disabled ]",
-              MB_ICONWARNING | MB_OK
-        );
-      }
-#endif
-
-      config.nvidia.bugs.snuffed_ansel = true;
-
-      SK_GetDLLConfig ()->write ();
-    }
-
-    if (restart)
-    {
-      dll_log->Log (L"[  Nv API  ] >> Restarting to apply NVIDIA driver settings <<");
-
-      SK_ShellExecuteW ( GetDesktopWindow (),
-                          L"OPEN",
-                            SK_GetHostApp (),
-                              nullptr,
-                                nullptr,
-                                  SW_SHOWDEFAULT );
-      exit (0);
-    }
-  }
-
-  // Not NVIDIA, maybe AMD?
-  else
-  {
-    dll_log->Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
-
-    BOOL adl_init =
-      SK_InitADL ();
-
-    dll_log->Log   (L"[DisplayLib]              ADL   Init         { %s }",
-                                                      adl_init ? L"Success" :
-                                                                 L"Failed ");
-
-    // Yes, AMD driver is in working order ...
-    if (adl_init > 0)
-    {
-      dll_log->Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
-                       SK_ADL_CountPhysicalGPUs (),
-                         SK_ADL_CountActiveGPUs () );
-    }
-  }
-
-  const HMODULE hMod =
-    SK_GetModuleHandle (SK_GetHostApp ());
-
-  if (hMod != nullptr)
-  {
-    const auto* dwOptimus =
-      reinterpret_cast <DWORD *> (
-        SK_GetProcAddress ( SK_GetHostApp (),
-                              "NvOptimusEnablement" )
-      );
-
-    if (dwOptimus != nullptr)
-    {
-      dll_log->Log ( L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
-                       *dwOptimus,
-                     ((*dwOptimus) & 0x1) ? L"Max Perf." :
-                                            L"Don't Care" );
-    }
-
-    else
-    {
-      dll_log->Log (L"[Hybrid GPU]  NvOptimusEnablement..................: UNDEFINED");
-    }
-
-    const auto* dwPowerXpress =
-      reinterpret_cast <DWORD *> (
-        SK_GetProcAddress ( SK_GetHostApp (),
-                              "AmdPowerXpressRequestHighPerformance" )
-      );
-
-    if (dwPowerXpress != nullptr)
-    {
-      dll_log->Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
-         *dwPowerXpress,
-         (*dwPowerXpress & 0x1) ? L"High Perf." :
-                                  L"Don't Care" );
-    }
-
-    else
-      dll_log->Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
+    SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
     dll_log->LogEx (false, L"================================================"
                            L"===========================================\n" );
-  }
+
+    // None of the GPU vendor-specific APIs work in WINE.
+    //
+    if (config.compatibility.using_wine)
+    {
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }
+
+    dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API           (NvAPI)...");
+
+    SK_NvAPI_SetAppName         (       SK_GetFullyQualifiedApp () );
+    SK_NvAPI_SetAppFriendlyName (
+      app_cache_mgr->getAppNameFromID ( SK_Steam_GetAppID_NoAPI () ).c_str ()
+                                );
+
+    nvapi_init =
+      sk::NVAPI::InitializeLibrary (sk::NVAPI::app_name.c_str ());
+
+    dll_log->Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
+                                                       nvapi_init ? L"Success" :
+                                                                    L"Failed ");
+
+    if (nvapi_init)
+    {
+      if (config.apis.NvAPI.vulkan_bridge != SK_NoPreference)
+      {
+        SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
+      }
+
+      if (SK_GetModuleHandleW (L"_nvngx.dll") != nullptr)
+      {
+        SK_NGX_Init ();
+      }
+
+      const int num_sli_gpus =
+        sk::NVAPI::CountSLIGPUs ();
+
+      dll_log->Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
+                      sk::NVAPI::GetDriverVersion ().c_str () );
+
+      const int gpu_count =
+        sk::NVAPI::CountPhysicalGPUs ();
+
+      dll_log->Log ( gpu_count > 1 ? L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  "
+                                     L"{ SLI: '%s' }"
+                                   :
+                                     L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  { '%s' }",
+                                       gpu_count > 1 ? num_sli_gpus :
+                                                       num_sli_gpus + 1,
+                                         sk::NVAPI::EnumGPUs_DXGI ()[0].Description );
+
+      if (num_sli_gpus > 0)
+      {
+        DXGI_ADAPTER_DESC* sli_adapters =
+          sk::NVAPI::EnumSLIGPUs ();
+
+        int sli_gpu_idx = 0;
+
+        while (*sli_adapters->Description != L'\0')
+        {
+          dll_log->Log ( L"[  NvAPI   ]   + SLI GPU %d: %s",
+                           sli_gpu_idx++,
+                             (sli_adapters++)->Description );
+        }
+      }
+
+      //
+      // Setup a framerate limiter and (if necessary) restart
+      //
+      bool restart = (! sk::NVAPI::SetFramerateLimit (0));
+
+      //
+      // Install SLI Override Settings
+      //
+      if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override)
+      {
+        if (! sk::NVAPI::SetSLIOverride
+                ( SK_GetDLLRole (),
+                    config.nvidia.sli.mode.c_str (),
+                      config.nvidia.sli.num_gpus.c_str (),
+                        config.nvidia.sli.compatibility.c_str ()
+                )
+           )
+        {
+          restart = true;
+        }
+      }
+
+#if 0 // This is no longer used
+      if (! config.nvidia.bugs.snuffed_ansel)
+      {
+#if 0
+        if (SK_NvAPI_DisableAnsel (SK_GetDLLRole ()))
+        {
+          restart = true;
+
+          SK_MessageBox (
+            L"To Avoid Potential Compatibility Issues, Special K has Disabled Ansel for this Game.\r\n\r\n"
+            L"You may re-enable Ansel for this Game using the Help Menu in Special K's Control Panel.",
+              L"Special K Compatibility Layer:  [ Ansel Disabled ]",
+                MB_ICONWARNING | MB_OK
+          );
+        }
+#endif
+
+        config.nvidia.bugs.snuffed_ansel = true;
+
+        SK_GetDLLConfig ()->write ();
+      }
+#endif
+
+      if (restart)
+      {
+        dll_log->Log (L"[  Nv API  ] >> Restarting to apply NVIDIA driver settings <<");
+
+        SK_ShellExecuteW ( GetDesktopWindow (),
+                            L"OPEN",
+                              SK_GetHostApp (),
+                                nullptr,
+                                  nullptr,
+                                    SW_SHOWDEFAULT );
+        exit (0);
+      }
+    }
+
+    // Not NVIDIA, maybe AMD?
+    else
+    {
+      dll_log->Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
+
+      BOOL adl_init =
+        SK_InitADL ();
+
+      dll_log->Log   (L"[DisplayLib]              ADL   Init         { %s }",
+                                                        adl_init ? L"Success" :
+                                                                   L"Failed ");
+
+      // Yes, AMD driver is in working order ...
+      if (adl_init > 0)
+      {
+        dll_log->Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
+                         SK_ADL_CountPhysicalGPUs (),
+                           SK_ADL_CountActiveGPUs () );
+      }
+    }
+
+    const HMODULE hMod =
+      SK_GetModuleHandle (SK_GetHostApp ());
+
+    if (hMod != nullptr)
+    {
+      const auto* dwOptimus =
+        reinterpret_cast <DWORD *> (
+          SK_GetProcAddress ( SK_GetHostApp (),
+                                "NvOptimusEnablement" )
+        );
+
+      if (dwOptimus != nullptr)
+      {
+        dll_log->Log ( L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
+                         *dwOptimus,
+                       ((*dwOptimus) & 0x1) ? L"Max Perf." :
+                                              L"Don't Care" );
+      }
+
+      else
+      {
+        dll_log->Log (L"[Hybrid GPU]  NvOptimusEnablement..................: UNDEFINED");
+      }
+
+      const auto* dwPowerXpress =
+        reinterpret_cast <DWORD *> (
+          SK_GetProcAddress ( SK_GetHostApp (),
+                                "AmdPowerXpressRequestHighPerformance" )
+        );
+
+      if (dwPowerXpress != nullptr)
+      {
+        dll_log->Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
+           *dwPowerXpress,
+           (*dwPowerXpress & 0x1) ? L"High Perf." :
+                                    L"Don't Care" );
+      }
+
+      else
+        dll_log->Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
+
+      dll_log->LogEx (false, L"================================================"
+                             L"===========================================\n" );
+    }
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }, L"[SK] GPU Vendor API Init");
 }
 
 void SK_FetchBuiltinSounds (void)
