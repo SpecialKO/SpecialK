@@ -1079,32 +1079,50 @@ ActivateWindow ( HWND hWnd,
                  bool active,
                  HWND hWndDeactivated )
 {
+  SK_PROFILE_SCOPED_TASK (ActivateWindow)
+
   // Sticky Keys (alt-tab) :)
   //
-  static BYTE __LastKeyState [512] = { };
+  static BYTE  __LastKeyState [512] = {                };
+  static auto& wm                   = wm_dispatch.get ();
 
 
   UNREFERENCED_PARAMETER (hWndDeactivated); // Apparently it's not important?
 
-
+#ifdef DEBUG
   SK_ASSERT_NOT_THREADSAFE ();
+#endif
 
-  SK_RenderBackend_V2& rb =
-    SK_GetCurrentRenderBackend ();
+  const bool hwnd_was_active =
+    wm.active_windows [hWnd];
 
-  const bool is_game_window =
-    ( hWnd == SK_GetGameWindow () || IsChild (game_window.hWnd, hWnd) || IsChild (hWnd, game_window.hWnd) );
-  const bool state_changed  =
-    ( wm_dispatch->active_windows [hWnd] != active &&
-                  is_game_window );
-
-  if (is_game_window)
+  //
+  // Ugly 3-5x optimization vs. doing this the simple way
+  //
+  int  is_game        = -1;
+  auto is_game_window = [&](void)->bool
   {
-    game_window.active = active;
-  }
+    if (     is_game != -1)
+      return is_game ==  1;
+
+    is_game =
+      ( hWnd == SK_GetGameWindow () || IsChild (game_window.hWnd, hWnd) ||
+                                       IsChild (hWnd, game_window.hWnd) ) ?
+                                                                        1 : 0;
+
+    return is_game == 1;
+  };
+
+  const bool state_changed =
+         (hwnd_was_active != active && is_game_window ());
+  if ( game_window.active != active && is_game_window ())
+       game_window.active  = active;
 
   if (state_changed)
   {
+    SK_RenderBackend_V2& rb =
+      SK_GetCurrentRenderBackend ();
+
     SK_Steam_ProcessWindowActivation (active);
 
     HWND hWndFocus =
@@ -1112,7 +1130,7 @@ ActivateWindow ( HWND hWnd,
 
     if (game_window.active)
     {
-      if (is_game_window)
+      if (is_game_window ())
       {
         if (active)
         {
@@ -1151,9 +1169,9 @@ ActivateWindow ( HWND hWnd,
     BYTE              newKeyboardState [256] = { };
     SetKeyboardState (newKeyboardState);
 
-    if (      hWndFocus != 0                &&
-              hWndFocus != game_window.hWnd &&
-        (is_game_window && game_window.active) )
+    if (         hWndFocus != 0                &&
+                 hWndFocus != game_window.hWnd &&
+        (is_game_window () && game_window.active))
     {
       BringWindowToTop    (hWndFocus);
       SetForegroundWindow (hWndFocus);
@@ -1347,7 +1365,8 @@ ActivateWindow ( HWND hWnd,
     }
   }
 
-  wm_dispatch->active_windows [hWnd] = active;
+  if (hwnd_was_active != active)
+    wm.active_windows [hWnd] = active;
 };
 
 
@@ -3645,6 +3664,8 @@ SK_AdjustBorder (void)
 void
 SK_Window_RepositionIfNeeded (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Window_RepositionIfNeeded)
+
   static SK_AutoHandle hRepoSignal (
     SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
   );
