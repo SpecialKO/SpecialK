@@ -1,4 +1,9 @@
-﻿25.4.10.1
+﻿25.4.10.2
+=========
+ + Added warning with directions on how to get RenoDX's Unreal Engine AddOn
+     to stop crashing if ReShade is not loaded in the correct order.
+
+25.4.10.1
 =========
  + Disable hook on ID3D12Device1::CreatePipelineLibrary (...)
 

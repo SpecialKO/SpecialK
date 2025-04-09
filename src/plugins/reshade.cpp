@@ -1140,10 +1140,69 @@ SK_ReShadeAddOn_Present (       reshade::api::command_queue *queue,
 bool SK_ReShadeAddOn_HadLocalINI = true;
 BOOL SK_ReShade_HasRenoDX (void)
 {
+  auto _= [&](BOOL bRet) -> BOOL
+  {
+    if (bRet)
+    {
+      if (SK_GetCurrentRenderBackend ().windows.unreal)
+      {
+        SK_RunOnce (
+          if (reshade::internal::has_addon (L"unrealengine"))
+          {
+            if (! (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap))
+            {
+              SK_ComQIPtr <IDXGISwapChain> pSwapChain (
+                SK_Render_GetSwapChain ()
+              );
+
+              DXGI_SWAP_CHAIN_DESC swapDesc =
+              {
+                .BufferDesc = {
+                  .Format = DXGI_FORMAT_R10G10B10A2_UNORM
+                }
+              };
+
+              if (pSwapChain.p != nullptr)
+                  pSwapChain->GetDesc (&swapDesc);
+
+              bool bHDR10 =
+                (swapDesc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM );
+              bool bScRGB =
+                (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+              if (! (bHDR10 || bScRGB))
+                     bHDR10 = true;
+
+              void
+              SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10);
+              SK_HDR_SetOverridesForGame (     bScRGB,      bHDR10);
+            }
+
+            const auto reshade_dll_path =
+              SK_GetModuleName (reshade::internal::get_reshade_module_handle ());
+
+            if (StrStrIW (reshade_dll_path.c_str (), L"dxgi"))
+            {
+              SK_MessageBox (
+                L"Please Load ReShade as a Plug-In to Prevent Crashes...\n\n"
+                L"  Option 1:  ReShade64.dll in game directory\n
+                L"  Option 2:  Global Plug-In (Lazy Load Order)",
+                L"RenoDX/Special K Unreal Engine Incompatibility",
+                MB_OK|MB_ICONHAND
+              );
+            }
+          }
+        );
+      }
+    }
+
+    return bRet;
+  };
+
   if (SK_GetFramesDrawn () < 1)
   {
     return
-      reshade::internal::has_addon (L"RenoDX");
+      _(reshade::internal::has_addon (L"RenoDX"));
   }
 
   // After 1 frame is drawn, we have a definitive answer,
@@ -1151,7 +1210,8 @@ BOOL SK_ReShade_HasRenoDX (void)
   static BOOL _HasRenoDX =
     reshade::internal::has_addon (L"RenoDX");
 
-  return _HasRenoDX;
+  return
+    _(_HasRenoDX);
 }
 
 const std::filesystem::path
