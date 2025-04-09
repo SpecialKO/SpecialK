@@ -47,6 +47,8 @@ DWORD SK_WGI_GamePollingThreadId = 0;
 bool
 SK_ImGui_WantGamepadCapture (bool update)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_WantGamepadCapture)
+
   static std::atomic <ULONG64> lastFrameCaptured = 0;
   static std::atomic_bool      capture           = false;
 

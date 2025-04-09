@@ -1065,6 +1065,8 @@ SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKeyName, UINT vKe
 void
 SK_HID_ProcessGamepadButtonBindings (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_HID_ProcessGamepadButtonBindings)
+
   const auto frames_drawn =
     SK_GetFramesDrawn ();
 

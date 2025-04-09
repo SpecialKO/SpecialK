@@ -3111,6 +3111,8 @@ SK_API
 bool
 SK_ImGui_ControlPanel (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_ControlPanel)
+
   if (! imgui_staged_frames)
     return false;
 

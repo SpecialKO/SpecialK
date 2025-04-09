@@ -81,10 +81,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   if (! ImGui::GetFont ())
     return;
 
-
-  //extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
-  extern AppId64_t __stdcall SK_SteamAPI_AppID    (void);
-
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -92,22 +88,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     bool show;
     bool never_show_again;
   };
-
-  static float last_width  = -1;
-  static float last_height = -1;
-
-  if (last_width != io.DisplaySize.x || last_height != io.DisplaySize.y)
-  {
-    SK_ImGui_SetNextWindowPosCenter (ImGuiCond_Always);
-    last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
-  }
-
-
-  ImVec2 scaler (io.FontGlobalScale, io.FontGlobalScale);
-
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (780.0f * scaler.x,
-                                               350.0f * scaler.y), ImVec2 ( 0.925f * io.DisplaySize.x * scaler.x,
-                                                                            0.925f * io.DisplaySize.y * scaler.y ) );
 
   static std::wstring
               plugin        = SK_GetPluginName ();
@@ -118,7 +98,24 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     sprintf (szTitle, "%ws Software License Agreement", plugin.c_str ());
 
   if (((show_eula_s *)reserved)->show)
+  {
+    static float last_width  = -1;
+    static float last_height = -1;
+
+    ImVec2 scaler (io.FontGlobalScale, io.FontGlobalScale);
+
+    ImGui::SetNextWindowSizeConstraints (ImVec2 (780.0f * scaler.x,
+                                                 350.0f * scaler.y), ImVec2 ( 0.925f * io.DisplaySize.x * scaler.x,
+                                                                              0.925f * io.DisplaySize.y * scaler.y ) );
+
+    if (last_width != io.DisplaySize.x || last_height != io.DisplaySize.y)
+    {
+      SK_ImGui_SetNextWindowPosCenter (ImGuiCond_Always);
+      last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
+    }
+
     ImGui::OpenPopup (szTitle);
+  }
 
 #ifdef _ProperSpacing
   const  float font_size = ImGui::GetFont  ()->FontSize * io.FontGlobalScale;
@@ -142,6 +139,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     //  ImGui::PopStyleColor ();
     //  goto END_POPUP;
     //}
+
+    extern AppId64_t __stdcall SK_SteamAPI_AppID (void);
 
     bool pirate = ( SK_SteamAPI_AppID    () != 0 &&
                     SK_Steam_PiratesAhoy () != 0x0 );

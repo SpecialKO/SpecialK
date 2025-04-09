@@ -2476,6 +2476,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 void
 SK_ImGui_PollGamepad (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_PollGamepad)
+
   static auto& io =
     ImGui::GetIO ();
 
@@ -3228,6 +3230,8 @@ SK_Window_HandleOutOfBandMovement (void)
 bool
 SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_UpdateMouseButtons)
+
   //
   // Handle mouse clicks while inactive, so that users can't hold the mouse
   //   button down then alt-tab into the game and potentially activate the UI...
@@ -3961,6 +3965,7 @@ SK_ImGui_InitDragAndDrop (void)
 void
 SK_ImGui_User_NewFrame (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_User_NewFrame)
   SK_Window_HandleOutOfBandMovement ();
 
   SK_HID_ProcessGamepadButtonBindings ();

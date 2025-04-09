@@ -35,6 +35,8 @@
 bool
 SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_ExemptOverlaysFromKeyboardCapture)
+
 //static const UINT vKeyEpic    = VK_F3;
   static const UINT vKeySteam   = VK_TAB;
   static const UINT vKeyReShade = VK_HOME;
@@ -188,6 +190,8 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 bool
 SK_ImGui_WantKeyboardCapture (bool update)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_WantKeyboardCapture)
+
   static std::atomic_bool capture = false;
 
   if (! SK_GImDefaultContext ())

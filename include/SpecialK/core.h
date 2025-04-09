@@ -261,7 +261,14 @@ struct SK_AutoEventMarker {
   const wchar_t* name = nullptr;
 };
 
+#define _SK_ENABLE_FIRST_CALL_PROFILING
+//#define _SK_ENABLE_MICRO_PROFILING
+
+#ifdef _SK_ENABLE_FIRST_CALL_PROFILING
 #define SK_PROFILE_FIRST_CALL SK_AutoEventMarker _(__FUNCTIONW__);
+#else
+#define SK_PROFILE_FIRST_CALL ;
+#endif
 
 
 void SK_Perf_PrintProfiledTasks (void);
@@ -294,6 +301,10 @@ struct SK_AutoProfileAccumulator {
   uint64_t       start = 0;
 };
 
+#ifdef _SK_ENABLE_MICRO_PROFILING
 #define SK_PROFILE_SCOPED_TASK(task) SK_AutoProfileAccumulator __##task##__(L#task);
+#else
+#define SK_PROFILE_SCOPED_TASK(task) ;
+#endif
 
 #endif /* __SK__CORE_H__ */

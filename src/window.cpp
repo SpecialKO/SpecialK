@@ -8553,6 +8553,8 @@ BOOL
 WINAPI
 SK_ClipCursor (const RECT *lpRect)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ClipCursor)
+
   BOOL bRet = TRUE;
 
   // Do not allow cursor clipping when the game's window is inactive

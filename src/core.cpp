@@ -2979,15 +2979,8 @@ SK_ShutdownCore (const wchar_t* backend)
 #ifndef _M_IX86
     // Need more precision for the profiling code below
     SK_FPU_SetPrecision (_PC_64);
-
-    dll_log->Log (L"[ SK Perf. ] -----------------------");
-    dll_log->Log (L"[ SK Perf. ]  Micro Profiled Tasks: ");
-    dll_log->Log (L"[ SK Perf. ] -----------------------");
     SK_Perf_PrintProfiledTasks ();
 #endif
-    dll_log->Log (L"[ SK Perf. ] -----------------------");
-    dll_log->Log (L"[ SK Perf. ]  Initialization Steps: ");
-    dll_log->Log (L"[ SK Perf. ] -----------------------");
     SK_Perf_PrintEvents        ();
     dll_log->LogEx ( false,
                   L"========================================================="
@@ -4073,6 +4066,8 @@ SK_SLI_UpdateStatus (IUnknown *device)
 void
 SK_Battery_UpdateRemainingPowerForAllDevices (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Battery_UpdateRemainingPowerForAllDevices)
+
   static auto lastTimeChecked =
     SK::ControlPanel::current_time - 1000;
 
@@ -4087,12 +4082,14 @@ SK_Battery_UpdateRemainingPowerForAllDevices (void)
   SYSTEM_POWER_STATUS  sps = { };
   SYSTEM_BATTERY_STATE sbs = { };
 
-  const NTSTATUS ntStatus =
+  NTSTATUS ntStatus = -1;
+
+  if (has_battery) ntStatus =
     CallNtPowerInformation ( SystemBatteryState,
                              nullptr, 0,
                              &sbs, sizeof (sbs) );
 
-  if (has_battery || (SUCCEEDED (ntStatus) && sbs.Rate != 0))
+  if (SUCCEEDED (ntStatus) && sbs.Rate != 0)
   {
     if (GetSystemPowerStatus (&sps))
     {
@@ -4998,6 +4995,13 @@ void SK_Perf_PrintEvents (void)
   std::vector <std::pair <const wchar_t*, uint64_t>> start_times;
   std::vector <std::pair <const wchar_t*, uint64_t>> end_times;
 
+  if (SK_EventMarker_StartTimes->empty ())
+    return;
+
+  dll_log->Log (L"[ SK Perf. ] -----------------------");
+  dll_log->Log (L"[ SK Perf. ]  Initialization Steps: ");
+  dll_log->Log (L"[ SK Perf. ] -----------------------");
+
   for (const auto& start : *SK_EventMarker_StartTimes)
   {
     start_times.push_back (start);
@@ -5115,6 +5119,13 @@ void SK_Perf_PrintProfiledTasks (void)
   std::vector <
     std::pair <const wchar_t *, const SK_ProfiledTask_Accum *>
   > tasks;
+
+  if (tasks.empty ())
+    return;
+
+  dll_log->Log (L"[ SK Perf. ] -----------------------");
+  dll_log->Log (L"[ SK Perf. ]  Micro Profiled Tasks: ");
+  dll_log->Log (L"[ SK Perf. ] -----------------------");
 
   for ( const auto& task : *SK_ProfileAccumulator )
   {

@@ -302,6 +302,8 @@ SK_ImGui_IsAnythingHovered (void)
 bool
 SK_ImGui_IsMouseRelevantEx (bool update)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_IsMouseRelevantEx)
+
   static std::atomic_bool relevant = false;
 
   if (! update)
@@ -326,6 +328,8 @@ SK_ImGui_IsMouseRelevantEx (bool update)
 bool
 SK_ImGui_IsMouseRelevant (bool update)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_IsMouseRelevant)
+
   static std::atomic_bool relevant = false;
 
   if (! update)
@@ -692,6 +696,8 @@ SK_ImGui_WantMouseButtonCapture (void)
 bool
 SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_WantMouseCapture)
+
   if (SK_ReShadeAddOn_IsOverlayActive () || SK::SteamAPI::GetOverlayState (true))
     return false;
 
