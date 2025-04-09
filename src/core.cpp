@@ -253,9 +253,13 @@ SK_StartPerfMonThreads (void)
 void
 SK_LoadGPUVendorAPIs (void)
 {
+#define THREADED_VENDOR_API_INIT
+
+#ifdef THREADED_VENDOR_API_INIT
   static HANDLE hVendorInitThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
+#endif
     SK_PROFILE_FIRST_CALL
 
     SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
@@ -267,9 +271,13 @@ SK_LoadGPUVendorAPIs (void)
     //
     if (config.compatibility.using_wine)
     {
+#ifdef THREADED_VENDOR_API_INIT
       SK_Thread_CloseSelf ();
 
       return 0;
+#else
+      return;
+#endif
     }
 
     dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API           (NvAPI)...");
@@ -455,10 +463,12 @@ SK_LoadGPUVendorAPIs (void)
                              L"===========================================\n" );
     }
 
+#ifdef THREADED_VENDOR_API_INIT
     SK_Thread_CloseSelf ();
 
     return 0;
   }, L"[SK] GPU Vendor API Init");
+#endif
 }
 
 void SK_FetchBuiltinSounds (void)
@@ -1840,6 +1850,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     return false;
   }
+
+  SK_Thread_ScopedPriority _(THREAD_PRIORITY_TIME_CRITICAL);
 
   // Not a saved INI setting; use an alternate initialization
   //   strategy when Streamline is detected...
