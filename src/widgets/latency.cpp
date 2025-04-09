@@ -117,6 +117,8 @@ SK_Reflex_GetFrameEndTime (const _NV_LATENCY_RESULT_PARAMS::FrameReport& report)
 void
 SK_ImGui_DrawGraph_Latency (bool predraw)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_DrawGraph_Latency)
+
   if (! sk::NVAPI::nv_hardware) {
     return;
   }

@@ -2504,6 +2504,8 @@ SK_Display_ClearDPIAwareness (bool bOnlyIfWin10)
 void
 SK_Display_DisableDPIScaling (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   if (! IsProcessDPIAware ())
   {
     bool bWasAppCompatAware =
@@ -5000,6 +5002,8 @@ SK_RenderBackend_V2::output_s::setSDRWhiteLevel (float fNits)
 void
 SK_Render_CountVBlanks ()
 {
+  SK_PROFILE_SCOPED_TASK (SK_Render_CountVBlanks)
+
   static HANDLE hVRREvent =
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 

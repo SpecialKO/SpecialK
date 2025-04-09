@@ -182,6 +182,8 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
                         SK_InjectionRecord_s *pData,
                         size_t                cbSize )
 {
+  SK_PROFILE_FIRST_CALL
+
   if (cbSize == sizeof (SK_InjectionRecord_s))
   {
     for ( int idx = 0                         ;

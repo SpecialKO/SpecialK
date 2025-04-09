@@ -2308,6 +2308,8 @@ void
 __stdcall
 SK_EnumLoadedModules (SK_ModuleEnum when)
 {
+  SK_PROFILE_FIRST_CALL
+
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
 

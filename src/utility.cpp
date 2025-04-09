@@ -3168,6 +3168,8 @@ SK_PathCombineW ( _Out_writes_ (MAX_PATH) LPWSTR pszDest,
 uint64_t
 SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
 {
+  SK_PROFILE_FIRST_CALL
+
   WIN32_FIND_DATA fd     = {      };
   size_t          files  =   0UL;
   LARGE_INTEGER   liSize = { 0ULL };
