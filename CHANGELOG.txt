@@ -1,4 +1,8 @@
-﻿25.4.9.4
+﻿25.4.9.5
+========
+ + Added initialization delay for Ubisoft+ version of Assassin's Creed Shadows.
+
+25.4.9.4
 ========
  + Added options to swap A/B and X/Y on Xbox controllers to match Nintendo.
 
