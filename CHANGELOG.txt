@@ -1,7 +1,9 @@
 ﻿25.4.9.3
 ========
+ + Disable Clean Exit system, because it leads to config files not being saved
+     for games that launch multiple copies of themselves.
  + Added Cloth Physics Fix support for suckers who gave Valve money in exchange
-     for a buggy version of Assassin's Creed Shadows.
+     for an even buggier version of Assassin's Creed Shadows.
 
 25.4.9.2
 ========

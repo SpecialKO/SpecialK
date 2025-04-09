@@ -3007,7 +3007,9 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (sk::NVAPI::app_name.find (L"ds3t.exe") == std::wstring::npos)
   {
+#ifdef SK_USE_CLEAN_EXIT
     config.system.clean_exit = !SK_Debug_IsCrashing ();
+#endif
 
     dll_log->LogEx  (true,  L"[ SpecialK ] Saving user preferences to"
                             L" %10s.ini... ", config_name);
