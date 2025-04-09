@@ -1185,7 +1185,7 @@ BOOL SK_ReShade_HasRenoDX (void)
             {
               SK_MessageBox (
                 L"Please Load ReShade as a Plug-In to Prevent Crashes...\n\n"
-                L"  Option 1:  ReShade64.dll in game directory\n
+                L"  Option 1:  ReShade64.dll in game directory\n"
                 L"  Option 2:  Global Plug-In (Lazy Load Order)",
                 L"RenoDX/Special K Unreal Engine Incompatibility",
                 MB_OK|MB_ICONHAND
