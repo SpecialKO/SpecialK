@@ -85,8 +85,11 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_RunLHIfBitness (64, L"ReShade64.dll",
                            L"ReShade32.dll");
 
+  wchar_t          wszReShadePath [MAX_PATH] = {};
+  SK_PathCombineW (wszReShadePath, SK_GetHostPath (), wszDLL);
+
   return
-    PathFileExistsW (wszDLL);
+    PathFileExistsW (wszReShadePath);
 }
 
 void
@@ -101,7 +104,10 @@ SK_ReShade_LoadIfPresent (void)
     SK_RunLHIfBitness (64, L"ReShade64.dll",
                            L"ReShade32.dll");
 
-  if (PathFileExistsW (wszDLL))
+  wchar_t          wszReShadePath [MAX_PATH] = {};
+  SK_PathCombineW (wszReShadePath, SK_GetHostPath (), wszDLL);
+
+  if (PathFileExistsW (wszReShadePath))
   {
     if (! PathFileExistsW (L"ReShade.ini"))
     {
@@ -130,7 +136,7 @@ StyleIndex=2)", fINI);
       }
     }
 
-    LoadLibraryW (wszDLL);
+    LoadLibraryW (wszReShadePath);
   }
 
   SK_ReShadeAddOn_Init ();
