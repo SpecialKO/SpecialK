@@ -2,6 +2,11 @@
 =========
  + Added warning with directions on how to get RenoDX's Unreal Engine AddOn
      to stop crashing if ReShade is not loaded in the correct order.
+ + Always use the path relative to the executable when searching for ReShade
+     DLLs in game directories since Unreal Engine changes its Current Directory
+       at some unknown time while SK is initializing.
+ + Set the root path for Local Injection to the executable's directory rather
+     than the Current Directory.
 
 25.4.10.1
 =========
