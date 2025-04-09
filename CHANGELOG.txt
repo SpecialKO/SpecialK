@@ -1,4 +1,10 @@
-﻿25.4.9.5
+﻿25.4.10
+=======
+ + Optimized GPU Vendor API initialization
+ + Optimized ActivateWindow (...) function in window.cpp
+ + Removed unnecessary D3D12 hooks when state tracking is not enabled
+
+25.4.9.5
 ========
  + Added initialization delay for Ubisoft+ version of Assassin's Creed Shadows.
 

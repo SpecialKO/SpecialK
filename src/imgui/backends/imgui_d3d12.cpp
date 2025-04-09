@@ -1402,6 +1402,7 @@ D3D12GraphicsCommandList_OMSetRenderTargets_Detour (
 {
   SK_LOG_FIRST_CALL
 
+#ifdef D3D12_STATE_TRACK
   if (config.reshade.is_addon)
   {
     UINT                        size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
@@ -1417,6 +1418,7 @@ D3D12GraphicsCommandList_OMSetRenderTargets_Detour (
     This->SetPrivateData (
       SKID_D3D12RenderTarget0, size, &rtv_handle );
   }
+#endif
 
   return
     D3D12GraphicsCommandList_OMSetRenderTargets_Original (
@@ -1603,6 +1605,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                     (void **)&D3D12GraphicsCommandList_DrawIndexedInstanced_Original );
   }
 
+#ifdef D3D12_STATE_TRACK
   if (D3D12GraphicsCommandList_SetPipelineState_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::SetPipelineState",
@@ -1610,6 +1613,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                                D3D12GraphicsCommandList_SetPipelineState_Detour,
                      (void **)&D3D12GraphicsCommandList_SetPipelineState_Original );
   }
+#endif
 
   if (D3D12GraphicsCommandList_ResourceBarrier_Original == nullptr)
   {
@@ -1654,6 +1658,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   // 58 EndEvent
   // 59 ExecuteIndirect
 
+#ifdef D3D12_STATE_TRACK
   if (D3D12GraphicsCommandList_OMSetRenderTargets_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::OMSetRenderTargets",
@@ -1661,7 +1666,9 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                                D3D12GraphicsCommandList_OMSetRenderTargets_Detour,
                      (void **)&D3D12GraphicsCommandList_OMSetRenderTargets_Original );
   }
+#endif
 
+#ifdef D3D12_STATE_TRACK
   if (D3D12GraphicsCommandList_ExecuteIndirect_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ExecuteIndirect",
@@ -1669,7 +1676,9 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                                D3D12GraphicsCommandList_ExecuteIndirect_Detour,
                      (void **)&D3D12GraphicsCommandList_ExecuteIndirect_Original );
   }
+#endif
 
+#if 0
   if (D3D12GraphicsCommandList_ClearRenderTargetView_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ClearRenderTargetView",
@@ -1677,6 +1686,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                            D3D12GraphicsCommandList_ClearRenderTargetView_Detour,
                  (void **)&D3D12GraphicsCommandList_ClearRenderTargetView_Original );
   }
+#endif
 
   SK_ApplyQueuedHooks ();
 }
