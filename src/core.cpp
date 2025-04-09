@@ -253,6 +253,8 @@ SK_StartPerfMonThreads (void)
 void
 SK_LoadGPUVendorAPIs (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   dll_log->LogEx (false, L"================================================"
                          L"===========================================\n" );
 
@@ -754,6 +756,8 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   // Needed for CAPCOM's D3D12 games to not crash
   ModifyPrivilege (L"SeIncreaseBasePriorityPrivilege", TRUE);
 
@@ -973,7 +977,7 @@ SK_InitFinishCallback (void)
     game_debug->silent = true;
   }
 
-
+#if 0 // Async should be perfectly fine
   const wchar_t* config_name =
     SK_GetBackend ();
 
@@ -983,6 +987,9 @@ SK_InitFinishCallback (void)
     config_name = L"SpecialK";
 
   SK_SaveConfig (config_name);
+#else
+  config.utility.save_async ();
+#endif
 
   SK_Console::getInstance ()->Start ();
 
@@ -1638,6 +1645,8 @@ void
 __stdcall
 SK_EstablishRootPath (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   wchar_t   wszConfigPath [MAX_PATH + 2] = { };
   GetCurrentDirectory     (MAX_PATH,
             wszConfigPath);
@@ -2714,6 +2723,8 @@ SK_Log_CleanupLogs (void)
 bool
 SK_Inject_IsWindowSKIF (HWND hWnd)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Inject_IsWindowSKIF)
+
   DWORD                               dwPid = 0x0;
   SK_GetWindowThreadProcessId (hWnd, &dwPid);
 
@@ -2757,6 +2768,8 @@ SK_Inject_IsWindowSKIF (HWND hWnd)
 void
 SK_Inject_PostHeartbeatToSKIF (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Inject_PostHeartbeatToSKIF)
+
   static HWND hWndSKIF =
     FindWindow (L"SK_Injection_Frontend", nullptr);
 
@@ -3275,6 +3288,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
                                        SK_GetFramesDrawn () )
 {
+  SK_PROFILE_SCOPED_TASK (SK_FrameCallback)
+
   void
   ActivateWindow ( HWND hWnd,
                    bool active          = false,
@@ -3662,6 +3677,8 @@ void
 __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
+  SK_PROFILE_SCOPED_TASK (SK_BeginBufferSwapEx)
+
   void SK_Render_CountVBlanks (void);
        SK_Render_CountVBlanks ();
 
@@ -3746,6 +3763,8 @@ SK_BeginBufferSwap (void)
 void
 SK_Input_PollKeyboard (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Input_PollKeyboard)
+
   constexpr ULONGLONG poll_interval = 1ULL;
 
   //
@@ -3849,6 +3868,8 @@ SK_Input_PollKeyboard (void)
 void
 SK_BackgroundRender_EndFrame (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_BackgroundRender_EndFrame)
+
   // Side-effect:  Evaluates Steam AppId Override
   SK_ImGui_WantGamepadCapture ();
 
@@ -4055,7 +4076,7 @@ SK_SLI_UpdateStatus (IUnknown *device)
   {
     // Get SLI status for the frame we just displayed... this will show up
     //   one frame late, but this is the safest approach.
-    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 1)
     {
       *SK_NV_sli_state =
         sk::NVAPI::GetSLIState (device);
@@ -4232,6 +4253,8 @@ HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 {
+  SK_PROFILE_SCOPED_TASK (SK_EndBufferSwap)
+
   auto qpcTimeOfSwap =
     SK_QueryPerf ();
 
@@ -5120,7 +5143,7 @@ void SK_Perf_PrintProfiledTasks (void)
     std::pair <const wchar_t *, const SK_ProfiledTask_Accum *>
   > tasks;
 
-  if (tasks.empty ())
+  if (SK_ProfileAccumulator->empty ())
     return;
 
   dll_log->Log (L"[ SK Perf. ] -----------------------");
