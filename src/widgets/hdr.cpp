@@ -251,7 +251,8 @@ struct SK_HDR_Preset_s {
           pParam->store ();
     }
 
-    SK_GetDLLConfig ()->write ();
+    config.utility.save_async ();
+  //SK_GetDLLConfig ()->write ();
   }
 
   void setup (void)

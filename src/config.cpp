@@ -6314,6 +6314,8 @@ SK_SaveConfig ( std::wstring name,
     return;
   }
 
+  SK_PROFILE_SCOPED_TASK (SK_SaveConfig)
+
   if (name.empty ())
   {
     if (SK_IsInjected ())
@@ -8816,6 +8818,8 @@ sk_config_t::utility_functions_s::save_async (void)
   // Don't write anything for launchers
   if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher || SK_GetHostAppUtil ()->isBlacklisted ())
     return;
+
+  SK_PROFILE_SCOPED_TASK (sk_config_t__utility_functions_s__save_async)
 
   SK_RunOnce (
     SK_Thread_CreateEx ([](LPVOID) -> DWORD

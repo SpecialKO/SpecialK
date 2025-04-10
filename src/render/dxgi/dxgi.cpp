@@ -9180,6 +9180,9 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   void                  *pCaller  = nullptr
 )
 {
+  // This seems to be called recursively, best to keep an eye on it
+  SK_PROFILE_SCOPED_TASK (SK_DXGISwap3_SetColorSpace1_Impl)
+
   const auto RequestedColorSpace = ColorSpace;
 
   //
@@ -9206,7 +9209,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   if (! silent)
   {
     SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)\t[%ws]",
-                    DXGIColorSpaceToStr (ColorSpace), SK_GetCallerName ().c_str () );
+                    DXGIColorSpaceToStr (ColorSpace), SK_GetCallerName (pCaller).c_str () );
   }
 
   DXGI_SWAP_CHAIN_DESC   swapDesc = { };
@@ -9338,8 +9341,9 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if (SUCCEEDED (hr))
   {
-    config.render.hdr.last_used_colorspace = ColorSpace;
-    config.utility.save_async ();
+    config.utility.save_async_if (
+      std::exchange (config.render.hdr.last_used_colorspace, ColorSpace) != ColorSpace
+    );
 
     // {018B57E4-1493-4953-ADF2-DE6D99CC05E5}
     static constexpr GUID SKID_SwapChainColorSpace =
