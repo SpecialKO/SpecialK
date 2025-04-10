@@ -4970,7 +4970,7 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
 SK_SEH_PreState
 SK_SEH_ApplyTranslator (_In_opt_ _se_translator_function _NewSETranslator)
 {
-  SK_PROFILE_SCOPED_TASK (SK_SEH_ApplyTranslator)
+  ////SK_PROFILE_SCOPED_TASK (SK_SEH_ApplyTranslator)
 
   SK_SEH_PreState pre_state = { };
 
@@ -4997,7 +4997,7 @@ SK_SEH_ApplyTranslator (_In_opt_ _se_translator_function _NewSETranslator)
 _se_translator_function
 SK_SEH_RemoveTranslator (SK_SEH_PreState pre_state)
 {
-  SK_PROFILE_SCOPED_TASK (SK_SEH_RemoveTranslator)
+  ////SK_PROFILE_SCOPED_TASK (SK_SEH_RemoveTranslator)
 
   auto ret =
     _set_se_translator (pre_state.pfnTranslator);
