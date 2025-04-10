@@ -169,7 +169,7 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
   if (StrStrIW (wszDllFile, L"ReShade") != nullptr && file_exists)
   {
-    // If ReShade is already loaded, then we're too late...
+    // If ReShade is already loaded, then don't do this again :)
     if (! reshade::internal::get_reshade_module_handle ()) SK_RunOnce(
     {
       bool want_hookless =
@@ -1272,6 +1272,49 @@ SK_Import_HasEarlyImport (const wchar_t* wszName)
         if (StrStrIW (import.name.c_str (), wszName))
         {
           return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_Import_ChangeLoadOrder (const wchar_t* wszName, const wchar_t* wszNewOrder)
+{
+  const std::wstring target_arch =
+    SK_RunLHIfBitness ( 64, SK_IMPORT_ARCH_X64,
+                            SK_IMPORT_ARCH_WIN32 );
+
+  for (auto & import : imports->imports)
+  {
+    if (import.name.empty ())
+      continue;
+
+    if (_IsArchSame (import.architecture->get_value_ref (), target_arch))
+    {
+      if (! import.when->is_equal (wszNewOrder))
+      {
+        if (StrStrIW (import.name.c_str (), wszName))
+        {
+          auto& sections =
+            SK_GetDLLConfig ()->get_sections ();
+
+          for (auto &[name, section] : sections)
+          {
+            if ( StrStrIW (name.c_str (), L"Import.") &&
+                 StrStrIW (name.c_str (), wszName) )
+            {
+              section.     get_value (L"When").assign (wszNewOrder);
+              import.when->set_value                  (wszNewOrder);
+
+              SK_SaveConfig  ();
+              SK_RestartGame ();
+
+              return true;
+            }
+          }
         }
       }
     }

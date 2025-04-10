@@ -1203,45 +1203,77 @@ BOOL SK_ReShade_HasRenoDX (void)
   {
     if (bRet && (! config.reshade.allow_unsafe_addons))
     {
-      if (SK_API_IsLayeredOnD3D12 (SK_GetCurrentRenderBackend ().api))
+      static bool
+          warned = false;
+      if (warned) return bRet;
+
+      SK_RunOnce (
       {
-        SK_RunOnce (
-          const auto reshade_dll_path =
-            SK_GetModuleName (reshade::internal::get_reshade_module_handle ());
+        static constexpr auto import_name =
+          SK_RunLHIfBitness ( 64, L"ReShade64",
+                                  L"ReShade32" );
 
-          if (StrStrIW (reshade_dll_path.c_str (), L"dxgi")  ||
-              StrStrIW (reshade_dll_path.c_str (), L"d3d11") ||
-              StrStrIW (reshade_dll_path.c_str (), L"d3d12"))
+        if (SK_Import_HasEarlyImport (import_name))
+        {
+          SK_MessageBox (
+            L"RenoDX is Incompatible if ReShade is Loaded Early.""\r\n\r\n"
+            L" >> ReShade's Load Order Has Been Changed to Lazy <<\r\n\r\n"
+            L"  * A Game Restart Is Required.",
+              L"RenoDX / SpecialK Incompatibility",
+                 MB_OK | MB_ICONASTERISK
+          );
+
+          SK_Import_ChangeLoadOrder (import_name, SK_IMPORT_LAZY);
+        }
+      });
+
+      static auto reshade_dll_path =
+        SK_GetModuleName (reshade::internal::get_reshade_module_handle ());
+
+      if (StrStrIW (reshade_dll_path.c_str (), L"dxgi")  ||
+          StrStrIW (reshade_dll_path.c_str (), L"d3d11") ||
+          StrStrIW (reshade_dll_path.c_str (), L"d3d12"))
+      {
+        if (! (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap))
+        {
+          SK_ComQIPtr <IDXGISwapChain> pSwapChain (
+            SK_Render_GetSwapChain ()
+          );
+
+          DXGI_SWAP_CHAIN_DESC swapDesc =
           {
-            if (! (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap))
-            {
-              SK_ComQIPtr <IDXGISwapChain> pSwapChain (
-                SK_Render_GetSwapChain ()
-              );
-
-              DXGI_SWAP_CHAIN_DESC swapDesc =
-              {
-                .BufferDesc = {
-                  .Format = DXGI_FORMAT_R10G10B10A2_UNORM
-                }
-              };
-
-              if (pSwapChain.p != nullptr)
-                  pSwapChain->GetDesc (&swapDesc);
-
-              bool bHDR10 =
-                (swapDesc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM );
-              bool bScRGB =
-                (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT);
-
-              if (! (bHDR10 || bScRGB))
-                     bHDR10 = true;
-
-              void
-              SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10);
-              SK_HDR_SetOverridesForGame (     bScRGB,      bHDR10);
+            .BufferDesc = {
+              .Format = DXGI_FORMAT_R10G10B10A2_UNORM
             }
+          };
 
+          if (pSwapChain.p != nullptr)
+              pSwapChain->GetDesc (&swapDesc);
+
+          bool bHDR10 =
+            (swapDesc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM );
+          bool bScRGB =
+            (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+          if (! (bHDR10 || bScRGB))
+                 bHDR10 = true;
+
+          void
+          SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10);
+          SK_HDR_SetOverridesForGame (     bScRGB,      bHDR10);
+        }
+
+        if (SK_API_IsLayeredOnD3D12 (SK_GetCurrentRenderBackend ().api))
+        {
+          SK_RunOnce (
+          {
+            warned = true;
+
+            //
+            // TODO:  Make this owner draw and add buttons to actually DO
+            //          the things discussed as Option 1 and Option 2 on
+            //            behalf of the user.
+            //
             SK_ImGui_CreateNotification (
               "AddOn.Incompatible", SK_ImGui_Toast::Warning,
               "If RenoDX does not work, try loading ReShade as a Plug-In\n\n"
@@ -1252,8 +1284,8 @@ BOOL SK_ReShade_HasRenoDX (void)
                   20000, SK_ImGui_Toast::UseDuration |
                          SK_ImGui_Toast::ShowCaption |
                          SK_ImGui_Toast::ShowTitle );
-          }
-        );
+          });
+        }
       }
     }
 
@@ -1322,9 +1354,9 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   );
 
   if (reshade_module == nullptr)
-      reshade_module = reshade::internal::get_reshade_module_handle (reshade_module);
+      reshade_module = reshade::internal::get_reshade_module_handle ();
 
-  bool is_plugin =
+  bool is_plugin =              reshade_module &&
     StrStrIW (SK_GetModuleName (reshade_module).c_str (), L"ReShade");
 
   const auto reshade_base_path =
@@ -1346,8 +1378,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
 
-  registered = (! is_plugin) ||
-    reshade::register_addon (SK_GetDLL (), reshade_module);
+  registered = reshade_module && ( (! is_plugin) ||
+    reshade::register_addon (SK_GetDLL (), reshade_module) );
 
   if (registered)
   {
@@ -1375,11 +1407,11 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
       recursive_directory_iterator  profile_dir (profile_addon_path,             ec);
       recursive_directory_iterator  global_dir  (  shared_base_path / L"AddOns", ec);
                 directory_iterator  local_dir   (SK_GetHostPath (),              ec);
-      std::vector <directory_entry> files;
+      std::set <directory_entry> files;
 
-      for (const auto& file : profile_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
-      for (const auto& file :  global_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
-      for (const auto& file :   local_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
+      for (const auto& file : profile_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.insert (file);
+      for (const auto& file :  global_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.insert (file);
+      for (const auto& file :   local_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.insert (file);
       for (const auto& file :                                                                            files)
       {
         const auto& path =
@@ -1390,8 +1422,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
                                                                          L".addon32")))
         {
           // It's already loaded...
-          if (GetModuleHandleW (path.parent_path ().wstring ().data ()))
-            continue;
+          if (GetModuleHandleW (path.filename ().wstring ().data ()))
+            continue;           // ReShade goes by the filename (i.e. XYZ.AddOn64), not the full path
 
           const auto filename      = path.filename ().wstring  ();
           const auto filename_utf8 = path.filename ().u8string ();
@@ -1422,7 +1454,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
                                   SK_ImGui_Toast::ShowTitle );
             }
           }
-          
+
           else
           {
             _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));

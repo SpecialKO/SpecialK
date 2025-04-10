@@ -1,4 +1,13 @@
-﻿25.4.10.4
+﻿25.4.11
+=======
+ + Automatically change ReShade load order to Lazy from Early if necessary for
+     RenoDX to work correctly with SK.
+ + Handle scenarios where the same ReShade AddOn is located in the game's dir-
+     ectory as well as SK's Profiles\Game\ReShade\AddOns\ directory.
+ + Support worst-case scenario, where user has dxgi.dll and ReShade64.dll in
+     the game's directory -AND- tries to load a Plug-In copy of ReShade.
+
+25.4.10.4
 =========
  + Add UnsafeAddOns INI setting
  + Add local directory to ReShade AddOn search path

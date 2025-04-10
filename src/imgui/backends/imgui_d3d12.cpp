@@ -1168,6 +1168,8 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
                       D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle,
                       HWND                        hwnd )
 {
+  SK_ReShade_HasRenoDX ();
+
   ImGuiIO& io =
     ImGui::GetIO ();
 

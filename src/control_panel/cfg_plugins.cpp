@@ -333,7 +333,7 @@ SK::ControlPanel::PlugIns::Draw (void)
 
           if (! compatibility)
           {
-            dll_ini->get_section (imp_name_reshade).get_value (L"When").assign (L"Early");
+            dll_ini->get_section (imp_name_reshade).get_value (L"When").assign (L"Lazy");
           }
 
           config.utility.save_async ();

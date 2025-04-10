@@ -3351,10 +3351,21 @@ SK_ImGui_DrawGamut (void)
   }
 }
 
+void
+SK_HDR_RunWidgetOnce (void)
+{
+  SK_RunOnce (__dxgi_hdr__.get ().run ());
+
+  hdr_presets [__SK_HDR_Preset].activate ();
+}
+
 void SK_HDR_DisableOverridesForGame (void)
 {
   __SK_HDR_16BitSwap = false;
   __SK_HDR_10BitSwap = false;
+
+  // Initialize the INI variables
+  SK_HDR_RunWidgetOnce ();
 
   _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
   _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
@@ -3366,14 +3377,9 @@ SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10)
   __SK_HDR_16BitSwap = bScRGB;
   __SK_HDR_10BitSwap = bHDR10;
 
+  // Initialize the INI variables
+  SK_HDR_RunWidgetOnce ();
+
   _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
   _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
-}
-
-void
-SK_HDR_RunWidgetOnce (void)
-{
-  SK_RunOnce (__dxgi_hdr__.get ().run ());
-
-  hdr_presets [__SK_HDR_Preset].activate ();
 }

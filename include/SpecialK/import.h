@@ -82,6 +82,8 @@ int  SK_Import_GetNumberOfPlugIns (void);
 bool SK_Import_HasEarlyImport  (const wchar_t* wszName);
 bool SK_Import_HasLateImport   (const wchar_t* wszName);
 bool SK_Import_HasPlugInImport (const wchar_t* wszName);
+bool SK_Import_ChangeLoadOrder (const wchar_t* wszName,
+                                const wchar_t* wszNewOrder);
 
 bool SK_Import_LoadImportNow   (const wchar_t* wszName);
 
