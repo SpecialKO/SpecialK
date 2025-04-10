@@ -1,4 +1,10 @@
-﻿25.4.10.3
+﻿25.4.10.4
+=========
+ + Add UnsafeAddOns INI setting
+ + Add local directory to ReShade AddOn search path
+ + Delay initialization of ReShade AddOn if ReShade is local and API is d3d12
+
+25.4.10.3
 =========
  + Additional changes to deal with Unreal Engine changing the Current Directory
     @TimSweeneyEpic wtf?

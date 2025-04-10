@@ -158,17 +158,25 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   return false;
 }
 
+#include <ReShade/reshade.hpp>
+
 HMODULE
 SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 {
+  const bool file_exists =
+    PathFileExistsW (wszDllFile);
+
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
-  if (StrStrIW (wszDllFile, L"ReShade") != nullptr)
+  if (StrStrIW (wszDllFile, L"ReShade") != nullptr && file_exists)
   {
-    SK_RunOnce (
+    // If ReShade is already loaded, then we're too late...
+    if (! reshade::internal::get_reshade_module_handle ()) SK_RunOnce(
     {
-      if (0 != _wcsicmp (wszMode, L"Normal"))
+      bool want_hookless =
+        (0 != _wcsicmp (wszMode, L"Normal"));
+
+      if (want_hookless)
       {
-        config.reshade.is_addon_hookless = true;
         SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
       }
 
@@ -275,8 +283,16 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
         WriteULongRelease (&_d3d12_rbk->reset_needed, 1);
       }
 
-      return
+      auto dll =
         SK_LoadLibraryW (wszDllFile);
+
+      // Don't set this unless we well and truly have loaded the intended DLL
+      if (want_hookless && dll != nullptr)
+      {
+        config.reshade.is_addon_hookless = true;
+      }
+
+      return dll;
     });
   }
 
