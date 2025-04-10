@@ -641,8 +641,8 @@ SK_XInput_Polling_Thread (LPVOID user)
                                               __SK_DLL_TeardownEvent
   };
   
-  DWORD  dwWait =  WAIT_OBJECT_0;
-  while (dwWait == WAIT_OBJECT_0)
+  DWORD dwWait = WAIT_OBJECT_0;
+  do
   {
     dwWait =
       MsgWaitForMultipleObjects ( 3, hWaitEvents, FALSE,
@@ -655,7 +655,7 @@ SK_XInput_Polling_Thread (LPVOID user)
     SK_XInput_PollController (3, &xstate);
   
     ResetEvent (hHotplugUnawareXInputRefresh.m_h);
-  } while ( dwWait == WAIT_OBJECT_0 ); // Events #1 and #2 end this thread
+  } while ( dwWait == WAIT_OBJECT_0 );
   
   if (                (intptr_t)SK_XInputCold_DecommisionEvent > 0)
   { CloseHandle (std::exchange (SK_XInputCold_DecommisionEvent, (HANDLE)0));
