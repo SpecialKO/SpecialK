@@ -754,6 +754,7 @@ struct {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
   sk::ParameterBool*      draw_first              = nullptr;
+  sk::ParameterBool*      unsafe_addons           = nullptr;
 } reshade_cfg;
 
 struct {
@@ -2181,6 +2182,7 @@ auto DeclKeybind =
     ConfigEntry (notifications.silent,                   L"Will not draw notifications until user requests them.",     notify_ini,      L"Notification.System",   L"Silent"),
 
     ConfigEntry (reshade_cfg.draw_first,                 L"Draw ReShade before SK's overlay in AddOn capable versions",dll_ini,         L"ReShade.System",        L"DrawFirst"),
+    ConfigEntry (reshade_cfg.unsafe_addons,              L"Supress warnings for incompatible ReShade AddOns",          dll_ini,         L"ReShade.System",        L"UnsafeAddOns"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
@@ -4381,6 +4383,7 @@ auto DeclKeybind =
      config.apis.D3DKMT.enable_perfdata = (! microsoft.d3dkmt.disable_perfdata->get_value ());
 
   reshade_cfg.draw_first->load              (config.reshade.draw_first);
+  reshade_cfg.unsafe_addons->load           (config.reshade.allow_unsafe_addons);
 
   notifications.location->load              (config.notifications.location);
   notifications.silent->load                (config.notifications.silent);
@@ -7031,9 +7034,8 @@ SK_SaveConfig ( std::wstring name,
     render.gl.upgrade_zbuffer->store (config.render.gl.upgrade_zbuffer);
   }
 
-  // Don't write this setting unless an AddOn capable version of ReShade is loaded
-  if (config.reshade.is_addon)
-    reshade_cfg.draw_first->store             (config.reshade.draw_first);
+  reshade_cfg.draw_first->store               (config.reshade.draw_first);
+  reshade_cfg.unsafe_addons->store            (config.reshade.allow_unsafe_addons);
 
   notifications.location->store               (config.notifications.location);
   notifications.silent->store                 (config.notifications.silent);
