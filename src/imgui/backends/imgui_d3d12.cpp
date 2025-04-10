@@ -3149,36 +3149,12 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
                                pSwapChain =          pNativeSwapChain.p;
 
-  if (pSwapChain != nullptr)
-  {
-    UINT  uiSize    = sizeof (void *);
-    void *pCmdQueue = nullptr;
-
-    if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_D3D12_SwapChainCommandQueue, &uiSize, &pCmdQueue)))
-    {
-      if (pCmdQueue != nullptr)
-      {
-        SK_LOGi0 (L"Reusing Command Queue %p", pCmdQueue);
-        pCommandQueue = (ID3D12CommandQueue *)pCmdQueue;
-      }
-    }
-  }
-
   SK_ComPtr <ID3D12CommandQueue>                        pNativeQueue;
   if (SK_slGetNativeInterface (pCommandQueue, (void **)&pNativeQueue.p) == sl::Result::eOk)
   {
     if (                       _pCommandQueue != nullptr)
       _ExchangeProxyForNative (_pCommandQueue,          pNativeQueue)
     else                       _pCommandQueue         = pNativeQueue;
-  }
-
-  if (pNativeSwapChain != nullptr &&
-      pNativeQueue.p   != nullptr)
-  {
-    const UINT uiSize = sizeof (void *);
-
-    if (pSwapChain != nullptr)
-        pSwapChain->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, _pCommandQueue);
   }
 
   // Turn HDR off in dgVoodoo2 so it does not crash
