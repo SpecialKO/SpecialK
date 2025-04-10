@@ -41,11 +41,14 @@ struct SK_DLSS_Context
 {
   // Has the DLSS context for this API (i.e. D3D11, D3D12, CUDA)
   //   made any API calls?
-  bool apis_called                  = false;
+  bool apis_called               = false;
 
   struct version_s {
-    unsigned int major, minor, build, revision;
-    bool         driver_override;
+    unsigned int major           = 0,
+                 minor           = 0,
+                 build           = 0,
+                 revision        = 0;
+    bool         driver_override = false;
 
     bool isOlderThan (version_s& test)
     {
@@ -68,7 +71,7 @@ struct SK_DLSS_Context
       NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_SuperSampling;
     };
     concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
-                         Instances;
+                         Instances {};
     instance_s*          LastInstance   = nullptr;
     volatile ULONG64     LastFrame      = 0ULL;
     volatile ULONG64     ResetFrame     = 0ULL; // If >= Current Frame, issue a DLSS Reset
@@ -109,7 +112,7 @@ struct SK_DLSS_Context
       NVSDK_NGX_Parameter* Parameters = nullptr;
     };
     concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
-                         Instances;
+                         Instances {};
     instance_s*          LastInstance   = nullptr;
     volatile ULONG64     LastFrame      = 0ULL;
     static DWORD         IndicatorFlags;

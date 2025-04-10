@@ -2199,8 +2199,8 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   {
     if (! config.reshade.is_addon_hookless)
     {
-      if (_pReShadeRuntime == nullptr)
-          _pReShadeRuntime = SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain);
+      _pReShadeRuntime =
+        SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain);
     }
 
     else

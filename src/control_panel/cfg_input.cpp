@@ -1005,17 +1005,18 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::EndTooltip      ();
         }
 
-        ImGui::SameLine ();
-
-        if (config.input.gamepad.hook_xinput && config.input.gamepad.xinput.hook_setstate)
+        if (config.input.gamepad.xinput.hook_setstate)
+        {
+          ImGui::SameLine        ();
           ImGui::Checkbox        ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
 
-        if (ImGui::BeginItemTooltip ())
-        {
-          ImGui::TextUnformatted ("Prevent the GAME from making use of controller vibration");
-          ImGui::Separator       ();
-          ImGui::BulletText      ("In some games, there is a performance penalty for rumble and it cannot be turned off in-game...");
-          ImGui::EndTooltip      ();
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::TextUnformatted ("Prevent the GAME from making use of controller vibration");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("In some games, there is a performance penalty for rumble and it cannot be turned off in-game...");
+            ImGui::EndTooltip      ();
+          }
         }
       }
 

@@ -2732,8 +2732,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     {
       if (! config.reshade.is_addon_hookless)
       {
-        if (_pReShadeRuntime == nullptr)
-            _pReShadeRuntime = SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain);
+        _pReShadeRuntime =
+          SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain);
       }
       else
       {
@@ -3154,10 +3154,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     UINT  uiSize    = sizeof (void *);
     void *pCmdQueue = nullptr;
 
-    if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_D3D12_SwapChainCommandQueue, &uiSize, pCmdQueue)))
+    if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_D3D12_SwapChainCommandQueue, &uiSize, &pCmdQueue)))
     {
       if (pCmdQueue != nullptr)
       {
+        SK_LOGi0 (L"Reusing Command Queue %p", pCmdQueue);
         pCommandQueue = (ID3D12CommandQueue *)pCmdQueue;
       }
     }

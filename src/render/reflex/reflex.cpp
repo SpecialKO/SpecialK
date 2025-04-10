@@ -461,6 +461,10 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     SK_Reflex_NativeSleepModeParams = *pSetSleepModeParams;
   }
 
+  else {
+    return NVAPI_INVALID_ARGUMENT;
+  }
+
   bool applyOverride =
     (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
 

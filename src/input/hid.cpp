@@ -939,9 +939,7 @@ WriteFile_Detour (HANDLE       hFile,
 
         if (! dev_allowed)
         {
-          if (                           nNumberOfBytesToWrite != 0) {
-            memset ((void *)lpBuffer, 0, nNumberOfBytesToWrite);
-          }
+          memset ((void *)lpBuffer, 0, nNumberOfBytesToWrite);
         }
 
         else
@@ -956,10 +954,7 @@ WriteFile_Detour (HANDLE       hFile,
             report_id = ((uint8_t *)(lpBuffer))[0];
           }
 
-          if (nNumberOfBytesToWrite > 1)
-          {
-            hid_file->filterHidOutput (report_id, nNumberOfBytesToWrite, (void *)lpBuffer);
-          }
+          hid_file->filterHidOutput (report_id, nNumberOfBytesToWrite, (void *)lpBuffer);
 
           if ( hid_file->bytes_read    == 0 &&
                hid_file->bytes_written == 0 )
@@ -2655,7 +2650,7 @@ SK_Input_EnumOpenHIDFiles (void)
       }
     }
     
-    if (NT_SUCCESS (ns) && dwReadBytes != 0)
+    if (NT_SUCCESS (ns) && dwReadBytes != 0 && pHandleInfoEx != nullptr)
     {
       const DWORD dwPidOfMe =
         GetCurrentProcessId ();
