@@ -2,6 +2,7 @@
 =========
  + Additional changes to deal with Unreal Engine changing the Current Directory
     @TimSweeneyEpic wtf?
+ + Remove warning introduced in 25.4.10.2 after working around Epic's epic fail
 
 25.4.10.2
 =========

@@ -88,8 +88,58 @@ SK_ReShade_IsLocalDLLPresent (void)
   wchar_t          wszReShadePath [MAX_PATH] = {};
   SK_PathCombineW (wszReShadePath, SK_GetHostPath (), wszDLL);
 
-  return
+  bool bLocalRaw =
     PathFileExistsW (wszReShadePath);
+
+  if (! bLocalRaw)
+  {
+    SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"dxgi.dll");
+    if (PathFileExistsW (wszReShadePath))
+    {
+      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      {
+        return true;
+      }
+    }
+
+    SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d11.dll");
+    if (PathFileExistsW (wszReShadePath))
+    {
+      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      {
+        return true;
+      }
+    }
+
+    SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d12.dll");
+    if (PathFileExistsW (wszReShadePath))
+    {
+      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      {
+        return true;
+      }
+    }
+
+    SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d9.dll");
+    if (PathFileExistsW (wszReShadePath))
+    {
+      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      {
+        return true;
+      }
+    }
+
+    SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"OpenGL32.dll");
+    if (PathFileExistsW (wszReShadePath))
+    {
+      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      {
+        return true;
+      }
+    }
+  }
+
+  return bLocalRaw;
 }
 
 void
@@ -1151,6 +1201,9 @@ BOOL SK_ReShade_HasRenoDX (void)
 {
   auto _= [&](BOOL bRet) -> BOOL
   {
+// This warning is no longer necessary, but keep the code around as
+//   reference if the issue pops up again.
+#if 0
     if (bRet)
     {
       if (SK_GetCurrentRenderBackend ().windows.unreal)
@@ -1204,6 +1257,7 @@ BOOL SK_ReShade_HasRenoDX (void)
         );
       }
     }
+#endif
 
     return bRet;
   };
