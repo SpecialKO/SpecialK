@@ -351,7 +351,7 @@ SK_RawInput_PopulateDeviceList (void)
 
   SK_SetLastError (dwLastError);
 
-  if (uiNumDevices != 0 && sk::narrow_cast <int> (ret) == -1 && pDevices != nullptr)
+  if (uiNumDevices != 0 && sk::narrow_cast <int> (ret) == -1)
   {
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
