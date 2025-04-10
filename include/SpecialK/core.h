@@ -255,14 +255,14 @@ void SK_PerfEvent_Begin  (const wchar_t* wszEventName);
 void SK_PerfEvent_End    (const wchar_t* wszEventName);
 
 struct SK_AutoEventMarker {
-   SK_AutoEventMarker (const wchar_t* wszEventName) { name = wszEventName; SK_PerfEvent_Begin (name); };
-  ~SK_AutoEventMarker (void)                        {                      SK_PerfEvent_End   (name); };
+   SK_AutoEventMarker (const wchar_t* wszEventName);
+  ~SK_AutoEventMarker (void);
 
   const wchar_t* name = nullptr;
 };
 
 #define _SK_ENABLE_FIRST_CALL_PROFILING
-//#define _SK_ENABLE_MICRO_PROFILING
+#define _SK_ENABLE_MICRO_PROFILING
 
 #ifdef _SK_ENABLE_FIRST_CALL_PROFILING
 #define SK_PROFILE_FIRST_CALL SK_AutoEventMarker _(__FUNCTIONW__);
@@ -293,9 +293,10 @@ SK_ProfiledTask_End (const wchar_t* wszTaskName, uint64_t start_time);
 uint64_t
 SK_ProfiledTask_Begin (void);
 
-struct SK_AutoProfileAccumulator {
-   SK_AutoProfileAccumulator (const wchar_t* wszTaskName) { name = wszTaskName; start = SK_ProfiledTask_Begin (           ); };
-  ~SK_AutoProfileAccumulator (void)                        {                            SK_ProfiledTask_End   (name, start); };
+struct SK_AutoProfileAccumulator
+{
+   SK_AutoProfileAccumulator (const wchar_t* wszTaskName);
+  ~SK_AutoProfileAccumulator (void);
 
   const wchar_t* name  = nullptr;
   uint64_t       start = 0;

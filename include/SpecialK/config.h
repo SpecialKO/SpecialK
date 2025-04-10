@@ -1457,6 +1457,11 @@ struct sk_config_t
     int64_t cpu_affinity_mask   = 0xFFFFFFFFFFFFFFFFULL;
   } priority;
 
+  struct performance_profiling_s {
+    bool    enable_tasks        = false;
+    bool    enable_events       =  true;
+  } profiling;
+
   struct skif_s {
     int     auto_stop_behavior  = 1; // 0=Never, 1=AtStart, 2=AtExit
   } skif;
