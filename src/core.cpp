@@ -2157,7 +2157,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (false, L"done!\n");
   }
 
-  SK_ReShadeAddOn_Init ();
 
   SK_RunOnce (
   {
