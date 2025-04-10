@@ -799,6 +799,8 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return false;
 
+  SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_RenderEffectsD3D11)
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -941,6 +943,8 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr || pRTV == nullptr)
     return false;
 
+  SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_RenderEffectsD3D11Ex)
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -1058,6 +1062,8 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return;
 
+  SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_Present)
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -1086,6 +1092,8 @@ SK_ReShadeAddOn_RenderEffectsD3D12 ( IDXGISwapChain1             *pSwapChain,
   {
     return 0;
   }
+
+  SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_RenderEffectsD3D12)
 
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
@@ -1199,6 +1207,8 @@ SK_ReShadeAddOn_Present (       reshade::api::command_queue *queue,
 bool SK_ReShadeAddOn_HadLocalINI = true;
 BOOL SK_ReShade_HasRenoDX (void)
 {
+  SK_PROFILE_SCOPED_TASK (SK_ReShade_HasRenoDX)
+
   auto _= [&](BOOL bRet) -> BOOL
   {
     if (bRet && (! config.reshade.allow_unsafe_addons))
@@ -1340,6 +1350,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
   if (ReadAcquire (&__SK_DLL_Ending))
     return false;
+
+  SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_Init)
 
   // Load ReShade's early import even earlier than normal so that AddOns
   //   initialize before third-party overlays do, helping to prevent them

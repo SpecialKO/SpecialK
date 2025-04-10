@@ -6,6 +6,7 @@
      ectory as well as SK's Profiles\Game\ReShade\AddOns\ directory.
  + Support worst-case scenario, where user has dxgi.dll and ReShade64.dll in
      the game's directory -AND- tries to load a Plug-In copy of ReShade.
+ + Add profiling markers to various ReShade addon functions.
 
 25.4.10.4
 =========
