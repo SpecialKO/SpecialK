@@ -128,16 +128,7 @@ __stdcall
 SK_LockDllLoader (void)
 {
   if (config.system.strict_compliance)
-  {
-    //bool unlocked = TryEnterCriticalSection (&loader_lock);
-                       SK_DLL_LoaderLockGuard ()->lock ();
-    //EnterCriticalSection (&loader_lock);
-    //loader_lock->lock ();
-     ///if (unlocked)
-                       //LeaveCriticalSection (&loader_lock);
-    //else
-//      dll_log.Log (L"[DLL Loader]  *** DLL Loader Lock Contention ***");
-  }
+    SK_DLL_LoaderLockGuard ()->lock ();
 }
 
 void
@@ -1152,84 +1143,8 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   if (ReadAcquire (&__SK_DLL_Ending))
     return nullptr;
 
-#if 1
   return
     LoadPackagedLibrary_Original (lpLibFileName, Reserved);
-#else
-  LPVOID lpRet = _ReturnAddress ();
-
-  if (lpLibFileName == nullptr)
-    return nullptr;
-
-  SK_LockDllLoader ();
-
-  HMODULE hModEarly = nullptr;
-
-  wchar_t*          compliant_path =
-          const_cast <wchar_t *> (lpLibFileName);
-
-  if (     StrStrW (compliant_path, L"/"))
-  {
-    SK_TLS* pTLS =
-      SK_TLS_Bottom ();
-
-                    compliant_path =
-      reinterpret_cast <wchar_t *> (
-                      pTLS->scratch_memory->cmd.alloc (
-                             (wcslen (lpLibFileName) + 1) *
-                              sizeof (wchar_t), true )
-                                   );
-
-    if (            compliant_path != nullptr)   {
-          lstrcatW (compliant_path, lpLibFileName);
-    SK_FixSlashesW (compliant_path);             } else
-                    compliant_path =
-                         (wchar_t *)lpLibFileName;
-  }
-
-  lpLibFileName = compliant_path;
-
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_INVALID_HANDLE
-    )
-  );
-  try
-  {
-    GetModuleHandleExW (
-      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-        lpLibFileName,
-          &hModEarly
-    );
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-    SK_SetLastError (0);
-  }
-  SK_SEH_RemoveTranslator (orig_se);
-
-
-  if (hModEarly == nullptr && BlacklistLibrary (lpLibFileName))
-  {
-    SK_UnlockDllLoader ();
-    return nullptr;
-  }
-
-
-  HMODULE hMod =
-    LoadPackagedLibrary_Original (lpLibFileName, Reserved);
-
-  if (hModEarly != hMod)
-  {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
-                            lpLibFileName,
-                              L"LoadPackagedLibrary", lpRet );
-  }
-
-  SK_UnlockDllLoader ();
-  return hMod;
-#endif
 }
 
 HMODULE
@@ -1396,16 +1311,6 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   HMODULE hMod = hModEarly;
 
-#ifdef _DEBUG
-  orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try
-  {
-#endif
   const bool is_dlss  = StrStrIW (compliant_path, L"nvngx_dlss.dll");
   const bool is_dlssg = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
   const bool is_dlssd = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
@@ -1484,16 +1389,6 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
     hMod =
       SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
   }
-#ifdef _DEBUG
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-    dll_log->Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                   L" %s ('%ws')!",
-                     wszSourceFunc, compliant_path );
-  }
-  SK_SEH_RemoveTranslator (orig_se);
-#endif
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
@@ -2114,7 +2009,7 @@ SK_WalkModules_StepImpl (       HMODULE       hMod,
       if ( (! third_party_dlls.overlays.rtss_hooks) &&
             StrStrIW (wszModName, L"RTSSHooks") )
       {
-                    // Hold a reference to this DLL so it is not unloaded prematurely
+        // Hold a reference to this DLL so it is not unloaded prematurely
         GetModuleHandleEx ( 0x0,
                               wszModName,
                                 &third_party_dlls.overlays.rtss_hooks );
@@ -2125,7 +2020,7 @@ SK_WalkModules_StepImpl (       HMODULE       hMod,
       else if ( (! third_party_dlls.overlays.steam_overlay) &&
                  StrStrIW (wszModName, L"gameoverlayrenderer") )
       {
-                    // Hold a reference to this DLL so it is not unloaded prematurely
+        // Hold a reference to this DLL so it is not unloaded prematurely
         GetModuleHandleEx ( 0x0,
                               wszModName,
                                 &third_party_dlls.overlays.steam_overlay );
