@@ -318,6 +318,38 @@ CrashHandler::Init (void)
         },
       L"[SK] Crash Handler Init"
     );
+
+    // If user is not intentionally debugging, then disable breakpoint exceptions.
+    if ((! config.system.wait_for_debugger) && (! SK_IsDebuggerPresent ()))
+    {
+      AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+      {
+        bool continuable = false;
+
+        if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_BREAKPOINT)
+        { 
+          continuable = true;
+
+          PVOID SKX_GetNextInstruction (LPVOID addr);
+      
+#ifdef _M_AMD64
+          ExceptionInfo->ContextRecord->Rip =
+            (DWORD64)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Rip);
+#else
+          ExceptionInfo->ContextRecord->Eip =
+            (DWORD)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Eip);
+#endif
+
+          SK_RunOnce (
+            SK_LOGs0 (L"CrashAvoid", L"Breakpoint Exception Ignored (!!)")
+          );
+        }
+      
+        return
+          ( continuable ? EXCEPTION_CONTINUE_EXECUTION
+                        : EXCEPTION_CONTINUE_SEARCH );
+      });
+    }
   }
 }
 
