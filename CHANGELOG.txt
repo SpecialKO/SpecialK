@@ -1,4 +1,9 @@
-﻿25.4.10.2
+﻿25.4.10.3
+=========
+ + Additional changes to deal with Unreal Engine changing the Current Directory
+    @TimSweeneyEpic wtf?
+
+25.4.10.2
 =========
  + Added warning with directions on how to get RenoDX's Unreal Engine AddOn
      to stop crashing if ReShade is not loaded in the correct order.

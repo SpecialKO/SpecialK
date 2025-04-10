@@ -174,8 +174,11 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 
       SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
 
+      wchar_t          wszReShadeINIPath [MAX_PATH] = {};
+      SK_PathCombineW (wszReShadeINIPath, SK_GetHostPath (), L"ReShade.ini");
+
       config.reshade.has_local_ini =
-        PathFileExistsW (L"ReShade.ini");
+        PathFileExistsW (wszReShadeINIPath);
 
       // If user already has a local ReShade.ini file, prefer the default ReShade behavior
       if (! config.reshade.has_local_ini)

@@ -7916,8 +7916,13 @@ SK_D3D11_QuickHook (void)
       return;
     }
 
-    if ( PathFileExistsW (L"dxgi.dll") ||
-         PathFileExistsW (L"d3d11.dll") )
+    wchar_t          wszDXGIPath   [MAX_PATH] = {};
+    wchar_t          wszD3D11Path  [MAX_PATH] = {};
+    SK_PathCombineW (wszDXGIPath,  SK_GetHostPath (), L"dxgi.dll");
+    SK_PathCombineW (wszD3D11Path, SK_GetHostPath (), L"d3d11.dll");
+
+    if ( PathFileExistsW (wszDXGIPath) ||
+         PathFileExistsW (wszD3D11Path) )
     {
       SK_LOGi0 (L" # D3D11 QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
 

@@ -109,10 +109,13 @@ SK_ReShade_LoadIfPresent (void)
 
   if (PathFileExistsW (wszReShadePath))
   {
-    if (! PathFileExistsW (L"ReShade.ini"))
+    wchar_t          wszReShadeINIPath [MAX_PATH] = {};
+    SK_PathCombineW (wszReShadeINIPath, SK_GetHostPath (), L"ReShade.ini");
+
+    if (! PathFileExistsW (wszReShadeINIPath))
     {
       FILE *fINI =
-        fopen ("ReShade.ini", "w+");
+        _wfopen (wszReShadeINIPath, L"w+");
 
       if (fINI != nullptr)
       {
@@ -1223,12 +1226,15 @@ BOOL SK_ReShade_HasRenoDX (void)
 const std::filesystem::path
 SK_ReShadeGetBasePath (void)
 {
+  wchar_t          wszReShadeINIPath [MAX_PATH] = {};
+  SK_PathCombineW (wszReShadeINIPath, SK_GetHostPath (), L"ReShade.ini");
+
   SK_ReShadeAddOn_HadLocalINI =
-    PathFileExistsW (L"ReShade.ini");
+    PathFileExistsW (wszReShadeINIPath);
 
   std::filesystem::path
       reshade_base_path (SK_ReShadeAddOn_HadLocalINI?
-  L".\\":std::filesystem::path (SK_GetConfigPath ()) / L"ReShade");
+  SK_GetHostPath ():std::filesystem::path (SK_GetConfigPath ()) / L"ReShade");
 
   return reshade_base_path;
 }
