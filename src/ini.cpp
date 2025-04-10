@@ -647,15 +647,23 @@ iSK_INI::parse (void)
       else break;
     }
 
-    if (SK_CharNextW (pNext) != nullptr && pEnd != nullptr)
+    if (pEnd != nullptr)
     {
-      ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
-                                       sizeof (*pEnd));
+      if (SK_CharNextW (pNext) != nullptr)
+      {
+        ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
+                                         sizeof (*pEnd));
+      }
+
+      len =
+        wcsnlen_s (pStart, (pEnd - pStart) /
+                          sizeof (*pStart));
     }
 
-    len =
-      wcsnlen_s (pStart, (pEnd - pStart) /
-                        sizeof (*pStart));
+    else
+    {
+      SK_ReleaseAssert (false);
+    }
   }
 
   else
@@ -848,15 +856,23 @@ iSK_INI::import (const wchar_t* import_data)
       else break;
     }
 
-    if (SK_CharNextW (pNext) != nullptr && pEnd != nullptr)
+    if (pEnd != nullptr)
     {
-      ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
-                                       sizeof (*pEnd));
+      if (SK_CharNextW (pNext) != nullptr)
+      {
+        ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
+                                         sizeof (*pEnd));
+      }
+
+      len =
+        wcsnlen_s (pStart, (pEnd - pStart) /
+                          sizeof (*pStart));
     }
 
-    len =
-      wcsnlen_s (pStart, (pEnd - pStart) /
-                        sizeof (*pStart));
+    else
+    {
+      SK_ReleaseAssert (false);
+    }
   }
 
   else

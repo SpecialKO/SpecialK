@@ -5147,6 +5147,9 @@ SK_DXGI_CreateSwapChain_PreInit (
             L"  | Flags [%d].. |  %-71hs|\n", i, begin_str);
       }
 
+      if (end_str == nullptr)
+        break;
+
       begin_str =
         ( end_str + 1 );
     }
