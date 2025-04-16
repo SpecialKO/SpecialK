@@ -1,4 +1,8 @@
-﻿25.4.11
+﻿25.4.16
+=======
+ + Added FMV crash addresses to AC Shadows plug-in for patch 1.0.3
+
+25.4.11
 =======
  + Automatically change ReShade load order to Lazy from Early if necessary for
      RenoDX to work correctly with SK.

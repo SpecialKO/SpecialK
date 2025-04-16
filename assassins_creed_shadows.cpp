@@ -546,6 +546,9 @@ SK_ACS_InitPlugin (void)
   config.nvidia.dlss.disable_ota_updates        = false;
   config.input.gamepad.dinput.blackout_gamepads = true;
 
+  // RenoDX works if loaded as dxgi in this game
+  config.reshade.allow_unsafe_addons            = true;
+
   static HANDLE hInitThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
@@ -753,7 +756,15 @@ SK_ACS_InitPlugin (void)
               // 1.0.2
               0x0000000003807571, 0x000000000380899F, 0x000000000069FF51, 0x000000000069FF57,
               0x000000000069FF6E, 0x000000000069FF10, 0x000000000069FF14, 0x000000000069FF18,
-              0x000000000380F265, 0x000000000380F26C } )
+              0x000000000380F265, 0x000000000380F26C,
+              
+              // 1.0.3
+              0x0000000003D6F5C1, 0x0000000003D709EF, 0x000000000068DC61, 0x000000000068DC67,
+              0x000000000068DC7E, 0x000000000068DC20, 0x000000000068DC24, 0x000000000068DC28,
+              0x0000000003D772B5, 0x0000000003D772BC,
+                                  0x000000000068D3AC, 0x000000000068D3B0, 0x000000000068D3B4,
+                                  0x000000000068D563, 0x000000000068D567, 0x000000000068D56B,
+              } )
     {
       ContinuableCallSites.insert (callsite);
     }
@@ -794,8 +805,11 @@ SK_ACS_InitPlugin (void)
                               *pFrameGenEnabled = false;
             WriteULongRelease (&FrameGenDisabledForFMV, TRUE);
 
+            float game_limit =
+              (__SK_ACS_FPSLimitAddr == nullptr) ? -1.0f : *__SK_ACS_FPSLimitAddr;
+
             continuable =
-              ContinuableCallSites.count (addr) != 0;
+              ContinuableCallSites.count (addr) != 0 || game_limit == 30.0f;
 
             if (! continuable)
             {
