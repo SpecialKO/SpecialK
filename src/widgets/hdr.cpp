@@ -974,6 +974,9 @@ public:
       case SK_GAME_ID::Noita:
         __SK_HDR_Disallow16BitSwap  = true;  // scRGB has FP blending issues
         break;
+      case SK_GAME_ID::ClairObscur_Expedition33:
+        __SK_HDR_Disallow16BitSwap  = true;  // Will crash during battles
+        break;
     }
 
 

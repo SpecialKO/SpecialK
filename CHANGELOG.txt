@@ -1,4 +1,9 @@
-﻿25.4.16
+﻿25.4.24
+=======
+ + Prevent Clair Obscure: Expedition 33 from using scRGB HDR to prevent
+     crashes in battle.
+
+25.4.16
 =======
  + Added FMV crash addresses to AC Shadows plug-in for patch 1.0.3
 

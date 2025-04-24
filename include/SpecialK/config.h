@@ -1828,6 +1828,7 @@ enum class SK_GAME_ID
   Avowed,                       // Avowed-WinGDK-Shipping.exe, Avowed-Win64-Shipping.exe
   AssassinsCreed_Shadows,       // ACShadows.exe ACShadows_Plus.exe
   RiseOfRonin,                  // Ronin.exe
+  ClairObscur_Expedition33,     // SandFallEos-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };
