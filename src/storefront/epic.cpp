@@ -280,6 +280,10 @@ public:
         io.WantTextInput       = false;//capture_text;
       }
     }
+
+    // This is obnoxious, so don't let it know when the overlay is active
+    if (SK_IsCurrentGame (SK_GAME_ID::ClairObscur_Expedition33))
+      invokeCallbacks (false);
   }
 
   void invokeCallbacks (bool active)

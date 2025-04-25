@@ -1,6 +1,12 @@
-﻿25.4.24
+﻿25.4.25
 =======
- + Prevent Clair Obscure: Expedition 33 from using scRGB HDR to prevent
+ + Prevent Clair Obscur: Expedition 33 from receiving Epic overlay activation
+     notifications because it will pause the game whenever a friend logs in
+       until the notification goes off screen...
+
+25.4.24
+=======
+ + Prevent Clair Obscur: Expedition 33 from using scRGB HDR to prevent
      crashes in battle.
 
 25.4.16
