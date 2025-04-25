@@ -6102,11 +6102,39 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           //   tends to come multiple times in succession.
           if (! first_event)
           {
-            static int times_logged = 0;
-            if (     ++times_logged < 5) {
-              SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVNODES_CHANGED");
+            static volatile UINT             devnodes_stage  =  0;
+            if (InterlockedCompareExchange (&devnodes_stage, 1, 0) == 0)
+            {
+              SK_Thread_CreateEx ([](LPVOID)->DWORD
+              {
+                SK_SleepEx (5000UL, FALSE);
+
+                InterlockedIncrement (&devnodes_stage);
+
+                PostMessage (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, 0);
+                SK_LOGi0 ( L"Delayed WM_DEVICECHANGE posted for DBT_DEVNODES_CHANGED"  );
+
+                SK_Thread_CloseSelf ();
+
+                return 0;
+              }, L"[SK] Deferred Device Change Notification");
+
+              return 1;
             }
-            return 1;
+
+            else
+            {
+              if (InterlockedCompareExchange (&devnodes_stage, 0, 2) != 2)
+              {
+                SK_LOGi0 (L"WM_DEVICECHANGE received and ignored for DBT_DEVNODES_CHANGED");
+                return 1;
+              }
+
+              else
+              {
+                SK_LOGi0 (L"Delayed WM_DEVICECHANGE processed");
+              }
+            }
           }
         } break;
 

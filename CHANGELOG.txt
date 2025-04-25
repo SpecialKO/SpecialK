@@ -1,4 +1,17 @@
-﻿25.4.25
+﻿25.4.25.1
+=========
+ + Add 5 second throttled rate limit to WM_DEVICECHANGE messages for
+     DBT_DEVNODES_CHANGED, rather than blocking the message.
+
+    * This will prevent the flood of 6 or 7 of these messages within a few
+        milliseconds of disconnecting a device, but not prevent games from
+          seeing device change notifications altogether.
+
+    Fixes performance problems in Steam Input abominations such as
+      Monster Hunter Wilds and NieR: Replicant when controllers are not
+        connected.
+
+25.4.25
 =======
  + Prevent Clair Obscur: Expedition 33 from receiving Epic overlay activation
      notifications because it will pause the game whenever a friend logs in
