@@ -302,7 +302,8 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   bool bSkipCall = false;
 
   // Ignore RTSS, it's most certainly not native Reflex.
-  static auto hModRTSS = SK_GetModuleHandleW (L"RTSSHooks64.dll");
+  static auto hModRTSS = SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"RTSSHooks64.dll",
+                                                                     L"RTSSHooks.dll"));
   if (        hModRTSS && SK_GetCallingDLL () == hModRTSS)
     return NVAPI_OK;
 
