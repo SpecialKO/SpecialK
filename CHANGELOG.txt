@@ -1,4 +1,11 @@
-﻿25.4.25.1
+﻿25.4.30
+=======
+ + Detect and ignore fake Reflex injected by RTSS instead of considering it
+     native Reflex.
+ + Disable DXGI Flip Model by default in Metro 2033 to avoid visual artifacts;
+     hope you poor bastards have Win11 and Windowed Mode Optimization enabled.
+
+25.4.25.1
 =========
  + Add 5 second throttled rate limit to WM_DEVICECHANGE messages for
      DBT_DEVNODES_CHANGED, rather than blocking the message.

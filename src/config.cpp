@@ -289,6 +289,7 @@ SK_GetCurrentGameID (void)
           { L"SandFallEos-Win64-Shipping.exe",         SK_GAME_ID::ClairObscur_Expedition33     }, // Epic Version
           { L"SandFall-Win64-Shipping.exe",            SK_GAME_ID::ClairObscur_Expedition33     }, // Steam Version
           { L"SandFall-WinGDK-Shipping.exe",           SK_GAME_ID::ClairObscur_Expedition33     }, // Microsoft Store Version
+          { L"metro.exe",                              SK_GAME_ID::Metro2033                    }
         };
 
     first_check  = false;
@@ -3794,6 +3795,12 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;
         config.input.gamepad.xinput.placehold [3]   = false;
+      } break;
+
+      case SK_GAME_ID::Metro2033:
+      {
+        // Disable to prevent visual artifacts on tittle screen
+        config.render.framerate.flip_discard = false;
       } break;
 
       case SK_GAME_ID::StarWarsOutlaws:

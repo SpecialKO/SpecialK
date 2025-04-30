@@ -1829,6 +1829,7 @@ enum class SK_GAME_ID
   AssassinsCreed_Shadows,       // ACShadows.exe ACShadows_Plus.exe
   RiseOfRonin,                  // Ronin.exe
   ClairObscur_Expedition33,     // SandFallEos-Win64-Shipping.exe
+  Metro2033,                    // metro.exe
 
   UNKNOWN_GAME               = 0xffff
 };
