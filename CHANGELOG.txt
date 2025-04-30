@@ -1,6 +1,6 @@
 ﻿25.4.30
 =======
- + Detect and ignore fake Reflex injected by RTSS instead of considering it
+ + Detect and ignore synthetic Reflex injected by RTSS instead of considering it
      native Reflex.
  + Disable DXGI Flip Model by default in Metro 2033 to avoid visual artifacts;
      hope you poor bastards have Win11 and Windowed Mode Optimization enabled.
