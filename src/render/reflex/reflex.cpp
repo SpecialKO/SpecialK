@@ -301,6 +301,12 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
   bool bSkipCall = false;
 
+  // Ignore RTSS, it's most certainly not native Reflex.
+  static auto hModRTSS = SK_GetModuleHandleW (L"RTSSHooks64.dll");
+  if (        hModRTSS && SK_GetCallingDLL () == hModRTSS)
+    return NVAPI_OK;
+
+
   if ( SK_Streamline_ProxyChain != nullptr                          &&
          config.render.framerate.streamline.enable_native_limit     &&
          config.render.framerate.streamline.target_fps > 0.0f       &&
@@ -400,7 +406,7 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       SK_LOG0 ( ( L"# Game is using NVIDIA Reflex natively..." ),
                   L"  Reflex  " );
     }
-
+    
     // Prevent non-monotonic frame counts in AC Shadows,
     //   this might be a problem with Nixxes games too...
     if (! SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
