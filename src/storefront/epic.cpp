@@ -311,6 +311,12 @@ public:
                                    void*                                          ClientData,
                              const EOS_UI_OnDisplaySettingsUpdatedCallback        NotificationFn)
   {
+    SK_LOG_FIRST_CALL
+
+    // This is obnoxious, so don't let it know when the overlay is active
+    //if (SK_IsCurrentGame (SK_GAME_ID::ClairObscur_Expedition33))
+      return 0;
+
     const EOS_NotificationId id =
       AddNotifyDisplaySettingsUpdated_Original (Handle, Options, ClientData, NotificationFn);
 
