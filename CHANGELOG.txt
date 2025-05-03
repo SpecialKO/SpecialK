@@ -1,4 +1,18 @@
-﻿25.4.30
+﻿25.5.3
+======
+ + Use the value of [Input.libScePad] ShareClicksTouchpad={true|false} to
+     control whether clicking the touchpad will trigger XInput Back button
+       (equiv. to the PlayStation share button).
+
+    - This setting is in Global\input.ini (and enabled by default)
+
+   * In other words, the trackpad may be used to click the Back button for
+       consistency with gamepad bindings when emulating Xbox controllers.
+
+ + Disable Epic Overlay activation callbacks in *ALL* EGS games because many
+     are pausing the game while popups are active and it is beyond obnoxious.
+
+25.4.30
 =======
  + Detect and ignore synthetic Reflex injected by RTSS instead of considering it
      native Reflex.

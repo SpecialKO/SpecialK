@@ -5085,6 +5085,8 @@ auto DeclKeybind =
   input.gamepad.hook_scepad->load                 (config.input.gamepad.hook_scepad);
   input.gamepad.scepad.disable_touchpad->load     (config.input.gamepad.scepad.disable_touch);
   input.gamepad.scepad.share_clicks_touch->load   (config.input.gamepad.scepad.share_clicks_touch);
+  if (config.input.gamepad.scepad.share_clicks_touch)
+      config.input.gamepad.scepad.alias_trackpad_share = true;
   input.gamepad.scepad.mute_applies_to_game->load (config.input.gamepad.scepad.mute_applies_to_game);
   input.gamepad.scepad.enhanced_ps_button->load   (config.input.gamepad.scepad.enhanced_ps_button);
   input.gamepad.scepad.power_save_mode->load      (config.input.gamepad.scepad.power_save_mode);
