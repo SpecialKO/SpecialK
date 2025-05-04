@@ -1,4 +1,10 @@
-﻿25.5.4
+﻿25.5.4.1
+========
+ + Enable "Keep Inside Window" cursor boundaries by default in Clair Obscur,
+     because the game may stop responding to keyboard/gamepad input if the
+       cursor moves offscreen to a different display.
+
+25.5.4
 ======
  + Improved handling of screensaver deactivation in response to gamepad input
      (for games that stop polling gamepad when their window is not focused).

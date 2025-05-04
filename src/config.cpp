@@ -3797,6 +3797,12 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [3]   = false;
       } break;
 
+      case SK_GAME_ID::ClairObscur_Expedition33:
+      {
+        // Game may stop responding to keyboard/gamepad input if cursor leaves game window!
+        config.window.confine_cursor = true;
+      } break;
+
       case SK_GAME_ID::Metro2033:
       {
         // Disable to prevent visual artifacts on tittle screen
