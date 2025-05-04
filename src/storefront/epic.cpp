@@ -201,6 +201,9 @@ public:
   static EOS_Achievements_DefinitionV2_Release_pfn                       DefinitionV2_Release;
 };
 
+void EOS_CALL
+SK_EOS_UI_OnDisplaySettingsUpdatedCallback (const EOS_UI_OnDisplaySettingsUpdatedCallbackInfo* Data);
+
 class SK_EOS_OverlayManager
 {
 public:
@@ -280,10 +283,6 @@ public:
         io.WantTextInput       = false;//capture_text;
       }
     }
-
-    // This is obnoxious, so don't let it know when the overlay is active
-    if (SK_IsCurrentGame (SK_GAME_ID::ClairObscur_Expedition33))
-      invokeCallbacks (false);
   }
 
   void invokeCallbacks (bool active)
@@ -313,20 +312,22 @@ public:
   {
     SK_LOG_FIRST_CALL
 
-    // This is obnoxious, so don't let it know when the overlay is active
-    //if (SK_IsCurrentGame (SK_GAME_ID::ClairObscur_Expedition33))
-      return 0;
+    SK_ReleaseAssert (Options == nullptr || Options->ApiVersion == EOS_UI_ADDNOTIFYDISPLAYSETTINGSUPDATED_API_LATEST);
 
-    const EOS_NotificationId id =
-      AddNotifyDisplaySettingsUpdated_Original (Handle, Options, ClientData, NotificationFn);
+    static const EOS_NotificationId id =
+      AddNotifyDisplaySettingsUpdated_Original (Handle, Options, ClientData, SK_EOS_UI_OnDisplaySettingsUpdatedCallback);
 
     std::lock_guard <SK_Thread_HybridSpinlock>
          lock (callback_cs);
 
     if (id != 0)
     {
-      callbacks [id] =
-        { id, Handle, ClientData, NotificationFn, *Options };
+      static EOS_NotificationId real_id = id;
+
+      callbacks [++real_id] =
+        { real_id, Handle, ClientData, NotificationFn, *Options };
+
+      return real_id;
     }
 
     return id;
@@ -336,7 +337,7 @@ public:
   RemoveNotifyDisplaySettingsUpdated (EOS_HUI            Handle,
                                       EOS_NotificationId Id)
   {
-    RemoveNotifyDisplaySettingsUpdated_Original (Handle, Id);
+  //RemoveNotifyDisplaySettingsUpdated_Original (Handle, Id);
 
     std::lock_guard <SK_Thread_HybridSpinlock>
          lock (callback_cs);
@@ -370,12 +371,12 @@ private:
     EOS_UI_AddNotifyDisplaySettingsUpdatedOptions Options;
   };
 
-  std::unordered_map <EOS_NotificationId, callback_s> callbacks;
-  SK_Thread_HybridSpinlock                            callback_cs;
-
 public:
   static EOS_UI_AddNotifyDisplaySettingsUpdated_pfn    AddNotifyDisplaySettingsUpdated_Original;
   static EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn RemoveNotifyDisplaySettingsUpdated_Original;
+
+  std::unordered_map <EOS_NotificationId, callback_s> callbacks;
+  SK_Thread_HybridSpinlock                            callback_cs;
 };
 
 SK_LazyGlobal <SK_EOS_OverlayManager>     eos_overlay;
@@ -711,6 +712,41 @@ EOS_UI_RemoveNotifyDisplaySettingsUpdated_Detour (EOS_HUI            Handle,
 
   return
     eos_overlay->RemoveNotifyDisplaySettingsUpdated (Handle, Id);
+}
+
+void
+EOS_CALL
+SK_EOS_UI_OnDisplaySettingsUpdatedCallback (const EOS_UI_OnDisplaySettingsUpdatedCallbackInfo* Data)
+{
+  if (Data->bIsExclusiveInput)
+  {
+    std::lock_guard <SK_Thread_HybridSpinlock>
+         lock (eos_overlay->callback_cs);
+
+    for ( const auto &[id,callback] : eos_overlay->callbacks )
+    {
+      if (callback.ClientData     == Data->ClientData &&
+          callback.NotificationFn != nullptr)
+      {
+        callback.NotificationFn (Data);
+      }
+    }
+  }
+
+  else if (! Data->bIsVisible)
+  {
+    std::lock_guard <SK_Thread_HybridSpinlock>
+         lock (eos_overlay->callback_cs);
+
+    for ( const auto &[id,callback] : eos_overlay->callbacks )
+    {
+      if (callback.ClientData     == Data->ClientData &&
+          callback.NotificationFn != nullptr)
+      {
+        callback.NotificationFn (Data);
+      }
+    }
+  }
 }
 
 EOS_Initialize_pfn       EOS_Initialize_Original       = nullptr;
