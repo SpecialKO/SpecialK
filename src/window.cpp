@@ -1225,7 +1225,7 @@ ActivateWindow ( HWND hWnd,
       {
         bool bBackgroundBoost = false;
 
-        if (SK_WantBackgroundRender ())
+        if (game_window.wantBackgroundRender ())
           bBackgroundBoost = config.priority.raise_bg;
 
         if ( config.priority.raise_always || bBackgroundBoost  ||
@@ -1306,7 +1306,7 @@ ActivateWindow ( HWND hWnd,
     {
       if (config.input.ui.allow_show_cursor)
       {
-        if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
+        if ((! rb.isTrueFullscreen ()) && game_window.wantBackgroundRender ())
         {
           game_window.cursor_visible =
             SK_ShowCursor (TRUE) >= 1;
@@ -4471,7 +4471,7 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
       }
     }
 
-    if (SK_WantBackgroundRender ())
+    if (game_window.wantBackgroundRender ())
     {
       if (hwnd == game_window.hWnd)
       {
@@ -4723,7 +4723,7 @@ PeekMessageA_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( SK_WantBackgroundRender ()             &&
+    if ( game_window.wantBackgroundRender ()    &&
             msg.message == WM_INPUT             &&
             msg.wParam  == RIM_INPUTSINK        &&
             config.input.gamepad.hook_raw_input &&
@@ -4829,7 +4829,7 @@ PeekMessageW_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( SK_WantBackgroundRender ()             &&
+    if ( game_window.wantBackgroundRender ()    &&
             msg.message == WM_INPUT             &&
             msg.wParam  == RIM_INPUTSINK        &&
             config.input.gamepad.hook_raw_input &&
@@ -5134,7 +5134,7 @@ GetFocus_Detour (void)
   //   this would be catastrophic.
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    if (config.window.background_render)
+    if (game_window.wantBackgroundRender ())
     {
       DWORD dwPid = 0x0;
       DWORD dwTid =
@@ -5180,7 +5180,7 @@ GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
   //   this would be catastrophic.
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    if (config.window.background_render)
+    if (game_window.wantBackgroundRender ())
     {
       DWORD dwPid = 0x0;
       DWORD dwTid =
@@ -5357,7 +5357,7 @@ GetForegroundWindow_Detour (void)
   {
     if (! rb.isTrueFullscreen ())
     {
-      if ( SK_WantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
+      if ( game_window.wantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
            config.window.treat_fg_as_active )
       {
         return game_window.hWnd;
@@ -6251,8 +6251,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         ActivateWindow (hWnd, true, (HWND)wParam);
 
-        if ( ( config.window.background_render ||
-               config.window.fix_stuck_keys )  &&
+        if ( ( game_window.wantBackgroundRender () ||
+               config.window.fix_stuck_keys )        &&
                config.input.keyboard.disabled_to_game != SK_InputEnablement::Disabled )
         {
           SK_Input_ReleaseCommonStuckKeys ();
@@ -6288,7 +6288,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           rb.fullscreen_exclusive = false;
 
-          if (SK_WantBackgroundRender ())
+          if (game_window.wantBackgroundRender ())
           {
             // Blocking this message helps with many games that
             //   mute audio in the background
@@ -6305,7 +6305,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
       {
-        if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
+        if ((! rb.isTrueFullscreen ()) && game_window.wantBackgroundRender ())
         {
           SK_LOGi2 (L"WM_MOUSEACTIVATE ==> Activate and Eat");
 
@@ -6322,7 +6322,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
-        if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
+        if ((! rb.isTrueFullscreen ()) && game_window.wantBackgroundRender ())
         {
           SK_LOGi2 (L"WM_MOUSEACTIVATE (Other Window) ==> Activate");
 
@@ -6350,7 +6350,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
             ActivateWindow (hWnd, true);
 
-            if (SK_WantBackgroundRender ())
+            if (game_window.wantBackgroundRender ())
               SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
           }
         
@@ -6360,7 +6360,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               SK_LOGi3 (L"Application Deactivated (Non-Client)");
 
             if (  (! rb.isTrueFullscreen ()) &&
-                    SK_WantBackgroundRender ()
+                    game_window.wantBackgroundRender ()
                 )
             {
               game_window.DefWindowProc ( hWnd, uMsg,
@@ -6393,7 +6393,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           if (wParam == FALSE)
           {
             if (  (! rb.isTrueFullscreen ()) &&
-                    SK_WantBackgroundRender ()
+                    game_window.wantBackgroundRender ()
                 )
             {
               game_window.DefWindowProc ( hWnd, uMsg,
@@ -6405,7 +6405,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             }
           }
 
-          else if (SK_WantBackgroundRender ())
+          else if (game_window.wantBackgroundRender ())
           {
             ActivateWindow      ( hWnd, true );
             SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
@@ -6442,7 +6442,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           if (! activate)
           {
-            if (! (! rb.isTrueFullscreen ()) && SK_WantBackgroundRender () )
+            if (! (! rb.isTrueFullscreen ()) && game_window.wantBackgroundRender () )
               ActivateWindow (hWnd, activate);
 
             SK_LOGi2 (L"Application Deactivated %s", source);
@@ -6459,7 +6459,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           }
         }
 
-        if ( (! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
+        if ( (! rb.isTrueFullscreen ()) && game_window.wantBackgroundRender ())
         {
           if (! activate)
           {
@@ -6484,12 +6484,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       // This indicates visibility, not activation...
       //ActivateWindow (hWnd, wParam == TRUE);
 
-      if ( SK_IsGameWindowActive (    ) || SK_WantBackgroundRender () )
+      if ( SK_IsGameWindowActive (    ) || game_window.wantBackgroundRender () )
            SK_XInput_Enable      (TRUE);
 
       if (wParam == FALSE && hWnd == game_window.hWnd)
       {
-        if ( SK_WantBackgroundRender () &&
+        if ( game_window.wantBackgroundRender () &&
              (! rb.isTrueFullscreen ())        )
         {
           // Allow the window to be hidden, but prevent the game from seeing it
@@ -6706,7 +6706,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
   else
   {
     // Vulkan sucks, this is a total hack and I don't care anymore
-    if (config.window.background_render && SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE)
+    if (game_window.wantBackgroundRender () && SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE)
       hWndOrder = HWND_BOTTOM;
     else
       hWndOrder = HWND_NOTOPMOST;

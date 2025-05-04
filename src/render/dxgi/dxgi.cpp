@@ -2735,7 +2735,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
          (! SK_IsGameWindowActive ()) )
     {
       if ( SK_GetFramesDrawn () > 30 && display.nvapi.vrr_enabled &&
-           ( config.window.background_render ||
+           ( game_window.wantBackgroundRender () ||
              config.window.always_on_top == SmartAlwaysOnTop ) )
       {
         SK_RunOnce (
@@ -5399,7 +5399,7 @@ SK_DXGI_CreateSwapChain_PreInit (
 
       if (! config.render.dxgi.fake_fullscreen_mode)
       {
-        if ((! config.window.background_render) && config.display.force_fullscreen && pDesc->Windowed)
+        if ((! game_window.wantBackgroundRender ()) && config.display.force_fullscreen && pDesc->Windowed)
         {
           SK_LOGi0 ( L" >> Display Override "
                      L"(Requested: Windowed, Using: Fullscreen)" );
@@ -5407,7 +5407,7 @@ SK_DXGI_CreateSwapChain_PreInit (
           pDesc->Windowed = FALSE;
         }
 
-        else if ((config.window.background_render || config.display.force_windowed) && pDesc->Windowed == FALSE)
+        else if ((game_window.wantBackgroundRender () || config.display.force_windowed) && pDesc->Windowed == FALSE)
         {
           // If the chain desc is setup for Windowed, we need an
           //   OutputWindow or we cannot override this...

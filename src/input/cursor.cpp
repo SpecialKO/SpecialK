@@ -310,7 +310,7 @@ SK_ImGui_IsMouseRelevantEx (bool update)
     return relevant.load ();
 
   bool bRelevant =
-    config.input.mouse.disabled_to_game || SK_ImGui_Active () || ((! SK_IsGameWindowActive ()) && SK_WantBackgroundRender ());
+    config.input.mouse.disabled_to_game || SK_ImGui_Active () || ((! SK_IsGameWindowActive ()) && game_window.wantBackgroundRender ());
 
   if (! bRelevant)
   {
@@ -569,7 +569,7 @@ sk_imgui_cursor_s::activateWindow (bool active)
 static constexpr const DWORD REASON_DISABLED = 0x4;
 
 bool
-sk_window_s::isCursorHovering (void)
+sk_window_s::isCursorHovering (void) const
 {
   if (! SK_GImDefaultContext ())
     return mouse.inside;
@@ -579,6 +579,13 @@ sk_window_s::isCursorHovering (void)
 
   return
     mouse.inside && io.MousePos.x != -FLT_MAX && io.MousePos.y != -FLT_MAX;
+}
+
+bool
+sk_window_s::wantBackgroundRender (void) const
+{
+  return
+    config.window.background_render;
 }
 
 bool
@@ -643,7 +650,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
       // Do not block the mouse while it is on the window's titlebar, resize grips, etc.
       if (hit_test <= HTCLIENT)
       {
-        if (SK_WantBackgroundRender ())
+        if (game_window.wantBackgroundRender ())
           imgui_capture = true;
 
         else
@@ -1154,7 +1161,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   // Allow games running as a background window with Continue Rendering enabled
   //   to see the real cursor position as long as there is no window on top of it...
   //
-  if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
+  if (game_window.wantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     POINT             ptCursor = {};
     SK_GetCursorPos (&ptCursor);
@@ -1325,7 +1332,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
-  if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
+  if (game_window.wantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     return TRUE;
   }

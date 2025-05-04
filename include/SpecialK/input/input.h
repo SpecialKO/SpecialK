@@ -53,8 +53,6 @@ bool SK_ImGui_WantKeyboardCapture (bool update = false);
 bool SK_ImGui_WantTextCapture     (void);
 void SK_ImGui_UpdateMouseTracker  (void);
 
-bool SK_WantBackgroundRender (void);
-
 void SK_Input_HookDI8         (void);
 void SK_Input_HookHID         (void);
 void SK_Input_HookRawInput    (void);

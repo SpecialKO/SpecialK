@@ -252,7 +252,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
   bool imgui_capture =
     config.input.keyboard.disabled_to_game == SK_InputEnablement::Disabled;
 
-  if (bWindowActive || SK_WantBackgroundRender ())
+  if (bWindowActive || game_window.wantBackgroundRender ())
   {
     static const auto& io =
       ImGui::GetIO ();
@@ -304,7 +304,7 @@ SK_ImGui_WantTextCapture (void)
   const bool bWindowActive =
      SK_IsGameWindowActive ();
 
-  if (bWindowActive || SK_WantBackgroundRender ())
+  if (bWindowActive || game_window.wantBackgroundRender ())
   {
     static const auto& io =
       ImGui::GetIO ();
@@ -463,7 +463,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
   }
 
   // Block keyboard input to the game while it's in the background
-  if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
+  if (game_window.wantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     if (pfnGetFunc == GetAsyncKeyState_Original)
     {

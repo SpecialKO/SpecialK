@@ -490,9 +490,10 @@ struct sk_window_s {
     y = (actual.client.bottom - actual.client.top);
   }
 
-  bool    needsCoordTransform (void);
-  void    updateDims          (void);
-  bool    isCursorHovering    (void);
+  bool    needsCoordTransform  (void);
+  void    updateDims           (void);
+  bool    isCursorHovering     (void) const;
+  bool    wantBackgroundRender (void) const;
 
   SetWindowLongPtr_pfn SetWindowLongPtr = SK_SetWindowLongPtrW;
   GetWindowLongPtr_pfn GetWindowLongPtr = SK_GetWindowLongPtrW;

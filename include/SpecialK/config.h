@@ -1301,6 +1301,7 @@ struct sk_config_t
     bool    disable_screensaver = false;
     bool    fullscreen_no_saver = false; // In Fullscreen, disable screensaver?
     bool    manage_screensaver  = false;
+    BOOL    screensaver_active  = FALSE; // - Current state, not a preference
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
     bool    activate_at_start   = false;

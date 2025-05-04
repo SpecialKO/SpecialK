@@ -8891,7 +8891,11 @@ SK_ImGui_Toggle (void)
   SK_ImGui_Visible = (! SK_ImGui_Visible);
 
   if (SK_ImGui_Visible)
+  {
+    // Kill screensaver when opening the control panel
+    SK_TerminateProcesses (L"scrnsave.scr", true);
     ImGui::SetNextWindowFocus ();
+  }
 
   static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
   static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");

@@ -1,4 +1,10 @@
-﻿25.5.3
+﻿25.5.4
+======
+ + Improved handling of screensaver deactivation in response to gamepad input
+     (for games that stop polling gamepad when their window is not focused).
+ + Disable crash sound at game exit, since Clair Obscur crashes 99/100 times.
+
+25.5.3
 ======
  + Use the value of [Input.libScePad] ShareClicksTouchpad={true|false} to
      control whether clicking the touchpad will trigger XInput Back button

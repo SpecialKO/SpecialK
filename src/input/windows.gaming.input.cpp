@@ -444,7 +444,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
   // Windows.Gaming.Input cannot poll controller state while the window is not technically focused.
   //  * So we fallback to XInput, which can only give a limited subset of button state.
-  else if ((! config.input.gamepad.xinput.emulate) && SK_WantBackgroundRender () && (! game_window.active) && config.input.gamepad.disabled_to_game == 0)
+  else if ((! config.input.gamepad.xinput.emulate) && game_window.wantBackgroundRender () && (! game_window.active) && config.input.gamepad.disabled_to_game == 0)
   {
     HRESULT hr = hr_real;
 
