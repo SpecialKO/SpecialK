@@ -585,7 +585,12 @@ bool
 sk_window_s::wantBackgroundRender (void) const
 {
   return
-    config.window.background_render;
+    config.window.background_render || 
+
+    // Implicit background render needed in some games to allow gamepad to wake
+    //   the game from screensaver.
+      ( config.window.screensaver_active &&
+        config.input.gamepad.blocks_screensaver );
 }
 
 bool
