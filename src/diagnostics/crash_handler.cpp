@@ -1690,7 +1690,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     SK_COMPAT_WarnIfRTSSIsIncompatible ();
 
-    if (! config.system.silent_crash )
+    if (! config.system.silent_crash && (! ReadAcquire (&__SK_DLL_Ending)))
     {
       if (! crash_sound->play ())
       {
