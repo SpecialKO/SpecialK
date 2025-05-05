@@ -1579,10 +1579,8 @@ SK::ControlPanel::Input::Draw (void)
           bool bBluetooth  = false;
           bool bDualSense  = false;
           bool bDualShock4 = false;
-
-          ImGui::TreePop ();
           
-          UINT64                    last_input    = 0;
+          UINT64 last_input = 0;
 
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
@@ -1860,7 +1858,6 @@ SK::ControlPanel::Input::Draw (void)
           }
 
           ImGui::EndGroup   (  );
-          ImGui::TreePush   ("");
           ImGui::Separator  (  );
           ImGui::BeginGroup (  );
 
@@ -1927,7 +1924,6 @@ SK::ControlPanel::Input::Draw (void)
 
             if (config.input.gamepad.xinput.emulate)
             {
-              //ImGui::TreePush ("");
               ImGui::SameLine        ();
               ImGui::PushItemWidth   (
                 ImGui::GetStyle ().ItemSpacing.x +
@@ -2458,7 +2454,7 @@ SK::ControlPanel::Input::Draw (void)
               }
             }
             ImGui::EndGroup        ();
-
+            ImGui::TreePop         ();
             if (ImGui::BeginPopup ("PlayStationButtonBinding_v1"))
             {
               ImGui::Text (
