@@ -874,8 +874,11 @@ SK::ControlPanel::Input::Draw (void)
         }
       }
 
+      static bool
+          changed_once = false;
       if (changed)
-      {
+      {   changed_once = true;
+
         config.input.keyboard.enable_win_key = enable_win_key - 1;
         config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
 
@@ -886,6 +889,13 @@ SK::ControlPanel::Input::Draw (void)
           SK_Input_UninstallLowLevelKeyboardHook ();
 
         config.utility.save_async ();
+      }
+
+      if (changed_once)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::BulletText     ("Game Restart May Be Required");
+        ImGui::PopStyleColor  ();
       }
 
       ImGui::TreePop (  );
