@@ -1121,7 +1121,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                 break;
             }
 
-            //if (ignore) ImGui::BeginDisabled ();
+            //if (ignore) SK_ImGui_BeginDisabled ();
             if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
             {
               SK_ScopedBool decl_tex_scope (
@@ -1151,7 +1151,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
                   metadata.mipLevels = 1;
 
-                  SK_ComPtr <ID3D11Texture2D> pNewTex;
+                  SK_ComPtr <ID3D11Texture2D>                                                            pNewTex;
                   DirectX::CreateTexture (pDev, converted.GetImages (), 1, metadata, (ID3D11Resource **)&pNewTex.p);
 
                   if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pNewTex, entry.crc32c, pTLS)))
@@ -1170,7 +1170,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
             }
 
             //if (ignore)
-            //{     ImGui::EndDisabled   ();
+            //{     SK_ImGui_EndDisabled ();
             //  if (ImGui::IsItemHovered ())
             //  {   ImGui::BeginTooltip  ();
             //      ImGui::TextUnformatted (

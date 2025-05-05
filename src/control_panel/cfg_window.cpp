@@ -451,7 +451,7 @@ SK::ControlPanel::Window::Draw (void)
         if (fake_fullscreen)
         {
           background_render = true;
-          ImGui::BeginDisabled ();
+          SK_ImGui_BeginDisabled ();
         }
 
         if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
@@ -473,7 +473,7 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::EndTooltip   ();
         }
         if (fake_fullscreen)
-          ImGui::EndDisabled  ();
+          SK_ImGui_EndDisabled();
 
         ImGui::SameLine    ();
         ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);

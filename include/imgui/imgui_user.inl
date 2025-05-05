@@ -4588,3 +4588,16 @@ SK_ImGui_IsEULAVisible (void)
 {
   return eula.show;
 }
+
+void
+SK_ImGui_BeginDisabled (bool disabled)
+{
+  if (disabled)
+    SKIF_ImGui_PushDisableState ();
+}
+
+void
+SK_ImGui_EndDisabled (void)
+{
+  SKIF_ImGui_PopDisableState ();
+}

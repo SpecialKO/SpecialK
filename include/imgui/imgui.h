@@ -1,4 +1,4 @@
-// dear imgui, v1.90 WIP
+﻿// dear imgui, v1.90 WIP
 // (headers)
 
 // Help:
@@ -84,6 +84,9 @@ Index of this file:
 #endif
 
 #include <SpecialK/log.h>
+
+void SK_ImGui_BeginDisabled (bool disabled = true);
+void SK_ImGui_EndDisabled   (void);
 
 // Helper Macros
 #ifndef IM_ASSERT

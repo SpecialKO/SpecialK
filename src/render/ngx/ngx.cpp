@@ -1964,7 +1964,8 @@ SK_NGX_DLSS_ControlPanel (void)
 
             auto _ScaleOverride = [&](float &cfg_var, float fDefaultScale, const char *szName)
             {
-              bool override = cfg_var != 0.0f;
+              bool override_orig = cfg_var != 0.0f;
+              bool override      = override_orig;
 
               ImGui::PushID (szName);
               if (ImGui::Checkbox ("", &override))
@@ -1981,8 +1982,8 @@ SK_NGX_DLSS_ControlPanel (void)
 
               ImGui::SameLine ();
 
-              if (! override)
-                ImGui::BeginDisabled ();
+              if (! override_orig)
+                SK_ImGui_BeginDisabled ();
 
               float* scale = override ?
                              &cfg_var : &fDefaultScale;
@@ -1998,8 +1999,8 @@ SK_NGX_DLSS_ControlPanel (void)
                 config.utility.save_async ();
               }
 
-              if (! override)
-                ImGui::EndDisabled ();
+              if (! override_orig)
+                SK_ImGui_EndDisabled ();
               ImGui::PopID ();
             };
 

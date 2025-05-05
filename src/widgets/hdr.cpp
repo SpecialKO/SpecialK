@@ -2467,7 +2467,7 @@ public:
 
                 if (bDetails)
                 {
-                  if (bDoesNotSupport8BitCompute) ImGui::BeginDisabled ();
+                  if (bDoesNotSupport8BitCompute) SK_ImGui_BeginDisabled ();
 
                   changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
 
@@ -2480,7 +2480,7 @@ public:
                     ImGui::EndTooltip    ();
                   }
 
-                  if (bDoesNotSupport8BitCompute) ImGui::EndDisabled ();
+                  if (bDoesNotSupport8BitCompute) SK_ImGui_EndDisabled ();
                 }
 
                 ImGui::EndGroup          ();
@@ -2521,7 +2521,7 @@ public:
                 const bool bDoesNotSupport11BitRender =
                   (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise);
 
-                if (bDoesNotSupport11BitRender) ImGui::BeginDisabled ();
+                if (bDoesNotSupport11BitRender) SK_ImGui_BeginDisabled ();
 
                 changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
@@ -2536,7 +2536,7 @@ public:
                   ImGui::EndTooltip      ();
                 }
 
-                if (bDoesNotSupport11BitRender) ImGui::EndDisabled ();
+                if (bDoesNotSupport11BitRender) SK_ImGui_EndDisabled ();
 
                 if (bDetails)
                 {

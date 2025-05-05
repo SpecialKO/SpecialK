@@ -685,12 +685,17 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::BeginGroup ();
       ImGui::BeginGroup ();
 
-      if (! config.input.ui.allow_show_cursor)
-      ImGui::BeginDisabled ();
+      const bool        allow_show_cursor =
+        config.input.ui.allow_show_cursor,
+                     cursor_manage =
+        config.input.cursor.manage;
+
+      if (! allow_show_cursor)
+      SK_ImGui_BeginDisabled ();
       bool bIdleHideChange =
-      ImGui::Checkbox ( "Auto Hide Mouse Cursor", &config.input.cursor.manage   );
-      if (! config.input.ui.allow_show_cursor)
-      ImGui::EndDisabled ();
+      ImGui::Checkbox ( "Auto Hide Mouse Cursor", &config.input.cursor.manage );
+      if (! allow_show_cursor)
+      SK_ImGui_EndDisabled ();
 
       auto button_size =
         ImGui::GetItemRectSize ();
@@ -711,7 +716,7 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
       ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
-      ImGui::BeginDisabled (!config.input.cursor.manage || !config.input.ui.allow_show_cursor);
+      SK_ImGui_BeginDisabled (!cursor_manage || !allow_show_cursor);
       ImGui::PushItemWidth (button_size.x);
       if ( ImGui::SliderFloat ("###SecondsBeforeHidingCursor",
                                  &seconds, 0.0f, 10.0f, seconds > 0.0 ? "%.2f Second Idle" : "Always Hidden" ) )
@@ -729,8 +734,8 @@ SK::ControlPanel::Input::Draw (void)
                         (
         "Auto-hide the cursor in response to XInput (Xbox) or HID (PlayStation) input activity."
                            );
-      if (!config.input.cursor.manage || !config.input.ui.allow_show_cursor)
-      ImGui::EndDisabled(  );
+      if (!cursor_manage || !allow_show_cursor)
+      SK_ImGui_EndDisabled();
       ImGui::SameLine   (  );
       ImGui::TreePop    (  );
       ImGui::EndGroup   (  );
@@ -852,13 +857,20 @@ SK::ControlPanel::Input::Draw (void)
         {
           ImGui::SameLine ();
 
-          ImGui::BeginDisabled (config.input.keyboard.alt_tab_adhd_pace <= 0);
+          bool disabled =
+            config.input.keyboard.alt_tab_adhd_pace <= 0;
+
+          if (disabled)
+            SK_ImGui_BeginDisabled ();
+
           if (ImGui::SliderFloat ("###AltTabPace", &fSeconds, 5.0f, 30.0f, "Once Every %3.1f Seconds"))
           {
             config.input.keyboard.alt_tab_adhd_pace = (int)(1000.0 * fSeconds);
             changed = true;
           }
-          ImGui::EndDisabled ();
+
+          if (disabled)
+            SK_ImGui_EndDisabled ();
         }
       }
 
@@ -1973,7 +1985,8 @@ SK::ControlPanel::Input::Draw (void)
               config.input.gamepad.scepad.led_color_g == 0 &&
               config.input.gamepad.scepad.led_color_b == 0;
 
-            int iRGBSel = bOverrideRGB ? bDisableRGB ? 2 : 1 : 0;
+            const int iOrigRGBSel = bOverrideRGB ? bDisableRGB ? 2 : 1 : 0;
+                  int     iRGBSel = iOrigRGBSel;
 
             const bool bChangeRGB =
               ImGui::Combo ("###PS_RGB", &iRGBSel, "Default RGB Lighting\0"
@@ -2028,8 +2041,8 @@ SK::ControlPanel::Input::Draw (void)
             {
               //ImGui::SameLine ();
 
-              if (iRGBSel != 1)
-                ImGui::BeginDisabled ();
+              if (iOrigRGBSel != 1)
+                SK_ImGui_BeginDisabled ();
 
               float color [3] = { (float)config.input.gamepad.scepad.led_color_r / 255.0f,
                                   (float)config.input.gamepad.scepad.led_color_g / 255.0f,
@@ -2050,8 +2063,8 @@ SK::ControlPanel::Input::Draw (void)
 
               ImGui::SameLine ();
 
-              if (iRGBSel != 1)
-                ImGui::EndDisabled ();
+              if (iOrigRGBSel != 1)
+                SK_ImGui_EndDisabled ();
 
               int brightness = 3 - config.input.gamepad.scepad.led_brightness;
 
@@ -3303,6 +3316,8 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
   ImGui::BeginGroup     (  );
   if (! window_mgmt)
   {
+    const bool allow_show_cursor = config.input.ui.allow_show_cursor;
+
     ImGui::BeginGroup   (  );
     ImGui::SameLine     (  );
     ImGui::BeginGroup   (  );
@@ -3330,8 +3345,8 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     ImGui::SameLine     (0.0f, 15);
     ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine     (0.0f,  7);
-    if (! config.input.ui.allow_show_cursor)
-    ImGui::BeginDisabled ();
+    if (! allow_show_cursor)
+    SK_ImGui_BeginDisabled ();
     if (! config.input.cursor.manage)
     {
       if (SK_ImGui_Cursor.force == sk_cursor_state::None)
@@ -3375,8 +3390,8 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     else ImGui::Checkbox( "Keyboard Activates",
           &config.input.cursor.keys_activate );
 
-    if (! config.input.ui.allow_show_cursor)
-    ImGui::EndDisabled  (  );
+    if (! allow_show_cursor)
+    SK_ImGui_EndDisabled(  );
     ImGui::EndGroup     (  );
   }
   ImGui::SeparatorText  ("Cursor Boundaries");
