@@ -506,6 +506,17 @@ SK_BootOpenGL (void)
     return;
   }
 
+  if (SK_GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") ||
+      SK_GetModuleHandleW (L"EOSOVH-Win32-Shipping.dll"))
+  {
+    SK_LOGi0 (L"Skipping OpenGL Initialization because the Epic Overlay is Loaded and Will Crash.");
+    SK_ImGui_Warning (
+      L"OpenGL render backend temporarily disabled due to Epic Overlay\r\n\r\n\t"
+      L"Turn OpenGL off under Compatibility Settings | Render Backends, or disable the Epic Overlay to get rid of this message."
+    );
+    return;
+  }
+
   if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu)
   {
     static bool          once = false;
