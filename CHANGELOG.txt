@@ -1,4 +1,9 @@
-﻿25.5.4.1
+﻿25.5.5
+======
+ + Removed remnants of PlayStation+Cross / Xbox+A Screensaver Activation code,
+     configure SKIF's gamepad support instead if you want this functionality.
+
+25.5.4.1
 ========
  + Enable "Keep Inside Window" cursor boundaries by default in Clair Obscur,
      because the game may stop responding to keyboard/gamepad input if the
