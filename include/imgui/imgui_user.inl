@@ -3356,9 +3356,10 @@ SK_ImGui_BackupInputThread (LPVOID)
     if (! SK_ImGui_Active ())
                 SK_GetCursorPos
   (&SK_ImGui_LastKnownCursorPos);
-    SK_ImGui_LastKnownCursor =
-                SK_GetCursor ();
-    SK_ImGui_IsHWCursorVisible &=
+    // This is thread-local, and this thread doesn't have a window, so it's meaningless to do this.
+    //SK_ImGui_LastKnownCursor =
+    //            SK_GetCursor ();
+    SK_ImGui_IsHWCursorVisible =
     SK_InputUtil_IsHWCursorVisible (); // This checks global cursor state, it does not mean that
                                        //   the game window's thread is showing the cursor...
 
@@ -4021,10 +4022,13 @@ SK_ImGui_User_NewFrame (void)
   SK_GetCursorPos  (&SK_ImGui_LastKnownCursorPos);
   POINT cursor_pos = SK_ImGui_LastKnownCursorPos;
 
+  if (SK_ImGui_Active ())
+  SK_ImGui_LastKnownCursor = SK_GetCursor ();
+
   bool capture_mouse    = SK_ImGui_WantMouseCapture  (false, &cursor_pos);
   bool anything_hovered = SK_ImGui_IsAnythingHovered ();
   HWND hWndForeground   = SK_GetForegroundWindow     ();
-  BOOL bHWCursorVisible = SK_ImGui_IsHWCursorVisible;
+  BOOL bHWCursorVisible = SK_ImGui_IsHWCursorVisible && SK_ImGui_LastKnownCursor != 0;
 
   __SK_EnableSetCursor = true;
 
@@ -4437,7 +4441,7 @@ SK_ImGui_User_NewFrame (void)
 
   if (! SK_ImGui_Cursor.idle)
   {
-    if (capture_mouse && anything_hovered && (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y))
+    if (capture_mouse && anything_hovered && (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || ImGui::IsAnyMouseDown ()))
     {
       SK_SendMsgSetCursor (ImGui_DesiredCursor ());
     }

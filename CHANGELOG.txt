@@ -1,4 +1,8 @@
-﻿25.5.5
+﻿25.5.5.1
+========
+ + Fixed cursor auto-hide behavior accidentally broken in 25.5.4.1
+
+25.5.5
 ======
  + Removed remnants of PlayStation+Cross / Xbox+A Screensaver Activation code,
      configure SKIF's gamepad support instead if you want this functionality.
