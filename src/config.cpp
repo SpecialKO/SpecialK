@@ -3801,6 +3801,17 @@ auto DeclKeybind =
       {
         // Game may stop responding to keyboard/gamepad input if cursor leaves game window!
         config.window.confine_cursor = true;
+
+        config.apis.d3d9.hook        = false;
+        config.apis.d3d9ex.hook      = false;
+        config.apis.OpenGL.hook      = false;
+        config.apis.Vulkan.hook      = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
+
+        config.apis.last_known       = SK_RenderAPI::D3D12;
       } break;
 
       case SK_GAME_ID::Metro2033:

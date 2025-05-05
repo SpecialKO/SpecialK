@@ -924,19 +924,19 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       hMod = nullptr;
     }
 
-    // Avoid issues on AMD drivers caused by GOG's overlay
+    // Avoid issues in OpenGL caused by GOG's overlay
     else if (StrStrIW (compliant_path, L"overlay_mediator_"))
     {
-      extern int
-          SK_ADL_CountActiveGPUs (void);
-      if (SK_ADL_CountActiveGPUs () > 0)
+
+      if (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook)
       {
-        if (SK_GetModuleHandleW (L"OpenGL32.dll"))
-        {
-          SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay on AMD systems.");
-          SK_SetLastError (ERROR_MOD_NOT_FOUND);
-          hMod = nullptr;
-        }
+        SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay in OpenGL game.");
+        SK_ImGui_Warning (
+          L"GOG Overlay blocked due to OpenGL instability\r\n\r\n\t"
+          L"Turn OpenGL off under Compatibility Settings | Render Backends, or disable the GOG Overlay to get rid of this message."
+        );
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+        hMod = nullptr;
       }
     }
 

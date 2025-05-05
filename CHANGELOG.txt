@@ -1,4 +1,11 @@
-﻿25.5.5.1
+﻿25.5.5.2
+========
+ + Fixed various ImGui state stack over/underflows.
+ + Disabled OpenGL hooks if the Epic Overlay is loaded because recent updates
+     to the overlay will cause crashing.
+ + Block GOG overlay in OpenGL on NVIDIA drivers as well as AMD.
+
+25.5.5.1
 ========
  + Fixed cursor auto-hide behavior accidentally broken in 25.5.4.1
 
