@@ -232,7 +232,7 @@ SK_ACS_ApplyFrameGenOverride (bool enable)
   if (VirtualProtect (FrameGenTestAddr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
   { memcpy           (FrameGenTestAddr, (unsigned char *)(enable ? "\x90\x90\x90\x90"
                                                                  : "\x44\x88\x6E\x24"), 4);
-    VirtualProtect   (FrameGenTestAddr,  4, dwOrigProt,             &dwOrigProt);
+    VirtualProtect   (FrameGenTestAddr, 4, dwOrigProt,             &dwOrigProt);
 
     *pFrameGenEnabled = enable;
   }
@@ -543,8 +543,8 @@ void
 SK_ACS_InitPlugin (void)
 {
   // Address issues caused by Steam Input
+  config.input.gamepad.dinput.blackout_gamepads = false;
   config.nvidia.dlss.disable_ota_updates        = false;
-  config.input.gamepad.dinput.blackout_gamepads = true;
 
   // RenoDX works if loaded as dxgi in this game
   config.reshade.allow_unsafe_addons            = true;
@@ -653,7 +653,7 @@ SK_ACS_InitPlugin (void)
       SK_ACS_ApplyExpandedFOV (__SK_ACS_ExpandFOVRange);
     }
 
-    while (SK_GetFramesDrawn () < 480)
+    while (SK_GetFramesDrawn () < 120)
            SK_SleepEx (150UL, FALSE);
 
     /*
@@ -667,35 +667,63 @@ SK_ACS_InitPlugin (void)
     ACShadows.exe+F7B0DA - 75 C3                 - jne ACShadows.exe+F7B09F
     */
 
-    static void* limit_check_addr =
-      (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\x00\xEB\x00\x45\x84\xC0\x75\x00\xC5", 20,
-                                              "\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\x00\xEB\x00\x45\x84\xC0\x75\x00\xC5", (void*)img_base_addr) + 10);
-                                                                                   //??      ??      ??                  ??
-    SK_LOGi0 (L"LimitCheckAddr = %ws", limit_check_addr != nullptr ? SK_MakePrettyAddress (limit_check_addr).c_str () : L"Not Found?!");
+    static void* limit_check_addr = (void *)10;
+    static void* limit_store_addr  = nullptr;
 
-    static void* limit_store_addr = nullptr;
+    // New code for 1.0.4+
+    static void* limit_store_addr_v1_0_4 = nullptr;
+    static void* limit_check_addr_v1_0_4 = nullptr;
 
-    if (limit_check_addr != (void *)10)
-    {
-      /*
-      ACShadows.exe+F7B0BA - 48 8B 05 9F58D108     - mov rax,[ACShadows.exe+9C90960] { (04864E98) }
-      ACShadows.exe+F7B0C1 - C5FA1180 98 000000    - vmovss [rax+00000098],xmm0
-      */
+    limit_store_addr_v1_0_4 =
+      (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x8B\x05\xFF\xFF\xFF\xFF\xC5\xFA\x11\x80\x98\x00\x00\x00\x48\x83\xC4\x20", 20,
+                                              "\x48\x8B\x05\x00\x00\x00\x00\xC5\xFA\x11\x80\x98\x00\x00\x00\x48\x83\xC4\x20", (void*)img_base_addr));
 
-      limit_store_addr =
-        (void *)((uintptr_t)limit_check_addr - 18);
+    SK_LOGi0 (L"LimitStoreAddr_v1_0_4 = %ws", limit_store_addr_v1_0_4 != nullptr ? SK_MakePrettyAddress (limit_store_addr_v1_0_4).c_str () : L"Not Found?!");
 
-      uint32_t  ptr_offset =                                           0x98;
-      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)limit_store_addr - 4);
-      uintptr_t rip        =               (uintptr_t)limit_store_addr;
+    if (limit_store_addr_v1_0_4 != nullptr)
+    {   limit_check_addr_v1_0_4 =
+          (void *)((uintptr_t)SK_ScanAlignedExec ("\x80\x78\x18\x00\x75\x00\x48\x83\xC4\x28", 10,
+                                                  "\x80\x78\x18\x00\x75\x00\x48\x83\xC4\x28", (void*)((uintptr_t)img_base_addr)) + 0x4);
+
+      uint32_t  ptr_offset =                                                  0x98;
+      uint32_t  rip_offset = *(uint32_t *)((uintptr_t)limit_store_addr_v1_0_4 + 3);
+      uintptr_t rip        =               (uintptr_t)limit_store_addr_v1_0_4 + 7;
 
       __SK_ACS_FPSLimitAddr =
         (float *)(*(uint8_t **)((uintptr_t)rip + rip_offset) + ptr_offset);
     }
 
-    else
+    // Fallback to pre-1.0.4 limit code
+    if (limit_store_addr_v1_0_4 == nullptr)
     {
-      SK_ImGui_Warning (L"Could not find Framerate Limiter Code?!");
+      limit_check_addr =
+        (void *)((uintptr_t)SK_ScanAlignedExec ("\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\x00\xEB\x00\x45\x84\xC0\x75\x00\xC5", 20,
+                                                "\x48\x83\xC4\x20\x5E\xC3\x80\x79\x2C\x00\x75\x00\xEB\x00\x45\x84\xC0\x75\x00\xC5", (void*)img_base_addr) + 10);
+                                                                                     //??      ??      ??                  ??
+      SK_LOGi0 (L"LimitCheckAddr = %ws", limit_check_addr != (void *)10 ? SK_MakePrettyAddress (limit_check_addr).c_str () : L"Not Found?!");
+
+      if (limit_check_addr != (void *)10)
+      {
+        /*
+        ACShadows.exe+F7B0BA - 48 8B 05 9F58D108     - mov rax,[ACShadows.exe+9C90960] { (04864E98) }
+        ACShadows.exe+F7B0C1 - C5FA1180 98 000000    - vmovss [rax+00000098],xmm0
+        */
+
+        limit_store_addr =
+          (void *)((uintptr_t)limit_check_addr - 18);
+
+        uint32_t  ptr_offset =                                           0x98;
+        uint32_t  rip_offset = *(uint32_t *)((uintptr_t)limit_store_addr - 4);
+        uintptr_t rip        =               (uintptr_t)limit_store_addr;
+
+        __SK_ACS_FPSLimitAddr =
+          (float *)(*(uint8_t **)((uintptr_t)rip + rip_offset) + ptr_offset);
+      }
+
+      else
+      {
+        SK_ImGui_Warning (L"Could not find Framerate Limiter Code?!");
+      }
     }
 
     /*
@@ -732,15 +760,15 @@ SK_ACS_InitPlugin (void)
     */
 
     code_addr =
-      SK_ScanAlignedExec ("\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", 19,
-                          "\x83\xFD\x0A\x0F\x94\xC0\x44\x89\x66\x20\x44\x88\x6E\x24\x89\xE9\x83\xE1\xFE", (void*)img_base_addr);
+      SK_ScanAlignedExec ("\x44\x89\x66\x20\x44\x88\x6E\x24", 8,
+                          "\x44\x89\x00\x20\x44\x88\x6E\x24", (void*)img_base_addr);
 
     SK_LOGi0 (L"FrameGenEnable2 = %ws", code_addr != nullptr ? SK_MakePrettyAddress (code_addr).c_str () : L"Not Found?!");
 
     if (code_addr != nullptr)
     {
       FrameGenTestAddr =
-        (void *)((uintptr_t)code_addr + 10);
+        (void *)((uintptr_t)code_addr + 0x4);
     }
 
     static DWORD fmv_timeout_ms = 5000UL;
@@ -757,13 +785,21 @@ SK_ACS_InitPlugin (void)
               0x0000000003807571, 0x000000000380899F, 0x000000000069FF51, 0x000000000069FF57,
               0x000000000069FF6E, 0x000000000069FF10, 0x000000000069FF14, 0x000000000069FF18,
               0x000000000380F265, 0x000000000380F26C,
-              
+
               // 1.0.3
               0x0000000003D6F5C1, 0x0000000003D709EF, 0x000000000068DC61, 0x000000000068DC67,
               0x000000000068DC7E, 0x000000000068DC20, 0x000000000068DC24, 0x000000000068DC28,
               0x0000000003D772B5, 0x0000000003D772BC,
                                   0x000000000068D3AC, 0x000000000068D3B0, 0x000000000068D3B4,
                                   0x000000000068D563, 0x000000000068D567, 0x000000000068D56B,
+
+              // 1.0.4
+              0x0000000003DB4246, 0x0000000003DB4F43, 0x00000000006B436D, 0x00000000006B4373,
+              0x00000000006B438A, 0x00000000006B432D, 0x00000000006B4331, 0x00000000006B4335,
+              0x0000000003DBB105, 0x0000000003DBB10C,
+                                  // Shader compile
+                                  0x00000000006B3915, 0x00000000006B3919, 0x00000000006B391D,
+                                  0x00000000006B3AAA, 0x00000000006B3AAE, 0x00000000006B3AB2,
               } )
     {
       ContinuableCallSites.insert (callsite);
@@ -933,6 +969,31 @@ SK_ACS_InitPlugin (void)
         }
       }
 
+      else
+      {
+        if (limit_check_addr_v1_0_4 != nullptr)
+        {
+          static bool UncapFramerate = !__SK_ACS_UncapFramerate;
+
+          static uint8_t orig_check_bytes [2] = {};
+
+          SK_RunOnce (
+            memcpy (orig_check_bytes, limit_check_addr_v1_0_4, 2);
+          );
+
+          DWORD dwOrigProt = 0x0;
+
+          if (std::exchange (UncapFramerate, __SK_ACS_UncapFramerate) !=
+                                             __SK_ACS_UncapFramerate)
+          {
+            VirtualProtect (limit_check_addr_v1_0_4, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt);
+            memcpy         (limit_check_addr_v1_0_4, UncapFramerate   ?    (unsigned char *)
+                                                           "\x90\x90" : orig_check_bytes, 2);
+            VirtualProtect (limit_check_addr_v1_0_4, 2, dwOrigProt,             &dwOrigProt);
+          }
+        }
+      }
+
       // Not tested adequately in non-framegen cases
       if (__SK_ACS_AlwaysUseFrameGen)
       {
@@ -979,7 +1040,7 @@ SK_ACS_InitPlugin (void)
         if (__SK_ACS_UncapFramerate && __SK_ACS_FPSLimitAddr != nullptr)
         {
           // -1.0f = Unlimited (set by game in special cases)
-          *__SK_ACS_FPSLimitAddr = -1.0f;
+          *__SK_ACS_FPSLimitAddr = 0.0f;
         }
       }
 

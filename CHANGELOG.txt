@@ -1,4 +1,8 @@
-﻿25.5.5.2
+﻿25.5.6
+======
+ + Updated Assassin's Creed Shadows plug-in for compatibility with 1.0.4 patch.
+
+25.5.5.2
 ========
  + Fixed various ImGui state stack over/underflows.
  + Disabled OpenGL hooks if the Epic Overlay is loaded because recent updates
