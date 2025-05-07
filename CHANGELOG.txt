@@ -1,4 +1,12 @@
-﻿25.5.6
+﻿25.5.7
+======
+ + Pre-load Streamline Interposer in Assassin's Creed Shadows
+ + Disable asynchronous init in Assassin's Creed Shadows
+ + Disable Over the Air DLSS updates in Assassin's Creed Shadows
+ + Added DLSS-G initialization delay in Assassin's Creed Shadows
+ - Gah, Ubisoft, wtf?
+
+25.5.6
 ======
  + Updated Assassin's Creed Shadows plug-in for compatibility with 1.0.4 patch.
 

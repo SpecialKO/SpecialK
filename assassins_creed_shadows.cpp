@@ -543,11 +543,10 @@ void
 SK_ACS_InitPlugin (void)
 {
   // Address issues caused by Steam Input
-  config.input.gamepad.dinput.blackout_gamepads = false;
-  config.nvidia.dlss.disable_ota_updates        = false;
+  config.nvidia.dlss.disable_ota_updates = true;
 
   // RenoDX works if loaded as dxgi in this game
-  config.reshade.allow_unsafe_addons            = true;
+  config.reshade.allow_unsafe_addons     = false;
 
   static HANDLE hInitThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
@@ -653,7 +652,7 @@ SK_ACS_InitPlugin (void)
       SK_ACS_ApplyExpandedFOV (__SK_ACS_ExpandFOVRange);
     }
 
-    while (SK_GetFramesDrawn () < 120)
+    while (SK_GetFramesDrawn () < 480)
            SK_SleepEx (150UL, FALSE);
 
     /*
