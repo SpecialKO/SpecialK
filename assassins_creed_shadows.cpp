@@ -601,6 +601,9 @@ SK_ACS_InitPlugin (void)
     // Pattern scanning timeouts are not required on this thread
     SK_TLS_Bottom ()->memory->memory_scans_should_timeout = FALSE;
 
+    while (SK_GetFramesDrawn () < 120)
+           SK_SleepEx (150UL, FALSE);
+
     auto search_pattern =
       // Steam compatible  28
       "\x4C\x8B\x00\x00\x49\x8B\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x45\x0F\x00\x00\x00\x00\x00\x00\x41\x00\x00\x07";
