@@ -3428,6 +3428,13 @@ auto DeclKeybind =
                                  blackout_gamepads =  true;
         config.input.keyboard.disable_ime          =  true;
 
+        config.compatibility.init_on_separate_thread
+                                                   =  false;
+        compatibility.async_init->store (
+          config.compatibility.init_on_separate_thread
+        );
+        SK_LoadLibraryW (LR"(NVStreamline\production\sl.interposer.dll)");
+
         // Delay the application of framerate patch in case other mods are
         //   doing the same thing...
         SK_RunOnce (plugin_mgr->init_fns.insert (SK_ACS_InitPlugin));
