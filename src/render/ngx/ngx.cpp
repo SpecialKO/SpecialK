@@ -2192,7 +2192,7 @@ SK_NGX_DLSS_ControlPanel (void)
         {
           ImGui::SetItemTooltip (
             "A forced driver override is active, SK may be unable to "
-            "change DLSS settings." );
+            "change DLSS settings and reported active settings may be inaccurate." );
         }
 
         if (dlssg_version.major > 0)
@@ -2216,7 +2216,7 @@ SK_NGX_DLSS_ControlPanel (void)
           {
             ImGui::SetItemTooltip (
               "A forced driver override is active, SK may be unable to "
-              "change DLSS-G settings." );
+              "change DLSS-G settings and reported active settings may be inaccurate." );
           }
         }
 
