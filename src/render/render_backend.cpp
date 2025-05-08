@@ -3122,23 +3122,25 @@ SK_WDDM_CAPS::init (D3DKMT_HANDLE hAdapter)
          queryAdapterInfo.Type                  = KMTQAITYPE_DRIVERVERSION;
          queryAdapterInfo.PrivateDriverData     = &version;
          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_DRIVERVERSION);
-  
+
+  SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+
          queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_3_0_CAPS;
          queryAdapterInfo.PrivateDriverData     = &_3_0;
          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_3_0_CAPS);
-  
+
   SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-  
+
          queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_9_CAPS;
          queryAdapterInfo.PrivateDriverData     = &_2_9;
          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_9_CAPS);
-  
+
   SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-  
+
          queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_7_CAPS;
          queryAdapterInfo.PrivateDriverData     = &_2_7;
          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_7_CAPS);
-  
+
   SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
 
   // For Windows 10, just fill-in WDDM 2.9 values using what's available.
