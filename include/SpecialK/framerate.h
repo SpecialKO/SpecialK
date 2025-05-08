@@ -728,14 +728,14 @@ extern int __SK_FramerateLimitApplicationSite;
 
 
 
-using NtQueryTimerResolution_pfn = NTSTATUS (NTAPI *)
+using ZwQueryTimerResolution_pfn = NTSTATUS (NTAPI *)
 (
   OUT PULONG              MinimumResolution,
   OUT PULONG              MaximumResolution,
   OUT PULONG              CurrentResolution
 );
 
-using NtSetTimerResolution_pfn = NTSTATUS (NTAPI *)
+using ZwSetTimerResolution_pfn = NTSTATUS (NTAPI *)
 (
   IN  ULONG               DesiredResolution,
   IN  BOOLEAN             SetResolution,

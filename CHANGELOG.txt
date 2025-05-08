@@ -1,4 +1,10 @@
-﻿25.5.7
+﻿25.5.8
+======
+ + Call ZwSetTimerResolution (...) instead of NtSetTimerResolution (...) to
+     ensure that the Windows 11 kernel allows 1 ms timer resolution instead of
+       15 ms when the game window is in the background.
+
+25.5.7
 ======
  + Pre-load Streamline Interposer in Assassin's Creed Shadows
  + Disable asynchronous init in Assassin's Creed Shadows

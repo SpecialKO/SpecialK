@@ -33,9 +33,9 @@
 using NTSTATUS = _Return_type_success_(return >= 0) LONG;
 
 
-NtQueryTimerResolution_pfn NtQueryTimerResolution        = nullptr;
-NtSetTimerResolution_pfn   NtSetTimerResolution          = nullptr;
-NtSetTimerResolution_pfn   NtSetTimerResolution_Original = nullptr;
+ZwQueryTimerResolution_pfn ZwQueryTimerResolution        = nullptr;
+ZwSetTimerResolution_pfn   ZwSetTimerResolution          = nullptr;
+ZwSetTimerResolution_pfn   ZwSetTimerResolution_Original = nullptr;
 
 NtDelayExecution_pfn       NtDelayExecution              = nullptr;
 
@@ -1612,19 +1612,21 @@ SK_GetPerfFreq (void)
 
 NTSTATUS
 NTAPI
-NtSetTimerResolution_Detour
+ZwSetTimerResolution_Detour
 (
   IN   ULONG    DesiredResolution,
   IN   BOOLEAN      SetResolution,
   OUT  PULONG   CurrentResolution
 )
 {
+  SK_LOG_FIRST_CALL
+
   NTSTATUS ret = 0;
 
-  if (NtQueryTimerResolution == nullptr)
-  {   NtQueryTimerResolution =
-     (NtQueryTimerResolution_pfn)::SK_GetProcAddress ( L"NtDll",
-     "NtQueryTimerResolution" );
+  if (ZwQueryTimerResolution == nullptr)
+  {   ZwQueryTimerResolution =
+     (ZwQueryTimerResolution_pfn)::SK_GetProcAddress ( L"NtDll",
+     "ZwQueryTimerResolution" );
   }
 
   static Concurrency::concurrent_unordered_map
@@ -1650,10 +1652,10 @@ NtSetTimerResolution_Detour
     SK_RunOnce (bPrint = true);
   }
 
-  if (NtQueryTimerResolution != nullptr)
+  if (ZwQueryTimerResolution != nullptr)
   {
     ULONG                    min,  max,  cur;
-    NtQueryTimerResolution (&min, &max, &cur);
+    ZwQueryTimerResolution (&min, &max, &cur);
 
     if ( bPrint               &&
          pSetCount != nullptr && (*(pSetCount) % 100) == 1 )
@@ -1669,16 +1671,16 @@ NtSetTimerResolution_Detour
     if (config.render.framerate.target_fps <= 0.0f)
     {
       if (! SetResolution)
-        ret = NtSetTimerResolution_Original (DesiredResolution, SetResolution, CurrentResolution);
+        ret = ZwSetTimerResolution_Original (DesiredResolution, SetResolution, CurrentResolution);
       else
-        ret = NtSetTimerResolution_Original (max,               TRUE,          CurrentResolution);
+        ret = ZwSetTimerResolution_Original (max,               TRUE,          CurrentResolution);
     }
   }
 
   if (bPrint && ((! pSetCount) || (*(pSetCount) % 100) == 1))
   {
     SK_LOGs0 ( L"Scheduler ",
-               L"NtSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
+               L"ZwSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
                 (double)(DesiredResolution * 100.0) / 1000000.0,
                             SetResolution ? L"Set" : L"Get",
                                   SK_GetCallerName ().c_str (),
@@ -1851,9 +1853,9 @@ void SK_Scheduler_Init (void)
       static_cast_p2p <void> (&SetProcessAffinityMask_Original) );
 
     SK_CreateDLLHook2 (      L"NtDll",
-                              "NtSetTimerResolution",
-                               NtSetTimerResolution_Detour,
-      static_cast_p2p <void> (&NtSetTimerResolution_Original) );
+                              "ZwSetTimerResolution",
+                               ZwSetTimerResolution_Detour,
+      static_cast_p2p <void> (&ZwSetTimerResolution_Original) );
 
     //
     // Turn these into nops because they do nothing useful,
@@ -1928,11 +1930,11 @@ void SK_Scheduler_Init (void)
 
     SK_ApplyQueuedHooks ();
 
-    NtSetTimerResolution     = NtSetTimerResolution_Original;
-    NtQueryTimerResolution   =
-      reinterpret_cast       <NtQueryTimerResolution_pfn> (
+    ZwSetTimerResolution     = ZwSetTimerResolution_Original;
+    ZwQueryTimerResolution   =
+      reinterpret_cast       <ZwQueryTimerResolution_pfn> (
         SK_GetProcAddress ( L"NtDll",
-                             "NtQueryTimerResolution" )   );
+                             "ZwQueryTimerResolution" )   );
 
     if (0 == InterlockedCompareExchange (&__sleep_init, 1, 0))
     {
