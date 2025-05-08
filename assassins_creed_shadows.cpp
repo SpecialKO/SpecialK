@@ -601,7 +601,7 @@ SK_ACS_InitPlugin (void)
     // Pattern scanning timeouts are not required on this thread
     SK_TLS_Bottom ()->memory->memory_scans_should_timeout = FALSE;
 
-    while (SK_GetFramesDrawn () < 120)
+    while (SK_GetFramesDrawn () < 240)
            SK_SleepEx (150UL, FALSE);
 
     auto search_pattern =
@@ -655,7 +655,7 @@ SK_ACS_InitPlugin (void)
       SK_ACS_ApplyExpandedFOV (__SK_ACS_ExpandFOVRange);
     }
 
-    while (SK_GetFramesDrawn () < 480)
+    while (SK_GetFramesDrawn () < 720)
            SK_SleepEx (150UL, FALSE);
 
     /*
