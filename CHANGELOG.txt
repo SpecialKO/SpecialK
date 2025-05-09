@@ -1,4 +1,10 @@
-﻿25.5.8
+﻿25.5.8.1
+========
+ + Allow gamepad input to wake the screensaver while the window is in the
+     background (because the screensaver is active) and gamepad input in
+       background is disabled.
+
+25.5.8
 ======
  + Added 240 frame initialization delay to Assassin's Creed Shadows plug-in
  + Call ZwSetTimerResolution (...) instead of NtSetTimerResolution (...) to

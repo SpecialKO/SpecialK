@@ -832,6 +832,17 @@ SK_IsGameWindowActive (bool activate_if_in_limbo, HWND hWndForeground)
     }
   }
 
+  if ((! bActive) && (! game_window.active))
+  {
+    BOOL                                                  bScreensaverActive = FALSE;
+    SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+
+    config.window.screensaver_active = bScreensaverActive;
+
+    return
+      (config.window.screensaver_active != FALSE);
+  }
+
   return bActive;
 }
 
@@ -839,6 +850,9 @@ bool
 __stdcall
 SK_IsGameWindowFocused (void)
 {
+  if (config.window.screensaver_active)
+    return true;
+
   auto
     hWndAtCenter = [&](void)
  -> HWND

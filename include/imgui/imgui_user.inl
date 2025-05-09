@@ -3164,16 +3164,16 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
   if (_LastGamepadTimestamp != SK_Input_LastGamepadActivity &&
       _Ignore_TimestampUntil < SK_Input_LastGamepadActivity)
   {
+    if (! config.window.screensaver_active)
+    {
+      BOOL                                                  bScreensaverActive = FALSE;
+      SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+
+      config.window.screensaver_active |= bScreensaverActive;
+    }
+
     if (config.input.gamepad.blocks_screensaver)
     {
-      if (! config.window.screensaver_active)
-      {
-        BOOL                                                  bScreensaverActive = FALSE;
-        SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
-
-        config.window.screensaver_active |= bScreensaverActive;
-      }
-
       // Deactivate screensaver on gamepad input
       //
       //   * This looks stupid, and it is, but attempting to send the screensaver
