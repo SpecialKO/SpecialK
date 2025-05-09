@@ -1441,6 +1441,26 @@ SK::Framerate::Limiter::try_wait (void)
 extern ZwSetTimerResolution_pfn
        ZwSetTimerResolution_Original;
 
+void SK_Framerate_SetPowerThrottlingPolicy (bool always_high_res)
+{
+  // Disable Windows 11 process resolution tinkering when the game is in the background
+  PROCESS_POWER_THROTTLING_STATE
+    state             = {                                      };
+    state.Version     = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+    state.ControlMask = PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
+    state.StateMask   = always_high_res ? 0 : 1;
+
+  static bool last_policy = !always_high_res;
+
+  if (std::exchange (last_policy, always_high_res) != always_high_res)
+  {
+    SetProcessInformation (
+      SK_GetCurrentProcess (),
+       ProcessPowerThrottling, &state,
+                        sizeof (state) );
+  }
+}
+
 void
 SK::Framerate::Limiter::wait (void)
 {
@@ -1471,6 +1491,11 @@ SK::Framerate::Limiter::wait (void)
 
   if (! standalone)
   {
+    SK_Framerate_SetPowerThrottlingPolicy (
+      (! background) ||
+         background && __target_fps_bg <= 0.0f
+    );
+
     if (! background)
     {
       set_limit ( __target_fps );
