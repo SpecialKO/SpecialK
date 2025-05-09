@@ -1,4 +1,10 @@
-﻿25.5.8.1
+﻿25.5.9
+======
+ + Set PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION when initializing
+     SK's Framerate Limiter to keep the system-wide timer resolution from
+       applying in the background.
+
+25.5.8.1
 ========
  + Allow gamepad input to wake the screensaver while the window is in the
      background (because the screensaver is active) and gamepad input in

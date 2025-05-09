@@ -915,6 +915,18 @@ SK::Framerate::Init (void)
   pCommandProc->AddVariable ( "MaxDeltaTime",
       new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
 
+  // Disable Windows 11 process resolution tinkering when the game is in the background
+  PROCESS_POWER_THROTTLING_STATE
+    state             = {                                      };
+    state.Version     = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+    state.ControlMask = PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
+    state.StateMask   = 0;
+
+  SetProcessInformation (
+    SK_GetCurrentProcess (),
+     ProcessPowerThrottling, &state,
+                      sizeof (state) );
+
   if ( ZwQueryTimerResolution != nullptr &&
        ZwSetTimerResolution   != nullptr )
   {
