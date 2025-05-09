@@ -1448,7 +1448,8 @@ void SK_Framerate_SetPowerThrottlingPolicy (bool always_high_res)
     state             = {                                      };
     state.Version     = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
     state.ControlMask = PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
-    state.StateMask   = always_high_res ? 0 : 1;
+    state.StateMask   = always_high_res ?
+                                      0 : PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
 
   static bool last_policy = !always_high_res;
 

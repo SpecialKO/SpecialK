@@ -1,4 +1,10 @@
-﻿25.5.9
+﻿25.5.9.1
+========
+ + Correctly set the StateMask bits for
+     PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION when a background FPS
+       limit is active.
+
+25.5.9
 ======
  + Set PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION when initializing
      SK's Framerate Limiter to keep the system-wide timer resolution from
