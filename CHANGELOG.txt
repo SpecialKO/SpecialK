@@ -1,4 +1,9 @@
-﻿25.5.9.1
+﻿25.5.10
+=======
+ + Fixed the position of XInput USB/Bluetooth battery charge indicators so they
+     do not overlay with the Swap A/B and Swap X/Y button settings.
+
+25.5.9.1
 ========
  + Correctly set the StateMask bits for
      PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION when a background FPS

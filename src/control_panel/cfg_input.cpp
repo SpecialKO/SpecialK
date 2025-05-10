@@ -1317,6 +1317,12 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::EndTooltip ();
         }
 
+        ImGui::ItemSize ( ImVec2 (0.0f, 0.0f),
+          ImGui::GetStyle ( ).FramePadding.y );
+
+        SK_ImGui_ProcessGamepadStatusBar (true);
+        ImGui::SameLine   ( );
+
         ImGui::NextColumn ( );
         ImGui::Columns    (2);
 
@@ -1529,14 +1535,8 @@ SK::ControlPanel::Input::Draw (void)
         }
 
         ImGui::NextColumn ( );
-
-        ImGui::ItemSize ( ImVec2 (0.0f, 0.0f),
-          ImGui::GetStyle ( ).FramePadding.y );
-
-        SK_ImGui_ProcessGamepadStatusBar (true);
-
-        ImGui::SameLine      ( ); ImGui::NextColumn ( );
-        ImGui::SameLine      ( ); ImGui::NextColumn ( );
+        ImGui::NextColumn ( );
+        ImGui::NextColumn ( );
         ImGui::SetCursorPosY (remap_button_y);
 
         if (ImGui::Checkbox ("Swap A and B Buttons", &config.input.gamepad.xinput.swap_a_b))
