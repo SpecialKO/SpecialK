@@ -3798,7 +3798,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                  )
              )
           {
-            SK_LOGi0 (L"Display Change Handled");
+            SK_LOGi1 (L"Display Change Handled");
 
             display.nvapi.display_handle = nvDisplayHandle;
             display.nvapi.gpu_handle     = nvGpuHandles [0];
