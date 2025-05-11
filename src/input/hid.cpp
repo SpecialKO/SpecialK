@@ -956,22 +956,26 @@ WriteFile_Detour (HANDLE       hFile,
 
           hid_file->filterHidOutput (report_id, nNumberOfBytesToWrite, (void *)lpBuffer);
 
+          // Do not report this, some engines seem to open temporary devices to write
+          //   controller state to and then close them.
+#if 0
           if ( hid_file->bytes_read    == 0 &&
                hid_file->bytes_written == 0 )
           {
             SK_ImGui_CreateNotification (
               "HID.GamepadAttached", SK_ImGui_Toast::Info,
               *hid_file->wszManufacturerName != L'\0' ?
-                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x]",
+                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszManufacturerName,
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str () :
                 SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str (),
-              "Gamepad Connected", 10000
+              "Native (HID) Gamepad Protocol In Use By Game", 10000
             );
           }
+#endif
 
           hid_file->bytes_written += nNumberOfBytesToWrite;
         }
@@ -1096,20 +1100,20 @@ ReadFile_Detour (HANDLE       hFile,
           size_t nNumberOfBytesRead = lpNumberOfBytesRead != nullptr ?
                              (size_t)*lpNumberOfBytesRead : (size_t)nNumberOfBytesToRead;
 
-          if ( hid_file->bytes_read    == 0 &&
-               hid_file->bytes_written == 0 )
+          if ( hid_file->bytes_read    == 0 /* &&
+               hid_file->bytes_written == 0  */ )
           {
             SK_ImGui_CreateNotification (
               "HID.GamepadAttached", SK_ImGui_Toast::Info,
               *hid_file->wszManufacturerName != L'\0' ?
-                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x]",
+                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszManufacturerName,
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str () :
                 SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str (),
-              "Gamepad Connected", 10000
+              "Native (HID) Gamepad Protocol In Use By Game", 10000
             );
           }
 
@@ -1353,20 +1357,20 @@ ReadFileEx_Detour (HANDLE                          hFile,
         }
       }
 
-      if ( hid_file->bytes_read    == 0 &&
-           hid_file->bytes_written == 0 )
+      if ( hid_file->bytes_read    == 0 /* &&
+           hid_file->bytes_written == 0  */ )
       {
         SK_ImGui_CreateNotification (
           "HID.GamepadAttached", SK_ImGui_Toast::Info,
           *hid_file->wszManufacturerName != L'\0' ?
-            SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x]",
+            SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                hid_file->wszManufacturerName,
                hid_file->wszProductName, hid_file->device_vid,
                                          hid_file->device_pid ).c_str () :
             SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                hid_file->wszProductName, hid_file->device_vid,
                                          hid_file->device_pid ).c_str (),
-          "Gamepad Connected", 10000
+          "Native (HID) Gamepad Protocol In Use By Game", 10000
         );
       }
 
