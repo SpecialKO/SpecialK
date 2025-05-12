@@ -3754,9 +3754,11 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
 
 bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID data)
 {
+#if 0
   SK_LOGi0 (
     L"filterHidInput [ report_id=%d, dwSize=%d ]", report_id, dwSize
   );
+#endif
 
   bool data_changed = false;
 
@@ -3962,20 +3964,23 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
   return data_changed;
 }
 
-int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
+int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVOID lpBuf)
 {
   auto const cachedInputReport =
     _cachedInputReportsByReportId.count (report_id) != 0 ?
    &_cachedInputReportsByReportId.at    (report_id)      : nullptr;
 
-  if ( (! cachedInputReport) ||
-          cachedInputReport->empty () )
+  if (! lpBuf)
   {
-    return 0;
-  }
+    if ( (! cachedInputReport) ||
+            cachedInputReport->empty () )
+    {
+      return 0;
+    }
 
-  auto cachedInputData =
-    cachedInputReport->data ();  
+    lpBuf =
+      cachedInputReport->data ();  
+  }
 
   if (report_id == 0)
   {
@@ -3989,11 +3994,16 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
       )
     );
 
-    ZeroMemory (cachedInputData, sizeToClear);
+    ZeroMemory (lpBuf, sizeToClear);
 
     return
       sizeToClear;
   }
+
+
+  uint8_t* pBuf =
+    (uint8_t *)lpBuf;
+
 
   switch (device_vid)
   {
@@ -4004,14 +4014,14 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
         {
-          if (dwSize % 34 == 0 && cachedInputData [0] == report_id && report_id == 1)
+          if (dwSize % 34 == 0 && pBuf [0] == report_id && report_id == 1)
           {
             int modified = 0;
 
             for (DWORD i = 0 ; i < dwSize / 34 ; ++i)
             {
               SK_HID_DualShock4_GetStateData* pData =
-                (SK_HID_DualShock4_GetStateData *)&(cachedInputData [i*34+1]);
+                (SK_HID_DualShock4_GetStateData *)&(pBuf [i*34+1]);
 
               // The analog axes
               memset (
@@ -4046,14 +4056,14 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (dwSize % 64 == 0 && cachedInputData [0] == report_id && report_id == 1)
+          if (dwSize % 64 == 0 && pBuf [0] == report_id && report_id == 1)
           {
             int modified = 0;
 
             for (DWORD i = 0 ; i < dwSize / 64 ; ++i)
             {
               SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&(cachedInputData [i*64+1]);
+                (SK_HID_DualSense_GetStateData *)&(pBuf [i*64+1]);
 
               // The analog axes
               memset (
@@ -4092,19 +4102,13 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
             return modified;
           }
 
-          if (cachedInputData     != nullptr   &&
-              cachedInputData [0] == report_id &&
+#if 0
+          if (pBuf     != nullptr   &&
+              pBuf [0] == report_id &&
                                     (report_id == 49 || report_id == 1))
-          //if (dwSize >= 78 && (report_id == 1 || report_id == 49 || report_id == dwSize))
           {
-            //SK_ReleaseAssert (
-            //  cachedInputData [0] == 0x1 ||
-            //  cachedInputData [0] == 49  ||
-            //  dwSize == report_id
-            //);
-
             auto *pInputRaw =
-              cachedInputData;
+              pBuf;
 
             auto *pData = pInputRaw == nullptr ?
                                        nullptr :
@@ -4182,6 +4186,15 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 
             return 78;
           }
+#else
+          // It is not possible to neutralize Bluetooth due to encryption
+          if (pBuf     != nullptr   &&
+              pBuf [0] == report_id &&
+                                    (report_id == 49 || report_id == 1))
+          {
+            return 0;
+          }
+#endif
 
           else
           {

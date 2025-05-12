@@ -1201,7 +1201,7 @@ struct SK_HID_DeviceFile {
 
   bool filterHidOutput    (uint8_t report_id, DWORD dwSize, LPVOID data);
   bool filterHidInput     (uint8_t report_id, DWORD dwSize, LPVOID data);
-  int  neutralizeHidInput (uint8_t report_id, DWORD dwSize);
+  int  neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVOID data = nullptr);
   int  remapHidInput      (void);
 
   concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_HID_OverlappedRequest> _overlappedRequests;
