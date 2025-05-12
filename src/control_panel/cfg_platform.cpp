@@ -260,43 +260,6 @@ SK::ControlPanel::Platform::Draw (void)
             }
           }
 
-            if (i == _Custom)
-            {
-              ImGui::SetItemTooltip (
-                SK_WideCharToUTF8 (config.platform.achievements.sound_file).c_str ()
-              );
-            }
-
-            if (i == _Picking && (! fileDialog.IsOpened ()))
-            {
-              fileDialog.SetTitle       ("Pick a .wav File");
-              fileDialog.SetTypeFilters (     { ".wav" }   );
-              fileDialog.Open           (                  );
-            }
-
-            if (fileDialog.IsOpened    ())
-                fileDialog.Display     ();
-            if (fileDialog.HasSelected ())
-            {
-              if (PathFileExistsW (fileDialog.GetSelected ().wstring ().c_str ()))
-              {
-                config.platform.achievements.sound_file.assign (
-                  fileDialog.  GetSelected ().wstring ()
-                );fileDialog.ClearSelected ();
-
-                SK_SaveConfig ();
-
-                SK_Platform_LoadUnlockSound ();
-
-                if (SK::EOS::UserID () != nullptr)
-                     SK_EOS_PlayUnlockSound   ();
-                else SK_Steam_PlayUnlockSound ();
-
-                i = _Custom;
-              }
-            }
-          }
-
           ImGui::EndGroup ();
           ImGui::SameLine ();
 
