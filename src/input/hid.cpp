@@ -1103,16 +1103,23 @@ ReadFile_Detour (HANDLE       hFile,
           if ( hid_file->bytes_read    == 0 /* &&
                hid_file->bytes_written == 0  */ )
           {
-            if ( config.input.gamepad.xinput.emulate         || 
-                 config.input.gamepad.hid.always_show_attach || SK_XInput_PollController (0) )
-            {
+              const bool harmful =
+                config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
+
+              if (config.input.gamepad.hid.always_show_attach || harmful)
+              {
+                auto format_str = (! harmful) ?
+                      "%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x" :
+                      "%ws: %ws\r\n\r\n\tXInput emulation (i.e. Steam Input, DS4Windows, etc.) software"
+                                  "\r\n\tmay prevent the game from using advanced input features.\r\n";
+
               SK_ImGui_CreateNotification (
                 "HID.GamepadAttached", SK_ImGui_Toast::Info,
                 *hid_file->wszManufacturerName != L'\0' ?
-                  SK_FormatString ("%ws: %ws\r\n\r\n  XInput emulation (i.e. Steam Input, DS4Windows, etc.)"
-                                               "\r\n  may prevent the game from using advanced input features.",
+                  SK_FormatString (format_str,
                     hid_file->wszManufacturerName,
-                    hid_file->wszProductName ).c_str () :
+                    hid_file->wszProductName, hid_file->device_vid,
+                                              hid_file->device_pid ).c_str () :
                   SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                     hid_file->wszProductName, hid_file->device_vid,
                                               hid_file->device_pid ).c_str (),
@@ -1364,16 +1371,23 @@ ReadFileEx_Detour (HANDLE                          hFile,
       if ( hid_file->bytes_read    == 0 /* &&
            hid_file->bytes_written == 0  */ )
       {
-        if ( config.input.gamepad.xinput.emulate         || 
-             config.input.gamepad.hid.always_show_attach || SK_XInput_PollController (0) )
+        const bool harmful =
+          config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
+
+        if (config.input.gamepad.hid.always_show_attach || harmful)
         {
+          auto format_str = (! harmful) ?
+                "%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x" :
+                "%ws: %ws\r\n\r\n\tXInput emulation (i.e. Steam Input, DS4Windows, etc.) software"
+                            "\r\n\tmay prevent the game from using advanced input features.\r\n";
+
           SK_ImGui_CreateNotification (
             "HID.GamepadAttached", SK_ImGui_Toast::Info,
             *hid_file->wszManufacturerName != L'\0' ?
-              SK_FormatString ("%ws: %ws\r\n\r\n  XInput emulation (i.e. Steam Input, DS4Windows, etc.)"
-                                           "\r\n  may prevent the game from using advanced input features.",
+              SK_FormatString (format_str,
                 hid_file->wszManufacturerName,
-                hid_file->wszProductName ).c_str () :
+                hid_file->wszProductName, hid_file->device_vid,
+                                          hid_file->device_pid ).c_str () :
               SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                 hid_file->wszProductName, hid_file->device_vid,
                                           hid_file->device_pid ).c_str (),

@@ -1066,9 +1066,9 @@ SK::ControlPanel::Input::Draw (void)
       if (ImGui::BeginItemTooltip ())
       {
         ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
-                            "Show Notifications Whenever a Game Uses a Controller's Native Protocol.");
+                            "Show notifications whenever a game uses a controller's native (HID class) protocol.");
         ImGui::Separator   ();
-        ImGui::BulletText  ("Notifications are always shown if Steam Input, DS4Windows, etc. are conflicting with native input.");
+        ImGui::BulletText  ("Notifications will always be shown if Steam Input, DS4Windows, etc. are conflicting with native input.");
         ImGui::EndTooltip  ();
       }
 #endif
