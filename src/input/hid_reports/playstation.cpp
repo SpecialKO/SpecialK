@@ -3752,6 +3752,145 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
   return data_changed;
 }
 
+bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID data)
+{
+  SK_LOGi0 (
+    L"filterHidInput [ report_id=%d, dwSize=%d ]", report_id, dwSize
+  );
+
+  bool data_changed = false;
+
+  if (dwSize == 0 || (! data))
+    return data_changed;
+
+  switch (device_vid)
+  {
+    case SK_HID_VID_SONY:
+    {
+      switch (device_pid)
+      {
+        case SK_HID_PID_DUALSHOCK4:
+        case SK_HID_PID_DUALSHOCK4_REV2:
+        {
+          if (((uint8_t *)data) [0] == report_id && report_id == 1)
+          {
+            SK_HID_DualShock4_GetStateData* pData =
+              (SK_HID_DualShock4_GetStateData *)&(((uint8_t *)data) [1]);
+
+            if (config.input.gamepad.scepad.alias_trackpad_share)
+            {
+              if (pData->ButtonPad)   pData->ButtonShare = 1;
+              if (pData->ButtonShare) pData->ButtonPad   = 1;
+              
+              data_changed = true;
+            }
+
+            return data_changed;
+          }
+        } break;
+        case SK_HID_PID_DUALSENSE_EDGE:
+        case SK_HID_PID_DUALSENSE:
+        {                    // Multiple readings can be taken at once, so use modulo
+          if (report_id == 1 && (dwSize % 64) == 0 && ((uint8_t *)data) [0] == report_id)
+          {
+            for (DWORD i = 0 ; i < (dwSize / 64) ; ++i)
+            {
+              SK_HID_DualSense_GetStateData* pData =
+                (SK_HID_DualSense_GetStateData *)&((uint8_t *)data) [(i * 64) + 1];
+
+              if (config.input.gamepad.scepad.alias_trackpad_share)
+              {
+                pData->ButtonPad    |= pData->ButtonCreate;
+                pData->ButtonCreate |= pData->ButtonPad;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.swap_a_b)
+              {
+                bool a = pData->ButtonCross;
+                bool b = pData->ButtonCircle;
+
+                pData->ButtonCross  = b;
+                pData->ButtonCircle = a;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.swap_x_y)
+              {
+                bool x = pData->ButtonSquare;
+                bool y = pData->ButtonTriangle;
+
+                pData->ButtonSquare   = y;
+                pData->ButtonTriangle = x;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.invert_lx)
+              {
+                pData->LeftStickX = 255 - pData->LeftStickX;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.invert_rx)
+              {
+                pData->RightStickX = 255 - pData->RightStickX;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.invert_ly)
+              {
+                pData->LeftStickY = 255 - pData->LeftStickY;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.invert_ry)
+              {
+                pData->RightStickY = 255 - pData->RightStickY;
+
+                data_changed = true;
+              }
+
+              if (config.input.gamepad.xinput.swap_sticks)
+              {
+                std::swap (pData->LeftStickX, pData->RightStickX);
+                std::swap (pData->LeftStickY, pData->RightStickY);
+
+                data_changed = true;
+              }
+            }
+
+            return data_changed;
+          }
+
+          // Bluetooth data cannot be tampered with, so ignore this.
+          else if (report_id == 49)
+          {
+
+          }
+
+          else
+          {
+            SK_RunOnce (
+              SK_LOGi0 (
+                L"Cannot remap a DualSense HID Input Report (id=%u) with Unexpected Size=%u-bytes",
+                  report_id, dwSize
+              )
+            );
+          }
+        } break;
+      }
+    } break;
+  }
+
+  return data_changed;
+}
+
 bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID data)
 {
   bool data_changed = false;
@@ -3773,15 +3912,18 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
         {
           SK_HID_DualSense_SetStateData *pSetState = nullptr;
 
-          if (dwSize >= 47 && report_id == 0x02)
+          if (dwSize >= 48 && report_id == 0x02)
           {
-            // libScePad has an extra 17 bytes for some reason...?  (dwSize=64)
+            // libScePad has an extra 16 bytes for some reason...?  (dwSize=64)
 
-            pSetState =
-              (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [1]);
+            for ( DWORD i = 0 ; i < dwSize / 48 ; ++i )
+            {
+              pSetState =
+                (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [i*48+1]);
 
-            data_changed =
-              SK_DualSense_ApplyOutputReportFilter (pSetState);
+              data_changed |=
+                SK_DualSense_ApplyOutputReportFilter (pSetState);
+            }
           }
 
           // This one needs extra checksum handling...
@@ -3789,18 +3931,21 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
           {
             //SK_ReleaseAssert (pDevice->bBluetooth);
 
-            SK_HID_DualSense_BtReport_0x31 *pBtState =
-              (SK_HID_DualSense_BtReport_0x31 *)(&((uint8_t *)data) [3]);
+            for ( DWORD i = 0 ; i < dwSize / 78 ; ++i )
+            {
+              SK_HID_DualSense_BtReport_0x31 *pBtState =
+                (SK_HID_DualSense_BtReport_0x31 *)(&((uint8_t *)data) [i*78+3]);
 
-            pSetState =
-              &pBtState->Data.State;
+              pSetState =
+                &pBtState->Data.State;
 
-            data_changed =
-              SK_DualSense_ApplyOutputReportFilter (pSetState);
+              data_changed |=
+                SK_DualSense_ApplyOutputReportFilter (pSetState);
 
-            const uint32_t crc =
-                 crc32 (0x0, pSetState, 75);
-            memcpy (&((uint8_t *)data) [75], &crc, 4);
+              const uint32_t crc =
+                   crc32 (0x0, pSetState, 75);
+              memcpy (&((uint8_t *)data) [75], &crc, 4);
+            }
           }
 
           else
@@ -3859,12 +4004,14 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
         {
-          //if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= dwSize)
+          if (dwSize % 34 == 0 && cachedInputData [0] == report_id && report_id == 1)
           {
-            if (cachedInputData [0] == report_id && report_id == 1)
+            int modified = 0;
+
+            for (DWORD i = 0 ; i < dwSize / 34 ; ++i)
             {
               SK_HID_DualShock4_GetStateData* pData =
-                (SK_HID_DualShock4_GetStateData *)&(cachedInputData [1]);
+                (SK_HID_DualShock4_GetStateData *)&(cachedInputData [i*34+1]);
 
               // The analog axes
               memset (
@@ -3890,54 +4037,59 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
               memset (
                 &pData->AngularVelocityX, 0, 12);
 
-              return 34;
+              modified += 34;
             }
+
+            return modified;
           }
         } break;
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (dwSize != 78 && cachedInputData [0] == report_id && report_id == 1)
-          //if (dwSize >= 64 && (report_id == 1 || report_id == dwSize))
+          if (dwSize % 64 == 0 && cachedInputData [0] == report_id && report_id == 1)
           {
-            //SK_ReleaseAssert (cachedInputData [0] == 1 ||
-            //                  dwSize == report_id);
+            int modified = 0;
 
-            SK_HID_DualSense_GetStateData* pData =
-              (SK_HID_DualSense_GetStateData *)&(cachedInputData [1]);
+            for (DWORD i = 0 ; i < dwSize / 64 ; ++i)
+            {
+              SK_HID_DualSense_GetStateData* pData =
+                (SK_HID_DualSense_GetStateData *)&(cachedInputData [i*64+1]);
 
-            // The analog axes
-            memset (
-              &pData->LeftStickX,  128,   4);
-            memset (
-              &pData->TriggerLeft,   0,   2);
-               pData->SeqNo++;
-               pData->DPad               = Neutral;
-               pData->ButtonSquare       = 0;
-               pData->ButtonCross        = 0;
-               pData->ButtonCircle       = 0;
-               pData->ButtonTriangle     = 0;
-               pData->ButtonL1           = 0;
-               pData->ButtonR1           = 0;
-               pData->ButtonL2           = 0;
-               pData->ButtonR2           = 0;
-               pData->ButtonCreate       = 0;
-               pData->ButtonOptions      = 0;
-               pData->ButtonL3           = 0;
-               pData->ButtonR3           = 0;
-               pData->ButtonHome         = 0;
-               pData->ButtonPad          = 0;
-               pData->ButtonMute         = 0;
-               pData->UNK1               = 0;
-               pData->ButtonLeftFunction = 0;
-               pData->ButtonRightFunction= 0;
-               pData->ButtonLeftPaddle   = 0;
-               pData->ButtonRightPaddle  = 0;
-               pData->UNK2               = 0;
-            memset (
-              &pData->AngularVelocityX, 0, 12);
+              // The analog axes
+              memset (
+                &pData->LeftStickX,  128,   4);
+              memset (
+                &pData->TriggerLeft,   0,   2);
+                 pData->SeqNo++;
+                 pData->DPad               = Neutral;
+                 pData->ButtonSquare       = 0;
+                 pData->ButtonCross        = 0;
+                 pData->ButtonCircle       = 0;
+                 pData->ButtonTriangle     = 0;
+                 pData->ButtonL1           = 0;
+                 pData->ButtonR1           = 0;
+                 pData->ButtonL2           = 0;
+                 pData->ButtonR2           = 0;
+                 pData->ButtonCreate       = 0;
+                 pData->ButtonOptions      = 0;
+                 pData->ButtonL3           = 0;
+                 pData->ButtonR3           = 0;
+                 pData->ButtonHome         = 0;
+                 pData->ButtonPad          = 0;
+                 pData->ButtonMute         = 0;
+                 pData->UNK1               = 0;
+                 pData->ButtonLeftFunction = 0;
+                 pData->ButtonRightFunction= 0;
+                 pData->ButtonLeftPaddle   = 0;
+                 pData->ButtonRightPaddle  = 0;
+                 pData->UNK2               = 0;
+              memset (
+                &pData->AngularVelocityX, 0, 12);
 
-            return 64;
+              modified += 64;
+            }
+
+            return modified;
           }
 
           if (cachedInputData     != nullptr   &&

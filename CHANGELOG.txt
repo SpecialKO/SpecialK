@@ -1,4 +1,15 @@
-﻿25.5.11.3
+﻿25.5.11.4
+=========
+ + Added support for remapping Analog Sticks, Share / Trackpad Click and
+     Cross / Circle and Square / Triangle face buttons in USB DualSense games.
+
+   >> Bluetooth requires a checksum algorithm that is currently unknown, or
+        software using libScePad will simply ignore any data that it receives.
+
+    * The config UI still refers to the Cross/Circle and Square/Triangle swap
+        features by the Xbox button names.
+
+25.5.11.3
 =========
  + Added support for overriding RGB on Bluetooth DualSense [Edge] controllers
      in games that use DualSense natively.

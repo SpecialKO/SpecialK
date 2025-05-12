@@ -1200,6 +1200,7 @@ struct SK_HID_DeviceFile {
   bool isInputAllowed (void) const;
 
   bool filterHidOutput    (uint8_t report_id, DWORD dwSize, LPVOID data);
+  bool filterHidInput     (uint8_t report_id, DWORD dwSize, LPVOID data);
   int  neutralizeHidInput (uint8_t report_id, DWORD dwSize);
   int  remapHidInput      (void);
 

@@ -1103,29 +1103,29 @@ ReadFile_Detour (HANDLE       hFile,
           if ( hid_file->bytes_read    == 0 /* &&
                hid_file->bytes_written == 0  */ )
           {
-              const bool harmful =
-                config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
+            const bool harmful =
+              config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
 
-              if (config.input.gamepad.hid.always_show_attach || harmful)
-              {
-                auto format_str = (! harmful) ?
-                      "%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x" :
-                      "%ws: %ws\r\n\r\n\tXInput emulation (i.e. Steam Input, DS4Windows, etc.) software"
-                                  "\r\n\tmay prevent the game from using advanced input features.\r\n";
+            if (config.input.gamepad.hid.always_show_attach || harmful)
+            {
+              auto format_str = (! harmful) ?
+                    "%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x" :
+                    "%ws: %ws\r\n\r\n\tXInput emulation (i.e. Steam Input, DS4Windows, etc.) software"
+                                "\r\n\tmay prevent the game from using advanced input features.\r\n";
 
-              SK_ImGui_CreateNotification (
-                "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                *hid_file->wszManufacturerName != L'\0' ?
-                  SK_FormatString (format_str,
-                    hid_file->wszManufacturerName,
-                    hid_file->wszProductName, hid_file->device_vid,
-                                              hid_file->device_pid ).c_str () :
-                  SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-                    hid_file->wszProductName, hid_file->device_vid,
-                                              hid_file->device_pid ).c_str (),
-                "Native (HID class) Gamepad Protocol In Use By Game", 10000
-              );
-            }
+            SK_ImGui_CreateNotification (
+              "HID.GamepadAttached", SK_ImGui_Toast::Info,
+              *hid_file->wszManufacturerName != L'\0' ?
+                SK_FormatString (format_str,
+                  hid_file->wszManufacturerName,
+                  hid_file->wszProductName, hid_file->device_vid,
+                                            hid_file->device_pid ).c_str () :
+                SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                  hid_file->wszProductName, hid_file->device_vid,
+                                            hid_file->device_pid ).c_str (),
+              "Native (HID class) Gamepad Protocol In Use By Game", 10000
+            );
+          }
           }
 
           hid_file->bytes_read += nNumberOfBytesToRead;
@@ -1139,6 +1139,8 @@ ReadFile_Detour (HANDLE       hFile,
               report_id = lpNumberOfBytesRead != nullptr ?
                 (uint8_t)*lpNumberOfBytesRead : (BYTE)nNumberOfBytesToRead;
             }
+
+            hid_file->filterHidInput (report_id, (DWORD)nNumberOfBytesRead, lpBuffer);
           }
 
           auto& cached_report =
@@ -1367,6 +1369,9 @@ ReadFileEx_Detour (HANDLE                          hFile,
           return TRUE;
         }
       }
+
+      uint8_t report_id = ((uint8_t *)(lpBuffer))[0];
+      hid_file->filterHidInput (report_id, nNumberOfBytesToRead, lpBuffer);
 
       if ( hid_file->bytes_read    == 0 /* &&
            hid_file->bytes_written == 0  */ )
@@ -1900,6 +1905,9 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
         {
           if (*lpNumberOfBytesTransferred != 0)
           {
+            if (overlapped_request.lpBuffer != nullptr)
+              hid_file->filterHidInput (report_id, *lpNumberOfBytesTransferred, overlapped_request.lpBuffer);
+
             auto& cached_report =
               hid_file->_cachedInputReportsByReportId [report_id];
 
@@ -2066,6 +2074,9 @@ GetOverlappedResult_Detour (HANDLE       hFile,
         {
           if (*lpNumberOfBytesTransferred != 0)
           {
+            if (overlapped_request.lpBuffer != nullptr)
+              hid_file->filterHidInput (report_id, *lpNumberOfBytesTransferred, overlapped_request.lpBuffer);
+
             auto& cached_report =
               hid_file->_cachedInputReportsByReportId [report_id];
 
