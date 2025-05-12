@@ -29,6 +29,8 @@
 #include <SpecialK/control_panel/epic.h>
 
 #include <SpecialK/storefront/epic.h>
+#include <imgui/imfilebrowser.h>
+
 
 using namespace SK::ControlPanel;
 
@@ -170,10 +172,13 @@ SK::ControlPanel::Platform::Draw (void)
           {
             ImGui::SameLine ();
 
+            static constexpr auto _Picking = 4;
+            static constexpr auto _Custom  = 3;
+
             static SKTL_BidirectionalHashMap <std::wstring, int> sound_map
             {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
 
-            int i = 0;
+            static int i = 0;
 
             const auto& it =
               sound_map.find (config.platform.achievements.sound_file);
@@ -182,24 +187,74 @@ SK::ControlPanel::Platform::Draw (void)
             {
               if (! config.platform.achievements.sound_file.empty ())
                 i = it->second;
-              else
-                i = 3;
             }
 
-            if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
+            else
             {
-              config.platform.achievements.sound_file.assign (
-                sound_map [i]
-              );
+              if (i != _Picking)
+                  i  = _Custom;
+            }
 
-              auto SK_Platform_LoadUnlockSound = [](void)
+            static ImGui::FileBrowser
+                          fileDialog (ImGuiFileBrowserFlags_CloseOnEsc);
+
+            auto SK_Platform_LoadUnlockSound = [](void)
+            {
+              if (SK::EOS::UserID () != nullptr)
+                   SK_EOS_LoadUnlockSound   (config.platform.achievements.sound_file.c_str ());
+              else SK_Steam_LoadUnlockSound (config.platform.achievements.sound_file.c_str ());
+            };
+
+            if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0"
+                                                                   "Xbox Live\0"
+                                                               "Dream Theater\0"
+                                                     "Custom [Not Selectable]\0"
+                                                             "Pick a.wav File\0\0", 5))
+            {
+              if (i <= 2)
               {
-                if (SK::EOS::UserID () != nullptr)
-                     SK_EOS_LoadUnlockSound   (config.platform.achievements.sound_file.c_str ());
-                else SK_Steam_LoadUnlockSound (config.platform.achievements.sound_file.c_str ());
-              };
+                config.platform.achievements.sound_file.assign (
+                  sound_map [i]
+                );
 
-              SK_Platform_LoadUnlockSound ();
+                SK_Platform_LoadUnlockSound ();
+              }
+            }
+
+            if (i == _Custom)
+            {
+              ImGui::SetItemTooltip (
+                SK_WideCharToUTF8 (config.platform.achievements.sound_file).c_str ()
+              );
+            }
+
+            if (i == _Picking && (! fileDialog.IsOpened ()))
+            {
+              fileDialog.SetTitle       ("Pick a .wav File");
+              fileDialog.SetTypeFilters (     { ".wav" }   );
+              fileDialog.Open           (                  );
+            }
+
+            if (fileDialog.IsOpened    ())
+                fileDialog.Display     ();
+            if (fileDialog.HasSelected ())
+            {
+              if (PathFileExistsW (fileDialog.GetSelected ().wstring ().c_str ()))
+              {
+                config.platform.achievements.sound_file.assign (
+                  fileDialog.  GetSelected ().wstring ()
+                );fileDialog.ClearSelected ();
+
+                SK_SaveConfig ();
+
+                SK_Platform_LoadUnlockSound ();
+
+                if (SK::EOS::UserID () != nullptr)
+                     SK_EOS_PlayUnlockSound   ();
+                else SK_Steam_PlayUnlockSound ();
+
+                i = _Custom;
+              }
             }
           }
 

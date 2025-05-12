@@ -49,6 +49,14 @@
 
 using namespace std::chrono_literals;
 
+bool SK_AchievementManager::playSound (void)
+{
+  return
+    SK_PlaySound ( (LPCWSTR)unlock_sound.data (),
+                           nullptr, SND_ASYNC |
+                                    SND_MEMORY ) != FALSE;
+}
+
 void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 {
   auto log =
@@ -115,11 +123,14 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
        (! xbox) &&
        (!   dt) && (fWAV = _wfopen (wszFileName, L"rb")) != nullptr )
   {
-    SK_ConcealUserDir (wszFileName);
+    wchar_t    wszConcealed [MAX_PATH + 2];
+    wcsncpy_s (wszConcealed, MAX_PATH, wszFileName, _TRUNCATE);
+
+    SK_ConcealUserDir (wszConcealed);
 
     log->LogEx ( true,
                   L"  >> Loading Achievement Unlock Sound: '%s'...",
-                    wszFileName );
+                    wszConcealed );
 
     try
     {

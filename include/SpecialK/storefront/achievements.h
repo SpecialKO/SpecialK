@@ -136,6 +136,7 @@ public:
   int   getNumberOfAchievementsUnlocked  (void) const;
 
   void             loadSound       (const wchar_t* wszUnlockSound);
+  bool             playSound       (void);
 
   void             addAchievement  (Achievement* achievement);
   Achievement*     getAchievement  (const char* szName                  ) const;

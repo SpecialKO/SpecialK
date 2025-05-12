@@ -111,9 +111,7 @@ public:
 
     if (config.platform.achievements.play_sound && (! unlock_sound.empty ()))
     {
-      SK_PlaySound ( (LPCWSTR)unlock_sound.data (),
-                               nullptr, SND_ASYNC |
-                                        SND_MEMORY );
+      playSound ();
     }
 
     // If the user wants a screenshot, but no popups (why?!), this is when
@@ -454,6 +452,12 @@ __stdcall
 SK::EOS::NumberOfAchievementsUnlocked (void)
 {
   return SK_EOS_NumberOfAchievementsUnlocked ();
+}
+
+void
+SK_EOS_PlayUnlockSound (void)
+{
+  eos_achievements->playSound ();
 }
 
 void
