@@ -1150,6 +1150,7 @@ struct {
 
     struct {
       sk::ParameterInt*   max_allowed_buffers     = nullptr;
+      sk::ParameterBool*  always_show_attach      = nullptr;
     } hid;
 
     sk::ParameterInt*     disabled_to_game        = nullptr;
@@ -1853,6 +1854,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.right_paddle_bind, L"Keyboard Input to Generate when Right Paddle is Pressed",   dll_ini,         L"Input.libScePad",       L"RightPaddle"),
     ConfigEntry (input.gamepad.scepad.touch_click_bind,  L"Keyboard Input to Generate when Touch Pad is Clicked",      dll_ini,         L"Input.libScePad",       L"TouchpadClick"),
 
+    ConfigEntry (input.gamepad.hid.always_show_attach,   L"Show HID Attach Notifications if no Conflicts are Detected",input_ini,       L"Input.HID",             L"AlwaysShowAttachNotifications"),
     ConfigEntry (input.gamepad.low_battery_warning,      L"Percentage when SK will warn controller batteries are low", input_ini,       L"Input.Battery",         L"WarnIfPercentIsBelow"),
 
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
@@ -5133,6 +5135,7 @@ auto DeclKeybind =
   input.gamepad.scepad.right_fn_bind->load        (config.input.gamepad.scepad.right_fn);
   input.gamepad.scepad.touch_click_bind->load     (config.input.gamepad.scepad.touch_click);
 
+  input.gamepad.hid.always_show_attach->load      (config.input.gamepad.hid.always_show_attach);
   input.gamepad.low_battery_warning->load         (config.input.gamepad.low_battery_percent);
 
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
@@ -6649,6 +6652,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.right_fn_bind->store        (config.input.gamepad.scepad.right_fn);
   input.gamepad.scepad.touch_click_bind->store     (config.input.gamepad.scepad.touch_click);
 
+  input.gamepad.hid.always_show_attach->store      (config.input.gamepad.hid.always_show_attach);
   input.gamepad.low_battery_warning->store         (config.input.gamepad.low_battery_percent);
 
 

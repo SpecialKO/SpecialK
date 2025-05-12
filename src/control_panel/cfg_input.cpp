@@ -1044,6 +1044,7 @@ SK::ControlPanel::Input::Draw (void)
 
       ImGui::NextColumn ();
 
+#if 0
       if (config.input.gamepad.hook_xinput)
       {
         ImGui::Checkbox ("Rehook XInput", &config.input.gamepad.rehook_xinput); ImGui::SameLine ();
@@ -1057,6 +1058,20 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::EndTooltip  ();
         }
       }
+#else
+      config.utility.save_async_if (
+        ImGui::Checkbox ("HID Notifications", &config.input.gamepad.hid.always_show_attach)
+      );
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                            "Show Notifications Whenever a Game Uses a Controller's Native Protocol.");
+        ImGui::Separator   ();
+        ImGui::BulletText  ("Notifications are always shown if Steam Input, DS4Windows, etc. are conflicting with native input.");
+        ImGui::EndTooltip  ();
+      }
+#endif
 
       ImGui::SameLine      ();
       ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);

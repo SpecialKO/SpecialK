@@ -972,7 +972,7 @@ WriteFile_Detour (HANDLE       hFile,
                 SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str (),
-              "Native (HID) Gamepad Protocol In Use By Game", 10000
+              "Native (HID class) Gamepad Protocol In Use By Game", 10000
             );
           }
 #endif
@@ -1103,17 +1103,22 @@ ReadFile_Detour (HANDLE       hFile,
           if ( hid_file->bytes_read    == 0 /* &&
                hid_file->bytes_written == 0  */ )
           {
-            SK_ImGui_CreateNotification (
-              "HID.GamepadAttached", SK_ImGui_Toast::Info,
-              *hid_file->wszManufacturerName != L'\0' ?
-                SK_FormatString ("%ws: %ws\r\n\r\n * Steam Input, DS4Windows, etc. may cause loss of features in this game.",
-                   hid_file->wszManufacturerName,
-                   hid_file->wszProductName ).c_str () :
-                SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-                   hid_file->wszProductName, hid_file->device_vid,
-                                             hid_file->device_pid ).c_str (),
-              "Native (HID) Gamepad Protocol In Use By Game", 10000
-            );
+            if ( config.input.gamepad.xinput.emulate         || 
+                 config.input.gamepad.hid.always_show_attach || SK_XInput_PollController (0) )
+            {
+              SK_ImGui_CreateNotification (
+                "HID.GamepadAttached", SK_ImGui_Toast::Info,
+                *hid_file->wszManufacturerName != L'\0' ?
+                  SK_FormatString ("%ws: %ws\r\n\r\n  XInput emulation (i.e. Steam Input, DS4Windows, etc.)"
+                                               "\r\n  may prevent the game from using advanced input features.",
+                    hid_file->wszManufacturerName,
+                    hid_file->wszProductName ).c_str () :
+                  SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                    hid_file->wszProductName, hid_file->device_vid,
+                                              hid_file->device_pid ).c_str (),
+                "Native (HID class) Gamepad Protocol In Use By Game", 10000
+              );
+            }
           }
 
           hid_file->bytes_read += nNumberOfBytesToRead;
@@ -1359,17 +1364,22 @@ ReadFileEx_Detour (HANDLE                          hFile,
       if ( hid_file->bytes_read    == 0 /* &&
            hid_file->bytes_written == 0  */ )
       {
-        SK_ImGui_CreateNotification (
-          "HID.GamepadAttached", SK_ImGui_Toast::Info,
-          *hid_file->wszManufacturerName != L'\0' ?
-            SK_FormatString ("%ws: %ws\r\n\r\n * Steam Input, DS4Windows, etc. may cause loss of features in this game.",
-               hid_file->wszManufacturerName,
-               hid_file->wszProductName ).c_str () :
-            SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-               hid_file->wszProductName, hid_file->device_vid,
-                                         hid_file->device_pid ).c_str (),
-          "Native (HID) Gamepad Protocol In Use By Game", 10000
-        );
+        if ( config.input.gamepad.xinput.emulate         || 
+             config.input.gamepad.hid.always_show_attach || SK_XInput_PollController (0) )
+        {
+          SK_ImGui_CreateNotification (
+            "HID.GamepadAttached", SK_ImGui_Toast::Info,
+            *hid_file->wszManufacturerName != L'\0' ?
+              SK_FormatString ("%ws: %ws\r\n\r\n  XInput emulation (i.e. Steam Input, DS4Windows, etc.)"
+                                           "\r\n  may prevent the game from using advanced input features.",
+                hid_file->wszManufacturerName,
+                hid_file->wszProductName ).c_str () :
+              SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                hid_file->wszProductName, hid_file->device_vid,
+                                          hid_file->device_pid ).c_str (),
+            "Native (HID class) Gamepad Protocol In Use By Game", 10000
+          );
+        }
       }
 
       hid_file->bytes_read += nNumberOfBytesToRead;
