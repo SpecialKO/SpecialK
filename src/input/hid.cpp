@@ -1106,10 +1106,9 @@ ReadFile_Detour (HANDLE       hFile,
             SK_ImGui_CreateNotification (
               "HID.GamepadAttached", SK_ImGui_Toast::Info,
               *hid_file->wszManufacturerName != L'\0' ?
-                SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                SK_FormatString ("%ws: %ws\r\n\r\n * Steam Input, DS4Windows, etc. may cause loss of features in this game.",
                    hid_file->wszManufacturerName,
-                   hid_file->wszProductName, hid_file->device_vid,
-                                             hid_file->device_pid ).c_str () :
+                   hid_file->wszProductName ).c_str () :
                 SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str (),
@@ -1363,10 +1362,9 @@ ReadFileEx_Detour (HANDLE                          hFile,
         SK_ImGui_CreateNotification (
           "HID.GamepadAttached", SK_ImGui_Toast::Info,
           *hid_file->wszManufacturerName != L'\0' ?
-            SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+            SK_FormatString ("%ws: %ws\r\n\r\n * Steam Input, DS4Windows, etc. may cause loss of features in this game.",
                hid_file->wszManufacturerName,
-               hid_file->wszProductName, hid_file->device_vid,
-                                         hid_file->device_pid ).c_str () :
+               hid_file->wszProductName ).c_str () :
             SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                hid_file->wszProductName, hid_file->device_vid,
                                          hid_file->device_pid ).c_str (),

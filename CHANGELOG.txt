@@ -1,4 +1,12 @@
-﻿25.5.10
+﻿25.5.11
+=======
+ + Changed wording on HID Gamepad Attach notification to indicate that the game
+     itself is using the native HID protocol, and that Steam Input / DS4Windows
+       mey lead to loss of native features (i.e. DualSense Haptics).
+ + Only display the HID Gamepad Attach notification the first time a game reads
+     from a specific gamepad; ignore the first time it _writes_.
+
+25.5.10
 =======
  + Fixed the position of XInput USB/Bluetooth battery charge indicators so they
      do not overlay with the Swap A/B and Swap X/Y button settings.
