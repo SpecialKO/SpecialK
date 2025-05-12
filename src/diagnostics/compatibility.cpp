@@ -1226,6 +1226,7 @@ slInit_Detour (sl::Preferences *pref, uint64_t sdkVersion = sl::kSDKVersion)
       pref->flags |= (sl::PreferenceFlags::eAllowOTA |
                       sl::PreferenceFlags::eLoadDownloadedPlugins);
       pref->flags |=  sl::PreferenceFlags::eBypassOSVersionCheck;
+      pref->flags |=  sl::PreferenceFlags::eUseDXGIFactoryProxy;
     }
 
     return
