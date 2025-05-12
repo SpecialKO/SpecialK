@@ -275,7 +275,7 @@ SK::ControlPanel::Platform::Draw (void)
               }
 
               changed |=
-                ImGui::SliderInt ("Maximum On Screen##PopupMaxOnScreen", &config.platform.achievements.popup.max_on_screen, 1, 32);
+                ImGui::SliderInt ("Maximum On Screen##PopupMaxOnScreen", &config.platform.achievements.popup.max_on_screen, 1, 10);
               changed |=
                 ImGui::SliderInt ("Maximum Columns##PopupMaxColumns",    &config.platform.achievements.popup.max_columns,   1,  3);
 
