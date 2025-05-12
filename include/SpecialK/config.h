@@ -462,6 +462,8 @@ struct sk_config_t
         bool    show                  =  true;
         bool    show_title            =  true;
         bool    animate               =  true;
+        int     max_columns           =     2;
+        int     max_on_screen         =    16;
       } popup;
 
       bool      take_screenshot       = false;

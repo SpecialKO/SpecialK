@@ -680,6 +680,8 @@ struct
     sk::ParameterStringW* origin                  = nullptr;
     sk::ParameterFloat*   inset                   = nullptr;
     sk::ParameterInt*     duration                = nullptr;
+    sk::ParameterInt*     columns                 = nullptr;
+    sk::ParameterInt*     max_on_screen           = nullptr;
     } popup;
   } achievements;
 
@@ -2234,6 +2236,9 @@ auto DeclKeybind =
     ConfigEntry (platform.achievements.popup.show_title, L"Achievement Popup Includes Game Title?",                    platform_ini,    L"Platform.Achievements", L"ShowPopupTitle"),
     ConfigEntry (platform.achievements.popup.inset,      L"Achievement Notification Inset X",                          platform_ini,    L"Platform.Achievements", L"PopupInset"),
     ConfigEntry (platform.achievements.popup.duration,   L"Achievement Popup Duration (in ms)",                        platform_ini,    L"Platform.Achievements", L"PopupDuration"),
+    ConfigEntry (platform.achievements.popup.columns,    L"Maximum columns to fill if achievement popups do not fit",  platform_ini,    L"Platform.Achievements", L"MaxPopupColumns"),
+    ConfigEntry (platform.achievements.popup.
+                                        max_on_screen,   L"Maximum number of achievement popups visible at once",      platform_ini,    L"Platform.Achievements", L"MaxPopupsOnScreen"),
 
     ConfigEntry (platform.system.notify_corner,          L"Overlay Notification Position  (non-Big Picture Mode)",     dll_ini,         L"Platform.System",       L"NotifyCorner"),
     ConfigEntry (platform.system.reuse_overlay_pause,    L"Pause Overlay Aware games when control panel is visible",   dll_ini,         L"Platform.System",       L"ReuseOverlayPause"),
@@ -5618,7 +5623,10 @@ auto DeclKeybind =
   }
 
   platform.achievements.popup.inset->load    (config.platform.achievements.popup.inset);
+  platform.achievements.popup.max_on_screen
+                                      ->load (config.platform.achievements.popup.max_on_screen);
   platform.achievements.popup.duration->load (config.platform.achievements.popup.duration);
+  platform.achievements.popup.columns->load  (config.platform.achievements.popup.max_columns);
 
   if (config.platform.achievements.popup.duration == 0)
   {
@@ -7145,6 +7153,9 @@ SK_SaveConfig ( std::wstring name,
   platform.achievements.popup.duration->store     (config.platform.achievements.popup.duration);
   platform.achievements.popup.animate->store      (config.platform.achievements.popup.animate);
   platform.achievements.popup.show_title->store   (config.platform.achievements.popup.show_title);
+  platform.achievements.popup.columns->store      (config.platform.achievements.popup.max_columns);
+  platform.achievements.popup.max_on_screen
+                                     ->store      (config.platform.achievements.popup.max_on_screen);
 
   if (config.steam.appid == 0)
   {

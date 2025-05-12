@@ -241,12 +241,13 @@ SK::ControlPanel::Platform::Draw (void)
             //changed |=
             //  ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
 
-              ImGui::SameLine    ( );
-              ImGui::Combo       ( "##PopupLoc",         &config.platform.achievements.popup.origin,
-                                           "Top-Left\0"
-                                           "Top-Right\0"
-                                           "Bottom-Left\0"
-                                           "Bottom-Right\0\0" );
+            ImGui::SameLine    ( );
+            ImGui::BeginGroup  ( ); changed |=
+            ImGui::Combo       ( "##PopupLoc",         &config.platform.achievements.popup.origin,
+                                         "Top-Left\0"
+                                         "Top-Right\0"
+                                         "Bottom-Left\0"
+                                         "Bottom-Right\0\0" );
 
             if ( changed )
             {
@@ -263,25 +264,42 @@ SK::ControlPanel::Platform::Draw (void)
 
             if (config.platform.achievements.popup.show)
             {
-              ImGui::BeginGroup ( );
-              ImGui::TreePush   ("");
-              ImGui::Text       ("Duration:"); ImGui::SameLine ();
+              ImGui::BeginGroup( );
+              ImGui::Text      ("Duration:");
+              ImGui::Text      ("Maximum On Screen:");
+              ImGui::Text      ("Maximum Columns:");
+              ImGui::SetItemTooltip
+                               ("If there are too many achievement popups to fit on screen, overflow will create new columns...");
+              ImGui::EndGroup  ( );
 
+              ImGui::SameLine  ( );
+
+              ImGui::BeginGroup( );
               float duration =
                 std::max ( 1.0f, ( (float)config.platform.achievements.popup.duration / 1000.0f ) );
 
               if ( ImGui::SliderFloat ( "##PopupDuration", &duration, 1.0f, 30.0f, "%.2f Seconds" ) )
               {
+                changed = true;
                 config.platform.achievements.popup.duration =
                   static_cast <LONG> ( duration * 1000.0f );
               }
-              ImGui::TreePop   ( );
+
+              changed |= ImGui::SliderInt ("##PopupMaxOnScreen", &config.platform.achievements.popup.max_on_screen, 1, 32);
+              changed |= ImGui::SliderInt ("##PopupMaxColumns",  &config.platform.achievements.popup.max_columns,   1,  3);
+              ImGui::SetItemTooltip (
+                "If there are too many achievement popups to fit on screen, overflow will create new columns..."
+              );
+
               ImGui::EndGroup  ( );
             }
+            ImGui::EndGroup    ( );
             ImGui::EndGroup    ( );
 
             //ImGui::SliderFloat ("Inset Percentage",    &config.platform.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
             ImGui::TreePop     ( );
+
+            config.utility.save_async_if (changed);
           }
 
           ImGui::TreePop       ( );
