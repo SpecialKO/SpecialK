@@ -1397,7 +1397,7 @@ SK_AchievementManager::drawPopups (void)
 
   std::unordered_set <int> displayed;
 
-  bool any_eligible_for_screenshots = false;
+  SK_AchievementManager::Achievement* pAchievementToScreenshot = nullptr;
 
   float x_loc = 0.0f, x_dir = 0.0f, x_off = 0.0f;
   float y_loc = 0.0f, y_dir = 0.0f, y_off = 0.0f;
@@ -1451,7 +1451,8 @@ SK_AchievementManager::drawPopups (void)
     bool eligible_for_screenshots =
       (config.platform.achievements.take_screenshot && it->achievement->unlocked_);
 
-    any_eligible_for_screenshots |= eligible_for_screenshots;
+    if (pAchievementToScreenshot == nullptr && eligible_for_screenshots)
+        pAchievementToScreenshot = it->achievement;
 
     if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS) || it->time == 0)
     {
@@ -1463,13 +1464,15 @@ SK_AchievementManager::drawPopups (void)
         created = true;
       }
 
-      if (! it->final_pos)
+#define   IsTopMostAchievement(x) (x)->final_pos == false && x_off == 0.0f && y_off == 0.0f
+      if (IsTopMostAchievement (it))
       {
         if (eligible_for_screenshots)
         {
           take_screenshot = it->achievement->unlocked_ ? 5 : take_screenshot;
         }
-        it->final_pos   = true;
+
+        it->final_pos = true;
       }
 
       const char *szPopupName =
@@ -1654,14 +1657,14 @@ SK_AchievementManager::drawPopups (void)
 
   // Invalidate text overlays any time a window is removed,
   //   this prevents flicker.
-  if (removed || created || (any_eligible_for_screenshots && take_screenshot > 0))
+  if (removed || created || (pAchievementToScreenshot != nullptr && take_screenshot > 0))
   {
     SK_TextOverlayManager::getInstance ()->drawAllOverlays  (0.0f, 0.0f, true);
   }
 
   // Popup is in the final location, so now is when screenshots
   //   need to be taken.
-  if (any_eligible_for_screenshots && take_screenshot > 0)
+  if (pAchievementToScreenshot != nullptr && take_screenshot > 0)
   {
     // Delay the screenshot so it doesn't show up twice
     --take_screenshot;
@@ -1669,8 +1672,9 @@ SK_AchievementManager::drawPopups (void)
     if (! take_screenshot)
     {
       auto text =
-        it->achievement->unlocked_ ? &it->achievement->text_.unlocked
-                                   : &it->achievement->text_.locked;
+        pAchievementToScreenshot->unlocked_      ?
+       &pAchievementToScreenshot->text_.unlocked :
+       &pAchievementToScreenshot->text_.locked;
 
       SK::SteamAPI::TakeScreenshot (
         SK_ScreenshotStage::PrePresent, false,

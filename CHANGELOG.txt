@@ -1,4 +1,13 @@
-﻿25.5.11.1
+﻿25.5.11.2
+=========
+ + Hide HID Attach notifications unless there is a potential conflict between
+     the game using native input features (i.e. haptics) and Steam Input, or
+       the user configures "HID Notifications" from the input management
+         control panel.
+ + Delayed achievement unlock screenshots until the popup is the first in queue
+ + Fixed possible crash when taking achievement unlock screenshots
+
+25.5.11.1
 =========
  + Restored support for displaying multiple achievement popups at once
      (functionality was lost when CEGUI was removed in favor of ImGui)

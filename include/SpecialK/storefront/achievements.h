@@ -155,7 +155,7 @@ protected:
     ID3D12Resource* d3d12_tex    = nullptr; // D3D12 Texture, for proper cleanup
     ImGuiWindow*    window       = nullptr;
     Achievement*    achievement  = nullptr;
-    DWORD           time         =       0;
+    DWORD           time         =       0; // Time (milliseconds) when first visible on screen.
     bool            final_pos    =   false; // When the animation is finished, this will be set.
   };
 
