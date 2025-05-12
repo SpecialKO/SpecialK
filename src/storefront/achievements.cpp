@@ -1391,81 +1391,59 @@ SK_AchievementManager::drawPopups (void)
   float inset =
     config.platform.achievements.popup.inset;
 
-  if (inset < 0.0001f)  inset = 0.0f;
+  if (inset < 0.0001f) inset = 0.0f;
 
-  const float full_ht =
-    io.DisplaySize.y * (1.0f - inset);
+  static int take_screenshot = 0;
 
-  const float full_wd = io.DisplaySize.x * (1.0f - inset);
+  std::unordered_set <int> displayed;
 
-  float x_origin, y_origin,
-        x_dir,    y_dir;
+  bool any_eligible_for_screenshots = false;
 
-  ////////////CEGUI::Window* first = it->window;
+  float x_loc = 0.0f, x_dir = 0.0f, x_off = 0.0f;
+  float y_loc = 0.0f, y_dir = 0.0f, y_off = 0.0f;
 
-  const float win_ht0 = 256.0f;// (first != nullptr ?
-    //(it->window->getPixelSize ().d_height) : 0.0f );
-  const float win_wd0 = 512.0f;// (first != nullptr ?
-     //(it->window->getPixelSize ().d_width) : 0.0f );
-
-  const float title_wd =
-    io.DisplaySize.x * (1.0f - 2.0f * inset);
-
-  const float title_ht =
-    io.DisplaySize.y * (1.0f - 2.0f * inset);
-
-  float fract_x = 0.0f,
-        fract_y = 0.0f;
-
-  modf (title_wd / win_wd0, &fract_x);
-  modf (title_ht / win_ht0, &fract_y);
-
-  float x_off = full_wd / (4.0f * fract_x);
-  float y_off = full_ht / (4.0f * fract_y);
-
-  // 0.0 == Special Case: Flush With Anchor Point
-  if (inset == 0.0f)
-  {
-    x_off = 0.000001f;
-    y_off = 0.000001f;
-  }
+  ImVec2 pivot;
 
   switch (config.platform.achievements.popup.origin)
   {
     default:
-    case 0:
-      x_origin =        inset;                          x_dir = 1.0f;
-      y_origin =        inset;                          y_dir = 1.0f;
+    case 0: // Top-Left
+      x_loc =                    inset; x_dir = 1.0f;
+      y_loc =                    inset; y_dir = 1.0f;
+      pivot = ImVec2 (0.0f, 0.0f);
       break;
-    case 1:
-      x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
-      y_origin =        inset;                          y_dir =  1.0f;
+    case 1: // Top-Right
+      x_loc = io.DisplaySize.x - inset; x_dir = -1.0f;
+      y_loc =                    inset; y_dir =  1.0f;
+      pivot = ImVec2 (1.0f, 0.0f);
       break;
-    case 2:
-      x_origin =        inset;                          x_dir =  1.0f;
-      y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
+    case 2: // Bottom-Left
+      x_loc =                    inset; x_dir =  1.0f;
+      y_loc = io.DisplaySize.y - inset; y_dir = -1.0f;
+      pivot = ImVec2 (0.0f, 1.0f);
       break;
-    case 3:
-      x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
-      y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
+    case 3: // Bottom-Right
+      x_loc = io.DisplaySize.x - inset; x_dir = -1.0f;
+      y_loc = io.DisplaySize.y - inset; y_dir = -1.0f;
+      pivot = ImVec2 (1.0f, 1.0f);
       break;
   }
 
-  float x_pos (x_origin + x_off * x_dir);
-  float y_pos (y_origin + y_off * y_dir);
-
-  float x_offset = 0.0f;
-  float y_offset = 0.0f;
-
-  static int take_screenshot = 0;
-
-  std::unordered_set <std::string> displayed;
-
-  bool any_eligible_for_screenshots = false;
+  bool too_many_popups = false;
+  int  columns         = 1;
+  int  on_screen       = 0;
 
   while (it != popups.cend ())
   {
-    if (displayed.contains (it->achievement->name_))
+    // Quota check
+    if (columns   >  config.platform.achievements.popup.max_columns ||
+        on_screen >= config.platform.achievements.popup.max_on_screen)
+    {
+      too_many_popups = true;
+    }
+
+    // Do not draw achievements more than once, or if quota is exhausted
+    if (displayed.contains (it->achievement->idx_) || too_many_popups)
     {
       ++it; continue;
     }
@@ -1480,281 +1458,166 @@ SK_AchievementManager::drawPopups (void)
 
     if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS))
     {
-#if 0 // Only used for animated popups
-      float percent_of_lifetime =
-        ( static_cast <float> (it->time + POPUP_DURATION_MS - SK_timeGetTime ()) /
-          static_cast <float> (           POPUP_DURATION_MS)                     );
-#endif
-
       ImGuiWindow* win = it->window;
 
       if (win == nullptr)
       {
         win     = createPopupWindow (&*it);
         created = true;
-
-        ImGui::OpenPopup (it->achievement->name_.c_str ());
       }
 
-      const float win_ht =
-        256.0f;//win->getPixelSize ().d_height;
-
-      //const float win_wd =
-      //  512.0f;//win->getPixelSize ().d_width;
-
-      ImVec2 win_pos (x_pos, y_pos);
-
-      float d_scale  = 0.05f;
-      float d_offset = 0.05f;
-
-      float bottom_y = win_pos.y * d_scale * full_ht +
-                       win_pos.y * d_offset          +
-                       win_ht;
-
-      // The bottom of the window would be off-screen, so
-      //   move it to the top and offset by the width of
-      //     each popup.
-      if ( bottom_y > full_ht || bottom_y < win_ht0 )
+      if (! it->final_pos)
       {
-        y_pos  =    (y_origin, y_off * y_dir);
-        x_pos += x_dir * 1024;//win->getSize ().d_width;
-
-        win_pos   = ImVec2 (x_pos, y_pos);
-      }
-
-      //float right_x = win_pos.x * d_scale * full_wd +
-      //                win_pos.x * d_offset          +
-      //                win_wd;
-
-      // Window is off-screen horizontally AND vertically
-      //if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  )
-      //{
-      //  // Since we're not going to draw this, treat it as a new
-      //  //   popup until it first becomes visible.
-      //  it->time =
-      //    SK_timeGetTime ();
-      ////win->hide        ();
-      //}
-      //
-      //else
-      {
-#if 0
-        if (config.platform.achievements.popup.animate)
+        if (eligible_for_screenshots)
         {
-          float percent = y_origin * 0.01f;// +y_off)
-          //CEGUI::UDim percent (
-          //  CEGUI::UDim (y_origin, y_off).percent ()
-          //);
+          take_screenshot = it->achievement->unlocked_ ? 5 : take_screenshot;
+        }
+        it->final_pos   = true;
+      }
 
-          if (percent_of_lifetime <= 0.1f)
-          {
-            win_pos.y /= (percent * 100.0f *
-                          percent_of_lifetime / 0.1f);
-          }
+      const char *szPopupName =
+        it->achievement->name_.c_str ();
 
-          else if (percent_of_lifetime >= 0.9f)
-          {
-            win_pos.y /= (percent * 100.0f *
-                                     (1.0f -
-                         (percent_of_lifetime - 0.9f) / 0.1f));
-          }
+      DWORD dwNow = SK_GetCurrentMS ();
 
-          else if (! it->final_pos)
-          {
-            take_screenshot = it->achievement->unlocked_ ? 5 : take_screenshot;
-            it->final_pos   = true;
-          }
+      const ImVec4 rare_border_color =
+        ImColor::HSV ( 0.133333f,
+                         std::min ( static_cast <float>(0.161616f +  (dwNow % 250) / 250.0f -
+                                                             floor ( (dwNow % 250) / 250.0f) ), 1.0f),
+                             std::min ( static_cast <float>(0.333 +  (dwNow % 500) / 500.0f -
+                                                             floor ( (dwNow % 500) / 500.0f) ), 1.0f) );
+
+      const float fGlobalPercent =
+        it->achievement->global_percent_;
+
+      // Only Steam has rarity information; Epic has XP, but SK is unable to use that info.
+      if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
+        ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
+
+      auto text =
+        it->achievement->unlocked_ ? &it->achievement->text_.unlocked
+                                   : &it->achievement->text_.locked;
+
+      char         window_id [64] = { };
+      _snprintf_s (window_id, 63, "%hs##ACHIEVEMENT%d", szPopupName, it->achievement->idx_);
+
+      DWORD        window_flags = ImGuiWindowFlags_AlwaysAutoResize   | ImGuiWindowFlags_NoDecoration          |
+                                  ImGuiWindowFlags_NoNav              | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                  ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoInputs              |
+                                  ImGuiWindowFlags_NoCollapse;
+
+      ImGui::SetNextWindowPos (
+        ImVec2 (x_loc + x_off + io.DisplaySize.x * 0.025f * x_dir,
+                y_loc + y_off + io.DisplaySize.y * 0.025f * y_dir),
+                  ImGuiCond_Always, pivot
+      );
+
+      if (ImGui::Begin (window_id, nullptr, window_flags))
+      {
+        ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
+
+        float fTopY = ImGui::GetCursorPosY ();
+
+        if (it->icon_texture != nullptr)
+        {
+          ImGui::Image (it->icon_texture, ImVec2 (128, 128));
         }
 
         else
-#endif
-        if (! it->final_pos)
         {
-          if (eligible_for_screenshots)
-          {
-            take_screenshot = it->achievement->unlocked_ ? 5 : take_screenshot;
-          }
-          it->final_pos   = true;
+          ImGui::PushID      (it->window);
+          ImGui::BeginChildFrame
+            (ImGui::GetID    ("###SpecialK_AchievementFrame"), ImVec2 (128, 128), 0x0);
+          ImGui::EndChildFrame( );
+          ImGui::PopID       (  );
         }
 
-        const char *szPopupName =
-          it->achievement->name_.c_str ();
+        std::string
+          text_desc = SK_WideCharToUTF8 (text->desc);
 
-        if (ImGui::IsPopupOpen (szPopupName))
-        {
-          DWORD dwNow = SK_GetCurrentMS ();
+        ImGui::SameLine      (  );
+        ImGui::PushID        (it->window);
+        ImGui::BeginChild    ("###SpecialK_AchievementText", ImVec2 (313.0f, 128.0f));
+        float fLeftX =
+          ImGui::GetCursorPosX( );
+        ImGui::BeginGroup    (  );
+        ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
+               "%hs", SK_WideCharToUTF8 (text->human_name).c_str ());
+        ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f).Value);
+        auto size =
+          ImGui::CalcTextSize(text_desc.c_str (), nullptr, false, 313.0f);
+        ImGui::SetCursorPosY ( fTopY  + (128.0f - size.y) / 2.0f );
+        ImGui::SetCursorPosX ( fLeftX + (313.0f - size.x) / 2.0f );
+        ImGui::TextWrapped   ("%hs", text_desc.c_str ());
+        ImGui::PopStyleColor (  );
+        ImGui::EndGroup      (  );
+        ImGui::EndChild      (  );
+        ImGui::PopID         (  );
 
-          const ImVec4 rare_border_color =
-            ImColor::HSV ( 0.133333f,
-                             std::min ( static_cast <float>(0.161616f +  (dwNow % 250) / 250.0f -
-                                                                 floor ( (dwNow % 250) / 250.0f) ), 1.0f),
-                                 std::min ( static_cast <float>(0.333 +  (dwNow % 500) / 500.0f -
-                                                                 floor ( (dwNow % 500) / 500.0f) ), 1.0f) );
+        const bool bSteam =
+          (SK::SteamAPI::AppID () != 0);
 
-          const float fGlobalPercent =
-            it->achievement->global_percent_;
+        ImGui::BeginGroup    (  );
+        if (bSteam) // Only Steam has unlock percentage stats
+        ImGui::TextUnformatted ("Global: ");
+        if (it->achievement->friends_.possible > 0)
+        ImGui::TextUnformatted ("Friends: ");
+        ImGui::EndGroup      (  );
+        ImGui::SameLine      (  );
+        ImGui::BeginGroup    (  );
+        if (bSteam) // Only Steam has unlock percentage stats
+        ImGui::Text          ("%6.2f%%", fGlobalPercent);
+        if (it->achievement->friends_.possible > 0)
+        ImGui::Text          ("%6.2f%%",
+             100.0 * ( (double)          it->achievement->friends_.unlocked /
+                       (double)std::max (it->achievement->friends_.possible, 1) ));
+        ImGui::EndGroup      (  );
+        
+        float height =
+          ImGui::GetFontSize () * ( it->achievement->friends_.possible > 0 ? 2.0f
+                                                                           : 1.0f );
 
-          // Only Steam has rarity information; Epic has XP, but SK is unable to use that info.
-          if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
-            ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
+        ImGui::SameLine      (  );
+        ImGui::SetCursorPosY (ImGui::GetCursorPosY () + height / 2.0f - ImGui::GetFontSize () / 2.0f);
+        ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
+                                it->achievement->unlocked_ ?
+                              ICON_FA_UNLOCK : ICON_FA_LOCK);
+        ImGui::SameLine      (  );
+        if (it->achievement->unlocked_ && it->achievement->time_ > 0)
+          ImGui::TextColored (ImColor (0.85f, 0.85f, 0.85f, 1.0f),
+                              ":  %s", _ctime64 (&it->achievement->time_));
+        else if (it->achievement->progress_.getPercent () > 0.0f)
+          ImGui::ProgressBar (it->achievement->progress_.getPercent () / 100.0f);
+        else
+          ImGui::Spacing     (  );
+        ImGui::End           (  );
 
-          auto text =
-            it->achievement->unlocked_ ? &it->achievement->text_.unlocked
-                                       : &it->achievement->text_.locked;
-
-          if (ImGui::BeginPopup (szPopupName, ImGuiWindowFlags_AlwaysAutoResize      |
-                                              ImGuiWindowFlags_NoDecoration          |
-                                              ImGuiWindowFlags_NoNav                 |
-                                              ImGuiWindowFlags_NoBringToFrontOnFocus |
-                                              ImGuiWindowFlags_NoFocusOnAppearing    |
-                                              ImGuiWindowFlags_NoInputs              |
-                                              ImGuiWindowFlags_NoCollapse))
-          {
-            //char         window_id [64] = { };
-            //_snprintf_s (window_id, 63, "##TOAST%d", (int)i++);
-
-            //ImGui::BeginGroup ();
-            ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
-
-            float fTopY = ImGui::GetCursorPosY ();
-
-            if (it->icon_texture != nullptr)
-            {
-              ImGui::Image (it->icon_texture, ImVec2 (128, 128));
-            }
-
-            else
-            {
-              ImGui::PushID      (it->window);
-              ImGui::BeginChildFrame
-                (ImGui::GetID    ("###SpecialK_AchievementFrame"), ImVec2 (128, 128), 0x0);
-              ImGui::EndChildFrame( );
-              ImGui::PopID       (  );
-            }
-
-            std::string
-              text_desc = SK_WideCharToUTF8 (text->desc);
-
-            ImGui::SameLine      (  );
-            ImGui::PushID        (it->window);
-            ImGui::BeginChild    ("###SpecialK_AchievementText", ImVec2 (313.0f, 128.0f));
-            float fLeftX =
-              ImGui::GetCursorPosX( );
-            ImGui::BeginGroup    (  );
-            ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
-                   "%hs", SK_WideCharToUTF8 (text->human_name).c_str ());
-            ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f).Value);
-            auto size =
-              ImGui::CalcTextSize(text_desc.c_str (), nullptr, false, 313.0f);
-            ImGui::SetCursorPosY ( fTopY  + (128.0f - size.y) / 2.0f );
-            ImGui::SetCursorPosX ( fLeftX + (313.0f - size.x) / 2.0f );
-            ImGui::TextWrapped   ("%hs", text_desc.c_str ());
-            ImGui::PopStyleColor (  );
-            ImGui::EndGroup      (  );
-            ImGui::EndChild      (  );
-            ImGui::PopID         (  );
-
-            const bool bSteam =
-              (SK::SteamAPI::AppID () != 0);
-
-            ImGui::BeginGroup    (  );
-            if (bSteam) // Only Steam has unlock percentage stats
-            ImGui::TextUnformatted ("Global: ");
-            if (it->achievement->friends_.possible > 0)
-            ImGui::TextUnformatted ("Friends: ");
-            ImGui::EndGroup      (  );
-            ImGui::SameLine      (  );
-            ImGui::BeginGroup    (  );
-            if (bSteam) // Only Steam has unlock percentage stats
-            ImGui::Text          ("%6.2f%%", fGlobalPercent);
-            if (it->achievement->friends_.possible > 0)
-            ImGui::Text          ("%6.2f%%",
-                 100.0 * ( (double)          it->achievement->friends_.unlocked /
-                           (double)std::max (it->achievement->friends_.possible, 1) ));
-            ImGui::EndGroup      (  );
-            
-            float height =
-              ImGui::GetFontSize () * ( it->achievement->friends_.possible > 0 ? 2.0f
-                                                                               : 1.0f );
-
-            ImGui::SameLine      (  );
-            ImGui::SetCursorPosY (ImGui::GetCursorPosY () + height / 2.0f - ImGui::GetFontSize () / 2.0f);
-            ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
-                                    it->achievement->unlocked_ ?
-                                  ICON_FA_UNLOCK : ICON_FA_LOCK);
-            ImGui::SameLine      (  );
-            if (it->achievement->unlocked_ && it->achievement->time_ > 0)
-              ImGui::TextColored (ImColor (0.85f, 0.85f, 0.85f, 1.0f),
-                                  ":  %s", _ctime64 (&it->achievement->time_));
-            else if (it->achievement->progress_.getPercent () > 0.0f)
-              ImGui::ProgressBar (it->achievement->progress_.getPercent () / 100.0f);
-            else
-              ImGui::Spacing     ();
-
-            float x_loc = 0.0f;
-            float y_loc = 0.0f;
-
-            switch (config.platform.achievements.popup.origin)
-            {
-              default:
-              case 0: // Top-Left
-                x_loc =        inset;                                x_dir = 1.0f;
-                y_loc =        inset;                                y_dir = 1.0f;
-                break;
-              case 1: // Top-Right
-                x_loc = io.DisplaySize.x - inset - ImGui::GetWindowSize ().x;    x_dir = -1.0f;
-                y_loc =                    inset;                                y_dir =  1.0f;
-                break;
-              case 2: // Bottom-Left
-                x_loc =                    inset;                                x_dir =  1.0f;
-                y_loc = io.DisplaySize.y - inset - ImGui::GetWindowSize ().y;    y_dir = -1.0f;
-                break;
-              case 3: // Bottom-Right
-                x_loc = io.DisplaySize.x - inset - ImGui::GetWindowSize ().x;    x_dir = -1.0f;
-                y_loc = io.DisplaySize.y - inset - ImGui::GetWindowSize ().y;    y_dir = -1.0f;
-                break;
-            }
-
-            ImGui::SetWindowPos  (
-              ImVec2 (x_loc + x_offset + io.DisplaySize.x * 0.025f * x_dir,
-                      y_loc + y_offset + io.DisplaySize.y * 0.025f * y_dir),
-                        ImGuiCond_Always
-            );
-            //ImGui::EndGroup    ( );
-            ImGui::EndPopup      ( );
-          }
-
-          if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
-            ImGui::PopStyleColor ( );
-        }
+        on_screen++;
       }
 
-      y_offset += y_dir * ImGui::GetWindowSize ().y;
+      if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
+        ImGui::PopStyleColor (  );
 
-      if (fabs (y_offset) > io.DisplaySize.y)
+      const float delta_y =
+        (y_dir * ImGui::GetWindowSize ().y * 0.5f);
+
+      y_off += delta_y;
+
+      if (fabs (y_off + delta_y) > io.DisplaySize.y)
       {
-        y_offset  = 0.0f;
-        x_offset += x_dir * ImGui::GetWindowSize ().x;
+        y_off  = 0.0f;
+        x_off += x_dir * ImGui::GetWindowSize ().x * 1.2f;
+        columns++;
       }
 
-      y_pos += y_dir * 256.0f/*win->getSize().d_height*/;
-
-#if 0
-      displayed.emplace        (it->achievement->name_);
-#else
-      break;
-#endif
-                              ++it;
+      displayed.emplace (it->achievement->idx_);
+                       ++it;
     }
 
     else
     {
       if (it->achievement->unlocked_)
-        displayed.emplace          (it->achievement->name_);
-      if (ImGui::BeginPopup        (it->achievement->name_.c_str ()))
-      {   ImGui::CloseCurrentPopup ();
-          ImGui::EndPopup          ();
-      }
+        displayed.emplace (it->achievement->idx_);
 
       if (it->icon_texture != nullptr)
       {

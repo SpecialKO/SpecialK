@@ -1,4 +1,11 @@
-﻿25.5.11
+﻿25.5.11.1
+=========
+ + Restored support for displaying multiple achievement popups at once
+     (functionality was lost when CEGUI was removed in favor of ImGui)
+ + Added settings for maximum number of achievement popups to draw at once
+     and the number of columns to use for overflow when they do not fit.
+
+25.5.11
 =======
  + Changed wording on HID Gamepad Attach notification to indicate that the game
      itself is using the native HID protocol, and that Steam Input / DS4Windows
