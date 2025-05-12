@@ -1,4 +1,9 @@
-﻿25.5.11.2
+﻿25.5.11.3
+=========
+ + Added support for overriding RGB on Bluetooth DualSense [Edge] controllers
+     in games that use DualSense natively.
+
+25.5.11.2
 =========
  + Hide HID Attach notifications unless there is a potential conflict between
      the game using native input features (i.e. haptics) and Steam Input, or
