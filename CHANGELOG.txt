@@ -1,4 +1,8 @@
-﻿25.5.11.4
+﻿25.5.12
+=======
+ + Added file dialog to select a custom achievement unlock sound in-game.
+
+25.5.11.4
 =========
  + Added support for remapping Analog Sticks, Share / Trackpad Click and
      Cross / Circle and Square / Triangle face buttons in USB DualSense games.

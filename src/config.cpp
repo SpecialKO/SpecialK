@@ -2223,12 +2223,15 @@ auto DeclKeybind =
     ConfigEntry (skif_autostop_behavior,                 L"Control when SKIF auto-stops, 0=Never, 1=AtStart, 2=AtExit",platform_ini,    L"SKIF.System",           L"AutoStopBehavior"),
 
 
+    // --- Not anymore, now it's global
+    //
     // The one odd-ball Steam achievement setting that can be specified per-game
-    ConfigEntry (platform.achievements.sound_file,       L"Achievement Sound File",                                    dll_ini,         L"Platform.Achievements", L"SoundFile"),
+    //ConfigEntry (platform.achievements.sound_file,       L"Achievement Sound File",                                    dll_ini,         L"Platform.Achievements", L"SoundFile"),
 
     // Steam Achievement Enhancements  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
 
+    ConfigEntry (platform.achievements.sound_file,       L"Achievement Sound File",                                    platform_ini,    L"Platform.Achievements", L"SoundFile"),
     ConfigEntry (platform.achievements.play_sound,       L"Silence is Bliss?",                                         platform_ini,    L"Platform.Achievements", L"PlaySound"),
     ConfigEntry (platform.achievements.take_screenshot,  L"Precious Memories",                                         platform_ini,    L"Platform.Achievements", L"TakeScreenshot"),
     ConfigEntry (platform.achievements.

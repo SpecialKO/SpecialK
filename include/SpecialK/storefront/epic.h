@@ -365,6 +365,9 @@ void
 SK_EOS_UnlockAchievement (uint32_t idx);
 
 void
+SK_EOS_PlayUnlockSound (void);
+
+void
 SK_EOS_LoadUnlockSound (const wchar_t* wszUnlockSound);
 
 ////std::wstring

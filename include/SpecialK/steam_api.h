@@ -517,6 +517,9 @@ void
 SK_Steam_UnlockAchievement (uint32_t idx);
 
 void
+SK_Steam_PlayUnlockSound (void);
+
+void
 SK_Steam_LoadUnlockSound (const wchar_t* wszUnlockSound);
 
 
