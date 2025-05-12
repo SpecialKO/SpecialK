@@ -258,8 +258,10 @@ void SK_HID_SetupPlayStationControllers (void)
                 SK_ImGui_Warning (L"Bluetooth");
 #endif
 
-              HIDP_CAPS                                      caps = { };
-                SK_HidP_GetCaps (controller.pPreparsedData, &caps);
+              auto& caps =
+                controller.hid_caps;
+                                                           caps = { };
+              SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
               controller.input_report.resize   (caps.InputReportByteLength);
               controller.output_report.resize  (caps.OutputReportByteLength);
@@ -3754,16 +3756,30 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
 
 bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID data)
 {
-#if 0
-  SK_LOGi0 (
+  SK_LOGi1 (
     L"filterHidInput [ report_id=%d, dwSize=%d ]", report_id, dwSize
   );
-#endif
 
   bool data_changed = false;
 
   if (dwSize == 0 || (! data))
     return data_changed;
+
+  uint8_t *pInputRaw =
+    (uint8_t *)data;
+
+  if (pInputRaw [0] != report_id)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (
+        L"Input report passed to SK_HID_DeviceFile::filterHidInput (...) "
+        L"has a mismatched report id [ data=%d, parameter=%d ]",
+          report_id, pInputRaw [0]
+      )
+    );
+
+    return data_changed;
+  }
 
   switch (device_vid)
   {
@@ -3774,31 +3790,33 @@ bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID 
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
         {
-          if (((uint8_t *)data) [0] == report_id && report_id == 1)
+          if (report_id == 1 && dwSize >= 34)
           {
-            SK_HID_DualShock4_GetStateData* pData =
-              (SK_HID_DualShock4_GetStateData *)&(((uint8_t *)data) [1]);
-
-            if (config.input.gamepad.scepad.alias_trackpad_share)
+            for (DWORD i = 0; i < (dwSize / 34) ; ++i)
             {
-              if (pData->ButtonPad)   pData->ButtonShare = 1;
-              if (pData->ButtonShare) pData->ButtonPad   = 1;
-              
-              data_changed = true;
-            }
+              SK_HID_DualShock4_GetStateData* pData =
+                (SK_HID_DualShock4_GetStateData *)&(pInputRaw [i * 34 + 1]);
 
-            return data_changed;
+              if (config.input.gamepad.scepad.alias_trackpad_share)
+              {
+                if (pData->ButtonPad)   pData->ButtonShare = 1;
+                if (pData->ButtonShare) pData->ButtonPad   = 1;
+                
+                data_changed = true;
+              }
+            }
           }
         } break;
+
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
-        {                    // Multiple readings can be taken at once, so use modulo
-          if (report_id == 1 && (dwSize % 64) == 0 && ((uint8_t *)data) [0] == report_id)
+        {
+          if (report_id == 1 && dwSize >= 64)
           {
             for (DWORD i = 0 ; i < (dwSize / 64) ; ++i)
             {
               SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&((uint8_t *)data) [(i * 64) + 1];
+                (SK_HID_DualSense_GetStateData *)&(pInputRaw [i * 64 + 1]);
 
               if (config.input.gamepad.scepad.alias_trackpad_share)
               {
@@ -3866,8 +3884,6 @@ bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID 
                 data_changed = true;
               }
             }
-
-            return data_changed;
           }
 
           // Bluetooth data cannot be tampered with, so ignore this.
@@ -3895,7 +3911,12 @@ bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID 
 
 bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID data)
 {
-  bool data_changed = false;
+  bool data_changed =
+    SK_ImGui_WantGamepadCapture () ? neutralizeHidInput (report_id, dwSize, data) != 0
+                                   : false;
+
+  if (data_changed)
+    return data_changed;
 
   switch (device_vid)
   {
@@ -3921,7 +3942,7 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
             for ( DWORD i = 0 ; i < dwSize / 48 ; ++i )
             {
               pSetState =
-                (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [i*48+1]);
+                (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [i * 48 + 1]);
 
               data_changed |=
                 SK_DualSense_ApplyOutputReportFilter (pSetState);
@@ -3936,7 +3957,7 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
             for ( DWORD i = 0 ; i < dwSize / 78 ; ++i )
             {
               SK_HID_DualSense_BtReport_0x31 *pBtState =
-                (SK_HID_DualSense_BtReport_0x31 *)(&((uint8_t *)data) [i*78+3]);
+                (SK_HID_DualSense_BtReport_0x31 *)(&((uint8_t *)data) [i * 78 + 3]);
 
               pSetState =
                 &pBtState->Data.State;
@@ -3980,6 +4001,11 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
 
     lpBuf =
       cachedInputReport->data ();  
+
+    if (! lpBuf)
+    {
+      return 0;
+    }
   }
 
   if (report_id == 0)
@@ -4000,10 +4026,23 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
       sizeToClear;
   }
 
-
-  uint8_t* pBuf =
+  uint8_t* pInputRaw =
     (uint8_t *)lpBuf;
 
+  if (pInputRaw [0] != report_id)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (
+        L"Input report passed to SK_HID_DeviceFile::neutralizeHidInput (...) "
+        L"has a mismatched report id [ data=%d, parameter=%d ]",
+          report_id, pInputRaw [0]
+      )
+    );
+
+    return 0;
+  }
+
+  int modified_bytes = 0;
 
   switch (device_vid)
   {
@@ -4014,189 +4053,201 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
         {
-          if (dwSize % 34 == 0 && pBuf [0] == report_id && report_id == 1)
+          switch (report_id)
           {
-            int modified = 0;
-
-            for (DWORD i = 0 ; i < dwSize / 34 ; ++i)
+            case 1:
             {
-              SK_HID_DualShock4_GetStateData* pData =
-                (SK_HID_DualShock4_GetStateData *)&(pBuf [i*34+1]);
+              if (dwSize < 34)
+              {
+                break;
+              }
 
-              // The analog axes
-              memset (
-                &pData->LeftStickX,  128,   4);
-              memset (
-                &pData->TriggerLeft,   0,   2);
-                 pData->Counter++;
-                 pData->DPad               = Neutral;
-                 pData->ButtonSquare       = 0;
-                 pData->ButtonCross        = 0;
-                 pData->ButtonCircle       = 0;
-                 pData->ButtonTriangle     = 0;
-                 pData->ButtonL1           = 0;
-                 pData->ButtonR1           = 0;
-                 pData->ButtonL2           = 0;
-                 pData->ButtonR2           = 0;
-                 pData->ButtonShare        = 0;
-                 pData->ButtonOptions      = 0;
-                 pData->ButtonL3           = 0;
-                 pData->ButtonR3           = 0;
-                 pData->ButtonHome         = 0;
-                 pData->ButtonPad          = 0;
-              memset (
-                &pData->AngularVelocityX, 0, 12);
+              for (DWORD i = 0 ; i < dwSize / 34 ; ++i)
+              {
+                SK_HID_DualShock4_GetStateData* pData =
+                  (SK_HID_DualShock4_GetStateData *)&(pInputRaw [i * 34 + 1]);
 
-              modified += 34;
-            }
+                // The analog axes
+                memset (
+                  &pData->LeftStickX,  128,   4);
+                memset (
+                  &pData->TriggerLeft,   0,   2);
+                 //pData->Counter++;
+                   pData->DPad               = Neutral;
+                   pData->ButtonSquare       = 0;
+                   pData->ButtonCross        = 0;
+                   pData->ButtonCircle       = 0;
+                   pData->ButtonTriangle     = 0;
+                   pData->ButtonL1           = 0;
+                   pData->ButtonR1           = 0;
+                   pData->ButtonL2           = 0;
+                   pData->ButtonR2           = 0;
+                   pData->ButtonShare        = 0;
+                   pData->ButtonOptions      = 0;
+                   pData->ButtonL3           = 0;
+                   pData->ButtonR3           = 0;
+                   pData->ButtonHome         = 0;
+                   pData->ButtonPad          = 0;
+                memset (
+                  &pData->AngularVelocityX, 0, 12);
 
-            return modified;
+                modified_bytes += 34;
+              }
+            } break;
+
+            default:
+              break;
           }
         } break;
+
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (dwSize % 64 == 0 && pBuf [0] == report_id && report_id == 1)
+          switch (report_id)
           {
-            int modified = 0;
-
-            for (DWORD i = 0 ; i < dwSize / 64 ; ++i)
+            case 1:
             {
-              SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&(pBuf [i*64+1]);
+              const bool bluetooth = false;
+                //((SK_HID_DualSense_GetStateData *)&(pInputRaw [1]))->SeqNo == 0x1;
 
-              // The analog axes
-              memset (
-                &pData->LeftStickX,  128,   4);
-              memset (
-                &pData->TriggerLeft,   0,   2);
-                 pData->SeqNo++;
-                 pData->DPad               = Neutral;
-                 pData->ButtonSquare       = 0;
-                 pData->ButtonCross        = 0;
-                 pData->ButtonCircle       = 0;
-                 pData->ButtonTriangle     = 0;
-                 pData->ButtonL1           = 0;
-                 pData->ButtonR1           = 0;
-                 pData->ButtonL2           = 0;
-                 pData->ButtonR2           = 0;
-                 pData->ButtonCreate       = 0;
-                 pData->ButtonOptions      = 0;
-                 pData->ButtonL3           = 0;
-                 pData->ButtonR3           = 0;
-                 pData->ButtonHome         = 0;
-                 pData->ButtonPad          = 0;
-                 pData->ButtonMute         = 0;
-                 pData->UNK1               = 0;
-                 pData->ButtonLeftFunction = 0;
-                 pData->ButtonRightFunction= 0;
-                 pData->ButtonLeftPaddle   = 0;
-                 pData->ButtonRightPaddle  = 0;
-                 pData->UNK2               = 0;
-              memset (
-                &pData->AngularVelocityX, 0, 12);
+              if (bluetooth)
+              {
+                if (dwSize < 10)
+                {
+                  break;
+                }
 
-              modified += 64;
-            }
+                for (DWORD i = 0 ; i < dwSize / 10 ; ++i)
+                {
+                  SK_HID_DualSense_GetSimpleStateDataBt* pData =
+                    (SK_HID_DualSense_GetSimpleStateDataBt *)&(pInputRaw [i * 10 + 1]);
 
-            return modified;
+                  // The analog axes
+                  memset (
+                    &pData->LeftStickX,  128,   4);
+                  memset (
+                    &pData->TriggerLeft,   0,   2);
+                   //pData->Counter++;
+                     pData->DPad               = Neutral;
+                     pData->ButtonSquare       = 0;
+                     pData->ButtonCross        = 0;
+                     pData->ButtonCircle       = 0;
+                     pData->ButtonTriangle     = 0;
+                     pData->ButtonL1           = 0;
+                     pData->ButtonR1           = 0;
+                     pData->ButtonL2           = 0;
+                     pData->ButtonR2           = 0;
+                     pData->ButtonShare        = 0;
+                     pData->ButtonOptions      = 0;
+                     pData->ButtonL3           = 0;
+                     pData->ButtonR3           = 0;
+                     pData->ButtonHome         = 0;
+                     pData->ButtonPad          = 0;
+
+                  modified_bytes += 10;
+                }
+              }
+
+              else
+              {
+                if (dwSize < 64)
+                {
+                  break;
+                }
+
+                for (DWORD i = 0 ; i < dwSize / 64 ; ++i)
+                {
+                  SK_HID_DualSense_GetStateData* pData =
+                    (SK_HID_DualSense_GetStateData *)&(pInputRaw [i * 64 + 1]);
+
+                  // The analog axes
+                  memset (
+                    &pData->LeftStickX,  128,   4);
+                  memset (
+                    &pData->TriggerLeft,   0,   2);
+                   //pData->SeqNo++;
+                     pData->DPad               = Neutral;
+                     pData->ButtonSquare       = 0;
+                     pData->ButtonCross        = 0;
+                     pData->ButtonCircle       = 0;
+                     pData->ButtonTriangle     = 0;
+                     pData->ButtonL1           = 0;
+                     pData->ButtonR1           = 0;
+                     pData->ButtonL2           = 0;
+                     pData->ButtonR2           = 0;
+                     pData->ButtonCreate       = 0;
+                     pData->ButtonOptions      = 0;
+                     pData->ButtonL3           = 0;
+                     pData->ButtonR3           = 0;
+                     pData->ButtonHome         = 0;
+                     pData->ButtonPad          = 0;
+                     pData->ButtonMute         = 0;
+                     pData->UNK1               = 0;
+                     pData->ButtonLeftFunction = 0;
+                     pData->ButtonRightFunction= 0;
+                     pData->ButtonLeftPaddle   = 0;
+                     pData->ButtonRightPaddle  = 0;
+                     pData->UNK2               = 0;
+                  memset (
+                    &pData->AngularVelocityX, 0, 12);
+
+                  modified_bytes += 64;
+                }
+              }
+            } break;
+
+            case 49:
+            {
+              if (dwSize < 78)
+              {
+                break;
+              }
+
+              for ( DWORD i = 0 ; i < dwSize / 78 ; ++i )
+              {
+                auto *pData =
+                  (SK_HID_DualSense_GetStateData *)&(pInputRaw [i * 78 + 2]);
+
+                // The analog axes
+                memset (
+                  &pData->LeftStickX,  128,   4);
+                memset (
+                  &pData->TriggerLeft,   0,   2);
+                 //pData->SeqNo++;
+                   pData->DPad               = Neutral;
+                   pData->ButtonSquare       = 0;
+                   pData->ButtonCross        = 0;
+                   pData->ButtonCircle       = 0;
+                   pData->ButtonTriangle     = 0;
+                   pData->ButtonL1           = 0;
+                   pData->ButtonR1           = 0;
+                   pData->ButtonL2           = 0;
+                   pData->ButtonR2           = 0;
+                   pData->ButtonCreate       = 0;
+                   pData->ButtonOptions      = 0;
+                   pData->ButtonL3           = 0;
+                   pData->ButtonR3           = 0;
+                   pData->ButtonHome         = 0;
+                   pData->ButtonPad          = 0;
+                   pData->ButtonMute         = 0;
+                   pData->UNK1               = 0;
+                   pData->ButtonLeftFunction = 0;
+                   pData->ButtonRightFunction= 0;
+                   pData->ButtonLeftPaddle   = 0;
+                   pData->ButtonRightPaddle  = 0;
+                   pData->UNK2               = 0;
+                memset (
+                  &pData->AngularVelocityX, 0, 12);
+
+                modified_bytes += 78;
+              }
+            } break;
+
+            default:
+              break;
           }
 
-#if 0
-          if (pBuf     != nullptr   &&
-              pBuf [0] == report_id &&
-                                    (report_id == 49 || report_id == 1))
-          {
-            auto *pInputRaw =
-              pBuf;
-
-            auto *pData = pInputRaw == nullptr ?
-                                       nullptr :
-              (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
-
-            bool bSimple = false;
-
-            // We're in simplified mode...
-            if (pData != nullptr && pInputRaw [0] == 0x1)
-            {
-              bSimple = true;
-            }
-
-            if (pData != nullptr && (! bSimple))
-            {
-              // The analog axes
-              memset (
-                &pData->LeftStickX,  128,   4);
-              memset (
-                &pData->TriggerLeft,   0,   2);
-                 pData->SeqNo++;
-                 pData->DPad               = Neutral;
-                 pData->ButtonSquare       = 0;
-                 pData->ButtonCross        = 0;
-                 pData->ButtonCircle       = 0;
-                 pData->ButtonTriangle     = 0;
-                 pData->ButtonL1           = 0;
-                 pData->ButtonR1           = 0;
-                 pData->ButtonL2           = 0;
-                 pData->ButtonR2           = 0;
-                 pData->ButtonCreate       = 0;
-                 pData->ButtonOptions      = 0;
-                 pData->ButtonL3           = 0;
-                 pData->ButtonR3           = 0;
-                 pData->ButtonHome         = 0;
-                 pData->ButtonPad          = 0;
-                 pData->ButtonMute         = 0;
-                 pData->UNK1               = 0;
-                 pData->ButtonLeftFunction = 0;
-                 pData->ButtonRightFunction= 0;
-                 pData->ButtonLeftPaddle   = 0;
-                 pData->ButtonRightPaddle  = 0;
-                 pData->UNK2               = 0;
-              memset (
-                &pData->AngularVelocityX, 0, 12);
-            }
-
-            else if (pInputRaw != nullptr)
-            {
-              auto *pSimpleData =
-                (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
-
-              // The analog axes
-              memset (
-                &pSimpleData->LeftStickX,  128,   4);
-              memset (
-                &pSimpleData->TriggerLeft,   0,   2);
-                 pSimpleData->Counter++;
-                 pSimpleData->DPad               = Neutral;
-                 pSimpleData->ButtonSquare       = 0;
-                 pSimpleData->ButtonCross        = 0;
-                 pSimpleData->ButtonCircle       = 0;
-                 pSimpleData->ButtonTriangle     = 0;
-                 pSimpleData->ButtonL1           = 0;
-                 pSimpleData->ButtonR1           = 0;
-                 pSimpleData->ButtonL2           = 0;
-                 pSimpleData->ButtonR2           = 0;
-                 pSimpleData->ButtonShare        = 0;
-                 pSimpleData->ButtonOptions      = 0;
-                 pSimpleData->ButtonL3           = 0;
-                 pSimpleData->ButtonR3           = 0;
-                 pSimpleData->ButtonHome         = 0;
-                 pSimpleData->ButtonPad          = 0;
-            }
-
-            return 78;
-          }
-#else
-          // It is not possible to neutralize Bluetooth due to encryption
-          if (pBuf     != nullptr   &&
-              pBuf [0] == report_id &&
-                                    (report_id == 49 || report_id == 1))
-          {
-            return 0;
-          }
-#endif
-
-          else
+          if (modified_bytes == 0)
           {
             SK_RunOnce (
               SK_LOGi0 (
@@ -4210,7 +4261,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
     } break;
   }
 
-  return 0;
+  return modified_bytes;
 }
 
 int SK_HID_DeviceFile::remapHidInput (void)

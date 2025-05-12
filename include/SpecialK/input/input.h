@@ -1071,6 +1071,7 @@ struct SK_HID_PlayStationDevice
   std::vector <BYTE>            input_report;
   std::vector <BYTE>            output_report;
   std::vector <BYTE>            feature_report;
+  HIDP_CAPS                     hid_caps;
 
   struct output_s {
              uint32_t           last_crc32c      = 0; // Avoid unnecessary output reports

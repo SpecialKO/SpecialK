@@ -1068,11 +1068,6 @@ ReadFile_Detour (HANDLE       hFile,
                   SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), nNumberOfBytesToRead);
               }
             }
-
-            else if (report_id > 0)
-            {
-              hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead, lpBuffer);
-            }
           }
         }
 
@@ -1887,12 +1882,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
             );
           }
 
-          else if (report_id > 0)
-          {
-            neutralized =
-              hid_file->neutralizeHidInput (report_id, dwSize, overlapped_request.lpBuffer) != 0;
-          }
-
           if (! neutralized)
           {
             *lpNumberOfBytesTransferred = 0;
@@ -1960,12 +1949,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
               SK_UNTRUSTED_memcpy (
                 overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
               );
-            }
-
-            else if (report_id > 0)
-            {
-              neutralized =
-                (hid_file->neutralizeHidInput (report_id, dwSize, overlapped_request.lpBuffer) != 0);
             }
 
             if (! neutralized)
@@ -2068,12 +2051,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
             );
           }
 
-          else if (report_id > 0)
-          {
-            neutralized =
-              (hid_file->neutralizeHidInput (report_id, dwSize, overlapped_request.lpBuffer) != 0);
-          }
-
           if (! neutralized)
           {
             *lpNumberOfBytesTransferred = 0;
@@ -2141,12 +2118,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
               SK_UNTRUSTED_memcpy (
                 overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
               );
-            }
-
-            else if (report_id > 0)
-            {
-              neutralized =
-                (hid_file->neutralizeHidInput (report_id, dwSize, overlapped_request.lpBuffer) != 0);
             }
 
             if (! neutralized)
