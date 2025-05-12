@@ -2444,8 +2444,6 @@ SK::ControlPanel::Input::Draw (void)
             {
               mapping_idx  = 13;
               mapping_name = "Touchpad Click";
-
-              ImGui::OpenPopup ("PlayStationButtonBinding_v1");
             }
             if (bHasDualSenseEdge)
             {
@@ -2453,33 +2451,30 @@ SK::ControlPanel::Input::Draw (void)
               {
                 mapping_idx  = 15;
                 mapping_name = "Fn Left";
-
-                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
               }
               if (ImGui::Selectable  (SK_FormatString ("%ws###FnRight_Binding", SK_HID_GetGamepadButtonBinding (16)->c_str ()).c_str (),  &selected))
               {
                 mapping_idx  = 16;
                 mapping_name = "Fn Right";
-
-                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
               }
               if (ImGui::Selectable  (SK_FormatString ("%ws###BackLeft_Binding", SK_HID_GetGamepadButtonBinding (17)->c_str ()).c_str (),  &selected))
               {
                 mapping_idx  = 17;
                 mapping_name = "Back Left";
-
-                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
               }
               if (ImGui::Selectable  (SK_FormatString ("%ws###BackRight_Binding", SK_HID_GetGamepadButtonBinding (18)->c_str ()).c_str (),  &selected))
               {
                 mapping_idx  = 18;
                 mapping_name = "Back Right";
-
-                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
               }
             }
             ImGui::EndGroup        ();
             ImGui::TreePop         ();
+            if (mapping_idx != 0)
+            {
+              if (! ImGui::IsPopupOpen ("PlayStationButtonBinding_v1"))
+                    ImGui::OpenPopup   ("PlayStationButtonBinding_v1");
+            }
             if (ImGui::BeginPopup ("PlayStationButtonBinding_v1"))
             {
               ImGui::Text (
@@ -2491,6 +2486,8 @@ SK::ControlPanel::Input::Draw (void)
 
               if (ImGui::Button ("Cancel"))
               {
+                mapping_idx = 0;
+
                 ImGui::CloseCurrentPopup ();
               }
 
@@ -2503,12 +2500,14 @@ SK::ControlPanel::Input::Draw (void)
                   SK_HID_AssignGamepadButtonBinding (
                             mapping_idx, nullptr, 0 );
 
+                  mapping_idx = 0;
+
                   ImGui::CloseCurrentPopup ();
                 }
 
                 else
                 {
-                  for ( UINT idx = 0; idx < 255 ; ++idx )
+                  for ( UINT idx = 8; idx < 255 ; ++idx )
                   {
                     if (ImGui::GetIO ().KeysDown [idx])
                     {
@@ -2516,6 +2515,8 @@ SK::ControlPanel::Input::Draw (void)
                         mapping_idx,
                           virtKeyCodeToHumanKeyName [(BYTE)idx],
                                                            idx);
+
+                      mapping_idx = 0;
 
                       ImGui::CloseCurrentPopup ();
                       break;
