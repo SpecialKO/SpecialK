@@ -1448,15 +1448,12 @@ SK_AchievementManager::drawPopups (void)
       ++it; continue;
     }
 
-    if (it->time == 0)
-        it->time = SK_timeGetTime ();
-
     bool eligible_for_screenshots =
       (config.platform.achievements.take_screenshot && it->achievement->unlocked_);
 
     any_eligible_for_screenshots |= eligible_for_screenshots;
 
-    if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS))
+    if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS) || it->time == 0)
     {
       ImGuiWindow* win = it->window;
 
@@ -1593,6 +1590,10 @@ SK_AchievementManager::drawPopups (void)
         ImGui::End           (  );
 
         on_screen++;
+
+        // Establish the time the popup was first visible on screen
+        if (it->time == 0)
+            it->time = SK_timeGetTime ();
       }
 
       if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)

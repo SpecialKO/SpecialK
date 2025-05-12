@@ -2670,7 +2670,6 @@ public:
 
       popup.window      = nullptr;
       popup.final_pos   = false;
-      popup.time        = SK_timeGetTime ();
       popup.achievement = achievement;
 
       popups.push_back (popup);

@@ -151,12 +151,12 @@ public:
 protected:
   struct SK_AchievementPopup
   {
-    IUnknown*       icon_texture; // Native graphics API texture handle (e.g. SRV)
-    ID3D12Resource* d3d12_tex;    // D3D12 Texture, for proper cleanup
-    ImGuiWindow*    window;
-    DWORD           time;
-    bool            final_pos;    // When the animation is finished, this will be set.
-    Achievement*    achievement;
+    IUnknown*       icon_texture = nullptr; // Native graphics API texture handle (e.g. SRV)
+    ID3D12Resource* d3d12_tex    = nullptr; // D3D12 Texture, for proper cleanup
+    ImGuiWindow*    window       = nullptr;
+    Achievement*    achievement  = nullptr;
+    DWORD           time         =       0;
+    bool            final_pos    =   false; // When the animation is finished, this will be set.
   };
 
   ImGuiWindow* createPopupWindow (SK_AchievementPopup* popup);
