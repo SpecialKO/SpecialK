@@ -1361,6 +1361,9 @@ SK_AchievementManager::drawPopups (void)
 {
   int drawn = 0;
 
+  if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
+    return drawn;
+
   if (platform_popup_cs != nullptr)
       platform_popup_cs->lock ();
 

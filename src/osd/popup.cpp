@@ -573,6 +573,9 @@ SK_ImGui_UnsilenceNotifications (void)
 void
 SK_ImGui_DrawNotifications (void)
 {
+  if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
+    return;
+
   std::vector <SK_ImGui_Toast> notifications;
 
   while (! SK_ImGui_Notifications.empty ())
