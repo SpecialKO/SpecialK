@@ -6105,14 +6105,24 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             static volatile UINT             devnodes_stage  =  0;
             if (InterlockedCompareExchange (&devnodes_stage, 1, 0) == 0)
             {
+              static CHandle hSignal (
+                SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
+              );
+              static HANDLE hDevnodesChangedThread =
               SK_Thread_CreateEx ([](LPVOID)->DWORD
               {
-                SK_SleepEx (250UL, FALSE);
+                HANDLE wait_handles [] = { hSignal.m_h, __SK_DLL_TeardownEvent };
 
-                InterlockedIncrement (&devnodes_stage);
+                while ( (WAIT_OBJECT_0 + 1) !=
+                         WaitForMultipleObjects (2, wait_handles, FALSE, INFINITE) )
+                {
+                  SK_SleepEx (333UL, FALSE);
 
-                PostMessage (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, 0);
-                SK_LOGi0 ( L"Delayed WM_DEVICECHANGE posted for DBT_DEVNODES_CHANGED"  );
+                  InterlockedIncrement (&devnodes_stage);
+
+                  PostMessage (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, 0);
+                  SK_LOGi0 ( L"Delayed WM_DEVICECHANGE posted for DBT_DEVNODES_CHANGED"  );
+                }
 
                 SK_Thread_CloseSelf ();
 
