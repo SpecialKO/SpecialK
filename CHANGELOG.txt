@@ -1,6 +1,15 @@
-﻿25.5.12.2
+﻿25.5.12.3
+=========
+ + Since Reflex is broken in DOOM The Dark Ages, whenever the game is set to
+     Low Latency mode on a VRR display, SK will force the correct framerate.
+
+   * User may supply a custom framerate limit even lower, but SK will enforce
+       the same upper-limit that Reflex normally would if it actually worked.
+
+25.5.12.2
 =========
  + Add Vulkan extension hooks to disable Flip Metering in DOOM The Dark Ages.
+     * VK_NV_present_metering
 
 25.5.12.1
 =========

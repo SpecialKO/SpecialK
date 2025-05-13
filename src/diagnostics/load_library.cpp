@@ -986,6 +986,18 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       hMod = nullptr;
     }
 
+    else if (StrStrIW (compliant_path, L"NvLowLatencyVk"))
+    {
+      hMod =
+        SK_LoadLibraryW (compliant_path);
+
+      if (hMod != 0)
+      {
+        extern void SK_VK_HookReflex (void);
+                    SK_VK_HookReflex ();
+      }
+    }
+
     else if (StrStrIW (compliant_path, L"nvngx_dlss"))
     {
       const bool is_dlss  = StrStrIW (compliant_path, L"nvngx_dlss.dll");

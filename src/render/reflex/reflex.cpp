@@ -1130,3 +1130,124 @@ SK_NV_AdaptiveSyncControl (void)
     }
   }
 }
+
+#include <vulkan/vulkan.h>
+
+typedef DWORD         NvLL_VK_Status;
+typedef unsigned long NvVKU32;
+typedef uint8_t       NvVKBool;
+
+struct NVLL_VK_SET_SLEEP_MODE_PARAMS {
+  NvVKBool bLowLatencyMode;
+  NvVKBool bLowLatencyBoost;
+  NvVKU32  minimumIntervalUs;
+};
+
+using  NvLL_VK_SetSleepMode_pfn = NvLL_VK_Status (*)(VkDevice, NVLL_VK_SET_SLEEP_MODE_PARAMS*);
+static NvLL_VK_SetSleepMode_pfn
+       NvLL_VK_SetSleepMode_Original = nullptr;
+
+using  NvLL_VK_InitLowLatencyDevice_pfn = NvLL_VK_Status (*)(HANDLE vkDevice, HANDLE* signalSemaphoreHandle);
+static NvLL_VK_InitLowLatencyDevice_pfn
+       NvLL_VK_InitLowLatencyDevice_Original = nullptr;
+
+using  NvLL_VK_Sleep_pfn = NvLL_VK_Status (*)(HANDLE vkDevice, uint64_t signalValue);
+static NvLL_VK_Sleep_pfn
+       NvLL_VK_Sleep_Original = nullptr;
+
+NvLL_VK_Status
+NvLL_VK_Sleep_Detour (HANDLE vkDevice, uint64_t signalValue)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    NvLL_VK_Sleep_Original (vkDevice, signalValue);
+}
+
+NvLL_VK_Status
+NvLL_VK_InitLowLatencyDevice_Detour (VkDevice device, HANDLE* signalSemaphoreHandle)
+{
+  SK_LOG_FIRST_CALL
+
+  extern void SK_VK_HookFirstDevice (VkDevice device);
+              SK_VK_HookFirstDevice (         device);
+
+  return
+    NvLL_VK_InitLowLatencyDevice_Original (device, signalSemaphoreHandle);
+}
+
+NvLL_VK_Status
+NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sleepModeParams)
+{
+  SK_LOG_FIRST_CALL
+
+  if (sleepModeParams != nullptr)
+  {
+    SK_LOGi2 (
+      L"NvLL_VK_SetSleepMode ( { lowLatencyMode=%d, LowLatencyBoost=%d, minimumIntervalUs=%d } )",
+                sleepModeParams->bLowLatencyMode,
+                sleepModeParams->bLowLatencyBoost,
+                sleepModeParams->minimumIntervalUs
+    );
+
+    const auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    const auto& display =
+      rb.displays [rb.active_display];
+
+    // Apply correct VRR framerate limit, which Reflex should be doing on its own...
+    if ( sleepModeParams->bLowLatencyMode                           &&
+         display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
+         display.signal.timing.vsync_freq.Denominator != 0 )
+    {
+      const double dRefresh =
+        static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+        static_cast <double> (display.signal.timing.vsync_freq.Denominator);
+
+      const double dReflexFPS =
+        (dRefresh - (dRefresh * dRefresh) / 3600.0);
+
+      const auto vrr_interval_us =
+        static_cast <UINT> (1000000.0 / dReflexFPS);
+
+      // Vulkan Reflex is b0rked, we will just do it ourselves if Low Latency mode is enabled.
+      if ( __target_fps <= 0.0f ||
+           __target_fps > dReflexFPS )
+           __target_fps = static_cast <float> (dReflexFPS);
+
+      if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
+          sleepModeParams->minimumIntervalUs = vrr_interval_us;
+    }
+
+    else
+    {
+      __target_fps = config.render.framerate.target_fps;
+    }
+  }
+
+  return
+    NvLL_VK_SetSleepMode_Original (device, sleepModeParams);
+}
+
+void SK_VK_HookReflex (void)
+{
+  SK_RunOnce (
+    SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
+                              "NvLL_VK_InitLowLatencyDevice",
+                               NvLL_VK_InitLowLatencyDevice_Detour,
+      static_cast_p2p <void> (&NvLL_VK_InitLowLatencyDevice_Original) );
+
+    SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
+                              "NvLL_VK_SetSleepMode",
+                               NvLL_VK_SetSleepMode_Detour,
+      static_cast_p2p <void> (&NvLL_VK_SetSleepMode_Original) );
+
+    SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
+                              "NvLL_VK_Sleep",
+                               NvLL_VK_Sleep_Detour,
+      static_cast_p2p <void> (&NvLL_VK_Sleep_Original) );
+
+    SK_ApplyQueuedHooks ();
+  );
+}

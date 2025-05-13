@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -117,6 +117,7 @@ SK_DescribeVkResult (VkResult result)
   dll_log->LogEx (false, L") -- [%s, tid=0x%04x]\n",      \
     SK_GetCallerName ().c_str (), GetCurrentThreadId ());
 
+#if 0
 VkResult
 VKAPI_CALL
 vkCreateWin32SurfaceKHR_Detour ( VkInstance                   instance,
@@ -216,6 +217,7 @@ vkAcquireNextImageKHR_Detour ( VkDevice       device,
 
   return ret;
 }
+#endif
 
 extern void SK_BootVulkan (void);
 typedef void (WINAPI *finish_pfn)(void);
@@ -234,6 +236,7 @@ void
 WINAPI
 SK_HookVulkan (void)
 {
+#if 0
 #ifdef _WIN64
   static volatile ULONG hooked = FALSE;
 
@@ -296,6 +299,7 @@ SK_HookVulkan (void)
   }
 
   InterlockedExchange (&__vk_ready, TRUE);
+#endif
 #endif
 }
 
