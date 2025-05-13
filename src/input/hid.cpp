@@ -1068,6 +1068,19 @@ ReadFile_Detour (HANDLE       hFile,
                   SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), nNumberOfBytesToRead);
               }
             }
+
+            else if (report_id > 0 && hid_file->canNeutralizeInput (report_id, nNumberOfBytesToRead))
+            {
+              if (
+                ReadFile_Original (
+                  hFile, lpBuffer, nNumberOfBytesToRead,
+                    lpNumberOfBytesRead, lpOverlapped
+                )
+              )
+              {
+                hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead, lpBuffer);
+              }
+            }
           }
         }
 

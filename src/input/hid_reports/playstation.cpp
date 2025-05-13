@@ -3985,6 +3985,63 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
   return data_changed;
 }
 
+bool SK_HID_DeviceFile::canNeutralizeInput (uint8_t report_id, DWORD dwSize)
+{
+  switch (device_vid)
+  {
+    case SK_HID_VID_SONY:
+    {
+      switch (device_pid)
+      {
+        case SK_HID_PID_DUALSHOCK4:
+        case SK_HID_PID_DUALSHOCK4_REV2:
+        {
+          switch (report_id)
+          {
+            case 1:  return (dwSize >= 34);
+            default: return false;
+          }
+        } break;
+
+        case SK_HID_PID_DUALSENSE_EDGE:
+        case SK_HID_PID_DUALSENSE:
+        {
+          switch (report_id)
+          {
+            case 1: // Bluetooth Simple
+            {
+              const bool bluetooth = false;
+
+              if (bluetooth)
+              {
+                return
+                  (dwSize >= 10);
+              }
+
+              else
+              {
+                return
+                  (dwSize >= 64);
+              }
+            } break;
+
+            case 49:
+            {
+              return
+                (dwSize >= 78);
+            } break;
+
+            default:
+              break;
+          }
+        } break;
+      }
+    } break;
+  }
+
+  return false;
+}
+
 int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVOID lpBuf)
 {
   auto const cachedInputReport =
@@ -4259,6 +4316,11 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
         } break;
       }
     } break;
+  }
+
+  if (modified_bytes != 0)
+  {
+    SK_LOGi1 (L"Neutralized %d bytes for input report %d", modified_bytes, report_id);
   }
 
   return modified_bytes;
