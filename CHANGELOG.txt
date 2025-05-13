@@ -1,4 +1,8 @@
-﻿25.5.12.5
+﻿25.5.12.6
+=========
+ + Disable minimumIntervalUs override in Vulkan Reflex for VRR displays.
+
+25.5.12.5
 =========
  + Added Vulkan-based Reflex (NvLowLatencyVk.dll) latency analysis and override
      support for games that natively support it.
