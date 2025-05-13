@@ -1,4 +1,12 @@
-﻿25.5.12
+﻿25.5.12.2
+=========
+ + Add Vulkan extension hooks to disable Flip Metering in DOOM The Dark Ages.
+
+25.5.12.1
+=========
+ + Added compatibility hack for DOOM The Dark Ages' launcher.
+
+25.5.12
 =======
  + Added file dialog to select a custom achievement unlock sound in-game.
 

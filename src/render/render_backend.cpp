@@ -590,9 +590,94 @@ SK_BootOpenGL (void)
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_win32.h"
 
-PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR_Original = nullptr;
+PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties_Original = nullptr;
+PFN_vkEnumerateDeviceExtensionProperties   vkEnumerateDeviceExtensionProperties_Original   = nullptr;
+PFN_vkCreateSwapchainKHR                   vkCreateSwapchainKHR_Original                   = nullptr;
 
 VkResult
+VKAPI_CALL
+SK_VK_EnumerateInstanceExtensionProperties (
+    const char*            pLayerName,
+    uint32_t*              pPropertyCount,
+    VkExtensionProperties* pProperties )
+{
+  SK_LOG_FIRST_CALL
+
+  const auto result =
+    vkEnumerateInstanceExtensionProperties_Original (
+            pLayerName, pPropertyCount, pProperties );
+
+  if (result == VK_SUCCESS && pProperties != nullptr)
+  {
+    for ( UINT i = 0 ; i < *pPropertyCount ; ++i )
+    {
+      auto property =
+        &pProperties [i];
+
+      if (! config.nvidia.dlss.allow_flip_metering)
+      {
+        // Erase this extension by duplicating the prior extension...
+        if (strcmp (property->extensionName, "VK_NV_present_metering") == 0){
+            memcpy (property, property-1, sizeof (VkExtensionProperties));
+
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Vulkan Extension: VK_NV_present_metering disabled in call to "
+              L"vkEnumerateInstanceExtensionProperties (...)"
+            )
+          );
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+VkResult
+VKAPI_CALL
+SK_VK_EnumerateDeviceExtensionProperties (
+    VkPhysicalDevice       physicalDevice,
+    const char*            pLayerName,
+    uint32_t*              pPropertyCount,
+    VkExtensionProperties* pProperties )
+{
+  SK_LOG_FIRST_CALL
+
+  const auto result =
+    vkEnumerateDeviceExtensionProperties_Original (
+      physicalDevice, pLayerName, pPropertyCount,
+                                  pProperties );
+
+  if (result == VK_SUCCESS && pProperties != nullptr)
+  {
+    for ( UINT i = 0 ; i < *pPropertyCount ; ++i )
+    {
+      auto property =
+        &pProperties [i];
+
+      if (! config.nvidia.dlss.allow_flip_metering)
+      {
+        // Erase this extension by duplicating the prior extension...
+        if (strcmp (property->extensionName, "VK_NV_present_metering") == 0){
+            memcpy (property, property-1, sizeof (VkExtensionProperties));
+
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Vulkan Extension: VK_NV_present_metering disabled in call to "
+              L"vkEnumerateDeviceExtensionProperties (...)"
+            )
+          );
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+VkResult
+VKAPI_CALL
 SK_VK_CreateSwapchainKHR (
             VkDevice                   device,
       const VkSwapchainCreateInfoKHR*  pCreateInfo,
@@ -641,6 +726,16 @@ _SK_HookVulkan (void)
                              "vkCreateSwapchainKHR",
                           SK_VK_CreateSwapchainKHR,
      static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
+
+          SK_CreateDLLHook (L"vulkan-1.dll",
+                             "vkEnumerateInstanceExtensionProperties",
+                          SK_VK_EnumerateInstanceExtensionProperties,
+     static_cast_p2p <void> (&vkEnumerateInstanceExtensionProperties_Original));
+
+          SK_CreateDLLHook (L"vulkan-1.dll",
+                             "vkEnumerateDeviceExtensionProperties",
+                          SK_VK_EnumerateDeviceExtensionProperties,
+     static_cast_p2p <void> (&vkEnumerateDeviceExtensionProperties_Original));
     }
   }
 }
