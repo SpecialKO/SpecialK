@@ -1209,12 +1209,15 @@ slInit_Detour (sl::Preferences *pref, uint64_t sdkVersion = sl::kSDKVersion)
     // Always print Streamline debug output to Special K's game_output.log,
     //   disable any log redirection the game would ordinarily do on its own.
     //
-    pref->logMessageCallback = nullptr;
+    if (config.nvidia.dlss.streamline_dbg_out)
+    {
+      pref->logMessageCallback = nullptr;
 #ifdef _DEBUG
-    pref->logLevel           = sl::LogLevel::eVerbose;
+      pref->logLevel           = sl::LogLevel::eVerbose;
 #else
-    pref->logLevel           = sl::LogLevel::eDefault;
+      pref->logLevel           = sl::LogLevel::eDefault;
 #endif
+    }
 
     // Make forcing proxies into an option
     //pref->flags |=
@@ -1383,4 +1386,23 @@ SK_slUpgradeInterface (void **baseInterface)
 
   return result;
 #endif
+}
+
+void
+SK_COMPAT_ApplyHIDAttachFixUps (void)
+{
+  // Game will not respond to gamepad input until the user clicks the mouse...
+  if (SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
+  {
+    SK_LOGi0 (L"Applying HID input fixup for DOOM The Dark Ages...");
+
+    INPUT             input            = {         };
+                      input.type       = INPUT_MOUSE;
+                      input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE;
+                      input.mi.dx      = game_window.actual.window.left + (game_window.actual.window.right  - game_window.actual.window.left) / 2;
+                      input.mi.dy      = game_window.actual.window.top  + (game_window.actual.window.bottom - game_window.actual.window.top ) / 2;
+    SK_SendInput (1, &input, sizeof (INPUT));
+                      input.mi.dwFlags = MOUSEEVENTF_LEFTUP   | MOUSEEVENTF_ABSOLUTE;
+    SK_SendInput (1, &input, sizeof (INPUT));
+  }
 }

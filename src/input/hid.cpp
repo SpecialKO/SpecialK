@@ -996,7 +996,6 @@ WriteFile_Detour (HANDLE       hFile,
         lpNumberOfBytesWritten, lpOverlapped );
 }
 
-
 static
 BOOL
 WINAPI
@@ -1116,6 +1115,8 @@ ReadFile_Detour (HANDLE       hFile,
           if ( hid_file->bytes_read    == 0 /* &&
                hid_file->bytes_written == 0  */ )
           {
+            SK_COMPAT_ApplyHIDAttachFixUps ();
+
             const bool harmful =
               config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
 
@@ -1389,6 +1390,8 @@ ReadFileEx_Detour (HANDLE                          hFile,
       if ( hid_file->bytes_read    == 0 /* &&
            hid_file->bytes_written == 0  */ )
       {
+        SK_COMPAT_ApplyHIDAttachFixUps ();
+
         const bool harmful =
           config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
 

@@ -1,4 +1,11 @@
-﻿25.5.12.3
+﻿25.5.12.4
+=========
+ + Disable Streamline debug output in DOOM The Dark Ages, because it causes a
+     debug terminal to spawn.
+ + Added window activation hack for DOOM The Dark Ages to ensure that DualSense
+     controllers behave correctly after hot-plug.
+
+25.5.12.3
 =========
  + Since Reflex is broken in DOOM The Dark Ages, whenever the game is set to
      Low Latency mode on a VRR display, SK will force the correct framerate.
