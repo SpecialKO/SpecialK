@@ -1834,6 +1834,7 @@ enum class SK_GAME_ID
   RiseOfRonin,                  // Ronin.exe
   ClairObscur_Expedition33,     // SandFallEos-Win64-Shipping.exe
   Metro2033,                    // metro.exe
+  DOOMTheDarkAges,              // DOOMTheDarkAges.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -209,7 +209,7 @@ SK::ControlPanel::Platform::Draw (void)
                                                                    "Xbox Live\0"
                                                                "Dream Theater\0"
                                                   "Custom\t[Refer to Tooltip]\0"
-                                                             "Pick a.wav File\0\0", 5))
+                                                            "Pick a .wav File\0\0", 5))
             {
               if (i <= 2)
               {

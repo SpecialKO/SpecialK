@@ -289,7 +289,8 @@ SK_GetCurrentGameID (void)
           { L"SandFallEos-Win64-Shipping.exe",         SK_GAME_ID::ClairObscur_Expedition33     }, // Epic Version
           { L"SandFall-Win64-Shipping.exe",            SK_GAME_ID::ClairObscur_Expedition33     }, // Steam Version
           { L"SandFall-WinGDK-Shipping.exe",           SK_GAME_ID::ClairObscur_Expedition33     }, // Microsoft Store Version
-          { L"metro.exe",                              SK_GAME_ID::Metro2033                    }
+          { L"metro.exe",                              SK_GAME_ID::Metro2033                    },
+          { L"DOOMTheDarkAges.exe",                    SK_GAME_ID::DOOMTheDarkAges              }
         };
 
     first_check  = false;
@@ -4107,6 +4108,14 @@ auto DeclKeybind =
       case SK_GAME_ID::DOOMEternal:
         config.apis.NvAPI.vulkan_bridge   = 1;
         config.system.global_inject_delay = 0.0f;
+        config.apis.last_known            = SK_RenderAPI::D3D11;
+        apis.last_known->store             ((int)config.apis.last_known);
+        break;
+
+      case SK_GAME_ID::DOOMTheDarkAges:
+        config.apis.NvAPI.vulkan_bridge   = 1;
+        config.apis.last_known            = SK_RenderAPI::D3D11;
+        apis.last_known->store             ((int)config.apis.last_known);
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:
