@@ -6105,20 +6105,21 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             static volatile UINT             devnodes_stage  =  0;
             if (InterlockedCompareExchange (&devnodes_stage, 1, 0) == 0)
             {
-              static CHandle hSignal (
-                SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
-              );
+              static HANDLE hSignalDevnodes =
+                SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
               static HANDLE hDevnodesChangedThread =
               SK_Thread_CreateEx ([](LPVOID)->DWORD
               {
-                HANDLE wait_handles [] = { hSignal.m_h, __SK_DLL_TeardownEvent };
+                HANDLE events [] = { hSignalDevnodes, __SK_DLL_TeardownEvent };
 
                 while ( (WAIT_OBJECT_0 + 1) !=
-                         WaitForMultipleObjects (2, wait_handles, FALSE, INFINITE) )
+                         WaitForMultipleObjects (2, events, FALSE, INFINITE) )
                 {
-                  SK_SleepEx (333UL, FALSE);
+                  SK_SleepEx (200UL, FALSE);
 
                   InterlockedIncrement (&devnodes_stage);
+
+                  ResetEvent (hSignalDevnodes);
 
                   PostMessage (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, 0);
                   SK_LOGi0 ( L"Delayed WM_DEVICECHANGE posted for DBT_DEVNODES_CHANGED"  );
@@ -6128,6 +6129,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
                 return 0;
               }, L"[SK] Deferred Device Change Notification");
+
+              SetEvent (hSignalDevnodes);
 
               return 1;
             }
