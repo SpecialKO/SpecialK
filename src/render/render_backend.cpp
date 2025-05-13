@@ -959,11 +959,6 @@ _SK_HookVulkan (void)
                               vkAcquireNextImage2KHR_Detour,
      static_cast_p2p <void> (&vkAcquireNextImage2KHR_Original));
 
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkEnumerateDeviceExtensionProperties",
-                          SK_VK_EnumerateDeviceExtensionProperties,
-     static_cast_p2p <void> (&vkEnumerateDeviceExtensionProperties_Original));
-
      vkGetDeviceProcAddr_SK = (PFN_vkGetDeviceProcAddr)SK_GetProcAddress (L"vulkan-1.dll",
     "vkGetDeviceProcAddr");
 
