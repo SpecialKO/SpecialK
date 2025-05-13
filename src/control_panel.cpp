@@ -2965,7 +2965,7 @@ SK_NV_LatencyControlPanel (void)
   static bool     native_disabled =
     config.nvidia.reflex.disable_native;
 
-  if ((config.nvidia.reflex.native && config.nvidia.reflex.override) || native_disabled)
+  if ((config.nvidia.reflex.native && config.nvidia.reflex.override && !config.nvidia.reflex.vulkan) || native_disabled)
   {
     ImGui::SameLine ();
 

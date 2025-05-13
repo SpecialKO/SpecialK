@@ -1,4 +1,10 @@
-﻿25.5.12.4
+﻿25.5.12.5
+=========
+ + Added Vulkan-based Reflex (NvLowLatencyVk.dll) latency analysis and override
+     support for games that natively support it.
+   * VK_NV_low_latency2 analysis and non-native Reflex injection unsupported.
+
+25.5.12.4
 =========
  + Disable Streamline debug output in DOOM The Dark Ages, because it causes a
      debug terminal to spawn.

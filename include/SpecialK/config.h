@@ -1037,7 +1037,8 @@ struct sk_config_t
       bool    low_latency_boost   =  false;
       bool    marker_optimization =  false;
       bool    enable              =  false;
-      bool    native              =  false;
+      bool    native              =  false; // Status, not settings
+      bool    vulkan              =  false; // Status, not settings
       bool    override            =  false;
       bool    combined_limiter    =  false;
       bool    disable_native      =  false;

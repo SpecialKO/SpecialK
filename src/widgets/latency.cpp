@@ -1089,7 +1089,9 @@ SK_ImGui_DrawConfig_Latency ()
   //}
   }
   
-  if ( config.nvidia.reflex.enable            &&
+  // This only exists in D3D (NvAPI)-based Reflex
+  if ( config.nvidia.reflex.vulkan == false   &&
+       config.nvidia.reflex.enable            &&
        config.nvidia.reflex.low_latency       &&
        config.nvidia.reflex.low_latency_boost &&
            ( (! config.nvidia.reflex.native)  ||

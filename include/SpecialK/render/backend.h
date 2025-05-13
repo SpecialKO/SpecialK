@@ -689,6 +689,18 @@ public:
     DWORD  last_checked = 0;
   } gsync_state;
 
+  struct vk_reflex_s
+  {
+    enum api_t {
+      None               = 0,
+      NvLowLatencyVk     = 1,
+      VK_NV_low_latency2 = 2
+    } api = None;
+
+    bool getLatencyReport (NV_LATENCY_RESULT_PARAMS*) const;
+    bool isSupported      (void) const;
+  } vulkan_reflex;
+
 
   SK_LazyGlobal <SK_ScreenshotManager>
                     screenshot_mgr;
