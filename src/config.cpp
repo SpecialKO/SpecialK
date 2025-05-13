@@ -4113,9 +4113,11 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DOOMTheDarkAges:
-        config.apis.NvAPI.vulkan_bridge   = 1;
-        config.apis.last_known            = SK_RenderAPI::D3D11;
-        apis.last_known->store             ((int)config.apis.last_known);
+        config.apis.NvAPI.vulkan_bridge       = 1;
+        config.apis.last_known                = SK_RenderAPI::D3D11;
+        apis.last_known->store                 ((int)config.apis.last_known);
+        // Do not output Streamline debug, because it will create a terminal window
+        config.nvidia.dlss.streamline_dbg_out = false;
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:
