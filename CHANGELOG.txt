@@ -1,4 +1,9 @@
-﻿25.5.12.6
+﻿25.5.12.7
+=========
+ + Remove forced Vulkan bridge setting from DOOM The Dark Ages, it already
+     uses DXGI interop...
+
+25.5.12.6
 =========
  + Disable minimumIntervalUs override in Vulkan Reflex for VRR displays.
 
