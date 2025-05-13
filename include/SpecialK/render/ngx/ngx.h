@@ -39,7 +39,7 @@ void SK_NGX_EstablishDLSSGVersion (const wchar_t*) noexcept;
 
 struct SK_DLSS_Context
 {
-  // Has the DLSS context for this API (i.e. D3D11, D3D12, CUDA)
+  // Has the DLSS context for this API (i.e. D3D11, D3D12, VULKAN)
   //   made any API calls?
   bool apis_called               = false;
 
@@ -140,6 +140,7 @@ struct SK_DLSS_Context
   inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll"); };
 };
 
+extern SK_DLSS_Context SK_NGX_VULKAN;
 extern SK_DLSS_Context SK_NGX_DLSS12;
 extern SK_DLSS_Context SK_NGX_DLSS11;
 

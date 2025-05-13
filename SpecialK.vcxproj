@@ -2063,6 +2063,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\render\ngx\ngx.cpp" />
     <ClCompile Include="src\render\ngx\ngx_d3d11.cpp" />
     <ClCompile Include="src\render\ngx\ngx_d3d12.cpp" />
+    <ClCompile Include="src\render\ngx\ngx_vulkan.cpp" />
     <ClCompile Include="src\render\present_mon\CommandLine.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">NotUsing</PrecompiledHeader>

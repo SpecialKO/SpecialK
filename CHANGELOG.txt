@@ -1,4 +1,12 @@
-﻿25.5.12.7
+﻿25.5.12.8
+=========
+ + Added support for (most) DLSS functionality in Vulkan.
+
+     >> Native Pacing mode and DLSS-G Pacing are both non-functional.
+        
+    * How much of that is due to DOOM's broken Reflex code is not clear yet.
+
+25.5.12.7
 =========
  + Remove forced Vulkan bridge setting from DOOM The Dark Ages, it already
      uses DXGI interop...

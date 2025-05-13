@@ -43,8 +43,9 @@ bool
 SK_NGX_IsUsingDLSS (void)
 {
   const auto& dlss_ss =
-    (SK_NGX_DLSS12.apis_called    ?
-     SK_NGX_DLSS12.super_sampling : SK_NGX_DLSS11.super_sampling);
+    (SK_NGX_DLSS12.apis_called ? SK_NGX_DLSS12.super_sampling :
+     SK_NGX_VULKAN.apis_called ? SK_NGX_VULKAN.super_sampling :
+                                 SK_NGX_DLSS11.super_sampling);
 
   return                 dlss_ss.LastInstance         != nullptr &&
                          dlss_ss.LastInstance->Handle != nullptr &&
@@ -55,7 +56,8 @@ bool
 SK_NGX_IsUsingDLSS_D (void)
 {
   const auto& dlss_ss =
-    SK_NGX_DLSS12.super_sampling;
+    (SK_NGX_DLSS12.apis_called ? SK_NGX_DLSS12.super_sampling :
+                                 SK_NGX_VULKAN.super_sampling);
 
   return                 
                          dlss_ss.LastInstance         != nullptr &&
@@ -807,6 +809,10 @@ SK_NGX_GetDLSSParameters (void)
     return SK_NGX_DLSS12.super_sampling.LastInstance != nullptr  ?
            SK_NGX_DLSS12.super_sampling.LastInstance->Parameters : nullptr;
 
+  if (     SK_NGX_VULKAN.apis_called)
+    return SK_NGX_VULKAN.super_sampling.LastInstance != nullptr  ?
+           SK_NGX_VULKAN.super_sampling.LastInstance->Parameters : nullptr;
+
   return SK_NGX_DLSS11.super_sampling.LastInstance != nullptr  ?
          SK_NGX_DLSS11.super_sampling.LastInstance->Parameters : nullptr;
 }
@@ -926,6 +932,9 @@ SK_NGX_GetDLSSVersion (void) noexcept
   if (     SK_NGX_DLSS12.apis_called)
     return SK_NGX_DLSS12.super_sampling.Version;
 
+  if (     SK_NGX_VULKAN.apis_called)
+    return SK_NGX_VULKAN.super_sampling.Version;
+
   return SK_NGX_DLSS11.super_sampling.Version;
 }
 
@@ -934,6 +943,9 @@ SK_NGX_GetDLSSGVersion (void) noexcept
 {
   if (     SK_NGX_DLSS12.apis_called)
     return SK_NGX_DLSS12.frame_gen.Version;
+
+  if (     SK_NGX_VULKAN.apis_called)
+    return SK_NGX_VULKAN.frame_gen.Version;
 
   return SK_NGX_DLSS11.frame_gen.Version;
 }
@@ -1072,17 +1084,20 @@ SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters)
   }
 }
 
-extern void SK_NGX_InitD3D11 (void);
-extern void SK_NGX_InitD3D12 (void);
+extern void SK_NGX_InitD3D11  (void);
+extern void SK_NGX_InitD3D12  (void);
+extern void SK_NGX_InitVULKAN (void);
 
-extern void SK_NGX12_UpdateDLSSGStatus (void);
 extern void SK_NGX11_UpdateDLSSGStatus (void);
+extern void SK_NGX12_UpdateDLSSGStatus (void);
+extern void SK_NGXVK_UpdateDLSSGStatus (void);
 
 void
 SK_NGX_UpdateDLSSGStatus (void)
 {
   SK_NGX11_UpdateDLSSGStatus ();
   SK_NGX12_UpdateDLSSGStatus ();
+  SK_NGXVK_UpdateDLSSGStatus ();
 }
 
 void
@@ -1103,8 +1118,9 @@ SK_NGX_Init (void)
 
     using NVSDK_NGX_D3D12_GetParameters_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter **OutParameters);
 
-    SK_NGX_InitD3D11 ();
-    SK_NGX_InitD3D12 ();
+    SK_NGX_InitD3D11  ();
+    SK_NGX_InitD3D12  ();
+    SK_NGX_InitVULKAN ();
 
     SK_CreateDLLHook2 (L"_nvngx.dll",
                          "NVSDK_NGX_UpdateFeature",
@@ -2133,7 +2149,8 @@ SK_NGX_DLSS_ControlPanel (void)
           }
         }
 
-        if (__SK_IsDLSSGActive)
+        // FIXME:  Implement Vulkan Native Pacing
+        if (__SK_IsDLSSGActive && (! config.nvidia.reflex.vulkan))
         {
           if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
           {
@@ -2407,6 +2424,7 @@ SK_NGX_Reset (void)
 {
   WriteULong64Release (&SK_NGX_DLSS11.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
   WriteULong64Release (&SK_NGX_DLSS12.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
+  WriteULong64Release (&SK_NGX_VULKAN.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
 }
 
 namespace sl

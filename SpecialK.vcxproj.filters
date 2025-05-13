@@ -3860,6 +3860,9 @@
     <ClCompile Include="assassins_creed_shadows.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="src\render\ngx\ngx_vulkan.cpp">
+      <Filter>Source Files\Backends\Render\NGX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
