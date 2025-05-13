@@ -6107,7 +6107,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             {
               SK_Thread_CreateEx ([](LPVOID)->DWORD
               {
-                SK_SleepEx (5000UL, FALSE);
+                SK_SleepEx (250UL, FALSE);
 
                 InterlockedIncrement (&devnodes_stage);
 
