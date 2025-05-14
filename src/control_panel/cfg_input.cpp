@@ -879,6 +879,11 @@ SK::ControlPanel::Input::Draw (void)
       if (changed)
       {   changed_once = true;
 
+        // Implicit RawInput keyboard flags to set for windows key
+        if (enable_win_key == 2) // Allow
+             config.input.keyboard.prevent_no_hotkeys =  true;
+        else config.input.keyboard.prevent_no_hotkeys = false;
+
         config.input.keyboard.enable_win_key = enable_win_key - 1;
         config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
 
