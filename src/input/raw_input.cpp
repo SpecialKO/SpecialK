@@ -495,8 +495,8 @@ RegisterRawInputDevices_Detour (
       (pDevices [i].dwFlags & RIDEV_PAGEONLY) && pDevices [i].usUsage == 0;
 
 #define _ALLOW_BACKGROUND_GAMEPAD
-#define _ALLOW_LEGACY_MOUSE
-#define _ALLOW_LEGACY_KEYBOARD
+//#define _ALLOW_LEGACY_MOUSE
+//#define _ALLOW_LEGACY_KEYBOARD
 
 #ifdef _ALLOW_BACKGROUND_GAMEPAD
       if ( pDevices [i].hwndTarget  !=   0                                 &&
@@ -511,13 +511,24 @@ RegisterRawInputDevices_Detour (
       }
 #endif
 
-#ifdef _ALLOW_LEGACY_KEYBOARD
-      if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
+      if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC     &&
          (pDevices [i].usUsage     ==  HID_USAGE_GENERIC_KEYBOARD ||
           match_any_in_page))
       {
-        if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
-          pDevices [i].dwFlags     &= ~RIDEV_NOLEGACY;
+        if (config.input.keyboard.prevent_no_legacy)
+        {
+          if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
+          {
+            if (pDevices [i].dwFlags & RIDEV_NOLEGACY)
+            {
+              SK_LOGi0 (
+                L"Game tried to register a keyboard with RIDEV_NOLEGACY flag, but "
+                L"we are ignoring it..."
+              );
+            }
+            pDevices [i].dwFlags     &= ~RIDEV_NOLEGACY;
+          }
+        }
 
         if ((pDevices [i].dwFlags & RIDEV_APPKEYS) &&
           (!(pDevices [i].dwFlags & RIDEV_NOLEGACY)))
@@ -535,22 +546,38 @@ RegisterRawInputDevices_Detour (
           SK_LOGi0 (
             L"Game has registered a keyboard with the RIDEV_NOHOTKEYS flag..."
           );
+
+          if (config.input.keyboard.prevent_no_hotkeys)
+          {
+            pDevices [i].dwFlags &= ~RIDEV_NOHOTKEYS;
+            SK_LOGi0 (L"RIDEV_NOHOTKEYS ignored as-per user preferences.");
+          }
         }
       }
-#endif
 
-#ifdef _ALLOW_LEGACY_MOUSE
-      if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
+      if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC  &&
          (pDevices [i].usUsage     ==  HID_USAGE_GENERIC_MOUSE ||
            match_any_in_page))
       {
-        // It is unnecessary for SK to enable legacy mouse APIs, because
-        //   SK will fallback to a low-level mouse hook.
-        //
-        //  The only time legacy mouse messages might need to be enabled
-        //    is for third-party overlays.
-        if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
-          pDevices [i].dwFlags &= ~RIDEV_NOLEGACY;
+        if (config.input.mouse.prevent_no_legacy)
+        {
+          // It is unnecessary for SK to enable legacy mouse APIs, because
+          //   SK will fallback to a low-level mouse hook.
+          //
+          //  The only time legacy mouse messages might need to be enabled
+          //    is for third-party overlays.
+          if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
+          {
+            if (pDevices [i].dwFlags & RIDEV_NOLEGACY)
+            {
+              SK_LOGi0 (
+                L"Game tried to register a mouse with RIDEV_NOLEGACY flag, but "
+                L"we are ignoring it..."
+              );
+            }
+            pDevices [i].dwFlags &= ~RIDEV_NOLEGACY;
+          }
+        }
 
         if ((pDevices [i].dwFlags & RIDEV_CAPTUREMOUSE) &&
           (!(pDevices [i].dwFlags & RIDEV_NOLEGACY)))
@@ -563,7 +590,6 @@ RegisterRawInputDevices_Detour (
           pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
         }
       }
-#endif
 
 #ifdef __MANAGE_RAW_INPUT_REGISTRATION
       raw_devices->push_back (pDevices [i]);

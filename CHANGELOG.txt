@@ -1,4 +1,9 @@
-﻿25.5.12.8
+﻿25.5.13
+=======
+ + Added INI settings to control whether RawInput Keyboards/Mice are allowed
+     to disable legacy messages (default=yes) or disable hotkeys (default=yes).
+
+25.5.12.8
 =========
  + Added support for (most) DLSS functionality in Vulkan.
 

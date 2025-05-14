@@ -687,6 +687,29 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       latency.submitQueuedFrame (pSwapChain.p);
     }
 
+    // Vulkan Early-Out
+    if (config.nvidia.reflex.vulkan)
+    {
+      if (swapchain.p != nullptr &&
+          config.render.framerate.pre_render_limit != -1)
+      {
+        SK_ComQIPtr <IDXGISwapChain>
+            pChain (      swapchain);
+        if (pChain.p != nullptr)
+        {
+          SK_ComPtr <IDXGIDevice1>                       pDev1;
+          pChain->GetDevice (IID_IDXGIDevice1, (void **)&pDev1.p);
+
+          if (pDev1.p != nullptr) {
+              pDev1->SetMaximumFrameLatency (
+                config.render.framerate.pre_render_limit );
+          }
+        }
+      }
+
+      return true;
+    }
+
     if (! isReflexSupported ())
       return false;
 

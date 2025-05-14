@@ -1243,8 +1243,10 @@ struct sk_config_t
       int     alt_tab_adhd_pace   = 0UL;
       volatile
       UINT64  temporarily_allow   =     0; // Up until temporarily_allow + 1 frames,
-      bool    disable_ime         = false;
-    } keyboard;                            //   ignore "disabled_to_game"
+      bool    disable_ime         = false; //   ignore "disabled_to_game"
+      bool    prevent_no_legacy   = false;
+      bool    prevent_no_hotkeys  = false;
+    } keyboard;                            
 
     struct mouse_s {
       // Translate WM_MOUSEWHEEL messages into actual events that will trigger
@@ -1257,10 +1259,11 @@ struct sk_config_t
       bool    ignore_small_clips  = false;// Ignore mouse clipping rects < 75% the
                                           //   dimensions of the client window, so
                                           //     that UI input works.
-      int     disabled_to_game    =    0; //0 = Never, 1 = Always, 2 = In Background
-      int     org_disabled_to_game=    0;
-      UINT64  temporarily_allow   =    0; // Up until temporarily_allow + 1 frames,
+      int     disabled_to_game    =     0;//0 = Never, 1 = Always, 2 = In Background
+      int     org_disabled_to_game=     0;
+      UINT64  temporarily_allow   =     0;// Up until temporarily_allow + 1 frames,
                                           //   ignore "disabled_to_game"
+      bool    prevent_no_legacy   = false;
     } mouse;
 
     // Avoids calling SK_Input_PreInit (...)
