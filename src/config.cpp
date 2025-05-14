@@ -1068,6 +1068,7 @@ struct {
   {
     sk::ParameterInt*     disabled_to_game        = nullptr;
     sk::ParameterBool*    prevent_no_legacy       = nullptr;
+    sk::ParameterBool*    prevent_capture         = nullptr;
   } mouse;
 
   struct {
@@ -1778,6 +1779,7 @@ auto DeclKeybind =
 
     ConfigEntry (input.mouse.disabled_to_game,           L"Completely stop all mouse input from reaching the Game",    dll_ini,         L"Input.Mouse",           L"DisabledToGame"),
     ConfigEntry (input.mouse.prevent_no_legacy,          L"Prevent games from disabling legacy mouse messages",        dll_ini,         L"Input.Mouse",           L"PreventRawInputNoLegacy"),
+    ConfigEntry (input.mouse.prevent_capture,            L"Prevent games from blocking external window activation",    dll_ini,         L"Input.Mouse",           L"PreventRawInputCapture"),
 
     ConfigEntry (input.cursor.manage,                    L"Manage Cursor Visibility (due to inactivity)",              dll_ini,         L"Input.Cursor",          L"Manage"),
     ConfigEntry (input.cursor.keys_activate,             L"Keyboard Input Activates Cursor",                           dll_ini,         L"Input.Cursor",          L"KeyboardActivates"),
@@ -4983,6 +4985,7 @@ auto DeclKeybind =
   config.input.mouse.
                  org_disabled_to_game =   config.input.mouse.disabled_to_game;
   input.mouse.prevent_no_legacy->load    (config.input.mouse.prevent_no_legacy);
+  input.mouse.prevent_capture->load      (config.input.mouse.prevent_capture);
 
   input.cursor.manage->load              (config.input.cursor.manage);
   input.cursor.keys_activate->load       (config.input.cursor.keys_activate);
@@ -6551,6 +6554,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.mouse.disabled_to_game->store         (config.input.mouse.org_disabled_to_game);
   input.mouse.prevent_no_legacy->store        (config.input.mouse.prevent_no_legacy);
+  input.mouse.prevent_capture->store          (config.input.mouse.prevent_capture);
 
   input.cursor.manage->store                  (config.input.cursor.manage);
   input.cursor.keys_activate->store           (config.input.cursor.keys_activate);

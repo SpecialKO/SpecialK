@@ -1264,6 +1264,7 @@ struct sk_config_t
       UINT64  temporarily_allow   =     0;// Up until temporarily_allow + 1 frames,
                                           //   ignore "disabled_to_game"
       bool    prevent_no_legacy   = false;
+      bool    prevent_capture     = false;
     } mouse;
 
     // Avoids calling SK_Input_PreInit (...)

@@ -3454,16 +3454,19 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     switch (ovr)
     {
       case 0:
-        config.window.confine_cursor   = 0;
-        config.window.unconfine_cursor = 0;
+        config.window.confine_cursor       = 0;
+        config.window.unconfine_cursor     = 0;
+        config.input.mouse.prevent_capture = false;
         break;
       case 1:
-        config.window.confine_cursor   = 1;
-        config.window.unconfine_cursor = 0;
+        config.window.confine_cursor       = 1;
+        config.window.unconfine_cursor     = 0;
+        config.input.mouse.prevent_capture = false;
         break;
       case 2:
-        config.window.confine_cursor   = 0;
-        config.window.unconfine_cursor = 1;
+        config.window.confine_cursor       = 0;
+        config.window.unconfine_cursor     = 1;
+        config.input.mouse.prevent_capture = true;
         break;
     }
 

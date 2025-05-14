@@ -550,7 +550,7 @@ RegisterRawInputDevices_Detour (
           if (config.input.keyboard.prevent_no_hotkeys)
           {
             pDevices [i].dwFlags &= ~RIDEV_NOHOTKEYS;
-            SK_LOGi0 (L"RIDEV_NOHOTKEYS ignored as-per user preferences.");
+            SK_LOGi0 (L"RIDEV_NOHOTKEYS ignored as-per user preference.");
           }
         }
       }
@@ -588,6 +588,12 @@ RegisterRawInputDevices_Detour (
           );
 
           pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+        }
+
+        if (config.input.mouse.prevent_capture &&
+            (pDevices [i].dwFlags &   RIDEV_CAPTUREMOUSE))
+        {    pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+          SK_LOGi0 (L"RIDEV_CAPTUREMOUSE ignored as-per user preference.");
         }
       }
 

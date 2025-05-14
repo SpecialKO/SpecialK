@@ -497,6 +497,10 @@ public:
           SK_ClipCursor   (&game_window.cursor_clip);
           SK_AdjustWindow ();
         }
+
+        // Modify RawInput capture behavior if necessary
+        config.input.mouse.prevent_capture =
+            config.window.unconfine_cursor;
       }
 
       return true;
