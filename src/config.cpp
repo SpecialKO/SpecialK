@@ -6547,7 +6547,7 @@ SK_SaveConfig ( std::wstring name,
   input.keyboard.alt_tab_adhd_pace->store     (config.input.keyboard.alt_tab_adhd_pace);
   input.keyboard.disable_ime->store           (config.input.keyboard.disable_ime);
   input.keyboard.prevent_no_legacy->store     (config.input.keyboard.prevent_no_legacy);
-  input.keyboard.prevent_no_hotkeys->store    (config.input.keyboard.prevent_no_hotkeyd);
+  input.keyboard.prevent_no_hotkeys->store    (config.input.keyboard.prevent_no_hotkeys);
 
   input.mouse.disabled_to_game->store         (config.input.mouse.org_disabled_to_game);
   input.mouse.prevent_no_legacy->store        (config.input.mouse.prevent_no_legacy);
