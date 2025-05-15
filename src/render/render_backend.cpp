@@ -810,69 +810,6 @@ SK_VK_CreateSwapchainKHR (
     vkCreateSwapchainKHR_Original (device, &_CreateInfoCopy, pAllocator, pSwapchain);
 }
 
-typedef enum VkLatencyMarkerNV {
-  VK_LATENCY_MARKER_SIMULATION_START_NV               = 0,
-  VK_LATENCY_MARKER_SIMULATION_END_NV                 = 1,
-  VK_LATENCY_MARKER_RENDERSUBMIT_START_NV             = 2,
-  VK_LATENCY_MARKER_RENDERSUBMIT_END_NV               = 3,
-  VK_LATENCY_MARKER_PRESENT_START_NV                  = 4,
-  VK_LATENCY_MARKER_PRESENT_END_NV                    = 5,
-  VK_LATENCY_MARKER_INPUT_SAMPLE_NV                   = 6,
-  VK_LATENCY_MARKER_TRIGGER_FLASH_NV                  = 7,
-  VK_LATENCY_MARKER_OUT_OF_BAND_RENDERSUBMIT_START_NV = 8,
-  VK_LATENCY_MARKER_OUT_OF_BAND_RENDERSUBMIT_END_NV   = 9,
-  VK_LATENCY_MARKER_OUT_OF_BAND_PRESENT_START_NV      = 10,
-  VK_LATENCY_MARKER_OUT_OF_BAND_PRESENT_END_NV        = 11,
-} VkLatencyMarkerNV;
-
-typedef struct VkLatencyTimingsFrameReportNV {
-  VkStructureType sType;
-  const void*     pNext;
-  uint64_t        presentID;
-  uint64_t        inputSampleTimeUs;
-  uint64_t        simStartTimeUs;
-  uint64_t        simEndTimeUs;
-  uint64_t        renderSubmitStartTimeUs;
-  uint64_t        renderSubmitEndTimeUs;
-  uint64_t        presentStartTimeUs;
-  uint64_t        presentEndTimeUs;
-  uint64_t        driverStartTimeUs;
-  uint64_t        driverEndTimeUs;
-  uint64_t        osRenderQueueStartTimeUs;
-  uint64_t        osRenderQueueEndTimeUs;
-  uint64_t        gpuRenderStartTimeUs;
-  uint64_t        gpuRenderEndTimeUs;
-} VkLatencyTimingsFrameReportNV;
-
-typedef struct VkSetLatencyMarkerInfoNV {
-  VkStructureType   sType;
-  const void*       pNext;
-  uint64_t          presentID;
-  VkLatencyMarkerNV marker;
-} VkSetLatencyMarkerInfoNV;
-
-typedef struct VkGetLatencyMarkerInfoNV {
-  VkStructureType                sType;
-  const void*                    pNext;
-  uint32_t                       timingCount;
-  VkLatencyTimingsFrameReportNV* pTimings;
-} VkGetLatencyMarkerInfoNV;
-
-typedef struct VkLatencySleepInfoNV {
-  VkStructureType sType;
-  const void*     pNext;
-  VkSemaphore     signalSemaphore;
-  uint64_t        value;
-} VkLatencySleepInfoNV;
-
-typedef struct VkLatencySleepModeInfoNV {
-  VkStructureType sType;
-  const void*     pNext;
-  VkBool32        lowLatencyMode;
-  VkBool32        lowLatencyBoost;
-  uint32_t        minimumIntervalUs;
-} VkLatencySleepModeInfoNV;
-
 static VkSwapchainKHR SK_Vulkan_NativeReflexSwapChain;
 static VkDevice       SK_Vulkan_NativeReflexDevice;
 
@@ -884,12 +821,12 @@ typedef void     (VKAPI_PTR *PFN_vkGetLatencyTimingsNV)  (VkDevice device, VkSwa
 PFN_vkSetLatencySleepModeNV vkSetLatencySleepModeNV_Original = nullptr;
 PFN_vkLatencySleepNV        vkLatencySleepNV_Original        = nullptr;
 PFN_vkSetLatencyMarkerNV    vkSetLatencyMarkerNV_Original    = nullptr;
-PFN_vkGetLatencyTimingsNV   vkGetLatencyTimingsNV            = nullptr;
+PFN_vkGetLatencyTimingsNV   vkGetLatencyTimingsNV_Original   = nullptr;
 
 auto& SK_vkSetLatencySleepModeNV = vkSetLatencySleepModeNV_Original;
 auto& SK_vkLatencySleepNV        = vkLatencySleepNV_Original;
 auto& SK_vkSetLatencyMarkerNV    = vkSetLatencyMarkerNV_Original;
-auto& SK_vkGetLatencyTimingsNV   = vkGetLatencyTimingsNV;
+auto& SK_vkGetLatencyTimingsNV   = vkGetLatencyTimingsNV_Original;
 
 #define SK_VK_NATIVE_REFLEX_CALL SK_Vulkan_NativeReflexDevice    = device; \
                                  SK_Vulkan_NativeReflexSwapChain = swapchain;
@@ -942,12 +879,12 @@ vkSetLatencyMarkerNV_Detour (
 void
 SK_VK_HookFirstDevice (VkDevice device)
 {
-  if (vkGetLatencyTimingsNV == nullptr && vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV") != nullptr)
+  if (vkGetLatencyTimingsNV_Original == nullptr && vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV") != nullptr)
   SK_RunOnce (
-    void* vkSetLatencySleepModeNV = (PFN_vkSetLatencySleepModeNV)vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV");
-    void* vkLatencySleepNV        = (PFN_vkLatencySleepNV)       vkGetDeviceProcAddr_SK (device, "vkLatencySleepNV");
-    void* vkSetLatencyMarkerNV    = (PFN_vkSetLatencyMarkerNV)   vkGetDeviceProcAddr_SK (device, "vkSetLatencyMarkerNV");
-    vkGetLatencyTimingsNV         = (PFN_vkGetLatencyTimingsNV)  vkGetDeviceProcAddr_SK (device, "vkGetLatencyTimingsNV");
+    void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV");
+    void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetDeviceProcAddr_SK (device, "vkLatencySleepNV");
+    void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetDeviceProcAddr_SK (device, "vkSetLatencyMarkerNV");
+    vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetDeviceProcAddr_SK (device, "vkGetLatencyTimingsNV");
 
     if (                       vkSetLatencySleepModeNV != nullptr &&
                 MH_CreateHook (vkSetLatencySleepModeNV,

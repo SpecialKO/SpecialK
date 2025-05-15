@@ -1,4 +1,4 @@
-// Copyright 2015-2023 The Khronos Group Inc.
+// Copyright 2015-2025 The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
@@ -15,6 +15,77 @@ namespace VULKAN_HPP_NAMESPACE
   //=====================
   //=== Format Traits ===
   //=====================
+
+  //=== Function Declarations ===
+
+  // The three-dimensional extent of a texel block.
+  VULKAN_HPP_CONSTEXPR_14 std::array<uint8_t, 3> blockExtent( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The texel block size in bytes.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t blockSize( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The class of the format (can't be just named "class"!)
+  VULKAN_HPP_CONSTEXPR_14 char const * compatibilityClass( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The number of bits in this component, if not compressed, otherwise 0.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t componentBits( VULKAN_HPP_NAMESPACE::Format format, uint8_t component );
+
+  // The number of components of this format.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t componentCount( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The name of the component
+  VULKAN_HPP_CONSTEXPR_14 char const * componentName( VULKAN_HPP_NAMESPACE::Format format, uint8_t component );
+
+  // The numeric format of the component
+  VULKAN_HPP_CONSTEXPR_14 char const * componentNumericFormat( VULKAN_HPP_NAMESPACE::Format format, uint8_t component );
+
+  // The plane this component lies in.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t componentPlaneIndex( VULKAN_HPP_NAMESPACE::Format format, uint8_t component );
+
+  // True, if the components of this format are compressed, otherwise false.
+  VULKAN_HPP_CONSTEXPR_14 bool componentsAreCompressed( VULKAN_HPP_NAMESPACE::Format format );
+
+  // A textual description of the compression scheme, or an empty string if it is not compressed
+  VULKAN_HPP_CONSTEXPR_14 char const * compressionScheme( VULKAN_HPP_NAMESPACE::Format format );
+
+  // Get all formats with a depth component
+  std::vector<VULKAN_HPP_NAMESPACE::Format> const & getDepthFormats();
+
+  // Get all formats with a depth and a stencil component
+  std::vector<VULKAN_HPP_NAMESPACE::Format> const & getDepthStencilFormats();
+
+  // Get all formats with a stencil component
+  std::vector<VULKAN_HPP_NAMESPACE::Format> const & getStencilFormats();
+
+  // True, if this format has a depth component
+  VULKAN_HPP_CONSTEXPR_14 bool hasDepthComponent( VULKAN_HPP_NAMESPACE::Format format );
+
+  // True, if this format has a stencil component
+  VULKAN_HPP_CONSTEXPR_14 bool hasStencilComponent( VULKAN_HPP_NAMESPACE::Format format );
+
+  // True, if this format is a compressed one.
+  VULKAN_HPP_CONSTEXPR_14 bool isCompressed( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The number of bits into which the format is packed. A single image element in this format can be stored in the same space as a scalar type of this bit
+  // width.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t packed( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The single-plane format that this plane is compatible with.
+  VULKAN_HPP_CONSTEXPR_14 VULKAN_HPP_NAMESPACE::Format planeCompatibleFormat( VULKAN_HPP_NAMESPACE::Format format, uint8_t plane );
+
+  // The number of image planes of this format.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t planeCount( VULKAN_HPP_NAMESPACE::Format format );
+
+  // The relative height of this plane. A value of k means that this plane is 1/k the height of the overall format.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t planeHeightDivisor( VULKAN_HPP_NAMESPACE::Format format, uint8_t plane );
+
+  // The relative width of this plane. A value of k means that this plane is 1/k the width of the overall format.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t planeWidthDivisor( VULKAN_HPP_NAMESPACE::Format format, uint8_t plane );
+
+  // The number of texels in a texel block.
+  VULKAN_HPP_CONSTEXPR_14 uint8_t texelsPerBlock( VULKAN_HPP_NAMESPACE::Format format );
+
+  //=== Function Definitions ===
 
   // The three-dimensional extent of a texel block.
   VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 std::array<uint8_t, 3> blockExtent( VULKAN_HPP_NAMESPACE::Format format )
@@ -353,6 +424,8 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return 16;
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return 16;
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return 8;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return 8;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return 8;
@@ -361,7 +434,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return 8;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return 8;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return 8;
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV: return 4;
 
       default: VULKAN_HPP_ASSERT( false ); return 0;
     }
@@ -610,6 +683,8 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return "ASTC_10x10";
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return "ASTC_12x10";
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return "ASTC_12x12";
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16: return "16-bit";
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm: return "8-bit alpha";
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return "PVRTC1_2BPP";
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return "PVRTC1_4BPP";
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return "PVRTC2_2BPP";
@@ -618,7 +693,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return "PVRTC1_4BPP";
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return "PVRTC2_2BPP";
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return "PVRTC2_4BPP";
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV: return "32-bit";
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV: return "32-bit";
 
       default: VULKAN_HPP_ASSERT( false ); return "";
     }
@@ -1592,7 +1667,7 @@ namespace VULKAN_HPP_NAMESPACE
         {
           case 0: return 10;
           case 1: return 11;
-          case 2: return 10;
+          case 2: return 11;
           default: VULKAN_HPP_ASSERT( false ); return 0;
         }
       case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32:
@@ -2000,7 +2075,22 @@ namespace VULKAN_HPP_NAMESPACE
           case 3: return 4;
           default: VULKAN_HPP_ASSERT( false ); return 0;
         }
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV:
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16:
+        switch ( component )
+        {
+          case 0: return 1;
+          case 1: return 5;
+          case 2: return 5;
+          case 3: return 5;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV:
         switch ( component )
         {
           case 0: return 16;
@@ -2255,6 +2345,8 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return 4;
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return 4;
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return 4;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return 4;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return 4;
@@ -2263,7 +2355,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return 4;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return 4;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return 4;
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV: return 2;
 
       default: return 0;
     }
@@ -2328,8 +2420,8 @@ namespace VULKAN_HPP_NAMESPACE
         switch ( component )
         {
           case 0: return "B";
-          case 1: return "R";
-          case 2: return "G";
+          case 1: return "G";
+          case 2: return "R";
           case 3: return "A";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
@@ -3164,21 +3256,21 @@ namespace VULKAN_HPP_NAMESPACE
         switch ( component )
         {
           case 0: return "R";
-          case 1: return "B";
+          case 1: return "G";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eR64G64Sint:
         switch ( component )
         {
           case 0: return "R";
-          case 1: return "B";
+          case 1: return "G";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eR64G64Sfloat:
         switch ( component )
         {
           case 0: return "R";
-          case 1: return "B";
+          case 1: return "G";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Uint:
@@ -4205,6 +4297,21 @@ namespace VULKAN_HPP_NAMESPACE
           case 3: return "A";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16:
+        switch ( component )
+        {
+          case 0: return "A";
+          case 1: return "B";
+          case 2: return "G";
+          case 3: return "R";
+          default: VULKAN_HPP_ASSERT( false ); return "";
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm:
+        switch ( component )
+        {
+          case 0: return "A";
+          default: VULKAN_HPP_ASSERT( false ); return "";
+        }
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG:
         switch ( component )
         {
@@ -4277,7 +4384,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 3: return "A";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV:
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV:
         switch ( component )
         {
           case 0: return "R";
@@ -4625,7 +4732,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Unorm:
@@ -4688,7 +4795,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UnormPack32:
@@ -4748,7 +4855,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SrgbPack32:
         switch ( component )
         {
-          case 0: return "SRGB";
+          case 0: return "UNORM";
           case 1: return "SRGB";
           case 2: return "SRGB";
           case 3: return "SRGB";
@@ -5344,7 +5451,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock:
@@ -5362,7 +5469,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock:
@@ -5380,7 +5487,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock:
@@ -5392,7 +5499,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock:
         switch ( component )
         {
-          case 0: return "SRGB";
+          case 0: return "SNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock:
@@ -5405,8 +5512,8 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock:
         switch ( component )
         {
-          case 0: return "SRGB";
-          case 1: return "SRGB";
+          case 0: return "SNORM";
+          case 1: return "SNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock:
@@ -5440,7 +5547,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock:
@@ -5474,7 +5581,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock:
@@ -5492,7 +5599,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock:
@@ -5536,7 +5643,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock:
@@ -5554,7 +5661,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock:
@@ -5572,7 +5679,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock:
@@ -5590,7 +5697,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock:
@@ -5608,7 +5715,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock:
@@ -5626,7 +5733,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock:
@@ -5644,7 +5751,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock:
@@ -5662,7 +5769,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock:
@@ -5680,7 +5787,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock:
@@ -5698,7 +5805,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock:
@@ -5716,7 +5823,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock:
@@ -5734,7 +5841,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock:
@@ -5752,7 +5859,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock:
@@ -5770,7 +5877,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eG8B8G8R8422Unorm:
@@ -6225,6 +6332,21 @@ namespace VULKAN_HPP_NAMESPACE
           case 3: return "SFLOAT";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16:
+        switch ( component )
+        {
+          case 0: return "UNORM";
+          case 1: return "UNORM";
+          case 2: return "UNORM";
+          case 3: return "UNORM";
+          default: VULKAN_HPP_ASSERT( false ); return "";
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm:
+        switch ( component )
+        {
+          case 0: return "UNORM";
+          default: VULKAN_HPP_ASSERT( false ); return "";
+        }
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG:
         switch ( component )
         {
@@ -6267,7 +6389,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG:
@@ -6276,7 +6398,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG:
@@ -6285,7 +6407,7 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG:
@@ -6294,14 +6416,14 @@ namespace VULKAN_HPP_NAMESPACE
           case 0: return "SRGB";
           case 1: return "SRGB";
           case 2: return "SRGB";
-          case 3: return "SRGB";
+          case 3: return "UNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV:
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV:
         switch ( component )
         {
-          case 0: return "SINT";
-          case 1: return "SINT";
+          case 0: return "SFIXED5";
+          case 1: return "SFIXED5";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
 
@@ -6678,6 +6800,63 @@ namespace VULKAN_HPP_NAMESPACE
     }
   }
 
+  // Get all formats with a depth component
+  VULKAN_HPP_INLINE std::vector<VULKAN_HPP_NAMESPACE::Format> const & getDepthFormats()
+  {
+    static std::vector<VULKAN_HPP_NAMESPACE::Format> depthFormats = {
+      VULKAN_HPP_NAMESPACE::Format::eD16Unorm,       VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32, VULKAN_HPP_NAMESPACE::Format::eD32Sfloat,
+      VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint, VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint,   VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint
+    };
+    return depthFormats;
+  }
+
+  // Get all formats with a depth and a stencil component
+  VULKAN_HPP_INLINE std::vector<VULKAN_HPP_NAMESPACE::Format> const & getDepthStencilFormats()
+  {
+    static std::vector<VULKAN_HPP_NAMESPACE::Format> depthStencilFormats = { VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint,
+                                                                             VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint,
+                                                                             VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint };
+    return depthStencilFormats;
+  }
+
+  // Get all formats with a stencil component
+  VULKAN_HPP_INLINE std::vector<VULKAN_HPP_NAMESPACE::Format> const & getStencilFormats()
+  {
+    static std::vector<VULKAN_HPP_NAMESPACE::Format> stencilFormats = { VULKAN_HPP_NAMESPACE::Format::eS8Uint,
+                                                                        VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint,
+                                                                        VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint,
+                                                                        VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint };
+    return stencilFormats;
+  }
+
+  // True, if this format has a depth component
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 bool hasDepthComponent( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eD16Unorm:
+      case VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32:
+      case VULKAN_HPP_NAMESPACE::Format::eD32Sfloat:
+      case VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint:
+      case VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint:
+      case VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint: return true;
+      default: return false;
+    }
+  }
+
+  // True, if this format has a stencil component
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 bool hasStencilComponent( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eS8Uint:
+      case VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint:
+      case VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint:
+      case VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint: return true;
+      default: return false;
+    }
+  }
+
   // True, if this format is a compressed one.
   VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 bool isCompressed( VULKAN_HPP_NAMESPACE::Format format )
   {
@@ -6744,6 +6923,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return 16;
       case VULKAN_HPP_NAMESPACE::Format::eA4R4G4B4UnormPack16: return 16;
       case VULKAN_HPP_NAMESPACE::Format::eA4B4G4R4UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16: return 16;
 
       default: return 0;
     }
@@ -7596,6 +7776,8 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return 100;
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return 120;
       case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return 144;
+      case VULKAN_HPP_NAMESPACE::Format::eA1B5G5R5UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8Unorm: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return 1;
@@ -7604,7 +7786,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return 1;
       case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return 1;
-      case VULKAN_HPP_NAMESPACE::Format::eR16G16S105NV: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfixed5NV: return 1;
 
       default: VULKAN_HPP_ASSERT( false ); return 0;
     }
