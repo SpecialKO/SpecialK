@@ -962,6 +962,11 @@ SK::ControlPanel::D3D11::Draw (void)
 
       ImGui::BeginGroup ();
 
+      if (vulkan)
+      {
+        ImGui::Checkbox ("Force Mailbox Presentation", &config.render.framerate.force_vk_mailbox);
+      }
+
       if (! indirect)
       {
         if (d3d12)

@@ -908,6 +908,7 @@ struct {
     sk::ParameterBool*    use_amd_mwaitx          = nullptr;
     sk::ParameterBool*    apply_streamline_pacing = nullptr;
     sk::ParameterInt*     streamline_limit_policy = nullptr;
+    sk::ParameterBool*    force_vk_mailbox        = nullptr;
 
     struct
     {
@@ -2029,6 +2030,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
 
+    ConfigEntry (render.framerate.force_vk_mailbox,      L"Force Vulkan to use Mailbox Presentation Mode",             dll_ini,         L"Render.Vulkan",         L"ForceMailboxPresent"),
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
                                                          L"refresh rate with VSYNC enabled (similar to NV Fast Sync).",dll_ini,         L"Render.DXGI",           L"DropLateFrames"),
@@ -4730,6 +4732,7 @@ auto DeclKeybind =
     config.render.framerate.disable_flip = false;
   }
 
+  render.framerate.force_vk_mailbox->load  (config.render.framerate.force_vk_mailbox);
   render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing);
   render.framerate.flip_sequential->load   (config.render.framerate.flip_sequential);
 
@@ -6972,6 +6975,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
+      render.framerate.force_vk_mailbox->store    (config.render.framerate.force_vk_mailbox);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
       if                                          (config.render.hdr.enable_32bpc)

@@ -750,6 +750,52 @@ SK_VK_CreateSwapchainKHR (
     ( L"Disabling Fullscreen Exclusive" ), L" VulkanIK "
   );
 
+  const wchar_t* wszPresentMode = L"";
+
+  std::wstring present_mode = L"";
+
+  switch (_CreateInfoCopy.presentMode)
+  {
+    case VK_PRESENT_MODE_IMMEDIATE_KHR:    wszPresentMode = L"Immediate";    break;
+    case VK_PRESENT_MODE_MAILBOX_KHR:      wszPresentMode = L"Mailbox";      break;
+    case VK_PRESENT_MODE_FIFO_KHR:         wszPresentMode = L"FIFO";         break;
+    case VK_PRESENT_MODE_FIFO_RELAXED_KHR: wszPresentMode = L"FIFO Relaxed"; break;
+    default:
+      wszPresentMode = L"Other";
+      break;
+  }
+
+  SK_LOGi0 ("Requested Vulkan Present Mode: %ws", wszPresentMode);
+
+  if (config.render.framerate.present_interval == 0)
+  {
+    if (config.render.dxgi.allow_tearing)
+      _CreateInfoCopy.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+    else
+      _CreateInfoCopy.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;  
+  }
+
+  if (config.render.framerate.force_vk_mailbox)
+  {
+    _CreateInfoCopy.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+  }
+
+  if (_CreateInfoCopy.presentMode != pCreateInfo->presentMode)
+  {
+    switch (_CreateInfoCopy.presentMode)
+    {
+      case VK_PRESENT_MODE_IMMEDIATE_KHR:    wszPresentMode = L"Immediate";    break;
+      case VK_PRESENT_MODE_MAILBOX_KHR:      wszPresentMode = L"Mailbox";      break;
+      case VK_PRESENT_MODE_FIFO_KHR:         wszPresentMode = L"FIFO";         break;
+      case VK_PRESENT_MODE_FIFO_RELAXED_KHR: wszPresentMode = L"FIFO Relaxed"; break;
+      default:
+        wszPresentMode = L"Other";
+        break;
+    }
+
+    SK_LOGi0 ("Vulkan Present Mode Override: %ws", wszPresentMode);
+  }
+
   return
     vkCreateSwapchainKHR_Original (device, &_CreateInfoCopy, pAllocator, pSwapchain);
 }
