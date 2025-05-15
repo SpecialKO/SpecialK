@@ -1,4 +1,9 @@
-﻿25.5.15
+﻿25.5.15.1
+=========
+ + Fixed DualSense Bluetooth rumble issues introduced in 25.5.11.3.
+ + Applied the "Disable ALL Rumble" setting to DualSense controllers.
+
+25.5.15
 =======
  + Added option to force Vulkan Mailbox Presentation Mode
  + Added option to force Vulkan FIFO Relaxed (Adaptive VSYNC)

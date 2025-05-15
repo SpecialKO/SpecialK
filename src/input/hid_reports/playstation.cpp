@@ -3681,7 +3681,7 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
         config.input.gamepad.scepad.led_brightness >= 0)
     {
       bool disable_player_indicator_lights = false;
-    
+
       if (config.input.gamepad.scepad.led_brightness != SK_NoPreference)
       {
         // 3 is a special case that means OFF
@@ -3689,26 +3689,26 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
         {
           pSetState->AllowLightBrightnessChange = 1;
           pSetState->LightBrightness            = (LightBrightness)3;
-    
+
           disable_player_indicator_lights = true;
         }
-    
+
         else if (config.input.gamepad.scepad.led_brightness >= 0)
         {
           pSetState->AllowLightBrightnessChange = 1;
           pSetState->LightBrightness            =
             (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
         }
-    
+
         data_changed = true;
       }
-    
+
       if (config.input.gamepad.scepad.led_color_r >= 0 ||
           config.input.gamepad.scepad.led_color_g >= 0 ||
           config.input.gamepad.scepad.led_color_b >= 0)
       {
         pSetState->AllowLedColor = true;
-    
+
         pSetState->LedRed   = (uint8_t)config.input.gamepad.scepad.led_color_r;
         pSetState->LedGreen = (uint8_t)config.input.gamepad.scepad.led_color_g;
         pSetState->LedBlue  = (uint8_t)config.input.gamepad.scepad.led_color_b;
@@ -3719,36 +3719,42 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
         {
           disable_player_indicator_lights = true;
         }
-    
+
         data_changed = true;
       }
-    
+
       if (disable_player_indicator_lights)
       {
         // Disable player indicator light
         //
         pSetState->AllowPlayerIndicators = true;
-        pSetState->PlayerLight1          = 0;
-        pSetState->PlayerLight2          = 0;
-        pSetState->PlayerLight3          = 0;
-        pSetState->PlayerLight4          = 0;
-        pSetState->PlayerLight5          = 0;
-    
+        pSetState->PlayerLight1          =    0;
+        pSetState->PlayerLight2          =    0;
+        pSetState->PlayerLight3          =    0;
+        pSetState->PlayerLight4          =    0;
+        pSetState->PlayerLight5          =    0;
+
         data_changed = true;
-      }
-    
-      if (config.input.gamepad.disable_rumble)
-      {
-        pSetState->AllowLeftTriggerFFB  = false;
-        pSetState->AllowRightTriggerFFB = false;
-        pSetState->UseRumbleNotHaptics  = 0;
-        pSetState->RumbleEmulationLeft  = 0;
-        pSetState->RumbleEmulationRight = 0;
       }
     }
 
-    // SK controls this!
-    pSetState->AllowMuteLight = false;          
+    if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
+    {
+      pSetState->AllowLeftTriggerFFB  = false;
+      pSetState->AllowRightTriggerFFB = false;
+      pSetState->UseRumbleNotHaptics  =  true;
+      pSetState->RumbleEmulationLeft  =     0;
+      pSetState->RumbleEmulationRight =     0;
+
+      data_changed = true;
+    }
+
+    if (pSetState->AllowMuteLight)
+    {
+      // SK controls this!
+      pSetState->AllowMuteLight = false;
+      data_changed              =  true;
+    }
   }
 
   return data_changed;
@@ -3956,18 +3962,45 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
 
             for ( DWORD i = 0 ; i < dwSize / 78 ; ++i )
             {
-              SK_HID_DualSense_BtReport_0x31 *pBtState =
-                (SK_HID_DualSense_BtReport_0x31 *)(&((uint8_t *)data) [i * 78 + 3]);
+              uint8_t* packet = &((uint8_t *)data) [i * 78];
 
-              pSetState =
-                &pBtState->Data.State;
+              // Prepend 0xA2 before hashing, this isn't included in the actual data being written...
+              uint8_t  data_to_checksum [79] = {  0xA2  };
+              memcpy (&data_to_checksum [ 1], packet, 78);
+
+#if 0
+              struct Header {
+                uint8_t Head;
+                uint8_t ReportID;
+                uint8_t UNK1      : 1; // -+
+                uint8_t EnableHID : 1; //  | - these 3 bits seem to act as an enum
+                uint8_t UNK2      : 1; // -+
+                uint8_t UNK3      : 1;
+                uint8_t SeqNo     : 4; // increment for every write // we have no proof of this, need to see some PS5 captures
+              } *pHeader = (Header *)data_to_checksum;
+
+              SK_LOGi0 (L"Header for ReportID 0x31: %02hhx, %02hhx, ?=%d / EnableHID=%d / ?=%d / ?=%d, SeqNo=%d",
+                pHeader->Head, pHeader->ReportID, pHeader->UNK1, pHeader->EnableHID, pHeader->UNK2, pHeader->UNK3, pHeader->SeqNo
+              );
+
+              uint32_t crc_test =
+                crc32 (0x0, data_to_checksum, 75);
+
+              SK_ReleaseAssert (memcmp (&data_to_checksum [75], &crc_test, 4) == 0);
+#endif
+
+              SK_HID_DualSense_BtReport_0x31 *pBtState =
+                (SK_HID_DualSense_BtReport_0x31 *)&data_to_checksum [1];
 
               data_changed |=
-                SK_DualSense_ApplyOutputReportFilter (pSetState);
+                SK_DualSense_ApplyOutputReportFilter (&pBtState->Data.State);
 
-              const uint32_t crc =
-                   crc32 (0x0, pSetState, 75);
-              memcpy (&((uint8_t *)data) [75], &crc, 4);
+              if (data_changed)
+              {
+                *(uint32_t *)&(data_to_checksum [75]) =
+                  crc32 (0x0,  data_to_checksum, 75);
+                memcpy (packet,pBtState,         78);
+              }
             }
           }
 
