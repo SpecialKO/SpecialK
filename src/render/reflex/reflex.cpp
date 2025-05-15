@@ -1353,6 +1353,8 @@ SK_RenderBackend_V2::vk_reflex_s::isSupported (void) const
                                     api != None;
 }
 
+#undef VK_NV_low_latency2
+
 bool
 SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* latencyReport) const
 {
