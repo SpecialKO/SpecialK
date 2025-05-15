@@ -1,4 +1,8 @@
-﻿25.5.15.1
+﻿25.5.15.2
+=========
+ + Add low-level keyboard hook exclusion for Unicode versions of AutoHotkey.
+
+25.5.15.1
 =========
  + Fixed DualSense Bluetooth rumble issues introduced in 25.5.11.3.
  + Applied the "Disable ALL Rumble" setting to DualSense controllers.

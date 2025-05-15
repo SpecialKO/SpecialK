@@ -1001,6 +1001,8 @@ SK_Input_InstallLowLevelKeyboardHook (void)
   {
     if (!(SK_IsProcessRunning (L"AutoHotkey64.exe")||
           SK_IsProcessRunning (L"AutoHotkey32.exe")||
+          SK_IsProcessRunning (L"AutoHotkeyU64.exe")||
+          SK_IsProcessRunning (L"AutoHotkeyU32.exe")||
           SK_IsProcessRunning (L"AutoHotkeyUX.exe")))
     {
       if (SK_hHookLowLevelKeyboard == 0 && _SetWindowsHookExAW != nullptr)
@@ -1025,6 +1027,7 @@ SK_Input_InstallLowLevelKeyboardHook (void)
 
     else
     {
+      config.compatibility.disallow_ll_keyhook = true;
       SK_LOGi0 (L"Low-Level Keyboard Hooks Not Supported Because AutoHotkey!");
     }
   }
