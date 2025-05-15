@@ -1,19 +1,20 @@
-==========[ Libraries ]========================================================
+﻿==========[ Libraries ]========================================================
                 |
   SteamAPI      |  1996 - 2019  -  Valve Corporation
   FreeType2     |  2000,        -  Computing Research Labs,
                 |               -    New Mexico State University
                 |  2001 - 2002  -  Francesco Zappa Nardelli
   GLM           |  2005 - 2018  -  G-Truc Creation
-  NvAPI         |  2005 - 2010  -  NVIDIA Corporation
+  NvAPI         |  2005 - 2024  -  NVIDIA Corporation & Affiliates
   OpenLibSys    |  2007 - 2008  -  OpenLibSys.org
   ADL           |  2008 - 2013  -  Advanced Micro Devices, Inc.
   MinHook       |  2009 - 2016  -  Tsuda Kageyu
   nlohmann-json |  2013 - 2022  -  Niels Lohmann
   dear ImGui    |  2014 - 2019  -  Omar Cornut and
                 |               -    ImGui contributors
+  ImPlot        |  2020 - 2023  -  Evan Pezent
   filebrowser   |  2019 - 2022  -  Zhuang Guan
-  Vulkan        |  2015 - 2016  -  The Khronos Group Inc.
+  Vulkan        |  2015 - 2025  -  The Khronos Group Inc.
   DirectX Tex   |  2017 - 2019  -  Microsoft Corp
   fontawesome   |  2021         -  RStudio, PBC.
   safetyhook    |  2025         -  cursey
