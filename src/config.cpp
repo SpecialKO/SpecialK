@@ -884,6 +884,7 @@ struct {
     sk::ParameterInt*     prerender_limit         = nullptr;
     sk::ParameterInt*     present_interval        = nullptr;
     sk::ParameterInt*     sync_interval_clamp     = nullptr;
+    sk::ParameterInt*     tearing_mode            = nullptr;
     sk::ParameterInt*     buffer_count            = nullptr;
     sk::ParameterInt*     max_delta_time          = nullptr;
     sk::ParameterBool*    flip_discard            = nullptr;
@@ -2004,6 +2005,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
+    ConfigEntry (render.framerate.tearing_mode,          L"Tearing Mode (Always On/Off or Adaptive)",                  dll_ini,         L"Render.FrameRate",      L"TearingMode"),
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
@@ -2022,7 +2024,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
     ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
-    ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
+    ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in -frames or milliseconds) to Resync Timing",   dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
     ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.LatentSync",  L"AutoBias"),
@@ -4496,16 +4498,15 @@ auto DeclKeybind =
   {
     if (target_fps.find (L'/') != std::wstring::npos)
     {
-      UINT numerator = 1, denominator = 1;
+      int numerator = 1, denominator = 1;
 
-      swscanf (target_fps.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+      swscanf (target_fps.c_str (), L"%i/%i", &numerator, &denominator);
 
       if (denominator != 0)
       {
-        config.render.framerate.target_fps =
-          static_cast <float> (
-            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
-          );
+        config.render.framerate.target_fps = static_cast <float> (
+          (rb.getActiveRefreshRate () * numerator) / denominator
+        );
       }
     }
 
@@ -4521,16 +4522,15 @@ auto DeclKeybind =
   {
     if (target_fps_bg.find (L'/') != std::wstring::npos)
     {
-      UINT numerator = 1, denominator = 1;
+      int numerator = 1, denominator = 1;
 
-      swscanf (target_fps_bg.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+      swscanf (target_fps_bg.c_str (), L"%i/%i", &numerator, &denominator);
 
       if (denominator != 0)
       {
-        config.render.framerate.target_fps_bg =
-          static_cast <float> (
-            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
-          );
+        config.render.framerate.target_fps_bg = static_cast <float> (
+          (rb.getActiveRefreshRate () * numerator) / denominator
+        );
       }
     }
 
@@ -4643,6 +4643,7 @@ auto DeclKeybind =
   render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
   render.framerate.present_interval->load    (config.render.framerate.present_interval);
   render.framerate.sync_interval_clamp->load (config.render.framerate.sync_interval_clamp);
+  render.framerate.tearing_mode->load        (config.render.framerate.tearing_mode);
 
   if (render.framerate.refresh_rate)
   {
@@ -6890,6 +6891,7 @@ SK_SaveConfig ( std::wstring name,
 
     render.framerate.present_interval->store      (config.render.framerate.present_interval);
     render.framerate.sync_interval_clamp->store   (config.render.framerate.sync_interval_clamp);
+    render.framerate.tearing_mode->store          (config.render.framerate.tearing_mode);
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
     render.framerate.enable_etw_tracing->store    (config.render.framerate.enable_etw_tracing);
 
