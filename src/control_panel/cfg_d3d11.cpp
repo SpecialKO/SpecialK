@@ -965,6 +965,8 @@ SK::ControlPanel::D3D11::Draw (void)
       if (vulkan)
       {
         ImGui::Checkbox ("Force Mailbox Presentation", &config.render.framerate.force_vk_mailbox);
+        if (! config.render.framerate.force_vk_mailbox)
+          ImGui::Checkbox ("Force Adaptive VSYNC",     &config.render.framerate.force_vk_adaptive);
       }
 
       if (! indirect)

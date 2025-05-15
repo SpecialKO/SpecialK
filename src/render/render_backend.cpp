@@ -772,12 +772,22 @@ SK_VK_CreateSwapchainKHR (
     if (config.render.dxgi.allow_tearing)
       _CreateInfoCopy.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     else
-      _CreateInfoCopy.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;  
+      _CreateInfoCopy.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+  }
+
+  if (config.render.framerate.present_interval >= 1)
+  { // xxx: Does not handle 1/2, 1/3 or 1/4 refresh vsync
+    _CreateInfoCopy.presentMode = VK_PRESENT_MODE_FIFO_KHR;
   }
 
   if (config.render.framerate.force_vk_mailbox)
   {
     _CreateInfoCopy.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+  }
+
+  else if (config.render.framerate.force_vk_adaptive)
+  {
+    _CreateInfoCopy.presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
   }
 
   if (_CreateInfoCopy.presentMode != pCreateInfo->presentMode)

@@ -1,8 +1,9 @@
 ﻿25.5.15
 =======
  + Added option to force Vulkan Mailbox Presentation Mode
- + Override Vulkan Presentation Mode to Immediate if Presentation Interval=0
- + Use Mailbox Presentation Mode instead of Immediate when AllowTearing=false
+ + Added option to force Vulkan FIFO Relaxed (Adaptive VSYNC)
+ + Override Vulkan Presentation Mode to Immediate if PresentationInterval=0
+ + Use Mailbox Presentation if AllowTearingInDWM=false and PresentInterval=0
 
 25.5.14
 =======

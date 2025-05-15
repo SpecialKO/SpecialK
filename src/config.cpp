@@ -909,6 +909,7 @@ struct {
     sk::ParameterBool*    apply_streamline_pacing = nullptr;
     sk::ParameterInt*     streamline_limit_policy = nullptr;
     sk::ParameterBool*    force_vk_mailbox        = nullptr;
+    sk::ParameterBool*    force_vk_adaptive       = nullptr;
 
     struct
     {
@@ -2031,6 +2032,7 @@ auto DeclKeybind =
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
 
     ConfigEntry (render.framerate.force_vk_mailbox,      L"Force Vulkan to use Mailbox Presentation Mode",             dll_ini,         L"Render.Vulkan",         L"ForceMailboxPresent"),
+    ConfigEntry (render.framerate.force_vk_adaptive,     L"Force Vulkan to use FIFO Relaxed Presentation Mode",        dll_ini,         L"Render.Vulkan",         L"ForceAdaptiveVSYNC"),
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
                                                          L"refresh rate with VSYNC enabled (similar to NV Fast Sync).",dll_ini,         L"Render.DXGI",           L"DropLateFrames"),
@@ -4733,6 +4735,7 @@ auto DeclKeybind =
   }
 
   render.framerate.force_vk_mailbox->load  (config.render.framerate.force_vk_mailbox);
+  render.framerate.force_vk_adaptive->load (config.render.framerate.force_vk_adaptive);
   render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing);
   render.framerate.flip_sequential->load   (config.render.framerate.flip_sequential);
 
@@ -6976,6 +6979,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.force_vk_mailbox->store    (config.render.framerate.force_vk_mailbox);
+      render.framerate.force_vk_adaptive->store   (config.render.framerate.force_vk_adaptive);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
       if                                          (config.render.hdr.enable_32bpc)

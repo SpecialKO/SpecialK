@@ -721,6 +721,7 @@ struct sk_config_t
       bool    sleepless_window    = false;
       bool    enable_mmcss        =  true;
       bool    force_vk_mailbox    = false;
+      bool    force_vk_adaptive   = false;
       int     enforcement_policy  =     4; // Refer to framerate.cpp
       struct {
         bool  waiting             =  true; // VRR users have the limiter default to low-latency
