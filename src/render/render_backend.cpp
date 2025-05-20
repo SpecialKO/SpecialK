@@ -1225,27 +1225,6 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
 VkResult
 VKAPI_CALL
-vkLatencySleepNV_Detour (
-  VkDevice                    device,
-  VkSwapchainKHR              swapchain,
-  const VkLatencySleepInfoNV* pSleepInfo )
-{
-  SK_LOG_FIRST_CALL
-
-  SK_VK_NATIVE_REFLEX_CALL
-
-  if (config.nvidia.reflex.override)
-  {
-    VkLatencySleepModeInfoNV                            dummy = {};
-    vkSetLatencySleepModeNV_Detour (device, swapchain, &dummy);
-  }
-
-  return
-    vkLatencySleepNV_Original (device, swapchain, pSleepInfo);
-}
-
-VkResult
-VKAPI_CALL
 vkSetLatencySleepModeNV_Detour (
   VkDevice                        device,
   VkSwapchainKHR                  swapchain,
@@ -1319,6 +1298,27 @@ vkSetLatencySleepModeNV_Detour (
 
   return
     vkSetLatencySleepModeNV_Original (device, swapchain, pSleepModeInfo);
+}
+
+VkResult
+VKAPI_CALL
+vkLatencySleepNV_Detour (
+  VkDevice                    device,
+  VkSwapchainKHR              swapchain,
+  const VkLatencySleepInfoNV* pSleepInfo )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_VK_NATIVE_REFLEX_CALL
+
+  if (config.nvidia.reflex.override)
+  {
+    VkLatencySleepModeInfoNV                            dummy = {};
+    vkSetLatencySleepModeNV_Detour (device, swapchain, &dummy);
+  }
+
+  return
+    vkLatencySleepNV_Original (device, swapchain, pSleepInfo);
 }
 
 void
