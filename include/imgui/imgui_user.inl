@@ -1592,8 +1592,8 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
   // Only allow one toggle per-frame, even if we wind up calling
   //   this function multiple times to translate HID to XInput...
   //
-  static ULONG64              ulLastToggleFrame = 0;
-  if (SK_GetFramesDrawn () != ulLastToggleFrame)
+  static ULONG64             ulLastToggleFrame = 0;
+  if (SK_GetFramesDrawn () > ulLastToggleFrame + 2)
   {
     if (toggle_ui||toggle_nav)
     {
