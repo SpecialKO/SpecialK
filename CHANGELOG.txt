@@ -1,4 +1,11 @@
-﻿25.5.20.1
+﻿25.5.20.2
+=========
+ + Limit control panel toggles to once every 3 frames to work-around
+     DOOM Eternal polling gamepad input from multiple threads simultaneously.
+ + Adjust GPU time calculation in latency widget to consider the GPU active
+     as soon as the first render command is batched (reduces reported CPU-time).
+
+25.5.20.1
 =========
  + Implement render submit latency markers in Vulkan
 
