@@ -1,4 +1,8 @@
-﻿25.5.20.2
+﻿25.5.20.3
+=========
+ + Restore old CPU-time calculation (in D3D11) in latency analysis widget.
+
+25.5.20.2
 =========
  + Limit control panel toggles to once every 3 frames to work-around
      DOOM Eternal polling gamepad input from multiple threads simultaneously.

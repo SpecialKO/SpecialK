@@ -305,7 +305,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       //                           reflex.simulation : reflex.present ) +
       //                           reflex.render_submit; // Start of GPU-only workload
 
-      reflex.gpu_start = reflex.simulation;// + reflex.render_submit + reflex.present;
+      reflex.gpu_start = reflex.simulation;
+
+      if (rb.api == SK_RenderAPI::D3D11 && !config.nvidia.reflex.vulkan)
+        reflex.gpu_start += reflex.render_submit;
 
       //SK_LOGs0 ( L"Test",
       //  L"Simulation: %.1f ms, Render: %.1f ms, Present: %.1f ms : CPU %.1f fps", reflex.simulation, reflex.render_submit, reflex.present,
