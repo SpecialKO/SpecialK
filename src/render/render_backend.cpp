@@ -593,13 +593,12 @@ SK_BootOpenGL (void)
 static bool SK_VK_HasLowLatency  = false;
 static bool SK_VK_HasLowLatency2 = false;
 
+void SK_Reflex_SetVulkanSwapchain (VkDevice device, VkSwapchainKHR swapchain);
+
 VkDevice       SK_Reflex_VkDevice    = 0;
 VkSwapchainKHR SK_Reflex_VkSwapchain = 0;
 VkSemaphore    SK_Reflex_VkSemaphore = 0;
 VkInstance     SK_Reflex_VkInstance  = 0;
-
-static VkSwapchainKHR SK_Vulkan_NativeReflexSwapChain;
-static VkDevice       SK_Vulkan_NativeReflexDevice;
 
 typedef VkResult (VKAPI_PTR *PFN_vkSetLatencySleepModeNV)(VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepModeInfoNV* pSleepModeInfo    );
 typedef VkResult (VKAPI_PTR *PFN_vkLatencySleepNV)       (VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepInfoNV*     pSleepInfo        );
@@ -1156,8 +1155,6 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
       if (VK_SUCCESS == vkLatencySleepNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &lat_info))
       {
-        extern void
-        SK_Reflex_SetVulkanSwapchain (VkDevice device, VkSwapchainKHR swapchain);
         SK_Reflex_SetVulkanSwapchain (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain);
 
         config.nvidia.reflex.vulkan = true;
@@ -1218,8 +1215,13 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   return ret;
 }
 
-#define SK_VK_NATIVE_REFLEX_CALL SK_Vulkan_NativeReflexDevice    = device; \
-                                 SK_Vulkan_NativeReflexSwapChain = swapchain;
+#define SK_VK_NATIVE_REFLEX_CALL config.nvidia.reflex.native = true;                \
+                                 config.nvidia.reflex.vulkan = true;                \
+                                 SK_Reflex_VkDevice          = device;              \
+                                 SK_Reflex_VkSwapchain       = swapchain;           \
+                                 SK_VK_HookFirstDevice        (SK_Reflex_VkDevice); \
+                                 SK_Reflex_SetVulkanSwapchain (SK_Reflex_VkDevice,  \
+                                                               SK_Reflex_VkSwapchain);
 
 VkResult
 VKAPI_CALL
@@ -1231,6 +1233,12 @@ vkLatencySleepNV_Detour (
   SK_LOG_FIRST_CALL
 
   SK_VK_NATIVE_REFLEX_CALL
+
+  if (config.nvidia.reflex.override)
+  {
+    VkLatencySleepModeInfoNV                            dummy = {};
+    vkSetLatencySleepModeNV_Detour (device, swapchain, &dummy);
+  }
 
   return
     vkLatencySleepNV_Original (device, swapchain, pSleepInfo);
@@ -1246,6 +1254,68 @@ vkSetLatencySleepModeNV_Detour (
   SK_LOG_FIRST_CALL
 
   SK_VK_NATIVE_REFLEX_CALL
+
+  if (pSleepModeInfo != nullptr)
+  {
+    VkLatencySleepModeInfoNV sleep_mode_info =
+    pSleepModeInfo != nullptr ?
+   *pSleepModeInfo            : VkLatencySleepModeInfoNV { };
+
+    const auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    const auto& display =
+      rb.displays [rb.active_display];
+
+    if (config.nvidia.reflex.override)
+    {
+      if (config.nvidia.reflex.enable)
+      {
+        sleep_mode_info.lowLatencyMode  = config.nvidia.reflex.low_latency;
+        sleep_mode_info.lowLatencyBoost = config.nvidia.reflex.low_latency_boost;
+      }
+
+      else
+      {
+        sleep_mode_info.lowLatencyMode  = false;
+        sleep_mode_info.lowLatencyBoost = false;
+      }
+    }
+
+    // Apply correct VRR framerate limit, which Reflex should be doing on its own...
+    if ( sleep_mode_info.lowLatencyMode                             &&
+         display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
+         display.signal.timing.vsync_freq.Denominator != 0          && !__SK_IsDLSSGActive )
+    {
+      const double dRefresh =
+        static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+        static_cast <double> (display.signal.timing.vsync_freq.Denominator);
+
+      const double dReflexFPS =
+        (dRefresh - (dRefresh * dRefresh) / 3600.0);
+
+      // Vulkan Reflex is b0rked, we will just do it ourselves if Low Latency mode is enabled.
+      if ( __target_fps <= 0.0f ||
+           __target_fps > dReflexFPS )
+           __target_fps = static_cast <float> (dReflexFPS);
+
+#if 0
+      const auto vrr_interval_us =
+        static_cast <UINT> (1000000.0 / dReflexFPS);
+
+      if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
+          sleepModeParams->minimumIntervalUs = vrr_interval_us;
+#endif
+    }
+
+    else
+    {
+      __target_fps = config.render.framerate.target_fps;
+    }
+
+    return
+      vkSetLatencySleepModeNV_Original (device, swapchain, &sleep_mode_info);
+  }
 
   return
     vkSetLatencySleepModeNV_Original (device, swapchain, pSleepModeInfo);
