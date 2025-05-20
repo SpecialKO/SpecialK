@@ -1235,29 +1235,6 @@ SK_Reflex_SetVulkanSwapchain (VkDevice device, VkSwapchainKHR swapchain)
   SK_VK_Reflex.swapchain = swapchain;
 }
 
-
-NvLL_VK_Status
-NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
-{
-  SK_LOG_FIRST_CALL
-
-  SK_VK_HookFirstDevice (device);
-  SK_VK_Reflex.device  = device;
-
-  if (config.nvidia.reflex.override)
-  {
-    NVLL_VK_SET_SLEEP_MODE_PARAMS         dummy = {};
-    NvLL_VK_SetSleepMode_Detour (device, &dummy);
-  }
-
-  //
-  // nb: For DLSS-G "native pacing", run the framerate limiter here.
-  //
-
-  return
-    NvLL_VK_Sleep_Original (device, signalValue);
-}
-
 NvLL_VK_Status
 NvLL_VK_InitLowLatencyDevice_Detour (VkDevice device, VkSemaphore signalSemaphoreHandle)
 {
@@ -1343,6 +1320,28 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
 
   return
     NvLL_VK_SetSleepMode_Original (device, sleepModeParams);
+}
+
+NvLL_VK_Status
+NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_VK_HookFirstDevice (device);
+  SK_VK_Reflex.device  = device;
+
+  if (config.nvidia.reflex.override)
+  {
+    NVLL_VK_SET_SLEEP_MODE_PARAMS         dummy = {};
+    NvLL_VK_SetSleepMode_Detour (device, &dummy);
+  }
+
+  //
+  // nb: For DLSS-G "native pacing", run the framerate limiter here.
+  //
+
+  return
+    NvLL_VK_Sleep_Original (device, signalValue);
 }
 
 void SK_VK_HookReflex (void)
