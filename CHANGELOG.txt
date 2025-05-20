@@ -1,4 +1,12 @@
-﻿25.5.15.2
+﻿25.5.20
+=======
+ + Added Reflex support for all Vulkan games on NVIDIA drivers
+    * Trigger point is not implemented
+    * The "render submit" phase is not marked correctly
+    * Reflex does not implement VRR framerate limiting in Vulkan, so SK does
+    - AMD GPUs may crash :)
+
+25.5.15.2
 =========
  + Add low-level keyboard hook exclusion for Unicode versions of AutoHotkey.
 
@@ -28,7 +36,7 @@
  + Added support for (most) DLSS functionality in Vulkan.
 
      >> Native Pacing mode and DLSS-G Pacing are both non-functional.
-        
+
     * How much of that is due to DOOM's broken Reflex code is not clear yet.
 
 25.5.12.7

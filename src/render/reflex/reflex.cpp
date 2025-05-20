@@ -585,7 +585,15 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
       const SK_RenderBackend &rb =
         SK_GetCurrentRenderBackend ();
 
-      rb.setLatencyMarkerNV (PC_LATENCY_PING);
+      if (! config.nvidia.reflex.vulkan)
+        rb.setLatencyMarkerNV (PC_LATENCY_PING);
+      else
+      {
+        auto marker_copy = marker;
+             marker_copy.markerType = PC_LATENCY_PING;
+
+        SK_PCL_Heartbeat (marker_copy);
+      }
     }
   }
 
@@ -1215,6 +1223,19 @@ struct {
   VkSwapchainKHR swapchain = 0;
 } SK_VK_Reflex;
 
+#undef VK_NV_low_latency2
+
+void
+SK_Reflex_SetVulkanSwapchain (VkDevice device, VkSwapchainKHR swapchain)
+{
+  SK_GetCurrentRenderBackend ().vulkan_reflex.api =
+    SK_RenderBackend_V2::vk_reflex_s::VK_NV_low_latency2;
+
+  SK_VK_Reflex.device    = device;
+  SK_VK_Reflex.swapchain = swapchain;
+}
+
+
 NvLL_VK_Status
 NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
 {
@@ -1393,7 +1414,53 @@ SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* la
     } break;
 
     case VK_NV_low_latency2:
-      SK_RunOnce (SK_LOGi0 (L"VK_NV_low_latency2 Not Implemented"));
+    {
+      extern VkDevice       SK_Reflex_VkDevice;
+      extern VkSwapchainKHR SK_Reflex_VkSwapchain;
+      extern VkSemaphore    SK_Reflex_VkSemaphore;
+      extern VkInstance     SK_Reflex_VkInstance;
+
+      VkLatencyTimingsFrameReportNV timings [64];
+
+      VkGetLatencyMarkerInfoNV
+        markerInfo             = {                                          };
+        markerInfo.sType       = VK_STRUCTURE_TYPE_GET_LATENCY_MARKER_INFO_NV;
+        markerInfo.timingCount = 64;
+        markerInfo.pTimings    = &timings [0];
+
+      extern PFN_vkGetLatencyTimingsNV vkGetLatencyTimingsNV_Original;
+
+      vkGetLatencyTimingsNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &markerInfo);
+
+      for ( auto i = 0u ; i < 64 ; ++i )
+      {
+        if (i >= markerInfo.timingCount)
+          break;
+
+#define ConvertUsToQpc(x) x
+//static_cast <uint64_t> (static_cast <double> (SK_QpcFreq) * (static_cast <double> (x) / 1000000x.0))
+
+        latencyReport->frameReport [i].frameID                =                 markerInfo.pTimings [i].presentID;
+        latencyReport->frameReport [i].inputSampleTime        = ConvertUsToQpc (markerInfo.pTimings [i].inputSampleTimeUs);
+        latencyReport->frameReport [i].simStartTime           = ConvertUsToQpc (markerInfo.pTimings [i].simStartTimeUs);
+        latencyReport->frameReport [i].simEndTime             = ConvertUsToQpc (markerInfo.pTimings [i].simEndTimeUs);
+        latencyReport->frameReport [i].renderSubmitStartTime  = ConvertUsToQpc (markerInfo.pTimings [i].renderSubmitStartTimeUs);
+        latencyReport->frameReport [i].renderSubmitEndTime    = ConvertUsToQpc (markerInfo.pTimings [i].renderSubmitEndTimeUs);
+        latencyReport->frameReport [i].presentStartTime       = ConvertUsToQpc (markerInfo.pTimings [i].presentStartTimeUs);
+        latencyReport->frameReport [i].presentEndTime         = ConvertUsToQpc (markerInfo.pTimings [i].presentEndTimeUs);
+        latencyReport->frameReport [i].driverStartTime        = ConvertUsToQpc (markerInfo.pTimings [i].driverStartTimeUs);
+        latencyReport->frameReport [i].driverEndTime          = ConvertUsToQpc (markerInfo.pTimings [i].driverEndTimeUs);
+        latencyReport->frameReport [i].osRenderQueueStartTime = ConvertUsToQpc (markerInfo.pTimings [i].osRenderQueueStartTimeUs);
+        latencyReport->frameReport [i].osRenderQueueEndTime   = ConvertUsToQpc (markerInfo.pTimings [i].osRenderQueueEndTimeUs);
+        latencyReport->frameReport [i].gpuRenderStartTime     = ConvertUsToQpc (markerInfo.pTimings [i].gpuRenderStartTimeUs);
+        latencyReport->frameReport [i].gpuRenderEndTime       = ConvertUsToQpc (markerInfo.pTimings [i].gpuRenderEndTimeUs);
+        latencyReport->frameReport [i].gpuActiveRenderTimeUs  = static_cast <NvU32> (ConvertUsToQpc (markerInfo.pTimings [i].gpuRenderEndTimeUs - markerInfo.pTimings [i].gpuRenderStartTimeUs));//report.frameReport [i].gpuActiveRenderTimeUs;
+        latencyReport->frameReport [i].gpuFrameTimeUs         = 0;//report.frameReport [i].gpuFrameTimeUs;
+      }
+
+      return true;
+    } break;
+
     default:
       break;
   }

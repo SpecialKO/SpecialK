@@ -590,12 +590,44 @@ SK_BootOpenGL (void)
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_win32.h"
 
+static bool SK_VK_HasLowLatency  = false;
+static bool SK_VK_HasLowLatency2 = false;
+
+VkDevice       SK_Reflex_VkDevice    = 0;
+VkSwapchainKHR SK_Reflex_VkSwapchain = 0;
+VkSemaphore    SK_Reflex_VkSemaphore = 0;
+VkInstance     SK_Reflex_VkInstance  = 0;
+
+static VkSwapchainKHR SK_Vulkan_NativeReflexSwapChain;
+static VkDevice       SK_Vulkan_NativeReflexDevice;
+
+typedef VkResult (VKAPI_PTR *PFN_vkSetLatencySleepModeNV)(VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepModeInfoNV* pSleepModeInfo    );
+typedef VkResult (VKAPI_PTR *PFN_vkLatencySleepNV)       (VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepInfoNV*     pSleepInfo        );
+typedef void     (VKAPI_PTR *PFN_vkSetLatencyMarkerNV)   (VkDevice device, VkSwapchainKHR swapchain, const VkSetLatencyMarkerInfoNV* pLatencyMarkerInfo);
+typedef void     (VKAPI_PTR *PFN_vkGetLatencyTimingsNV)  (VkDevice device, VkSwapchainKHR swapchain,       VkGetLatencyMarkerInfoNV* pLatencyMarkerInfo);
+
+PFN_vkSetLatencySleepModeNV vkSetLatencySleepModeNV_Original = nullptr;
+PFN_vkLatencySleepNV        vkLatencySleepNV_Original        = nullptr;
+PFN_vkSetLatencyMarkerNV    vkSetLatencyMarkerNV_Original    = nullptr;
+PFN_vkGetLatencyTimingsNV   vkGetLatencyTimingsNV_Original   = nullptr;
+
+auto& SK_vkSetLatencySleepModeNV = vkSetLatencySleepModeNV_Original;
+auto& SK_vkLatencySleepNV        = vkLatencySleepNV_Original;
+auto& SK_vkSetLatencyMarkerNV    = vkSetLatencyMarkerNV_Original;
+auto& SK_vkGetLatencyTimingsNV   = vkGetLatencyTimingsNV_Original;
+
+PFN_vkCreateInstance                       vkCreateInstance_Original                       = nullptr;
+PFN_vkCreateDevice                         vkCreateDevice_Original                         = nullptr;
 PFN_vkAcquireNextImageKHR                  vkAcquireNextImageKHR_Original                  = nullptr;
 PFN_vkAcquireNextImage2KHR                 vkAcquireNextImage2KHR_Original                 = nullptr;
 PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties_Original = nullptr;
 PFN_vkEnumerateDeviceExtensionProperties   vkEnumerateDeviceExtensionProperties_Original   = nullptr;
 PFN_vkCreateSwapchainKHR                   vkCreateSwapchainKHR_Original                   = nullptr;
+PFN_vkQueuePresentKHR                      vkQueuePresentKHR_Original                      = nullptr;
+PFN_vkGetInstanceProcAddr                  vkGetInstanceProcAddr_SK                        = nullptr;
 PFN_vkGetDeviceProcAddr                    vkGetDeviceProcAddr_SK                          = nullptr;
+PFN_vkCreateSemaphore                      vkCreateSemaphore_SK                            = nullptr;
+PFN_vkWaitSemaphores                       vkWaitSemaphores_SK                             = nullptr;
 
 VkResult
 VKAPI_CALL
@@ -609,30 +641,6 @@ SK_VK_EnumerateInstanceExtensionProperties (
   const auto result =
     vkEnumerateInstanceExtensionProperties_Original (
             pLayerName, pPropertyCount, pProperties );
-
-  if (result == VK_SUCCESS && pProperties != nullptr)
-  {
-    for ( UINT i = 0 ; i < *pPropertyCount ; ++i )
-    {
-      auto property =
-        &pProperties [i];
-
-      if (! config.nvidia.dlss.allow_flip_metering)
-      {
-        // Erase this extension by duplicating the prior extension...
-        if (strcmp (property->extensionName, "VK_NV_present_metering") == 0){
-            memcpy (property, property-1, sizeof (VkExtensionProperties));
-
-          SK_RunOnce (
-            SK_LOGi0 (
-              L"Vulkan Extension: VK_NV_present_metering disabled in call to "
-              L"vkEnumerateInstanceExtensionProperties (...)"
-            )
-          );
-        }
-      }
-    }
-  }
 
   return result;
 }
@@ -659,11 +667,23 @@ SK_VK_EnumerateDeviceExtensionProperties (
       auto property =
         &pProperties [i];
 
+      if ((! SK_VK_HasLowLatency2) &&
+          (! strcmp (property->extensionName, VK_NV_LOW_LATENCY_2_EXTENSION_NAME)))
+      {
+        SK_VK_HasLowLatency2 = true;
+      }
+
+      if ((! SK_VK_HasLowLatency) &&
+          (! strcmp (property->extensionName, VK_NV_LOW_LATENCY_EXTENSION_NAME)))
+      {
+        SK_VK_HasLowLatency = true;
+      }
+
       if (! config.nvidia.dlss.allow_flip_metering)
       {
         // Erase this extension by duplicating the prior extension...
-        if (strcmp (property->extensionName, "VK_NV_present_metering") == 0){
-            memcpy (property, property-1, sizeof (VkExtensionProperties));
+        if (strcmp (property->extensionName, "VK_NV_present_metering") == 0)
+        {   memcpy (property, property-1, sizeof (VkExtensionProperties));
 
           SK_RunOnce (
             SK_LOGi0 (
@@ -726,6 +746,89 @@ vkAcquireNextImage2KHR_Detour (
 }
 
 VkResult
+SK_VK_CreateInstance (
+  const VkInstanceCreateInfo*  pCreateInfo,
+  const VkAllocationCallbacks* pAllocator,
+  VkInstance*                  pInstance )
+{
+  SK_LOG_FIRST_CALL
+
+  std::vector <const char*> extns;
+
+  for (auto i = 0u ; i < pCreateInfo->enabledExtensionCount ; ++i)
+  {
+    extns.push_back (pCreateInfo->ppEnabledExtensionNames [i]);
+  }
+
+  extns.push_back ("VK_NV_low_latency2");
+
+  VkInstanceCreateInfo _CreateInfo = *pCreateInfo;
+
+  _CreateInfo.ppEnabledExtensionNames =                         extns.data ();
+  _CreateInfo.enabledExtensionCount   = static_cast <uint32_t> (extns.size ());
+
+  if ( VK_SUCCESS == vkCreateInstance_Original (&_CreateInfo, pAllocator, pInstance) )
+  {
+    SK_Reflex_VkInstance = *pInstance;
+
+    return VK_SUCCESS;
+  }
+
+  auto result =
+    vkCreateInstance_Original (pCreateInfo, pAllocator, pInstance);
+
+  if ( VK_SUCCESS == result )
+  {
+    SK_Reflex_VkInstance = *pInstance;
+  }
+
+  return result;
+}
+
+VkResult
+SK_VK_CreateDevice (
+        VkPhysicalDevice       physicalDevice,
+  const VkDeviceCreateInfo*    pCreateInfo,
+  const VkAllocationCallbacks* pAllocator,
+        VkDevice*              pDevice )
+{
+  SK_LOG_FIRST_CALL
+
+  std::vector <const char*> extns;
+
+  for (auto i = 0u ; i < pCreateInfo->enabledExtensionCount ; ++i)
+  {
+    extns.push_back (pCreateInfo->ppEnabledExtensionNames [i]);
+  }
+
+  extns.push_back ("VK_NV_low_latency2");
+
+  VkDeviceCreateInfo _CreateInfo = *pCreateInfo;
+
+  _CreateInfo.ppEnabledExtensionNames =                         extns.data ();
+  _CreateInfo.enabledExtensionCount   = static_cast <uint32_t> (extns.size ());
+
+  if ( VK_SUCCESS == vkCreateDevice_Original (physicalDevice, &_CreateInfo, pAllocator, pDevice) )
+  {
+    SK_Reflex_VkDevice  =  *pDevice;
+    SK_VK_HookFirstDevice (*pDevice);
+
+    return VK_SUCCESS;
+  }
+
+  auto result =
+    vkCreateDevice_Original (physicalDevice, pCreateInfo, pAllocator, pDevice);
+
+  if ( VK_SUCCESS == result )
+  {
+    SK_Reflex_VkDevice  =  *pDevice;
+    SK_VK_HookFirstDevice (*pDevice);
+  }
+
+  return result;
+}
+
+VkResult
 VKAPI_CALL
 SK_VK_CreateSwapchainKHR (
             VkDevice                   device,
@@ -735,10 +838,14 @@ SK_VK_CreateSwapchainKHR (
 {
   SK_LOG_FIRST_CALL
 
+  VkSwapchainLatencyCreateInfoNV
+    reflex_info                   = { };
+    reflex_info.sType             = VK_STRUCTURE_TYPE_SWAPCHAIN_LATENCY_CREATE_INFO_NV;
+    reflex_info.latencyModeEnable = TRUE;
   VkSurfaceFullScreenExclusiveInfoEXT
-    fse_info                     = { };
-    fse_info.sType               = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
-    fse_info.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
+    fse_info                      = { };
+    fse_info.sType                = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+    fse_info.fullScreenExclusive  = VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
 
   const void *pNext =     pCreateInfo->pNext;
   auto _CreateInfoCopy = *pCreateInfo;
@@ -806,27 +913,199 @@ SK_VK_CreateSwapchainKHR (
     SK_LOGi0 ("Vulkan Present Mode Override: %ws", wszPresentMode);
   }
 
-  return
+  if (SK_VK_HasLowLatency2)
+  {
+    SK_VK_HookFirstDevice (device);
+
+    SK_LOGi0 (L"Enabling VK_NV_low_latency2...");
+
+    reflex_info.pNext =     fse_info.pNext;
+       fse_info.pNext = &reflex_info;
+  }
+
+  auto ret =
     vkCreateSwapchainKHR_Original (device, &_CreateInfoCopy, pAllocator, pSwapchain);
+
+  if (SUCCEEDED (ret))
+  {
+    if (*pSwapchain != SK_Reflex_VkSwapchain)
+    {
+      SK_Reflex_VkDevice    =      device;
+      SK_Reflex_VkSwapchain = *pSwapchain;
+
+      VkSemaphoreCreateInfo
+        create_info       = {                                     };
+        create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+      VkSemaphoreTypeCreateInfo
+        create_type_info               = {                                          };
+        create_type_info.sType         = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+        create_type_info.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+        create_type_info.initialValue  = 0;
+
+      create_info.pNext = &create_type_info;
+
+           vkCreateSemaphore_SK =
+      (PFN_vkCreateSemaphore)vkGetDeviceProcAddr_SK (device, "vkCreateSemaphore");
+           vkWaitSemaphores_SK =
+      (PFN_vkWaitSemaphores)vkGetDeviceProcAddr_SK  (device, "vkWaitSemaphores" );
+
+      vkCreateSemaphore_SK (device, &create_info, nullptr, &SK_Reflex_VkSemaphore);
+    }
+  }
+
+  else
+  {
+    ret =
+      vkCreateSwapchainKHR_Original (device, pCreateInfo, pAllocator, pSwapchain);  
+  }
+
+  return ret;
 }
 
-static VkSwapchainKHR SK_Vulkan_NativeReflexSwapChain;
-static VkDevice       SK_Vulkan_NativeReflexDevice;
+void
+SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type)
+{
+  extern void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
 
-typedef VkResult (VKAPI_PTR *PFN_vkSetLatencySleepModeNV)(VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepModeInfoNV* pSleepModeInfo    );
-typedef VkResult (VKAPI_PTR *PFN_vkLatencySleepNV)       (VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepInfoNV*     pSleepInfo        );
-typedef void     (VKAPI_PTR *PFN_vkSetLatencyMarkerNV)   (VkDevice device, VkSwapchainKHR swapchain, const VkSetLatencyMarkerInfoNV* pLatencyMarkerInfo);
-typedef void     (VKAPI_PTR *PFN_vkGetLatencyTimingsNV)  (VkDevice device, VkSwapchainKHR swapchain,       VkGetLatencyMarkerInfoNV* pLatencyMarkerInfo);
+                                                                             marker.marker = type;
+  vkSetLatencyMarkerNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &marker);
 
-PFN_vkSetLatencySleepModeNV vkSetLatencySleepModeNV_Original = nullptr;
-PFN_vkLatencySleepNV        vkLatencySleepNV_Original        = nullptr;
-PFN_vkSetLatencyMarkerNV    vkSetLatencyMarkerNV_Original    = nullptr;
-PFN_vkGetLatencyTimingsNV   vkGetLatencyTimingsNV_Original   = nullptr;
+  NV_LATENCY_MARKER_PARAMS
+    nvapi_marker            = {              };
+    nvapi_marker.frameID    = marker.presentID;
+    nvapi_marker.markerType = (NV_LATENCY_MARKER_TYPE)type;
 
-auto& SK_vkSetLatencySleepModeNV = vkSetLatencySleepModeNV_Original;
-auto& SK_vkLatencySleepNV        = vkLatencySleepNV_Original;
-auto& SK_vkSetLatencyMarkerNV    = vkSetLatencyMarkerNV_Original;
-auto& SK_vkGetLatencyTimingsNV   = vkGetLatencyTimingsNV_Original;
+  // Up to marker type TRIGGER_FLASH, the Vulkan extension and NVAPI enums match for marker type.
+
+  SK_PCL_Heartbeat (nvapi_marker);
+}
+
+VkResult
+VKAPI_CALL
+SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
+{
+  SK_LOG_FIRST_CALL
+
+  static bool bUseOldReflex =
+    SK_IsModuleLoaded (L"NvLowLatencyVk.dll");
+
+  static volatile uint64_t semaphore_val_ = 1;
+
+  VkSetLatencyMarkerInfoNV
+    marker           = {                                          };
+    marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+    marker.presentID = ReadULong64Acquire (&semaphore_val_);
+    marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
+
+  if ((! bUseOldReflex) && SK_VK_HasLowLatency2)
+  {
+    if (ReadULong64Acquire (&semaphore_val_) == 1) {
+      SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
+    }
+
+    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_END_NV);
+    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_PRESENT_START_NV);
+  }
+
+  auto ret =
+    vkQueuePresentKHR_Original (queue, pPresentInfo);
+
+  if (bUseOldReflex)
+    return ret;
+
+  if (SK_VK_HasLowLatency2)
+  {
+    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_PRESENT_END_NV);
+  }
+
+  uint64_t semaphore_val =
+    InterlockedIncrement (&semaphore_val_);
+
+  if (VK_SUCCESS == ret && vkLatencySleepNV_Original != nullptr &&
+                           vkWaitSemaphores_SK       != nullptr && SK_Reflex_VkSemaphore != 0)
+  {
+    if (SK_VK_HasLowLatency2)
+    {
+      VkLatencySleepModeInfoNV
+        sleep_mode_info                 = {                                          };
+        sleep_mode_info.sType           = VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV;
+        sleep_mode_info.lowLatencyMode  = config.nvidia.reflex.low_latency       ? 1 : 0;
+        sleep_mode_info.lowLatencyBoost = config.nvidia.reflex.low_latency_boost ? 1 : 0;
+
+      vkSetLatencySleepModeNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &sleep_mode_info);
+
+      VkLatencySleepInfoNV
+        lat_info                 = {                                     };
+        lat_info.sType           = VK_STRUCTURE_TYPE_LATENCY_SLEEP_INFO_NV;
+        lat_info.signalSemaphore = SK_Reflex_VkSemaphore;
+        lat_info.value           = semaphore_val;
+
+      if (VK_SUCCESS == vkLatencySleepNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &lat_info))
+      {
+        extern void
+        SK_Reflex_SetVulkanSwapchain (VkDevice device, VkSwapchainKHR swapchain);
+        SK_Reflex_SetVulkanSwapchain (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain);
+
+        config.nvidia.reflex.vulkan = true;
+
+        VkSemaphoreWaitInfo
+          sem_wait_info                = {                                   };
+          sem_wait_info.sType          = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+          sem_wait_info.pSemaphores    = &SK_Reflex_VkSemaphore;
+          sem_wait_info.semaphoreCount = 1;
+          sem_wait_info.pValues        = &semaphore_val;
+    
+        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 1000000);
+
+        const auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        const auto& display =
+          rb.displays [rb.active_display];
+
+        // Apply correct VRR framerate limit, which Reflex should be doing on its own...
+        if ( config.nvidia.reflex.low_latency &&
+             display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
+             display.signal.timing.vsync_freq.Denominator != 0 )
+        {
+          const double dRefresh =
+            static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+            static_cast <double> (display.signal.timing.vsync_freq.Denominator);
+
+          const double dReflexFPS =
+            (dRefresh - (dRefresh * dRefresh) / 3600.0);
+
+          // Vulkan Reflex is b0rked, we will just do it ourselves if Low Latency mode is enabled.
+          if ( __target_fps <= 0.0f ||
+               __target_fps > dReflexFPS )
+               __target_fps = static_cast <float> (dReflexFPS);
+
+#if 0
+          const auto vrr_interval_us =
+            static_cast <UINT> (1000000.0 / dReflexFPS);
+
+          if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
+              sleepModeParams->minimumIntervalUs = vrr_interval_us;
+#endif
+        }
+
+        else
+        {
+          __target_fps = config.render.framerate.target_fps;
+        }
+      }
+
+      marker.presentID = semaphore_val;
+
+      SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
+    }
+  }
+
+  return ret;
+}
 
 #define SK_VK_NATIVE_REFLEX_CALL SK_Vulkan_NativeReflexDevice    = device; \
                                  SK_Vulkan_NativeReflexSwapChain = swapchain;
@@ -877,35 +1156,108 @@ vkSetLatencyMarkerNV_Detour (
 }
 
 void
-SK_VK_HookFirstDevice (VkDevice device)
+SK_VK_HookFirstDevice (VkDevice/*device*/)
 {
-  if (vkGetLatencyTimingsNV_Original == nullptr && vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV") != nullptr)
-  SK_RunOnce (
-    void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV");
-    void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetDeviceProcAddr_SK (device, "vkLatencySleepNV");
-    void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetDeviceProcAddr_SK (device, "vkSetLatencyMarkerNV");
-    vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetDeviceProcAddr_SK (device, "vkGetLatencyTimingsNV");
+  //if (SK_VK_HasLowLatency2 && vkGetLatencyTimingsNV_Original == nullptr
+  //                         && vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV") != nullptr)
+  //{
+  //  void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV");
+  //  void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetDeviceProcAddr_SK (device, "vkLatencySleepNV");
+  //  void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetDeviceProcAddr_SK (device, "vkSetLatencyMarkerNV");
+  //  vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetDeviceProcAddr_SK (device, "vkGetLatencyTimingsNV");
+  //
+  //  if (vkGetLatencyTimingsNV_Original != nullptr)
+  //  {
+  //    if (                       vkSetLatencySleepModeNV != nullptr &&
+  //                MH_CreateHook (vkSetLatencySleepModeNV,
+  //                               vkSetLatencySleepModeNV_Detour,
+  //      static_cast_p2p <void> (&vkSetLatencySleepModeNV_Original) ) == MH_OK )
+  //           MH_QueueEnableHook (vkSetLatencySleepModeNV);
+  //
+  //    if (                       vkLatencySleepNV != nullptr &&
+  //                MH_CreateHook (vkLatencySleepNV,
+  //                               vkLatencySleepNV_Detour,
+  //      static_cast_p2p <void> (&vkLatencySleepNV_Original) ) == MH_OK )
+  //           MH_QueueEnableHook (vkLatencySleepNV);
+  //
+  //    if (                       vkSetLatencyMarkerNV != nullptr &&
+  //                MH_CreateHook (vkSetLatencyMarkerNV,
+  //                               vkSetLatencyMarkerNV_Detour,
+  //      static_cast_p2p <void> (&vkSetLatencyMarkerNV_Original) ) == MH_OK )
+  //           MH_QueueEnableHook (vkSetLatencyMarkerNV);
+  //
+  //    SK_ApplyQueuedHooks ();
+  //  }
+  //}
+  //
+  //else if (SK_Reflex_VkDevice != device)
+  //{
+  //  device = SK_Reflex_VkDevice;
+  //
+  //  if (SK_VK_HasLowLatency2 && vkGetLatencyTimingsNV_Original == nullptr
+  //                           && vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV") != nullptr)
+  //  {
+  //    void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetDeviceProcAddr_SK (device, "vkSetLatencySleepModeNV");
+  //    void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetDeviceProcAddr_SK (device, "vkLatencySleepNV");
+  //    void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetDeviceProcAddr_SK (device, "vkSetLatencyMarkerNV");
+  //    vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetDeviceProcAddr_SK (device, "vkGetLatencyTimingsNV");
+  //
+  //    if (vkGetLatencyTimingsNV_Original != nullptr)
+  //    {
+  //      if (                       vkSetLatencySleepModeNV != nullptr &&
+  //                  MH_CreateHook (vkSetLatencySleepModeNV,
+  //                                 vkSetLatencySleepModeNV_Detour,
+  //        static_cast_p2p <void> (&vkSetLatencySleepModeNV_Original) ) == MH_OK )
+  //             MH_QueueEnableHook (vkSetLatencySleepModeNV);
+  //
+  //      if (                       vkLatencySleepNV != nullptr &&
+  //                  MH_CreateHook (vkLatencySleepNV,
+  //                                 vkLatencySleepNV_Detour,
+  //        static_cast_p2p <void> (&vkLatencySleepNV_Original) ) == MH_OK )
+  //             MH_QueueEnableHook (vkLatencySleepNV);
+  //
+  //      if (                       vkSetLatencyMarkerNV != nullptr &&
+  //                  MH_CreateHook (vkSetLatencyMarkerNV,
+  //                                 vkSetLatencyMarkerNV_Detour,
+  //        static_cast_p2p <void> (&vkSetLatencyMarkerNV_Original) ) == MH_OK )
+  //             MH_QueueEnableHook (vkSetLatencyMarkerNV);
+  //
+  //      SK_ApplyQueuedHooks ();
+  //    }
+  //  }
+  //}
 
-    if (                       vkSetLatencySleepModeNV != nullptr &&
-                MH_CreateHook (vkSetLatencySleepModeNV,
-                               vkSetLatencySleepModeNV_Detour,
-      static_cast_p2p <void> (&vkSetLatencySleepModeNV_Original) ) == MH_OK )
-           MH_QueueEnableHook (vkSetLatencySleepModeNV);
+  if (SK_VK_HasLowLatency2 && vkGetLatencyTimingsNV_Original == nullptr
+                           && vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencySleepModeNV") != nullptr)
+  {
+    void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencySleepModeNV");
+    void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkLatencySleepNV");
+    void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencyMarkerNV");
+    vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkGetLatencyTimingsNV");
 
-    if (                       vkLatencySleepNV != nullptr &&
-                MH_CreateHook (vkLatencySleepNV,
-                               vkLatencySleepNV_Detour,
-      static_cast_p2p <void> (&vkLatencySleepNV_Original) ) == MH_OK )
-           MH_QueueEnableHook (vkLatencySleepNV);
+    if (vkGetLatencyTimingsNV_Original != nullptr)
+    {
+      if (                       vkSetLatencySleepModeNV != nullptr &&
+                  MH_CreateHook (vkSetLatencySleepModeNV,
+                                 vkSetLatencySleepModeNV_Detour,
+        static_cast_p2p <void> (&vkSetLatencySleepModeNV_Original) ) == MH_OK )
+             MH_QueueEnableHook (vkSetLatencySleepModeNV);
 
-    if (                       vkSetLatencyMarkerNV != nullptr &&
-                MH_CreateHook (vkSetLatencyMarkerNV,
-                               vkSetLatencyMarkerNV_Detour,
-      static_cast_p2p <void> (&vkSetLatencyMarkerNV_Original) ) == MH_OK )
-           MH_QueueEnableHook (vkSetLatencyMarkerNV);
+      if (                       vkLatencySleepNV != nullptr &&
+                  MH_CreateHook (vkLatencySleepNV,
+                                 vkLatencySleepNV_Detour,
+        static_cast_p2p <void> (&vkLatencySleepNV_Original) ) == MH_OK )
+             MH_QueueEnableHook (vkLatencySleepNV);
 
-    SK_ApplyQueuedHooks ();
-  );
+      if (                       vkSetLatencyMarkerNV != nullptr &&
+                  MH_CreateHook (vkSetLatencyMarkerNV,
+                                 vkSetLatencyMarkerNV_Detour,
+        static_cast_p2p <void> (&vkSetLatencyMarkerNV_Original) ) == MH_OK )
+             MH_QueueEnableHook (vkSetLatencyMarkerNV);
+
+      SK_ApplyQueuedHooks ();
+    }
+  }
 }
 
 void
@@ -928,9 +1280,24 @@ _SK_HookVulkan (void)
       // DXGI / VK Interop Setup
       //
          SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkCreateInstance",
+                          SK_VK_CreateInstance,
+     static_cast_p2p <void> (&vkCreateInstance_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkCreateDevice",
+                          SK_VK_CreateDevice,
+     static_cast_p2p <void> (&vkCreateDevice_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
                              "vkCreateSwapchainKHR",
                           SK_VK_CreateSwapchainKHR,
      static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkQueuePresentKHR",
+                          SK_VK_QueuePresentKHR,
+     static_cast_p2p <void> (&vkQueuePresentKHR_Original));
 
          SK_CreateDLLHook2 (L"vulkan-1.dll",
                              "vkEnumerateInstanceExtensionProperties",
@@ -952,6 +1319,8 @@ _SK_HookVulkan (void)
                               vkAcquireNextImage2KHR_Detour,
      static_cast_p2p <void> (&vkAcquireNextImage2KHR_Original));
 
+     vkGetInstanceProcAddr_SK = (PFN_vkGetInstanceProcAddr)SK_GetProcAddress (L"vulkan-1.dll",
+    "vkGetInstanceProcAddr");
      vkGetDeviceProcAddr_SK = (PFN_vkGetDeviceProcAddr)SK_GetProcAddress (L"vulkan-1.dll",
     "vkGetDeviceProcAddr");
 
