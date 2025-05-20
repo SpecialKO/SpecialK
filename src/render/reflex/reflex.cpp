@@ -1244,6 +1244,12 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
   SK_VK_HookFirstDevice (device);
   SK_VK_Reflex.device  = device;
 
+  if (config.nvidia.reflex.override)
+  {
+    NVLL_VK_SET_SLEEP_MODE_PARAMS         dummy = {};
+    NvLL_VK_SetSleepMode_Detour (device, &dummy);
+  }
+
   //
   // nb: For DLSS-G "native pacing", run the framerate limiter here.
   //
@@ -1306,7 +1312,7 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
     // Apply correct VRR framerate limit, which Reflex should be doing on its own...
     if ( sleepModeParams->bLowLatencyMode                           &&
          display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
-         display.signal.timing.vsync_freq.Denominator != 0 )
+         display.signal.timing.vsync_freq.Denominator != 0          && !__SK_IsDLSSGActive )
     {
       const double dRefresh =
         static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
@@ -1405,8 +1411,8 @@ SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* la
           latencyReport->frameReport [i].osRenderQueueEndTime   = report.frameReport [i].osRenderQueueEndTime;
           latencyReport->frameReport [i].gpuRenderStartTime     = report.frameReport [i].gpuRenderStartTime;
           latencyReport->frameReport [i].gpuRenderEndTime       = report.frameReport [i].gpuRenderEndTime;
-          latencyReport->frameReport [i].gpuActiveRenderTimeUs  = static_cast <NvU32> (report.frameReport [i].gpuRenderEndTime - report.frameReport [i].gpuRenderStartTime);//report.frameReport [i].gpuActiveRenderTimeUs;
-          latencyReport->frameReport [i].gpuFrameTimeUs         = 0;//report.frameReport [i].gpuFrameTimeUs;
+          latencyReport->frameReport [i].gpuActiveRenderTimeUs  = static_cast <NvU32> (report.frameReport [i].gpuRenderEndTime - report.frameReport [i].gpuRenderStartTime);
+          latencyReport->frameReport [i].gpuFrameTimeUs         = 0;
         }
 
         return true;
@@ -1437,25 +1443,22 @@ SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* la
         if (i >= markerInfo.timingCount)
           break;
 
-#define ConvertUsToQpc(x) x
-//static_cast <uint64_t> (static_cast <double> (SK_QpcFreq) * (static_cast <double> (x) / 1000000x.0))
-
-        latencyReport->frameReport [i].frameID                =                 markerInfo.pTimings [i].presentID;
-        latencyReport->frameReport [i].inputSampleTime        = ConvertUsToQpc (markerInfo.pTimings [i].inputSampleTimeUs);
-        latencyReport->frameReport [i].simStartTime           = ConvertUsToQpc (markerInfo.pTimings [i].simStartTimeUs);
-        latencyReport->frameReport [i].simEndTime             = ConvertUsToQpc (markerInfo.pTimings [i].simEndTimeUs);
-        latencyReport->frameReport [i].renderSubmitStartTime  = ConvertUsToQpc (markerInfo.pTimings [i].renderSubmitStartTimeUs);
-        latencyReport->frameReport [i].renderSubmitEndTime    = ConvertUsToQpc (markerInfo.pTimings [i].renderSubmitEndTimeUs);
-        latencyReport->frameReport [i].presentStartTime       = ConvertUsToQpc (markerInfo.pTimings [i].presentStartTimeUs);
-        latencyReport->frameReport [i].presentEndTime         = ConvertUsToQpc (markerInfo.pTimings [i].presentEndTimeUs);
-        latencyReport->frameReport [i].driverStartTime        = ConvertUsToQpc (markerInfo.pTimings [i].driverStartTimeUs);
-        latencyReport->frameReport [i].driverEndTime          = ConvertUsToQpc (markerInfo.pTimings [i].driverEndTimeUs);
-        latencyReport->frameReport [i].osRenderQueueStartTime = ConvertUsToQpc (markerInfo.pTimings [i].osRenderQueueStartTimeUs);
-        latencyReport->frameReport [i].osRenderQueueEndTime   = ConvertUsToQpc (markerInfo.pTimings [i].osRenderQueueEndTimeUs);
-        latencyReport->frameReport [i].gpuRenderStartTime     = ConvertUsToQpc (markerInfo.pTimings [i].gpuRenderStartTimeUs);
-        latencyReport->frameReport [i].gpuRenderEndTime       = ConvertUsToQpc (markerInfo.pTimings [i].gpuRenderEndTimeUs);
-        latencyReport->frameReport [i].gpuActiveRenderTimeUs  = static_cast <NvU32> (ConvertUsToQpc (markerInfo.pTimings [i].gpuRenderEndTimeUs - markerInfo.pTimings [i].gpuRenderStartTimeUs));//report.frameReport [i].gpuActiveRenderTimeUs;
-        latencyReport->frameReport [i].gpuFrameTimeUs         = 0;//report.frameReport [i].gpuFrameTimeUs;
+        latencyReport->frameReport [i].frameID                = markerInfo.pTimings [i].presentID;
+        latencyReport->frameReport [i].inputSampleTime        = markerInfo.pTimings [i].inputSampleTimeUs;
+        latencyReport->frameReport [i].simStartTime           = markerInfo.pTimings [i].simStartTimeUs;
+        latencyReport->frameReport [i].simEndTime             = markerInfo.pTimings [i].simEndTimeUs;
+        latencyReport->frameReport [i].renderSubmitStartTime  = markerInfo.pTimings [i].renderSubmitStartTimeUs;
+        latencyReport->frameReport [i].renderSubmitEndTime    = markerInfo.pTimings [i].renderSubmitEndTimeUs;
+        latencyReport->frameReport [i].presentStartTime       = markerInfo.pTimings [i].presentStartTimeUs;
+        latencyReport->frameReport [i].presentEndTime         = markerInfo.pTimings [i].presentEndTimeUs;
+        latencyReport->frameReport [i].driverStartTime        = markerInfo.pTimings [i].driverStartTimeUs;
+        latencyReport->frameReport [i].driverEndTime          = markerInfo.pTimings [i].driverEndTimeUs;
+        latencyReport->frameReport [i].osRenderQueueStartTime = markerInfo.pTimings [i].osRenderQueueStartTimeUs;
+        latencyReport->frameReport [i].osRenderQueueEndTime   = markerInfo.pTimings [i].osRenderQueueEndTimeUs;
+        latencyReport->frameReport [i].gpuRenderStartTime     = markerInfo.pTimings [i].gpuRenderStartTimeUs;
+        latencyReport->frameReport [i].gpuRenderEndTime       = markerInfo.pTimings [i].gpuRenderEndTimeUs;
+        latencyReport->frameReport [i].gpuActiveRenderTimeUs  = static_cast <NvU32> (markerInfo.pTimings [i].gpuRenderEndTimeUs - markerInfo.pTimings [i].gpuRenderStartTimeUs);
+        latencyReport->frameReport [i].gpuFrameTimeUs         = 0;
       }
 
       return true;
