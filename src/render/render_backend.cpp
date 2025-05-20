@@ -618,6 +618,9 @@ auto& SK_vkGetLatencyTimingsNV   = vkGetLatencyTimingsNV_Original;
 
 PFN_vkCreateInstance                       vkCreateInstance_Original                       = nullptr;
 PFN_vkCreateDevice                         vkCreateDevice_Original                         = nullptr;
+PFN_vkQueueSubmit                          vkQueueSubmit_Original                          = nullptr;
+PFN_vkQueueSubmit2                         vkQueueSubmit2_Original                         = nullptr;
+PFN_vkBeginCommandBuffer                   vkBeginCommandBuffer_Original                   = nullptr;
 PFN_vkAcquireNextImageKHR                  vkAcquireNextImageKHR_Original                  = nullptr;
 PFN_vkAcquireNextImage2KHR                 vkAcquireNextImage2KHR_Original                 = nullptr;
 PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties_Original = nullptr;
@@ -981,6 +984,111 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
   SK_PCL_Heartbeat (nvapi_marker);
 }
 
+uint64_t renderbatch_frame = 0;
+
+VkResult
+VKAPI_CALL
+SK_VK_BeginCommandBuffer(
+  VkCommandBuffer                 commandBuffer,
+  const VkCommandBufferBeginInfo* pBeginInfo)
+{
+  if (SK_VK_HasLowLatency2)
+  {
+    static bool bUseOldReflex =
+      SK_IsModuleLoaded (L"NvLowLatencyVk.dll");
+
+    if (! bUseOldReflex)
+    {
+      if (renderbatch_frame < SK_GetFramesDrawn ())   
+      {
+        renderbatch_frame = SK_GetFramesDrawn ();
+
+        VkSetLatencyMarkerInfoNV
+        marker           = {                                          };
+        marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+        marker.presentID = SK_GetFramesDrawn ();
+        marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
+
+        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+      }
+    }
+  }
+
+  return
+    vkBeginCommandBuffer_Original (commandBuffer, pBeginInfo);
+}
+
+VkResult
+VKAPI_CALL
+SK_VK_QueueSubmit2 (
+  VkQueue              queue,
+  uint32_t             submitCount,
+  const VkSubmitInfo2* pSubmits,
+  VkFence              fence )
+{
+  if (SK_VK_HasLowLatency2)
+  {
+    static bool bUseOldReflex =
+      SK_IsModuleLoaded (L"NvLowLatencyVk.dll");
+
+    if (! bUseOldReflex)
+    {
+      if (renderbatch_frame < SK_GetFramesDrawn ())   
+      {
+        renderbatch_frame = SK_GetFramesDrawn ();
+
+        VkSetLatencyMarkerInfoNV
+        marker           = {                                          };
+        marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+        marker.presentID = SK_GetFramesDrawn ();
+        marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
+
+        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+      }
+    }
+  }
+
+  return
+    vkQueueSubmit2_Original (queue, submitCount, pSubmits, fence);
+}
+
+VkResult
+VKAPI_CALL
+SK_VK_QueueSubmit (
+  VkQueue             queue,
+  uint32_t            submitCount,
+  const VkSubmitInfo* pSubmits,
+  VkFence             fence )
+{
+  if (SK_VK_HasLowLatency2)
+  {
+    static bool bUseOldReflex =
+      SK_IsModuleLoaded (L"NvLowLatencyVk.dll");
+
+    if (! bUseOldReflex)
+    {
+      if (renderbatch_frame < SK_GetFramesDrawn ())   
+      {
+        renderbatch_frame = SK_GetFramesDrawn ();
+
+        VkSetLatencyMarkerInfoNV
+        marker           = {                                          };
+        marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+        marker.presentID = SK_GetFramesDrawn ();
+        marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
+
+        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+      }
+    }
+  }
+
+  return
+    vkQueueSubmit_Original (queue, submitCount, pSubmits, fence);
+}
+
 VkResult
 VKAPI_CALL
 SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
@@ -995,17 +1103,21 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   VkSetLatencyMarkerInfoNV
     marker           = {                                          };
     marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
-    marker.presentID = ReadULong64Acquire (&semaphore_val_);
+    marker.presentID = SK_GetFramesDrawn ();
     marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
 
   if ((! bUseOldReflex) && SK_VK_HasLowLatency2)
   {
-    if (ReadULong64Acquire (&semaphore_val_) == 1) {
+    if (SK_GetFramesDrawn () == 0) {
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
     }
 
-    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
-    SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+    if (renderbatch_frame != SK_GetFramesDrawn ())
+    {
+      SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+      SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+    }
+
     SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_END_NV);
     SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_PRESENT_START_NV);
   }
@@ -1021,8 +1133,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
     SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_PRESENT_END_NV);
   }
 
-  uint64_t semaphore_val =
-    InterlockedIncrement (&semaphore_val_);
+  uint64_t semaphore_val = SK_GetFramesDrawn () + 1;
 
   if (VK_SUCCESS == ret && vkLatencySleepNV_Original != nullptr &&
                            vkWaitSemaphores_SK       != nullptr && SK_Reflex_VkSemaphore != 0)
@@ -1058,7 +1169,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
           sem_wait_info.semaphoreCount = 1;
           sem_wait_info.pValues        = &semaphore_val;
     
-        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 1000000);
+        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000);
 
         const auto& rb =
           SK_GetCurrentRenderBackend ();
@@ -1288,6 +1399,21 @@ _SK_HookVulkan (void)
                              "vkCreateDevice",
                           SK_VK_CreateDevice,
      static_cast_p2p <void> (&vkCreateDevice_Original));
+
+          SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkQueueSubmit",
+                          SK_VK_QueueSubmit,
+     static_cast_p2p <void> (&vkQueueSubmit_Original));
+
+          SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkQueueSubmit2",
+                          SK_VK_QueueSubmit2,
+     static_cast_p2p <void> (&vkQueueSubmit2_Original));
+
+          SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkBeginCommandBuffer",
+                          SK_VK_BeginCommandBuffer,
+     static_cast_p2p <void> (&vkBeginCommandBuffer_Original));
 
          SK_CreateDLLHook2 (L"vulkan-1.dll",
                              "vkCreateSwapchainKHR",
