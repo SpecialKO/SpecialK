@@ -1,4 +1,8 @@
-﻿25.5.20
+﻿25.5.20.1
+=========
+ + Implement render submit latency markers in Vulkan
+
+25.5.20
 =======
  + Added Reflex support for all Vulkan games on NVIDIA drivers
     * Trigger point is not implemented
