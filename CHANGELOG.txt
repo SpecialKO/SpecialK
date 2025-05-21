@@ -1,4 +1,14 @@
-﻿25.5.21.1
+﻿25.5.21.2
+=========
+ + Fixed DOOM The Dark Age's native Reflex implementation.
+
+    * It was passing a null ptr to NvLL_VK_InitializeLowLatencyDevice (...),
+        instead of a pointer to a semaphore pointer.
+
+    -> Implemented the blocking wait on the engine's behalf, since the engine
+         continues to have a nullptr for its semaphore and cannot wait on it.
+
+25.5.21.1
 =========
  + Reduced latency in Vulkan games with Reflex injected.
  + Fixed Reflex not applying its configured framerate limit, and removed

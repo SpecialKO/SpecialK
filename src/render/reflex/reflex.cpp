@@ -1296,9 +1296,10 @@ NvLL_VK_InitLowLatencyDevice_Detour (VkDevice device, VkSemaphore* signalSemapho
   rb.vulkan_reflex.api        = SK_RenderBackend_V2::vk_reflex_s::NvLowLatencyVk;
 
   auto ret =
-    NvLL_VK_InitLowLatencyDevice_Original (device, signalSemaphoreHandle);
+    NvLL_VK_InitLowLatencyDevice_Original (device, &SK_VK_Reflex.NvLL_semaphore);
 
-  SK_VK_Reflex.NvLL_semaphore = *signalSemaphoreHandle;
+  if (signalSemaphoreHandle != nullptr)
+     *signalSemaphoreHandle = SK_VK_Reflex.NvLL_semaphore;
 
   return ret;
 }
@@ -1334,7 +1335,6 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       }
     }
 
-#if 1
     // Apply correct VRR framerate limit, which Reflex should be doing on its own...
     if ( sleepModeParams->bLowLatencyMode                           &&
          display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
@@ -1347,25 +1347,12 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       const double dReflexFPS =
         (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
-      // Vulkan Reflex is b0rked, we will just do it ourselves if Low Latency mode is enabled.
-      if ( __target_fps <= 0.0f ||
-           __target_fps > dReflexFPS )
-           __target_fps = static_cast <float> (dReflexFPS);
-
-#if 0
       const auto vrr_interval_us =
         static_cast <UINT> (1000000.0 / dReflexFPS);
 
       if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
           sleepModeParams->minimumIntervalUs = vrr_interval_us;
-#endif
     }
-
-    else
-    {
-      __target_fps = config.render.framerate.target_fps;
-    }
-#endif
   }
 
   return
@@ -1410,8 +1397,8 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
   auto ret =
     NvLL_VK_Sleep_Original (device, signalValue);
 
-  extern void SK_Reflex_WaitOnSemaphore (VkSemaphore semaphore,    uint64_t value);
-              SK_Reflex_WaitOnSemaphore (SK_VK_Reflex.NvLL_semaphore, signalValue);
+  extern void SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore       semaphore, uint64_t value);
+              SK_Reflex_WaitOnSemaphore (         device, SK_VK_Reflex.NvLL_semaphore,    signalValue);
 
   return ret;
 }
@@ -1429,13 +1416,13 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  extern VkDevice       SK_Reflex_VkDevice;
-  extern VkSwapchainKHR SK_Reflex_VkSwapchain;
-
   if (rb.vulkan_reflex.api == SK_RenderBackend_V2::vk_reflex_s::VK_NV_low_latency2)
   {
     if (! vkSetLatencyMarkerNV_Original)
       return;
+
+    extern VkDevice       SK_Reflex_VkDevice;
+    extern VkSwapchainKHR SK_Reflex_VkSwapchain;
 
                                                                                marker.marker = type;
     vkSetLatencyMarkerNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &marker);
@@ -1452,7 +1439,7 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
       marker_params.frameID    = SK_VK_Reflex.last_frame;
       marker_params.markerType = (NVLL_VK_LATENCY_MARKER_TYPE)type;//VK_INPUT_SAMPLE;
 
-    NvLL_VK_SetLatencyMarker_Original (SK_Reflex_VkDevice, &marker_params);
+    NvLL_VK_SetLatencyMarker_Original (SK_VK_Reflex.device, &marker_params);
 
     nvapi_marker.frameID = marker.presentID;
   }

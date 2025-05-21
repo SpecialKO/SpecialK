@@ -1083,7 +1083,7 @@ SK_VK_QueueSubmit (
 }
 
 void
-SK_Reflex_WaitOnSemaphore (VkSemaphore semaphore, uint64_t value)
+SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t value)
 {
   VkSemaphoreWaitInfo
     sem_wait_info                = {                                   };
@@ -1092,7 +1092,7 @@ SK_Reflex_WaitOnSemaphore (VkSemaphore semaphore, uint64_t value)
     sem_wait_info.semaphoreCount = 1;
     sem_wait_info.pValues        = &value;
 
-  vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000000000000000);
+  vkWaitSemaphores_SK (device, &sem_wait_info, 10000000000000000000);
 }
 
 VkResult
@@ -1185,6 +1185,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         const double dReflexFPS =
           (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
+        // Set VRR framerate limit accordingly
         sleep_mode_info.minimumIntervalUs = static_cast <uint32_t> ((1000.0 / dReflexFPS) * 1000.0);
       }
 
@@ -1201,11 +1202,10 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
       if (VK_SUCCESS == vkLatencySleepNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &lat_info))
       {
-        SK_Reflex_SetVulkanSwapchain (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain);
-
         config.nvidia.reflex.vulkan = true;
 
-        SK_Reflex_WaitOnSemaphore (SK_Reflex_VkSemaphore, semaphore_val);
+        SK_Reflex_SetVulkanSwapchain (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain);
+        SK_Reflex_WaitOnSemaphore    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, semaphore_val);
       }
 
       marker.presentID = id + 1;
@@ -1275,23 +1275,11 @@ vkSetLatencySleepModeNV_Detour (
       const double dReflexFPS =
         (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
-      // Vulkan Reflex is b0rked, we will just do it ourselves if Low Latency mode is enabled.
-      if ( __target_fps <= 0.0f ||
-           __target_fps > dReflexFPS )
-           __target_fps = static_cast <float> (dReflexFPS);
-
-#if 0
       const auto vrr_interval_us =
         static_cast <UINT> (1000000.0 / dReflexFPS);
 
-      if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
-          sleepModeParams->minimumIntervalUs = vrr_interval_us;
-#endif
-    }
-
-    else
-    {
-      __target_fps = config.render.framerate.target_fps;
+      if (sleep_mode_info.minimumIntervalUs < vrr_interval_us)
+          sleep_mode_info.minimumIntervalUs = vrr_interval_us;
     }
 
     return
