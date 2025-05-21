@@ -249,6 +249,7 @@ SK_GetCurrentGameID (void)
           { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  },
           { L"StreetFighter6.exe",                     SK_GAME_ID::StreetFighter6               },
           { L"Stardew Valley.exe",                     SK_GAME_ID::StardewValley                },
+          { L"DOOMx64vk.exe",                          SK_GAME_ID::DOOM                         },
           { L"DOOMEternalx64vk.exe",                   SK_GAME_ID::DOOMEternal                  },
           { L"anuket_x64.exe",                         SK_GAME_ID::Blood                        },
           { L"BatmanAK.exe",                           SK_GAME_ID::BatmanArkhamKnight           },
@@ -3101,7 +3102,7 @@ auto DeclKeybind =
 
         if (bVulkan)
         {
-          config.apis.NvAPI.vulkan_bridge = 1;
+
         }
 
         else
@@ -3964,7 +3965,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::NoMansSky:
-        config.apis.NvAPI.vulkan_bridge = 1;
+        config.apis.last_known = SK_RenderAPI::D3D11;
+        apis.last_known->store  ((int)config.apis.last_known);
         break;
 
       case SK_GAME_ID::SonicGenerations:
@@ -4117,8 +4119,12 @@ auto DeclKeybind =
         config.input.gamepad.xinput.emulate = false;
         break;
 
+      case SK_GAME_ID::DOOM:
+        config.apis.last_known            = SK_RenderAPI::D3D11;
+        apis.last_known->store             ((int)config.apis.last_known);
+        break;
+
       case SK_GAME_ID::DOOMEternal:
-        config.apis.NvAPI.vulkan_bridge   = 1;
         config.system.global_inject_delay = 0.0f;
         config.apis.last_known            = SK_RenderAPI::D3D11;
         apis.last_known->store             ((int)config.apis.last_known);
