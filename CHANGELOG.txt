@@ -1,4 +1,8 @@
-﻿25.5.21
+﻿25.5.21.1
+=========
+ + Reduced latency in Vulkan games with Reflex injected.
+
+25.5.21
 =======
  + Added Input Sample latency marker to Vulkan non-native Reflex games.
 

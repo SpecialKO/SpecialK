@@ -632,6 +632,7 @@ PFN_vkGetInstanceProcAddr                  vkGetInstanceProcAddr_SK             
 PFN_vkGetDeviceProcAddr                    vkGetDeviceProcAddr_SK                          = nullptr;
 PFN_vkCreateSemaphore                      vkCreateSemaphore_SK                            = nullptr;
 PFN_vkWaitSemaphores                       vkWaitSemaphores_SK                             = nullptr;
+PFN_vkGetSemaphoreCounterValue             vkGetSemaphoreCounterValue_SK                   = nullptr;
 
 VkResult
 VKAPI_CALL
@@ -954,9 +955,11 @@ SK_VK_CreateSwapchainKHR (
       create_info.pNext = &create_type_info;
 
            vkCreateSemaphore_SK =
-      (PFN_vkCreateSemaphore)vkGetDeviceProcAddr_SK (device, "vkCreateSemaphore");
+      (PFN_vkCreateSemaphore)vkGetDeviceProcAddr_SK          (device, "vkCreateSemaphore"         );
            vkWaitSemaphores_SK =
-      (PFN_vkWaitSemaphores)vkGetDeviceProcAddr_SK  (device, "vkWaitSemaphores" );
+      (PFN_vkWaitSemaphores)vkGetDeviceProcAddr_SK           (device, "vkWaitSemaphores"          );
+           vkGetSemaphoreCounterValue_SK =
+      (PFN_vkGetSemaphoreCounterValue)vkGetDeviceProcAddr_SK (device, "vkGetSemaphoreCounterValue");
 
       vkCreateSemaphore_SK (device, &create_info, nullptr, &SK_Reflex_VkSemaphore);
     }
@@ -1086,9 +1089,9 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   uint64_t id = SK_GetFramesDrawn ();
 
   VkLatencySubmissionPresentIdNV
-    latency_present_id       = {                                                };
-    latency_present_id.sType = VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV;
-    latency_present_id.presentID = SK_GetFramesDrawn ();
+    latency_present_id           = {                                                };
+    latency_present_id.sType     = VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV;
+    latency_present_id.presentID = id;
 
   VkPresentIdKHR
     present_id                = {                              };
@@ -1100,8 +1103,6 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
   static bool bUseOldReflex =
     SK_IsModuleLoaded (L"NvLowLatencyVk.dll");
-
-  static volatile uint64_t semaphore_val_ = 1;
 
   VkSetLatencyMarkerInfoNV
     marker           = {                                          };
@@ -1141,13 +1142,13 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
     SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_PRESENT_END_NV);
   }
 
-  uint64_t semaphore_val = SK_GetFramesDrawn () + 1;
-
   if (VK_SUCCESS == ret && vkLatencySleepNV_Original != nullptr &&
                            vkWaitSemaphores_SK       != nullptr && SK_Reflex_VkSemaphore != 0)
   {
     if (SK_VK_HasLowLatency2)
     {
+      uint64_t semaphore_val = 0;
+
       VkLatencySleepModeInfoNV
         sleep_mode_info                 = {                                          };
         sleep_mode_info.sType           = VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV;
@@ -1155,6 +1156,9 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         sleep_mode_info.lowLatencyBoost = config.nvidia.reflex.low_latency_boost ? 1 : 0;
 
       vkSetLatencySleepModeNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &sleep_mode_info);
+      vkGetSemaphoreCounterValue_SK    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, &semaphore_val  );
+
+      semaphore_val++;
 
       VkLatencySleepInfoNV
         lat_info                 = {                                     };
@@ -1175,7 +1179,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
           sem_wait_info.semaphoreCount = 1;
           sem_wait_info.pValues        = &semaphore_val;
     
-        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000);
+        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000000000000000);
 
         const auto& rb =
           SK_GetCurrentRenderBackend ();
@@ -1215,7 +1219,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         }
       }
 
-      marker.presentID = semaphore_val;
+      marker.presentID = id + 1;
 
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
     }
