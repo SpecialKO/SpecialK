@@ -1,4 +1,10 @@
-﻿25.5.21.3
+﻿25.5.21.4
+=========
+ + Ported DLSS-G pacing feature from D3D (NvAPI) to Vulkan (NvLL).
+
+    * Framerate limiting frame generation no longer adds latency in Vulkan.
+
+25.5.21.3
 =========
  + Only force implicit Reflex framerate limit in Vulkan when VSYNC is active.
 

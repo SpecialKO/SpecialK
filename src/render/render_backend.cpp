@@ -1181,12 +1181,6 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   {
     if (SK_VK_HasLowLatency2)
     {
-      const auto& rb =
-        SK_GetCurrentRenderBackend ();
-
-      const auto& display =
-        rb.displays [rb.active_display];
-
       uint64_t semaphore_val = 0;
 
       VkLatencySleepModeInfoNV
@@ -1195,29 +1189,8 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         sleep_mode_info.lowLatencyMode  = config.nvidia.reflex.low_latency       ? 1 : 0;
         sleep_mode_info.lowLatencyBoost = config.nvidia.reflex.low_latency_boost ? 1 : 0;
 
-      UINT reflex_interval_us = 0;
-
-      // Enforce upper-bound framerate limit on VRR displays when VSYNC is on,
-      //   the same as D3D Reflex would.
-      if (          rb.present_interval > 0 &&
-           config.nvidia.reflex.low_latency &&
-           display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
-           display.signal.timing.vsync_freq.Denominator != 0 )
-      {
-        const double dRefresh =
-          static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
-          static_cast <double> (display.signal.timing.vsync_freq.Denominator);
-
-        const double dReflexFPS =
-          (dRefresh - (dRefresh * dRefresh) / 3600.0);
-
-        // Set VRR framerate limit accordingly
-        reflex_interval_us =
-          static_cast <UINT> (1000000.0 / dReflexFPS);
-      }
-
-      sleep_mode_info.minimumIntervalUs = reflex_interval_us;
-      // TODO: DLSS-G Pacing
+      sleep_mode_info.minimumIntervalUs =
+        SK_Reflex_CalculateSleepMinIntervalForVulkan (config.nvidia.reflex.low_latency);
 
       vkSetLatencySleepModeNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &sleep_mode_info);
       vkGetSemaphoreCounterValue_SK    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, &semaphore_val  );
@@ -1272,12 +1245,6 @@ vkSetLatencySleepModeNV_Detour (
     pSleepModeInfo != nullptr ?
    *pSleepModeInfo            : VkLatencySleepModeInfoNV { };
 
-    const auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    const auto& display =
-      rb.displays [rb.active_display];
-
     if (config.nvidia.reflex.override)
     {
       if (config.nvidia.reflex.enable)
@@ -1293,29 +1260,11 @@ vkSetLatencySleepModeNV_Detour (
       }
     }
 
-    UINT reflex_interval_us = 0;
+    const auto reflex_interval_us =
+      SK_Reflex_CalculateSleepMinIntervalForVulkan (sleep_mode_info.lowLatencyMode);
 
-    // Enforce upper-bound framerate limit on VRR displays when VSYNC is on,
-    //   the same as D3D Reflex would.
-    if (        rb.present_interval > 0 &&
-         sleep_mode_info.lowLatencyMode &&
-         display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
-         display.signal.timing.vsync_freq.Denominator != 0 )
-    {
-      const double dRefresh =
-        static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
-        static_cast <double> (display.signal.timing.vsync_freq.Denominator);
-
-      const double dReflexFPS =
-        (dRefresh - (dRefresh * dRefresh) / 3600.0);
-
-      // Set VRR framerate limit accordingly          
-      reflex_interval_us =
-        static_cast <UINT> (1000000.0 / dReflexFPS);
-    }
-
-    if (sleep_mode_info.minimumIntervalUs < reflex_interval_us)
-        sleep_mode_info.minimumIntervalUs = reflex_interval_us;
+    sleep_mode_info.minimumIntervalUs =
+      std::max (sleep_mode_info.minimumIntervalUs, reflex_interval_us);
 
     return
       vkSetLatencySleepModeNV_Original (device, swapchain, &sleep_mode_info);
