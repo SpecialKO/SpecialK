@@ -1147,6 +1147,12 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   {
     if (SK_VK_HasLowLatency2)
     {
+      const auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      const auto& display =
+        rb.displays [rb.active_display];
+
       uint64_t semaphore_val = 0;
 
       VkLatencySleepModeInfoNV
@@ -1154,6 +1160,20 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         sleep_mode_info.sType           = VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV;
         sleep_mode_info.lowLatencyMode  = config.nvidia.reflex.low_latency       ? 1 : 0;
         sleep_mode_info.lowLatencyBoost = config.nvidia.reflex.low_latency_boost ? 1 : 0;
+
+      if ( config.nvidia.reflex.low_latency &&
+           display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
+           display.signal.timing.vsync_freq.Denominator != 0 )
+      {
+        const double dRefresh =
+          static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+          static_cast <double> (display.signal.timing.vsync_freq.Denominator);
+
+        const double dReflexFPS =
+          (dRefresh - (dRefresh * dRefresh) / 3600.0);
+
+        sleep_mode_info.minimumIntervalUs = static_cast <uint32_t> ((1000.0 / dReflexFPS) * 1000.0);
+      }
 
       vkSetLatencySleepModeNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &sleep_mode_info);
       vkGetSemaphoreCounterValue_SK    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, &semaphore_val  );
@@ -1180,43 +1200,6 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
           sem_wait_info.pValues        = &semaphore_val;
     
         vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000000000000000);
-
-        const auto& rb =
-          SK_GetCurrentRenderBackend ();
-
-        const auto& display =
-          rb.displays [rb.active_display];
-
-        // Apply correct VRR framerate limit, which Reflex should be doing on its own...
-        if ( config.nvidia.reflex.low_latency &&
-             display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
-             display.signal.timing.vsync_freq.Denominator != 0 )
-        {
-          const double dRefresh =
-            static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
-            static_cast <double> (display.signal.timing.vsync_freq.Denominator);
-
-          const double dReflexFPS =
-            (dRefresh - (dRefresh * dRefresh) / 3600.0);
-
-          // Vulkan Reflex is b0rked, we will just do it ourselves if Low Latency mode is enabled.
-          if ( __target_fps <= 0.0f ||
-               __target_fps > dReflexFPS )
-               __target_fps = static_cast <float> (dReflexFPS);
-
-#if 0
-          const auto vrr_interval_us =
-            static_cast <UINT> (1000000.0 / dReflexFPS);
-
-          if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
-              sleepModeParams->minimumIntervalUs = vrr_interval_us;
-#endif
-        }
-
-        else
-        {
-          __target_fps = config.render.framerate.target_fps;
-        }
       }
 
       marker.presentID = id + 1;

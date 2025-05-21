@@ -1,6 +1,8 @@
 ﻿25.5.21.1
 =========
  + Reduced latency in Vulkan games with Reflex injected.
+ + Fixed Reflex not applying its configured framerate limit, and removed
+     forced SK framerate limit when Vulkan Reflex Low Latency is enabled.
 
 25.5.21
 =======
