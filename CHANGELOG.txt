@@ -1,4 +1,8 @@
-﻿25.5.21.2
+﻿25.5.21.3
+=========
+ + Only force implicit Reflex framerate limit in Vulkan when VSYNC is active.
+
+25.5.21.2
 =========
  + Fixed DOOM The Dark Age's native Reflex implementation.
 

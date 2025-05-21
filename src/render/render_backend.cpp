@@ -977,7 +977,7 @@ SK_VK_CreateSwapchainKHR (
 void
 SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type);
 
-uint64_t renderbatch_frame = 0;
+static volatile uint64_t renderbatch_frame = 0;
 
 VkResult
 VKAPI_CALL
@@ -992,18 +992,25 @@ SK_VK_BeginCommandBuffer(
 
     if (! bUseOldReflex)
     {
-      if (renderbatch_frame < SK_GetFramesDrawn ())   
+      const auto frame_id =
+        SK_GetFramesDrawn ();
+
+      auto last_batched_frame =
+        ReadULong64Acquire (&renderbatch_frame);
+
+      if (last_batched_frame < frame_id)
       {
-        renderbatch_frame = SK_GetFramesDrawn ();
+        if (InterlockedCompareExchange (&renderbatch_frame, frame_id, last_batched_frame) == last_batched_frame)
+        {
+          VkSetLatencyMarkerInfoNV
+          marker           = {                                          };
+          marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+          marker.presentID = frame_id;
+          marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
 
-        VkSetLatencyMarkerInfoNV
-        marker           = {                                          };
-        marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
-        marker.presentID = SK_GetFramesDrawn ();
-        marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
-
-        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
-        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+          SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+          SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+        }
       }
     }
   }
@@ -1027,18 +1034,25 @@ SK_VK_QueueSubmit2 (
 
     if (! bUseOldReflex)
     {
-      if (renderbatch_frame < SK_GetFramesDrawn ())   
+      const auto frame_id =
+        SK_GetFramesDrawn ();
+
+      auto last_batched_frame =
+        ReadULong64Acquire (&renderbatch_frame);
+
+      if (last_batched_frame < frame_id)
       {
-        renderbatch_frame = SK_GetFramesDrawn ();
+        if (InterlockedCompareExchange (&renderbatch_frame, frame_id, last_batched_frame) == last_batched_frame)
+        {
+          VkSetLatencyMarkerInfoNV
+          marker           = {                                          };
+          marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+          marker.presentID = frame_id;
+          marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
 
-        VkSetLatencyMarkerInfoNV
-        marker           = {                                          };
-        marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
-        marker.presentID = SK_GetFramesDrawn ();
-        marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
-
-        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
-        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+          SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+          SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+        }
       }
     }
   }
@@ -1062,18 +1076,25 @@ SK_VK_QueueSubmit (
 
     if (! bUseOldReflex)
     {
-      if (renderbatch_frame < SK_GetFramesDrawn ())   
+      const auto frame_id =
+        SK_GetFramesDrawn ();
+
+      auto last_batched_frame =
+        ReadULong64Acquire (&renderbatch_frame);
+
+      if (last_batched_frame < frame_id)
       {
-        renderbatch_frame = SK_GetFramesDrawn ();
+        if (InterlockedCompareExchange (&renderbatch_frame, frame_id, last_batched_frame) == last_batched_frame)
+        {
+          VkSetLatencyMarkerInfoNV
+          marker           = {                                          };
+          marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+          marker.presentID = frame_id;
+          marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
 
-        VkSetLatencyMarkerInfoNV
-        marker           = {                                          };
-        marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
-        marker.presentID = SK_GetFramesDrawn ();
-        marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
-
-        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
-        SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+          SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
+          SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
+        }
       }
     }
   }
@@ -1099,6 +1120,8 @@ VkResult
 VKAPI_CALL
 SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 {
+  SK_LOG_FIRST_CALL
+
   uint64_t id = SK_GetFramesDrawn ();
 
   VkLatencySubmissionPresentIdNV
@@ -1112,15 +1135,13 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
     present_id.swapchainCount = 1;
     present_id.pPresentIds    = &id;
 
-  SK_LOG_FIRST_CALL
-
   static bool bUseOldReflex =
     SK_IsModuleLoaded (L"NvLowLatencyVk.dll");
 
   VkSetLatencyMarkerInfoNV
     marker           = {                                          };
     marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
-    marker.presentID = SK_GetFramesDrawn ();
+    marker.presentID = id;
     marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
 
   if ((! bUseOldReflex) && SK_VK_HasLowLatency2)
@@ -1130,11 +1151,11 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
                                                  latency_present_id.pNext = pPresentInfo->pNext;
     ((VkPresentInfoKHR *)pPresentInfo)->pNext = &latency_present_id;
 
-    if (SK_GetFramesDrawn () == 0) {
+    if (id == 0) {
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
     }
 
-    if (renderbatch_frame != SK_GetFramesDrawn ())
+    if (ReadULong64Acquire (&renderbatch_frame) != id)
     {
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_END_NV);
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_RENDERSUBMIT_START_NV);
@@ -1174,7 +1195,12 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         sleep_mode_info.lowLatencyMode  = config.nvidia.reflex.low_latency       ? 1 : 0;
         sleep_mode_info.lowLatencyBoost = config.nvidia.reflex.low_latency_boost ? 1 : 0;
 
-      if ( config.nvidia.reflex.low_latency &&
+      UINT reflex_interval_us = 0;
+
+      // Enforce upper-bound framerate limit on VRR displays when VSYNC is on,
+      //   the same as D3D Reflex would.
+      if (          rb.present_interval > 0 &&
+           config.nvidia.reflex.low_latency &&
            display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
            display.signal.timing.vsync_freq.Denominator != 0 )
       {
@@ -1186,8 +1212,12 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
           (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
         // Set VRR framerate limit accordingly
-        sleep_mode_info.minimumIntervalUs = static_cast <uint32_t> ((1000.0 / dReflexFPS) * 1000.0);
+        reflex_interval_us =
+          static_cast <UINT> (1000000.0 / dReflexFPS);
       }
+
+      sleep_mode_info.minimumIntervalUs = reflex_interval_us;
+      // TODO: DLSS-G Pacing
 
       vkSetLatencySleepModeNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &sleep_mode_info);
       vkGetSemaphoreCounterValue_SK    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, &semaphore_val  );
@@ -1208,7 +1238,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         SK_Reflex_WaitOnSemaphore    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, semaphore_val);
       }
 
-      marker.presentID = id + 1;
+      marker.presentID = SK_GetFramesDrawn ();
 
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
     }
@@ -1263,10 +1293,14 @@ vkSetLatencySleepModeNV_Detour (
       }
     }
 
-    // Apply correct VRR framerate limit, which Reflex should be doing on its own...
-    if ( sleep_mode_info.lowLatencyMode                             &&
+    UINT reflex_interval_us = 0;
+
+    // Enforce upper-bound framerate limit on VRR displays when VSYNC is on,
+    //   the same as D3D Reflex would.
+    if (        rb.present_interval > 0 &&
+         sleep_mode_info.lowLatencyMode &&
          display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
-         display.signal.timing.vsync_freq.Denominator != 0          && !__SK_IsDLSSGActive )
+         display.signal.timing.vsync_freq.Denominator != 0 )
     {
       const double dRefresh =
         static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
@@ -1275,12 +1309,13 @@ vkSetLatencySleepModeNV_Detour (
       const double dReflexFPS =
         (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
-      const auto vrr_interval_us =
+      // Set VRR framerate limit accordingly          
+      reflex_interval_us =
         static_cast <UINT> (1000000.0 / dReflexFPS);
-
-      if (sleep_mode_info.minimumIntervalUs < vrr_interval_us)
-          sleep_mode_info.minimumIntervalUs = vrr_interval_us;
     }
+
+    if (sleep_mode_info.minimumIntervalUs < reflex_interval_us)
+        sleep_mode_info.minimumIntervalUs = reflex_interval_us;
 
     return
       vkSetLatencySleepModeNV_Original (device, swapchain, &sleep_mode_info);
@@ -1395,7 +1430,7 @@ _SK_HookVulkan (void)
                              "vkQueueSubmit",
                           SK_VK_QueueSubmit,
      static_cast_p2p <void> (&vkQueueSubmit_Original));
-
+     
           SK_CreateDLLHook2 (L"vulkan-1.dll",
                              "vkQueueSubmit2",
                           SK_VK_QueueSubmit2,

@@ -1335,10 +1335,14 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       }
     }
 
-    // Apply correct VRR framerate limit, which Reflex should be doing on its own...
-    if ( sleepModeParams->bLowLatencyMode                           &&
+    UINT reflex_interval_us = 0;
+
+    // Enforce upper-bound framerate limit on VRR displays when VSYNC is on,
+    //   the same as D3D Reflex would.
+    if (          rb.present_interval > 0 &&
+         sleepModeParams->bLowLatencyMode &&
          display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
-         display.signal.timing.vsync_freq.Denominator != 0          && !__SK_IsDLSSGActive )
+         display.signal.timing.vsync_freq.Denominator != 0 )
     {
       const double dRefresh =
         static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
@@ -1347,12 +1351,13 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       const double dReflexFPS =
         (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
-      const auto vrr_interval_us =
+      // Set VRR framerate limit accordingly          
+      reflex_interval_us =
         static_cast <UINT> (1000000.0 / dReflexFPS);
-
-      if (sleepModeParams->minimumIntervalUs < vrr_interval_us)
-          sleepModeParams->minimumIntervalUs = vrr_interval_us;
     }
+
+    if (sleepModeParams->minimumIntervalUs < reflex_interval_us)
+        sleepModeParams->minimumIntervalUs = reflex_interval_us;
   }
 
   return
@@ -1397,8 +1402,11 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
   auto ret =
     NvLL_VK_Sleep_Original (device, signalValue);
 
-  extern void SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore       semaphore, uint64_t value);
-              SK_Reflex_WaitOnSemaphore (         device, SK_VK_Reflex.NvLL_semaphore,    signalValue);
+  if (0 == ret)
+  {
+    extern void SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore       semaphore, uint64_t value);
+                SK_Reflex_WaitOnSemaphore (         device, SK_VK_Reflex.NvLL_semaphore,    signalValue);
+  }
 
   return ret;
 }
