@@ -1242,7 +1242,7 @@ using  NvLL_VK_SetSleepMode_pfn = NvLL_VK_Status (*)(VkDevice, NVLL_VK_SET_SLEEP
 static NvLL_VK_SetSleepMode_pfn
        NvLL_VK_SetSleepMode_Original = nullptr;
        
-using  NvLL_VK_InitLowLatencyDevice_pfn = NvLL_VK_Status (*)(VkDevice, VkSemaphore);
+using  NvLL_VK_InitLowLatencyDevice_pfn = NvLL_VK_Status (*)(VkDevice, VkSemaphore*);
 static NvLL_VK_InitLowLatencyDevice_pfn
        NvLL_VK_InitLowLatencyDevice_Original = nullptr;
 
@@ -1261,9 +1261,10 @@ static NvLL_VK_GetLatency_pfn
 extern void SK_VK_HookFirstDevice (VkDevice device);
 
 struct {
-  VkDevice       device     = 0;
-  VkSwapchainKHR swapchain  = 0;
-  uint64_t       last_frame = 0;
+  VkDevice       device         = 0;
+  VkSwapchainKHR swapchain      = 0;
+  uint64_t       last_frame     = 0;
+  VkSemaphore    NvLL_semaphore = 0;
 } SK_VK_Reflex;
 
 #undef VK_NV_low_latency2
@@ -1279,7 +1280,7 @@ SK_Reflex_SetVulkanSwapchain (VkDevice device, VkSwapchainKHR swapchain)
 }
 
 NvLL_VK_Status
-NvLL_VK_InitLowLatencyDevice_Detour (VkDevice device, VkSemaphore signalSemaphoreHandle)
+NvLL_VK_InitLowLatencyDevice_Detour (VkDevice device, VkSemaphore* signalSemaphoreHandle)
 {
   SK_LOG_FIRST_CALL
 
@@ -1294,8 +1295,12 @@ NvLL_VK_InitLowLatencyDevice_Detour (VkDevice device, VkSemaphore signalSemaphor
   SK_VK_Reflex.swapchain      = 0;
   rb.vulkan_reflex.api        = SK_RenderBackend_V2::vk_reflex_s::NvLowLatencyVk;
 
-  return
+  auto ret =
     NvLL_VK_InitLowLatencyDevice_Original (device, signalSemaphoreHandle);
+
+  SK_VK_Reflex.NvLL_semaphore = *signalSemaphoreHandle;
+
+  return ret;
 }
 
 NvLL_VK_Status
@@ -1329,6 +1334,7 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       }
     }
 
+#if 1
     // Apply correct VRR framerate limit, which Reflex should be doing on its own...
     if ( sleepModeParams->bLowLatencyMode                           &&
          display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR &&
@@ -1359,6 +1365,7 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
     {
       __target_fps = config.render.framerate.target_fps;
     }
+#endif
   }
 
   return
@@ -1400,8 +1407,13 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
   // nb: For DLSS-G "native pacing", run the framerate limiter here.
   //
 
-  return
+  auto ret =
     NvLL_VK_Sleep_Original (device, signalValue);
+
+  extern void SK_Reflex_WaitOnSemaphore (VkSemaphore semaphore,    uint64_t value);
+              SK_Reflex_WaitOnSemaphore (SK_VK_Reflex.NvLL_semaphore, signalValue);
+
+  return ret;
 }
 
 void

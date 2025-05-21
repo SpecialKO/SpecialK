@@ -1082,6 +1082,19 @@ SK_VK_QueueSubmit (
     vkQueueSubmit_Original (queue, submitCount, pSubmits, fence);
 }
 
+void
+SK_Reflex_WaitOnSemaphore (VkSemaphore semaphore, uint64_t value)
+{
+  VkSemaphoreWaitInfo
+    sem_wait_info                = {                                   };
+    sem_wait_info.sType          = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+    sem_wait_info.pSemaphores    = &semaphore;
+    sem_wait_info.semaphoreCount = 1;
+    sem_wait_info.pValues        = &value;
+
+  vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000000000000000);
+}
+
 VkResult
 VKAPI_CALL
 SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
@@ -1192,14 +1205,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
         config.nvidia.reflex.vulkan = true;
 
-        VkSemaphoreWaitInfo
-          sem_wait_info                = {                                   };
-          sem_wait_info.sType          = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
-          sem_wait_info.pSemaphores    = &SK_Reflex_VkSemaphore;
-          sem_wait_info.semaphoreCount = 1;
-          sem_wait_info.pValues        = &semaphore_val;
-    
-        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000000000000000);
+        SK_Reflex_WaitOnSemaphore (SK_Reflex_VkSemaphore, semaphore_val);
       }
 
       marker.presentID = id + 1;
