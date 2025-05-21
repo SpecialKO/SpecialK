@@ -1,4 +1,8 @@
-﻿25.5.20.3
+﻿25.5.21
+=======
+ + Added Input Sample latency marker to Vulkan non-native Reflex games.
+
+25.5.20.3
 =========
  + Added detection of native Reflex implementations using VK_NV_low_latency2
      (i.e. DXVK).

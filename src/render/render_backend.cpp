@@ -590,6 +590,8 @@ SK_BootOpenGL (void)
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_win32.h"
 
+#undef VK_NV_low_latency2
+
 static bool SK_VK_HasLowLatency  = false;
 static bool SK_VK_HasLowLatency2 = false;
 
@@ -763,6 +765,8 @@ SK_VK_CreateInstance (
   }
 
   extns.push_back ("VK_NV_low_latency2");
+  extns.push_back ("VK_KHR_present_id");
+  extns.push_back ("VK_KHR_timeline_semaphore");
 
   VkInstanceCreateInfo _CreateInfo = *pCreateInfo;
 
@@ -804,6 +808,8 @@ SK_VK_CreateDevice (
   }
 
   extns.push_back ("VK_NV_low_latency2");
+  extns.push_back ("VK_KHR_present_id");
+  extns.push_back ("VK_KHR_timeline_semaphore");
 
   VkDeviceCreateInfo _CreateInfo = *pCreateInfo;
 
@@ -966,22 +972,7 @@ SK_VK_CreateSwapchainKHR (
 }
 
 void
-SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type)
-{
-  extern void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
-
-                                                                             marker.marker = type;
-  vkSetLatencyMarkerNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &marker);
-
-  NV_LATENCY_MARKER_PARAMS
-    nvapi_marker            = {              };
-    nvapi_marker.frameID    = marker.presentID;
-    nvapi_marker.markerType = (NV_LATENCY_MARKER_TYPE)type;
-
-  // Up to marker type TRIGGER_FLASH, the Vulkan extension and NVAPI enums match for marker type.
-
-  SK_PCL_Heartbeat (nvapi_marker);
-}
+SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type);
 
 uint64_t renderbatch_frame = 0;
 
@@ -1092,6 +1083,19 @@ VkResult
 VKAPI_CALL
 SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 {
+  uint64_t id = SK_GetFramesDrawn ();
+
+  VkLatencySubmissionPresentIdNV
+    latency_present_id       = {                                                };
+    latency_present_id.sType = VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV;
+    latency_present_id.presentID = SK_GetFramesDrawn ();
+
+  VkPresentIdKHR
+    present_id                = {                              };
+    present_id.sType          = VK_STRUCTURE_TYPE_PRESENT_ID_KHR;
+    present_id.swapchainCount = 1;
+    present_id.pPresentIds    = &id;
+
   SK_LOG_FIRST_CALL
 
   static bool bUseOldReflex =
@@ -1107,6 +1111,11 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
   if ((! bUseOldReflex) && SK_VK_HasLowLatency2)
   {
+                                                 present_id.pNext = pPresentInfo->pNext;
+    ((VkPresentInfoKHR *)pPresentInfo)->pNext = &present_id;
+                                                 latency_present_id.pNext = pPresentInfo->pNext;
+    ((VkPresentInfoKHR *)pPresentInfo)->pNext = &latency_present_id;
+
     if (SK_GetFramesDrawn () == 0) {
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
     }
@@ -1166,7 +1175,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
           sem_wait_info.semaphoreCount = 1;
           sem_wait_info.pValues        = &semaphore_val;
     
-        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000);
+        vkWaitSemaphores_SK (SK_Reflex_VkDevice, &sem_wait_info, 10000000);
 
         const auto& rb =
           SK_GetCurrentRenderBackend ();

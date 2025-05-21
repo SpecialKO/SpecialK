@@ -627,6 +627,8 @@ SK_RenderBackend_V2::isReflexSupported (void) const
   return supported;
 }
 
+#include <vulkan/vulkan_core.h>
+
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 {
@@ -698,6 +700,19 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
     // Vulkan Early-Out
     if (config.nvidia.reflex.vulkan)
     {
+      if (marker == INPUT_SAMPLE &&  config.nvidia.reflex.vulkan
+                                 && !config.nvidia.reflex.native)
+      {
+        VkSetLatencyMarkerInfoNV
+          vk_marker           = {                                          };
+          vk_marker.sType     = VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV;
+          vk_marker.presentID = SK_GetFramesDrawn ();
+
+        void
+        SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type);
+        SK_VK_SetLatencyMarker (vk_marker,             VK_LATENCY_MARKER_INPUT_SAMPLE_NV);
+      }
+
       if (swapchain.p != nullptr &&
           config.render.framerate.pre_render_limit != -1)
       {
@@ -1200,6 +1215,29 @@ struct NVLL_VK_LATENCY_RESULT_PARAMS {
   } frameReport [64];
 };
 
+enum NVLL_VK_LATENCY_MARKER_TYPE
+{
+  VK_SIMULATION_START               = 0,
+  VK_SIMULATION_END                 = 1,
+  VK_RENDERSUBMIT_START             = 2,
+  VK_RENDERSUBMIT_END               = 3,
+  VK_PRESENT_START                  = 4,
+  VK_PRESENT_END                    = 5,
+  VK_INPUT_SAMPLE                   = 6,
+  VK_TRIGGER_FLASH                  = 7,
+  VK_PC_LATENCY_PING                = 8,
+  VK_OUT_OF_BAND_RENDERSUBMIT_START = 9,
+  VK_OUT_OF_BAND_RENDERSUBMIT_END   = 10,
+  VK_OUT_OF_BAND_PRESENT_START      = 11,
+  VK_OUT_OF_BAND_PRESENT_END        = 12,
+};
+
+struct NVLL_VK_LATENCY_MARKER_PARAMS
+{
+  uint64_t                    frameID;
+  NVLL_VK_LATENCY_MARKER_TYPE markerType;
+};
+
 using  NvLL_VK_SetSleepMode_pfn = NvLL_VK_Status (*)(VkDevice, NVLL_VK_SET_SLEEP_MODE_PARAMS*);
 static NvLL_VK_SetSleepMode_pfn
        NvLL_VK_SetSleepMode_Original = nullptr;
@@ -1212,6 +1250,10 @@ using  NvLL_VK_Sleep_pfn = NvLL_VK_Status (*)(VkDevice, uint64_t);
 static NvLL_VK_Sleep_pfn
        NvLL_VK_Sleep_Original = nullptr;
 
+using  NvLL_VK_SetLatencyMarker_pfn = NvLL_VK_Status (*)(VkDevice, NVLL_VK_LATENCY_MARKER_PARAMS*);
+static NvLL_VK_SetLatencyMarker_pfn
+       NvLL_VK_SetLatencyMarker_Original = nullptr;
+
 using  NvLL_VK_GetLatency_pfn = NvLL_VK_Status (*)(VkDevice, NVLL_VK_LATENCY_RESULT_PARAMS*);
 static NvLL_VK_GetLatency_pfn
        NvLL_VK_GetLatency = nullptr;
@@ -1219,8 +1261,9 @@ static NvLL_VK_GetLatency_pfn
 extern void SK_VK_HookFirstDevice (VkDevice device);
 
 struct {
-  VkDevice       device    = 0;
-  VkSwapchainKHR swapchain = 0;
+  VkDevice       device     = 0;
+  VkSwapchainKHR swapchain  = 0;
+  uint64_t       last_frame = 0;
 } SK_VK_Reflex;
 
 #undef VK_NV_low_latency2
@@ -1323,6 +1366,23 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
 }
 
 NvLL_VK_Status
+NvLL_VK_SetLatencyMarker_Detour (VkDevice vkDevice, NVLL_VK_LATENCY_MARKER_PARAMS* pSetLatencyMarkerParams)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_VK_HookFirstDevice (vkDevice);
+  SK_VK_Reflex.device  = vkDevice;
+
+  if (pSetLatencyMarkerParams != nullptr)
+  {
+    SK_VK_Reflex.last_frame = pSetLatencyMarkerParams->frameID;
+  }
+
+  return
+    NvLL_VK_SetLatencyMarker_Original (vkDevice, pSetLatencyMarkerParams);
+}
+
+NvLL_VK_Status
 NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
 {
   SK_LOG_FIRST_CALL
@@ -1344,6 +1404,52 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
     NvLL_VK_Sleep_Original (device, signalValue);
 }
 
+void
+SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type)
+{
+  NV_LATENCY_MARKER_PARAMS
+    nvapi_marker            = {              };
+    nvapi_marker.markerType = (NV_LATENCY_MARKER_TYPE)type;
+
+  extern PFN_vkSetLatencyMarkerNV
+             vkSetLatencyMarkerNV_Original;
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  extern VkDevice       SK_Reflex_VkDevice;
+  extern VkSwapchainKHR SK_Reflex_VkSwapchain;
+
+  if (rb.vulkan_reflex.api == SK_RenderBackend_V2::vk_reflex_s::VK_NV_low_latency2)
+  {
+    if (! vkSetLatencyMarkerNV_Original)
+      return;
+
+                                                                               marker.marker = type;
+    vkSetLatencyMarkerNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &marker);
+
+    nvapi_marker.frameID = marker.presentID;
+
+    // Up to marker type TRIGGER_FLASH, the Vulkan extension and NVAPI enums match for marker type.
+  }
+
+  else if (rb.vulkan_reflex.api == SK_RenderBackend_V2::vk_reflex_s::NvLowLatencyVk)
+  {
+    NVLL_VK_LATENCY_MARKER_PARAMS
+      marker_params            = {                     };
+      marker_params.frameID    = SK_VK_Reflex.last_frame;
+      marker_params.markerType = (NVLL_VK_LATENCY_MARKER_TYPE)type;//VK_INPUT_SAMPLE;
+
+    NvLL_VK_SetLatencyMarker_Original (SK_Reflex_VkDevice, &marker_params);
+
+    nvapi_marker.frameID = marker.presentID;
+  }
+
+  extern void
+  SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
+  SK_PCL_Heartbeat (nvapi_marker);
+}
+
 void SK_VK_HookReflex (void)
 {
   SK_RunOnce (
@@ -1361,6 +1467,11 @@ void SK_VK_HookReflex (void)
                               "NvLL_VK_Sleep",
                                NvLL_VK_Sleep_Detour,
       static_cast_p2p <void> (&NvLL_VK_Sleep_Original) );
+
+    SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
+                              "NvLL_VK_SetLatencyMarker",
+                               NvLL_VK_SetLatencyMarker_Detour,
+      static_cast_p2p <void> (&NvLL_VK_SetLatencyMarker_Original) );
 
     NvLL_VK_GetLatency =
    (NvLL_VK_GetLatency_pfn)SK_GetProcAddress (L"NvLowLatencyVk.dll",
