@@ -816,6 +816,7 @@ static constexpr float __SK_FramerateScale = 1.0f;
 extern bool __SK_HasDLSSGStatusSupport;
 extern bool __SK_IsDLSSGActive;
 extern bool __SK_ForceDLSSGPacing;
+extern UINT __SK_DLSSGMultiFrameCount;
 
 extern bool __SK_BFI;
 extern int  __SK_BFI_Interval;

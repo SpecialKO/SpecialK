@@ -811,6 +811,8 @@ SK_Render_GetAPIName (SK_RenderAPI api);
 
 extern volatile ULONG64 SK_Reflex_LastFrameMarked;
 
+UINT SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency);
+
 __forceinline
 ULONG64
 __stdcall
