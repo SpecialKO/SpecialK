@@ -300,7 +300,7 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
       __SK_IsDLSSGActive =
         ( uiEnableDLSSGInterp );
 
-      __SK_ForceDLSSGPacing = false;//__SK_IsDLSSGActive;
+      __SK_ForceDLSSGPacing = __SK_IsDLSSGActive;
 
       SK_LOGi0 (L"DLSS-G Feature Created!");
     }
@@ -396,7 +396,7 @@ NVSDK_NGX_VULKAN_CreateFeature1_Detour ( VkDevice                   InDevice,
       __SK_IsDLSSGActive =
         ( uiEnableDLSSGInterp );
 
-      __SK_ForceDLSSGPacing = false;//__SK_IsDLSSGActive;
+      __SK_ForceDLSSGPacing = __SK_IsDLSSGActive;
 
       SK_LOGi0 (L"DLSS-G Feature Created1!");
     }
@@ -492,9 +492,7 @@ NVSDK_NGX_VULKAN_EvaluateFeature_Detour (VkCommandBuffer InCmdList, const NVSDK_
     if (dlss_g != nullptr)
     {
       // These things are unsupported in Vulkan for the time being
-      config.nvidia.reflex.use_limiter                       = false;
       config.render.framerate.streamline.enable_native_limit = false;
-      __SK_ForceDLSSGPacing                                  = false;
     }
 
     SK_NGX_VULKAN.frame_gen.     evaluateFeature (dlss_g);
@@ -596,8 +594,6 @@ SK_NGXVK_UpdateDLSSGStatus (void)
     ReadULong64Acquire (&SK_NGX_VULKAN.frame_gen.LastFrame) >= SK_GetFramesDrawn () - 8 &&
                        uiEnableDLSSGInterp;
 
-  __SK_DLSSGMultiFrameCount = uiMultiFrameCount;
-
   if (lastFrameGen         != nullptr &&
       lastFrameGen->Handle != nullptr)
   {
@@ -610,7 +606,7 @@ SK_NGXVK_UpdateDLSSGStatus (void)
     }
   }
 
-  __SK_ForceDLSSGPacing     = false;//__SK_IsDLSSGActive;
+  __SK_ForceDLSSGPacing     = __SK_IsDLSSGActive;
   __SK_DLSSGMultiFrameCount = uiMultiFrameCount;
 }
 
