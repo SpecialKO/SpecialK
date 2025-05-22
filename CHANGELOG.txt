@@ -1,4 +1,9 @@
-﻿25.5.22
+﻿25.5.22.1
+=========
+ + Auto-enable Vulkan Bridge when DXVK is detected on NVIDIA systems.
+ + Enable Vulkan hooks in 32-bit games.
+
+25.5.22
 =======
  + Apply low-latency framerate limiter mode after DXGI/Vk interop rather than
      during interop in Vulkan games that call Reflex Sleep,

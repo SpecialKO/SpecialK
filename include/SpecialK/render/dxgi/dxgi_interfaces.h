@@ -70,12 +70,16 @@ static const GUID SKID_DXGI_SwapChain_StateCache =
 static const GUID SKID_DXGI_VK_InteropSwapChain =
 { 0x22c246b, 0x322a, 0x4694, { 0x87, 0xaa, 0x7b, 0xcf, 0xfb, 0xac, 0x5e, 0xce } };
 
+static const GUID SKID_DXVK_InteropFactory =
+{ 0x4c5e1b0d, 0xb0c8, 0x4131, { 0xbf, 0xd8, 0x9b, 0x24, 0x76, 0xf7, 0xf4, 0x08 } };
+
 enum
 {
   SK_DXGI_VK_INTEROP_TYPE_NONE,
-  SK_DXGI_VK_INTEROP_TYPE_IK, ///< Vulkan-IK
-  SK_DXGI_VK_INTEROP_TYPE_NV, ///< NVIDIA's DXGI Layer
-  SK_DXGI_VK_INTEROP_TYPE_AMD ///< AMD's DXGI Layer
+  SK_DXGI_VK_INTEROP_TYPE_IK,  ///< Vulkan-IK
+  SK_DXGI_VK_INTEROP_TYPE_NV,  ///< NVIDIA's DXGI Layer
+  SK_DXGI_VK_INTEROP_TYPE_AMD, ///< AMD's DXGI Layer
+  SK_DXGI_VK_INTEROP_TYPE_DXVK ///< DXVK; not a layer
 };
 
 extern volatile LONG SK_DXGI_LiveWrappedSwapChains;

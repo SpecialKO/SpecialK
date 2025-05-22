@@ -751,48 +751,6 @@ vkAcquireNextImage2KHR_Detour (
 }
 
 VkResult
-SK_VK_CreateInstance (
-  const VkInstanceCreateInfo*  pCreateInfo,
-  const VkAllocationCallbacks* pAllocator,
-  VkInstance*                  pInstance )
-{
-  SK_LOG_FIRST_CALL
-
-  std::vector <const char*> extns;
-
-  for (auto i = 0u ; i < pCreateInfo->enabledExtensionCount ; ++i)
-  {
-    extns.push_back (pCreateInfo->ppEnabledExtensionNames [i]);
-  }
-
-  extns.push_back ("VK_NV_low_latency2");
-  extns.push_back ("VK_KHR_present_id");
-  extns.push_back ("VK_KHR_timeline_semaphore");
-
-  VkInstanceCreateInfo _CreateInfo = *pCreateInfo;
-
-  _CreateInfo.ppEnabledExtensionNames =                         extns.data ();
-  _CreateInfo.enabledExtensionCount   = static_cast <uint32_t> (extns.size ());
-
-  if ( VK_SUCCESS == vkCreateInstance_Original (&_CreateInfo, pAllocator, pInstance) )
-  {
-    SK_Reflex_VkInstance = *pInstance;
-
-    return VK_SUCCESS;
-  }
-
-  auto result =
-    vkCreateInstance_Original (pCreateInfo, pAllocator, pInstance);
-
-  if ( VK_SUCCESS == result )
-  {
-    SK_Reflex_VkInstance = *pInstance;
-  }
-
-  return result;
-}
-
-VkResult
 SK_VK_CreateDevice (
         VkPhysicalDevice       physicalDevice,
   const VkDeviceCreateInfo*    pCreateInfo,
@@ -1246,6 +1204,99 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   return ret;
 }
 
+VkResult
+SK_VK_CreateInstance (
+  const VkInstanceCreateInfo*  pCreateInfo,
+  const VkAllocationCallbacks* pAllocator,
+  VkInstance*                  pInstance )
+{
+  if (config.apis.Vulkan.hook)
+  SK_RunOnce (
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkCreateDevice",
+                          SK_VK_CreateDevice,
+     static_cast_p2p <void> (&vkCreateDevice_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkQueueSubmit",
+                          SK_VK_QueueSubmit,
+     static_cast_p2p <void> (&vkQueueSubmit_Original));
+     
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkQueueSubmit2",
+                          SK_VK_QueueSubmit2,
+     static_cast_p2p <void> (&vkQueueSubmit2_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkBeginCommandBuffer",
+                          SK_VK_BeginCommandBuffer,
+     static_cast_p2p <void> (&vkBeginCommandBuffer_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkCreateSwapchainKHR",
+                          SK_VK_CreateSwapchainKHR,
+     static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkQueuePresentKHR",
+                          SK_VK_QueuePresentKHR,
+     static_cast_p2p <void> (&vkQueuePresentKHR_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkEnumerateInstanceExtensionProperties",
+                          SK_VK_EnumerateInstanceExtensionProperties,
+     static_cast_p2p <void> (&vkEnumerateInstanceExtensionProperties_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkEnumerateDeviceExtensionProperties",
+                          SK_VK_EnumerateDeviceExtensionProperties,
+     static_cast_p2p <void> (&vkEnumerateDeviceExtensionProperties_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkAcquireNextImageKHR",
+                              vkAcquireNextImageKHR_Detour,
+     static_cast_p2p <void> (&vkAcquireNextImageKHR_Original));
+
+         SK_CreateDLLHook2 (L"vulkan-1.dll",
+                             "vkAcquireNextImage2KHR",
+                              vkAcquireNextImage2KHR_Detour,
+     static_cast_p2p <void> (&vkAcquireNextImage2KHR_Original));
+
+    extern bool SK_CanQueuedHooksBeApplied (void);
+
+    bool suspend_all =
+      !SK_CanQueuedHooksBeApplied ();
+
+    SK_ThreadSuspension_Ctx suspended;
+
+    if (suspend_all)
+    {
+      suspended = SK_SuspendAllOtherThreads ();
+      SK_EnableApplyQueuedHooks ();
+    }      
+
+    SK_ApplyQueuedHooks ();
+
+    if (suspend_all)
+    {
+      SK_DisableApplyQueuedHooks ();
+      SK_ResumeThreads (suspended);
+    }
+  );
+
+  SK_LOG_FIRST_CALL
+
+  auto result =
+    vkCreateInstance_Original (pCreateInfo, pAllocator, pInstance);
+
+  if ( VK_SUCCESS == result )
+  {
+    SK_Reflex_VkInstance = *pInstance;
+  }
+
+  return result;
+}
+
 #define SK_VK_NATIVE_REFLEX_CALL config.nvidia.reflex.native = true;                \
                                  config.nvidia.reflex.vulkan = true;                \
                                  SK_Reflex_VkDevice          = device;              \
@@ -1398,67 +1449,15 @@ _SK_HookVulkan (void)
       //
       // DXGI / VK Interop Setup
       //
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkCreateInstance",
-                          SK_VK_CreateInstance,
-     static_cast_p2p <void> (&vkCreateInstance_Original));
+      vkGetInstanceProcAddr_SK = (PFN_vkGetInstanceProcAddr)SK_GetProcAddress (L"vulkan-1.dll",
+     "vkGetInstanceProcAddr");
+      vkGetDeviceProcAddr_SK   = (PFN_vkGetDeviceProcAddr  )SK_GetProcAddress (L"vulkan-1.dll",
+     "vkGetDeviceProcAddr");
 
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkCreateDevice",
-                          SK_VK_CreateDevice,
-     static_cast_p2p <void> (&vkCreateDevice_Original));
-
-          SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkQueueSubmit",
-                          SK_VK_QueueSubmit,
-     static_cast_p2p <void> (&vkQueueSubmit_Original));
-     
-          SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkQueueSubmit2",
-                          SK_VK_QueueSubmit2,
-     static_cast_p2p <void> (&vkQueueSubmit2_Original));
-
-          SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkBeginCommandBuffer",
-                          SK_VK_BeginCommandBuffer,
-     static_cast_p2p <void> (&vkBeginCommandBuffer_Original));
-
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkCreateSwapchainKHR",
-                          SK_VK_CreateSwapchainKHR,
-     static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
-
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkQueuePresentKHR",
-                          SK_VK_QueuePresentKHR,
-     static_cast_p2p <void> (&vkQueuePresentKHR_Original));
-
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkEnumerateInstanceExtensionProperties",
-                          SK_VK_EnumerateInstanceExtensionProperties,
-     static_cast_p2p <void> (&vkEnumerateInstanceExtensionProperties_Original));
-
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkEnumerateDeviceExtensionProperties",
-                          SK_VK_EnumerateDeviceExtensionProperties,
-     static_cast_p2p <void> (&vkEnumerateDeviceExtensionProperties_Original));
-
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkAcquireNextImageKHR",
-                              vkAcquireNextImageKHR_Detour,
-     static_cast_p2p <void> (&vkAcquireNextImageKHR_Original));
-
-         SK_CreateDLLHook2 (L"vulkan-1.dll",
-                             "vkAcquireNextImage2KHR",
-                              vkAcquireNextImage2KHR_Detour,
-     static_cast_p2p <void> (&vkAcquireNextImage2KHR_Original));
-
-     vkGetInstanceProcAddr_SK = (PFN_vkGetInstanceProcAddr)SK_GetProcAddress (L"vulkan-1.dll",
-    "vkGetInstanceProcAddr");
-     vkGetDeviceProcAddr_SK = (PFN_vkGetDeviceProcAddr)SK_GetProcAddress (L"vulkan-1.dll",
-    "vkGetDeviceProcAddr");
-
-      SK_ApplyQueuedHooks ();
+      SK_CreateDLLHook (      L"vulkan-1.dll",
+                               "vkCreateInstance",
+                            SK_VK_CreateInstance,
+       static_cast_p2p <void> (&vkCreateInstance_Original));
     }
   }
 }

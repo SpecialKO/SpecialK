@@ -6160,10 +6160,32 @@ void SK_DXGI_HookPresent1    (IDXGISwapChain1 *pSwapChain1);
 void SK_DXGI_HookDevice1     (IDXGIDevice1    *pDevice1);
 
 void
+SK_DXVK_VulkanBridgeOptInForFactory (IDXGIFactory* pFactory)
+{
+  if (! sk::NVAPI::nv_hardware)
+    return;
+
+  SK_ComPtr <IUnknown>
+             pDXVKFactory;
+  if (           pFactory != nullptr &&
+      SUCCEEDED (pFactory->QueryInterface (SKID_DXVK_InteropFactory, (void **)&pDXVKFactory.p)))
+  {
+    SK_RunOnce (
+      config.apis.NvAPI.vulkan_bridge = true;
+      SK_SaveConfig ();
+
+      SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
+    );
+  }
+}
+
+void
 SK_DXGI_LazyHookFactory (IDXGIFactory *pFactory)
 {
   if (pFactory != nullptr)
   {
+    SK_DXVK_VulkanBridgeOptInForFactory (pFactory);
+
     SK_RunOnce ({
       SK_DXGI_HookFactory (pFactory);
       SK_ApplyQueuedHooks (        );
@@ -8664,11 +8686,18 @@ SK_HookDXGI (void)
       LPVOID pfnCreateDXGIFactory1   = nullptr;
       LPVOID pfnCreateDXGIFactory2   = nullptr;
 
+      // Ensure that DXVK's dxgi.dll is hooked rather than the system-wide DLL
+      wchar_t          wszFullPathToDLL [MAX_PATH + 2] = { };
+      SK_PathCombineW (wszFullPathToDLL, SK_GetHostPath (), L"dxgi.dll");
+
+      if (! PathFileExistsW (wszFullPathToDLL))
+                  wcsncpy_s (wszFullPathToDLL, MAX_PATH, L"dxgi.dll", _TRUNCATE);
+
       if ( (! LocalHook_CreateDXGIFactory.active) && SK_GetProcAddress (
              hBackend, "CreateDXGIFactory" ) )
       {
         if ( MH_OK ==
-               SK_CreateDLLHook2 (      L"dxgi.dll",
+               SK_CreateDLLHook2 (      wszFullPathToDLL,
                                          "CreateDXGIFactory",
                                           CreateDXGIFactory,
                  static_cast_p2p <void> (&CreateDXGIFactory_Import),
@@ -8685,7 +8714,7 @@ SK_HookDXGI (void)
              hBackend, "CreateDXGIFactory1" ) )
       {
         if ( MH_OK ==
-               SK_CreateDLLHook2 (      L"dxgi.dll",
+               SK_CreateDLLHook2 (      wszFullPathToDLL,
                                          "CreateDXGIFactory1",
                                           CreateDXGIFactory1,
                  static_cast_p2p <void> (&CreateDXGIFactory1_Import),
@@ -8702,7 +8731,7 @@ SK_HookDXGI (void)
              hBackend, "CreateDXGIFactory2" ) )
       {
         if ( MH_OK ==
-               SK_CreateDLLHook2 (      L"dxgi.dll",
+               SK_CreateDLLHook2 (      wszFullPathToDLL,
                                          "CreateDXGIFactory2",
                                           CreateDXGIFactory2,
                  static_cast_p2p <void> (&CreateDXGIFactory2_Import),

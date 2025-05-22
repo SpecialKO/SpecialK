@@ -1526,6 +1526,11 @@ struct {
   } ApplyQueuedHooks;
 } SKinHookCtx;
 
+bool SK_CanQueuedHooksBeApplied (void)
+{
+  return SKinHookCtx.ApplyQueuedHooks.enabled;
+}
+
 // For completeness; nothing uses this
 bool SK_DisableApplyQueuedHooks (void)
 {
