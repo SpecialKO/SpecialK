@@ -500,11 +500,9 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||
                 StrStrIW (wszCallingMod,     L"d3d12.dll") ))
       SK_RunOnce (SK_BootDXGI   ());
-#ifdef _M_AMD64
     else if (   StrStrI  (lpFileName, SK_TEXT("vulkan-1.dll")) ||
                 StrStrIW (wszCallingMod,     L"vulkan-1.dll")  )
       SK_RunOnce (SK_BootVulkan ());
-#endif
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
                 StrStrIW (wszCallingMod,     L"OpenGL32.dll") ))
