@@ -587,6 +587,7 @@ SK_BootOpenGL (void)
 }
 
 
+#define VK_ENABLE_BETA_EXTENSIONS
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_win32.h"
 
@@ -1091,13 +1092,92 @@ SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t valu
   }
 }
 
+struct VkExtension {
+  VkStructureType sType;
+  const void*     pNext;
+
+  VkExtension* getFirstInstanceOf (VkStructureType type)
+  {
+    if (sType == type)
+      return this;
+
+    else
+    {
+      if (pNext != nullptr)
+      {
+        return
+          ((VkExtension *)pNext)->getFirstInstanceOf (type);
+      }
+
+      return nullptr;
+    }
+  }
+
+  bool removeFrom (VkExtension* pBase)
+  {
+    if (pBase == this)
+      return false;
+
+    for (VkExtension* pInstance = pBase    ;
+                      pInstance != nullptr ;
+                      pInstance =
+        (VkExtension*)pInstance->pNext )
+    {
+      if (pInstance->pNext == this)
+      {
+        pInstance->pNext = pNext;
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void insertInto (VkExtension* pBase, bool front = true)
+  {
+    if (front)
+    {
+             pNext = pBase->pNext;
+      pBase->pNext = this;
+    }
+
+    else
+    {
+      for (VkExtension* pInstance = pBase    ;
+                        pInstance != nullptr ;
+                        pInstance =
+          (VkExtension*)pInstance->pNext )
+      {
+        if (pInstance->pNext == nullptr)
+        {
+          pInstance->pNext = this;
+          break;
+        }
+      }
+    }
+  }
+};
+
 VkResult
 VKAPI_CALL
 SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 {
   SK_LOG_FIRST_CALL
 
+  SK_ReleaseAssert (pPresentInfo->swapchainCount == 1);
+
   uint64_t id = SK_GetFramesDrawn ();
+
+  if (VkPresentIdKHR *pNativePresentId =
+     (VkPresentIdKHR *)((VkExtension *)pPresentInfo)->getFirstInstanceOf (VK_STRUCTURE_TYPE_PRESENT_ID_KHR))
+  {
+    id =
+      (pNativePresentId)->pPresentIds [0];
+
+    SK_RunOnce (
+      SK_LOGi0 (L"Game provided a native present id (%d)", id)
+    );
+  }
 
   VkLatencySubmissionPresentIdNV
     latency_present_id           = {                                                };
@@ -1119,12 +1199,25 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
     marker.presentID = id;
     marker.marker    = VK_LATENCY_MARKER_SIMULATION_START_NV;
 
+  auto pPresentConfigNV = (VkSetPresentConfigNV *)
+    ((VkExtension *)pPresentInfo)->getFirstInstanceOf (VK_STRUCTURE_TYPE_SET_PRESENT_CONFIG_NV);
+
+  if (pPresentConfigNV != nullptr)
+  {
+    SK_LOGi0 (L"Ignoring VkSetPresentConfigNV w/ numFramesPerBatch=%d", pPresentConfigNV->numFramesPerBatch);
+
+    pPresentConfigNV->sType                 = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    pPresentConfigNV->presentConfigFeedback = 0;
+  }
+
   if ((! bUseOldReflex) && SK_VK_HasLowLatency2)
   {
-                                                 present_id.pNext = pPresentInfo->pNext;
-    ((VkPresentInfoKHR *)pPresentInfo)->pNext = &present_id;
-                                                 latency_present_id.pNext = pPresentInfo->pNext;
-    ((VkPresentInfoKHR *)pPresentInfo)->pNext = &latency_present_id;
+    auto pBaseStruct       = (VkExtension *)pPresentInfo;
+    auto pPresentId        = (VkExtension *)&present_id;
+    auto pLatencyPresentId = (VkExtension *)&latency_present_id;
+
+    pPresentId->insertInto        (pBaseStruct);
+    pLatencyPresentId->insertInto (pBaseStruct);
 
     if (id == 0) {
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
@@ -1195,7 +1288,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
         }
       }
 
-      marker.presentID = SK_GetFramesDrawn ();
+      marker.presentID = marker.presentID + 1;//SK_GetFramesDrawn ();
 
       SK_VK_SetLatencyMarker (marker, VK_LATENCY_MARKER_SIMULATION_START_NV);
     }

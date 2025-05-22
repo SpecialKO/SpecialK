@@ -1,4 +1,11 @@
-﻿25.5.22.1
+﻿25.5.22.2
+=========
+ + Remove DLL Loader Lock acquire/release from SK's custom fork of MinHook,
+     because it may lead to deadlock during DirectInput 8 initialization in
+       KEX Engine (Quake 1 port).
+ + Use a game's native Vulkan PresentID for Reflex injection if supplied.
+
+25.5.22.1
 =========
  + Auto-enable Vulkan Bridge when DXVK is detected on NVIDIA systems.
  + Enable Vulkan hooks in 32-bit games.
