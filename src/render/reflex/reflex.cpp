@@ -35,6 +35,7 @@
 
 extern float __target_fps;
 
+volatile ULONG64 SK_Reflex_LastFrameSleptVk  = 0;
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
@@ -1364,6 +1365,7 @@ NvLL_VK_SetLatencyMarker_Detour (VkDevice vkDevice, NVLL_VK_LATENCY_MARKER_PARAM
 
   if (pSetLatencyMarkerParams != nullptr)
   {
+    // The game's frameID, SK has a different running counter...
     SK_VK_Reflex.last_frame = pSetLatencyMarkerParams->frameID;
   }
 
@@ -1384,17 +1386,24 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
     NvLL_VK_SetSleepMode_Detour (device, &SK_NVLL_LastSleepParams);
   }
 
-  //
-  // nb: For DLSS-G "native pacing", run the framerate limiter here.
-  //
-
   auto ret =
     NvLL_VK_Sleep_Original (device, signalValue);
 
   if (0 == ret)
   {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    rb.vulkan_reflex.sleep ();
+
     extern void SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore       semaphore, uint64_t value);
                 SK_Reflex_WaitOnSemaphore (         device, SK_VK_Reflex.NvLL_semaphore,    signalValue);
+
+    if (config.render.framerate.enforcement_policy == 2 && rb.vulkan_reflex.isPacingEligible ())
+    {
+      SK::Framerate::Tick ( true, 0.0,
+                      { 0,0 }, rb.swapchain.p);
+    }
   }
 
   return ret;
@@ -1475,6 +1484,15 @@ void SK_VK_HookReflex (void)
 
     SK_ApplyQueuedHooks ();
   );
+}
+
+ULONG64
+SK_RenderBackend_V2::vk_reflex_s::sleep (void)
+{
+  config.nvidia.reflex.vulkan = true;
+
+  return
+    InterlockedExchange (&last_slept, SK_GetFramesDrawn ());
 }
 
 bool
@@ -1577,6 +1595,24 @@ SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* la
   return false;
 }
 
+bool
+SK_RenderBackend_V2::vk_reflex_s::isPacingEligible (void) const
+{
+  return
+    config.nvidia.reflex.vulkan && ReadULong64Acquire (&last_slept) > SK_GetFramesDrawn () - 3 &&
+
+  // DLSS-G Pacing needs traditional frame history calculation
+  !__SK_IsDLSSGActive;
+}
+
+bool
+SK_RenderBackend_V2::vk_reflex_s::needsFallbackSleep (void) const
+{
+  return
+    false;
+    //config.nvidia.reflex.vulkan && config.nvidia.reflex.use_limiter && !isPacingEligible () && !__SK_IsDLSSGActive;
+}
+
 UINT
 SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
 {
@@ -1601,13 +1637,13 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
     const double dReflexFPS =
       (dRefresh - (dRefresh * dRefresh) / 3600.0);
 
-    // Set VRR framerate limit accordingly          
+    // Set VRR framerate limit accordingly
     reflex_interval =
       static_cast <UINT> (1000000.0 / dReflexFPS);
   }
 
   const bool applyUserOverride =
-    (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.use_limiter;
+    (__target_fps > 10.0f && (__SK_ForceDLSSGPacing || config.nvidia.reflex.use_limiter));
 
   if (applyUserOverride)
   {
@@ -1623,6 +1659,10 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
       reflex_interval == 0 ?           interval
                            : std::max (interval, reflex_interval);
   }
+
+  // Throw away any intervals > 100 ms, parameters are suspect.
+  if (reflex_interval > 100000)
+      reflex_interval = 0;
 
   return
     reflex_interval;

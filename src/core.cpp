@@ -4370,7 +4370,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   rb.driverSleepNV (1);
 
-  if (config.render.framerate.enforcement_policy == 2)
+  if ((config.render.framerate.enforcement_policy == 2 && !rb.vulkan_reflex.isPacingEligible ()) || rb.vulkan_reflex.needsFallbackSleep ())
   {
     if (rb.swapchain.p != nullptr)
       _FrameTick ();

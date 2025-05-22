@@ -697,8 +697,16 @@ public:
       VK_NV_low_latency2 = 2
     } api = None;
 
-    bool getLatencyReport (NV_LATENCY_RESULT_PARAMS*) const;
-    bool isSupported      (void) const;
+    // Last frame that Reflex Sleep was called
+    volatile ULONG64 last_slept = 0;
+
+    // Returns the previous frame slept
+    ULONG64 sleep (void);
+
+    bool getLatencyReport   (NV_LATENCY_RESULT_PARAMS*) const;
+    bool isSupported        (void) const;
+    bool isPacingEligible   (void) const;
+    bool needsFallbackSleep (void) const;
   } vulkan_reflex;
 
 
@@ -812,6 +820,7 @@ SK_Render_GetAPIName (SK_RenderAPI api);
 extern volatile ULONG64 SK_Reflex_LastFrameMarked;
 
 UINT SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency);
+bool SK_Reflex_IsVulkanNativePacingEligible       (void);
 
 __forceinline
 ULONG64

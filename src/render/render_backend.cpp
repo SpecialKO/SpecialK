@@ -1106,6 +1106,9 @@ SK_VK_QueueSubmit (
 void
 SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t value)
 {
+  if (! vkGetSemaphoreCounterValue_SK)
+    return;
+
   VkSemaphoreWaitInfo
     sem_wait_info                = {                                   };
     sem_wait_info.sType          = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
@@ -1113,7 +1116,21 @@ SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t valu
     sem_wait_info.semaphoreCount = 1;
     sem_wait_info.pValues        = &value;
 
-  vkWaitSemaphores_SK (device, &sem_wait_info, 10000000000000000000);
+  uint64_t                                           semaphore_val = UINT64_MAX;
+  vkGetSemaphoreCounterValue_SK (device, semaphore, &semaphore_val);
+
+  if (semaphore_val < value)
+  {
+    // After 500 ms, give up.
+    auto result =
+      vkWaitSemaphores_SK (device, &sem_wait_info, 500000000);
+
+    if (result == VK_TIMEOUT)
+    {
+      SK_LOGi0 (L"Timeout while waiting (500 ms) for Reflex semaphore.");
+      config.nvidia.reflex.use_limiter = false;
+    }
+  }
 }
 
 VkResult
@@ -1205,10 +1222,19 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
       if (VK_SUCCESS == vkLatencySleepNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &lat_info))
       {
-        config.nvidia.reflex.vulkan = true;
+        auto& rb =
+          SK_GetCurrentRenderBackend ();
+          
+        rb.vulkan_reflex.sleep ();
 
         SK_Reflex_SetVulkanSwapchain (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain);
         SK_Reflex_WaitOnSemaphore    (SK_Reflex_VkDevice, SK_Reflex_VkSemaphore, semaphore_val);
+
+        if (config.render.framerate.enforcement_policy == 2 && rb.vulkan_reflex.isPacingEligible ())
+        {
+          SK::Framerate::Tick ( true, 0.0,
+                          { 0,0 }, rb.swapchain.p);
+        }
       }
 
       marker.presentID = SK_GetFramesDrawn ();
@@ -1291,8 +1317,15 @@ vkLatencySleepNV_Detour (
     vkSetLatencySleepModeNV_Detour (device, swapchain, &dummy);
   }
 
-  return
+  auto ret =
     vkLatencySleepNV_Original (device, swapchain, pSleepInfo);
+
+  if (ret == VK_SUCCESS)
+  {
+    SK_GetCurrentRenderBackend ().vulkan_reflex.sleep ();
+  }
+
+  return ret;
 }
 
 void

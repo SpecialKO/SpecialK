@@ -1,4 +1,12 @@
-﻿25.5.21.4
+﻿25.5.22
+=======
+ + Apply low-latency framerate limiter mode after DXGI/Vk interop rather than
+     during interop in Vulkan games that call Reflex Sleep,
+       (i.e. SK injected Reflex or properly implemented native Reflex).
+ + Add 500 ms timeout to any Vulkan semaphore wait operations and force-off
+     Reflex framerate limit if a timeout occurs.
+
+25.5.21.4
 =========
  + Ported DLSS-G pacing feature from D3D (NvAPI) to Vulkan (NvLL).
 
