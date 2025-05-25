@@ -2380,9 +2380,9 @@ SK_Inject_ParseWhiteAndBlacklists (const std::wstring& base_path)
 
       else
       {
-        // Win8.1 fallback relies on deprecated stuff, so surpress warning when compiling
-#pragma warning(suppress : 4996)
         list_file.imbue (
+// Win8.1 fallback relies on deprecated stuff, so surpress warning when compiling
+#pragma warning(suppress : 4996)
             std::locale (std::locale::empty (),
                          new (std::nothrow) std::codecvt_utf8 <wchar_t, 0x10ffff> ())
         );
