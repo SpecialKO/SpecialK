@@ -1,4 +1,11 @@
-﻿25.5.22.2
+﻿25.5.26
+=======
+ + Disable Streamline init. parameter overrides in the pre-release version of
+     NVIDIA Streamline that A Plague Tale Requiem ships with.
+ + Disable queued hook installation if it is implicitly enabled during D3D11
+     hook setup, in an effort to fix new compatibility problems with GTA IV.
+
+25.5.22.2
 =========
  + Remove DLL Loader Lock acquire/release from SK's custom fork of MinHook,
      because it may lead to deadlock during DirectInput 8 initialization in

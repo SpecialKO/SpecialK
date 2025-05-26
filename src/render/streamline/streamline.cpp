@@ -83,6 +83,18 @@ slInit_Detour (sl::Preferences *pref, uint64_t sdkVersion = sl::kSDKVersion)
 {
   SK_LOG_FIRST_CALL
 
+  if (sdkVersion <= 101739311)
+  {
+    // Unsafe to use scRGB HDR in older versions of NVIDIA Streamline
+    extern bool __SK_HDR_Disallow16BitSwap;
+                __SK_HDR_Disallow16BitSwap = true;
+
+    SK_LOGi0 (L"Unsafe to override Streamline Init parameters in sdkVersion <= 101739311, aborting...");
+
+    return
+      slInit_Original (pref, sdkVersion);
+  }
+
   SK_LOGi0 (L"[!] slInit (pref->structVersion=%d, sdkVersion=%d)",
                           pref->structVersion,    sdkVersion);
 
