@@ -1,4 +1,8 @@
-﻿25.5.26
+﻿25.6.2
+======
+ + Revert changes in 25.5.26 (GTA IV) that prevented OpenGL HDR from working.
+
+25.5.26
 =======
  + Disable Streamline init. parameter overrides in the pre-release version of
      NVIDIA Streamline that A Plague Tale Requiem ships with.

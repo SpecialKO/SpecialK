@@ -6864,7 +6864,7 @@ SK_D3D11_Init (void)
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active == TRUE  ||
                MH_OK == SK_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
-          bool bDisableHooks =
+          bool bEnableHooks =
             SK_EnableApplyQueuedHooks ();
 
           {
@@ -6872,7 +6872,7 @@ SK_D3D11_Init (void)
               ( MH_OK == SK_ApplyQueuedHooks () );
           }
 
-          if (bDisableHooks)
+          if (! bEnableHooks)
             SK_DisableApplyQueuedHooks ();
 
           InterlockedIncrementRelease (&SK_D3D11_initialized);
