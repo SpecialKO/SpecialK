@@ -738,7 +738,8 @@ SK_ACS_InitPlugin (void)
 
     void* code_addr =
       SK_ScanAlignedExec ("\xc1\xe0\x03\x48\x8B\x15\x00\x00\x00\x00\x80\x7A\x24\x00\x48\x8B\x04\x01\x48\x89\x84\x24", 22,
-                          "\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\x00\x48\x8B\x04\x01\x48\x89\x84\x24", (void*)img_base_addr, 4);
+                          "\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff\x00\x48\x8B\x04\x01\x48\x89\x84\x24", (void*)img_base_addr, 1);
+
 
     SK_LOGi0 (L"FrameGenEnable1 = %ws", code_addr != nullptr ? SK_MakePrettyAddress (code_addr).c_str () : L"Not Found?!");
   
@@ -802,6 +803,14 @@ SK_ACS_InitPlugin (void)
                                   // Shader compile
                                   0x00000000006B3915, 0x00000000006B3919, 0x00000000006B391D,
                                   0x00000000006B3AAA, 0x00000000006B3AAE, 0x00000000006B3AB2,
+
+              // 1.0.5
+              0x000000000401D28D, 0x000000000401DF81, 0x00000000006A7A5A, 0x00000000006A7A60,
+              0x00000000006A7A77, 0x00000000006A7A1B, 0x00000000006A7A1F, 0x00000000006A7A23,
+              0x0000000004025665, 0x000000000402566C,
+                                  // Shader compile
+                                  0x00000000006A70C6, 0x00000000006A70CA, 0x00000000006A70CE,
+                                  0x00000000006A725A, 0x00000000006A725E, 0x00000000006A7262
               } )
     {
       ContinuableCallSites.insert (callsite);
