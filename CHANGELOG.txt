@@ -1,4 +1,10 @@
-﻿25.6.3
+﻿25.6.4
+======
+ + Merge pull request #275 from miguelkmarques:ac-shadows-fg-fix-1-0-5
+    * Change align to 1 for FrameGenEnable1 for AC Shadows 1.0.5
+    * Add ContinuableCallSites exceptions for AC Shadows 1.0.5
+
+25.6.3
 ======
  + Added idTech hack for Wolfenstein The New Colossus (force Vk interop detect)
 
