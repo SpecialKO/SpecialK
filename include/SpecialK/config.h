@@ -1811,6 +1811,7 @@ enum class SK_GAME_ID
   StardewValley,                // Stardew Valley.exe
   DOOM,                         // DOOMx64vk.exe
   DOOMEternal,                  // DOOMEternalx64vk.exe
+  Wolfenstein_TheNewColossus,   // NewColossus_x64vk.exe
   Blood,                        // anuket_x64.exe
   BatmanArkhamKnight,           // BatmanAK.exe
   Noita,                        // Noita.exe

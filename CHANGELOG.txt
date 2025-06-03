@@ -1,4 +1,8 @@
-﻿25.6.2
+﻿25.6.3
+======
+ + Added idTech hack for Wolfenstein The New Colossus (force Vk interop detect)
+
+25.6.2
 ======
  + Revert changes in 25.5.26 (GTA IV) that prevented OpenGL HDR from working.
 
