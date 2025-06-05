@@ -102,6 +102,18 @@ slInit_Detour (sl::Preferences *pref, uint64_t sdkVersion = sl::kSDKVersion)
   //   start overriding stuff for compatibility.
   if (pref->structVersion <= sl::kStructVersion1)
   {
+    if (config.nvidia.dlss.disable_ota_updates)
+    {
+      if ((int)(pref->flags & (sl::PreferenceFlags::eAllowOTA |
+                               sl::PreferenceFlags::eLoadDownloadedPlugins)) != 0)
+      {
+        SK_LOGi0 (L"Streamline OTA Updates Forced OFF");
+
+        pref->flags &= ~(sl::PreferenceFlags::eAllowOTA |
+                         sl::PreferenceFlags::eLoadDownloadedPlugins);
+      }
+    }
+
     //
     // Always print Streamline debug output to Special K's game_output.log,
     //   disable any log redirection the game would ordinarily do on its own.

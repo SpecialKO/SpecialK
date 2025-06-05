@@ -1,4 +1,8 @@
-﻿25.6.4
+﻿25.6.5
+======
+ + Option to disable DLSS OTA updates now applies to NVIDIA Streamline as well.
+
+25.6.4
 ======
  + Merge pull request #275 from miguelkmarques:ac-shadows-fg-fix-1-0-5
     * Change align to 1 for FrameGenEnable1 for AC Shadows 1.0.5
