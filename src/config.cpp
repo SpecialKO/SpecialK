@@ -294,7 +294,9 @@ SK_GetCurrentGameID (void)
           { L"metro.exe",                              SK_GAME_ID::Metro2033                    },
           { L"DOOMTheDarkAges.exe",                    SK_GAME_ID::DOOMTheDarkAges              },
           { L"Need For Speed The Run.exe",             SK_GAME_ID::NedForSpeedTheRun            },
-          { L"Little Kitty, Big City.exe",             SK_GAME_ID::LittleKittyBigCity           }
+          { L"Little Kitty, Big City.exe",             SK_GAME_ID::LittleKittyBigCity           },
+          { L"RimWorldWin64.exe",                      SK_GAME_ID::Rimworld                     },
+          { L"valheim.exe",                            SK_GAME_ID::Valheim                      }
         };
 
     first_check  = false;
@@ -4122,13 +4124,6 @@ auto DeclKeybind =
         config.input.gamepad.xinput.emulate = false;
         break;
 
-      // Microsoft Store version of this game has broken non-monotonic QPC,
-      //   use the CPU instruction (rdtsc) directly.
-      case SK_GAME_ID::LittleKittyBigCity:
-        //SK_TscInvariant = true;
-        //SK_PerfFreq     = SK_TscFreq;
-        break;
-
       case SK_GAME_ID::DOOM:
         config.apis.last_known            = SK_RenderAPI::D3D11;
         apis.last_known->store             ((int)config.apis.last_known);
@@ -4152,6 +4147,13 @@ auto DeclKeybind =
 
       case SK_GAME_ID::NedForSpeedTheRun:
         config.compatibility.disable_debug_features = true;
+        break;
+
+      // These Unity games require a full texture cache disable, not simply
+      //   ignoring non-mipmapped textures.
+      case SK_GAME_ID::Valheim:
+      case SK_GAME_ID::Rimworld:
+        config.textures.d3d11.cache = false;
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:

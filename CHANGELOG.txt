@@ -1,4 +1,8 @@
-﻿25.6.7.2
+﻿26.6.8
+======
+ + Disable texture caching in Valheim and Rimworld by default.
+
+25.6.7.2
 ========
  + Bypass RtlQueryPerformanceCounter (...), as it has been determined to be the
      cause of Little Kitty, Big City's problems.

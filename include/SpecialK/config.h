@@ -1846,6 +1846,8 @@ enum class SK_GAME_ID
   DOOMTheDarkAges,              // DOOMTheDarkAges.exe
   NedForSpeedTheRun,            // Need For Speed The Run.exe
   LittleKittyBigCity,           // Little Kitty, Big City.exe
+  Rimworld,                     // RimWorldWin64.exe
+  Valheim,                      // valheim.exe
 
   UNKNOWN_GAME               = 0xffff
 };
