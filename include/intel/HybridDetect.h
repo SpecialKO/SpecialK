@@ -15,6 +15,8 @@
 
 #pragma once
 
+extern BOOL WINAPI SK_GetSystemCpuSetInformation(_Out_writes_bytes_to_opt_(BufferLength,*ReturnedLength) PSYSTEM_CPU_SET_INFORMATION Information,_In_ ULONG BufferLength,_Always_(_Out_) PULONG ReturnedLength,_In_opt_ HANDLE Process,_Reserved_ ULONG Flags);
+
 #include <stdint.h>
 #include <array>
 #include <vector>
@@ -492,8 +494,6 @@ inline bool GetLogicalProcessors(PROCESSOR_INFO& procInfo)
 	unsigned long bufferSize;
 	// Get the Current Process Handle.
 	HANDLE curProc = GetCurrentProcess();
-
-  extern BOOL WINAPI SK_GetSystemCpuSetInformation(_Out_writes_bytes_to_opt_(BufferLength,*ReturnedLength) PSYSTEM_CPU_SET_INFORMATION Information,_In_ ULONG BufferLength,_Always_(_Out_) PULONG ReturnedLength,_In_opt_ HANDLE Process,_Reserved_ ULONG Flags);
 
 	// Get total number (size) of elements in the data structure.
 	SK_GetSystemCpuSetInformation(nullptr, 0, &bufferSize, curProc, 0);
