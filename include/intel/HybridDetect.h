@@ -493,14 +493,16 @@ inline bool GetLogicalProcessors(PROCESSOR_INFO& procInfo)
 	// Get the Current Process Handle.
 	HANDLE curProc = GetCurrentProcess();
 
+  extern BOOL WINAPI SK_GetSystemCpuSetInformation(_Out_writes_bytes_to_opt_(BufferLength,*ReturnedLength) PSYSTEM_CPU_SET_INFORMATION Information,_In_ ULONG BufferLength,_Always_(_Out_) PULONG ReturnedLength,_In_opt_ HANDLE Process,_Reserved_ ULONG Flags);
+
 	// Get total number (size) of elements in the data structure.
-	GetSystemCpuSetInformation(nullptr, 0, &bufferSize, curProc, 0);
+	SK_GetSystemCpuSetInformation(nullptr, 0, &bufferSize, curProc, 0);
 
 	// Allocate data structures based on size returned from first call.
 	auto buffer = std::make_unique<uint8_t[]>(bufferSize);
 
 	// Get all of the CPUSet elements 
-	if(!GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(buffer.get()), bufferSize, &bufferSize, curProc, 0))
+	if(!SK_GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(buffer.get()), bufferSize, &bufferSize, curProc, 0))
 	{
 		return false;
 	}

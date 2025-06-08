@@ -1,4 +1,10 @@
-﻿25.6.5
+﻿25.6.7
+======
+ + Modify Intel's "HybridDetect.h" library for managing Efficiency/Performance
+     CPU cores to use CPU sets only if SK is running on Windows 10; restoring
+       support for Windows 8.1.
+
+25.6.5
 ======
  + Option to disable DLSS OTA updates now applies to NVIDIA Streamline as well.
 

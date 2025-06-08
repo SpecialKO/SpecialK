@@ -719,3 +719,20 @@ bool SK_CPU_TestForMWAITX (void)
 
   return supported;
 }
+
+// The underlying API is only available on Windows 10, but SK still supports Windows 8.1, so load this function at runtime (if available)
+BOOL
+WINAPI
+SK_GetSystemCpuSetInformation (_Out_writes_bytes_to_opt_(BufferLength, *ReturnedLength) PSYSTEM_CPU_SET_INFORMATION Information, _In_ ULONG BufferLength, _Always_(_Out_) PULONG ReturnedLength, _In_opt_ HANDLE Process, _Reserved_ ULONG Flags)
+{
+  using  GetSystemCpuSetInformation_pfn = BOOL (WINAPI *)(PSYSTEM_CPU_SET_INFORMATION,ULONG,PULONG,HANDLE,ULONG);
+  static GetSystemCpuSetInformation_pfn
+        _GetSystemCpuSetInformation =
+        (GetSystemCpuSetInformation_pfn)SK_GetProcAddress (L"kernel32.dll", "GetSystemCpuSetInformation");
+
+  if (! _GetSystemCpuSetInformation)
+    return FALSE;
+
+  return
+    _GetSystemCpuSetInformation (Information, BufferLength, ReturnedLength, Process, Flags);
+}
