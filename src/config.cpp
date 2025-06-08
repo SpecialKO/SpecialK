@@ -4125,8 +4125,8 @@ auto DeclKeybind =
       // Microsoft Store version of this game has broken non-monotonic QPC,
       //   use the CPU instruction (rdtsc) directly.
       case SK_GAME_ID::LittleKittyBigCity:
-        SK_TscInvariant = true;
-        SK_PerfFreq     = SK_TscFreq;
+        //SK_TscInvariant = true;
+        //SK_PerfFreq     = SK_TscFreq;
         break;
 
       case SK_GAME_ID::DOOM:

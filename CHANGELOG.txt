@@ -1,4 +1,9 @@
-﻿25.6.7.1
+﻿25.6.7.2
+========
+ + Bypass RtlQueryPerformanceCounter (...), as it has been determined to be the
+     cause of Little Kitty, Big City's problems.
+
+25.6.7.1
 ========
  + Workaround broken QueryPerformanceCounter (...) API in the Microsoft Store
      version of Little Kitty, Big City by using the CPU instruction to get
