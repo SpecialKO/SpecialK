@@ -1,4 +1,11 @@
-﻿25.6.7
+﻿25.6.7.1
+========
+ + Workaround broken QueryPerformanceCounter (...) API in the Microsoft Store
+     version of Little Kitty, Big City by using the CPU instruction to get
+       timestamps (rdtsc) directly.
+   - QPC is non-monotonic in whatever they did to that build of the game...
+
+25.6.7
 ======
  + Modify Intel's "HybridDetect.h" library for managing Efficiency/Performance
      CPU cores to use CPU sets only if SK is running on Windows 10; restoring

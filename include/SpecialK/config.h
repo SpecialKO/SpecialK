@@ -145,8 +145,7 @@ struct sk_config_t
         (1000LL * 1000LL * static_cast <int64_t> (pwi [0].MaxMhz));
 
       SK_QpcFreqInTsc = (DWORD)(SK_TscFreq / SK_QpcFreq);
-      SK_TscInvariant =
-        false;
+      SK_TscInvariant = false;
       //(cpuid [3] & (1 << 8)) != 0;
 
       SK_PerfFreqInTsc = 1;
@@ -1845,6 +1844,8 @@ enum class SK_GAME_ID
   ClairObscur_Expedition33,     // SandFallEos-Win64-Shipping.exe
   Metro2033,                    // metro.exe
   DOOMTheDarkAges,              // DOOMTheDarkAges.exe
+  NedForSpeedTheRun,            // Need For Speed The Run.exe
+  LittleKittyBigCity,           // Little Kitty, Big City.exe
 
   UNKNOWN_GAME               = 0xffff
 };
