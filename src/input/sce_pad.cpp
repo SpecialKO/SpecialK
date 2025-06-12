@@ -147,9 +147,13 @@ SK_ScePadGetHandle (SK_SceUserID userID, int type,
           _handle = sceinput_ctx.scePad.
   scePadGetHandle_Original (userID, type, index);
 
-  SK_LOG0 ( ( L"scePadGetHandle (%x, %x, %d) => %x",
-                userID, type, index, _handle ),
-              __SK_SUBSYSTEM__ );
+  SK_RunOnce (
+    config.input.gamepad.scepad.unlimit_polling_rate = true;
+
+    SK_LOG0 ( ( L"scePadGetHandle (%x, %x, %d) => %x",
+                  userID, type, index, _handle ),
+                __SK_SUBSYSTEM__ );
+  );  
 
   return _handle;
 }

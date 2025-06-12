@@ -1,4 +1,11 @@
-﻿26.6.8
+﻿26.6.11
+=======
+ + Remove repeated libScePad scePadGetHandle (...) log spam.
+ + Uncap internal controller polling rate limit (500 Hz) in libScePad games
+     (that use libScePad.dll, as opposed to static linking) in order to correctly
+       support DualSense Edge's full capabiilities (1 kHz native) on.
+
+26.6.8
 ======
  + Disable texture caching in Valheim and Rimworld by default.
 
