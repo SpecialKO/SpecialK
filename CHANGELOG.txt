@@ -1,4 +1,11 @@
-﻿26.6.11
+﻿26.6.12
+=======
+ + When a game turns Reflex Low Latency + Boost mode on and enables Boost using
+     Latency Markers, SK will now use that as the default override setting.
+ + Default Stellar Blade to Reflex Low Latency + Boost + Boost using Latency
+     Markers, because it is not correctly applying Reflex modes on some systems.
+
+26.6.11
 =======
  + Remove repeated libScePad scePadGetHandle (...) log spam.
  + Uncap internal controller polling rate limit (500 Hz) in libScePad games

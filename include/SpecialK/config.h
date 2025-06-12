@@ -1849,6 +1849,7 @@ enum class SK_GAME_ID
   LittleKittyBigCity,           // Little Kitty, Big City.exe
   Rimworld,                     // RimWorldWin64.exe
   Valheim,                      // valheim.exe
+  StellarBlade,                 // SB-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };

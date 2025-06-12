@@ -296,7 +296,8 @@ SK_GetCurrentGameID (void)
           { L"Need For Speed The Run.exe",             SK_GAME_ID::NedForSpeedTheRun            },
           { L"Little Kitty, Big City.exe",             SK_GAME_ID::LittleKittyBigCity           },
           { L"RimWorldWin64.exe",                      SK_GAME_ID::Rimworld                     },
-          { L"valheim.exe",                            SK_GAME_ID::Valheim                      }
+          { L"valheim.exe",                            SK_GAME_ID::Valheim                      },
+          { L"SB-Win64-Shipping.exe",                  SK_GAME_ID::StellarBlade                 }
         };
 
     first_check  = false;
@@ -4154,6 +4155,15 @@ auto DeclKeybind =
       case SK_GAME_ID::Valheim:
       case SK_GAME_ID::Rimworld:
         config.textures.d3d11.cache = false;
+        break;
+
+      // Game has issues calling the correct NVAPI function to set Reflex mode,
+      //   so default to Low Latency + Boost; user can turn-off manually...
+      case SK_GAME_ID::StellarBlade:
+        config.nvidia.reflex.override            = true;
+        config.nvidia.reflex.low_latency         = true;
+        config.nvidia.reflex.low_latency_boost   = true;
+        config.nvidia.reflex.marker_optimization = true;
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:

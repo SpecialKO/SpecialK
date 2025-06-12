@@ -467,6 +467,15 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     );
 
     SK_Reflex_NativeSleepModeParams = *pSetSleepModeParams;
+
+    if (pSetSleepModeParams->bUseMarkersToOptimize)
+    {
+      SK_RunOnce (
+        SK_LOGi0 (L"NvAPI_D3D_SetSleepMode bUseMarkersToOptimize=true");
+
+        config.nvidia.reflex.marker_optimization = true;
+      );
+    }
   }
 
   else {
