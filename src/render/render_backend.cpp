@@ -1703,11 +1703,14 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           config.nvidia.reflex.low_latency_boost     = true;
           config.nvidia.reflex.marker_optimization   = true;
         }
-        else
+        else if (config.nvidia.reflex.override)
         {
           // No need to turn this off, just turn off latency marker optimization
         //config.nvidia.reflex.low_latency_boost     = false;
-          config.nvidia.reflex.marker_optimization   = false;
+
+          // This should always be on for this game.
+          if (SK_GetCurrentGameID () != SK_GAME_ID::StellarBlade)
+            config.nvidia.reflex.marker_optimization = false;
         }
 
         // For VRR, always use VRR Optimized.

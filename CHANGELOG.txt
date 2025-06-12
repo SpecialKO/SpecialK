@@ -1,4 +1,9 @@
-﻿26.6.12
+﻿26.6.12.1
+=========
+ + Prevent AutoVRR mode from forcing Boost Using Latency Markers off in
+     Stellar Blade if "Ultra Low Latency" AutoVRR option is disabled.
+
+26.6.12
 =======
  + When a game turns Reflex Low Latency + Boost mode on and enables Boost using
      Latency Markers, SK will now use that as the default override setting.
