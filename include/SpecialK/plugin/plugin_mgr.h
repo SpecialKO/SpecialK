@@ -242,7 +242,7 @@ extern ID3D11SamplerState* SK_CC_NearestSampler;
 
 bool SK_GalGun_PlugInCfg (void);
 
-extern void SK_SEH_LaunchEldenRing         (void);
+extern void SK_SEH_LaunchEldenRing         ( const wchar_t* = L"eldenring.exe" );
 extern void SK_SEH_LaunchArmoredCoreVI     (void);
 extern void SK_SEH_LaunchLordsOfTheFallen2 (void);
 

@@ -853,7 +853,7 @@ SK_ER_InitPlugin (void)
 
 // 32-bit Launcher Bypass Code
 void
-SK_SEH_LaunchEldenRing (void)
+SK_SEH_LaunchEldenRing ( const wchar_t* filename )
 {
   __try {
     STARTUPINFOW        sinfo = { };
@@ -867,7 +867,7 @@ SK_SEH_LaunchEldenRing (void)
     //   to inherit that (!!)
     SetEnvironmentVariable (L"SteamNoOverlayUIDrawing", L"0");
 
-    CreateProcess ( L"eldenring.exe", nullptr, nullptr, nullptr,
+    CreateProcess ( filename, nullptr, nullptr, nullptr,
                     TRUE,    CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );
 

@@ -464,6 +464,11 @@ SK_GetCurrentGameID (void)
             SK_SEH_LaunchEldenRing ();
           }
 
+          else if (std::filesystem::exists (L"nightreign.exe", ec))
+          {
+            SK_SEH_LaunchEldenRing (L"nightreign.exe");
+          }
+
           else if (std::filesystem::exists (L"armoredcore6.exe", ec))
           {
             SK_SEH_LaunchArmoredCoreVI ();
