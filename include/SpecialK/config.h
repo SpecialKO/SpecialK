@@ -1184,6 +1184,7 @@ struct sk_config_t
         bool  enable_full_bluetooth=  false;
         bool  alias_trackpad_share =  false;
         bool  unlimit_polling_rate =  false;
+        DWORD pollig_thread_tid    =      0;
         std::wstring
               touch_click          = L"<Not Bound>";
         std::wstring

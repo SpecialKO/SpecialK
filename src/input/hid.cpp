@@ -1029,6 +1029,12 @@ ReadFile_Detour (HANDLE       hFile,
     {
       case SK_Input_DeviceFileType::HID:
       {
+        if (config.input.gamepad.scepad.unlimit_polling_rate)
+        {
+          config.input.gamepad.scepad.pollig_thread_tid =
+            SK_GetCurrentThreadId ();
+        }
+
         if (config.input.gamepad.disable_hid)
         {
           SetLastError (ERROR_DEVICE_NOT_CONNECTED);

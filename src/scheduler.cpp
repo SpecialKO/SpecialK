@@ -1365,6 +1365,8 @@ Sleep_Detour (DWORD dwMilliseconds)
 {
   if (dwMilliseconds == 2 && config.input.gamepad.scepad.unlimit_polling_rate)
   {
+    if (config.input.gamepad.scepad.pollig_thread_tid != 0 &&
+        config.input.gamepad.scepad.pollig_thread_tid == SK_GetCurrentThreadId ())
     SK_RunOnce (SK_LOGi0 (L"libScePad Sleep(2) ignored..."));
     return;
   }
