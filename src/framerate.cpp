@@ -2378,6 +2378,7 @@ SK::Framerate::Limiter*
 SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
                             bool      bCreate = true )
 {
+#if 0
   if (! SK_Framerate_ValidateSwapChain (pSwapChain_))
     return nullptr;
 
@@ -2393,6 +2394,7 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
   if ( pUnwrap != nullptr &&
        pUnwrap != pSwapChain_ )
      pSwapChain_ = pUnwrap;
+#endif
 
   SK_RunOnce (
     SK_GetCommandProcessor ()->AddCommand (
