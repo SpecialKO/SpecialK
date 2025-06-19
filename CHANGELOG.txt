@@ -1,4 +1,8 @@
-﻿25.6.19
+﻿25.6.19.1
+=========
+ + Remove DLSS Presets A-E for DLSS 310.3.0+
+
+25.6.19
 =======
  + Add detection and automatic removal of 500 Hz polling rate limit in games that
      statically link to libScePad (i.e. DOOM: The Dark Ages).
