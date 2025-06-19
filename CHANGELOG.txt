@@ -1,4 +1,9 @@
-﻿25.6.18
+﻿25.6.19
+=======
+ + Add detection and automatic removal of 500 Hz polling rate limit in games that
+     statically link to libScePad (i.e. DOOM: The Dark Ages).
+
+25.6.18
 =======
  + Prevent altering window layering (always-on-top) in DOOM: The Dark Ages to
      workaround window management bugs merged from Indiana Jones' idTech code.

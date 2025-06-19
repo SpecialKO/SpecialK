@@ -1029,7 +1029,7 @@ ReadFile_Detour (HANDLE       hFile,
     {
       case SK_Input_DeviceFileType::HID:
       {
-        if (config.input.gamepad.scepad.unlimit_polling_rate)
+        if (((SK_HID_DeviceFile *)dev_ptr)->device_vid == SK_HID_VID_SONY)
         {
           config.input.gamepad.scepad.pollig_thread_tid =
             SK_GetCurrentThreadId ();
