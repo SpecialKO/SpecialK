@@ -1,4 +1,8 @@
-﻿25.6.19.1
+﻿25.6.19.2
+=========
+ + Fix version check in 25.6.19.1
+
+25.6.19.1
 =========
  + Remove DLSS Presets A-E for DLSS 310.3.0+
 
