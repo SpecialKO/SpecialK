@@ -10173,6 +10173,9 @@ RevokeDragDrop_Detour (IN HWND hwnd)
 void
 SK_ImGui_InitDragAndDrop (void)
 {
+  if (! config.window.allow_drag_n_drop)
+    return;
+
   static bool init = false;
 
   SK_RunOnce (

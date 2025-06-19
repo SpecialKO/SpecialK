@@ -1,6 +1,19 @@
-﻿25.6.19.2
+﻿25.6.19.3
+=========
+ + Fixed various issues with SK's Drag-n-Drop handler initialization failing
+ + Added support for loading D3D11 texture mods by dragging a file from one
+     location on disk (or straight from 7-zip) to the game winodw, rather than
+       the only previously supported method (download-by-dragging-URL).
+ + Added INI option to disable SK's "Drop Handler," in case a game or
+     more likey, an emulator, actually relies on this functionality.
+
+    [Window.System]
+    AllowDragNDrop={true|false}  Default: true; prevents game's normal handling
+
+25.6.19.2
 =========
  + Fix version check in 25.6.19.1
+ + Identify DLSS Presets A-E as Deprecated instead of Removed.
 
 25.6.19.1
 =========

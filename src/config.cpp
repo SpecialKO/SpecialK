@@ -1213,6 +1213,7 @@ struct {
   sk::ParameterBool*      activate_at_start       = nullptr;
   sk::ParameterBool*      treat_fg_as_active      = nullptr;
   sk::ParameterBool*      fix_stuck_alt_tab_keys  = nullptr;
+  sk::ParameterBool*      allow_drag_n_drop       = nullptr;
 } window;
 
 struct {
@@ -1914,6 +1915,8 @@ auto DeclKeybind =
                                                          L" as the active application [for background render feature]",dll_ini,         L"Window.System",         L"TreatForegroundAsActive"),
     ConfigEntry (window.fix_stuck_alt_tab_keys,          L"Automatically re-send key release notifications for keys"
                                                          L" that were released while the game was alt-tab'd",          dll_ini,         L"Window.System",         L"FixStuckAltTabKeys"),
+    ConfigEntry (window.allow_drag_n_drop,               L"Allow Special K to install a drag-n-drop handler for D3D11"
+                                                         L" texture mods and INI-related functionality.",              dll_ini,         L"Window.System",         L"AllowDragNDrop"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -5269,6 +5272,7 @@ auto DeclKeybind =
   window.manage_screensaver->load     (config.window.manage_screensaver);
   window.dont_hook_wndproc->load      (config.window.dont_hook_wndproc);
   window.activate_at_start->load      (config.window.activate_at_start);
+  window.allow_drag_n_drop->load      (config.window.allow_drag_n_drop);
   window.treat_fg_as_active->load     (config.window.treat_fg_as_active);
   window.fix_stuck_alt_tab_keys->load (config.window.fix_stuck_keys);
 
@@ -6783,6 +6787,7 @@ SK_SaveConfig ( std::wstring name,
   window.manage_screensaver->store            (config.window.manage_screensaver);
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
   window.activate_at_start->store             (config.window.activate_at_start);
+  window.allow_drag_n_drop->store             (config.window.allow_drag_n_drop);
   window.treat_fg_as_active->store            (config.window.treat_fg_as_active);
   window.fix_stuck_alt_tab_keys->store        (config.window.fix_stuck_keys);
 
