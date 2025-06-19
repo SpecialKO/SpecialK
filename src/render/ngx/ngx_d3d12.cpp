@@ -152,7 +152,7 @@ NVSDK_NGX_D3D12_GetParameters_Detour (NVSDK_NGX_Parameter **InParameters)
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_GetParameters_Original (InParameters);
 
-  if (ret == NVSDK_NGX_Result_Success)
+  if (NVSDK_NGX_SUCCEED (ret))
   {
     SK_RunOnce (
       SK_NGX_HookParameters (*InParameters)
@@ -199,7 +199,7 @@ NVSDK_NGX_D3D12_GetCapabilityParameters_Detour (NVSDK_NGX_Parameter **InParamete
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_GetCapabilityParameters_Original (InParameters);
 
-  if (ret == NVSDK_NGX_Result_Success)
+  if (NVSDK_NGX_SUCCEED (ret))
   {
     SK_RunOnce (
       SK_NGX_HookParameters (*InParameters)
@@ -223,7 +223,7 @@ NVSDK_NGX_D3D12_AllocateParameters_Detour (NVSDK_NGX_Parameter** InParameters)
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_AllocateParameters_Original (InParameters);
 
-  if (ret == NVSDK_NGX_Result_Success)
+  if (NVSDK_NGX_SUCCEED (ret))
   {
     SK_RunOnce (
       SK_NGX_HookParameters (*InParameters)
@@ -247,7 +247,7 @@ NVSDK_NGX_D3D12_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_DestroyParameters_Original (InParameters);
 
-  if (ret == NVSDK_NGX_Result_Success)
+  if (NVSDK_NGX_SUCCEED (ret))
   {
     SK_RunOnce (
       SK_NGX_HookParameters (InParameters)
@@ -304,7 +304,7 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
                                              InFeatureID,
                                              InParameters, OutHandle );
 
-  if ( ret == NVSDK_NGX_Result_Success ||
+  if ( NVSDK_NGX_SUCCEED (ret) ||
        ret == NVSDK_NGX_Result_FAIL_FeatureAlreadyExists )
   {
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
@@ -433,7 +433,7 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_EvaluateFeature_Original (InCmdList, InFeatureHandle, InParameters, InCallback);
 
-  if (ret == NVSDK_NGX_Result_Success)
+  if (NVSDK_NGX_SUCCEED (ret))
   {
     SK_NGX_DLSS12.frame_gen.evaluateFeature      (SK_NGX_DLSS12.frame_gen.getInstance      (InFeatureHandle));
     SK_NGX_DLSS12.super_sampling.evaluateFeature (SK_NGX_DLSS12.super_sampling.getInstance (InFeatureHandle));
@@ -479,7 +479,7 @@ NVSDK_NGX_D3D12_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_ReleaseFeature_Original (InHandle);
 
-  if (ret == NVSDK_NGX_Result_Success)
+  if (NVSDK_NGX_SUCCEED (ret))
   {
     auto pFrameGenInstance  = SK_NGX_DLSS12.frame_gen.getInstance (InHandle);
     if ( pFrameGenInstance != nullptr )

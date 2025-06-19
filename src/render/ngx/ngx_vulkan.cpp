@@ -265,7 +265,8 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
     SK_NGX_HookParameters (InParameters)
   );
 
-  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
+  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+      InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
   {
     SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters);
   }
@@ -305,7 +306,10 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
       SK_LOGi0 (L"DLSS-G Feature Created!");
     }
 
-    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
+    // These won't be used at the same time, so treat them as if they're
+    //   the same feature, just with extra stuff.
+    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+             InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
     {
       //SK_ReleaseAssert ( SK_NGX_VULKAN.super_sampling.Handle == *OutHandle ||
       //                   SK_NGX_VULKAN.super_sampling.Handle == nullptr );

@@ -1,4 +1,10 @@
-﻿26.6.12.1
+﻿25.6.18
+=======
+ + Prevent altering window layering (always-on-top) in DOOM: The Dark Ages to
+     workaround window management bugs merged from Indiana Jones' idTech code.
+ + Added proper handling of Ray Reconstruction in Vulkan games.
+
+26.6.12.1
 =========
  + Prevent AutoVRR mode from forcing Boost Using Latency Markers off in
      Stellar Blade if "Ultra Low Latency" AutoVRR option is disabled.
