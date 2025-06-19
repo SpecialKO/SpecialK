@@ -803,6 +803,23 @@ SetWindowsHookExA_Detour (
   HINSTANCE hmod,
   DWORD     dwThreadId )
 {
+  if (idHook == WH_KEYBOARD_LL ||
+      idHook == WH_KEYBOARD    ||
+      idHook == WH_MOUSE_LL    ||
+      idHook == WH_MOUSE)
+  {
+    if (SK_IsCurrentGame (SK_GAME_ID::StellarBlade))
+    {
+      return 0;
+    }
+
+    if (idHook == WH_KEYBOARD_LL && SK_GetCallingDLL () == SK_GetModuleHandleW (nullptr))
+    {
+      if (PathFileExistsW (L"NoLLKeyboardHooks"))
+        return 0;
+    }
+  }
+
   wchar_t                   wszHookMod [MAX_PATH] = { };
   GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
 
