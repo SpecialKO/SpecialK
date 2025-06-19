@@ -2352,10 +2352,35 @@ SK_LazyGlobal <
            std::unique_ptr <SK::Framerate::Limiter> >
               > SK::Framerate::limiters_;
 
+// Is this really a COM object?
+//  - Can QueryInterface be called?
+BOOL
+SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_)
+{
+  IUnknown* pUnk = nullptr;
+  
+  __try {
+    pSwapChain_->QueryInterface (IID_IDXGISwapChain, (void **)&pUnk);
+
+    if (pUnk != nullptr)
+        pUnk->Release ();
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 SK::Framerate::Limiter*
 SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
                             bool      bCreate = true )
 {
+  if (! SK_Framerate_ValidateSwapChain (pSwapChain_))
+    return nullptr;
+
   // Prefer to reference SwapChains we wrap by their wrapped pointer
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (pSwapChain_);
   SK_ComPtr   <IDXGISwapChain> pUnwrap;
@@ -2450,7 +2475,9 @@ SK::Framerate::TickEx ( bool     /*wait*/,
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
 
-  SK_ReleaseAssert (pLimiter != nullptr);
+  // This will happen in Vulkan interop cases, only announce it at higher log levels
+  if (config.system.log_level > 0)
+    SK_ReleaseAssert (pLimiter != nullptr);
 
   // Should never happen, but better safe.
   if (pLimiter == nullptr)
@@ -2607,7 +2634,9 @@ SK::Framerate::Tick ( bool          wait,
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
 
-  SK_ReleaseAssert (pLimiter != nullptr);
+  // This will happen in Vulkan interop cases, only announce it at higher log levels
+  if (config.system.log_level > 0)
+    SK_ReleaseAssert (pLimiter != nullptr);
 
   // Should never happen, but better safe.
   if (pLimiter == nullptr)

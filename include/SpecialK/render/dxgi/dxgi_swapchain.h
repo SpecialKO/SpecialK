@@ -496,5 +496,7 @@ extern SetFullscreenState_pfn SetFullscreenState_Original;
 extern ResizeTarget_pfn       ResizeTarget_Original;
 extern ResizeBuffers_pfn      ResizeBuffers_Original;
 
+uint64_t SK_DXGI_LastFrameSwapChainDestroyed (void);
+
 
 #endif /* __SK__DXGI_SWAPCHAIN_H__ */

@@ -1,4 +1,9 @@
-﻿25.6.19.3
+﻿25.6.19.4
+=========
+ + Workaround new issues in DOOM: The Dark Ages window management and Reflex
+     related to creating / resizing windows.
+
+25.6.19.3
 =========
  + Fixed various issues with SK's Drag-n-Drop handler initialization failing
  + Added support for loading D3D11 texture mods by dragging a file from one

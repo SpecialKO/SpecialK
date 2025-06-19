@@ -1062,9 +1062,18 @@ SK_VK_QueueSubmit (
     vkQueueSubmit_Original (queue, submitCount, pSubmits, fence);
 }
 
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+
 void
 SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t value)
 {
+  // Broken Reflex implementation is even more broken than it used to be
+  //if (SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
+  {
+    if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+      return;
+  }
+
   if (! vkGetSemaphoreCounterValue_SK)
     return;
 
@@ -1075,10 +1084,10 @@ SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t valu
     sem_wait_info.semaphoreCount = 1;
     sem_wait_info.pValues        = &value;
 
-  uint64_t                                           semaphore_val = UINT64_MAX;
-  vkGetSemaphoreCounterValue_SK (device, semaphore, &semaphore_val);
+  //uint64_t                                           semaphore_val = UINT64_MAX;
+  //vkGetSemaphoreCounterValue_SK (device, semaphore, &semaphore_val);
 
-  if (semaphore_val < value)
+  //if (semaphore_val < value)
   {
     // After 500 ms, give up.
     auto result =

@@ -82,6 +82,15 @@ SK_DXGI_ReleaseSwapChainOnHWnd (
 );
 
 
+uint64_t SK_DXGI_SwapChainDestroyedOnFrame = 0;
+
+uint64_t
+SK_DXGI_LastFrameSwapChainDestroyed (void)
+{
+  return
+    SK_DXGI_SwapChainDestroyedOnFrame;
+}
+
 void
 __stdcall
 SK_DXGI_SwapChainDestructionCallback (void *pData)
@@ -95,6 +104,8 @@ SK_DXGI_SwapChainDestructionCallback (void *pData)
     SK_LOGi0 (
       L"SwapChain (%ph) and Framerate Limiter Destroyed",
        pSwapChain );
+
+    SK_DXGI_SwapChainDestroyedOnFrame = SK_GetFramesDrawn ();
   }
 
   if ( SK::Framerate::limiters_->count (pSwapChain->pReal) &&
@@ -103,6 +114,8 @@ SK_DXGI_SwapChainDestructionCallback (void *pData)
     SK_LOGi0 (
       L"SwapChain (%ph) and Framerate Limiter Destroyed",
        pSwapChain->pReal );
+
+    SK_DXGI_SwapChainDestroyedOnFrame = SK_GetFramesDrawn ();
   }
 }
 
