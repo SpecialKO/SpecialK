@@ -584,8 +584,12 @@ sk_window_s::isCursorHovering (void) const
 bool
 sk_window_s::wantBackgroundRender (void) const
 {
+  // This feature may not be used due to bad window management code
+  if (config.window.always_on_top != SK_NoPreference && SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
+      config.window.always_on_top  = SK_NoPreference;
+
   return
-    config.window.background_render || 
+    config.window.background_render ||
 
     // Implicit background render needed in some games to allow gamepad to wake
     //   the game from screensaver.

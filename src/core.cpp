@@ -3924,7 +3924,7 @@ SK_BackgroundRender_EndFrame (void)
       if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
       {
         config.input.gamepad.xinput.emulate   = false;
-        config.nvidia.reflex.enforcement_site = 0; // Reduce sutter
+        config.nvidia.reflex.enforcement_site = 0; // Reduce stutter
       }
 
       // Disable SteamAPI integration in newer Unity engine games because of incompatibility
@@ -3966,23 +3966,23 @@ SK_BackgroundRender_EndFrame (void)
       LONG_PTR lpStyleEx =
         SK_GetWindowLongPtrW ( hWndGame,
                                  GWL_EXSTYLE );
-
+    
       LONG_PTR lpStyleExNew =
             // Add style to ensure the game shows in the taskbar ...
         ( ( lpStyleEx |  WS_EX_APPWINDOW  )
                       & ~WS_EX_TOOLWINDOW );
                      // And remove one that prevents taskbar activation...
-
+    
       if (IsIconic               ( hWndGame ))
            ShowWindowAsync       ( hWndGame, SW_SHOWNORMAL );
       else ShowWindowAsync       ( hWndGame, SW_SHOW       );
-
+    
       if (lpStyleExNew != lpStyleEx)
       {
         SK_SetWindowLongPtrW     ( hWndGame, GWL_EXSTYLE,
                                               lpStyleExNew );
       }
-
+    
       SK_RealizeForegroundWindow ( hWndGame                );
     }
   }

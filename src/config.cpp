@@ -4144,6 +4144,9 @@ auto DeclKeybind =
         config.nvidia.dlss.streamline_dbg_out = false;
         config.nvidia.reflex.native           =  true;
         config.nvidia.reflex.vulkan           =  true;
+
+        config.render.dxgi.fake_fullscreen_mode =  true;
+        render.dxgi.fake_fullscreen_mode->store (config.render.dxgi.fake_fullscreen_mode);
         break;
 
       case SK_GAME_ID::NedForSpeedTheRun:

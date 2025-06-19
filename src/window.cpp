@@ -2615,6 +2615,11 @@ SetWindowLong_Marshall (
 
       case GWL_EXSTYLE:
       {
+        if (config.window.always_on_top != SK_NoPreference)
+        {
+          dwNewLong &= ~WS_EX_TOPMOST;
+        }
+
         game_window.game.style_ex =
           static_cast <ULONG_PTR> (dwNewLong);
 
@@ -2879,6 +2884,11 @@ SetWindowLongPtr_Marshall (
 
       case GWL_EXSTYLE:
       {
+        if (config.window.always_on_top != SK_NoPreference)
+        {
+          dwNewLong &= ~WS_EX_TOPMOST;
+        }
+
         game_window.game.style_ex =
           dwNewLong;
 
@@ -6045,6 +6055,27 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
       }
     } break;
+
+    case WM_STYLECHANGING:
+      if (wParam == GWL_EXSTYLE)
+      {
+        if (config.window.always_on_top == 0 && !SK_IsGameWindowActive ())
+        {
+          STYLESTRUCT* pStyle = (STYLESTRUCT *)lParam;
+          if (pStyle != nullptr)
+          {
+            if (pStyle->styleNew & WS_EX_TOPMOST)
+            {
+              SK_LOGi0 (L"Removing Topmost Style from game window...");
+              pStyle->styleNew &= ~WS_EX_TOPMOST;
+
+              // We changed the style and must return 0.
+              return 0;
+            }
+          }
+        }
+      }
+      break;
 
     case WM_WINDOWPOSCHANGED:
     {
