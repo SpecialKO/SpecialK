@@ -23,6 +23,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/plugin/reshade.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
 HMODULE
 __stdcall
@@ -211,6 +212,13 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
   if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
+  // Workaround issues with ReShade in DOOM: The Dark Ages
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+  {
+    SK_LOGs0 (L"ReShadeExt", L"Skipping Runtime Initialization Because a SwapChain was Recently Destroyed.");
+    return;
+  }
+
   static SK_Thread_HybridSpinlock                   _init_lock;
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
 
@@ -344,6 +352,13 @@ SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
 {
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return nullptr;
+
+  BOOL                                                       SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_);
+  if (SK_GetCurrentRenderBackend ().swapchain == nullptr || !SK_Framerate_ValidateSwapChain (pSwapChain))
+  {
+    SK_LOGi0 (L"SK_ReShadeAddOn_GetRuntimeForSwapChain (...) skipped because passed pointer was invalid.");
+    return nullptr;
+  }
 
   SK_ComQIPtr <IDXGISwapChain1>
       pSwapChain1 (pSwapChain);
