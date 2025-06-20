@@ -4510,6 +4510,13 @@ IMAGEAPI
 SymCleanup (
   _In_ HANDLE hProcess )
 {
+  if (    ReadAcquire (&__SK_DLL_Ending  ) ||
+       (! ReadAcquire (&__SK_DLL_Attached)  )
+      )
+  {
+    return TRUE;
+  }
+
   if (SymCleanup_Imp != nullptr)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
