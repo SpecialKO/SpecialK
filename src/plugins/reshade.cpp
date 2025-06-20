@@ -25,6 +25,8 @@
 #include <SpecialK/plugin/reshade.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
+BOOL SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_);
+
 HMODULE
 __stdcall
 SK_ReShade_GetDLL (void)
@@ -346,7 +348,6 @@ SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return nullptr;
 
-  BOOL                                                       SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_);
   if (SK_GetCurrentRenderBackend ().swapchain == nullptr || !SK_Framerate_ValidateSwapChain (pSwapChain))
   {
     SK_LOGi0 (L"SK_ReShadeAddOn_GetRuntimeForSwapChain (...) skipped because passed pointer was invalid.");
@@ -648,18 +649,21 @@ SK_ReShadeAddOn_ActivateOverlay (bool activate)
   const SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (rb.swapchain);
-
-  if (pSwapChain1.p != nullptr)
+  if (SK_Framerate_ValidateSwapChain (rb.swapchain))
   {
-    HWND                   hWnd = 0;
-    pSwapChain1->GetHwnd (&hWnd);
+    SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (rb.swapchain);
 
-    if (ReShadeRuntimes.count (hWnd))
+    if (pSwapChain1.p != nullptr)
     {
-      InterlockedExchange (&ReShadeOverlayActivating, TRUE);
+      HWND                   hWnd = 0;
+      pSwapChain1->GetHwnd (&hWnd);
 
-      //reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
+      if (ReShadeRuntimes.count (hWnd))
+      {
+        InterlockedExchange (&ReShadeOverlayActivating, TRUE);
+
+        //reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
+      }
     }
   }
 #endif
@@ -782,6 +786,9 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 {
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return;
+
+  if (!SK_Framerate_ValidateSwapChain (pSwapChain))
+    return;
   
   HWND                  hWnd = 0;
   pSwapChain->GetHwnd (&hWnd);
@@ -805,6 +812,9 @@ bool
 SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 {
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
+    return false;
+
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16 || !SK_Framerate_ValidateSwapChain (pSwapChain))
     return false;
 
   SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_RenderEffectsD3D11)
@@ -951,6 +961,9 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr || pRTV == nullptr)
     return false;
 
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16 || !pRTV || !SK_Framerate_ValidateSwapChain (pSwapChain))
+    return false;
+
   SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_RenderEffectsD3D11Ex)
 
   auto runtime =
@@ -1070,6 +1083,9 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return;
 
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16 || !SK_Framerate_ValidateSwapChain (pSwapChain))
+    return;
+
   SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_Present)
 
   auto runtime =
@@ -1090,6 +1106,11 @@ SK_ReShadeAddOn_RenderEffectsD3D12 ( IDXGISwapChain1             *pSwapChain,
 {
   if (ReadAcquire (&__SK_DLL_Ending) || !_d3d12_rbk.isAllocated ()
                                      ||  _d3d12_rbk->_pReShadeRuntime == nullptr)
+  {
+    return 0;
+  }
+
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16 || !pResource || !SK_Framerate_ValidateSwapChain (pSwapChain))
   {
     return 0;
   }
@@ -1627,8 +1648,11 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 ( ID3D11Device        *pDevice,
 
   // Avoid log spam
   static uint64_t first_reshade_skip_frame = 0;
+
   // Workaround issues with ReShade in DOOM: The Dark Ages
-  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16 || !SK_Framerate_ValidateSwapChain (pSwapChain)
+                                                                         || !SK_Framerate_ValidateSwapChain (pDevice   )
+                                                                         || !SK_Framerate_ValidateSwapChain (pDevCtx  ))
   {
     if (first_reshade_skip_frame == 0)
     {   first_reshade_skip_frame = SK_GetFramesDrawn ();
@@ -1678,8 +1702,11 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 ( ID3D12Device       *pDevice,
 
   // Avoid log spam
   static uint64_t first_reshade_skip_frame = 0;
+
   // Workaround issues with ReShade in DOOM: The Dark Ages
-  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16 || !SK_Framerate_ValidateSwapChain (pSwapChain)
+                                                                         || !SK_Framerate_ValidateSwapChain (pDevice   )
+                                                                         || !SK_Framerate_ValidateSwapChain (pCmdQueue))
   {
     if (first_reshade_skip_frame == 0)
     {   first_reshade_skip_frame = SK_GetFramesDrawn ();
