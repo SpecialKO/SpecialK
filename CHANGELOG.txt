@@ -1,4 +1,8 @@
-﻿25.6.21
+﻿25.6.21.1
+=========
+ + Made SONY HID device init code more robust when encountering non-gamepad devices.
+
+25.6.21
 =======
  + Skip global cleanup on DLL unload.
  + Add extra ReShade pointer validation.
