@@ -4172,7 +4172,6 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency         = true;
         config.nvidia.reflex.low_latency_boost   = true;
         config.nvidia.reflex.marker_optimization = true;
-        config.threads.enable_dynamic_spinlocks  = true;
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:

@@ -807,11 +807,8 @@ SK_EOS_Platform_Tick (EOS_HPlatform Handle)
   {
     if (! std::exchange (config.epic.warned_online, true))
     {
-      if (SK_GetCurrentGameID () != SK_GAME_ID::StellarBlade)
-      {
-        SK_ImGui_Warning (L"Special K does not support online mode in EOS games "
-                          L"that have one.");
-      }
+      SK_ImGui_Warning (L"Special K does not support online mode in EOS games "
+                        L"that have one.");
     }
   }
 
