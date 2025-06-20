@@ -2378,6 +2378,10 @@ SK::Framerate::Limiter*
 SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
                             bool      bCreate = true )
 {
+  // This happens sometimes, just ignore it.
+  if (pSwapChain_ == nullptr)
+    return nullptr;
+
 #if 0
   if (! SK_Framerate_ValidateSwapChain (pSwapChain_))
     return nullptr;

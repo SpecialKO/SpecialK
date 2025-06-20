@@ -212,13 +212,6 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
   if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
-  // Workaround issues with ReShade in DOOM: The Dark Ages
-  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
-  {
-    SK_LOGs0 (L"ReShadeExt", L"Skipping Runtime Initialization Because a SwapChain was Recently Destroyed.");
-    return;
-  }
-
   static SK_Thread_HybridSpinlock                   _init_lock;
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
 
@@ -1631,6 +1624,20 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 ( ID3D11Device        *pDevice,
     return nullptr;
   }
 
+
+  // Avoid log spam
+  static uint64_t first_reshade_skip_frame = 0;
+  // Workaround issues with ReShade in DOOM: The Dark Ages
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+  {
+    if (first_reshade_skip_frame == 0)
+    {   first_reshade_skip_frame = SK_GetFramesDrawn ();
+      SK_LOGs0 (L"ReShadeExt", L"Skipping Runtime Initialization Because a SwapChain was Recently Destroyed.");
+    }
+    return nullptr;
+  } else   first_reshade_skip_frame = 0;
+
+
   // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
   if (! SK_ReShadeAddOn_HadLocalINI)
   {
@@ -1667,6 +1674,20 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 ( ID3D12Device       *pDevice,
   {
     return nullptr;
   }
+
+
+  // Avoid log spam
+  static uint64_t first_reshade_skip_frame = 0;
+  // Workaround issues with ReShade in DOOM: The Dark Ages
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+  {
+    if (first_reshade_skip_frame == 0)
+    {   first_reshade_skip_frame = SK_GetFramesDrawn ();
+      SK_LOGs0 (L"ReShadeExt", L"Skipping Runtime Initialization Because a SwapChain was Recently Destroyed.");
+    }
+    return nullptr;
+  } else   first_reshade_skip_frame = 0;
+
 
   // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
   if (! SK_ReShadeAddOn_HadLocalINI)
