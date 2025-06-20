@@ -1067,12 +1067,14 @@ SK_VK_QueueSubmit (
 void
 SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t value)
 {
-  // Broken Reflex implementation is even more broken than it used to be
-  //if (SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
+  // Reflex implementation is no longer broken, we should not be waiting on the game's semaphore.
+  if (SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
   {
-    if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
-      return;
+    return;
   }
+
+  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+    return;
 
   if (! vkGetSemaphoreCounterValue_SK)
     return;
@@ -1084,18 +1086,18 @@ SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t valu
     sem_wait_info.semaphoreCount = 1;
     sem_wait_info.pValues        = &value;
 
-  //uint64_t                                           semaphore_val = UINT64_MAX;
-  //vkGetSemaphoreCounterValue_SK (device, semaphore, &semaphore_val);
+  uint64_t                                           semaphore_val = UINT64_MAX;
+  vkGetSemaphoreCounterValue_SK (device, semaphore, &semaphore_val);
 
-  //if (semaphore_val < value)
+  if (semaphore_val < value)
   {
-    // After 500 ms, give up.
+    // After 100 ms, give up.
     auto result =
-      vkWaitSemaphores_SK (device, &sem_wait_info, 500000000);
+      vkWaitSemaphores_SK (device, &sem_wait_info, 100000000);
 
     if (result == VK_TIMEOUT)
     {
-      SK_LOGi0 (L"Timeout while waiting (500 ms) for Reflex semaphore.");
+      SK_LOGi0 (L"Timeout while waiting (100 ms) for Reflex semaphore.");
       config.nvidia.reflex.use_limiter = false;
     }
   }
@@ -1312,7 +1314,7 @@ SK_VK_CreateInstance (
   const VkAllocationCallbacks* pAllocator,
   VkInstance*                  pInstance )
 {
-  if (sk::NVAPI::nv_hardware)
+  if (sk::NVAPI::nv_hardware && !SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
   {
     if (config.apis.NvAPI.vulkan_bridge == -1)
     {
