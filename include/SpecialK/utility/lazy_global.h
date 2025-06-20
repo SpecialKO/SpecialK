@@ -163,7 +163,12 @@ public:
 
   virtual ~SK_LazyGlobal (void) noexcept
   {
-    SK_LazyGlobal::Deinit ();
+    // Skip global cleanup on DLL unload.
+    extern volatile LONG __SK_DLL_Ending;
+    if (! ReadAcquire  (&__SK_DLL_Ending))
+    {
+      SK_LazyGlobal::Deinit ();
+    }
   }
 
 protected:
