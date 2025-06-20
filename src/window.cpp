@@ -10213,11 +10213,17 @@ SK_ImGui_InitDragAndDrop (void)
 
       if (! SUCCEEDED (status))
       {
-        static auto fails_retried = 0;
+        static DWORD dwLastTry     = 0;
+        static auto  fails_retried = 0;
 
         if (fails_retried < 10)
-        {   fails_retried++;
-          SK_LOGi0 (L"RegisterDragDrop failed: %x", status);
+        {
+          if (dwLastTry < SK_timeGetTime () - 200)
+          {   dwLastTry = SK_timeGetTime ();
+            fails_retried++;
+            SK_LOGi0 (L"RegisterDragDrop failed: %x", status);
+          }
+
           SK_OLE_DragDropChanged = true;
         }
       }
