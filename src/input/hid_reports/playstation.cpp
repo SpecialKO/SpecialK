@@ -87,6 +87,20 @@ SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
 
 SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
 {
+  if (hDeviceFile != INVALID_HANDLE_VALUE &&
+      hDeviceFile != 0)
+  {
+    SK_CloseHandle (
+      std::exchange (hDeviceFile, INVALID_HANDLE_VALUE)
+    );
+  }
+
+  if (pPreparsedData != nullptr)
+  {
+    SK_HidD_FreePreparsedData (
+      std::exchange (pPreparsedData, nullptr)
+    );
+  }
 }
 
 void SK_HID_FlushPlayStationForceFeedback (void)
@@ -193,11 +207,19 @@ void SK_HID_SetupPlayStationControllers (void)
                                                                       FILE_FLAG_OVERLAPPED, nullptr )
                              );
 
+          if (hDeviceFile == 0 || hDeviceFile == INVALID_HANDLE_VALUE)
+          {
+            SK_LOGi0 (L"Failed to Open File for: %ws", wszFileName);
+            continue;
+          }
+
           HIDD_ATTRIBUTES hidAttribs      = {                      };
                           hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
 
           if (! SK_HidD_GetAttributes (hDeviceFile, &hidAttribs))
           {
+            SK_LOGi0 (L"Failed to Get HidD Attributes for: %ws", wszFileName);
+
             CloseHandle (hDeviceFile);
             continue;
           }
@@ -224,172 +246,182 @@ void SK_HID_SetupPlayStationControllers (void)
 
             if (! bKnownSONY)
             {
-              CloseHandle (hDeviceFile);
-
               SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
 
+              CloseHandle (hDeviceFile);
               continue;
             }
+          }
+
+          else
+          {
+            SK_LOGi1 (L"Non-SONY Controller ignored: %ws", wszFileName);
+
+            CloseHandle (hDeviceFile);
+            continue;
+          }
+    
+          PHIDP_PREPARSED_DATA                          pPreparsedData = nullptr;
+          if (! SK_HidD_GetPreparsedData (hDeviceFile, &pPreparsedData))
+          {
+            SK_LOGi0 (L"Failed to Get Preparsed Data for: %ws", wszFileName);
+
+            CloseHandle (hDeviceFile);
+          	continue;
           }
 
           SK_HID_PlayStationDevice controller (hDeviceFile);
-    
-          if (hDeviceFile != INVALID_HANDLE_VALUE)
+
+          controller.pPreparsedData = pPreparsedData;
+          controller.pid            = hidAttribs.ProductID;
+          controller.vid            = hidAttribs.VendorID;
+
+          controller.bBluetooth =
+            StrStrNIW (
+              wszFileName, //Bluetooth_Base_UUID
+                           L"{00001124-0000-1000-8000-00805f9b34fb}", MAX_PATH
+            );
+
+          controller.bDualSense =
+            (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
+            (controller.pid == SK_HID_PID_DUALSENSE);
+
+          controller.bDualSenseEdge =
+            controller.pid == SK_HID_PID_DUALSENSE_EDGE;
+
+          controller.bDualShock4 =
+            (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
+            (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
+            (controller.pid == SK_HID_PID_DUALSHOCK4_DONGLE);
+
+          controller.bDualShock3 =
+            (controller.pid == SK_HID_PID_DUALSHOCK3);
+
+          if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
           {
-            if (! SK_HidD_GetPreparsedData (hDeviceFile, &controller.pPreparsedData))
-            {
-              CloseHandle (hDeviceFile);
-                controller.hDeviceFile = INVALID_HANDLE_VALUE;
-
-            	continue;
-            }
-
-            controller.pid = hidAttribs.ProductID;
-            controller.vid = hidAttribs.VendorID;
-
-            controller.bBluetooth =
-              StrStrIW (
-                wszFileName, //Bluetooth_Base_UUID
-                             L"{00001124-0000-1000-8000-00805f9b34fb}"
-              );
-
-            controller.bDualSense =
-              (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
-              (controller.pid == SK_HID_PID_DUALSENSE);
-
-            controller.bDualSenseEdge =
-              controller.pid == SK_HID_PID_DUALSENSE_EDGE;
-
-            controller.bDualShock4 =
-              (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
-              (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
-              (controller.pid == SK_HID_PID_DUALSHOCK4_DONGLE);
-
-            controller.bDualShock3 =
-              (controller.pid == SK_HID_PID_DUALSHOCK3);
-
-            if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
-            {
-              CloseHandle (hDeviceFile);
-                controller.hDeviceFile = INVALID_HANDLE_VALUE;
-
-              SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
-              continue;
-            }
+            SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
+            continue;
+          }
     
-            wcsncpy_s (controller.wszDevicePath, MAX_PATH,
-                                  wszFileName,   _TRUNCATE);
-
-            controller.hDeviceFile =
-                       hDeviceFile;
+          wcsncpy_s (controller.wszDevicePath, MAX_PATH,
+                                wszFileName,   _TRUNCATE);
 
 #ifdef DEBUG
-            if (controller.bBluetooth)
-              SK_ImGui_Warning (L"Bluetooth");
+          if (controller.bBluetooth)
+            SK_ImGui_Warning (L"Bluetooth");
 #endif
 
-            auto& caps =
-              controller.hid_caps;
-                                                                         caps = { };
-            if (NT_SUCCESS (SK_HidP_GetCaps (controller.pPreparsedData, &caps)))
+          auto& caps =
+            controller.hid_caps;
+                                                                       caps = { };
+          if (NT_SUCCESS (SK_HidP_GetCaps (controller.pPreparsedData, &caps)))
+          {
+            controller.input_report.resize   (caps.InputReportByteLength);
+            controller.output_report.resize  (caps.OutputReportByteLength);
+            controller.feature_report.resize (caps.FeatureReportByteLength);
+          }
+
+          if ( controller.input_report.empty  () ||
+               controller.output_report.empty () )
+          {
+            SK_LOGi0 (L"PlayStation Controller has no Input/Output Report Caps: %ws", wszFileName);
+
+            continue;
+          }
+
+          if (! controller.feature_report.empty ())
+                controller.initialize_serial ();
+
+          std::vector <HIDP_BUTTON_CAPS>
+            buttonCapsArray;
+            buttonCapsArray.resize (caps.NumberInputButtonCaps);
+
+          std::vector <HIDP_VALUE_CAPS>
+            valueCapsArray;
+            valueCapsArray.resize (caps.NumberInputValueCaps);
+
+          USHORT num_caps =
+            caps.NumberInputButtonCaps;
+
+          if (num_caps > 2)
+          {
+            SK_LOGi0 (
+              L"PlayStation Controller has too many button sets (%u);"
+              L" will ignore Device=%ws", num_caps, wszFileName
+            );
+
+            continue;
+          }
+
+          if ( HIDP_STATUS_SUCCESS ==
+            SK_HidP_GetButtonCaps ( HidP_Input,
+                                      buttonCapsArray.data (), &num_caps,
+                                        controller.pPreparsedData ) )
+          {
+            for (UINT i = 0 ; i < num_caps ; ++i)
             {
-              controller.input_report.resize   (caps.InputReportByteLength);
-              controller.output_report.resize  (caps.OutputReportByteLength);
-              controller.feature_report.resize (caps.FeatureReportByteLength);
+              // Face Buttons
+              if (buttonCapsArray [i].IsRange)
+              {
+                controller.button_report_id =
+                  buttonCapsArray [i].ReportID;
+                controller.button_usage_min =
+                  buttonCapsArray [i].Range.UsageMin;
+                controller.button_usage_max =
+                  buttonCapsArray [i].Range.UsageMax;
+
+                controller.buttons.resize (
+                  static_cast <size_t> (controller.button_usage_max) -
+                  static_cast <size_t> (controller.button_usage_min) + 1
+                );
+              }
             }
 
-            if (! controller.feature_report.empty ())
-            {
-              controller.initialize_serial ();
-            }
-
-            std::vector <HIDP_BUTTON_CAPS>
-              buttonCapsArray;
-              buttonCapsArray.resize (caps.NumberInputButtonCaps);
-
-            std::vector <HIDP_VALUE_CAPS>
-              valueCapsArray;
-              valueCapsArray.resize (caps.NumberInputValueCaps);
-
-            USHORT num_caps =
-              caps.NumberInputButtonCaps;
-
-            if (num_caps > 2)
-            {
-              SK_LOGi0 (
-                L"PlayStation Controller has too many button sets (%u);"
-                L" will ignore Device=%ws", num_caps, wszFileName
-              );
-
-              continue;
-            }
+            USHORT value_caps_count =
+              sk::narrow_cast <USHORT> (valueCapsArray.size ());
 
             if ( HIDP_STATUS_SUCCESS ==
-              SK_HidP_GetButtonCaps ( HidP_Input,
-                                        buttonCapsArray.data (), &num_caps,
-                                          controller.pPreparsedData ) )
+                   SK_HidP_GetValueCaps ( HidP_Input, valueCapsArray.data (),
+                                                     &value_caps_count,
+                                                      controller.pPreparsedData ) )
             {
-              for (UINT i = 0 ; i < num_caps ; ++i)
+              controller.value_caps.resize (value_caps_count);
+
+              for ( int idx = 0; idx < value_caps_count; ++idx )
               {
-                // Face Buttons
-                if (buttonCapsArray [i].IsRange)
-                {
-                  controller.button_report_id =
-                    buttonCapsArray [i].ReportID;
-                  controller.button_usage_min =
-                    buttonCapsArray [i].Range.UsageMin;
-                  controller.button_usage_max =
-                    buttonCapsArray [i].Range.UsageMax;
-
-                  controller.buttons.resize (
-                    static_cast <size_t> (controller.button_usage_max) -
-                    static_cast <size_t> (controller.button_usage_min) + 1
-                  );
-                }
-              }
-
-              USHORT value_caps_count =
-                sk::narrow_cast <USHORT> (valueCapsArray.size ());
-
-              if ( HIDP_STATUS_SUCCESS ==
-                     SK_HidP_GetValueCaps ( HidP_Input, valueCapsArray.data (),
-                                                       &value_caps_count,
-                                                        controller.pPreparsedData ) )
-              {
-                controller.value_caps.resize (value_caps_count);
-
-                for ( int idx = 0; idx < value_caps_count; ++idx )
-                {
-                  controller.value_caps [idx] =
-                         valueCapsArray [idx];
-                }
-              }
-
-              // We need a contiguous array to read-back the set buttons,
-              //   rather than allocating it dynamically, do it once and reuse.
-              controller.button_usages.resize (controller.buttons.size ());
-
-              USAGE idx = 0;
-
-              for ( auto& button : controller.buttons )
-              {
-                button.UsagePage = buttonCapsArray [0].UsagePage;
-                button.Usage     = controller.button_usage_min + idx++;
-                button.state     = false;
+                controller.value_caps [idx] =
+                       valueCapsArray [idx];
               }
             }
 
-            controller.bConnected         = true;
-            controller.output.last_crc32c = 0;
-    
-            const auto iter =
-              SK_HID_PlayStationControllers.push_back (controller);
+            // We need a contiguous array to read-back the set buttons,
+            //   rather than allocating it dynamically, do it once and reuse.
+            controller.button_usages.resize (controller.buttons.size ());
 
-            iter->setPollingFrequency (0);
-            iter->setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+            USAGE idx = 0;
 
-            iter->write_output_report ();
+            for ( auto& button : controller.buttons )
+            {
+              button.UsagePage = buttonCapsArray [0].UsagePage;
+              button.Usage     = controller.button_usage_min + idx++;
+              button.state     = false;
+            }
           }
+
+          controller.bConnected         = true;
+          controller.output.last_crc32c = 0;
+    
+          const auto iter =
+            SK_HID_PlayStationControllers.push_back (controller);
+
+          iter->setPollingFrequency (0);
+          iter->setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+
+          iter->write_output_report ();
+
+          // We moved these to SK_HID_PlayStationControllers...
+          controller.hDeviceFile    = INVALID_HANDLE_VALUE;
+          controller.pPreparsedData = nullptr;
         }
       }
     
