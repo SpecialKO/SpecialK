@@ -3166,8 +3166,15 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
   {
     if (! config.window.screensaver_active)
     {
-      BOOL                                                  bScreensaverActive = FALSE;
-      SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+      static auto constexpr RECHECK_TIME_IN_MS = 125UL;
+
+      static DWORD dwLastScreensaverCheck = 0;
+      static BOOL      bScreensaverActive = FALSE;
+
+      if (dwLastScreensaverCheck < SK::ControlPanel::current_time - RECHECK_TIME_IN_MS)
+      {   dwLastScreensaverCheck = SK::ControlPanel::current_time;
+        SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+      }
 
       config.window.screensaver_active |= bScreensaverActive;
     }
@@ -3321,6 +3328,10 @@ SK_ImGui_BackupInputThread (LPVOID)
     if (ReadULongAcquire (&SK_ImGui_LastKeyboardProcMessageTime) < SK::ControlPanel::current_time - 500UL &&
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
+      static BYTE       keyboard_state [512] = {};
+      static BYTE  last_keyboard_state [512] = {};
+      GetKeyboardState (keyboard_state);
+
       static            LASTINPUTINFO
         lii = { sizeof (LASTINPUTINFO), 1 };
 
@@ -3332,22 +3343,27 @@ SK_ImGui_BackupInputThread (LPVOID)
         dwLastInput =
           std::max (dwLastInput, lii.dwTime);
 
-        auto& io =
-          ImGui::GetIO ();
-
-        bool    last_keys              [256] = {};
-        memcpy (last_keys, io.KeysDown, 256);
-
-        for (UINT i = 7 ; i < 255 ; ++i)
+        if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 512) != 0)
         {
-          bool last_state =
-            last_keys [i];
-          io.KeysDown [i] =
-            ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
-          if (   last_state !=
-                io.KeysDown [i])
-          { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
-            else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
+          auto& io =
+            ImGui::GetIO ();
+
+          bool    last_keys              [256] = {};
+          memcpy (last_keys, io.KeysDown, 256);
+          memcpy (last_keyboard_state,
+                       keyboard_state, sizeof (BYTE) * 512);
+
+          for (UINT i = 7 ; i < 255 ; ++i)
+          {
+            bool last_state =
+              last_keys [i];
+            io.KeysDown [i] =
+              ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+            if (   last_state !=
+                  io.KeysDown [i])
+            { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
+              else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
+            }
           }
         }
       }
@@ -3372,8 +3388,15 @@ SK_ImGui_BackupInputThread (LPVOID)
         if (static DWORD dwLastExhaustiveCheck = 0;
                          dwLastExhaustiveCheck < SK_timeGetTime () - 25UL)
         {
-          BOOL                                                  bScreensaverActive = FALSE;
-          SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+          static auto constexpr RECHECK_TIME_IN_MS = 125UL;
+
+          static DWORD dwLastScreensaverCheck = 0;
+          static BOOL      bScreensaverActive = FALSE;
+
+          if (dwLastScreensaverCheck < SK::ControlPanel::current_time - RECHECK_TIME_IN_MS)
+          {   dwLastScreensaverCheck = SK::ControlPanel::current_time;
+            SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+          }
 
           config.window.screensaver_active =
             bScreensaverActive ? TRUE : SK_IsProcessRunning (L"scrnsave.scr") ?

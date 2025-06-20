@@ -838,8 +838,15 @@ SK_IsGameWindowActive (bool activate_if_in_limbo, HWND hWndForeground)
 
   if ((! bActive) && (! game_window.active))
   {
-    BOOL                                                  bScreensaverActive = FALSE;
-    SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+    static auto constexpr RECHECK_TIME_IN_MS = 125UL;
+
+    static DWORD dwLastScreensaverCheck = 0;
+    static BOOL      bScreensaverActive = FALSE;
+
+    if (dwLastScreensaverCheck < SK::ControlPanel::current_time - RECHECK_TIME_IN_MS)
+    {   dwLastScreensaverCheck = SK::ControlPanel::current_time;
+      SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreensaverActive, 0);
+    }
 
     config.window.screensaver_active = bScreensaverActive;
 
