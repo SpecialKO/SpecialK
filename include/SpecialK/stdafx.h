@@ -320,6 +320,7 @@
 
 #include <SpecialK/widgets/widget.h>
 #include <SpecialK/control_panel.h>
+#include <SpecialK/control_panel/platform.h>
 
 #include <SpecialK/diagnostics/file.h>
 #include <SpecialK/diagnostics/memory.h>

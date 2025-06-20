@@ -200,7 +200,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
         visible = ! visible;
     
         // This will pause/unpause the game
-        SK::SteamAPI::SetOverlayState (visible);
+        SK_Platform_SetOverlayState (visible);
       }
     }
   }
@@ -262,7 +262,7 @@ SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
         visible = ! visible;
 
         // This will pause/unpause the game
-        SK::SteamAPI::SetOverlayState (visible);
+        SK_Platform_SetOverlayState (visible);
 
         return true;
       }

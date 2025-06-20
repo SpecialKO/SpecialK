@@ -25,6 +25,7 @@
 
 
 #include <SpecialK/control_panel/steam.h>
+#include <SpecialK/control_panel/platform.h>
 
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 extern volatile LONG __SK_Steam_Downloading;
@@ -576,13 +577,13 @@ SK::ControlPanel::Steam::DrawFooter (void)
     ImGui::Bullet     ();   ImGui::SameLine ();
 
     bool pause =
-      SK_SteamAPI_GetOverlayState (false);
+      SK_Platform_GetOverlayState (false);
 
     // New version of ImGui doesn't allow right-clicking disabled items, so we have to break this to fix it.
-    if (ImGui::Selectable ( "SteamAPI Frame", &pause/*, SK::SteamAPI::IsOverlayAware () ? 0 : ImGuiSelectableFlags_Disabled*/) &&
-                                                      SK::SteamAPI::IsOverlayAware ())
+    if (ImGui::Selectable ( "SteamAPI Frame", &pause) &&
+                          SK_Platform_IsOverlayAware ())
     {
-      SK_SteamAPI_SetOverlayState (pause);
+      SK_Platform_SetOverlayState (pause);
     }
 
     const auto SteamCallbackThrottleSubMenu =
@@ -599,7 +600,7 @@ SK::ControlPanel::Steam::DrawFooter (void)
     const bool right_clicked =
       SK_ImGui_IsItemRightClicked ();
 
-    if (SK::SteamAPI::IsOverlayAware ())
+    if (SK_Platform_IsOverlayAware ())
     {
       if (right_clicked)
       {
@@ -623,7 +624,7 @@ SK::ControlPanel::Steam::DrawFooter (void)
         if (ImGui::Checkbox ("Pause Game while Control Panel is Visible",
             &config.platform.reuse_overlay_pause))
         {
-          SK::SteamAPI::SetOverlayState (config.platform.reuse_overlay_pause);
+          SK_Platform_SetOverlayState (config.platform.reuse_overlay_pause);
         }
 
         SteamCallbackThrottleSubMenu ();

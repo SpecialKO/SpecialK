@@ -22,6 +22,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/control_panel/platform.h>
 #include <hidclass.h>
 #include <resource.h>
 
@@ -615,8 +616,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
     return false;
 
   // Allow mouse input while Steam /EOS overlays are active
-  if (SK::SteamAPI::GetOverlayState (true) ||
-           SK::EOS::GetOverlayState (true))
+  if (SK_Platform_GetOverlayState (true))
   {
     return false;
   }
@@ -714,7 +714,7 @@ SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor)
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_WantMouseCapture)
 
-  if (SK_ReShadeAddOn_IsOverlayActive () || SK::SteamAPI::GetOverlayState (true))
+  if (SK_ReShadeAddOn_IsOverlayActive () || SK_Platform_GetOverlayState (true))
     return false;
 
   static std::atomic_bool               capture  = false;

@@ -1,4 +1,33 @@
-﻿25.6.20.1
+﻿25.6.20.3
+=========
+ + Fixed handling of Epic/Steam overlay activation when clicking EOS/SteamAPI
+     frame counter (in games that have overlay callbacks installed).
+ + Added console variable to toggle virtual Steam/Epic overlay (to pause game).
+
+      Platform.OverlayPause {true|false|toggle}
+
+    This provides a handy pause function in games like Stellar Blade that
+      normally do not support pause during cutscenes, etc.
+
+       [Macro.PlatformPause]
+       Alt+P=Platform.OverlayPause toggle
+
+    * Add that (customize the keys to your liking) to Global\macros.ini or to
+        a game's SpecialK.ini to trigger a game's pause function on-demand.
+
+   NOTE:  Not all games on Steam or Epic support Overlay Activation Pause.
+
+          Check whether the SteamAPI or EOS Frame counter at the bottom
+            of the control panel is clickable (game is overlay-aware).
+
+   -> Feature requires you to NOT disable SteamAPI integration :)
+
+25.6.20.2
+=========
+ + Merge pull request #278 from cathyjf-forks:add-nightreign-support
+    * Add ability to launch Elden Ring: Nightreign without EAC.
+
+25.6.20.1
 =========
  + Disable explicit wait on Vulkan Reflex semaphore in DOOM: The Dark Ages; the
      engine is now waiting on the semaphore on its own like it is supposed to.

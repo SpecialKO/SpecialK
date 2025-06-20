@@ -25,6 +25,7 @@
 
 #include <SpecialK/control_panel/epic.h>
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/control_panel/platform.h>
 
 using namespace SK::ControlPanel;
 
@@ -70,20 +71,18 @@ SK::ControlPanel::Epic::DrawFooter (void)
     ImGui::Bullet     ();   ImGui::SameLine ();
 
     bool pause =
-      SK::EOS::GetOverlayState (false);
+      SK_Platform_GetOverlayState (false);
 
-    if ( ImGui::Selectable ( "Epic Online Services Tick", &pause,
-                               SK::EOS::IsOverlayAware () ?
-                                                        0 : ImGuiSelectableFlags_Disabled)
-                            && SK::EOS::IsOverlayAware () )
+    if ( ImGui::Selectable ( "Epic Online Services Tick", &pause) &&
+                             SK_Platform_IsOverlayAware () )
     {
-      SK::EOS::SetOverlayState (pause);
+      SK_Platform_SetOverlayState (pause);
     }
 
     const bool right_clicked =
       SK_ImGui_IsItemRightClicked ();
 
-    if (SK::EOS::IsOverlayAware ())
+    if (SK_Platform_IsOverlayAware ())
     {
       if (right_clicked)
       {
@@ -107,7 +106,7 @@ SK::ControlPanel::Epic::DrawFooter (void)
         if (ImGui::Checkbox ("Pause Game while Control Panel is Visible",
             &config.platform.reuse_overlay_pause))
         {
-          SK::EOS::SetOverlayState (config.platform.reuse_overlay_pause);
+          SK_Platform_SetOverlayState (config.platform.reuse_overlay_pause);
         }
 
         ImGui::EndPopup     ();

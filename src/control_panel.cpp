@@ -8968,7 +8968,7 @@ SK_ImGui_Toggle (void)
   {
     // Reuse the game's overlay activation callback (if it has one)
     if (config.platform.reuse_overlay_pause)
-      SK::SteamAPI::SetOverlayState (true);
+      SK_Platform_SetOverlayState (true);
 
     SK_Console::getInstance ()->visible = false;
 
@@ -9067,7 +9067,7 @@ SK_ImGui_Toggle (void)
   {
     // Reuse the game's overlay activation callback (if it has one)
     if (config.platform.reuse_overlay_pause)
-      SK::SteamAPI::SetOverlayState (false);
+      SK_Platform_SetOverlayState (false);
 
     nav_usable = false;
   }

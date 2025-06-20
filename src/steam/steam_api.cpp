@@ -1205,19 +1205,19 @@ public:
     // If the game has an activation callback installed, then
     //   it's also going to see this event... make a note of that when
     //     tracking its believed overlay state.
-    if (SK::SteamAPI::IsOverlayAware ())
+    if (SK_Platform_IsOverlayAware ())
         SK::SteamAPI::overlay_state = (pParam->m_bActive != 0);
 
 
     // If we want to use this as our own, then don't let the Steam overlay
     //   unpause the game on deactivation unless the control panel is closed.
-    if (config.platform.reuse_overlay_pause && SK::SteamAPI::IsOverlayAware ())
+    if (config.platform.reuse_overlay_pause && SK_Platform_IsOverlayAware ())
     {
       // Deactivating, but we might want to hide this event from the game...
       if (pParam->m_bActive == 0)
       {
         // Undo the event the game is about to receive.
-        if (SK_ImGui_Visible) SK::SteamAPI::SetOverlayState (true);
+        if (SK_ImGui_Visible) SK_Platform_SetOverlayState (true);
       }
     }
 

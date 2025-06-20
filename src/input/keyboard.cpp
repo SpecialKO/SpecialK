@@ -30,6 +30,7 @@
 #endif
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
+#include <SpecialK/control_panel/platform.h>
 #include <ReShade/reshade.hpp>
 
 bool
@@ -218,8 +219,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
   }
 
   // Allow keyboard input while Steam /EOS overlays are active
-  if (SK::SteamAPI::GetOverlayState (true) ||
-           SK::EOS::GetOverlayState (true))
+  if (SK_Platform_GetOverlayState (true))
   {
     capture.store (false);
     return false;
@@ -292,8 +292,7 @@ SK_ImGui_WantTextCapture (void)
     return false;
 
   // Allow keyboard input while Steam /EOS overlays are active
-  if (SK::SteamAPI::GetOverlayState (true) ||
-           SK::EOS::GetOverlayState (true))
+  if (SK_Platform_GetOverlayState (true))
   {
     return false;
   }

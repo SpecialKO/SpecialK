@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -35,6 +35,11 @@ namespace SK
   };
 };
 
+// If real, then use the state of the platform's actual overlay rather than the
+//   state that Special K fakes in order to pause games...
+bool SK_Platform_GetOverlayState (bool real = false);
+bool SK_Platform_SetOverlayState (bool active      ); // Returns the previous state
+bool SK_Platform_IsOverlayAware  (void);
 void SK_Platform_SetNotifyCorner (void);
 
 #endif /* __SK__CPL_PLATFORM_H__ */

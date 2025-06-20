@@ -34,6 +34,7 @@
 #include <reflex/pclstats.h>
 
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/control_panel/platform.h>
 
 #include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
@@ -43,6 +44,7 @@
 
 #include <SpecialK/commands/mem.inl>
 #include <SpecialK/commands/update.inl>
+#include <imgui/font_awesome.h>
 
 #include <filesystem>
 
@@ -3647,12 +3649,78 @@ SK_MMCS_EndBufferSwap (void)
 //);
 }
 
+static auto _HandlePlatformOverlayVar = [](void)
+{
+  static bool overlay_state      = false;
+  static bool overlay_last_frame = overlay_state;
+  static auto overlay_var        =
+    SK_CreateVar (SK_IVariable::Boolean, &overlay_state);
+
+  bool dismiss = false;
+
+  if (std::exchange (overlay_last_frame, overlay_state) != overlay_state)
+  {
+    SK_Platform_SetOverlayState (overlay_state);
+
+    if (! overlay_state)
+    {
+      dismiss = true;
+    }
+  }
+
+  if ( SK_Platform_IsOverlayAware  (     ) &&
+      (SK_Platform_GetOverlayState (false) ||
+       SK_Platform_GetOverlayState (true)) )
+  {
+    dismiss = false;
+
+    SK_ImGui_CreateNotificationEx (
+      "Platform.Pause", SK_ImGui_Toast::Other, nullptr, nullptr,
+              INFINITE, SK_ImGui_Toast::UseDuration  |
+                        SK_ImGui_Toast::ShowNewest   | 
+                        SK_ImGui_Toast::DoNotSaveINI |
+                        SK_ImGui_Toast::Unsilencable,
+      [](void*)->bool
+      {
+        ImColor pause_color (
+          1.0f, 0.941177f, 0.f,
+            static_cast <float> (
+              0.75 + 0.2 * std::cos (3.14159265359 *
+                (static_cast <double> (SK::ControlPanel::current_time % 2500) / 1750.0))
+            )
+        );
+  
+        ImGui::BeginGroup  ();
+        ImGui::TextColored (pause_color,  ICON_FA_PAUSE " ");
+        ImGui::SameLine    ();
+        ImGui::TextUnformatted ("Platform Overlay is Active (or Spoofed)");
+        ImGui::Separator   ();
+        ImGui::BulletText  ("Overlay-Aware Games Should be Paused");
+        ImGui::EndGroup    ();
+  
+        return false;
+      }
+    );
+  }
+
+  if (dismiss)
+  {
+    SK_ImGui_DismissNotification ("Platform.Pause");    
+  }
+
+  SK_RunOnce (
+    SK_GetCommandProcessor ()->AddVariable ("Platform.OverlayPause", overlay_var)
+  );
+};
+
 void
 SK_MMCS_BeginBufferSwap (void)
 {
 //SK_TLS_Bottom ()->win32->thread_prio =
 //  SK_Thread_GetCurrentPriority (                             );
 //  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+
+  _HandlePlatformOverlayVar ();
 
   static concurrency::concurrent_unordered_set <DWORD> render_threads;
 
@@ -4617,6 +4685,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   SK_GetCurrentRenderBackend ().in_present_call = false;
 
+
   return hr;
 }
 
@@ -5019,8 +5088,7 @@ SK_GetStoreOverlayState (bool bReal)
   if (s_LastFrame.load () < SK_GetFramesDrawn ())
   {
     bool ret =
-      SK::SteamAPI::GetOverlayState (bReal) ||
-      SK::EOS::     GetOverlayState (bReal) ||
+      SK_Platform_GetOverlayState (bReal) ||
       SK_ReShadeAddOn_IsOverlayActive ();
 
     s_LastState.store (ret);

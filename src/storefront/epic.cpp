@@ -222,13 +222,13 @@ public:
 
     // If we want to use this as our own, then don't let the Epic overlay
     //   unpause the game on deactivation unless the control panel is closed.
-    if (config.platform.reuse_overlay_pause && SK::EOS::IsOverlayAware ())
+    if (config.platform.reuse_overlay_pause && SK_Platform_IsOverlayAware ())
     {
       // Deactivating, but we might want to hide this event from the game...
       if (Data->bIsVisible == 0)
       {
         // Undo the event the game is about to receive.
-        if (SK_ImGui_Visible) SK::EOS::SetOverlayState (true);
+        if (SK_ImGui_Visible) SK_Platform_SetOverlayState (true);
       }
     }
 
@@ -674,6 +674,8 @@ SK::EOS::SetOverlayState (bool active)
     return;
 
   eos_overlay->invokeCallbacks (active);
+
+  overlay_state = active;
 }
 
 bool
@@ -688,6 +690,9 @@ bool
 __stdcall
 SK::EOS::IsOverlayAware (void)
 {
+  if (! eos_overlay.getPtr ())
+    return false;
+
   return
     eos_overlay->isOverlayAware ();
 }
