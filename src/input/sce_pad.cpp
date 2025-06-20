@@ -143,28 +143,9 @@ SK_ScePadHandle
 SK_ScePadGetHandle (SK_SceUserID userID, int type,
                                          int index)
 {
-  static SK_ScePadHandle lastHandle = {};
-  static SK_SceUserID    lastUserID = -1;
-  static int             lastType   = -1;
-  static int             lastIndex  = -1;
-
-  if (lastType   == type   &&
-      lastIndex  == index  &&
-      lastUserID == userID &&
-      lastHandle != -1)
-  {
-    return lastHandle;
-  }
-
   SK_ScePadHandle
           _handle = sceinput_ctx.scePad.
   scePadGetHandle_Original (userID, type, index);
-
-  lastHandle =      -1;
-  lastType   =    type;
-  lastIndex  =   index;
-  lastUserID =  userID;
-  lastHandle = _handle;
 
   SK_RunOnce (
     config.input.gamepad.scepad.unlimit_polling_rate = true;
