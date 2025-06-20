@@ -1,4 +1,9 @@
-﻿25.6.20.1
+﻿25.6.20.2
+=========
+ + Merge pull request #278 from cathyjf-forks:add-nightreign-support
+    * Add ability to launch Elden Ring: Nightreign without EAC.
+
+25.6.20.1
 =========
  + Disable explicit wait on Vulkan Reflex semaphore in DOOM: The Dark Ages; the
      engine is now waiting on the semaphore on its own like it is supposed to.
