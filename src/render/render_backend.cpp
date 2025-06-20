@@ -1312,6 +1312,31 @@ SK_VK_CreateInstance (
   const VkAllocationCallbacks* pAllocator,
   VkInstance*                  pInstance )
 {
+  if (sk::NVAPI::nv_hardware)
+  {
+    if (config.apis.NvAPI.vulkan_bridge == -1)
+    {
+      const auto ret =
+        SK_MessageBox (
+          L"Enable Special K VulkanBridge?\r\n\r\n\t(Required for some Vulkan games)",
+          L"Game is Using Native Vulkan", MB_YESNOCANCEL | MB_ICONQUESTION
+        );
+
+      if (ret == IDYES)
+      {
+        config.apis.NvAPI.vulkan_bridge = 1;
+        SK_NvAPI_EnableVulkanBridge  (TRUE);
+        SK_RestartGame               (    );
+      }
+
+      else if (ret == IDNO)
+      {
+        config.apis.NvAPI.vulkan_bridge = 0;
+        SK_RestartGame               (    );
+      }
+    }
+  }
+
   if (config.apis.Vulkan.hook)
   SK_RunOnce (
          SK_CreateDLLHook2 (L"vulkan-1.dll",
