@@ -652,7 +652,7 @@ SetWindowsHookExAW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_GetCallingDLL () != SK_GetModuleHandleW (L"user32.dll"))
+  if (SK_GetCallingDLL () != SK_GetModuleHandleW (L"user32.dll") && config.system.log_level > 0)
   {
     SK_ImGui_Warning (
       SK_FormatStringW (

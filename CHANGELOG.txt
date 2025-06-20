@@ -1,8 +1,19 @@
-﻿25.6.20.4
+﻿25.6.21
+=======
+ + Skip global cleanup on DLL unload.
+ + Add extra ReShade pointer validation.
+ + Remove libScePad handle caching introduced in 25.6.18.
+ + Remove warning on game calling undocumented SetWindowsHookExAW function
+     directly, unless log level is set to >= 1.
+ + Reduce overhead of background input and screensaver detection.
+ + Fixed potential crash at DLL unload in dbghelper.dll!SymCleanup (...).
+
+25.6.20.4
 =========
  + Add 16 frame ReShade re-initialization delay after SwapChain destruction,
      in order to prevent bad stuff in DOOM: The Dark Ages.
  + Add pointer validation to SK_ReShadeAddOn_GetRuntimeForSwapChain (...).
+ + Throttle RegisterDragDrop (...) failure retries to once every 200 ms.
 
 25.6.20.3
 =========
