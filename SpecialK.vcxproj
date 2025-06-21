@@ -462,6 +462,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SDLCheck>false</SDLCheck>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -492,7 +494,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <RegisterOutput>false</RegisterOutput>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <CETCompat>true</CETCompat>
+      <CETCompat>false</CETCompat>
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>NotSet</ShowProgress>
@@ -689,6 +691,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SDLCheck>false</SDLCheck>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -721,7 +725,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <RegisterOutput>false</RegisterOutput>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <CETCompat>true</CETCompat>
+      <CETCompat>false</CETCompat>
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>NotSet</ShowProgress>

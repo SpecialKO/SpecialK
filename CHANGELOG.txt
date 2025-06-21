@@ -1,5 +1,15 @@
-﻿25.6.21.4
+﻿25.6.22
+=======
+ + Compile with /QIntel-jcc-erratum switch to improve perf. on some Intel CPUs.
+ + Improved code to identify the same controller (by HW address) connected over
+     USB and Bluetooth at the same time.
+ + Improved thread-safety on VRR VBlank counter thread during SwapChain resize.
+ + Added warning if user tries to set a non-native Fullscreen Exclusive res.
+     while Special K's "Fake Fullscreen" mode is active, since it will fail!
+
+25.6.21.4
 =========
+ + Removed experimental Stellar Blade code
  + Added tooltip to PlayStation controller latency measurement when Bluetooth
      controllers are in read-only (DirectInput compatibility mode) explaining
        why latency measurement is not possible.
@@ -17,12 +27,6 @@
      command queue) to AMD GPUs; Streamline is a nop in that case.
  + Avoid using HID API calls to get button usages for DualShock 4 and DualSense
      over USB -- use the raw Input Reports instead.
- + Add experimental thread scheduling changes for Stellar Blade to deal with
-     constant calls to SwitchToThread (...).
-
-  Temporary console variables:  "SB.FixSwitchToThread"  (SK_IVariable::Boolean)
-                                "SB.MaxThreadSwitches"  (SK_IVariable::Int)
-                                "SB.SwitchSleepTime"    (SK_IVariable::Int)
 
 25.6.21.2
 =========
