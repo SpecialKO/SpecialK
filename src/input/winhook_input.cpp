@@ -652,12 +652,14 @@ SetWindowsHookExAW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_GetCallingDLL () != SK_GetModuleHandleW (L"user32.dll") && config.system.log_level > 0)
+  if (SK_GetCallingDLL () != SK_GetModuleHandleW (L"user32.dll"))
   {
-    SK_ImGui_Warning (
-      SK_FormatStringW (
-        L"Undocumented SetWindowsHookExAW function called directly by %ws!", SK_GetCallerName ().c_str ()
-      ).c_str ()
+    SK_RunOnce (
+      SK_ImGui_Warning (
+        SK_FormatStringW (
+          L"Undocumented SetWindowsHookExAW function called directly by %ws!", SK_GetCallerName ().c_str ()
+        ).c_str ()
+      );
     );
 
     // The actual behavior of this function is known, but we're going to ignore it... for now.
@@ -677,8 +679,8 @@ SetWindowsHookExW_Detour (
   HINSTANCE hmod,
   DWORD     dwThreadId )
 {
-  wchar_t                   wszHookMod [MAX_PATH] = { };
-  GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
+  wchar_t                                  wszHookMod [MAX_PATH] = { };
+  GetModuleFileNameW (SK_GetCallingDLL (), wszHookMod, MAX_PATH);
 
   if (StrStrIW (wszHookMod, L"dinput") != nullptr)
   {
@@ -808,20 +810,20 @@ SetWindowsHookExA_Detour (
       idHook == WH_MOUSE_LL    ||
       idHook == WH_MOUSE)
   {
-    if (SK_IsCurrentGame (SK_GAME_ID::StellarBlade))
+    if (SK_IsCurrentGame (SK_GAME_ID::StellarBlade) && hmod == SK_GetModuleHandleW (nullptr))
     {
       return 0;
     }
 
-    if (idHook == WH_KEYBOARD_LL && SK_GetCallingDLL () == SK_GetModuleHandleW (nullptr))
+    if (idHook == WH_KEYBOARD_LL && hmod == SK_GetModuleHandleW (nullptr))
     {
       if (PathFileExistsW (L"NoLLKeyboardHooks"))
         return 0;
     }
   }
 
-  wchar_t                   wszHookMod [MAX_PATH] = { };
-  GetModuleFileNameW (hmod, wszHookMod, MAX_PATH);
+  wchar_t                                  wszHookMod [MAX_PATH] = { };
+  GetModuleFileNameW (SK_GetCallingDLL (), wszHookMod, MAX_PATH);
 
   if (StrStrIW (wszHookMod, L"dinput") != nullptr)
   {
