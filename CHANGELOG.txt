@@ -1,4 +1,20 @@
-﻿25.6.21.2
+﻿25.6.21.3
+=========
+ + Reduce overhead from redundant XInputSetState (...) API calls.
+ + Simplify string comparison in NVSDK_NGX_Parameter_GetUI_Detour (...) when
+     user is forcing a DLSS Preset override.
+ + Do not apply NVIDIA Streamline late-injection hacks (for finding SwapChain's
+     command queue) to AMD GPUs; Streamline is a nop in that case.
+ + Avoid using HID API calls to get button usages for DualShock 4 and DualSense
+     over USB -- use the raw Input Reports instead.
+ + Add experimental thread scheduling changes for Stellar Blade to deal with
+     constant calls to SwitchToThread (...).
+
+  Temporary console variables:  "SB.FixSwitchToThread"  (SK_IVariable::Boolean)
+                                "SB.MaxThreadSwitches"  (SK_IVariable::Int)
+                                "SB.SwitchSleepTime"    (SK_IVariable::Int)
+
+25.6.21.2
 =========
  + Improved PlayStation latency meter, so that it recovers from missed pings
      rather than permanently removing the latency stat from Input Management tab.

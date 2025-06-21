@@ -765,10 +765,11 @@ SwitchToThread_Detour (void)
 {
 #ifdef _M_AMD64
   struct game_s {
-    bool is_mhw   = SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld;
-    bool is_aco   = SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey;
-    bool is_elex2 = SK_GetCurrentGameID () == SK_GAME_ID::Elex2;
-    bool is_generic = !(is_mhw || is_aco || is_elex2);
+    bool is_mhw     = SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWorld);
+    bool is_aco     = SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Odyssey);
+    bool is_elex2   = SK_IsCurrentGame (SK_GAME_ID::Elex2);
+    bool is_stellar = SK_IsCurrentGame (SK_GAME_ID::StellarBlade);
+    bool is_generic = !(is_mhw || is_aco || is_elex2 || is_stellar);
   } static game;
 
   if (game.is_generic) [[likely]]
@@ -782,6 +783,48 @@ SwitchToThread_Detour (void)
 
     return bRet;
 #ifdef _M_AMD64
+  }
+
+  if (game.is_stellar)
+  {
+    static bool fix_switch_to_thread = true;
+    static int  switch_to_thread_max =    3;
+    static int  switch_sleep_time    =    0;
+
+    // Use a shared counter, rather than thread-local,
+    //   it works better.
+    //static int calls = 0;
+    static thread_local int calls = 0;
+
+    if (fix_switch_to_thread)
+    {
+      SK_RunOnce (
+        auto cp =
+          SK_GetCommandProcessor ();
+
+        // Create various tuning knobs...
+        cp->AddVariable ("SB.FixSwitchToThread", SK_CreateVar (SK_IVariable::Boolean, &fix_switch_to_thread, nullptr));
+        cp->AddVariable ("SB.MaxThreadSwitches", SK_CreateVar (SK_IVariable::Int,     &switch_to_thread_max, nullptr));
+        cp->AddVariable ("SB.SwitchSleepTime",   SK_CreateVar (SK_IVariable::Int,     &switch_sleep_time,    nullptr));
+      );
+
+      if (           switch_to_thread_max  == 0 ||
+          (++calls % switch_to_thread_max) == 0)
+      {
+        if (          switch_sleep_time >= 0)
+          SK_SleepEx (switch_sleep_time, FALSE);
+
+        return TRUE;
+      }
+    }
+
+    BOOL bRet =
+      SwitchToThread_Original ();
+
+    if (bRet)
+      SK_MMCS_ApplyPendingTaskPriority ();
+
+    return bRet;
   }
 
 
