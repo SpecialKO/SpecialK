@@ -9,6 +9,8 @@
 
 ;LIBRARY "d3d9"
 
+STACKSIZE 4194304,16384
+
 EXPORTS
   D3DPERF_BeginEvent       = D3DPERF_BeginEvent        PRIVATE
   D3DPERF_EndEvent         = D3DPERF_EndEvent          PRIVATE

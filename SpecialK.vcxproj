@@ -274,8 +274,8 @@
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <CETCompat>false</CETCompat>
-      <StackReserveSize>0x200000</StackReserveSize>
-      <StackCommitSize>0x4000</StackCommitSize>
+      <StackReserveSize>0x800000</StackReserveSize>
+      <StackCommitSize>0x10000</StackCommitSize>
       <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
@@ -391,8 +391,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <CETCompat>false</CETCompat>
-      <StackReserveSize>0x200000</StackReserveSize>
-      <StackCommitSize>0x4000</StackCommitSize>
+      <StackReserveSize>0x800000</StackReserveSize>
+      <StackCommitSize>0x10000</StackCommitSize>
       <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
@@ -496,8 +496,10 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>NotSet</ShowProgress>
-      <StackReserveSize>0x200000</StackReserveSize>
-      <StackCommitSize>0x4000</StackCommitSize>
+      <StackReserveSize>
+      </StackReserveSize>
+      <StackCommitSize>
+      </StackCommitSize>
       <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
@@ -611,8 +613,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>NotSet</ShowProgress>
-      <StackReserveSize>0x200000</StackReserveSize>
-      <StackCommitSize>0x4000</StackCommitSize>
+      <StackReserveSize>0x800000</StackReserveSize>
+      <StackCommitSize>0x10000</StackCommitSize>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
     </Link>
@@ -723,8 +725,10 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>NotSet</ShowProgress>
-      <StackReserveSize>0x200000</StackReserveSize>
-      <StackCommitSize>0x4000</StackCommitSize>
+      <StackReserveSize>
+      </StackReserveSize>
+      <StackCommitSize>
+      </StackCommitSize>
       <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
@@ -842,8 +846,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>NotSet</ShowProgress>
-      <StackReserveSize>0x200000</StackReserveSize>
-      <StackCommitSize>0x4000</StackCommitSize>
+      <StackReserveSize>0x800000</StackReserveSize>
+      <StackCommitSize>0x10000</StackCommitSize>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
     </Link>

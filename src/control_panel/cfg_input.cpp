@@ -44,6 +44,47 @@ extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats;
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats_filtered;
 
+static auto constexpr _SampleCount = 1024;
+struct FrameHistory {
+  double   ms        [_SampleCount] = { };
+  uint64_t timestamp [_SampleCount] = { };
+  int      tail     = 0;
+  double   last_avg = 0.0;
+  double   avg      = 0.0;
+
+  void insertSample (uint64_t qpcNow, double latency) noexcept
+  {
+    int        idx  = (tail++ % _SampleCount);
+    ms        [idx] = latency;
+    timestamp [idx] =  qpcNow;
+  }
+
+  double getAvg (uint64_t qpcNow) noexcept
+  {
+    double dAccum  = 0.0;
+    double samples = 0.0;
+
+    for (int idx = 0; idx < _SampleCount; ++idx)
+    {
+      if ( timestamp [idx] != 0                        &&
+                  ms [idx] >  0.01f                    &&
+           timestamp [idx] >= qpcNow - SK_QpcFreq * 30 &&
+           timestamp [idx] != qpcNow )
+      {
+        dAccum += ms [idx];
+        samples++;
+      }
+    }
+
+    avg =
+      samples > 0 ?
+          (dAccum / samples)
+                  : 0.0;
+
+    return avg;
+  }
+};
+
 void SK_ImGui_UpdateCursor (void)
 {
   extern
@@ -1696,45 +1737,7 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::SameLine   ();
           ImGui::BeginGroup ();
 
-          static auto constexpr _SampleCount = 512;
-          struct FrameHistory {
-            double   ms        [_SampleCount];
-            uint64_t timestamp [_SampleCount];
-            int      tail     = 0;
-            double   last_avg = 0.0;
-            double   avg      = 0.0;
-
-            void insertSample (uint64_t qpcNow, double latency) noexcept
-            {
-              int        idx  = (tail++ % _SampleCount);
-              ms        [idx] = latency;
-              timestamp [idx] =  qpcNow;
-            }
-
-            double getAvg (uint64_t qpcNow) noexcept
-            {
-              last_avg = avg;
-
-              double dAccum  = 0.0;
-              double samples = 0.0;
-
-              for (int idx = 0; idx < _SampleCount; ++idx)
-              {
-                if ( timestamp [idx] >= qpcNow - SK_QpcFreq * 8 )
-                {
-                  dAccum  += ms [idx];
-                  samples++;
-                }
-              }
-
-              avg =
-                (dAccum / samples);
-
-              return avg;
-            }
-          };
-
-          static concurrency::concurrent_unordered_map <SK_HID_PlayStationDevice*, FrameHistory> frame_histories;
+          static concurrency::concurrent_unordered_map <SK_HID_PlayStationDevice*, FrameHistory*> frame_histories;
 
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
@@ -1750,23 +1753,27 @@ SK::ControlPanel::Input::Draw (void)
               const auto qpcNow =
                 SK_QueryPerf ().QuadPart;
 
+              if (! frame_histories.count (&ps_controller))
+                    frame_histories       [&ps_controller] = new FrameHistory {};
+
               auto& history =
                 frame_histories [&ps_controller];
 
-              history.insertSample (
+              history->insertSample (
                 qpcNow, static_cast <double> (ping) /
                         static_cast <double> (SK_QpcTicksPerMs) );
 
-              ImGui::Text   (" Latency: %6.3f ms ",
-                ( history.getAvg (qpcNow) +
-                  history.last_avg ) / 2.0
-              );
+              history->last_avg =
+                std::max ( 0.000001, history->getAvg (qpcNow)  +
+                                     history->last_avg * 3.0 ) / 4.0;
+
+              ImGui::Text (" Latency: %5.2f ms ", history->last_avg);
             }
 
             else
             {
               ImGui::TextUnformatted
-                            (" ");
+                          (" ");
 
               // Restart latency tests if timing is suspiciously wrong.
               ps_controller.latency.last_ack = 0;
