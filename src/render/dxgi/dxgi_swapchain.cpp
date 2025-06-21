@@ -1775,6 +1775,14 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 
     else if ((game_window.wantBackgroundRender () || config.display.force_windowed) && Fullscreen != FALSE && config.render.dxgi.fake_fullscreen_mode == false)
     {
+      // This behavior is unintiuitive enough to warrant a warning every time it happens.
+      if (game_window.wantBackgroundRender () && !config.display.force_windowed)
+      {
+        SK_ImGui_Warning (
+          L"Requested Fullscreen Mode Has Been Ignored Because \"Continue Rendering\" is Configured."
+        );
+      }
+
       Fullscreen = FALSE;
       pTarget    = nullptr;
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
@@ -2676,6 +2684,27 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
       *pNewTargetParameters;
 
   bool borderless = config.window.borderless || rb.isFakeFullscreen ();
+
+  if ( rb.isFakeFullscreen () &&
+        ( ((LONG)new_new_params.Width  != rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left) ||
+          ((LONG)new_new_params.Height != rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top ) ) )
+  {
+    SK_ImGui_Warning (
+      L"\"Fake Fullscreen\" Mode is Active and Game Requested a non-native Display Resolution.\r\n\r\n\t"
+      L" * This will always fail (!!)\r\n\r\n"
+      L"Please Select your Native Screen Resolution in-game, or Disable \"Fake Fullscreen\" by "
+      L"right - clicking \"Fullscreen\" Resolution in the Control Panel."
+    );
+
+    SK_LOGi0 (
+      L"Incorrect Resolution Requested (%dx%d) for \"Fake Fullscreen\" Mode!",
+        new_new_params.Width,
+        new_new_params.Height
+    );
+
+    new_new_params.Width  = 0;
+    new_new_params.Height = 0;
+  }
 
   if (! config.display.allow_refresh_change)
   {
