@@ -5973,39 +5973,65 @@ SK_Render_CountVBlanks ()
   static HANDLE hVBlankThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
-      DXGI_FRAME_STATISTICS
-           frameStats = {};
-
       auto& rb =
         SK_GetCurrentRenderBackend ();
 
       HANDLE                            vrr_events [] = { __SK_DLL_TeardownEvent, hVRREvent };
       while (WaitForMultipleObjects (2, vrr_events, FALSE, 500UL) != WAIT_OBJECT_0)
       {
-        SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain.p);
-        SK_ComPtr   <IDXGIOutput>    pOutput;
+        DXGI_FRAME_STATISTICS
+             frameStats = {};
 
-        if (           pSwapChain.p != nullptr &&
-            SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput.p)))
+        // Keep a cache for the DXGI Containing Output, because it is
+        //   expensive to query and we want to avoid lock contention.
+        static SK_ComPtr <IDXGIOutput> pOutput;
+        static IDXGISwapChain         *pLastChain     = nullptr;
+        static RECT                    lastWindowRect = {};
         {
-          pSwapChain.Release ();
+          std::scoped_lock <SK_Thread_HybridSpinlock>
+          backend_res_lock              (rb.res_lock);
 
-          DwmFlush ();
+          if (SK_ComQIPtr <IDXGISwapChain> pSwapChain = rb.swapchain.p;
+                                           pSwapChain.p != nullptr)
+          {
+            if (     pOutput.p == nullptr    ||
+                  pSwapChain.p != pLastChain || !EqualRect (&game_window.actual.window, &lastWindowRect))
+            { if((pSwapChain.p != pLastChain || !EqualRect (&game_window.actual.window, &lastWindowRect))
+                  && pOutput.p != nullptr)
+                     pOutput.Release ();
 
-          pOutput->WaitForVBlank ();
-                       
-          if (pSwapChain = rb.swapchain.p;
-              pSwapChain.p != nullptr)
-              pSwapChain->GetFrameStatistics (&frameStats);
-        }              
+              SK_LOGi1 (L"Cached DXGI Containing Output Is Invalid");
+
+              rb.gsync_state.update (true);
+
+              pSwapChain->GetContainingOutput (&pOutput.p);
+            }
+
+            lastWindowRect = game_window.actual.window;
+            pLastChain     = pSwapChain.p;
+          }
+        }
+
+        DwmFlush ();
+
+        if (pOutput.p != nullptr)
+        {   pOutput->WaitForVBlank ();
+
+          std::scoped_lock <SK_Thread_HybridSpinlock>
+          backend_res_lock              (rb.res_lock);
+
+          if (SK_ComQIPtr <IDXGISwapChain> pSwapChain = rb.swapchain.p;
+                                           pSwapChain.p != nullptr)
+          {
+            pSwapChain->GetFrameStatistics (&frameStats);
+          }
+        }
 
         rb.active_display =
           std::clamp (rb.active_display, 0, SK_RenderBackend_V2::_MAX_DISPLAYS-1);
 
-        if (pSwapChain.p != nullptr)
+        if (frameStats.PresentCount != 0)
         {
-          pSwapChain.Release ();
-
           auto& nvapi_display =
             rb.displays [rb.active_display].nvapi;
           auto& stats =
@@ -6016,10 +6042,9 @@ SK_Render_CountVBlanks ()
 
           if (stats.vblank_counter.last_qpc_refreshed < kSyncQPC &&
               stats.vblank_counter.addRecord (
-              nvapi_display.display_handle, &frameStats,        kSyncQPC))
+              nvapi_display.display_handle, &frameStats,kSyncQPC))
           {
-            stats.vblank_counter.last_qpc_refreshed =
-              kSyncQPC;
+            stats.vblank_counter.last_qpc_refreshed =   kSyncQPC;
           }
         }
 
