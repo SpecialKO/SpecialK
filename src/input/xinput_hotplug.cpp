@@ -474,8 +474,7 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
               auto iter =
                 SK_HID_PlayStationControllers.push_back (controller);
 
-              iter->initialize_serial ();
-
+              iter->initialize_serial   ();
               iter->write_output_report ();
 
               if (config.system.log_level > 0)

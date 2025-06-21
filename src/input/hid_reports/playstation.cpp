@@ -78,7 +78,7 @@ SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
     wszProduct, 128, &dwBytesRead, nullptr
   );
 
-  setPollingFrequency (0);
+  setPollingFrequency (1);
   setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
 
   latency.pollrate   = std::make_shared <SK::Framerate::Stats>     (         );
@@ -413,7 +413,7 @@ void SK_HID_SetupPlayStationControllers (void)
 
           iter->initialize_serial ();
 
-          iter->setPollingFrequency (0);
+          iter->setPollingFrequency (1);
           iter->setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
 
           iter->write_output_report ();
@@ -1175,6 +1175,27 @@ SK_HID_ProcessGamepadButtonBindings (void)
   }
 }
 
+void
+SK_HID_PlayStation_LatencyReportWatchdog (SK_HID_PlayStationDevice* pDevice)
+{
+  if (! pDevice)
+    return;
+
+  if ( pDevice->latency.ping <= 0 ||
+       pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
+  {
+    const auto dwTimeNow =
+      SK::ControlPanel::current_time;
+
+    static DWORD
+        dwLastReset = 0;
+    if (dwLastReset < dwTimeNow - 250UL)
+    {   dwLastReset = dwTimeNow;
+      pDevice->latency.last_ack = 0;
+    }
+  }
+}
+
 bool
 SK_HID_PlayStationDevice::request_input_report (void)
 {
@@ -1407,32 +1428,28 @@ SK_HID_PlayStationDevice::request_input_report (void)
             pDevice->xinput.report.Gamepad = { };
 
 #define __SK_HID_CalculateLatency
-#ifdef __SK_HID_CalculateLatency
-            if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-                (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
+#ifdef  __SK_HID_CalculateLatency
+            if (config.input.gamepad.hid.calc_latency)
             {
-              uint32_t ack =
-                uint32_t (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+              if (pDevice->latency.last_syn > pDevice->latency.last_ack ||
+                                         0 == pDevice->latency.last_ack)
+              {
+                uint32_t ack =
+                  uint32_t (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
 
-              pDevice->latency.last_ack = ack;
-              pDevice->latency.ping     = pDevice->latency.last_ack -
-                                            pDevice->latency.last_syn;//pData->HostTimestamp;
+                pDevice->latency.last_ack = ack;
+                pDevice->latency.ping     = pDevice->latency.last_ack -
+                                              pDevice->latency.last_syn;//pData->HostTimestamp;
 
-              // Start a new ping
-              WriteRelease (&pDevice->bNeedOutput, TRUE);
-                             pDevice->write_output_report ();
-            }
-
-            if ( pDevice->latency.ping <= 0 ||
-                 pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
-            {
-              static DWORD
-                  dwLastReset = 0;
-              if (dwLastReset < SK_timeGetTime () - 250UL)
-              {   dwLastReset = SK_timeGetTime ();
-                pDevice->latency.last_syn = 0;
-                pDevice->latency.last_ack = 0;
+                if (SK_ImGui_Active () || ReadAcquire (&pDevice->bNeedOutput))
+                {
+                  // Start a new ping
+                  WriteRelease (&pDevice->bNeedOutput, TRUE);
+                                 pDevice->write_output_report ();
+                }
               }
+
+              SK_HID_PlayStation_LatencyReportWatchdog (pDevice);
             }
 #endif
 
@@ -1560,8 +1577,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
 
               // Report 0x1, USB Mode
-              else if ((dwBytesTransferred == 64 && pDevice->bDualSense) ||
-                       (dwBytesTransferred == 34 && pDevice->bDualShock4))
+              else if ((! pDevice->bBluetooth) && ((dwBytesTransferred == 64 && pDevice->bDualSense) ||
+                                                   (dwBytesTransferred == 34 && pDevice->bDualShock4)))
               {
                 pDevice->endpoints.usb = pDevice;
 
@@ -1764,10 +1781,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             else if (! pDevice->bDualShock4)
             {
-              pDevice->bBluetooth = true;
+              SK_ReleaseAssert (pDevice->bBluetooth);
+            //pDevice->bBluetooth = true;
                     bHasBluetooth = true;
 
-              pDevice->endpoints.bluetooth = pDevice;
+              if (pDevice->bBluetooth)
+                  pDevice->endpoints.bluetooth = pDevice;
 
               SK_RunOnce (SK_Bluetooth_InitPowerMgmt ());
 
@@ -2058,8 +2077,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             else// if (pDevice->bDualShock4)
             {
-              pDevice->bBluetooth = true;
+              SK_ReleaseAssert (pDevice->bBluetooth);
+
+            //pDevice->bBluetooth = true;
                     bHasBluetooth = true;
+
+              pDevice->endpoints.bluetooth = pDevice;
 
               SK_RunOnce (SK_Bluetooth_InitPowerMgmt ());
 
@@ -2822,29 +2845,22 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                                   0x02;
 
 #ifdef __SK_HID_CalculateLatency
-          if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-              (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
+          if (config.input.gamepad.hid.calc_latency)
           {
-            pDevice->latency.ping =
-              ( pDevice->latency.ping * 19 + ( pDevice->latency.last_ack - 
-                                               pDevice->latency.last_syn ) ) / 20;
+            if (pDevice->latency.last_ack > pDevice->latency.last_syn ||
+                                       0 == pDevice->latency.last_syn)
+            {
+              pDevice->latency.ping =
+                ( pDevice->latency.ping * 19 + ( pDevice->latency.last_ack - 
+                                                 pDevice->latency.last_syn ) ) / 20;
 
-            pDevice->latency.last_syn =
-              sk::narrow_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+              pDevice->latency.last_syn =
+                sk::narrow_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
 
-            //output->HostTimestamp = pDevice->latency.last_syn;
-          }
-
-          if ( pDevice->latency.ping <= 0 ||
-               pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
-          {
-            static DWORD
-                dwLastReset = 0;
-            if (dwLastReset < SK_timeGetTime () - 250UL)
-            {   dwLastReset = SK_timeGetTime ();
-              pDevice->latency.last_syn = 0;
-              pDevice->latency.last_ack = 0;
+              //output->HostTimestamp = pDevice->latency.last_syn;
             }
+
+            SK_HID_PlayStation_LatencyReportWatchdog (pDevice);
           }
 #endif
 
@@ -3175,7 +3191,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
 
-            if (dwLastMuteCheck < SK::ControlPanel::current_time - 50UL)
+            if (dwLastMuteCheck < SK::ControlPanel::current_time - 250UL)
             {   dwLastMuteCheck = SK::ControlPanel::current_time;
                      bMuted     = SK_IsGameMuted ();
                      // This API is rather expensive
@@ -3477,29 +3493,22 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
        [&](bool reset_finished = true)
         {
 #ifdef __SK_HID_CalculateLatency
-          if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-              (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
+          if (config.input.gamepad.hid.calc_latency)
           {
-            pDevice->latency.ping =
-              ( pDevice->latency.ping * 19 + ( pDevice->latency.last_ack - 
-                                               pDevice->latency.last_syn ) ) / 20;
+            if (pDevice->latency.last_ack > pDevice->latency.last_syn ||
+                                       0 == pDevice->latency.last_syn)
+            {
+              pDevice->latency.ping =
+                ( pDevice->latency.ping * 19 + ( pDevice->latency.last_ack - 
+                                                 pDevice->latency.last_syn ) ) / 20;
 
-            pDevice->latency.last_syn =
-              static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+              pDevice->latency.last_syn =
+                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
 
-            //output->HostTimestamp = pDevice->latency.last_syn;
-          }
-
-          if ( pDevice->latency.ping <= 0 ||
-               pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
-          {
-            static DWORD
-                dwLastReset = 0;
-            if (dwLastReset < SK_timeGetTime () - 250UL)
-            {   dwLastReset = SK_timeGetTime ();
-              pDevice->latency.last_syn = 0;
-              pDevice->latency.last_ack = 0;
+              //output->HostTimestamp = pDevice->latency.last_syn;
             }
+
+            SK_HID_PlayStation_LatencyReportWatchdog (pDevice);
           }
 #endif
 
@@ -3964,7 +3973,7 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
 
 bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID data)
 {
-  SK_LOGi1 (
+  SK_LOGi2 (
     L"filterHidInput [ report_id=%d, dwSize=%d ]", report_id, dwSize
   );
 
@@ -4576,7 +4585,6 @@ SK_HID_GetAllPlayStationDevsBySerial (wchar_t* wszSerial)
   {
     if (! wcsncmp (dev.wszSerialNumber, wszSerial, 128))
     {
-      SK_LOGi0 (L"Match Found: %ws", dev.wszSerialNumber);
       matches.push_back (&dev);
     }
   }
@@ -4591,47 +4599,63 @@ SK_HID_PlayStationDevice::initialize_serial (void)
 
   DWORD dwBytesRead = 0x0;
 
-  SK_DeviceIoControl (
-    hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-        wszSerialNumber, 128, &dwBytesRead, nullptr );
-  
+  if ( SK_DeviceIoControl (
+         hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+              wszSerialNumber, 128, &dwBytesRead, nullptr ) &&
+    L'\0' != *wszSerialNumber )
+  {
+    bBluetooth = true;
+  }
+
   // The HID minidriver couldn't get a serial number (MAC address), but
   //   we can get the address manually using a special Feature Report...
-  if (*wszSerialNumber == L'\0' && feature_report.size () > 0)
+  else if (*wszSerialNumber == L'\0' && feature_report.size () > 0)
   {
     // The structures are the same across all controllers, but USB
     //   report IDs differ; for Bluetooth we don't even need this.
-    if (bDualSense)
-      feature_report [0] = 0x09;
-    else
-      feature_report [0] = 0x12;
-  
+    if (bDualSense) feature_report [0] = 0x09;
+    else            feature_report [0] = 0x12;
+
     if (SK_HidD_GetFeature (hDeviceFile, feature_report.data (),
                     static_cast <ULONG> (feature_report.size ())))
     {
       const auto *pGetHWAddr =
         (SK_HID_DualSense_GetHWAddr *)&feature_report.data ()[1];
-  
+
       // If this fails, what the hell did we just read?
       SK_ReleaseAssert ( pGetHWAddr->Hard00 == 0x00 &&
                          pGetHWAddr->Hard08 == 0x08 &&
                          pGetHWAddr->Hard25 == 0x25 );
-  
+
       swprintf (
         wszSerialNumber, L"%02x%02x%02x%02x%02x%02x",
           pGetHWAddr->ClientMAC [5], pGetHWAddr->ClientMAC [4],
           pGetHWAddr->ClientMAC [3], pGetHWAddr->ClientMAC [2],
           pGetHWAddr->ClientMAC [1], pGetHWAddr->ClientMAC [0] );
+
+      if (! StrStrNIW (
+            wszDevicePath, //Bluetooth_Base_UUID
+              L"{00001124-0000-1000-8000-00805f9b34fb}", MAX_PATH ) )
+      {
+        bBluetooth = false;
+      }
+
+      else
+      {
+        SK_LOGi0 (L"Unexpected Bluetooth Device (%ws)", wszDevicePath);
+        bBluetooth = true;
+      }
     }
   }
-  
+
   if (*wszSerialNumber != L'\0')
   {
     has_serial =
       (1 == swscanf (wszSerialNumber, L"%llx", &ullHWAddr));
+
+    bConnected = true;
   }
 
-#if 0
   // Now that we have a serial number, start pairing USB and Bluetooth
   //   devices that are connected simultaneously.
   if (has_serial)
@@ -4657,6 +4681,11 @@ SK_HID_PlayStationDevice::initialize_serial (void)
         continue;
       }
 
+      if (! dev->bConnected)
+      {
+        continue;
+      }
+
       if (dev->bBluetooth)
       {
         // This controller should be USB if we found a duplicate that is Bluetooth
@@ -4676,7 +4705,6 @@ SK_HID_PlayStationDevice::initialize_serial (void)
       }
     }
   }
-#endif
 
   return has_serial;
 }
