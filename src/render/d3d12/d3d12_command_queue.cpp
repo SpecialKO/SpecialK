@@ -30,6 +30,7 @@
 
 #include <SpecialK/render/d3d12/d3d12_command_queue.h>
 #include <SpecialK/render/ngx/ngx_dlss.h>
+#include <SpecialK/nvapi.h>
 
 static constexpr GUID SKID_D3D12SwapChainBufferBitmap = { 0xbc53df3b, 0x956f, 0x47db, { 0xa6, 0x53, 0x5, 0xd7, 0xb8, 0x71, 0x53, 0x38 } };
 
@@ -91,7 +92,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
            (StrStrIA (name.c_str (), "3D Queue (GPU") != nullptr);
 
       // When Streamline is involved, we -DO NOT- want 3D Queue (GPU x)...
-      if (bIsStreamline)
+      if (bIsStreamline && sk::NVAPI::nv_hardware)
           compatible_name = !compatible_name;
       if (compatible_name)
       {
