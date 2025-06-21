@@ -3094,17 +3094,15 @@ SK_XInput_RehookIfNeeded (void)
     memcpy (pCtx->orig_inst_caps_ex, pCtx->XInputGetCapabilitiesEx_Target,  6);
 }
 
-
-
-static std::unordered_map <INT, XINPUT_VIBRATION> __xi_pulse_set_values;
-static std::unordered_map <INT, ULONG64>          __xi_pulse_set_frames;
-
 bool
 WINAPI
 SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
+  static XINPUT_VIBRATION __xi_pulse_set_values [4] = { };
+  static ULONG64          __xi_pulse_set_frames [4] = { };
+
   // SANITY:  SteamAPI Controller Handle Recycling Gone Out of Control
   //            Something needs to be done about Ghost of a Tale, but
   //              this prevents catastrophe for the time being.
@@ -3122,6 +3120,8 @@ SK_XInput_PulseController ( INT   iJoyID,
   //   the failing XInput slot
   if (SK_HID_PlayStationControllers.empty ())
   {
+    // But... we have no such controllers, so if polling this slot failed prior,
+    //   just bail-out immediately and save CPU / lock contention from Steam Input.
     if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
       return false;
   }
@@ -3137,12 +3137,6 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (XInputEnable != nullptr)
       XInputEnable (true);
 
-  if (config.input.gamepad.disable_rumble)
-    return false;
-
-  if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
-    return false;
-
   XINPUT_VIBRATION
     vibes {
       .wLeftMotorSpeed  =
@@ -3151,8 +3145,21 @@ SK_XInput_PulseController ( INT   iJoyID,
         static_cast <WORD> (std::min (65535U, static_cast <UINT> (std::clamp (fStrengthRight, 0.0f, 1.0f) * 65536.0f)))
     };
 
-#if 0
-  if (__xi_pulse_set_values.count (iJoyID))
+  if (config.input.gamepad.disable_rumble)
+  {
+    vibes.wLeftMotorSpeed  = 0;
+    vibes.wRightMotorSpeed = 0;
+
+    // Nullify rumble, do not discard the API call...
+    // 
+    //  * Skipping the call may leave the controller rumbling infinitely.
+    //return false;
+  }
+
+  if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
+    return false;
+
+  if (__xi_pulse_set_frames [iJoyID] != 0)
   {
     auto& last_val =
       __xi_pulse_set_values [iJoyID];
@@ -3168,10 +3175,6 @@ SK_XInput_PulseController ( INT   iJoyID,
       return true;
     }
   }
-#endif
-
-  __xi_pulse_set_values [iJoyID] = vibes;
-  __xi_pulse_set_frames [iJoyID] = SK_GetFramesDrawn ();
 
   static XInputSetState_pfn
          XInputSetState_SK =
@@ -3220,15 +3223,34 @@ SK_XInput_PulseController ( INT   iJoyID,
     }
   }
 
+  if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
+    return true;
+
+  if (__xi_pulse_set_values [iJoyID].wLeftMotorSpeed  == vibes.wLeftMotorSpeed &&
+      __xi_pulse_set_values [iJoyID].wRightMotorSpeed == vibes.wRightMotorSpeed)
+  {
+    return true;
+  }
+
   if (bSet)
   {
     if (XInputSetState != nullptr)
     {
-      XINPUT_VIBRATION         nul_vibes = { 0, 0 };
-      XInputSetState (iJoyID, &nul_vibes);
+      XINPUT_VIBRATION nul_vibes = { 0, 0 };
+
+      if (__xi_pulse_set_values [iJoyID].wLeftMotorSpeed  != nul_vibes.wLeftMotorSpeed ||
+          __xi_pulse_set_values [iJoyID].wRightMotorSpeed != nul_vibes.wRightMotorSpeed)
+      {
+        XInputSetState        (iJoyID,  &nul_vibes);
+        __xi_pulse_set_values [iJoyID] = nul_vibes;
+        __xi_pulse_set_frames [iJoyID] = SK_GetFramesDrawn ();
+      }
     }
     return true;
   }
+
+  __xi_pulse_set_values [iJoyID] = vibes;
+  __xi_pulse_set_frames [iJoyID] = SK_GetFramesDrawn ();
 
   DWORD dwRet = XInputSetState == nullptr ? ERROR_DEVICE_NOT_CONNECTED :
     SK_XINPUT_CALL ( xinput_ctx.cs_haptic [iJoyID],
