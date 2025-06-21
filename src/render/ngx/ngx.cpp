@@ -688,7 +688,7 @@ NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const 
       *OutValue = SK_NGX_GameSetPerfQuality;
     }
 
-    if (config.nvidia.dlss.forced_preset != -1 && strncmp (InName, "DLSS.Hint.Render.Preset.", 24))
+    if (config.nvidia.dlss.forced_preset != -1 && ! strncmp (InName, "DLSS.Hint.Render.Preset.", 24))
     {
       *OutValue = config.nvidia.dlss.forced_preset;
     }
@@ -773,7 +773,7 @@ NVSDK_NGX_Parameter_GetI_Detour (const NVSDK_NGX_Parameter *InParameter, const c
       *OutValue = SK_NGX_GameSetPerfQuality;
     }
 
-    if (config.nvidia.dlss.forced_preset != -1 && strncmp (InName, "DLSS.Hint.Render.Preset.", 24))
+    if (config.nvidia.dlss.forced_preset != -1 && ! strncmp (InName, "DLSS.Hint.Render.Preset.", 24))
     {
       *OutValue = config.nvidia.dlss.forced_preset;
     }
@@ -849,7 +849,7 @@ NVSDK_NGX_Parameter_GetULL_Detour (const NVSDK_NGX_Parameter *InParameter, const
       *OutValue = SK_NGX_GameSetPerfQuality;
     }
 
-    if (config.nvidia.dlss.forced_preset != -1 && strncmp (InName, "DLSS.Hint.Render.Preset.", 24))
+    if (config.nvidia.dlss.forced_preset != -1 && ! strncmp (InName, "DLSS.Hint.Render.Preset.", 24))
     {
       *OutValue = config.nvidia.dlss.forced_preset;
     }
