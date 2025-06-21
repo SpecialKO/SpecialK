@@ -1720,10 +1720,6 @@ D3D12GraphicsCommandList_CopyResource_Detour (
   const auto src_desc = pSrcResource->GetDesc (),
              dst_desc = pDstResource->GetDesc ();
 
-  // Thanks NVIDIA Streamline, very helpful.
-  if (src_desc.Width  != dst_desc.Width ||
-      src_desc.Height != dst_desc.Height) return;
-
   // Handle scenarios where user changes HDR override mid-game
   static bool had_hdr_override = false;
 

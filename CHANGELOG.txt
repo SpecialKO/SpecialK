@@ -1,4 +1,9 @@
-﻿25.6.22
+﻿25.6.22.1
+=========
+ + Fixed missing lighting in Star Wars: Jedi Survivor due to incorrect resource
+     dimensions in call to ID3D12GraphicsCommandList::CopyResource (...).
+
+25.6.22
 =======
  + Compile with /QIntel-jcc-erratum switch to improve perf. on some Intel CPUs.
  + Improved code to identify the same controller (by HW address) connected over
