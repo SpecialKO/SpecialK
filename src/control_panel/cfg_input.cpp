@@ -1695,14 +1695,74 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
           ImGui::BeginGroup ();
+
+          static auto constexpr _SampleCount = 512;
+          struct FrameHistory {
+            double   ms        [_SampleCount];
+            uint64_t timestamp [_SampleCount];
+            int      tail     = 0;
+            double   last_avg = 0.0;
+            double   avg      = 0.0;
+
+            void insertSample (uint64_t qpcNow, double latency) noexcept
+            {
+              int        idx  = (tail++ % _SampleCount);
+              ms        [idx] = latency;
+              timestamp [idx] =  qpcNow;
+            }
+
+            double getAvg (uint64_t qpcNow) noexcept
+            {
+              last_avg = avg;
+
+              double dAccum  = 0.0;
+              double samples = 0.0;
+
+              for (int idx = 0; idx < _SampleCount; ++idx)
+              {
+                if ( timestamp [idx] >= qpcNow - SK_QpcFreq * 8 )
+                {
+                  dAccum  += ms [idx];
+                  samples++;
+                }
+              }
+
+              avg =
+                (dAccum / samples);
+
+              return avg;
+            }
+          };
+
+          static concurrency::concurrent_unordered_map <SK_HID_PlayStationDevice*, FrameHistory> frame_histories;
+
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
             if (! ps_controller.bConnected)
               continue;
 
-            if (ps_controller.latency.ping > 0 && ps_controller.latency.ping < 500 * SK_QpcTicksPerMs)
-              ImGui::Text   (" Latency: %3.0f ms ", static_cast <double> (ps_controller.latency.ping) /
-                                                    static_cast <double> (SK_QpcTicksPerMs));
+            const auto ping =
+              ps_controller.latency.ping;
+
+            if ( ping > 0 &&
+                 ping < 500 * SK_QpcTicksPerMs )
+            {
+              const auto qpcNow =
+                SK_QueryPerf ().QuadPart;
+
+              auto& history =
+                frame_histories [&ps_controller];
+
+              history.insertSample (
+                qpcNow, static_cast <double> (ping) /
+                        static_cast <double> (SK_QpcTicksPerMs) );
+
+              ImGui::Text   (" Latency: %6.3f ms ",
+                ( history.getAvg (qpcNow) +
+                  history.last_avg ) / 2.0
+              );
+            }
+
             else
             {
               ImGui::TextUnformatted

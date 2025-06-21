@@ -1423,6 +1423,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
               WriteRelease (&pDevice->bNeedOutput, TRUE);
                              pDevice->write_output_report ();
             }
+
+          if ( pDevice->latency.ping <= 0 ||
+               pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
+          {
+            static DWORD
+                dwLastReset = 0;
+            if (dwLastReset < SK_timeGetTime () - 250UL)
+            {   dwLastReset = SK_timeGetTime ();
+              pDevice->latency.last_syn = 0;
+              pDevice->latency.last_ack = 0;
+            }
+          }
 #endif
 
             if (dwBytesTransferred != 78 && (! (pDevice->bDualShock4 && pDevice->bBluetooth)))
@@ -2721,6 +2733,18 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             //output->HostTimestamp = pDevice->latency.last_syn;
           }
+
+          if ( pDevice->latency.ping <= 0 ||
+               pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
+          {
+            static DWORD
+                dwLastReset = 0;
+            if (dwLastReset < SK_timeGetTime () - 250UL)
+            {   dwLastReset = SK_timeGetTime ();
+              pDevice->latency.last_syn = 0;
+              pDevice->latency.last_ack = 0;
+            }
+          }
 #endif
 
           if (! pDevice->bBluetooth)
@@ -3363,6 +3387,18 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
 
             //output->HostTimestamp = pDevice->latency.last_syn;
+          }
+
+          if ( pDevice->latency.ping <= 0 ||
+               pDevice->latency.ping > 500 * SK_QpcTicksPerMs )
+          {
+            static DWORD
+                dwLastReset = 0;
+            if (dwLastReset < SK_timeGetTime () - 250UL)
+            {   dwLastReset = SK_timeGetTime ();
+              pDevice->latency.last_syn = 0;
+              pDevice->latency.last_ack = 0;
+            }
           }
 #endif
 
