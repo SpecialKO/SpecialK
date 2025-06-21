@@ -1,6 +1,13 @@
-﻿25.6.21.1
+﻿25.6.21.2
 =========
- + Made SONY HID device init code more robust when encountering non-gamepad devices.
+ + Improved PlayStation latency meter, so that it recovers from missed pings
+     rather than permanently removing the latency stat from Input Management tab.
+ + Added decimal values to PlayStation latency readings.
+ + Increased DLL stack reserve and commit memory to 4 MiB and 16 KiB respectively.
+
+25.6.21.1
+=========
+ + Made SONY HID device code more robust when encountering non-gamepad devices.
 
 25.6.21
 =======
