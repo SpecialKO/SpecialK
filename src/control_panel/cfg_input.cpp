@@ -1741,8 +1741,25 @@ SK::ControlPanel::Input::Draw (void)
 
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
+            if (! frame_histories.count (&ps_controller))
+                  frame_histories       [&ps_controller] = new FrameHistory {};
+
+            auto& history =
+              frame_histories [&ps_controller];
+
             if (! ps_controller.bConnected)
+            {
+              if ( history->tail     != 0   &&
+                   history->avg      != 0.0 &&
+                   history->last_avg != 0.0 )
+              {
+                memset (history, sizeof (FrameHistory), 0);
+
+                ps_controller.latency.last_ack = 0;
+              }
+
               continue;
+            }
 
             const auto ping =
               ps_controller.latency.ping;
@@ -1752,12 +1769,6 @@ SK::ControlPanel::Input::Draw (void)
             {
               const auto qpcNow =
                 SK_QueryPerf ().QuadPart;
-
-              if (! frame_histories.count (&ps_controller))
-                    frame_histories       [&ps_controller] = new FrameHistory {};
-
-              auto& history =
-                frame_histories [&ps_controller];
 
               history->insertSample (
                 qpcNow, static_cast <double> (ping) /
@@ -1772,8 +1783,18 @@ SK::ControlPanel::Input::Draw (void)
 
             else
             {
-              ImGui::TextUnformatted
-                          (" ");
+              if (ps_controller.bBluetooth && ps_controller.bSimpleMode)
+              {
+                ImGui::Text (" Latency:  ??  (" ICON_FA_BLUETOOTH ") ");
+                ImGui::SetItemTooltip (
+                  "Latency measurement unsupported because controller is in read-only mode."
+                );
+              }
+
+              else
+              {
+                ImGui::TextUnformatted (" ");
+              }
 
               // Restart latency tests if timing is suspiciously wrong.
               ps_controller.latency.last_ack = 0;

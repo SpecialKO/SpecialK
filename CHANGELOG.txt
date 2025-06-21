@@ -1,4 +1,14 @@
-﻿25.6.21.3
+﻿25.6.21.4
+=========
+ + Added tooltip to PlayStation controller latency measurement when Bluetooth
+     controllers are in read-only (DirectInput compatibility mode) explaining
+       why latency measurement is not possible.
+
+   * Controller will be removed from read-only mode if a game uses rumble, if
+       "Always Enable Full Capabilities" is selected, or if other software
+         (e.g. Steam Input) disabled it after powering-on the controller.
+
+25.6.21.3
 =========
  + Reduce overhead from redundant XInputSetState (...) API calls.
  + Simplify string comparison in NVSDK_NGX_Parameter_GetUI_Detour (...) when

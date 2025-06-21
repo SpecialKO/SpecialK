@@ -329,9 +329,6 @@ void SK_HID_SetupPlayStationControllers (void)
             continue;
           }
 
-          if (! controller.feature_report.empty ())
-                controller.initialize_serial ();
-
           std::vector <HIDP_BUTTON_CAPS>
             buttonCapsArray;
             buttonCapsArray.resize (caps.NumberInputButtonCaps);
@@ -413,6 +410,8 @@ void SK_HID_SetupPlayStationControllers (void)
     
           const auto iter =
             SK_HID_PlayStationControllers.push_back (controller);
+
+          iter->initialize_serial ();
 
           iter->setPollingFrequency (0);
           iter->setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
@@ -1564,7 +1563,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
               else if ((dwBytesTransferred == 64 && pDevice->bDualSense) ||
                        (dwBytesTransferred == 34 && pDevice->bDualShock4))
               {
-                const auto *pDualSense = 
+                pDevice->endpoints.usb = pDevice;
+
+                const auto *pDualSense =
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
                 const auto *pDualShock4 =
@@ -1765,7 +1766,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
             {
               pDevice->bBluetooth = true;
                     bHasBluetooth = true;
-                    
+
+              pDevice->endpoints.bluetooth = pDevice;
+
               SK_RunOnce (SK_Bluetooth_InitPowerMgmt ());
 
               if (! config.input.gamepad.bt_input_only)
@@ -4564,9 +4567,28 @@ int SK_HID_DeviceFile::remapHidInput (void)
 }
 
 
+std::vector <SK_HID_PlayStationDevice *>
+SK_HID_GetAllPlayStationDevsBySerial (wchar_t* wszSerial)
+{
+  std::vector <SK_HID_PlayStationDevice *> matches;
+
+  for ( auto& dev : SK_HID_PlayStationControllers )
+  {
+    if (! wcsncmp (dev.wszSerialNumber, wszSerial, 128))
+    {
+      SK_LOGi0 (L"Match Found: %ws", dev.wszSerialNumber);
+      matches.push_back (&dev);
+    }
+  }
+
+  return matches;
+}
+
 bool
 SK_HID_PlayStationDevice::initialize_serial (void)
 {
+  bool has_serial = false;
+
   DWORD dwBytesRead = 0x0;
 
   SK_DeviceIoControl (
@@ -4575,7 +4597,7 @@ SK_HID_PlayStationDevice::initialize_serial (void)
   
   // The HID minidriver couldn't get a serial number (MAC address), but
   //   we can get the address manually using a special Feature Report...
-  if (*wszSerialNumber == L'\0')
+  if (*wszSerialNumber == L'\0' && feature_report.size () > 0)
   {
     // The structures are the same across all controllers, but USB
     //   report IDs differ; for Bluetooth we don't even need this.
@@ -4605,11 +4627,58 @@ SK_HID_PlayStationDevice::initialize_serial (void)
   
   if (*wszSerialNumber != L'\0')
   {
-    return
+    has_serial =
       (1 == swscanf (wszSerialNumber, L"%llx", &ullHWAddr));
   }
 
-  return false;
+#if 0
+  // Now that we have a serial number, start pairing USB and Bluetooth
+  //   devices that are connected simultaneously.
+  if (has_serial)
+  {
+    auto ppEndpoint =
+         bBluetooth
+      ? &endpoints.bluetooth
+      : &endpoints.usb;
+
+    SK_ReleaseAssert (
+      *ppEndpoint == nullptr ||
+      *ppEndpoint == this
+    );*ppEndpoint  = this;
+
+    auto duplicates =
+      SK_HID_GetAllPlayStationDevsBySerial (wszSerialNumber);
+
+    for (auto dev : duplicates)
+    {
+      // skip me
+      if (dev == this)
+      {
+        continue;
+      }
+
+      if (dev->bBluetooth)
+      {
+        // This controller should be USB if we found a duplicate that is Bluetooth
+        SK_ReleaseAssert (bBluetooth == false);
+
+        dev->endpoints.usb       = this;
+             endpoints.bluetooth =  dev;
+      }
+
+      else
+      {
+        // This controller should be Bluetooth if we found a duplicate that is USB
+        SK_ReleaseAssert (bBluetooth == true);
+
+        dev->endpoints.bluetooth = this;
+             endpoints.usb       =  dev;
+      }
+    }
+  }
+#endif
+
+  return has_serial;
 }
 
 void

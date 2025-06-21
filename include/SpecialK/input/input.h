@@ -1138,6 +1138,43 @@ struct SK_HID_PlayStationDevice
     _color.b = blue;
   };
 
+  // Manage USB and Bluetooth views of the same device;
+  //
+  //  - It is technically possible to access the same controller via
+  //      USB and Bluetooth simultaneously.
+  //
+  //  In some cases, Bluetooth may be preferred over USB when the
+  //    non-"overclocked" controller has a higher theoretical polling
+  //      rate on Bluetooth.
+  //
+  //  @ One of the devices in this struct always points back to _this_ device.
+  //
+  struct endpoint_cache_s {
+    SK_HID_PlayStationDevice* usb       = nullptr;
+    SK_HID_PlayStationDevice* bluetooth = nullptr;
+  } endpoints;
+
+  enum endpoint_type_e {
+    Any       = 0xff,
+    None      = 0x00,
+    USB       = 0x01,
+    Bluetooth = 0x02,
+    Other     = 0x04
+  };
+
+  SK_HID_PlayStationDevice* getDevice (endpoint_type_e type = Any)
+  {
+    switch (type)
+    {
+      default:
+      case Any:       return this;
+      case USB:       return endpoints.usb;
+      case Bluetooth: return endpoints.bluetooth;
+      case Other:     //SK_ReleaseAssert (!L"Unimplemented PlayStation Endpoint Type");
+      case None:      return nullptr;
+    }
+  }
+
   void setVibration ( USHORT left,
                       USHORT right,
                       USHORT max_val = std::numeric_limits <USHORT>::max () );
@@ -1221,6 +1258,8 @@ bool SK_ImGui_HasDualSenseEdgeController (void);
 
 void SK_HID_SetupPlayStationControllers   (void);
 void SK_HID_FlushPlayStationForceFeedback (void);
+std::vector <SK_HID_PlayStationDevice *>
+     SK_HID_GetAllPlayStationDevsBySerial (wchar_t* wszSerial);
 
 bool SK_Input_IsXboxControllerActive (void) noexcept;
 SK_HID_PlayStationDevice* SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active = false) noexcept;

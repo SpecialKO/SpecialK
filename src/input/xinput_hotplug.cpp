@@ -276,13 +276,15 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
                   if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                   {
                     controller.bConnected = true;
-                    controller.bBluetooth =  //Bluetooth_Base_UUID
-                      StrStrNIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}", MAX_PATH);
+                    controller.bBluetooth = //Bluetooth_Base_UUID
+                      StrStrNIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}", MAX_PATH) || controller.bBluetooth;
 
                     controller.reset_device ();
 
                     controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                     controller.setPollingFrequency (0);
+
+                    controller.initialize_serial ();
 
                     if (config.system.log_level > 0)
                       SK_ImGui_Warning (L"PlayStation Controller Reconnected");
@@ -379,9 +381,6 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
                     DefWindowProcW (hWnd, Msg, wParam, lParam);
                 }
 
-                if (! controller.feature_report.empty ())
-                      controller.initialize_serial ();
-
                 std::vector <HIDP_BUTTON_CAPS>
                   buttonCapsArray;
                   buttonCapsArray.resize (caps.NumberInputButtonCaps);
@@ -474,6 +473,8 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
               auto iter =
                 SK_HID_PlayStationControllers.push_back (controller);
+
+              iter->initialize_serial ();
 
               iter->write_output_report ();
 
