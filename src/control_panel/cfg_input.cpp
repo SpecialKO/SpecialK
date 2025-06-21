@@ -1555,7 +1555,7 @@ SK::ControlPanel::Input::Draw (void)
         }
 
         ImGui::SetItemTooltip (
-          "Applies to Xbox input; PlayStation remapping requires \"Xbox Mode\""
+          "Applies to Xbox controllers, and PlayStation controllers (USB) in games with native support or using \"Xbox Mode\""
         );
 
         if (axial_remap)
@@ -1606,7 +1606,7 @@ SK::ControlPanel::Input::Draw (void)
         }
 
         ImGui::SetItemTooltip (
-          "Applies to Xbox input; PlayStation remapping requires \"Xbox Mode\""
+          "Applies to Xbox controllers, and PlayStation controllers (USB) in games with native support or using \"Xbox Mode\""
         );
 
         ImGui::SameLine      (              );
@@ -1618,7 +1618,7 @@ SK::ControlPanel::Input::Draw (void)
         }
 
         ImGui::SetItemTooltip (
-          "Applies to Xbox input; PlayStation remapping requires \"Xbox Mode\""
+          "Applies to Xbox controllers, and PlayStation controllers (USB) in games with native support or using \"Xbox Mode\""
         );
         ImGui::Columns    (1);
 
