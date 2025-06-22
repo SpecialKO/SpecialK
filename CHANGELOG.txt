@@ -1,4 +1,9 @@
-﻿25.6.22.1
+﻿25.6.22.2
+=========
+ + Improved window layering (Always-on-Top) overrides when "Continue Rendering"
+     is used in NVIDIA Vk/DXGI Interop-based games.
+
+25.6.22.1
 =========
  + Fixed missing lighting in Star Wars: Jedi Survivor due to incorrect resource
      dimensions in call to ID3D12GraphicsCommandList::CopyResource (...).

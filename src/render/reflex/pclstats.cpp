@@ -70,7 +70,7 @@ PCLStatsPingThreadProc (LPVOID)
     }
 
     HWND hWnd =
-      GetForegroundWindow ();
+      SK_GetForegroundWindow ();
 
     if (hWnd)
     {

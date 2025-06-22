@@ -1361,8 +1361,8 @@ ActivateWindow ( HWND hWnd,
     {
       if (config.window.always_on_top != NoPreferenceOnTop)
       {
-        SK_Window_SetTopMost (game_window.active,
-                              game_window.active, game_window.hWnd);
+        SK_Window_SetTopMost ((game_window.active && config.window.always_on_top != PreventAlwaysOnTop) || config.window.always_on_top == AlwaysOnTop,
+                              (game_window.active && config.window.always_on_top != PreventAlwaysOnTop) || config.window.always_on_top == AlwaysOnTop, game_window.hWnd);
       }
 
       SK_ImGui_Cursor.activateWindow (game_window.active);
@@ -3418,6 +3418,8 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
   if (pDispatchFunc == nullptr)
       pDispatchFunc = game_window.SetWindowLongPtr;
 
+  if (pDispatchFunc == nullptr)
+    return;
 
   pDispatchFunc ( game_window.hWnd,
                     GWL_STYLE,
@@ -3445,6 +3447,8 @@ SK_SetWindowStyleEx ( DWORD_PTR            dwStyleEx_ptr,
   if (pDispatchFunc == nullptr)
       pDispatchFunc = game_window.SetWindowLongPtr;
 
+  if (pDispatchFunc == nullptr)
+    return;
 
   pDispatchFunc ( game_window.hWnd,
                     GWL_EXSTYLE,
@@ -6756,11 +6760,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 
   else
   {
-    // Vulkan sucks, this is a total hack and I don't care anymore
-    if (game_window.wantBackgroundRender () && SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE)
-      hWndOrder = HWND_BOTTOM;
-    else
-      hWndOrder = HWND_NOTOPMOST;
+    hWndOrder = HWND_NOTOPMOST;
   }
 
   if (bBringToTop && (! bTop))
@@ -6779,42 +6779,6 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
                       0, 0, 0, 0,
                       SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE |
                       SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
-
-    if (hWndOrder == HWND_BOTTOM && hWnd == game_window.hWnd)
-    {
-      static HANDLE hRepositionBelowForeground =
-        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
-
-      SK_RunOnce (
-      SK_Thread_CreateEx ([](LPVOID)->DWORD
-      {
-        HANDLE hWaitHandles [] = { hRepositionBelowForeground, __SK_DLL_TeardownEvent };
-
-        while (WaitForMultipleObjects (2, hWaitHandles, FALSE, INFINITE) == WAIT_OBJECT_0)
-        {
-          // Because this is all async, just spin a loop until the window is no longer
-          //   in the foreground, then place it behind whatever is.
-          while (SK_GetForegroundWindow () == game_window.hWnd)
-          {
-            SK_SleepEx (4UL, FALSE);
-          }
-
-          SK_SetWindowPos ( game_window.hWnd,
-                            SK_GetForegroundWindow (),
-                            0, 0, 0, 0,
-                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE |
-                            SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
-
-          ResetEvent (hRepositionBelowForeground);
-        }
-
-        SK_Thread_CloseSelf ();
-
-        return 0;
-      }, L"[SK] Vulkan Interop Z-Order Fixup"));
-
-      SetEvent (hRepositionBelowForeground);
-    }
   }
 }
 

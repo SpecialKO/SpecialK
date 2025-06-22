@@ -3487,6 +3487,35 @@ void
 SK_ImGui_InitDragAndDrop (void);
 
 void
+SK_ImGui_Util_TrackFgProcessChange (void)
+{
+  return;
+
+  DWORD dwFgPid = 0x0;
+  GetWindowThreadProcessId (
+    SK_GetForegroundWindow (),
+      &dwFgPid
+  );
+
+  static DWORD       dwFgPidLast = DWORD_MAX;
+  if (std::exchange (dwFgPidLast, dwFgPid) != dwFgPid)
+  {
+    HANDLE hProc =
+      OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwFgPid);
+
+    if (hProc)
+    {
+      wchar_t                          wszProcessPath [MAX_PATH + 1];
+      GetProcessImageFileNameW (hProc, wszProcessPath, MAX_PATH);
+
+      SK_ImGui_Warning (wszProcessPath);
+
+      CloseHandle (hProc);
+    }
+  }
+}
+
+void
 SK_ImGui_User_NewFrame (void)
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_User_NewFrame)
