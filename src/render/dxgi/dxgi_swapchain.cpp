@@ -1840,6 +1840,11 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   HRESULT    ret = E_UNEXPECTED;
   DXGI_CALL (ret, IDXGISwapChain_SetFullscreenState (pSwapChain, Fullscreen, pTarget))
 
+  // It may be necessary to trigger a manual G-Sync status check after calling SetFullscreenState.
+  //InterlockedIncrement  (&__SK_NVAPI_UpdateGSync);
+  //rb.queueUpdateOutputs (    );
+  //rb.gsync_state.update (true);
+
   if ( SUCCEEDED (ret) )
   {
     if (SK_DXGI_IsFlipModelSwapChain (sd))
@@ -1890,6 +1895,9 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   if (SUCCEEDED (pSwapChain->GetFullscreenState (&bFinalState, nullptr)))
                         rb.fullscreen_exclusive = bFinalState;
 
+  // This hack has only ever helped one game: Elex 2, and seems to break more...
+  // It will remain here, but disabled, in case it may still do something useful.
+#if 0
   // Trigger mode switch if needed
   if (SUCCEEDED (ret) && bFinalState == TRUE && (sd.Windowed == Fullscreen))
   {
@@ -1932,6 +1940,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
       }
     }
   }
+#endif
 
   return
     _Return (ret);
