@@ -7819,6 +7819,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     }
   }
 
+  else if (! _wcsicmp (wszClassName, L"xgs::Framework"))
+  {
+    SK_GetCurrentRenderBackend ().windows.xgs_Framework = true;
+  }
+
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
   {
     SK_GetCurrentRenderBackend ().windows.unreal = true;
@@ -9543,9 +9548,15 @@ public:
     else
     {
       // Initialize our supported clipboard formats
-      m_fmtSupported = {
+      if (config.window.allow_file_drops) m_fmtSupported =
+      {
         { CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }, // Unicode text (URLs)
         { CF_HDROP,       nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }, // Files
+        { CF_TEXT,        nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }  // ANSI text (URLs)
+      };
+      else m_fmtSupported =
+      {
+        { CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }, // Unicode text (URLs)
         { CF_TEXT,        nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL }  // ANSI text (URLs)
       };
     }
@@ -10090,7 +10101,8 @@ private:
 };
 
 
-bool SK_OLE_DragDropChanged = true;
+bool SK_OLE_DragDropChanged    = true;
+bool SK_OLE_GameHasDropHandler = false;
 
 using  RegisterDragDrop_pfn = HRESULT (STDAPICALLTYPE *)(IN HWND hwnd, IN LPDROPTARGET pDropTarget);
 static RegisterDragDrop_pfn
@@ -10106,12 +10118,34 @@ RegisterDragDrop_Detour (IN HWND hwnd, IN LPDROPTARGET pDropTarget)
 {
   SK_LOG_FIRST_CALL
 
+  SK_LOGi0 (
+    L"RegisterDragDrop (hwnd=%x, pDropTarget=%p)", hwnd, pDropTarget
+  );
+
   auto ret =
     RegisterDragDrop_Original (hwnd, pDropTarget);
 
-  if (SUCCEEDED (ret))
+  if (hwnd == game_window.hWnd)
   {
-    SK_OLE_DragDropChanged = true;
+    if (SUCCEEDED (ret))
+    {    
+      SK_OLE_GameHasDropHandler = true;
+      SK_OLE_DragDropChanged    = true;
+    }
+
+    else if (ret == DRAGDROP_E_ALREADYREGISTERED && hwnd == game_window.hWnd)
+    {
+      RevokeDragDrop_Original (hwnd);
+
+      ret = 
+        RegisterDragDrop_Original (hwnd, pDropTarget);
+
+      if (SUCCEEDED (ret))
+      {
+        SK_OLE_GameHasDropHandler = true;
+        SK_OLE_DragDropChanged    = true;
+      }
+    }
   }
 
   return ret;
@@ -10123,12 +10157,20 @@ RevokeDragDrop_Detour (IN HWND hwnd)
 {
   SK_LOG_FIRST_CALL
 
+  SK_LOGi0 (
+    L"RevokeDragDrop (hwnd=%x)", hwnd
+  );
+
   auto ret =
     RevokeDragDrop_Original (hwnd);
 
   if (SUCCEEDED (ret))
   {
-    SK_OLE_DragDropChanged = true;
+    if (hwnd == game_window.hWnd)
+    {
+      SK_OLE_GameHasDropHandler = false;
+      SK_OLE_DragDropChanged    = true;
+    }
   }
 
   return ret;
@@ -10137,42 +10179,65 @@ RevokeDragDrop_Detour (IN HWND hwnd)
 void
 SK_ImGui_InitDragAndDrop (void)
 {
+  static bool incompatible = false;
+  if (        incompatible)
+    return;
+
   if (! config.window.allow_drag_n_drop)
     return;
+
+  if (SK_GetCurrentRenderBackend ().windows.xgs_Framework)
+  {
+    incompatible = true;
+    return;
+  }
 
   static bool init = false;
 
   SK_RunOnce (
-    SK_AutoCOMInit _;
+    SK_CreateDLLHook2 ( L"ole32", "RegisterDragDrop", RegisterDragDrop_Detour, static_cast_p2p <void> (&RegisterDragDrop_Original) );
+    SK_CreateDLLHook2 ( L"ole32", "RevokeDragDrop",   RevokeDragDrop_Detour,   static_cast_p2p <void> (&RevokeDragDrop_Original)   );
 
-    OleInitialize (nullptr);
-    {
-      SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
+    SK_ApplyQueuedHooks ();
 
-      SK_CreateDLLHook2 ( L"ole32", "RegisterDragDrop", RegisterDragDrop_Detour, static_cast_p2p <void> (&RegisterDragDrop_Original) );
-      SK_CreateDLLHook2 ( L"ole32", "RevokeDragDrop",   RevokeDragDrop_Detour,   static_cast_p2p <void> (&RevokeDragDrop_Original)   );
-
-      SK_ApplyQueuedHooks ();
-
-      init = true;
-    }
+    init = true;
   );
 
-  if (init && std::exchange (SK_OLE_DragDropChanged, false))
+  if (init && !SK_OLE_GameHasDropHandler && std::exchange (SK_OLE_DragDropChanged, false))
   {
     SK_AutoCOMInit _;
 
-    OleInitialize (nullptr);
+    if (SUCCEEDED (OleInitialize (nullptr)))
     {
-      static SK_DropTarget target (game_window.hWnd);
+      static concurrency::concurrent_unordered_map <HWND, SK_DropTarget*> drop_targets;
 
+      if (drop_targets [game_window.hWnd] == nullptr)
+          drop_targets [game_window.hWnd] = new SK_DropTarget (game_window.hWnd);
+
+      auto target = drop_targets [game_window.hWnd];
       auto status =
-        RegisterDragDrop_Original (game_window.hWnd, &target);
+        RegisterDragDrop_Original (game_window.hWnd, target);
 
       if (status == DRAGDROP_E_ALREADYREGISTERED)
       {
-                 RevokeDragDrop_Original   (game_window.hWnd);
-        status = RegisterDragDrop_Original (game_window.hWnd, &target);
+        if (! SK_GetCurrentRenderBackend ().windows.unreal)
+        {
+          SK_LOGi0 (L"OLE Drop Target for HWND: %x already registered!", game_window.hWnd);
+        }
+
+        else
+        {
+          SK_LOGi0 (
+            L"OLE Drop Target for HWND: %x already registered,"
+            L" overwriting because this is an Unreal Engine game!",
+              game_window.hWnd
+          );
+
+          SK_OLE_GameHasDropHandler = false;
+
+                   RevokeDragDrop_Original   (game_window.hWnd);
+          status = RegisterDragDrop_Original (game_window.hWnd, target);
+        }
       }
 
       if (! SUCCEEDED (status))
@@ -10191,6 +10256,21 @@ SK_ImGui_InitDragAndDrop (void)
           SK_OLE_DragDropChanged = true;
         }
       }
+
+      else
+      {
+        if (config.window.allow_file_drops)
+        {
+          SK_LOGi0 (L"Adding File Drop Capabilities to Game Window Extended Style...");
+          SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE,
+          SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_ACCEPTFILES);
+        }
+      }
+    }
+
+    else
+    {
+      SK_OLE_DragDropChanged = true;
     }
   }
 }

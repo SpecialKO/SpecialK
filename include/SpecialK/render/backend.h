@@ -577,6 +577,7 @@ public:
     //   to flag the game and start disabling features!
     bool                  unity                = false;
     bool                  unreal               = false;
+    bool                  xgs_Framework        = false;
     bool                  capcom               = false;
     bool                  sdl                  = false;
     bool                  atlus                = false;

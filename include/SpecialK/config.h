@@ -1319,6 +1319,7 @@ struct sk_config_t
     bool    activate_at_start   = false;
     bool    fix_stuck_keys      = false; // Fixes keys that might be stuck after alt-tab
     bool    allow_drag_n_drop   =  true;
+    bool    allow_file_drops    =  true;
     struct resolution_s {
       struct dim_override_s {
         unsigned int x          = 0;

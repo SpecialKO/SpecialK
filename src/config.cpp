@@ -1219,6 +1219,7 @@ struct {
   sk::ParameterBool*      treat_fg_as_active      = nullptr;
   sk::ParameterBool*      fix_stuck_alt_tab_keys  = nullptr;
   sk::ParameterBool*      allow_drag_n_drop       = nullptr;
+  sk::ParameterBool*      allow_file_drops        = nullptr;
 } window;
 
 struct {
@@ -1922,6 +1923,7 @@ auto DeclKeybind =
                                                          L" that were released while the game was alt-tab'd",          dll_ini,         L"Window.System",         L"FixStuckAltTabKeys"),
     ConfigEntry (window.allow_drag_n_drop,               L"Allow Special K to install a drag-n-drop handler for D3D11"
                                                          L" texture mods and INI-related functionality.",              dll_ini,         L"Window.System",         L"AllowDragNDrop"),
+    ConfigEntry (window.allow_file_drops,                L"Allow Special K to handle file drops for the game window.", dll_ini,         L"Window.System",         L"AllowFileDrops"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -5275,6 +5277,7 @@ auto DeclKeybind =
   window.dont_hook_wndproc->load      (config.window.dont_hook_wndproc);
   window.activate_at_start->load      (config.window.activate_at_start);
   window.allow_drag_n_drop->load      (config.window.allow_drag_n_drop);
+  window.allow_file_drops->load       (config.window.allow_file_drops);
   window.treat_fg_as_active->load     (config.window.treat_fg_as_active);
   window.fix_stuck_alt_tab_keys->load (config.window.fix_stuck_keys);
 
@@ -6790,6 +6793,7 @@ SK_SaveConfig ( std::wstring name,
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
   window.activate_at_start->store             (config.window.activate_at_start);
   window.allow_drag_n_drop->store             (config.window.allow_drag_n_drop);
+  window.allow_file_drops->store              (config.window.allow_file_drops);
   window.treat_fg_as_active->store            (config.window.treat_fg_as_active);
   window.fix_stuck_alt_tab_keys->store        (config.window.fix_stuck_keys);
 
