@@ -1192,6 +1192,8 @@ SK_HID_PlayStation_LatencyReportWatchdog (SK_HID_PlayStationDevice* pDevice)
     if (dwLastReset < dwTimeNow - 250UL)
     {   dwLastReset = dwTimeNow;
       pDevice->latency.last_ack = 0;
+      pDevice->latency.last_syn = 0;
+      pDevice->latency.ping     = 0;
     }
   }
 }

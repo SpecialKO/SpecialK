@@ -1,4 +1,9 @@
-﻿25.6.22.2
+﻿25.6.29
+=======
+ + Disable drag-n-drop support in xgs framework games.
+ + Reset PlayStation latency counter more frequently on connectivity issues.
+
+25.6.22.2
 =========
  + Improved window layering (Always-on-Top) overrides when "Continue Rendering"
      is used in NVIDIA Vk/DXGI Interop-based games.
