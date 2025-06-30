@@ -1,10 +1,11 @@
-﻿
-25.6.30
+﻿25.6.30
 =======
  + Clamp HDR retrofit alpha in scRGB to [0,1], as it would never have values
      outside this range in SDR.
  + Added SKIV to the set of applications that SKIF will disable the
      GeForce Experience overlay for.
+ + Merge pull request #281 from miguelkmarques:ac-shadows-1-0-6-support
+     * AC Shadows 1.0.6 Support (exception addresses updated)
 
 25.6.29.1
 =========
