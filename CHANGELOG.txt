@@ -1,4 +1,17 @@
-﻿25.6.29
+﻿25.6.30
+=======
+ + Added INI option to force DirectStorage games to use the GPU if they initialize
+     DStorage queues without a D3D12 device.
+
+   * This brings back HW accelerated texture streaming to Monster Hunter: Wilds
+
+   [Render.DStorage]
+   UseDummyD3D12DeviceIfNeeded={true|false}  Default: true
+
+    + In many games, DStorage is initialized beofre graphics / windows are init.
+        so it may be necessary to use local injection for this feature.
+
+25.6.29
 =======
  + Disable drag-n-drop support in xgs framework games.
  + Reset PlayStation latency counter more frequently on connectivity issues.

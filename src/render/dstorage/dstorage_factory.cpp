@@ -51,6 +51,48 @@ SK_IWrapDStorageFactory::CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID ri
                                  desc->Name != nullptr ?
                                  desc->Name : "Unnamed",
                                  desc->Capacity);
+
+  if (desc->Device == nullptr && config.render.dstorage.use_dummy_d3d12_dev)
+  {
+    // Singleton device
+    static SK_ComPtr <ID3D12Device> pDevice;
+
+    if ( D3D12CreateDevice_Import != nullptr &&
+// Requires Windows SDK 22000
+#if defined (NTDDI_WIN10_CO) && (WDK_NTDDI_VERSION >= NTDDI_WIN10_CO)
+        (SUCCEEDED (
+           D3D12CreateDevice_Import (
+             nullptr,     D3D_FEATURE_LEVEL_12_2,
+               __uuidof (ID3D12Device), (void **)&pDevice.p )
+         ) ||
+#endif
+         SUCCEEDED (
+           D3D12CreateDevice_Import (
+             nullptr,     D3D_FEATURE_LEVEL_12_1,
+               __uuidof (ID3D12Device), (void **)&pDevice.p )
+         ) ||
+         SUCCEEDED (
+           D3D12CreateDevice_Import (
+             nullptr,     D3D_FEATURE_LEVEL_12_0,
+               __uuidof (ID3D12Device), (void **)&pDevice.p )
+         ) ||
+        SUCCEEDED (
+           D3D12CreateDevice_Import (
+             nullptr,     D3D_FEATURE_LEVEL_11_1,
+               __uuidof (ID3D12Device), (void **)&pDevice.p )
+         ) ||
+         SUCCEEDED (
+           D3D12CreateDevice_Import (
+             nullptr,     D3D_FEATURE_LEVEL_11_0,
+               __uuidof (ID3D12Device), (void **)&pDevice.p )
+         )
+        )
+       )
+    {
+      SK_LOGi0 (L"Adding D3D12 Device to DirectStorage queue desc.");
+      override_desc.Device = pDevice.Detach ();
+    }
+  }
   
   if (SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart)
   {

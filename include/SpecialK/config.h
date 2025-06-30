@@ -871,6 +871,7 @@ struct sk_config_t
       int     submit_threads       = -1;
       int     cpu_decomp_threads   = -1;
       bool    enable_hooks         = true;
+      bool    use_dummy_d3d12_dev  = true;
     } dstorage;
 
     struct {

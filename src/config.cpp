@@ -980,6 +980,7 @@ struct {
     sk::ParameterInt*     submit_threads          = nullptr;
     sk::ParameterInt*     cpu_decomp_threads      = nullptr;
     sk::ParameterBool*    hook_dstorage           = nullptr;
+    sk::ParameterBool*    use_dummy_device        = nullptr;
   } dstorage;
 
   struct {
@@ -2175,7 +2176,8 @@ auto DeclKeybind =
     ConfigEntry (render.dstorage.submit_threads,         L"Override default number of DirectStorage Submit threads",   dll_ini,         L"Render.DStorage",       L"NumberOfSubmitThreads"),
     ConfigEntry (render.dstorage.cpu_decomp_threads,     L"Override default number of CPU Decompression threads",      dll_ini,         L"Render.DStorage",       L"NumberOfCPUDecompThreads"),
     ConfigEntry (render.dstorage.hook_dstorage,          L"Hook DirectStorage for additional features",                dll_ini,         L"Render.DStorage",       L"EnableHooks"),
-
+    ConfigEntry (render.dstorage.use_dummy_device,       L"Create a standalone D3D12 device if a DStorage game tries "
+                                                         L"to allocate a DStorage queue with no D3D12 device supplied",dll_ini,         L"Render.DStorage",       L"UseDummyD3D12DeviceIfNeeded"),
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
     ConfigEntry (texture.d3d11.use_l3_hash,              L"Adds L3 to Hierarchical Cache;  L3=Fmt,  L2=Mips,  L1=Res", dll_ini,         L"Textures.D3D11",        L"CacheUsingL3Hash"),
@@ -4988,6 +4990,7 @@ auto DeclKeybind =
   render.dstorage.cpu_decomp_threads->
                                     load (config.render.dstorage.cpu_decomp_threads);
   render.dstorage.hook_dstorage->   load (config.render.dstorage.enable_hooks);
+  render.dstorage.use_dummy_device->load (config.render.dstorage.use_dummy_d3d12_dev);
 
   texture.d3d11.cache->load              (config.textures.d3d11.cache);
   texture.d3d11.use_l3_hash->load        (config.textures.d3d11.use_l3_hash);
@@ -7148,6 +7151,7 @@ SK_SaveConfig ( std::wstring name,
       render.dstorage.cpu_decomp_threads->
                                         store (config.render.dstorage.cpu_decomp_threads);
       render.dstorage.hook_dstorage->   store (config.render.dstorage.enable_hooks);
+      render.dstorage.use_dummy_device->store (config.render.dstorage.use_dummy_d3d12_dev);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
