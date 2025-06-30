@@ -77,8 +77,7 @@ SK_LazyGlobal <NVAPI_ThreadSafety> SK_NvAPI_Threading;
 using namespace sk;
 using namespace sk::NVAPI;
 
-// Not thread-safe; doesn't much matter.
-static bool nvapi_silent = false;
+static thread_local bool nvapi_silent = false;
 
 #define NVAPI_SILENT()  { nvapi_silent = true;  }
 #define NVAPI_VERBOSE() { nvapi_silent = false; }
@@ -102,7 +101,7 @@ static bool nvapi_silent = false;
 
 #define NVAPI_SET_DWORD(x,y,z) (x).version = NVDRS_SETTING_VER;       \
                                (x).settingLocation =                  \
-                                 NVDRS_DEFAULT_PROFILE_LOCATION;      \
+                                 NVDRS_CURRENT_PROFILE_LOCATION;      \
                                (x).settingId = (y); (x).settingType = \
                                  NVDRS_DWORD_TYPE;                    \
                                (x).u32CurrentValue = (z);             \
@@ -3776,6 +3775,10 @@ RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
 
   if (NVAPI::InitializeLibrary (executable_name.c_str ()))
   {
+    // Replace backslashes with forward slashes as-per NV's docs
+    std::replace (executable_name.begin (),
+                  executable_name.end   (), L'\\', L'/');
+
     app_name      = executable_name;
     friendly_name = executable_name;
 
@@ -3902,6 +3905,7 @@ CALLBACK
 RunDLL_DisableGFEForSKIF ( HWND   hwnd,        HINSTANCE hInst,
                            LPCSTR lpszCmdLine, int       nCmdShow )
 {
+  UNREFERENCED_PARAMETER (lpszCmdLine);
   UNREFERENCED_PARAMETER (hInst);
   UNREFERENCED_PARAMETER (hwnd);
   UNREFERENCED_PARAMETER (nCmdShow);
@@ -3912,22 +3916,24 @@ RunDLL_DisableGFEForSKIF ( HWND   hwnd,        HINSTANCE hInst,
     friendly_name = L"SKIF";
 
     SK_NvAPI_SetVRREnablement (FALSE);
+    SK_NvAPI_AllowGFEOverlay  (false, L"SKIF", L"SKIF.exe");
 
-    if (SK_IsAdmin ())
-    {
-      SK_NvAPI_AllowGFEOverlay  (false, L"SKIF", L"SKIF.exe");
-    }
+    NVAPI::UnloadLibrary ();
 
-    else
-    {
-      if (! StrStrIA (lpszCmdLine, "silent"))
-      {
-        MessageBox (
-          NULL, L"This command must be run as admin.",
-             L"Disable GFE For SKIF Failed", MB_OK
-        );
-      }
-    }
+    printf ("GFE Overlay (nvspcap) disabled for SKIF");
+  }
+
+  if (NVAPI::InitializeLibrary (L"SKIV"))
+  {
+    app_name      = L"SKIV.exe";
+    friendly_name = L"SKIV";
+
+    SK_NvAPI_SetVRREnablement (FALSE);
+    SK_NvAPI_AllowGFEOverlay  (false, L"SKIV", L"SKIV.exe");
+
+    printf ("GFE Overlay (nvspcap) disabled for SKIV");
+
+    NVAPI::UnloadLibrary ();
   }
 }
 
