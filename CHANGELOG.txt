@@ -1,5 +1,13 @@
-﻿25.6.30
+﻿
+25.6.30
 =======
+ + Clamp HDR retrofit alpha in scRGB to [0,1], as it would never have values
+     outside this range in SDR.
+ + Added SKIV to the set of applications that SKIF will disable the
+     GeForce Experience overlay for.
+
+25.6.29.1
+=========
  + Added INI option to force DirectStorage games to use the GPU if they initialize
      DStorage queues without a D3D12 device.
 

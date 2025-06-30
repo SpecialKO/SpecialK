@@ -204,6 +204,10 @@ main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                           input.uv );
 
+  // Alpha should saturate between 0 and 1, as it would have in SDR.
+  hdr_color.a =
+    saturate (hdr_color.a);
+
   float3 orig_color =
     abs (hdr_color.rgb);
 
