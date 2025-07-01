@@ -422,7 +422,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetPrivateDataInterface (REFGUID Name, const IUnknown *pUnknown)
 {
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   return
     pReal->SetPrivateDataInterface (Name, pUnknown);
@@ -1099,7 +1100,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 {
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   return
     pReal->GetFrameStatistics (pStats);
@@ -1312,7 +1314,8 @@ IWrapDXGISwapChain::SetMaximumFrameLatency (UINT MaxLatency)
 {
   assert (ver_ >= 2);
 
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   HRESULT hr = E_UNEXPECTED;
 
@@ -1351,7 +1354,8 @@ IWrapDXGISwapChain::GetMaximumFrameLatency (UINT *pMaxLatency)
 {
   assert (ver_ >= 2);
 
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   HRESULT hr = S_OK;
 
@@ -1395,9 +1399,10 @@ HANDLE
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
 {
-  assert(ver_ >= 2);
+  assert (ver_ >= 2);
 
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
 #if 1
   if (config.render.framerate.pre_render_limit > 0)
