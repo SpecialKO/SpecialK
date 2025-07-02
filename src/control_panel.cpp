@@ -3177,6 +3177,11 @@ SK_ImGui_ControlPanel (void)
         //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
         ImGui::MenuItem ("Display G-Sync Status",       "", &config.apis.NvAPI.gsync_status);
       }
+
+      else if (! sk::NVAPI::nv_hardware)
+      {
+        ImGui::MenuItem ("Display VRR Status",          "", &config.apis.NvAPI.gsync_status);
+      }
     };
 
 
@@ -5344,7 +5349,28 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     SK_DXGI_FullscreenControlPanel ();
 
 
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    if (config.apis.NvAPI.gsync_status){
+    auto& stats =
+      rb.displays [rb.active_display].statistics;
+
+    const float fVBlankHz =
+      stats.vblank_counter.getVBlankHz (
+              SK_QueryPerf ().QuadPart );
+
+    const auto& vsync_freq =
+      rb.displays [rb.active_display].signal.timing.vsync_freq;
+
+    const float fFixedRefreshHz = vsync_freq.Denominator <= 0.0f ? 0.0f :
+             static_cast <float> (vsync_freq.Numerator) /
+             static_cast <float> (vsync_freq.Denominator);
+    
+    const float fMaxHzForVRR =
+      fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) / 3600.0f;
+
+    const bool bLimitRequiredForVRR =
+      (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
+
+    if (sk::NVAPI::nv_hardware)
     {
       char szGSyncStatus [128] = { };
 
@@ -5375,20 +5401,22 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         if (rb.gsync_state.active)
         {
-          auto& stats =
-            rb.displays [rb.active_display].statistics;
-
-          float fVBlankHz =
-            stats.vblank_counter.getVBlankHz (
-                    SK_QueryPerf ().QuadPart );
-
           // Is it really "active" if we can't calculate the rate?
           if (fVBlankHz == 0.0f)
             strcat (szGSyncStatus, "Active " ICON_FA_QUESTION_CIRCLE);
           else
           {
-            std::string_view     status (szGSyncStatus, 128);
-            SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+            std::string_view status (szGSyncStatus, 128);
+
+            float fActiveHz = fVBlankHz;
+
+            if ( fVBlankHz < 0.999f * fFixedRefreshHz ||
+                 fVBlankHz > 1.001f * fFixedRefreshHz ) {
+              SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+            } else {
+              SK_FormatStringView (status, "Constant Rate : %5.2f Hz", fFixedRefreshHz);
+                                                           fActiveHz = fFixedRefreshHz;
+            }
           }
         }
         else if (! rb.gsync_state.maybe_active)
@@ -5405,12 +5433,13 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           strcat (szGSyncStatus, "   Unsupported");
       }
 
-      if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active) && (rb.api == SK_RenderAPI::D3D12))
+      if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active) && ((rb.api == SK_RenderAPI::D3D12) || fVBlankHz > fMaxHzForVRR))
       {
         if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
              rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
              rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
-             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI )
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+             bLimitRequiredForVRR )
         {
           strcat (szGSyncStatus, "  " ICON_FA_EXCLAMATION_TRIANGLE);
         }
@@ -5444,6 +5473,15 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               "The current Presentation Mode uses DWM Composition and cannot activate G-Sync"
             );
           }
+
+          else if (bLimitRequiredForVRR)
+          {
+            ImGui::Separator ();
+            ImGui::BulletText (
+              "The active framerate is too high for G-Sync; cap to %5.2f FPS "
+              "or lower for minimum latency.", fMaxHzForVRR
+            );
+          }
         }
         ImGui::EndTooltip ();
       }
@@ -5454,6 +5492,85 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
     }
+
+    else
+    {
+      if (fVBlankHz > 0.0f)
+      {
+        char                     szVRRStatus [128] = { };
+        std::string_view status (szVRRStatus, 128);
+
+        float fActiveHz = fVBlankHz;
+
+        if ( fVBlankHz < 0.999f * fFixedRefreshHz ||
+             fVBlankHz > 1.001f * fFixedRefreshHz ) {
+          SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+        } else {
+          SK_FormatStringView (status, "Constant Rate : %5.2f Hz", fFixedRefreshHz);
+                                                       fActiveHz = fFixedRefreshHz;
+        }
+
+        if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
+             rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI || 
+             bLimitRequiredForVRR )
+        {
+          strcat (szVRRStatus, "  " ICON_FA_EXCLAMATION_TRIANGLE);
+        }
+
+        ImGui::MenuItem (" Variable Refresh", szVRRStatus, nullptr, true);
+
+        if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
+             rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+             bLimitRequiredForVRR )
+        {
+          if (ImGui::BeginItemTooltip ())
+          {
+            if (rb.presentation.mode == SK_PresentMode::Unknown)
+            {
+              ImGui::Separator ();
+              ImGui::BulletText (
+                "Presentation Model Tracking is not working, VRR status on AMD/Intel GPUs "
+                "is unknown without it."
+              );
+            }
+
+            else if (rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+                     rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+                     rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI)
+            {
+              ImGui::Separator ();
+              ImGui::BulletText (
+                "The current Presentation Mode uses DWM Composition and cannot activate VRR"
+              );
+            }
+
+            else if (fActiveHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR))
+            {
+              ImGui::Separator ();
+              ImGui::BulletText (
+                "The active framerate is too high for VRR; cap to %5.2f FPS "
+                "or lower for minimum latency.", fMaxHzForVRR
+              );
+              ImGui::Separator ();
+              ImGui::TextUnformatted ("Click to apply the required framerate limit.");
+            }
+
+            ImGui::EndTooltip ();
+          }
+
+          if (bLimitRequiredForVRR && ImGui::IsItemClicked ())
+          {
+            config.render.framerate.target_fps = fMaxHzForVRR;
+                                  __target_fps = fMaxHzForVRR;
+            config.utility.save_async ();
+          }
+        }
+      }
+    } }
 
     if (sk::NVAPI::nv_hardware)
       SK_NV_GSYNCControlPanel ();
@@ -5591,9 +5708,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         static bool bRefreshRateChanged = false;
         static bool bDisplayChanged     = false;
 
+        const auto& vsync_freq    = rb.displays [rb.active_display].signal.timing.vsync_freq;
         const double dRefreshRate =
-          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
-          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+          static_cast <double> (vsync_freq.Numerator) /
+          static_cast <double> (vsync_freq.Denominator);
 
         if ( config.render.framerate.last_refresh_rate != 0.0f &&
              ( config.render.framerate.last_refresh_rate > dRefreshRate + 0.1 ||

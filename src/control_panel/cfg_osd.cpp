@@ -163,7 +163,7 @@ SK::ControlPanel::OSD::Draw (void)
       }
 
       ImGui::SameLine   ();
-      if (config.fps.show && config.fps.compact && sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      if (config.fps.show && config.fps.compact && /*sk::NVAPI::nv_hardware &&*/ config.apis.NvAPI.gsync_status)
       {
         ImGui::Checkbox ("VRR", &config.fps.compact_vrr);
         ImGui::SameLine ();

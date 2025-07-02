@@ -1929,6 +1929,16 @@ SK_Framerate_AutoVRRCheckpoint (void)
       SK_RunOnce (SK_SpawnPresentMonWorker (); config.apis.NvAPI.implicit_gsync = true;);
     }
   }
+
+  // AMD and Intel
+  else
+  {
+    if (config.apis.NvAPI.gsync_status)
+    {
+      extern void SK_SpawnPresentMonWorker (void);
+      SK_RunOnce (SK_SpawnPresentMonWorker ());
+    }
+  }
 }
 
 void

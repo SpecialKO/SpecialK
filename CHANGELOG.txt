@@ -1,4 +1,11 @@
-﻿25.6.30
+﻿25.7.1
+======
+ + Added Variable Refresh Rate display rate calculation for AMD and Intel GPUs
+     in OpenGL/D3D11/D3D12/Vulkan to the control panel.
+ + Added tooltip to "G-Sync Status" text if the active frame rate is too high
+     for VRR, and denote this as "Constant Rate" instead of "Variable Rate".
+
+25.6.30
 =======
  + Clamp HDR retrofit alpha in scRGB to [0,1], as it would never have values
      outside this range in SDR.
