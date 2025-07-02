@@ -4691,7 +4691,7 @@ SK_HID_PlayStationDevice::initialize_serial (void)
       if (dev->bBluetooth)
       {
         // This controller should be USB if we found a duplicate that is Bluetooth
-        SK_ReleaseAssert (bBluetooth == false);
+        if (dev->latency.last_poll > 0) SK_ReleaseAssert (bBluetooth == false);
 
         dev->endpoints.usb       = this;
              endpoints.bluetooth =  dev;
@@ -4700,7 +4700,7 @@ SK_HID_PlayStationDevice::initialize_serial (void)
       else
       {
         // This controller should be Bluetooth if we found a duplicate that is USB
-        SK_ReleaseAssert (bBluetooth == true);
+        if (dev->latency.last_poll > 0) SK_ReleaseAssert (bBluetooth == true);
 
         dev->endpoints.bluetooth = this;
              endpoints.usb       =  dev;
