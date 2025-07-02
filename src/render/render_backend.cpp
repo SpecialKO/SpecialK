@@ -1666,6 +1666,12 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
   auto _EvaluateAutoLowLatency = [&]()
   {
+    if (! sk::NVAPI::nv_hardware)
+    {
+      capable = display.vrr.min_refresh != 0;
+      active  = display.vrr.min_refresh != 0;
+    }
+
     // Opt-in to Auto-Low Latency the first time this is seen
     if (capable && active && config.render.framerate.present_interval != 0)
     {
@@ -1691,7 +1697,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       }
 
       const bool bAutoVRRIsStale =
-        (rb.gsync_state.active && display.nvapi.vrr_enabled == 1) && (bRefreshRateChanged || bDisplayChanged);
+        (active && (display.nvapi.vrr_enabled == 1 || (! sk::NVAPI::nv_hardware))) &&
+                              (bRefreshRateChanged || bDisplayChanged);
 
       if (bAutoVRRIsStale && config.render.framerate.auto_low_latency.policy.auto_reapply &&
                            ( config.render.framerate.auto_low_latency.triggered ||
@@ -1726,25 +1733,32 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
       if (config.render.framerate.auto_low_latency.waiting)
       {
-        config.nvidia.reflex.enable                 = true;
-        config.nvidia.reflex.low_latency            = true;
+        if (sk::NVAPI::nv_hardware)
+        {
+          config.nvidia.reflex.enable               = true;
+          config.nvidia.reflex.low_latency          = true;
+        }
+
         config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
         config.render.framerate.auto_low_latency.
                                           triggered = true;
         // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
 
-        // Use the Low-Latency Limiter mode, even though it might cause stutter.
-        if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
+        if (sk::NVAPI::nv_hardware)
         {
-          config.nvidia.reflex.low_latency_boost     = true;
-          config.nvidia.reflex.marker_optimization   = true;
-        }
-        // If user has a forced override configured, then ignore this and respect their overrides.
-        else if (! config.nvidia.reflex.override)
-        {
-          // No need to turn this off, just turn off latency marker optimization
-        //config.nvidia.reflex.low_latency_boost     = false;
-          config.nvidia.reflex.marker_optimization = false;
+          // Use the Low-Latency Limiter mode, even though it might cause stutter.
+          if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
+          {
+            config.nvidia.reflex.low_latency_boost     = true;
+            config.nvidia.reflex.marker_optimization   = true;
+          }
+          // If user has a forced override configured, then ignore this and respect their overrides.
+          else if (! config.nvidia.reflex.override)
+          {
+            // No need to turn this off, just turn off latency marker optimization
+          //config.nvidia.reflex.low_latency_boost     = false;
+            config.nvidia.reflex.marker_optimization = false;
+          }
         }
 
         // For VRR, always use VRR Optimized.
@@ -1803,7 +1817,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
     }
   };
 
-  SK_RunOnce (disabled.for_app = (! SK_NvAPI_GetVRREnablement ()));
+  SK_RunOnce (disabled.for_app = sk::NVAPI::nv_hardware && (! SK_NvAPI_GetVRREnablement ()));
 
   //
   // All non-D3D9 or D3D11 APIs
@@ -1868,18 +1882,26 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
           display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-          if (dwLastCacheTime < dwTimeNow - 55000UL)
-          {   dwLastCacheTime = dwTimeNow +  5000UL;                         vrr_info = {NV_GET_VRR_INFO_VER};
-            SK_NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
-            SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                 &display.nvapi.monitor_caps);
+          if (sk::NVAPI::nv_hardware)
+          {
+            if (dwLastCacheTime < dwTimeNow - 55000UL)
+            {   dwLastCacheTime = dwTimeNow +  5000UL;                         vrr_info = {NV_GET_VRR_INFO_VER};
+              SK_NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+              SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                   &display.nvapi.monitor_caps);
+            }
+
+            display.nvapi.vrr_enabled =
+              vrr_info.bIsVRREnabled;
+
+            rb.gsync_state.capable = display.nvapi.vrr_enabled;
+            rb.gsync_state.active  = false;
           }
 
-          display.nvapi.vrr_enabled =
-            vrr_info.bIsVRREnabled;
-
-          rb.gsync_state.capable = display.nvapi.vrr_enabled;
-          rb.gsync_state.active  = false;
+          else
+          {
+            rb.gsync_state.capable = display.vrr.min_refresh != 0;
+          }
 
           if (rb.gsync_state.capable)
           {
@@ -1905,7 +1927,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
             }
           }
 
-          else
+          else if (sk::NVAPI::nv_hardware)
           {
             auto &monitor_caps =
               display.nvapi.monitor_caps;
@@ -3639,7 +3661,10 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 #define DISPLAY_DESCRIPTOR_PRODUCT_NAME       0xFC
 #define DISPLAY_DESCRIPTOR_PRODUCT_NAME_TRUNC 0xA
 
-inline uint8_t blockType (uint8_t* block) noexcept
+#define HDMI_FORUM_SINK_CAPABILITY_DATA_BLOCK  (uint8_t)0x79
+#define HDMI_FORUM_SINK_CAPABILITY_HEADER_SIZE 4
+
+inline uint8_t blockType_MonitorDescriptor (uint8_t* block) noexcept
 {
   if (block     != 0 &&
       block [0] == 0 &&
@@ -3656,6 +3681,23 @@ inline uint8_t blockType (uint8_t* block) noexcept
     UNKNOWN_DESCRIPTOR;
 }
 
+#define blockType blockType_MonitorDescriptor
+
+inline uint8_t blockType_CTAv3 (uint8_t* block) noexcept
+{
+  if (block     != 0 &&
+      block [0] == 2 &&
+      block [1] == 3)
+  {
+    return
+      block [0];
+  }
+
+  return
+    UNKNOWN_DESCRIPTOR;
+}
+
+
 std::string
 SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 {
@@ -3671,6 +3713,161 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
   } while (i < 13);
 
   return name;
+}
+
+std::pair <uint16_t, uint16_t>
+SK_EDID_GetMonitorVRRRange ( uint8_t const* block )
+{
+  auto min = 0ui8,
+       max = 0ui8;
+  auto ptr = (block);
+
+  min =  ptr [5] & 0x3f;
+  max = (ptr [5] & 0xc0) << 2 | ptr [6];
+
+  return { min, max };
+}
+
+std::pair <uint16_t, uint16_t>
+SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
+{
+  std::pair <uint16_t, uint16_t> vrr_range = {};
+
+  if (edid == nullptr)
+    return vrr_range;
+
+  unsigned int i        = 0;
+  uint8_t*     block    = 0;
+  uint32_t     checksum = 0;
+
+  for (i = 0; i < length; ++i)
+    checksum += edid [i];
+
+  // Bad checksum, fail EDID
+  if ((checksum % 256) != 0)
+  {
+    if (config.system.log_level > 0)
+    {
+      SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+      //return vrr_range;
+    }
+  }
+
+  if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
+                     (const char*)edid_v1_header, EDID_HEADER_END + 1 ) )
+
+  {
+    dll_log->Log (L"SK_EDID_Parse (...): Not V1 Header");
+
+    // Not a V1 header
+    return vrr_range;
+  }
+
+  // Monitor name and timings
+  block =
+    &edid [DETAILED_TIMING_DESCRIPTIONS_START];
+
+  uint8_t *end =
+    &edid [length - 1];
+
+  while (block < end)
+  {
+    uint8_t type =
+      blockType_CTAv3 (block);
+
+    switch (type)
+    {
+      case DETAILED_TIMING_BLOCK:
+      {
+        if (block + 2 > end)
+          break;
+
+        const unsigned int ver = block [1];
+        const unsigned int off = block [2];
+
+        if (block +   4 > end ||
+            block + off > end)
+        {
+          break;
+        }
+
+        // Data Block Collection
+        if (ver == 3)
+        {
+          for ( i = 4   ;
+                i < off ;
+                i += (block [i] & 0x1f) + 1 )
+          {
+            const uint8_t tag =
+              (block [i] & 0xe0) >> 5;
+
+            // Extended Tag
+            if (tag == 0x7)
+            {
+              // HDMI Forum Sink Capabilities (the normal one)
+              if (block [i + 1] == 0x79)
+              {
+                vrr_range =
+                  SK_EDID_GetMonitorVRRRange (&block [i]);
+
+                if (vrr_range.first != vrr_range.second)
+                {
+                  return vrr_range;
+                }
+              }
+            }
+
+            // VSDB
+            else if (tag == 0x3)
+            {
+              unsigned int oui =
+                (block [i + 3] << 16) +
+                (block [i + 2] <<  8) +
+                 block [i + 1];
+
+              switch (oui)
+              {
+                // HDMI Forum Sink Capabilities (as part of VSDB)
+                case 0xc45dd8:
+                {
+                  vrr_range =
+                    SK_EDID_GetMonitorVRRRange (&block [i + HDMI_FORUM_SINK_CAPABILITY_HEADER_SIZE]);
+
+                  if (vrr_range.first != vrr_range.second)
+                  {
+                    return vrr_range;
+                  }
+                } break;
+                default:
+                  break;
+              }
+            }
+
+            else
+            {
+              if (config.system.log_level > 0)
+              {
+                SK_ImGui_Warning (
+                  SK_FormatStringW (L"Other CTAv3 Tag: %d", tag).c_str ()
+                );
+              }
+            }
+          }
+        }
+
+        block += off;
+        block += DETAILED_TIMING_DESCRIPTION_SIZE;
+      } break;
+
+      default:
+      case UNKNOWN_DESCRIPTOR:
+      {
+        ++block;
+      } break;
+    }
+  }
+
+  return vrr_range;
 }
 
 std::string
@@ -3941,6 +4138,19 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                )
            )
         {
+          auto [vrr_min,vrr_max] =
+            rb.decodeEDIDForVRRRange (edid.EDID_Data, edid.sizeofEDID);
+
+          if (vrr_min != vrr_max)
+          {
+            display.vrr.min_refresh = vrr_min;
+            display.vrr.max_refresh = vrr_max;
+
+            //SK_ImGui_Warning (
+            //  SK_FormatStringW (L"Display VRR Range: %d-%d Hz", vrr_min, vrr_max).c_str ()
+            //);
+          }
+
           edid_name =
             rb.decodeEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
 
@@ -4020,6 +4230,31 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
             if (ERROR_SUCCESS == lStat)
             {
+              auto [vrr_min,vrr_max] =
+                rb.decodeEDIDForVRRRange (EDID_Data, edid_size);
+
+              if (vrr_min != vrr_max)
+              {
+                display.vrr.min_refresh = vrr_min;
+                display.vrr.max_refresh = vrr_max;
+
+                auto &monitor_caps =
+                  display.nvapi.monitor_caps;
+
+                auto& bkend = SK_GetCurrentRenderBackend ();
+
+                monitor_caps.data.caps.supportVRR            = true;
+                monitor_caps.data.caps.currentlyCapableOfVRR = true;
+                
+                bkend.gsync_state.capable =
+                  monitor_caps.data.caps.supportVRR &&
+                  monitor_caps.data.caps.currentlyCapableOfVRR; 
+
+                //SK_ImGui_Warning (
+                //  SK_FormatStringW (L"Display VRR Range: %d-%d Hz", vrr_min, vrr_max).c_str ()
+                //);
+              }
+
               edid_name =
                 rb.decodeEDIDForName ( EDID_Data, edid_size );
 

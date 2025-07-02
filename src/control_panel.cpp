@@ -6665,82 +6665,83 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               ImGui::SameLine    ();
             }
 
-            if (sk::NVAPI::nv_hardware)
+            bool triggered =
+              config.render.framerate.auto_low_latency.triggered;
+
+            if (triggered)
             {
-              bool triggered =
-                config.render.framerate.auto_low_latency.triggered;
+              ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.4f, 0.9f, 0.4f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
+            }
 
-              if (triggered)
+            if (ImGui::Checkbox ("Auto VRR Mode", &config.render.framerate.auto_low_latency.waiting))
+            {
+              if (config.render.framerate.auto_low_latency.triggered)
+                  config.render.framerate.auto_low_latency.waiting = false;
+
+              config.render.framerate.auto_low_latency.triggered = false;
+            }
+
+            if (triggered)
+              ImGui::PopStyleColor (3);
+
+            if (ImGui::BeginItemTooltip ())
+            {
+              ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
+              ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
+
+              if (rb.isReflexSupported ())
               {
-                ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
-                ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.4f, 0.9f, 0.4f, 1.0f));
-                ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
+                if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
+                {
+                  ImGui::BulletText  ("NVIDIA Reflex will be set to Low Latency + Boost mode");
+                }
+                else
+                  ImGui::BulletText  ("NVIDIA Reflex will be set to Low Latency mode");
               }
+              ImGui::BulletText      ("Framerate limiter mode will be set to VRR Optimized");
+              ImGui::TextColored     (ImVec4 (1.f, 1.f, .5f, 1.f), " " ICON_FA_MOUSE);
+              ImGui::SameLine        ();
+              ImGui::TextUnformatted ("Right-click to configure Auto VRR behavior");
+              ImGui::Separator       ();
+              ImGui::TextColored     (ImVec4 (.6f, .6f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
+              ImGui::SameLine        ();
+              ImGui::TextUnformatted ("This option turns itself off and displays green after optimizing the framerate limiter");
+              ImGui::EndTooltip      ();
+            }
 
-              if (ImGui::Checkbox ("Auto VRR Mode", &config.render.framerate.auto_low_latency.waiting))
+            ImGui::OpenPopupOnItemClick ("AutoVRRConfig");
+
+            if (ImGui::BeginPopup ("AutoVRRConfig"))
+            {
+              bool vrr_changed = false;
+
+              vrr_changed |=
+                ImGui::Checkbox ("Enable By Default", &config.render.framerate.auto_low_latency.policy.global_opt);
+
+              ImGui::SetItemTooltip ("Controls whether games automatically use this feature");
+
+              vrr_changed |=
+                ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
+
+              ImGui::SetItemTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
+
+              vrr_changed |=
+                ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);
+
+              ImGui::SetItemTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
+
+              // Turn on Auto-Low Latency after making any changes
+              if (vrr_changed)
               {
-                if (config.render.framerate.auto_low_latency.triggered)
-                    config.render.framerate.auto_low_latency.waiting = false;
-
+                config.render.framerate.auto_low_latency.waiting   = config.render.framerate.auto_low_latency.policy.global_opt;
                 config.render.framerate.auto_low_latency.triggered = false;
               }
 
-              if (triggered)
-                ImGui::PopStyleColor (3);
-
-              if (ImGui::BeginItemTooltip ())
-              {
-                ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
-                ImGui::Separator       ();
-                ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
-                ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
-                if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
-                {
-                  ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency + Boost mode");
-                }
-                else
-                  ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency mode");
-                ImGui::BulletText      ("Framerate limiter mode will be set to VRR Optimized");
-                ImGui::TextColored     (ImVec4 (1.f, 1.f, .5f, 1.f), " " ICON_FA_MOUSE);
-                ImGui::SameLine        ();
-                ImGui::TextUnformatted ("Right-click to configure Auto VRR behavior");
-                ImGui::Separator       ();
-                ImGui::TextColored     (ImVec4 (.6f, .6f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
-                ImGui::SameLine        ();
-                ImGui::TextUnformatted ("This option turns itself off and displays green after optimizing the framerate limiter");
-                ImGui::EndTooltip      ();
-              }
-
-              ImGui::OpenPopupOnItemClick ("AutoVRRConfig");
-
-              if (ImGui::BeginPopup ("AutoVRRConfig"))
-              {
-                bool vrr_changed = false;
-
-                vrr_changed |=
-                  ImGui::Checkbox ("Enable By Default", &config.render.framerate.auto_low_latency.policy.global_opt);
-
-                ImGui::SetItemTooltip ("Controls whether games automatically use this feature");
-
-                vrr_changed |=
-                  ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
-
-                ImGui::SetItemTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
-
-                vrr_changed |=
-                  ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);
-
-                ImGui::SetItemTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
-
-                // Turn on Auto-Low Latency after making any changes
-                if (vrr_changed)
-                {
-                  config.render.framerate.auto_low_latency.waiting   = config.render.framerate.auto_low_latency.policy.global_opt;
-                  config.render.framerate.auto_low_latency.triggered = false;
-                }
-
-                ImGui::EndPopup ();
-              }
+              ImGui::EndPopup ();
             }
 
             ImGui::EndGroup     ();

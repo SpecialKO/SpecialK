@@ -283,6 +283,11 @@ public:
       DXGI_RATIONAL       refresh              = { 0, 0 };
     } native;
 
+    struct vrr_caps_s {
+      uint16_t            min_refresh          =   0;
+      uint16_t            max_refresh          =   0;
+    } vrr;
+
     struct nvapi_ctx_s {
       NvPhysicalGpuHandle gpu_handle           =   nullptr;
       NvDisplayHandle     display_handle       =   nullptr;
@@ -751,6 +756,8 @@ public:
 
   std::string decodeEDIDForName      (uint8_t* edid, size_t length) const;
   POINT       decodeEDIDForNativeRes (uint8_t* edid, size_t length) const;
+  std::pair <uint16_t,uint16_t>
+              decodeEDIDForVRRRange  (uint8_t* edid, size_t length) const;
 
   bool resetTemporaryDisplayChanges (void);
 

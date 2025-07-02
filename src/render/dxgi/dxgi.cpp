@@ -1565,7 +1565,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
       rb.d3d11.immediate_ctx    =     pDevCtx;
     }
 
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    if (/*sk::NVAPI::nv_hardware && */config.apis.NvAPI.gsync_status)
     {
       InterlockedExchange (&__SK_NVAPI_UpdateGSync, TRUE);
     }
@@ -1578,7 +1578,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
     if (! pRealSwap.IsEqualObject (rb.swapchain))
           rb.swapchain =         pRealSwap.p;
 
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    if (/*sk::NVAPI::nv_hardware && */config.apis.NvAPI.gsync_status)
     {
       InterlockedExchange (&__SK_NVAPI_UpdateGSync, TRUE);
     }
@@ -1919,25 +1919,12 @@ SK_D3D11_InsertDuplicateFrame (int MakeBreak = 0)
 void
 SK_Framerate_AutoVRRCheckpoint (void)
 {
-  if (sk::NVAPI::nv_hardware)
+  // PresentMon is needed to handle these two cases
+  if ((config.render.framerate.auto_low_latency.waiting) ||
+      (config.render.framerate.auto_low_latency.triggered && config.render.framerate.auto_low_latency.policy.auto_reapply))
   {
-    // PresentMon is needed to handle these two cases
-    if ((config.render.framerate.auto_low_latency.waiting) ||
-        (config.render.framerate.auto_low_latency.triggered && config.render.framerate.auto_low_latency.policy.auto_reapply))
-    {
-      extern void SK_SpawnPresentMonWorker (void);
-      SK_RunOnce (SK_SpawnPresentMonWorker (); config.apis.NvAPI.implicit_gsync = true;);
-    }
-  }
-
-  // AMD and Intel
-  else
-  {
-    if (config.apis.NvAPI.gsync_status)
-    {
-      extern void SK_SpawnPresentMonWorker (void);
-      SK_RunOnce (SK_SpawnPresentMonWorker ());
-    }
+    extern void SK_SpawnPresentMonWorker (void);
+    SK_RunOnce (SK_SpawnPresentMonWorker (); config.apis.NvAPI.implicit_gsync = true;);
   }
 }
 
@@ -1957,26 +1944,36 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 
     if (__WantGSyncUpdate)
     {
-      rb.surface.dxgi = nullptr;
-      if ( SUCCEEDED ( pSwap->GetBuffer (
-                         currentBuffer,
-                           IID_PPV_ARGS (&rb.surface.dxgi.p)
-                                        )
-                     )
-         )
+      if (sk::NVAPI::nv_hardware)
       {
-        if ( NVAPI_OK ==
-               NvAPI_D3D_GetObjectHandleForResource (
-                 pDev, rb.surface.dxgi, &rb.surface.nvapi
-               )
+        rb.surface.dxgi = nullptr;
+        if ( SUCCEEDED ( pSwap->GetBuffer (
+                           currentBuffer,
+                             IID_PPV_ARGS (&rb.surface.dxgi.p)
+                                          )
+                       )
            )
         {
-          rb.gsync_state.update ();
-          InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
-                      config.apis.NvAPI.implicit_gsync = false;
-        }
+          if ( NVAPI_OK ==
+                 NvAPI_D3D_GetObjectHandleForResource (
+                   pDev, rb.surface.dxgi, &rb.surface.nvapi
+                 )
+             )
+          {
+            rb.gsync_state.update ();
+            InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
+                        config.apis.NvAPI.implicit_gsync = false;
+          }
 
-        else rb.surface.dxgi = nullptr;
+          else rb.surface.dxgi = nullptr;
+        }
+      }
+
+      else
+      {
+        rb.gsync_state.update ();
+        InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
+                    config.apis.NvAPI.implicit_gsync = false;
       }
     }
 

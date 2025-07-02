@@ -1,4 +1,11 @@
-﻿25.7.1
+﻿25.7.2
+======
+ + Added initial support for AutoVRR on AMD and Intel GPUs
+    * Requires an HDMI 2.1 VRR Display (VESA AdaptiveSync to follow later)
+    * May not always trigger, but enabling the FPS limiter for the first time
+        if the game window is on a VRR capable display will set correct fps.
+
+25.7.1
 ======
  + Added Variable Refresh Rate display rate calculation for AMD and Intel GPUs
      in OpenGL/D3D11/D3D12/Vulkan to the control panel.
