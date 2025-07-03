@@ -3234,6 +3234,9 @@
     <ClInclude Include="include\SpecialK\input\game_input.h">
       <Filter>Header Files\Backends\Input\GameInput</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\storefront\xbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3862,6 +3865,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\assassins_creed_shadows.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\xbox.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1803,6 +1803,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\steam_api.h" />
     <ClInclude Include="include\SpecialK\storefront\achievements.h" />
     <ClInclude Include="include\SpecialK\storefront\epic.h" />
+    <ClInclude Include="include\SpecialK\storefront\xbox.h" />
     <ClInclude Include="include\SpecialK\targetver.h" />
     <ClInclude Include="include\SpecialK\thread.h" />
     <ClInclude Include="include\SpecialK\tls.h" />
@@ -2274,6 +2275,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\storefront\achievements.cpp" />
     <ClCompile Include="src\storefront\epic.cpp" />
     <ClCompile Include="src\storefront\platform.cpp" />
+    <ClCompile Include="src\storefront\xbox.cpp" />
     <ClCompile Include="src\thread.cpp" />
     <ClCompile Include="src\tls.cpp" />
     <ClCompile Include="src\update\archive.cpp" />

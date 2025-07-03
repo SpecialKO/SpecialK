@@ -34,6 +34,7 @@
 #include <reflex/pclstats.h>
 
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/storefront/xbox.h>
 #include <SpecialK/control_panel/platform.h>
 
 #include <SpecialK/nvapi.h>
@@ -1115,7 +1116,8 @@ void BasicInit (void)
   //   features in addition to Special K's WMI monitoring services
   SK_WMI_Init ();
 
-  SK::EOS::Init (false);
+  SK::EOS::Init  (false);
+  SK::Xbox::Init (     );
 
   //// Do this from the startup thread [these functions queue, but don't apply]
   if (! config.input.dont_hook_core)

@@ -31,6 +31,7 @@
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <SpecialK/injection/injection.h>
+#include <SpecialK/storefront/xbox.h>
 
 extern "C" {
   extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
@@ -42,6 +43,9 @@ bool
 SK_ImGui_WantGamepadCapture (bool update)
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_WantGamepadCapture)
+
+  if (SK_Xbox_GetOverlayState (true))
+    return true;
 
   static std::atomic <ULONG64> lastFrameCaptured = 0;
   static std::atomic_bool      capture           = false;
