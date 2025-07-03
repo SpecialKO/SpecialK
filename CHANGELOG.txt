@@ -1,4 +1,12 @@
-﻿25.7.2.2
+﻿25.7.3
+======
+ + Added LFC indicator to NVIDIA Latency Management / Widget.
+ + Hide Special K's overlay and block gamepad input to games when the Xbox
+     GameBar is open and "redirecting input."
+ + Prevent games that use Windows.Gaming.Input from receiving device remove
+     events if Xbox Placeholder slot 0 is enabled and Xbox emulation is on.
+
+25.7.2.2
 ========
  + Differentiate between NVIDIA G-SYNC, HDMI VRR and AMD FreeSync in the
      control panel's status text for VRR.

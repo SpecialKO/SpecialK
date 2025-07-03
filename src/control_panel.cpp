@@ -5362,13 +5362,14 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
       (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
 
     if (! sk::NVAPI::nv_hardware)
-    {
+    { // Replace the G-SYNC placeholder text if EDID has not identified the actual
+      // VRR technology in use.
       if (! strcmp (rb.displays [rb.active_display].vrr.type, "NVIDIA G-SYNC"))
             strcpy (rb.displays [rb.active_display].vrr.type, "Variable Refresh");
     }
 
     std::string vrr_status_label =
-      SK_FormatString (" %hs Status   ", rb.displays [rb.active_display].vrr.type);
+      SK_FormatString (" %hs ", rb.displays [rb.active_display].vrr.type);
 
     if (sk::NVAPI::nv_hardware)
     {

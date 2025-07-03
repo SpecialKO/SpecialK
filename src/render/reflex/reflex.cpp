@@ -1087,9 +1087,9 @@ SK_NV_AdaptiveSyncControl (void)
         }
 
         float fEffectiveRefresh =
-          rb.displays [rb.active_display].statistics.vblank_counter.getVBlankHz (SK_QueryPerf ().QuadPart);
+          display.statistics.vblank_counter.getVBlankHz (SK_QueryPerf ().QuadPart);
 
-        ImGui::Text       ("Adaptive Sync Status for %hs", SK_WideCharToUTF8 (rb.display_name).c_str ());
+        ImGui::Text       ("%hs Status for %hs", display.vrr.type, SK_WideCharToUTF8 (rb.display_name).c_str ());
         ImGui::Separator  ();
         ImGui::BeginGroup ();
         ImGui::Text       ("Current State:");
@@ -1106,9 +1106,16 @@ SK_NV_AdaptiveSyncControl (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        ImGui::Text       ( getAdaptiveSync.bDisableAdaptiveSync   ? "Disabled" :
-                                             rb.gsync_state.active ? "Active"   :
-                                                                     "Inactive" );
+        const ImVec4 vStatusColor =
+          getAdaptiveSync.bDisableAdaptiveSync   ? ImVec4 (1.f, 0.f, 0.f, 1.f) :
+                           rb.gsync_state.active ? ImVec4 (0.f, 1.f, 0.f, 1.f) :
+                                                   ImVec4 (.8f, .8f, .8f, 1.f);
+
+        ImGui::TextColored ( vStatusColor,
+              getAdaptiveSync.bDisableAdaptiveSync   ? "Disabled" :
+                               rb.gsync_state.active ? "Active"   :
+                                                       "Inactive" );
+
         if (! getAdaptiveSync.bDisableAdaptiveSync)
         {
           auto *pLimiter =
@@ -1119,6 +1126,25 @@ SK_NV_AdaptiveSyncControl (void)
               pLimiter->frame_history_snapshots->frame_history.calcMean ();
 
           ImGui::Text     ( "%#5.01f Hz", fEffectiveRefresh );
+
+          if (pLimiter != nullptr)
+          {
+            const auto snapshots =
+              pLimiter->frame_history_snapshots.getPtr ();
+
+            const float fFPS =
+              static_cast <float> (1000.0 / snapshots->cached_mean.val);
+            //const float fLFC = 1000000.0f /
+            //  static_cast <float> (getAdaptiveSync.maxFrameInterval);
+
+            if (fEffectiveRefresh > 1.08 * fFPS)
+            {
+              ImGui::SameLine ();
+
+              ImGui::TextColored (ImVec4 (.8f, .8f, 0.f, 1.f), " (LFC x%d)",
+                static_cast <int> (std::floorf (0.5f + (fEffectiveRefresh / fFPS))) );
+            }
+          }
 
           if (! config.apis.NvAPI.gsync_status)
           {
@@ -1138,7 +1164,7 @@ SK_NV_AdaptiveSyncControl (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        static bool secret_menu = true;
+        static bool secret_menu = false;
 
         if (ImGui::IsItemClicked (1))
           secret_menu = true;

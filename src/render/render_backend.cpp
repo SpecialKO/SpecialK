@@ -3836,7 +3836,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
                   if (vrr_range.first != vrr_range.second)
                   {
                     return
-                      { vrr_range.first, vrr_range.second, "HDMI VRR" };
+                      { vrr_range.first, vrr_range.second, "HDMI 2.1 VRR" };
                   }
                 }
               } break;
@@ -3860,7 +3860,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
                     if (vrr_range.first != vrr_range.second)
                     {
                       return
-                        { vrr_range.first, vrr_range.second, "HDMI VRR" };
+                        { vrr_range.first, vrr_range.second, "HDMI 2.1 VRR" };
                     }
                   } break;
                   case FSR_IEEE_OUI:
@@ -3879,7 +3879,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
 
                     else
                     {
-                      SK_LOGi0 (L"Unexpected FSR Range Size: %d-bytes", size);
+                      SK_LOGi0 (L"Unexpected FreeSync Range Size: %d-bytes", size);
                     }
                   }
                   default:
