@@ -1,4 +1,9 @@
-﻿25.7.2.1
+﻿25.7.2.2
+========
+ + Differentiate between NVIDIA G-SYNC, HDMI VRR and AMD FreeSync in the
+     control panel's status text for VRR.
+
+25.7.2.1
 ========
  + Added FreeSync / VESA Adaptive-Sync EDID decoding support.
  + Added temporary debug message when SK detects VRR support by reading EDID

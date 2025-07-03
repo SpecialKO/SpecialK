@@ -3750,13 +3750,13 @@ SK_EDID_GetMonitorVRRRange ( uint8_t const* block, uint32_t ieee_oui = HFSC_IEEE
   return { min, max };
 }
 
-std::pair <uint16_t, uint16_t>
-SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
+SK_RenderBackend_V2::output_s::vrr_caps_s
+SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
 {
-  std::pair <uint16_t, uint16_t> vrr_range = {};
+  SK_RenderBackend_V2::output_s::vrr_caps_s vrr_caps = { 0, 0, "N/A" };
 
   if (edid == nullptr)
-    return vrr_range;
+    return vrr_caps;
 
   unsigned int i        = 0;
   uint8_t*     block    = 0;
@@ -3771,7 +3771,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
     if (config.system.log_level > 0)
     {
       SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
-      //return vrr_range;
+      //return vrr_caps;
     }
   }
 
@@ -3782,7 +3782,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
     dll_log->Log (L"SK_EDID_Parse (...): Not V1 Header");
 
     // Not a V1 header
-    return vrr_range;
+    return vrr_caps;
   }
 
   // Monitor name and timings
@@ -3830,12 +3830,13 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
                 // HDMI Forum Sink Capabilities (the normal one)
                 if (block [i + 1] == HFSC_DATA_BLOCK)
                 {
-                  vrr_range =
+                  auto vrr_range =
                     SK_EDID_GetMonitorVRRRange (&block [i]);
 
                   if (vrr_range.first != vrr_range.second)
                   {
-                    return vrr_range;
+                    return
+                      { vrr_range.first, vrr_range.second, "HDMI VRR" };
                   }
                 }
               } break;
@@ -3853,24 +3854,26 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
                   // HDMI Forum Sink Capabilities (as part of VSDB)
                   case HFSC_IEEE_OUI:
                   {
-                    vrr_range =
+                    auto vrr_range =
                       SK_EDID_GetMonitorVRRRange (&block [i + HFSC_HEADER_SIZE], oui);
 
                     if (vrr_range.first != vrr_range.second)
                     {
-                      return vrr_range;
+                      return
+                        { vrr_range.first, vrr_range.second, "HDMI VRR" };
                     }
                   } break;
                   case FSR_IEEE_OUI:
                   {
                     if (size >= 8)
                     {
-                      vrr_range =
+                      auto vrr_range =
                         SK_EDID_GetMonitorVRRRange (&block [i + HFSC_HEADER_SIZE], oui);
 
                       if (vrr_range.first != vrr_range.second)
                       {
-                        return vrr_range;
+                        return
+                          { vrr_range.first, vrr_range.second, "AMD FreeSync" };
                       }
                     }
 
@@ -3916,7 +3919,8 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
     }
   }
 
-  return vrr_range;
+  return
+    vrr_caps;
 }
 
 std::string
@@ -4187,13 +4191,16 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                )
            )
         {
-          auto [vrr_min,vrr_max] =
-            rb.decodeEDIDForVRRRange (edid.EDID_Data, edid.sizeofEDID);
+          auto vrr_caps =
+            rb.decodeEDIDForVRRCaps (edid.EDID_Data, edid.sizeofEDID);
 
-          if (vrr_min != vrr_max)
+          if (vrr_caps.min_refresh != vrr_caps.max_refresh)
           {
-            display.vrr.min_refresh = vrr_min;
-            display.vrr.max_refresh = vrr_max;
+            display.vrr.min_refresh = vrr_caps.min_refresh;
+            display.vrr.max_refresh = vrr_caps.max_refresh;
+
+            strncpy_s ( display.vrr.type, 32,
+                           vrr_caps.type, _TRUNCATE );
           }
 
           edid_name =
@@ -4275,13 +4282,16 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
             if (ERROR_SUCCESS == lStat)
             {
-              auto [vrr_min,vrr_max] =
-                rb.decodeEDIDForVRRRange (EDID_Data, edid_size);
+              auto vrr_caps =
+                rb.decodeEDIDForVRRCaps (EDID_Data, edid_size);
 
-              if (vrr_min != vrr_max)
+              if (vrr_caps.min_refresh != vrr_caps.max_refresh)
               {
-                display.vrr.min_refresh = vrr_min;
-                display.vrr.max_refresh = vrr_max;
+                display.vrr.min_refresh = vrr_caps.min_refresh;
+                display.vrr.max_refresh = vrr_caps.max_refresh;
+
+                strncpy_s ( display.vrr.type, 32,
+                               vrr_caps.type, _TRUNCATE );
 
                 auto &monitor_caps =
                   display.nvapi.monitor_caps;
@@ -4296,7 +4306,9 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                   monitor_caps.data.caps.currentlyCapableOfVRR;
 
                 SK_ImGui_Warning (
-                  SK_FormatStringW (L"EDID Decoded VRR Range: %d-%d Hz", vrr_min, vrr_max).c_str ()
+                  SK_FormatStringW (L"EDID Decoded VRR Range: %d-%d Hz\r\nVRR Type: %hs",
+                                      vrr_caps.min_refresh,
+                                      vrr_caps.max_refresh, vrr_caps.type).c_str ()
                 );
               }
 

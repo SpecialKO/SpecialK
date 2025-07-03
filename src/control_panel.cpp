@@ -3172,16 +3172,7 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem ("Display Active Input APIs",     "", &config.imgui.show_input_apis);
 #endif
 
-      if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
-      {
-        //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
-        ImGui::MenuItem ("Display G-Sync Status",       "", &config.apis.NvAPI.gsync_status);
-      }
-
-      else if (! sk::NVAPI::nv_hardware)
-      {
-        ImGui::MenuItem ("Display VRR Status",          "", &config.apis.NvAPI.gsync_status);
-      }
+      ImGui::MenuItem ("Display VRR Status",            "", &config.apis.NvAPI.gsync_status);
     };
 
 
@@ -5370,6 +5361,15 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     const bool bLimitRequiredForVRR =
       (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
 
+    if (! sk::NVAPI::nv_hardware)
+    {
+      if (! strcmp (rb.displays [rb.active_display].vrr.type, "NVIDIA G-SYNC"))
+            strcpy (rb.displays [rb.active_display].vrr.type, "Variable Refresh");
+    }
+
+    std::string vrr_status_label =
+      SK_FormatString (" %hs Status   ", rb.displays [rb.active_display].vrr.type);
+
     if (sk::NVAPI::nv_hardware)
     {
       char szGSyncStatus [128] = { };
@@ -5445,7 +5445,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         }
       }
 
-      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, true);
+      ImGui::MenuItem (vrr_status_label.c_str (), szGSyncStatus, nullptr, true);
 
       if (ImGui::BeginItemTooltip ())
       {
@@ -5519,7 +5519,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           strcat (szVRRStatus, "  " ICON_FA_EXCLAMATION_TRIANGLE);
         }
 
-        ImGui::MenuItem (" Variable Refresh", szVRRStatus, nullptr, true);
+        ImGui::MenuItem (vrr_status_label.c_str (), szVRRStatus, nullptr, true);
 
         if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
              rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
