@@ -1,4 +1,8 @@
-﻿25.7.3
+﻿25.7.3.1
+========
+ + Slightly tweaked VRR initialization process on AMD and Intel systems.
+
+25.7.3
 ======
  + Added LFC indicator to NVIDIA Latency Management / Widget.
  + Hide Special K's overlay and block gamepad input to games when the Xbox

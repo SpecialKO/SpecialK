@@ -1977,7 +1977,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   if (! ((force || config.apis.NvAPI.gsync_status) &&
                            sk::NVAPI::nv_hardware) )
   {
-    capable = false;
+    if (sk::NVAPI::nv_hardware)
+      capable = false;
 
     return
       _ClearTemporarySurfaces ();
@@ -4143,7 +4144,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (*display.name == L'\0')
+  if (*display.name == L'\0' || display.vrr.min_refresh == 0)
   {
     std::string edid_name;
 
@@ -4201,6 +4202,11 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
             strncpy_s ( display.vrr.type, 32,
                            vrr_caps.type, _TRUNCATE );
+          }
+
+          else
+          {
+            display.vrr.min_refresh = 1;
           }
 
           edid_name =
@@ -4310,6 +4316,11 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                                       vrr_caps.min_refresh,
                                       vrr_caps.max_refresh, vrr_caps.type).c_str ()
                 );
+              }
+
+              else
+              {
+                display.vrr.min_refresh = 1;
               }
 
               edid_name =
