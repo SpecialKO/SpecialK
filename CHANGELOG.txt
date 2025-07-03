@@ -1,4 +1,10 @@
-﻿25.7.2
+﻿25.7.2.1
+========
+ + Added FreeSync / VESA Adaptive-Sync EDID decoding support.
+ + Added temporary debug message when SK detects VRR support by reading EDID
+     on non-NVIDIA GPUs.
+
+25.7.2
 ======
  + Added initial support for AutoVRR on AMD and Intel GPUs
     * Requires an HDMI 2.1 VRR Display (VESA AdaptiveSync to follow later)

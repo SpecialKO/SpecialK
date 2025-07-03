@@ -3654,6 +3654,9 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 #define DISPLAY_DESCRIPTOR_HEADER_SIZE        5
 #define DISPLAY_DESCRIPTOR_DATA_SIZE         18
 
+#define CTA_EXTENDED_TAG                    0x7
+#define CTA_VSDB_TAG                        0x3
+
 #define DETAILED_TIMING_DESCRIPTIONS_START 0x36
 #define DETAILED_TIMING_DESCRIPTION_SIZE     18
 #define NUM_DETAILED_TIMING_DESCRIPTIONS      4
@@ -3661,8 +3664,14 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 #define DISPLAY_DESCRIPTOR_PRODUCT_NAME       0xFC
 #define DISPLAY_DESCRIPTOR_PRODUCT_NAME_TRUNC 0xA
 
-#define HDMI_FORUM_SINK_CAPABILITY_DATA_BLOCK  (uint8_t)0x79
-#define HDMI_FORUM_SINK_CAPABILITY_HEADER_SIZE 4
+// HDMI Forum Sink Capabilities
+#define HFSC_HEADER_SIZE                      4
+#define HFSC_DATA_BLOCK           (uint8_t)0x79
+#define HFSC_IEEE_OUI                  0xc45dd8
+#define FSR_IEEE_OUI                       0x1a
+
+//\x1A\x00\x00\x01\x01
+//0x1A00000101
 
 inline uint8_t blockType_MonitorDescriptor (uint8_t* block) noexcept
 {
@@ -3680,8 +3689,6 @@ inline uint8_t blockType_MonitorDescriptor (uint8_t* block) noexcept
   return
     UNKNOWN_DESCRIPTOR;
 }
-
-#define blockType blockType_MonitorDescriptor
 
 inline uint8_t blockType_CTAv3 (uint8_t* block) noexcept
 {
@@ -3716,14 +3723,29 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 }
 
 std::pair <uint16_t, uint16_t>
-SK_EDID_GetMonitorVRRRange ( uint8_t const* block )
+SK_EDID_GetMonitorVRRRange ( uint8_t const* block, uint32_t ieee_oui = HFSC_IEEE_OUI )
 {
   auto min = 0ui8,
        max = 0ui8;
   auto ptr = (block);
 
-  min =  ptr [5] & 0x3f;
-  max = (ptr [5] & 0xc0) << 2 | ptr [6];
+  switch (ieee_oui)
+  {
+    case HFSC_IEEE_OUI:
+    {
+      min =  ptr [5] & 0x3f;
+      max = (ptr [5] & 0xc0) << 2 | ptr [6];
+    } break;
+
+    case FSR_IEEE_OUI:
+    {
+      min = ptr [2];
+      max = ptr [3];
+    } break;
+
+    default:
+      break;
+  }
 
   return { min, max };
 }
@@ -3785,11 +3807,8 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
         const unsigned int ver = block [1];
         const unsigned int off = block [2];
 
-        if (block +   4 > end ||
-            block + off > end)
-        {
+        if (block + off > end)
           break;
-        }
 
         // Data Block Collection
         if (ver == 3)
@@ -3798,59 +3817,89 @@ SK_RenderBackend_V2::decodeEDIDForVRRRange (uint8_t* edid, size_t length) const
                 i < off ;
                 i += (block [i] & 0x1f) + 1 )
           {
-            const uint8_t tag =
+            const uint8_t size = 
+              (block [i] & 0x1f);
+            const uint8_t tag  =
               (block [i] & 0xe0) >> 5;
 
-            // Extended Tag
-            if (tag == 0x7)
+            switch (tag)
             {
-              // HDMI Forum Sink Capabilities (the normal one)
-              if (block [i + 1] == 0x79)
+              // Extended Tag
+              case CTA_EXTENDED_TAG:
               {
-                vrr_range =
-                  SK_EDID_GetMonitorVRRRange (&block [i]);
-
-                if (vrr_range.first != vrr_range.second)
-                {
-                  return vrr_range;
-                }
-              }
-            }
-
-            // VSDB
-            else if (tag == 0x3)
-            {
-              unsigned int oui =
-                (block [i + 3] << 16) +
-                (block [i + 2] <<  8) +
-                 block [i + 1];
-
-              switch (oui)
-              {
-                // HDMI Forum Sink Capabilities (as part of VSDB)
-                case 0xc45dd8:
+                // HDMI Forum Sink Capabilities (the normal one)
+                if (block [i + 1] == HFSC_DATA_BLOCK)
                 {
                   vrr_range =
-                    SK_EDID_GetMonitorVRRRange (&block [i + HDMI_FORUM_SINK_CAPABILITY_HEADER_SIZE]);
+                    SK_EDID_GetMonitorVRRRange (&block [i]);
 
                   if (vrr_range.first != vrr_range.second)
                   {
                     return vrr_range;
                   }
-                } break;
-                default:
-                  break;
-              }
-            }
+                }
+              } break;
 
-            else
-            {
-              if (config.system.log_level > 0)
+              // VDSB
+              case CTA_VSDB_TAG:
               {
-                SK_ImGui_Warning (
-                  SK_FormatStringW (L"Other CTAv3 Tag: %d", tag).c_str ()
-                );
-              }
+                const unsigned int oui =
+                  (block [i + 3] << 16) +
+                  (block [i + 2] <<  8) +
+                   block [i + 1];
+
+                switch (oui)
+                {
+                  // HDMI Forum Sink Capabilities (as part of VSDB)
+                  case HFSC_IEEE_OUI:
+                  {
+                    vrr_range =
+                      SK_EDID_GetMonitorVRRRange (&block [i + HFSC_HEADER_SIZE], oui);
+
+                    if (vrr_range.first != vrr_range.second)
+                    {
+                      return vrr_range;
+                    }
+                  } break;
+                  case FSR_IEEE_OUI:
+                  {
+                    if (size >= 8)
+                    {
+                      vrr_range =
+                        SK_EDID_GetMonitorVRRRange (&block [i + HFSC_HEADER_SIZE], oui);
+
+                      if (vrr_range.first != vrr_range.second)
+                      {
+                        return vrr_range;
+                      }
+                    }
+
+                    else
+                    {
+                      SK_LOGi0 (L"Unexpected FSR Range Size: %d-bytes", size);
+                    }
+                  }
+                  default:
+                  {
+                    if (config.system.log_level > 0)
+                    {
+                      SK_ImGui_Warning (
+                        SK_FormatStringW (L"OUI: %x", oui).c_str ()
+                      );
+                    }
+                  } break;
+                }
+              } break;
+
+              default:
+              {
+                if (config.system.log_level > 0)
+                {
+                  SK_ImGui_Warning (
+                    SK_FormatStringW (L"Other CTAv3 Tag: %d", tag).c_str ()
+                  );
+                }
+              } break;
             }
           }
         }
@@ -3925,7 +3974,7 @@ SK_RenderBackend_V2::decodeEDIDForName (uint8_t *edid, size_t length) const
   while (block < end)
   {
     uint8_t type =
-      blockType (block);
+      blockType_MonitorDescriptor (block);
 
     switch (type)
     {
@@ -4145,10 +4194,6 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           {
             display.vrr.min_refresh = vrr_min;
             display.vrr.max_refresh = vrr_max;
-
-            //SK_ImGui_Warning (
-            //  SK_FormatStringW (L"Display VRR Range: %d-%d Hz", vrr_min, vrr_max).c_str ()
-            //);
           }
 
           edid_name =
@@ -4245,14 +4290,14 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
                 monitor_caps.data.caps.supportVRR            = true;
                 monitor_caps.data.caps.currentlyCapableOfVRR = true;
-                
+
                 bkend.gsync_state.capable =
                   monitor_caps.data.caps.supportVRR &&
-                  monitor_caps.data.caps.currentlyCapableOfVRR; 
+                  monitor_caps.data.caps.currentlyCapableOfVRR;
 
-                //SK_ImGui_Warning (
-                //  SK_FormatStringW (L"Display VRR Range: %d-%d Hz", vrr_min, vrr_max).c_str ()
-                //);
+                SK_ImGui_Warning (
+                  SK_FormatStringW (L"EDID Decoded VRR Range: %d-%d Hz", vrr_min, vrr_max).c_str ()
+                );
               }
 
               edid_name =
