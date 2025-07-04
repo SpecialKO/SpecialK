@@ -1,4 +1,8 @@
-﻿25.7.3.1
+﻿25.7.4
+======
+ + Workaround COM lifetime issues for IGameBarStatics when ReShade is loaded.
+
+25.7.3.1
 ========
  + Slightly tweaked VRR initialization process on AMD and Intel systems.
 

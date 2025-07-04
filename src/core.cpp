@@ -1116,8 +1116,7 @@ void BasicInit (void)
   //   features in addition to Special K's WMI monitoring services
   SK_WMI_Init ();
 
-  SK::EOS::Init  (false);
-  SK::Xbox::Init (     );
+  SK::EOS::Init (false);
 
   //// Do this from the startup thread [these functions queue, but don't apply]
   if (! config.input.dont_hook_core)
@@ -1263,6 +1262,10 @@ DllThread (LPVOID user)
   {
     if (! InterlockedCompareExchangeAcquire (&__SK_Init, TRUE, FALSE))
     {
+      // This must initialize COM, do it from a separate thread to avoid
+      //   ReShade constructing objects that require COM and keeping them
+      //     active after this function goes out of scope.
+      SK::Xbox::Init             ();
       SK_D3D_SetupShaderCompiler ();
 
       WritePointerRelease ( (volatile PVOID *)(&hInitThread),

@@ -51,8 +51,13 @@ SK::Xbox::Init (void)
                                                 &hNamespaceStringHeader,
                                                 &hNamespaceString)))
   {
-    RoGetActivationFactory (hNamespaceString, IID_IGameBarStatics,
-                                        (void **)&SK_GameBar_Statics);
+    if (SUCCEEDED (
+      RoGetActivationFactory (hNamespaceString, IID_IGameBarStatics,
+                                          (void **)&SK_GameBar_Statics)))
+    {
+      // Keep COM loaded indefinitely, this object is persistent
+      CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+    }
   }
 }
 
