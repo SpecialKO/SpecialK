@@ -3485,9 +3485,6 @@ SK_ImGui_BackupInputThread (LPVOID)
     if (ReadULongAcquire (&SK_ImGui_LastKeyboardProcMessageTime) < SK::ControlPanel::current_time - 500UL &&
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
-      static BYTE       keyboard_state [256] = {};
-      GetKeyboardState (keyboard_state);
-
       static            LASTINPUTINFO
         lii = { sizeof (LASTINPUTINFO), 1 };
 
@@ -3498,6 +3495,9 @@ SK_ImGui_BackupInputThread (LPVOID)
       {
         dwLastInput =
           std::max (dwLastInput, lii.dwTime);
+
+        static BYTE       keyboard_state [256] = {};
+        GetKeyboardState (keyboard_state);
 
         if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 256) != 0)
         {
