@@ -3456,11 +3456,12 @@ SK_ImGui_UpdateClassCursor (void)
       game_window.game_cursor = game_window.real_cursor;
 }
 
-                HANDLE SK_ImGui_SignalBackupInputThread = 0;
-                bool   SK_ImGui_IsHWCursorVisible       = false;
-extern          BOOL  SK_ImGui_NewInput;
-extern volatile DWORD SK_ImGui_LastKeyboardProcMessageTime;
-extern volatile DWORD SK_ImGui_LastMouseProcMessageTime;
+                HANDLE SK_ImGui_SignalBackupInputThread                           = 0;
+                bool   SK_ImGui_IsHWCursorVisible                                 = false;
+                bool   SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization = false;
+extern          BOOL   SK_ImGui_NewInput;
+extern volatile DWORD  SK_ImGui_LastKeyboardProcMessageTime;
+extern volatile DWORD  SK_ImGui_LastMouseProcMessageTime;
 
 DWORD
 WINAPI
@@ -3496,18 +3497,24 @@ SK_ImGui_BackupInputThread (LPVOID)
         dwLastInput =
           std::max (dwLastInput, lii.dwTime);
 
-        static BYTE       keyboard_state [256] = {};
-        GetKeyboardState (keyboard_state);
+        bool bProcessInput = true;
+        if (!SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization) {
+          static BYTE       keyboard_state [256] = {};
+          GetKeyboardState (keyboard_state);
 
-        if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 256) != 0)
+          bProcessInput = memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 256) != 0;
+
+          memcpy (last_keyboard_state,
+                  keyboard_state, sizeof (BYTE) * 256);
+        }
+
+        if (bProcessInput)
         {
           auto& io =
             ImGui::GetIO ();
 
           bool    last_keys              [256] = {};
           memcpy (last_keys, io.KeysDown, 256);
-          memcpy (last_keyboard_state,
-                       keyboard_state, sizeof (BYTE) * 256);
 
           for (UINT i = 7 ; i < 255 ; ++i)
           {
