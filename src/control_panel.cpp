@@ -3073,9 +3073,15 @@ SK_NV_GSYNCControlPanel ()
 
     SK_RunOnce (rb.gsync_state.disabled.for_app = !SK_NvAPI_GetVRREnablement ());
 
-    if (ImGui::BeginPopup ("G-Sync Control Panel"))
+    const std::string popup_label =
+      SK_FormatString ("%hs Control Panel", rb.displays [rb.active_display].vrr.type);
+
+    if (ImGui::BeginPopup (popup_label.c_str ()))
     {
-      ImGui::TextUnformatted ("NVIDIA G-Sync Configuration");
+      const std::string title_label =
+        SK_FormatString ("%hs Configuration", rb.displays [rb.active_display].vrr.type);
+
+      ImGui::TextUnformatted (title_label.c_str ());
 
       ImGui::TreePush ("###GSyncConfig");
 
@@ -3085,8 +3091,11 @@ SK_NV_GSYNCControlPanel ()
       bool bEnableGSync =
         (! rb.gsync_state.disabled.for_app);
 
-      if (ImGui::Checkbox ("Enable G-Sync in this Game", &bEnableGSync))
-      { SK_NvAPI_SetVRREnablement                        (bEnableGSync);
+      const std::string button_label =
+        SK_FormatString ("Enable %hs in this Game", rb.displays [rb.active_display].vrr.type);
+
+      if (ImGui::Checkbox (button_label.c_str (), &bEnableGSync))
+      { SK_NvAPI_SetVRREnablement                 (bEnableGSync);
 
         rb.gsync_state.disabled.for_app =
           (! bEnableGSync);
@@ -3096,7 +3105,7 @@ SK_NV_GSYNCControlPanel ()
 
       ImGui::SetItemTooltip ("Requires a Game Restart");
 
-      if (ImGui::Checkbox ("Enable FastSync in this Game", &bEnableFastSync))
+      if (ImGui::Checkbox ("Enable NVIDIA FastSync in this Game", &bEnableFastSync))
       {
         SK_NvAPI_SetFastSync (bEnableFastSync);
 
@@ -5341,15 +5350,18 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
 
     if (config.apis.NvAPI.gsync_status){
+    auto& display =
+      rb.displays [rb.active_display];
+
     auto& stats =
-      rb.displays [rb.active_display].statistics;
+      display.statistics;
 
     const float fVBlankHz =
       stats.vblank_counter.getVBlankHz (
               SK_QueryPerf ().QuadPart );
 
     const auto& vsync_freq =
-      rb.displays [rb.active_display].signal.timing.vsync_freq;
+      display.signal.timing.vsync_freq;
 
     const float fFixedRefreshHz = vsync_freq.Denominator <= 0.0f ? 0.0f :
              static_cast <float> (vsync_freq.Numerator) /
@@ -5361,15 +5373,18 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     const bool bLimitRequiredForVRR =
       (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
 
-    if (! sk::NVAPI::nv_hardware)
+    if (! sk::NVAPI::nv_hardware || display.vrr.min_refresh != 1)
     { // Replace the G-SYNC placeholder text if EDID has not identified the actual
-      // VRR technology in use.
-      if (! strcmp (rb.displays [rb.active_display].vrr.type, "NVIDIA G-SYNC"))
-            strcpy (rb.displays [rb.active_display].vrr.type, "Variable Refresh");
+      // VRR technology in use
+      //
+      //  NOTE: All G-SYNC native displays report min refresh as 1
+      //
+      if (! strcmp (display.vrr.type, "NVIDIA G-SYNC"))
+            strcpy (display.vrr.type, "Variable Refresh");
     }
 
     std::string vrr_status_label =
-      SK_FormatString (" %hs ", rb.displays [rb.active_display].vrr.type);
+      SK_FormatString (" %hs ", display.vrr.type);
 
     if (sk::NVAPI::nv_hardware)
     {
@@ -5450,9 +5465,18 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
       if (ImGui::BeginItemTooltip ())
       {
-        ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
-        ImGui::SameLine        ();
-        ImGui::TextUnformatted ("Right-click to configure G-Sync / FastSync");
+        if ( display.vrr.max_refresh > 1 &&
+             display.vrr.min_refresh != display.vrr.max_refresh )
+        {
+          ImGui::Text ("EDID VRR Range:  %d-%d Hz  (%hs)",
+            display.vrr.min_refresh, display.vrr.max_refresh,
+            display.vrr.type);
+          ImGui::Separator ();
+        }
+
+        ImGui::TextColored (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+        ImGui::SameLine    ();
+        ImGui::Text        ("Right-click to configure %hs / NVIDIA FastSync", display.vrr.type);
 
         if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active))
         {
@@ -5460,8 +5484,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "Presentation Model Tracking is not working, G-Sync status in D3D12 is "
-              "unknown without it."
+              "Presentation Model Tracking is not working, %hs status in D3D12 is "
+              "unknown without it.", display.vrr.type
             );
           }
 
@@ -5471,7 +5495,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "The current Presentation Mode uses DWM Composition and cannot activate G-Sync"
+              "The current Presentation Mode uses DWM Composition and cannot activate %hs",
+                display.vrr.type
             );
           }
 
@@ -5479,8 +5504,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "The active framerate is too high for G-Sync; cap to %5.2f FPS "
-              "or lower for minimum latency.", fMaxHzForVRR
+              "The active framerate is too high for %hs; cap to %5.2f FPS "
+              "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
             );
           }
         }
@@ -5489,7 +5514,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
       if (ImGui::IsItemClicked () || SK_ImGui_IsItemRightClicked ())
       {
-        ImGui::OpenPopup         ("G-Sync Control Panel");
+        const std::string popup_title =
+          SK_FormatString ("%hs Control Panel", display.vrr.type);
+
+        ImGui::OpenPopup         (popup_title.c_str ());
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
     }
@@ -5522,13 +5550,22 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         ImGui::MenuItem (vrr_status_label.c_str (), szVRRStatus, nullptr, true);
 
-        if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
-             rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
-             rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
-             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
-             bLimitRequiredForVRR )
+        if (ImGui::BeginItemTooltip ())
         {
-          if (ImGui::BeginItemTooltip ())
+          if ( display.vrr.min_refresh > 1 &&
+               display.vrr.min_refresh != display.vrr.max_refresh )
+          {
+            ImGui::Text ("EDID VRR Range:  %d-%d Hz  (%hs)",
+              display.vrr.min_refresh, display.vrr.max_refresh,
+              display.vrr.type);
+            ImGui::Separator ();
+          }
+
+          if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
+               rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+               rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+               rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+               bLimitRequiredForVRR )
           {
             if (rb.presentation.mode == SK_PresentMode::Unknown)
             {
@@ -5545,7 +5582,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             {
               ImGui::Separator ();
               ImGui::BulletText (
-                "The current Presentation Mode uses DWM Composition and cannot activate VRR"
+                "The current Presentation Mode uses DWM Composition and cannot activate %hs",
+                  display.vrr.type
               );
             }
 
@@ -5553,22 +5591,22 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             {
               ImGui::Separator ();
               ImGui::BulletText (
-                "The active framerate is too high for VRR; cap to %5.2f FPS "
-                "or lower for minimum latency.", fMaxHzForVRR
+                "The active framerate is too high for %hs; cap to %5.2f FPS "
+                "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
               );
               ImGui::Separator ();
               ImGui::TextUnformatted ("Click to apply the required framerate limit.");
             }
-
-            ImGui::EndTooltip ();
           }
 
-          if (bLimitRequiredForVRR && ImGui::IsItemClicked ())
-          {
-            config.render.framerate.target_fps = fMaxHzForVRR;
-                                  __target_fps = fMaxHzForVRR;
-            config.utility.save_async ();
-          }
+          ImGui::EndTooltip ();
+        }
+
+        if (bLimitRequiredForVRR && ImGui::IsItemClicked ())
+        {
+          config.render.framerate.target_fps = fMaxHzForVRR;
+                                __target_fps = fMaxHzForVRR;
+          config.utility.save_async ();
         }
       }
     } }

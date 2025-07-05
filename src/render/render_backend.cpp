@@ -3662,6 +3662,7 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 #define DETAILED_TIMING_DESCRIPTION_SIZE     18
 #define NUM_DETAILED_TIMING_DESCRIPTIONS      4
 
+#define DISPLAY_DESCRIPTOR_RANGE_LIMITS       0xFD
 #define DISPLAY_DESCRIPTOR_PRODUCT_NAME       0xFC
 #define DISPLAY_DESCRIPTOR_PRODUCT_NAME_TRUNC 0xA
 
@@ -3681,7 +3682,7 @@ inline uint8_t blockType_MonitorDescriptor (uint8_t* block) noexcept
       block [1] == 0 &&
       block [2] == 0 &&
       block [3] != 0 &&
-      block [4] == 0)
+     (block [4] == 0 || block [3] == DISPLAY_DESCRIPTOR_RANGE_LIMITS))
   {
     return
       block [3];
@@ -3909,7 +3910,59 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
         }
 
         block += off;
+      } break;
+
+      default:
+      case UNKNOWN_DESCRIPTOR:
+      {
+        ++block;
+      } break;
+    }
+  }
+
+  block = &edid [DETAILED_TIMING_DESCRIPTIONS_START];
+  end   = &edid [length - 1];
+
+  while (block < end)
+  {
+    uint8_t type =
+      blockType_MonitorDescriptor (block);
+
+    switch (type)
+    {
+      case DETAILED_TIMING_BLOCK:
         block += DETAILED_TIMING_DESCRIPTION_SIZE;
+        break;
+
+      case DISPLAY_DESCRIPTOR_PRODUCT_NAME:
+      {
+        block += DISPLAY_DESCRIPTOR_DATA_SIZE;
+      } break;
+
+      case DISPLAY_DESCRIPTOR_RANGE_LIMITS:
+      {
+        uint16_t range_min = 0,
+                 range_max = 0;
+
+        range_min = block [5];
+        range_max = block [6];
+
+        if (block [4] & 0x1) range_min += 255;
+        if (block [4] & 0x2) range_max += 255;
+
+        if (range_min != range_max)
+        {
+          if (sk::NVAPI::nv_hardware)
+          {
+            return
+              { range_min, range_max, "NVIDIA G-SYNC" };
+          }
+
+          return
+            { range_min, range_max, "Variable Refresh" };
+        }
+
+        block += DISPLAY_DESCRIPTOR_DATA_SIZE;
       } break;
 
       default:
@@ -4310,17 +4363,6 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                 bkend.gsync_state.capable =
                   monitor_caps.data.caps.supportVRR &&
                   monitor_caps.data.caps.currentlyCapableOfVRR;
-
-                SK_ImGui_Warning (
-                  SK_FormatStringW (L"EDID Decoded VRR Range: %d-%d Hz\r\nVRR Type: %hs",
-                                      vrr_caps.min_refresh,
-                                      vrr_caps.max_refresh, vrr_caps.type).c_str ()
-                );
-              }
-
-              else
-              {
-                display.vrr.min_refresh = 1;
               }
 
               edid_name =

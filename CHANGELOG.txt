@@ -1,4 +1,10 @@
-﻿25.7.4
+﻿25.7.5
+======
+ + Changed text in G-Sync / FreeSync tooltips based on display's VRR tech.
+ + Added EDID VRR Range decoding for G-SYNC native / embedded displays.
+ + Added EDID VRR Range info to Variable Refresh tooltip.
+
+25.7.4
 ======
  + Workaround COM lifetime issues for IGameBarStatics when ReShade is loaded.
 
