@@ -3472,8 +3472,9 @@ SK_ImGui_BackupInputThread (LPVOID)
     { __SK_DLL_TeardownEvent,
         SK_ImGui_SignalBackupInputThread };
 
-  DWORD  dwWaitState  = WAIT_TIMEOUT;
-  while (dwWaitState != WAIT_OBJECT_0)
+  static BYTE  last_keyboard_state [512] = {};
+  DWORD        dwWaitState  = WAIT_TIMEOUT;
+  while       (dwWaitState != WAIT_OBJECT_0)
   {
     dwWaitState = 
       WaitForMultipleObjects (2, hEvents, FALSE, SK_ImGui_Active () ? 3 : 100);
@@ -3485,7 +3486,6 @@ SK_ImGui_BackupInputThread (LPVOID)
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
       static BYTE       keyboard_state [512] = {};
-      static BYTE  last_keyboard_state [512] = {};
       GetKeyboardState (keyboard_state);
 
       static            LASTINPUTINFO
