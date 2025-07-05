@@ -3456,8 +3456,8 @@ SK_ImGui_UpdateClassCursor (void)
       game_window.game_cursor = game_window.real_cursor;
 }
 
-                HANDLE SK_ImGui_SignalBackupInputThread                           = 0;
-                bool   SK_ImGui_IsHWCursorVisible                                 = false;
+                HANDLE SK_ImGui_SignalBackupInputThread                         = 0;
+                bool   SK_ImGui_IsHWCursorVisible                               = false;
                 bool   SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization = false;
 extern          BOOL   SK_ImGui_NewInput;
 extern volatile DWORD  SK_ImGui_LastKeyboardProcMessageTime;
@@ -3498,7 +3498,7 @@ SK_ImGui_BackupInputThread (LPVOID)
           std::max (dwLastInput, lii.dwTime);
 
         bool bProcessInput = true;
-        if (!SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization) {
+        if (!SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization && SK_GetForegroundWindow () != game_window.hWnd) {
           static BYTE       keyboard_state [256] = {};
           GetKeyboardState (keyboard_state);
 
