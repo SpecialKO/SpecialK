@@ -3472,7 +3472,7 @@ SK_ImGui_BackupInputThread (LPVOID)
     { __SK_DLL_TeardownEvent,
         SK_ImGui_SignalBackupInputThread };
 
-  static BYTE  last_keyboard_state [512] = {};
+  static BYTE  last_keyboard_state [256] = {};
   DWORD        dwWaitState  = WAIT_TIMEOUT;
   while       (dwWaitState != WAIT_OBJECT_0)
   {
@@ -3485,7 +3485,7 @@ SK_ImGui_BackupInputThread (LPVOID)
     if (ReadULongAcquire (&SK_ImGui_LastKeyboardProcMessageTime) < SK::ControlPanel::current_time - 500UL &&
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
-      static BYTE       keyboard_state [512] = {};
+      static BYTE       keyboard_state [256] = {};
       GetKeyboardState (keyboard_state);
 
       static            LASTINPUTINFO
@@ -3499,7 +3499,7 @@ SK_ImGui_BackupInputThread (LPVOID)
         dwLastInput =
           std::max (dwLastInput, lii.dwTime);
 
-        if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 512) != 0)
+        if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 256) != 0)
         {
           auto& io =
             ImGui::GetIO ();
@@ -3507,7 +3507,7 @@ SK_ImGui_BackupInputThread (LPVOID)
           bool    last_keys              [256] = {};
           memcpy (last_keys, io.KeysDown, 256);
           memcpy (last_keyboard_state,
-                       keyboard_state, sizeof (BYTE) * 512);
+                       keyboard_state, sizeof (BYTE) * 256);
 
           for (UINT i = 7 ; i < 255 ; ++i)
           {
