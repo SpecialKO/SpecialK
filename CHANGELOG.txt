@@ -1,6 +1,10 @@
-﻿25.7.5
+﻿25.7.5.1
+========
+ + Added LFC indicator to Control Panel's VRR status text.
+
+25.7.5
 ======
- + Merge pull request #286 from lukashoracek:input-optimization-fixes
+ + Merge pull request #286 from lukashoracek:input-optimization-fixes.
  + Changed text in G-Sync / FreeSync tooltips based on display's VRR tech.
  + Added EDID VRR Range decoding for G-SYNC native / embedded displays.
  + Added EDID VRR Range info to Variable Refresh tooltip.

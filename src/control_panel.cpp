@@ -5373,6 +5373,32 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     const bool bLimitRequiredForVRR =
       (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
 
+    const float fEffectiveRefresh =
+      display.statistics.vblank_counter.getVBlankHz (SK_QueryPerf ().QuadPart);
+
+    auto *pLimiter =
+      SK::Framerate::GetLimiter (
+        rb.swapchain.p, false   );
+
+    int lfc_rate = 0;
+
+    if (pLimiter != nullptr)
+    {
+      pLimiter->frame_history_snapshots->frame_history.calcMean ();
+
+      const auto snapshots =
+        pLimiter->frame_history_snapshots.getPtr ();
+
+      const float fFPS =
+        static_cast <float> (1000.0 / snapshots->cached_mean.val);
+
+      if (fEffectiveRefresh > 1.08 * fFPS)
+      {
+        lfc_rate =
+          static_cast <int> (std::floorf (0.5f + (fEffectiveRefresh / fFPS)));
+      }
+    }
+
     if (! sk::NVAPI::nv_hardware || display.vrr.min_refresh != 1)
     { // Replace the G-SYNC placeholder text if EDID has not identified the actual
       // VRR technology in use
@@ -5383,8 +5409,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             strcpy (display.vrr.type, "Variable Refresh");
     }
 
-    std::string vrr_status_label =
-      SK_FormatString (" %hs ", display.vrr.type);
+    std::string vrr_status_label = lfc_rate > 0 ?
+      SK_FormatString (" %hs  (LFC x%d) ", display.vrr.type, lfc_rate) :
+      SK_FormatString (" %hs ",            display.vrr.type);
 
     if (sk::NVAPI::nv_hardware)
     {
@@ -5468,9 +5495,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         if ( display.vrr.max_refresh > 1 &&
              display.vrr.min_refresh != display.vrr.max_refresh )
         {
-          ImGui::Text ("EDID VRR Range:  %d-%d Hz  (%hs)",
-            display.vrr.min_refresh, display.vrr.max_refresh,
-            display.vrr.type);
+          ImGui::Text ("%hs Range:  %d-%d Hz", display.vrr.type,
+                      display.vrr.min_refresh, display.vrr.max_refresh );
           ImGui::Separator ();
         }
 
@@ -5555,9 +5581,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           if ( display.vrr.min_refresh > 1 &&
                display.vrr.min_refresh != display.vrr.max_refresh )
           {
-            ImGui::Text ("EDID VRR Range:  %d-%d Hz  (%hs)",
-              display.vrr.min_refresh, display.vrr.max_refresh,
-              display.vrr.type);
+            ImGui::Text ("%hs Range:  %d-%d Hz", display.vrr.type,
+                        display.vrr.min_refresh, display.vrr.max_refresh );
             ImGui::Separator ();
           }
 
