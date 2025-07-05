@@ -3484,10 +3484,6 @@ SK_ImGui_BackupInputThread (LPVOID)
     if (ReadULongAcquire (&SK_ImGui_LastKeyboardProcMessageTime) < SK::ControlPanel::current_time - 500UL &&
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
-      static BYTE       keyboard_state [512] = {};
-      static BYTE  last_keyboard_state [512] = {};
-      GetKeyboardState (keyboard_state);
-
       static            LASTINPUTINFO
         lii = { sizeof (LASTINPUTINFO), 1 };
 
@@ -3499,27 +3495,22 @@ SK_ImGui_BackupInputThread (LPVOID)
         dwLastInput =
           std::max (dwLastInput, lii.dwTime);
 
-        if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 512) != 0)
+        auto& io =
+          ImGui::GetIO ();
+
+        bool    last_keys              [256] = {};
+        memcpy (last_keys, io.KeysDown, 256);
+
+        for (UINT i = 7 ; i < 255 ; ++i)
         {
-          auto& io =
-            ImGui::GetIO ();
-
-          bool    last_keys              [256] = {};
-          memcpy (last_keys, io.KeysDown, 256);
-          memcpy (last_keyboard_state,
-                       keyboard_state, sizeof (BYTE) * 512);
-
-          for (UINT i = 7 ; i < 255 ; ++i)
-          {
-            bool last_state =
-              last_keys [i];
-            io.KeysDown [i] =
-              ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
-            if (   last_state !=
-                  io.KeysDown [i])
-            { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
-              else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
-            }
+          bool last_state =
+            last_keys [i];
+          io.KeysDown [i] =
+            ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+          if (   last_state !=
+                io.KeysDown [i])
+          { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
+            else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
           }
         }
       }
