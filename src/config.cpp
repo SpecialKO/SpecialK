@@ -7440,6 +7440,12 @@ SK_SaveConfig ( std::wstring name,
       delete macro_ini;
              macro_ini = nullptr;
     }
+
+    if (notify_ini != nullptr)
+    {
+      delete notify_ini;
+             notify_ini = nullptr;
+    }
   }
 }
 

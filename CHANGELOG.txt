@@ -1,4 +1,9 @@
-﻿25.7.6
+﻿25.7.6.1
+========
+ + Disable UTF16 file I/O on Proton/Linux, because it is poorly supported.
+ + Dispose of notify_ini when closing config files.
+
+25.7.6
 ======
  + Limit reported VRR Max Range to the display's current fixed-refresh
      rate (i.e. displaying a 144 Hz signal on a 175 Hz screen -> max VRR=144).
