@@ -1,4 +1,14 @@
-﻿25.7.6.1
+﻿25.7.6.2
+========
+ + Also remove UTF8 Byte Order Mark from INI files on Proton/Linux. 
+
+    * Users may hack together shell scripts that prepend text to INI files.
+        (i.e. Steam Tinker Launch)
+       
+  Those scripts do not understand Byte Order Marks, and would cause the
+    BOM to appear in the middle of the INI file instead of the beginning.
+
+25.7.6.1
 ========
  + Disable UTF16 file I/O on Proton/Linux, because it is poorly supported.
  + Dispose of notify_ini when closing config files.
