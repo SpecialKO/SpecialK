@@ -2018,8 +2018,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                       if (hdr && config.screenshots.use_avif)
                       {
-                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (std::max (0.0f, pFrameData->hdr.max_cll_nits)),
-                                                                                    static_cast <uint16_t> (std::max (0.0f, pFrameData->hdr.avg_cll_nits)));
+                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (std::max (0.0f, roundf (pFrameData->hdr.max_cll_nits))),
+                                                                                    static_cast <uint16_t> (std::max (0.0f, roundf (pFrameData->hdr.avg_cll_nits))));
 
                         if ( config.screenshots.allow_hdr_clipboard   &&
                              rb.screenshot_mgr->getClipboardFormat () == SK_HDR_CLIPBOARD_FORMAT_AVIF )
@@ -2076,7 +2076,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                 vars  [1].bVal = 1;
                               else
                                 vars  [1].bVal =
-                                  std::max ( 1ui8, static_cast <uint8_t> (255 - static_cast <uint8_t> (255.0f * (static_cast <float> (config.screenshots.compression_quality) / 100.0f))) );
+                                  std::max ( 1ui8, static_cast <uint8_t> (255 - static_cast <uint8_t> (round (255.0f * (static_cast <float> (config.screenshots.compression_quality) / 100.0f)))) );
 
                               props->Write (2, options, vars);
                             }

@@ -326,9 +326,9 @@ SK::ControlPanel::OSD::Draw (void)
         color [1] = std::max (std::min (color [1], 1.0F), 0.0f);
         color [2] = std::max (std::min (color [2], 1.0F), 0.0f);
 
-        config.osd.red   = static_cast <int>(color [0] * 255.0F);
-        config.osd.green = static_cast <int>(color [1] * 255.0F);
-        config.osd.blue  = static_cast <int>(color [2] * 255.0F);
+        config.osd.red   = static_cast <int>(roundf (color [0] * 255.0F));
+        config.osd.green = static_cast <int>(roundf (color [1] * 255.0F));
+        config.osd.blue  = static_cast <int>(roundf (color [2] * 255.0F));
 
         if ( color [0] >= default_r - 0.001F &&
              color [0] <= default_r + 0.001F    ) config.osd.red   = (int)MAXDWORD;

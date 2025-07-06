@@ -1904,72 +1904,72 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(5.0f * (config.window.res.override.y / 4.0f));
+            config.window.res.override.x = (int)(roundf (5.0f * (config.window.res.override.y / 4.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(4.0f * (config.window.res.override.x / 5.0f));
+            config.window.res.override.y = (int)(roundf (4.0f * (config.window.res.override.x / 5.0f)));
           }
           break;
         case 1:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(4.0f * (config.window.res.override.y / 3.0f));
+            config.window.res.override.x = (int)(roundf (4.0f * (config.window.res.override.y / 3.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(3.0f * (config.window.res.override.x / 4.0f));
+            config.window.res.override.y = (int)(roundf (3.0f * (config.window.res.override.x / 4.0f)));
           }
           break;
         case 2:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(3.0f * (config.window.res.override.y / 2.0f));
+            config.window.res.override.x = (int)(roundf (3.0f * (config.window.res.override.y / 2.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(2.0f * (config.window.res.override.x / 3.0f));
+            config.window.res.override.y = (int)(roundf (2.0f * (config.window.res.override.x / 3.0f)));
           }
           break;
         case 3:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 10.0f));
+            config.window.res.override.x = (int)(roundf (16.0f * (config.window.res.override.y / 10.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(10.0f * (config.window.res.override.x / 16.0f));
+            config.window.res.override.y = (int)(roundf (10.0f * (config.window.res.override.x / 16.0f)));
           }
           break;
         case 4:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 9.0f));
+            config.window.res.override.x = (int)(roundf (16.0f * (config.window.res.override.y / 9.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 16.0f));
+            config.window.res.override.y = (int)(roundf (9.0f * (config.window.res.override.x / 16.0f)));
           }
           break;
         case 5:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(21.0f * (config.window.res.override.y / 9.0f));
+            config.window.res.override.x = (int)(roundf (21.0f * (config.window.res.override.y / 9.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right  - display.rect.left;
-            config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 21.0f));
+            config.window.res.override.y = (int)(roundf (9.0f * (config.window.res.override.x / 21.0f)));
           }
           break;
         case 6:
@@ -2707,7 +2707,7 @@ DisplayModeMenu (bool windowed)
 
             // No Exact Match, but we can probably find something close...
             if ( -1 == current_item &&
-                 -1 != sk::narrow_cast <INT> (config.render.framerate.refresh_rate) )
+                 -1 != sk::narrow_cast <INT> (ceilf (config.render.framerate.refresh_rate)) )
             {
               int lvl2_idx = 1;
 
@@ -3179,6 +3179,8 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem ("Display Playtime in Title",     "", &config.platform.show_playtime);
 #if 0 // Pending removal
       ImGui::MenuItem ("Display Active Input APIs",     "", &config.imgui.show_input_apis);
+#else
+      config.imgui.show_input_apis = true;
 #endif
 
       ImGui::MenuItem ("Display VRR Status",            "", &config.apis.NvAPI.gsync_status);
@@ -5188,12 +5190,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                                        szResolution))
       {
         config.window.res.override.x =
-              sk::narrow_cast <UINT> (
-        io.DisplayFramebufferScale.x );
+              sk::narrow_cast <UINT> ( roundf (io.DisplayFramebufferScale.x) );
 
         config.window.res.override.y =
-              sk::narrow_cast <UINT> (
-        io.DisplayFramebufferScale.y );
+              sk::narrow_cast <UINT> ( roundf (io.DisplayFramebufferScale.y) );
 
         override =
           true;
@@ -5204,8 +5204,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
     if (sRGB) strcat (szResolution,     "    (sRGB)");
             snprintf (szResolution, 63, "   %ix%i",
-              (int)((float)(client.right    - client.left) * g_fDPIScale),
-                (int)((float)(client.bottom - client.top ) * g_fDPIScale)
+              (int)(roundf ((float)(client.right    - client.left) * g_fDPIScale)),
+                (int)(roundf ((float)(client.bottom - client.top ) * g_fDPIScale))
                      );
 
     if (_fDPIScale > 100.1f)
@@ -5239,8 +5239,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
       if (ImGui::MenuItem ( bFakeFullscreen ? " \"Fullscreen\" Resolution"
                                             : " Window Resolution      ", szResolution))
       {
-        config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
-        config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
+        config.window.res.override.x = (int)(roundf ((float)(client.right  - client.left) * g_fDPIScale));
+        config.window.res.override.y = (int)(roundf ((float)(client.bottom - client.top)  * g_fDPIScale));
 
         override = true;
       }
@@ -5253,8 +5253,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     {
       if (ImGui::MenuItem (" Fullscreen Resolution ", szResolution))
       {
-        config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
-        config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
+        config.window.res.override.x = (int)(roundf ((float)(client.right  - client.left) * g_fDPIScale));
+        config.window.res.override.y = (int)(roundf ((float)(client.bottom - client.top)  * g_fDPIScale));
 
         override = true;
       }
@@ -5304,9 +5304,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     }
 
     int device_x =
-      (int)((float)rb.windows.device.getDevCaps ().res.x * g_fDPIScale);
+      (int)(roundf ((float)rb.windows.device.getDevCaps ().res.x * g_fDPIScale));
     int device_y =
-      (int)((float)rb.windows.device.getDevCaps ().res.y * g_fDPIScale);
+      (int)(roundf ((float)rb.windows.device.getDevCaps ().res.y * g_fDPIScale));
 
     if ( (client.right - client.left) != device_x || (client.bottom - client.top) != device_y ||
          io.DisplayFramebufferScale.x != device_x || io.DisplayFramebufferScale.y != device_y )
@@ -5373,9 +5373,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     const bool bLimitRequiredForVRR =
       (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
 
-    const float fEffectiveRefresh =
-      display.statistics.vblank_counter.getVBlankHz (SK_QueryPerf ().QuadPart);
-
     auto *pLimiter =
       SK::Framerate::GetLimiter (
         rb.swapchain.p, false   );
@@ -5392,10 +5389,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
       const float fFPS =
         static_cast <float> (1000.0 / snapshots->cached_mean.val);
 
-      if (fEffectiveRefresh > 1.08 * fFPS)
+      if (fVBlankHz > 1.08 * fFPS)
       {
         lfc_rate =
-          static_cast <int> (std::floorf (0.5f + (fEffectiveRefresh / fFPS)));
+          static_cast <int> (std::floorf (0.5f + (fVBlankHz / fFPS)));
       }
     }
 
@@ -5504,8 +5501,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         if ( display.vrr.max_refresh > 1 &&
              display.vrr.min_refresh != display.vrr.max_refresh )
         {
-          ImGui::Text ("%hs Range:  %d-%d Hz", display.vrr.type,
-                      display.vrr.min_refresh, display.vrr.max_refresh );
+          ImGui::Text ( "%hs Range:  %d-%d Hz",
+            display.vrr.type, display.vrr.min_refresh,
+                   std::min ( display.vrr.max_refresh,
+                      sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
+          );
           ImGui::Separator ();
         }
 
@@ -5590,8 +5590,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           if ( display.vrr.min_refresh > 1 &&
                display.vrr.min_refresh != display.vrr.max_refresh )
           {
-            ImGui::Text ("%hs Range:  %d-%d Hz", display.vrr.type,
-                        display.vrr.min_refresh, display.vrr.max_refresh );
+            ImGui::Text ( "%hs Range:  %d-%d Hz",
+              display.vrr.type, display.vrr.min_refresh,
+                     std::min ( display.vrr.max_refresh,
+                        sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
+            );
             ImGui::Separator ();
           }
 
@@ -6346,7 +6349,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
               if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
               {
-                __SK_LatentSyncSkip = static_cast <int> (dMultiplier);
+                __SK_LatentSyncSkip = static_cast <int> (round (dMultiplier));
 
                 if (__SK_LatentSyncSkip >= maxLatentSyncSkip)
                 {

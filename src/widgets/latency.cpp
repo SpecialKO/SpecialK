@@ -511,7 +511,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     auto FramerateFormatter = [](double milliseconds, char* buff, int size, void*) -> int
     {
       const auto fps =
-        static_cast <unsigned int> (std::max (0.0, 1000.0/milliseconds));
+        static_cast <unsigned int> (round (std::max (0.0, 1000.0/milliseconds)));
 
       return (milliseconds <= 0.0 || fps == 0) ?
         snprintf (buff, size, " ")             :

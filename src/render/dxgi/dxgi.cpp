@@ -1503,18 +1503,18 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc)
         DXGI_HDR_METADATA_HDR10 hdr10   = { };
 
         hdr10.MinMasteringLuminance     = sk::narrow_cast <UINT>   (0);//rb.display_gamut.minY / 0.0001);
-        hdr10.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (rb.display_gamut.maxY);
-        hdr10.MaxContentLightLevel      = sk::narrow_cast <UINT16> (rb.display_gamut.maxLocalY);
-        hdr10.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (rb.display_gamut.maxAverageY);
+        hdr10.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (roundf (rb.display_gamut.maxY));
+        hdr10.MaxContentLightLevel      = sk::narrow_cast <UINT16> (roundf (rb.display_gamut.maxLocalY));
+        hdr10.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (roundf (rb.display_gamut.maxAverageY));
 
-        hdr10.BluePrimary  [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.1500/*rb.display_gamut.xb*/);
-        hdr10.BluePrimary  [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.0600/*rb.display_gamut.yb*/);
-        hdr10.RedPrimary   [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.6400/*rb.display_gamut.xr*/);
-        hdr10.RedPrimary   [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.3300/*rb.display_gamut.yr*/);
-        hdr10.GreenPrimary [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.3000/*rb.display_gamut.xg*/);
-        hdr10.GreenPrimary [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.6000/*rb.display_gamut.yg*/);
-        hdr10.WhitePoint   [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.3127/*rb.display_gamut.Xw*/);
-        hdr10.WhitePoint   [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.3290/*rb.display_gamut.Yw*/);
+        hdr10.BluePrimary  [0]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.1500/*rb.display_gamut.xb*/));
+        hdr10.BluePrimary  [1]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.0600/*rb.display_gamut.yb*/));
+        hdr10.RedPrimary   [0]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.6400/*rb.display_gamut.xr*/));
+        hdr10.RedPrimary   [1]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.3300/*rb.display_gamut.yr*/));
+        hdr10.GreenPrimary [0]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.3000/*rb.display_gamut.xg*/));
+        hdr10.GreenPrimary [1]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.6000/*rb.display_gamut.yg*/));
+        hdr10.WhitePoint   [0]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.3127/*rb.display_gamut.Xw*/));
+        hdr10.WhitePoint   [1]          = sk::narrow_cast <UINT16> (round (50000.0 * 0.3290/*rb.display_gamut.Yw*/));
 
         DXGI_SWAP_CHAIN_DESC                                    swapDesc = { };
         if (pSwap4.p != nullptr && SUCCEEDED (pSwap4->GetDesc (&swapDesc)))
@@ -4282,10 +4282,10 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
 
       else if (config.render.framerate.refresh_rate != -1.0f &&
                 mode_to_match.RefreshRate.Numerator !=
-         sk::narrow_cast <UINT> (config.render.framerate.refresh_rate))
+         sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate)))
       {
         mode_to_match.RefreshRate.Numerator   =
-          sk::narrow_cast <UINT> (config.render.framerate.refresh_rate);
+          sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate));
         mode_to_match.RefreshRate.Denominator = 1;
       }
 
@@ -4371,8 +4371,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
                                   ||
          ( config.render.framerate.refresh_rate          != -1.0f &&
              pNewTargetParameters->RefreshRate.Numerator !=
-               sk::narrow_cast <UINT> (
-           config.render.framerate.refresh_rate )
+               sk::narrow_cast <UINT> ( ceilf (config.render.framerate.refresh_rate ) )
          )
       )
     {
@@ -4394,7 +4393,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       if ( config.render.framerate.rescan_.Denom          !=  1    ||
            (config.render.framerate.refresh_rate          != -1.0f &&
                      new_new_params.RefreshRate.Numerator != sk::narrow_cast <UINT>
-           (config.render.framerate.refresh_rate) )
+    (ceilf (config.render.framerate.refresh_rate) ) )
          )
       {
         DXGI_MODE_DESC modeDesc  = { };
@@ -4417,7 +4416,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
         else
         {
           modeDesc.RefreshRate.Numerator   =
-            sk::narrow_cast <UINT> (config.render.framerate.refresh_rate);
+            sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate));
           modeDesc.RefreshRate.Denominator = 1;
         }
 
@@ -4558,7 +4557,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
   if (  config.render.framerate.rescan_.Denom !=  1 ||
        (config.render.framerate.refresh_rate   > 0.0f &&
          mode_to_match.RefreshRate.Numerator  != sk::narrow_cast <UINT>
-       (config.render.framerate.refresh_rate)) )
+(ceilf (config.render.framerate.refresh_rate))) )
   {
     if ( ( config.render.framerate.rescan_.Denom     > 0   &&
            config.render.framerate.rescan_.Numerator > 0 ) &&
@@ -4585,7 +4584,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
       else
       {
         mode_to_match.RefreshRate.Numerator = sk::narrow_cast <UINT> (
-          config.render.framerate.refresh_rate);
+             ceilf (config.render.framerate.refresh_rate) );
         mode_to_match.RefreshRate.Denominator = 1;
       }
     }
@@ -5593,7 +5592,7 @@ SK_DXGI_CreateSwapChain_PreInit (
       if ( config.render.framerate.rescan_.Denom   !=  1 ||
           (config.render.framerate.refresh_rate    > 0.0f &&
            pDesc->BufferDesc.RefreshRate.Numerator != sk::narrow_cast <UINT> (
-           config.render.framerate.refresh_rate                              )
+    ceilf (config.render.framerate.refresh_rate)                             )
           )
         )
       {
@@ -5621,7 +5620,7 @@ SK_DXGI_CreateSwapChain_PreInit (
           {
             pDesc->BufferDesc.RefreshRate.Numerator   =
               sk::narrow_cast <UINT> (
-                std::ceil (config.render.framerate.refresh_rate)
+                std::ceilf (config.render.framerate.refresh_rate)
               );
             pDesc->BufferDesc.RefreshRate.Denominator = 1;
           }
@@ -9001,19 +9000,19 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
         }
       }
 
-      metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.minY / 0.0001);
-      metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.maxY);
-      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (display.gamut.maxLocalY);
-      metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (display.gamut.maxAverageY);
+      metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (round  (display.gamut.minY / 0.0001));
+      metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (roundf (display.gamut.maxY));
+      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (roundf (display.gamut.maxLocalY));
+      metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (roundf (display.gamut.maxAverageY));
 
-      metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (display.gamut.xb * 50000.0F);
-      metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (display.gamut.yb * 50000.0F);
-      metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (display.gamut.xr * 50000.0F);
-      metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (display.gamut.yr * 50000.0F);
-      metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (display.gamut.xg * 50000.0F);
-      metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (display.gamut.yg * 50000.0F);
-      metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (display.gamut.Xw * 50000.0F);
-      metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (display.gamut.Yw * 50000.0F);
+      metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (roundf (display.gamut.xb * 50000.0F));
+      metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (roundf (display.gamut.yb * 50000.0F));
+      metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (roundf (display.gamut.xr * 50000.0F));
+      metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (roundf (display.gamut.yr * 50000.0F));
+      metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (roundf (display.gamut.xg * 50000.0F));
+      metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (roundf (display.gamut.yg * 50000.0F));
+      metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (roundf (display.gamut.Xw * 50000.0F));
+      metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (roundf (display.gamut.Yw * 50000.0F));
 
       SK_RunOnce (
         SK_LOGi0 (

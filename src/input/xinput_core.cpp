@@ -3140,9 +3140,9 @@ SK_XInput_PulseController ( INT   iJoyID,
   XINPUT_VIBRATION
     vibes {
       .wLeftMotorSpeed  =
-        static_cast <WORD> (std::min (65535U, static_cast <UINT> (std::clamp (fStrengthLeft,  0.0f, 1.0f) * 65536.0f))),
+        static_cast <WORD> (std::min (65535U, static_cast <UINT> (roundf (std::clamp (fStrengthLeft,  0.0f, 1.0f) * 65536.0f)))),
       .wRightMotorSpeed =
-        static_cast <WORD> (std::min (65535U, static_cast <UINT> (std::clamp (fStrengthRight, 0.0f, 1.0f) * 65536.0f)))
+        static_cast <WORD> (std::min (65535U, static_cast <UINT> (roundf (std::clamp (fStrengthRight, 0.0f, 1.0f) * 65536.0f))))
     };
 
   if (config.input.gamepad.disable_rumble)

@@ -906,7 +906,7 @@ SK::ControlPanel::Input::Draw (void)
 
           if (ImGui::SliderFloat ("###AltTabPace", &fSeconds, 5.0f, 30.0f, "Once Every %3.1f Seconds"))
           {
-            config.input.keyboard.alt_tab_adhd_pace = (int)(1000.0 * fSeconds);
+            config.input.keyboard.alt_tab_adhd_pace = (int)(round (1000.0 * fSeconds));
             changed = true;
           }
 
@@ -2169,9 +2169,9 @@ SK::ControlPanel::Input::Draw (void)
 
               if (ImGui::ColorEdit3 ("###PlayStation_RGB", color))
               {
-                config.input.gamepad.scepad.led_color_r = (int)(color [0] * 255.0f);
-                config.input.gamepad.scepad.led_color_g = (int)(color [1] * 255.0f);
-                config.input.gamepad.scepad.led_color_b = (int)(color [2] * 255.0f);
+                config.input.gamepad.scepad.led_color_r = (int)(roundf (color [0] * 255.0f));
+                config.input.gamepad.scepad.led_color_g = (int)(roundf (color [1] * 255.0f));
+                config.input.gamepad.scepad.led_color_b = (int)(roundf (color [2] * 255.0f));
                 config.utility.save_async ();
               }
 

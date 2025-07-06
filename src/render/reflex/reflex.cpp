@@ -494,8 +494,8 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     if ((__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.use_limiter)
     {
       config.nvidia.reflex.frame_interval_us =
-            (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 6
-                                                                       : 0 );
+            (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 6
+                                                                               : 0 );
     }
     else
       config.nvidia.reflex.frame_interval_us = 0;
@@ -923,8 +923,8 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
       if (__target_fps > 10.0f)
       {
         config.nvidia.reflex.frame_interval_us =
-          (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 24
-                                                                     : 0 );
+          (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 24
+                                                                             : 0 );
       }
     }
 
@@ -1674,7 +1674,7 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
 
     // Set VRR framerate limit accordingly
     reflex_interval =
-      static_cast <UINT> (1000000.0 / dReflexFPS);
+      static_cast <UINT> (round (1000000.0 / dReflexFPS));
   }
 
   const bool applyUserOverride =
@@ -1683,7 +1683,7 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
   if (applyUserOverride)
   {
     UINT interval =
-      (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 6 : 0 );
+      (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 6 : 0 );
 
     // Vulkan Reflex is too primitive to perform this on its own, so we need to
     //   pre-adjust the limit.

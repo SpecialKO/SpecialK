@@ -236,8 +236,8 @@ SK::ControlPanel::Window::Draw (void)
 
             if (moved)
             {
-              x_pos = sk::narrow_cast <int> (fx_pos);
-              y_pos = sk::narrow_cast <int> (fy_pos);
+              x_pos = sk::narrow_cast <int> (std::roundf (fx_pos));
+              y_pos = sk::narrow_cast <int> (std::roundf (fy_pos));
 
               queue_move = true;
             }
