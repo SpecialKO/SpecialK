@@ -3804,25 +3804,45 @@ auto DeclKeybind =
       {
         config.input.gamepad.dualsense.trigger_effect_l = playstation_trigger_effect::Vibration;
         config.input.gamepad.dualsense.trigger_effect_r = playstation_trigger_effect::Vibration;
-        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
-                                 (! PathFileExists (L"d3d12.dll"))))
-        {
-          wchar_t      wszProfileSKinny [MAX_PATH] = {};
-          PathAppendW (wszProfileSKinny, SK_GetConfigPath ());
-          PathAppendW (wszProfileSKinny,    L"SKinny.ignore");
 
-          if (! (PathFileExists (L"SKinny.ignore") ||
-                 PathFileExists (wszProfileSKinny)))
+        if (SK_IsCurrentGame (SK_GAME_ID::ForzaHorizon5))
+        {
+          if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
+                                   (! PathFileExists (L"d3d12.dll"))))
           {
-            if (IDYES ==
+#if 0
+            wchar_t      wszProfileSKinny [MAX_PATH] = {};
+            PathAppendW (wszProfileSKinny, SK_GetConfigPath ());
+            PathAppendW (wszProfileSKinny,    L"SKinny.ignore");
+          
+            if (! (PathFileExists (L"SKinny.ignore") ||
+                   PathFileExists (wszProfileSKinny)))
+            {
+              if (IDYES ==
+                  SK_MessageBox (
+                    L"Special K has Compatibility Issues with this Game\r\n\r\n"
+                    L" * Please use Local Injection or SKinny\r\n\r\n"
+                    L"Click Yes for more info on SKinny.", L"Special K Incompatibility",
+                      MB_YESNO|MB_ICONWARNING))
+              {
+                SK_Util_OpenURI (L"https://github.com/SpecialKO/SKinny/releases", SW_RESTORE);
+              }
+            }
+#else
+            if (IDOK ==
                 SK_MessageBox (
                   L"Special K has Compatibility Issues with this Game\r\n\r\n"
-                  L" * Please use Local Injection or SKinny\r\n\r\n"
-                  L"Click Yes for more info on SKinny.", L"Special K Incompatibility",
-                    MB_YESNO|MB_ICONWARNING))
+                  L"   * Please use Local Injection or SKinny\r\n\r\n"
+                    L"Click OK to switch to Local Injection.", L"Special K Incompatibility",
+                    MB_OKCANCEL|MB_ICONWARNING))
             {
-              SK_Util_OpenURI (L"https://github.com/SpecialKO/SKinny/releases", SW_RESTORE);
+              SK_File_FullCopy (
+                SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                L"dxgi.dll"
+              );
+              SK_RestartGame ();
             }
+#endif
           }
         }
 
