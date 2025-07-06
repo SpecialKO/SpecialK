@@ -5442,6 +5442,15 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         }
 #endif
 
+        // NVAPI status checks are heavily throttled, there are cases where
+        //   the official driver's status is not accurate and we must use the
+        //     VBLANK counter rate instead.
+        if (  fVBlankHz > 0.0f &&
+              fVBlankHz <= fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) /3600.0f )
+        {
+          rb.gsync_state.active = true;
+        }
+
         if (rb.gsync_state.active)
         {
           // Is it really "active" if we can't calculate the rate?
