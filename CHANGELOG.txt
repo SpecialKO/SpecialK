@@ -1,4 +1,11 @@
-﻿25.7.5.2
+﻿25.7.6
+======
+ + Limit reported VRR Max Range to the display's current fixed-refresh
+     rate (i.e. displaying a 144 Hz signal on a 175 Hz screen -> max VRR=144).
+ + Adjust various floating-point -> integer conversions throughout the codebase
+     to use rounding as necessary.
+
+25.7.5.2
 ========
  + Use DXGI Presentation Statistics / NVAPI VBlank counter to determine
      G-Sync active state if NVAPI-reported state is stale.
