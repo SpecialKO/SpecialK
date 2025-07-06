@@ -1440,6 +1440,10 @@ iSK_INI::write (const wchar_t* fname)
   if (StrStrIW (fname, LR"(\Global\)"))
     encoding_ = INI_UTF16LE;
 
+  // Proton/Linux have poor support for 16-bit Unicode
+  if (config.compatibility.using_wine)
+    encoding_ = INI_UTF8;
+
   FILE* fOut = nullptr;
 
   switch (encoding_)
