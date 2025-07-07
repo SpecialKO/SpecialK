@@ -2453,6 +2453,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         plugin_mgr->config_fns.emplace (SK_Okami_PlugInCfg);
         break;
 
+      case SK_GAME_ID::WatchDogs:
+        SK_WatchDogs_InitPlugin();
+        break;
+
       case SK_GAME_ID::Yakuza0:
       case SK_GAME_ID::YakuzaKiwami:
       case SK_GAME_ID::YakuzaKiwami2:
