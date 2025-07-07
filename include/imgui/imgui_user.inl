@@ -3173,7 +3173,7 @@ SK_ImGui_KillScreensaver (void)
       SK_Thread_CloseSelf ();
 
       return 0;
-    }
+    }, L"[SK] Screensaver Terminator"
   );
 
   SetEvent (hSignalScreensaver);
