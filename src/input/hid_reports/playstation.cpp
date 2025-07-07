@@ -1146,8 +1146,14 @@ SK_HID_ProcessGamepadButtonBindings (void)
 
       if (bPressed || bReleased)
       {
-        const BYTE bScancode =
-          (BYTE)MapVirtualKey (VirtualKey, 0);
+        WriteULong64Release (
+          &config.input.keyboard.temporarily_allow,
+            frames_drawn + 40
+        );
+
+#if 0
+        const UINT bScancode =
+          MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
 
         const DWORD dwFlags =
           ( ( bScancode & 0xE0 ) == 0   ?
@@ -1156,13 +1162,12 @@ SK_HID_ProcessGamepadButtonBindings (void)
                      ( bReleased ? KEYEVENTF_KEYUP
                                  : 0x0 );
 
-        WriteULong64Release (
-          &config.input.keyboard.temporarily_allow,
-            frames_drawn + 40
-        );
-
         SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
-                                                  bScancode, dwFlags, 0);
+                        sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
+#endif
+
+        PostMessage (game_window.hWnd, bReleased ?
+                                        WM_KEYUP : WM_KEYDOWN, VirtualKey, 0);
 
         binding.lastFrame = binding.thisFrame;
       }
