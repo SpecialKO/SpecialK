@@ -6,6 +6,7 @@
      for PlayStation button -> keyboard bindings for compat. with SDL3.
  + Do not log calls to IDXGIOutput::FindClosestMatchingMode (...) in SDL3
      games, since the API is spammed to death in System Shock 2 Remaster.
+ + Eliminate small hitch when opening SK's Control Panel.
 
 25.7.6.2
 ========

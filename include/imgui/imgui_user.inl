@@ -3152,6 +3152,33 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 }
 
 
+void
+SK_ImGui_KillScreensaver (void)
+{
+  static HANDLE hSignalScreensaver =
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+  static HANDLE hScreensaverTerminator =
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      const HANDLE events [] = {
+        __SK_DLL_TeardownEvent, hSignalScreensaver
+      };
+
+      while ( WAIT_OBJECT_0 != WaitForMultipleObjects (2, events, FALSE, INFINITE) )
+      {
+        SK_TerminateProcesses (L"scrnsave.scr", true);
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }
+  );
+
+  SetEvent (hSignalScreensaver);
+}
+
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
 static int64_t g_Time           = { };
@@ -3347,7 +3374,7 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
       //
       if (config.window.screensaver_active)
       {
-        SK_TerminateProcesses (L"scrnsave.scr", true);
+        SK_ImGui_KillScreensaver ();
       }
     }
 

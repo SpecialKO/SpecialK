@@ -9092,7 +9092,8 @@ SK_ImGui_Toggle (void)
   if (SK_ImGui_Visible)
   {
     // Kill screensaver when opening the control panel
-    SK_TerminateProcesses (L"scrnsave.scr", true);
+    SK_ImGui_KillScreensaver ();
+    
     ImGui::SetNextWindowFocus ();
   }
 
