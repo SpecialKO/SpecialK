@@ -491,6 +491,20 @@ RegisterRawInputDevices_Detour (
     {      pDevices [i] =
    pRawInputDevices [i];
 
+    // SDL3 Bug Workaround
+    if (   pDevices [i].hwndTarget != NULL &&
+         ( pDevices [i].dwFlags & RIDEV_REMOVE ) )
+    {
+      SK_LOGi0 (
+        L"Invalid use of RIDEV_REMOVE, removing HWND for device %d/%d "
+        L"in game's call to RegisterRawInputDevices (...).",
+          i + 1, uiNumDevices
+      );
+
+      pDevices [i].hwndTarget = NULL;
+      //pDevices [i].dwFlags &= ~RIDEV_REMOVE;
+    }
+
     bool match_any_in_page = 
       (pDevices [i].dwFlags & RIDEV_PAGEONLY) && pDevices [i].usUsage == 0;
 
