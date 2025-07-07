@@ -4530,26 +4530,33 @@ DXGIOutput_FindClosestMatchingMode_Override (
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  DXGI_LOG_CALL_I4 (
-    L"       IDXGIOutput", L"FindClosestMatchingMode         ",
-    L"%p, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
-                                     _L(PRIxPTR) L"h",
-      This, (uintptr_t)pModeToMatch, (uintptr_t)pClosestMatch,
-            (uintptr_t)pConcernedDevice
-  );
+  // SDL3 calls this -A LOT-, don't log these calls.
+  const bool silent =
+    rb.windows.sdl;
 
-  SK_LOGi0 (
-    L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
-                                         L"Scanlines=%hs",
-      pModeToMatch->Width, pModeToMatch->Height,
-        pModeToMatch->RefreshRate.Denominator != 0 ?
-          static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
-          static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
-            std::numeric_limits <float>::quiet_NaN (),
-      SK_DXGI_FormatToStr           (pModeToMatch->Format).data (),
-      SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
-      SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering)
-  );
+  if (! silent)
+  {
+    DXGI_LOG_CALL_I4 (
+      L"       IDXGIOutput", L"FindClosestMatchingMode         ",
+      L"%p, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
+                                       _L(PRIxPTR) L"h",
+        This, (uintptr_t)pModeToMatch, (uintptr_t)pClosestMatch,
+              (uintptr_t)pConcernedDevice
+    );
+
+    SK_LOGi0 (
+      L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
+                                           L"Scanlines=%hs",
+        pModeToMatch->Width, pModeToMatch->Height,
+          pModeToMatch->RefreshRate.Denominator != 0 ?
+            static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
+            static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
+              std::numeric_limits <float>::quiet_NaN (),
+        SK_DXGI_FormatToStr           (pModeToMatch->Format).data (),
+        SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
+        SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering)
+    );
+  }
 
 
   DXGI_MODE_DESC mode_to_match = *pModeToMatch;
@@ -4629,6 +4636,15 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
   pModeToMatch = &mode_to_match;
 
+  if (rb.windows.sdl)
+  {
+    if (pModeToMatch != nullptr && pClosestMatch != nullptr)
+    {
+      *pClosestMatch = *pModeToMatch;
+      return S_OK; 
+    }
+  }
+
 
   HRESULT     ret = E_UNEXPECTED;
   DXGI_CALL ( ret, FindClosestMatchingMode_Original (
@@ -4637,18 +4653,21 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
   if (SUCCEEDED (ret))
   {
-    SK_LOGi0 (
-      L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
-                                           L"Scanlines=%hs",
-      pClosestMatch->Width, pClosestMatch->Height,
-        pClosestMatch->RefreshRate.Denominator != 0 ?
-          static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
-          static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
-            std::numeric_limits <float>::quiet_NaN (),
-      SK_DXGI_FormatToStr           (pClosestMatch->Format).data (),
-      SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
-      SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering)
-    );
+    if (! silent)
+    {
+      SK_LOGi0 (
+        L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
+                                             L"Scanlines=%hs",
+        pClosestMatch->Width, pClosestMatch->Height,
+          pClosestMatch->RefreshRate.Denominator != 0 ?
+            static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
+            static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
+              std::numeric_limits <float>::quiet_NaN (),
+        SK_DXGI_FormatToStr           (pClosestMatch->Format).data (),
+        SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
+        SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering)
+      );
+    }
   }
 
   return ret;

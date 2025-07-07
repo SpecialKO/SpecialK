@@ -1,4 +1,13 @@
-﻿25.7.6.2
+﻿25.7.7
+======
+ + Workaround SDL3 bug (RIDEV_REMOVE passed to RegisterRawInputDevices (...),
+     while hwndTarget is non-NULL).
+ + Post WM_KEYDOWN / WM_KEYUP to game window rather than using SendInput (...)
+     for PlayStation button -> keyboard bindings for compat. with SDL3.
+ + Do not log calls to IDXGIOutput::FindClosestMatchingMode (...) in SDL3
+     games, since the API is spammed to death in System Shock 2 Remaster.
+
+25.7.6.2
 ========
  + Also remove UTF8 Byte Order Mark from INI files on Proton/Linux. 
 
