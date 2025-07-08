@@ -2776,6 +2776,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     worker.hSignalShutdown.m_h =
       SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
+    worker.hThread.m_h =
     SK_Thread_CreateEx ([](LPVOID lpUser)->DWORD
     {
       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);

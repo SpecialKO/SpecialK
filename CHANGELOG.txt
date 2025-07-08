@@ -1,4 +1,9 @@
-﻿25.7.8
+﻿25.7.8.1
+========
+ + Implement blocking wait for framepacing statistics producer thread to finish
+     shutting down before allowing framerate limiters to finalize destruction.
+
+25.7.8
 ======
  + Added support for EDID data > 256-bytes (up to 32 KiB) for NvAPI-acquired
      data and system registry cache.

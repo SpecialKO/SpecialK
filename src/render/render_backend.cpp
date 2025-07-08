@@ -4240,8 +4240,8 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
         {
           static_assert (NV_EDID_DATA_SIZE == 256);
 
-          if (edid.offset     >= 32768 ||
-              edid.sizeofEDID >  32768)
+          if (edid.offset     > 32768 - NV_EDID_DATA_SIZE ||
+              edid.sizeofEDID > 32768)
           {
             SK_LOGi0 (L"NvAPI_GPU_GetEDID (...) buffer overrun!");
             sizeofEDID = 0;
