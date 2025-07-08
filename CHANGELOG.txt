@@ -1,4 +1,10 @@
-﻿25.7.8.1
+﻿25.7.8.2
+========
+ + Reduce maximum EDID payload size to 1 KiB and ensure RegGetValueW (...)
+     is passed the correct size when reading EDID on non-NV hardware.
+ + Rename "AMD FreeSync" VRR type to "VESA AdaptiveSync" on non-AMD hardware.
+
+25.7.8.1
 ========
  + Implement blocking wait for framepacing statistics producer thread to finish
      shutting down before allowing framerate limiters to finalize destruction.
