@@ -3762,13 +3762,13 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
 
   unsigned int i        = 0;
   uint8_t*     block    = 0;
-  uint32_t     checksum = 0;
+  uint8_t      checksum = 0;
 
   for (i = 0; i < length; ++i)
     checksum += edid [i];
 
   // Bad checksum, fail EDID
-  if ((checksum % 256) != 0)
+  if (checksum != 0)
   {
     SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
     //return vrr_caps;
@@ -3984,13 +3984,13 @@ SK_RenderBackend_V2::decodeEDIDForName (uint8_t *edid, size_t length) const
 
   unsigned int i        = 0;
   uint8_t*     block    = 0;
-  uint32_t     checksum = 0;
+  uint8_t      checksum = 0;
 
   for (i = 0; i < length; ++i)
     checksum += edid [i];
 
   // Bad checksum, fail EDID
-  if ((checksum % 256) != 0)
+  if (checksum != 0)
   {
     SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
     //return "";
