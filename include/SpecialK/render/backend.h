@@ -283,6 +283,12 @@ public:
       DXGI_RATIONAL       refresh              = { 0, 0 };
     } native;
 
+    struct vrr_caps_s {
+      uint16_t            min_refresh          =   0;
+      uint16_t            max_refresh          =   0;
+      char                type [32]            = "NVIDIA G-SYNC";
+    } vrr;
+
     struct nvapi_ctx_s {
       NvPhysicalGpuHandle gpu_handle           =   nullptr;
       NvDisplayHandle     display_handle       =   nullptr;
@@ -751,6 +757,8 @@ public:
 
   std::string decodeEDIDForName      (uint8_t* edid, size_t length) const;
   POINT       decodeEDIDForNativeRes (uint8_t* edid, size_t length) const;
+  output_s::vrr_caps_s
+              decodeEDIDForVRRCaps   (uint8_t* edid, size_t length) const;
 
   bool resetTemporaryDisplayChanges (void);
 

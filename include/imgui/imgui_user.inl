@@ -2463,6 +2463,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
 #include <SpecialK/core.h>
 #include <SpecialK/widgets/widget.h>
+#include <SpecialK/storefront/xbox.h>
 
 #define SK_Threshold(x,y) (x) > (y) ? ( (x) - (y) ) : 0
 
@@ -2651,6 +2652,161 @@ SK_ImGui_PollGamepad (void)
           );
       }
     }
+
+#if 0 // HOWTO synthesize input for GameBar...?
+    if (SK_Xbox_GetOverlayState (false))
+    {
+      if (last_state.dwPacketNumber <= state.dwPacketNumber)
+      {
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_UP, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_UP, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_UP, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_DOWN, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_DOWN, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_DOWN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_LEFT, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_LEFT, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_LEFT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_RIGHT, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_RIGHT, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_RIGHT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_TAB, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_TAB, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_TAB, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0)
+        {
+          BYTE bScancode0 =
+            (BYTE)MapVirtualKey (VK_TAB, 0);
+      
+          DWORD dwFlags0 =
+            ( bScancode0 & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+          BYTE bScancode1 =
+            (BYTE)MapVirtualKey (VK_SHIFT, 0);
+      
+          DWORD dwFlags1 =
+            ( bScancode1 & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_SHIFT, bScancode1, dwFlags1,                   0);
+          SK_keybd_event (VK_TAB,   bScancode0, dwFlags0,                   0);
+          SK_keybd_event (VK_TAB,   bScancode0, dwFlags0 | KEYEVENTF_KEYUP, 0);
+          SK_keybd_event (VK_SHIFT, bScancode1, dwFlags1 | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_A) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_RETURN, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_RETURN, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_RETURN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0)
+        {
+          BYTE bScancode0 =
+            (BYTE)MapVirtualKey (VK_TAB, 0);
+      
+          DWORD dwFlags0 =
+            ( bScancode0 & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+          BYTE bScancode1 =
+            (BYTE)MapVirtualKey (VK_CONTROL, 0);
+      
+          DWORD dwFlags1 =
+            ( bScancode1 & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_CONTROL, bScancode1, dwFlags1,                   0);
+          SK_keybd_event (VK_TAB,     bScancode0, dwFlags0,                   0);
+          SK_keybd_event (VK_TAB,     bScancode0, dwFlags0 | KEYEVENTF_KEYUP, 0);
+          SK_keybd_event (VK_CONTROL, bScancode1, dwFlags1 | KEYEVENTF_KEYUP, 0);
+        }
+        if (((last_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) == 0) &&
+                  (state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) != 0)
+        {
+          BYTE bScancode =
+            (BYTE)MapVirtualKey (VK_ESCAPE, 0);
+      
+          DWORD dwFlags =
+            ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      
+          SK_keybd_event (VK_ESCAPE, bScancode, dwFlags,                   0);
+          SK_keybd_event (VK_ESCAPE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+        }
+      }
+    }
+#endif
 
     last_state = state;
   }
@@ -2996,6 +3152,33 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 }
 
 
+void
+SK_ImGui_KillScreensaver (void)
+{
+  static HANDLE hSignalScreensaver =
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+  static HANDLE hScreensaverTerminator =
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      const HANDLE events [] = {
+        __SK_DLL_TeardownEvent, hSignalScreensaver
+      };
+
+      while ( WAIT_OBJECT_0 != WaitForMultipleObjects (2, events, FALSE, INFINITE) )
+      {
+        SK_TerminateProcesses (L"scrnsave.scr", true);
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Screensaver Terminator"
+  );
+
+  SetEvent (hSignalScreensaver);
+}
+
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
 static int64_t g_Time           = { };
@@ -3191,7 +3374,7 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
       //
       if (config.window.screensaver_active)
       {
-        SK_TerminateProcesses (L"scrnsave.scr", true);
+        SK_ImGui_KillScreensaver ();
       }
     }
 
@@ -3300,11 +3483,12 @@ SK_ImGui_UpdateClassCursor (void)
       game_window.game_cursor = game_window.real_cursor;
 }
 
-                HANDLE SK_ImGui_SignalBackupInputThread = 0;
-                bool   SK_ImGui_IsHWCursorVisible       = false;
-extern          BOOL  SK_ImGui_NewInput;
-extern volatile DWORD SK_ImGui_LastKeyboardProcMessageTime;
-extern volatile DWORD SK_ImGui_LastMouseProcMessageTime;
+                HANDLE SK_ImGui_SignalBackupInputThread                         = 0;
+                bool   SK_ImGui_IsHWCursorVisible                               = false;
+                bool   SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization = false;
+extern          BOOL   SK_ImGui_NewInput;
+extern volatile DWORD  SK_ImGui_LastKeyboardProcMessageTime;
+extern volatile DWORD  SK_ImGui_LastMouseProcMessageTime;
 
 DWORD
 WINAPI
@@ -3316,8 +3500,9 @@ SK_ImGui_BackupInputThread (LPVOID)
     { __SK_DLL_TeardownEvent,
         SK_ImGui_SignalBackupInputThread };
 
-  DWORD  dwWaitState  = WAIT_TIMEOUT;
-  while (dwWaitState != WAIT_OBJECT_0)
+  static BYTE  last_keyboard_state [256] = {};
+  DWORD        dwWaitState  = WAIT_TIMEOUT;
+  while       (dwWaitState != WAIT_OBJECT_0)
   {
     dwWaitState = 
       WaitForMultipleObjects (2, hEvents, FALSE, SK_ImGui_Active () ? 3 : 100);
@@ -3328,10 +3513,6 @@ SK_ImGui_BackupInputThread (LPVOID)
     if (ReadULongAcquire (&SK_ImGui_LastKeyboardProcMessageTime) < SK::ControlPanel::current_time - 500UL &&
          (dwWaitState == (WAIT_OBJECT_0 + 1)))
     {
-      static BYTE       keyboard_state [512] = {};
-      static BYTE  last_keyboard_state [512] = {};
-      GetKeyboardState (keyboard_state);
-
       static            LASTINPUTINFO
         lii = { sizeof (LASTINPUTINFO), 1 };
 
@@ -3343,15 +3524,24 @@ SK_ImGui_BackupInputThread (LPVOID)
         dwLastInput =
           std::max (dwLastInput, lii.dwTime);
 
-        if (memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 512) != 0)
+        bool bProcessInput = true;
+        if (!SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization && SK_GetForegroundWindow () != game_window.hWnd) {
+          static BYTE       keyboard_state [256] = {};
+          GetKeyboardState (keyboard_state);
+
+          bProcessInput = memcmp (keyboard_state, last_keyboard_state, sizeof (BYTE) * 256) != 0;
+
+          memcpy (last_keyboard_state,
+                  keyboard_state, sizeof (BYTE) * 256);
+        }
+
+        if (bProcessInput)
         {
           auto& io =
             ImGui::GetIO ();
 
           bool    last_keys              [256] = {};
           memcpy (last_keys, io.KeysDown, 256);
-          memcpy (last_keyboard_state,
-                       keyboard_state, sizeof (BYTE) * 512);
 
           for (UINT i = 7 ; i < 255 ; ++i)
           {

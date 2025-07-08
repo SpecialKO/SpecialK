@@ -1,4 +1,98 @@
-﻿25.6.30
+﻿25.7.8
+======
+ + Added support for EDID data > 256-bytes (up to 32 KiB) for NvAPI-acquired
+     data and system registry cache.
+
+25.7.7
+======
+ + Workaround SDL3 bug (RIDEV_REMOVE passed to RegisterRawInputDevices (...),
+     while hwndTarget is non-NULL).
+ + Post WM_KEYDOWN / WM_KEYUP to game window rather than using SendInput (...)
+     for PlayStation button -> keyboard bindings for compat. with SDL3.
+ + Do not log calls to IDXGIOutput::FindClosestMatchingMode (...) in SDL3
+     games, since the API is spammed to death in System Shock 2 Remaster.
+ + Eliminate small hitch when opening SK's Control Panel.
+
+25.7.6.2
+========
+ + Also remove UTF8 Byte Order Mark from INI files on Proton/Linux. 
+
+    * Users may hack together shell scripts that prepend text to INI files.
+        (i.e. Steam Tinker Launch)
+       
+  Those scripts do not understand Byte Order Marks, and would cause the
+    BOM to appear in the middle of the INI file instead of the beginning.
+
+25.7.6.1
+========
+ + Disable UTF16 file I/O on Proton/Linux, because it is poorly supported.
+ + Dispose of notify_ini when closing config files.
+
+25.7.6
+======
+ + Limit reported VRR Max Range to the display's current fixed-refresh
+     rate (i.e. displaying a 144 Hz signal on a 175 Hz screen -> max VRR=144).
+ + Adjust various floating-point -> integer conversions throughout the codebase
+     to use rounding as necessary.
+
+25.7.5.2
+========
+ + Use DXGI Presentation Statistics / NVAPI VBlank counter to determine
+     G-Sync active state if NVAPI-reported state is stale.
+
+25.7.5.1
+========
+ + Added LFC indicator to Control Panel's VRR status text.
+
+25.7.5
+======
+ + Merge pull request #286 from lukashoracek:input-optimization-fixes.
+ + Changed text in G-Sync / FreeSync tooltips based on display's VRR tech.
+ + Added EDID VRR Range decoding for G-SYNC native / embedded displays.
+ + Added EDID VRR Range info to Variable Refresh tooltip.
+
+25.7.4
+======
+ + Workaround COM lifetime issues for IGameBarStatics when ReShade is loaded.
+
+25.7.3.1
+========
+ + Slightly tweaked VRR initialization process on AMD and Intel systems.
+
+25.7.3
+======
+ + Added LFC indicator to NVIDIA Latency Management / Widget.
+ + Hide Special K's overlay and block gamepad input to games when the Xbox
+     GameBar is open and "redirecting input."
+ + Prevent games that use Windows.Gaming.Input from receiving device remove
+     events if Xbox Placeholder slot 0 is enabled and Xbox emulation is on.
+
+25.7.2.2
+========
+ + Differentiate between NVIDIA G-SYNC, HDMI VRR and AMD FreeSync in the
+     control panel's status text for VRR.
+
+25.7.2.1
+========
+ + Added FreeSync / VESA Adaptive-Sync EDID decoding support.
+ + Added temporary debug message when SK detects VRR support by reading EDID
+     on non-NVIDIA GPUs.
+
+25.7.2
+======
+ + Added initial support for AutoVRR on AMD and Intel GPUs
+    * Requires an HDMI 2.1 VRR Display (VESA AdaptiveSync to follow later)
+    * May not always trigger, but enabling the FPS limiter for the first time
+        if the game window is on a VRR capable display will set correct fps.
+
+25.7.1
+======
+ + Added Variable Refresh Rate display rate calculation for AMD and Intel GPUs
+     in OpenGL/D3D11/D3D12/Vulkan to the control panel.
+ + Added tooltip to "G-Sync Status" text if the active frame rate is too high
+     for VRR, and denote this as "Constant Rate" instead of "Variable Rate".
+
+25.6.30
 =======
  + Clamp HDR retrofit alpha in scRGB to [0,1], as it would never have values
      outside this range in SDR.

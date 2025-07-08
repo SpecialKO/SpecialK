@@ -1357,9 +1357,10 @@ struct SK_ClockTicker {
 
   uint64_t getAvg (void)
   {
-    return (num_cores > 0)  ?
-      static_cast <uint64_t> ( cumulative_MHz /
-      static_cast < double > ( num_cores ) )  : 0;
+    return (num_cores > 0)                     ?
+      static_cast <uint64_t> (
+                       round ( cumulative_MHz  /
+      static_cast < double > ( num_cores ) ) ) : 0;
   }
 };
 

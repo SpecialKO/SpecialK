@@ -65,6 +65,7 @@ void SKIF_ImGui_PopDisableState  (void);
 bool SK_ImGui_IsItemClicked      (void);
 bool SK_ImGui_IsItemRightClicked (void);
 void SK_ImGui_AdjustCursor       (void);
+void SK_ImGui_KillScreensaver    (void);
 
 // Special K Extensions to ImGui (Dialog Controls)
 //

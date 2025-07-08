@@ -491,6 +491,20 @@ RegisterRawInputDevices_Detour (
     {      pDevices [i] =
    pRawInputDevices [i];
 
+    // SDL3 Bug Workaround
+    if (   pDevices [i].hwndTarget != NULL &&
+         ( pDevices [i].dwFlags & RIDEV_REMOVE ) )
+    {
+      SK_LOGi0 (
+        L"Invalid use of RIDEV_REMOVE, removing HWND for device %d/%d "
+        L"in game's call to RegisterRawInputDevices (...).",
+          i + 1, uiNumDevices
+      );
+
+      pDevices [i].hwndTarget = NULL;
+      //pDevices [i].dwFlags &= ~RIDEV_REMOVE;
+    }
+
     bool match_any_in_page = 
       (pDevices [i].dwFlags & RIDEV_PAGEONLY) && pDevices [i].usUsage == 0;
 
@@ -515,18 +529,26 @@ RegisterRawInputDevices_Detour (
          (pDevices [i].usUsage     ==  HID_USAGE_GENERIC_KEYBOARD ||
           match_any_in_page))
       {
-        if (config.input.keyboard.prevent_no_legacy)
+        if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
         {
-          if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
+          if (pDevices [i].dwFlags & RIDEV_NOLEGACY)
           {
-            if (pDevices [i].dwFlags & RIDEV_NOLEGACY)
+            if (config.input.keyboard.prevent_no_legacy)
             {
               SK_LOGi0 (
                 L"Game tried to register a keyboard with RIDEV_NOLEGACY flag, but "
                 L"we are ignoring it..."
               );
+
+              pDevices [i].dwFlags &= ~RIDEV_NOLEGACY;
+            } else {
+              SK_LOGi0 (
+                L"Game has registered a keyboard with the RIDEV_NOLEGACY flag. "
+                L"Backup input GetKeyboardState optimization will be disabled."
+              );
+
+              SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization = true;
             }
-            pDevices [i].dwFlags     &= ~RIDEV_NOLEGACY;
           }
         }
 

@@ -1391,6 +1391,7 @@ bool SK_ImGui_CursorWarpingCooledDown           (void);
 void SK_ImGui_UpdateLastCursorWarpTime          (void);
 
 extern bool SK_ImGui_IsHWCursorVisible;
+extern bool SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization;
 
 enum SK_InputEnablement {
   Enabled              = 0,

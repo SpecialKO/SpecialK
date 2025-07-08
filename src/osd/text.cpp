@@ -783,10 +783,10 @@ SK_DrawOSD (void)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  const bool gsync =
+  const bool vrr =
     ( sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
       rb.gsync_state.capable &&
-      rb.gsync_state.active  );
+      rb.gsync_state.active  ) || (! sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status );
 
   auto _DrawFrameCountIf = [&](bool predicate = true)
   {
@@ -826,10 +826,26 @@ SK_DrawOSD (void)
 
   if (pLimiter != nullptr)
   {
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status && rb.api == SK_RenderAPI::D3D12)
+    if (config.apis.NvAPI.gsync_status)
     {
-      // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
-      SK_SpawnPresentMonWorker ();
+      bool bPresentMonNeeded = false;
+
+      if (sk::NVAPI::nv_hardware && rb.api == SK_RenderAPI::D3D12)
+      {
+        // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
+        bPresentMonNeeded = true;
+      }
+
+      else if (! sk::NVAPI::nv_hardware)
+      {
+        // PresentMon is needed in -all- graphics APIs on non-NVIDIA drivers
+        bPresentMonNeeded = true;
+      }
+
+      if (bPresentMonNeeded)
+      {
+        SK_SpawnPresentMonWorker ();
+      }
     }
 
     auto* snapshots = pLimiter->frame_history_snapshots.getPtr ();
@@ -881,7 +897,7 @@ SK_DrawOSD (void)
 
     float fVBlankHz = 0.0f;
 
-    if (gsync && (config.fps.compact_vrr || (! config.fps.compact)))
+    if (vrr && (config.fps.compact_vrr || (! config.fps.compact)))
     {
       auto& stats =
         rb.displays [rb.active_display].statistics;
@@ -902,13 +918,13 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        OSD_PRINTF (gsync && config.fps.compact_vrr ? "%*hs%2.0f | %3.01fHz\n"
-                                                    : "%*hs%2.0f\n"), left_padding, pad_str, fps, fVBlankHz
+        OSD_PRINTF (vrr && config.fps.compact_vrr ? "%*hs%2.0f | %3.01fHz\n"
+                                                  : "%*hs%2.0f\n"), left_padding, pad_str, fps, fVBlankHz
         OSD_END
       }
 
       else {
-        if (! gsync)
+        if (! vrr)
         {
           format =
             ( config.fps.frametime  ?
@@ -936,7 +952,7 @@ SK_DrawOSD (void)
 
         if (has_cpu_frametime)
         {
-          if (gsync)
+          if (vrr)
           {
             OSD_PRINTF format, left_padding, pad_str,
               rb.name,
@@ -969,7 +985,7 @@ SK_DrawOSD (void)
 
         else
         {
-          if (gsync)
+          if (vrr)
           {
             OSD_PRINTF format, left_padding, pad_str,
               rb.name,
@@ -1002,16 +1018,16 @@ SK_DrawOSD (void)
     else if (! config.fps.compact)
     {
       const char* format =
-        gsync ?
+        vrr ?
           ( config.fps.frametime                               ?
               "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)%#5.01f ms" :
               "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)"             )
-              :
+            :
           ( config.fps.frametime                     ?
               "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms" :
               "%*hs%-7ws:  %#4.01f FPS"                );
 
-      if (gsync)
+      if (vrr)
       {
         OSD_PRINTF format, left_padding, pad_str,
           rb.name,

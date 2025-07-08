@@ -1904,72 +1904,72 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(5.0f * (config.window.res.override.y / 4.0f));
+            config.window.res.override.x = (int)(roundf (5.0f * (config.window.res.override.y / 4.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(4.0f * (config.window.res.override.x / 5.0f));
+            config.window.res.override.y = (int)(roundf (4.0f * (config.window.res.override.x / 5.0f)));
           }
           break;
         case 1:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(4.0f * (config.window.res.override.y / 3.0f));
+            config.window.res.override.x = (int)(roundf (4.0f * (config.window.res.override.y / 3.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(3.0f * (config.window.res.override.x / 4.0f));
+            config.window.res.override.y = (int)(roundf (3.0f * (config.window.res.override.x / 4.0f)));
           }
           break;
         case 2:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(3.0f * (config.window.res.override.y / 2.0f));
+            config.window.res.override.x = (int)(roundf (3.0f * (config.window.res.override.y / 2.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(2.0f * (config.window.res.override.x / 3.0f));
+            config.window.res.override.y = (int)(roundf (2.0f * (config.window.res.override.x / 3.0f)));
           }
           break;
         case 3:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 10.0f));
+            config.window.res.override.x = (int)(roundf (16.0f * (config.window.res.override.y / 10.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(10.0f * (config.window.res.override.x / 16.0f));
+            config.window.res.override.y = (int)(roundf (10.0f * (config.window.res.override.x / 16.0f)));
           }
           break;
         case 4:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 9.0f));
+            config.window.res.override.x = (int)(roundf (16.0f * (config.window.res.override.y / 9.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right - display.rect.left;
-            config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 16.0f));
+            config.window.res.override.y = (int)(roundf (9.0f * (config.window.res.override.x / 16.0f)));
           }
           break;
         case 5:
           if (iNativeAspect >= iVirtualAspect)
           {
             config.window.res.override.y = display.rect.bottom - display.rect.top;
-            config.window.res.override.x = (int)(21.0f * (config.window.res.override.y / 9.0f));
+            config.window.res.override.x = (int)(roundf (21.0f * (config.window.res.override.y / 9.0f)));
           }
           else
           {
             config.window.res.override.x = display.rect.right  - display.rect.left;
-            config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 21.0f));
+            config.window.res.override.y = (int)(roundf (9.0f * (config.window.res.override.x / 21.0f)));
           }
           break;
         case 6:
@@ -2707,7 +2707,7 @@ DisplayModeMenu (bool windowed)
 
             // No Exact Match, but we can probably find something close...
             if ( -1 == current_item &&
-                 -1 != sk::narrow_cast <INT> (config.render.framerate.refresh_rate) )
+                 -1 != sk::narrow_cast <INT> (ceilf (config.render.framerate.refresh_rate)) )
             {
               int lvl2_idx = 1;
 
@@ -3073,9 +3073,15 @@ SK_NV_GSYNCControlPanel ()
 
     SK_RunOnce (rb.gsync_state.disabled.for_app = !SK_NvAPI_GetVRREnablement ());
 
-    if (ImGui::BeginPopup ("G-Sync Control Panel"))
+    const std::string popup_label =
+      SK_FormatString ("%hs Control Panel", rb.displays [rb.active_display].vrr.type);
+
+    if (ImGui::BeginPopup (popup_label.c_str ()))
     {
-      ImGui::TextUnformatted ("NVIDIA G-Sync Configuration");
+      const std::string title_label =
+        SK_FormatString ("%hs Configuration", rb.displays [rb.active_display].vrr.type);
+
+      ImGui::TextUnformatted (title_label.c_str ());
 
       ImGui::TreePush ("###GSyncConfig");
 
@@ -3085,8 +3091,11 @@ SK_NV_GSYNCControlPanel ()
       bool bEnableGSync =
         (! rb.gsync_state.disabled.for_app);
 
-      if (ImGui::Checkbox ("Enable G-Sync in this Game", &bEnableGSync))
-      { SK_NvAPI_SetVRREnablement                        (bEnableGSync);
+      const std::string button_label =
+        SK_FormatString ("Enable %hs in this Game", rb.displays [rb.active_display].vrr.type);
+
+      if (ImGui::Checkbox (button_label.c_str (), &bEnableGSync))
+      { SK_NvAPI_SetVRREnablement                 (bEnableGSync);
 
         rb.gsync_state.disabled.for_app =
           (! bEnableGSync);
@@ -3096,7 +3105,7 @@ SK_NV_GSYNCControlPanel ()
 
       ImGui::SetItemTooltip ("Requires a Game Restart");
 
-      if (ImGui::Checkbox ("Enable FastSync in this Game", &bEnableFastSync))
+      if (ImGui::Checkbox ("Enable NVIDIA FastSync in this Game", &bEnableFastSync))
       {
         SK_NvAPI_SetFastSync (bEnableFastSync);
 
@@ -3170,13 +3179,11 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem ("Display Playtime in Title",     "", &config.platform.show_playtime);
 #if 0 // Pending removal
       ImGui::MenuItem ("Display Active Input APIs",     "", &config.imgui.show_input_apis);
+#else
+      config.imgui.show_input_apis = true;
 #endif
 
-      if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
-      {
-        //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
-        ImGui::MenuItem ("Display G-Sync Status",       "", &config.apis.NvAPI.gsync_status);
-      }
+      ImGui::MenuItem ("Display VRR Status",            "", &config.apis.NvAPI.gsync_status);
     };
 
 
@@ -5183,12 +5190,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                                        szResolution))
       {
         config.window.res.override.x =
-              sk::narrow_cast <UINT> (
-        io.DisplayFramebufferScale.x );
+              sk::narrow_cast <UINT> ( roundf (io.DisplayFramebufferScale.x) );
 
         config.window.res.override.y =
-              sk::narrow_cast <UINT> (
-        io.DisplayFramebufferScale.y );
+              sk::narrow_cast <UINT> ( roundf (io.DisplayFramebufferScale.y) );
 
         override =
           true;
@@ -5199,8 +5204,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
     if (sRGB) strcat (szResolution,     "    (sRGB)");
             snprintf (szResolution, 63, "   %ix%i",
-              (int)((float)(client.right    - client.left) * g_fDPIScale),
-                (int)((float)(client.bottom - client.top ) * g_fDPIScale)
+              (int)(roundf ((float)(client.right    - client.left) * g_fDPIScale)),
+                (int)(roundf ((float)(client.bottom - client.top ) * g_fDPIScale))
                      );
 
     if (_fDPIScale > 100.1f)
@@ -5234,8 +5239,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
       if (ImGui::MenuItem ( bFakeFullscreen ? " \"Fullscreen\" Resolution"
                                             : " Window Resolution      ", szResolution))
       {
-        config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
-        config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
+        config.window.res.override.x = (int)(roundf ((float)(client.right  - client.left) * g_fDPIScale));
+        config.window.res.override.y = (int)(roundf ((float)(client.bottom - client.top)  * g_fDPIScale));
 
         override = true;
       }
@@ -5248,8 +5253,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     {
       if (ImGui::MenuItem (" Fullscreen Resolution ", szResolution))
       {
-        config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
-        config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
+        config.window.res.override.x = (int)(roundf ((float)(client.right  - client.left) * g_fDPIScale));
+        config.window.res.override.y = (int)(roundf ((float)(client.bottom - client.top)  * g_fDPIScale));
 
         override = true;
       }
@@ -5299,9 +5304,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     }
 
     int device_x =
-      (int)((float)rb.windows.device.getDevCaps ().res.x * g_fDPIScale);
+      (int)(roundf ((float)rb.windows.device.getDevCaps ().res.x * g_fDPIScale));
     int device_y =
-      (int)((float)rb.windows.device.getDevCaps ().res.y * g_fDPIScale);
+      (int)(roundf ((float)rb.windows.device.getDevCaps ().res.y * g_fDPIScale));
 
     if ( (client.right - client.left) != device_x || (client.bottom - client.top) != device_y ||
          io.DisplayFramebufferScale.x != device_x || io.DisplayFramebufferScale.y != device_y )
@@ -5344,7 +5349,68 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     SK_DXGI_FullscreenControlPanel ();
 
 
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    if (config.apis.NvAPI.gsync_status){
+    auto& display =
+      rb.displays [rb.active_display];
+
+    auto& stats =
+      display.statistics;
+
+    const float fVBlankHz =
+      stats.vblank_counter.getVBlankHz (
+              SK_QueryPerf ().QuadPart );
+
+    const auto& vsync_freq =
+      display.signal.timing.vsync_freq;
+
+    const float fFixedRefreshHz = vsync_freq.Denominator <= 0.0f ? 0.0f :
+             static_cast <float> (vsync_freq.Numerator) /
+             static_cast <float> (vsync_freq.Denominator);
+    
+    const float fMaxHzForVRR =
+      fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) / 3600.0f;
+
+    const bool bLimitRequiredForVRR =
+      (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
+
+    auto *pLimiter =
+      SK::Framerate::GetLimiter (
+        rb.swapchain.p, false   );
+
+    int lfc_rate = 0;
+
+    if (pLimiter != nullptr)
+    {
+      pLimiter->frame_history_snapshots->frame_history.calcMean ();
+
+      const auto snapshots =
+        pLimiter->frame_history_snapshots.getPtr ();
+
+      const float fFPS =
+        static_cast <float> (1000.0 / snapshots->cached_mean.val);
+
+      if (fVBlankHz > 1.08 * fFPS)
+      {
+        lfc_rate =
+          static_cast <int> (std::floorf (0.5f + (fVBlankHz / fFPS)));
+      }
+    }
+
+    if (! sk::NVAPI::nv_hardware || display.vrr.min_refresh != 1)
+    { // Replace the G-SYNC placeholder text if EDID has not identified the actual
+      // VRR technology in use
+      //
+      //  NOTE: All G-SYNC native displays report min refresh as 1
+      //
+      if (! strcmp (display.vrr.type, "NVIDIA G-SYNC"))
+            strcpy (display.vrr.type, "Variable Refresh");
+    }
+
+    std::string vrr_status_label = lfc_rate > 0 ?
+      SK_FormatString (" %hs  (LFC x%d) ", display.vrr.type, lfc_rate) :
+      SK_FormatString (" %hs ",            display.vrr.type);
+
+    if (sk::NVAPI::nv_hardware)
     {
       char szGSyncStatus [128] = { };
 
@@ -5373,22 +5439,33 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         }
 #endif
 
+        // NVAPI status checks are heavily throttled, there are cases where
+        //   the official driver's status is not accurate and we must use the
+        //     VBLANK counter rate instead.
+        if (  fVBlankHz > 0.0f &&
+              fVBlankHz <= fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) /3600.0f )
+        {
+          rb.gsync_state.active = true;
+        }
+
         if (rb.gsync_state.active)
         {
-          auto& stats =
-            rb.displays [rb.active_display].statistics;
-
-          float fVBlankHz =
-            stats.vblank_counter.getVBlankHz (
-                    SK_QueryPerf ().QuadPart );
-
           // Is it really "active" if we can't calculate the rate?
           if (fVBlankHz == 0.0f)
             strcat (szGSyncStatus, "Active " ICON_FA_QUESTION_CIRCLE);
           else
           {
-            std::string_view     status (szGSyncStatus, 128);
-            SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+            std::string_view status (szGSyncStatus, 128);
+
+            float fActiveHz = fVBlankHz;
+
+            if ( fVBlankHz < 0.999f * fFixedRefreshHz ||
+                 fVBlankHz > 1.001f * fFixedRefreshHz ) {
+              SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+            } else {
+              SK_FormatStringView (status, "Constant Rate : %5.2f Hz", fFixedRefreshHz);
+                                                           fActiveHz = fFixedRefreshHz;
+            }
           }
         }
         else if (! rb.gsync_state.maybe_active)
@@ -5405,24 +5482,36 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           strcat (szGSyncStatus, "   Unsupported");
       }
 
-      if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active) && (rb.api == SK_RenderAPI::D3D12))
+      if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active) && ((rb.api == SK_RenderAPI::D3D12) || fVBlankHz > fMaxHzForVRR))
       {
         if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
              rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
              rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
-             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI )
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+             bLimitRequiredForVRR )
         {
           strcat (szGSyncStatus, "  " ICON_FA_EXCLAMATION_TRIANGLE);
         }
       }
 
-      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, true);
+      ImGui::MenuItem (vrr_status_label.c_str (), szGSyncStatus, nullptr, true);
 
       if (ImGui::BeginItemTooltip ())
       {
-        ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
-        ImGui::SameLine        ();
-        ImGui::TextUnformatted ("Right-click to configure G-Sync / FastSync");
+        if ( display.vrr.max_refresh > 1 &&
+             display.vrr.min_refresh != display.vrr.max_refresh )
+        {
+          ImGui::Text ( "%hs Range:  %d-%d Hz",
+            display.vrr.type, display.vrr.min_refresh,
+                   std::min ( display.vrr.max_refresh,
+                      sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
+          );
+          ImGui::Separator ();
+        }
+
+        ImGui::TextColored (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+        ImGui::SameLine    ();
+        ImGui::Text        ("Right-click to configure %hs / NVIDIA FastSync", display.vrr.type);
 
         if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active))
         {
@@ -5430,8 +5519,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "Presentation Model Tracking is not working, G-Sync status in D3D12 is "
-              "unknown without it."
+              "Presentation Model Tracking is not working, %hs status in D3D12 is "
+              "unknown without it.", display.vrr.type
             );
           }
 
@@ -5441,7 +5530,17 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "The current Presentation Mode uses DWM Composition and cannot activate G-Sync"
+              "The current Presentation Mode uses DWM Composition and cannot activate %hs",
+                display.vrr.type
+            );
+          }
+
+          else if (bLimitRequiredForVRR)
+          {
+            ImGui::Separator ();
+            ImGui::BulletText (
+              "The active framerate is too high for %hs; cap to %5.2f FPS "
+              "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
             );
           }
         }
@@ -5450,10 +5549,104 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
       if (ImGui::IsItemClicked () || SK_ImGui_IsItemRightClicked ())
       {
-        ImGui::OpenPopup         ("G-Sync Control Panel");
+        const std::string popup_title =
+          SK_FormatString ("%hs Control Panel", display.vrr.type);
+
+        ImGui::OpenPopup         (popup_title.c_str ());
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
     }
+
+    else
+    {
+      if (fVBlankHz > 0.0f)
+      {
+        char                     szVRRStatus [128] = { };
+        std::string_view status (szVRRStatus, 128);
+
+        float fActiveHz = fVBlankHz;
+
+        if ( fVBlankHz < 0.999f * fFixedRefreshHz ||
+             fVBlankHz > 1.001f * fFixedRefreshHz ) {
+          SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+        } else {
+          SK_FormatStringView (status, "Constant Rate : %5.2f Hz", fFixedRefreshHz);
+                                                       fActiveHz = fFixedRefreshHz;
+        }
+
+        if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
+             rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+             rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI || 
+             bLimitRequiredForVRR )
+        {
+          strcat (szVRRStatus, "  " ICON_FA_EXCLAMATION_TRIANGLE);
+        }
+
+        ImGui::MenuItem (vrr_status_label.c_str (), szVRRStatus, nullptr, true);
+
+        if (ImGui::BeginItemTooltip ())
+        {
+          if ( display.vrr.min_refresh > 1 &&
+               display.vrr.min_refresh != display.vrr.max_refresh )
+          {
+            ImGui::Text ( "%hs Range:  %d-%d Hz",
+              display.vrr.type, display.vrr.min_refresh,
+                     std::min ( display.vrr.max_refresh,
+                        sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
+            );
+            ImGui::Separator ();
+          }
+
+          if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
+               rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+               rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+               rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+               bLimitRequiredForVRR )
+          {
+            if (rb.presentation.mode == SK_PresentMode::Unknown)
+            {
+              ImGui::Separator ();
+              ImGui::BulletText (
+                "Presentation Model Tracking is not working, VRR status on AMD/Intel GPUs "
+                "is unknown without it."
+              );
+            }
+
+            else if (rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+                     rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
+                     rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI)
+            {
+              ImGui::Separator ();
+              ImGui::BulletText (
+                "The current Presentation Mode uses DWM Composition and cannot activate %hs",
+                  display.vrr.type
+              );
+            }
+
+            else if (fActiveHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR))
+            {
+              ImGui::Separator ();
+              ImGui::BulletText (
+                "The active framerate is too high for %hs; cap to %5.2f FPS "
+                "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
+              );
+              ImGui::Separator ();
+              ImGui::TextUnformatted ("Click to apply the required framerate limit.");
+            }
+          }
+
+          ImGui::EndTooltip ();
+        }
+
+        if (bLimitRequiredForVRR && ImGui::IsItemClicked ())
+        {
+          config.render.framerate.target_fps = fMaxHzForVRR;
+                                __target_fps = fMaxHzForVRR;
+          config.utility.save_async ();
+        }
+      }
+    } }
 
     if (sk::NVAPI::nv_hardware)
       SK_NV_GSYNCControlPanel ();
@@ -5591,9 +5784,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         static bool bRefreshRateChanged = false;
         static bool bDisplayChanged     = false;
 
+        const auto& vsync_freq    = rb.displays [rb.active_display].signal.timing.vsync_freq;
         const double dRefreshRate =
-          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
-          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+          static_cast <double> (vsync_freq.Numerator) /
+          static_cast <double> (vsync_freq.Denominator);
 
         if ( config.render.framerate.last_refresh_rate != 0.0f &&
              ( config.render.framerate.last_refresh_rate > dRefreshRate + 0.1 ||
@@ -6155,7 +6349,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
               if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
               {
-                __SK_LatentSyncSkip = static_cast <int> (dMultiplier);
+                __SK_LatentSyncSkip = static_cast <int> (round (dMultiplier));
 
                 if (__SK_LatentSyncSkip >= maxLatentSyncSkip)
                 {
@@ -6547,82 +6741,83 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               ImGui::SameLine    ();
             }
 
-            if (sk::NVAPI::nv_hardware)
+            bool triggered =
+              config.render.framerate.auto_low_latency.triggered;
+
+            if (triggered)
             {
-              bool triggered =
-                config.render.framerate.auto_low_latency.triggered;
+              ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.4f, 0.9f, 0.4f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
+            }
 
-              if (triggered)
+            if (ImGui::Checkbox ("Auto VRR Mode", &config.render.framerate.auto_low_latency.waiting))
+            {
+              if (config.render.framerate.auto_low_latency.triggered)
+                  config.render.framerate.auto_low_latency.waiting = false;
+
+              config.render.framerate.auto_low_latency.triggered = false;
+            }
+
+            if (triggered)
+              ImGui::PopStyleColor (3);
+
+            if (ImGui::BeginItemTooltip ())
+            {
+              ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
+              ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
+
+              if (rb.isReflexSupported ())
               {
-                ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
-                ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.4f, 0.9f, 0.4f, 1.0f));
-                ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (0.1f, 1.0f, 0.1f, 1.0f));
+                if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
+                {
+                  ImGui::BulletText  ("NVIDIA Reflex will be set to Low Latency + Boost mode");
+                }
+                else
+                  ImGui::BulletText  ("NVIDIA Reflex will be set to Low Latency mode");
               }
+              ImGui::BulletText      ("Framerate limiter mode will be set to VRR Optimized");
+              ImGui::TextColored     (ImVec4 (1.f, 1.f, .5f, 1.f), " " ICON_FA_MOUSE);
+              ImGui::SameLine        ();
+              ImGui::TextUnformatted ("Right-click to configure Auto VRR behavior");
+              ImGui::Separator       ();
+              ImGui::TextColored     (ImVec4 (.6f, .6f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
+              ImGui::SameLine        ();
+              ImGui::TextUnformatted ("This option turns itself off and displays green after optimizing the framerate limiter");
+              ImGui::EndTooltip      ();
+            }
 
-              if (ImGui::Checkbox ("Auto VRR Mode", &config.render.framerate.auto_low_latency.waiting))
+            ImGui::OpenPopupOnItemClick ("AutoVRRConfig");
+
+            if (ImGui::BeginPopup ("AutoVRRConfig"))
+            {
+              bool vrr_changed = false;
+
+              vrr_changed |=
+                ImGui::Checkbox ("Enable By Default", &config.render.framerate.auto_low_latency.policy.global_opt);
+
+              ImGui::SetItemTooltip ("Controls whether games automatically use this feature");
+
+              vrr_changed |=
+                ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
+
+              ImGui::SetItemTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
+
+              vrr_changed |=
+                ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);
+
+              ImGui::SetItemTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
+
+              // Turn on Auto-Low Latency after making any changes
+              if (vrr_changed)
               {
-                if (config.render.framerate.auto_low_latency.triggered)
-                    config.render.framerate.auto_low_latency.waiting = false;
-
+                config.render.framerate.auto_low_latency.waiting   = config.render.framerate.auto_low_latency.policy.global_opt;
                 config.render.framerate.auto_low_latency.triggered = false;
               }
 
-              if (triggered)
-                ImGui::PopStyleColor (3);
-
-              if (ImGui::BeginItemTooltip ())
-              {
-                ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
-                ImGui::Separator       ();
-                ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
-                ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
-                if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
-                {
-                  ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency + Boost mode");
-                }
-                else
-                  ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency mode");
-                ImGui::BulletText      ("Framerate limiter mode will be set to VRR Optimized");
-                ImGui::TextColored     (ImVec4 (1.f, 1.f, .5f, 1.f), " " ICON_FA_MOUSE);
-                ImGui::SameLine        ();
-                ImGui::TextUnformatted ("Right-click to configure Auto VRR behavior");
-                ImGui::Separator       ();
-                ImGui::TextColored     (ImVec4 (.6f, .6f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
-                ImGui::SameLine        ();
-                ImGui::TextUnformatted ("This option turns itself off and displays green after optimizing the framerate limiter");
-                ImGui::EndTooltip      ();
-              }
-
-              ImGui::OpenPopupOnItemClick ("AutoVRRConfig");
-
-              if (ImGui::BeginPopup ("AutoVRRConfig"))
-              {
-                bool vrr_changed = false;
-
-                vrr_changed |=
-                  ImGui::Checkbox ("Enable By Default", &config.render.framerate.auto_low_latency.policy.global_opt);
-
-                ImGui::SetItemTooltip ("Controls whether games automatically use this feature");
-
-                vrr_changed |=
-                  ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
-
-                ImGui::SetItemTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
-
-                vrr_changed |=
-                  ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);
-
-                ImGui::SetItemTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
-
-                // Turn on Auto-Low Latency after making any changes
-                if (vrr_changed)
-                {
-                  config.render.framerate.auto_low_latency.waiting   = config.render.framerate.auto_low_latency.policy.global_opt;
-                  config.render.framerate.auto_low_latency.triggered = false;
-                }
-
-                ImGui::EndPopup ();
-              }
+              ImGui::EndPopup ();
             }
 
             ImGui::EndGroup     ();
@@ -8897,7 +9092,8 @@ SK_ImGui_Toggle (void)
   if (SK_ImGui_Visible)
   {
     // Kill screensaver when opening the control panel
-    SK_TerminateProcesses (L"scrnsave.scr", true);
+    SK_ImGui_KillScreensaver ();
+    
     ImGui::SetNextWindowFocus ();
   }
 

@@ -21,15 +21,23 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/storefront/xbox.h>
 #include <SpecialK/steam_api.h>
+
+#include <windows.gaming.ui.h>
 
 bool SK_Platform_GetOverlayState (bool real)
 {
   using namespace SK;
 
-  const bool state =
+  bool state =
     ((SteamAPI::AppID () != 0      ) ? SteamAPI::GetOverlayState (real) : false) ||
     ((    EOS::UserID () != nullptr) ?      EOS::GetOverlayState (real) : false);
+
+  if (! state)
+  {
+    state = SK_Xbox_GetOverlayState (real);
+  }
 
   return state;
 }

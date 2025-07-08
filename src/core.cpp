@@ -34,6 +34,7 @@
 #include <reflex/pclstats.h>
 
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/storefront/xbox.h>
 #include <SpecialK/control_panel/platform.h>
 
 #include <SpecialK/nvapi.h>
@@ -1261,6 +1262,10 @@ DllThread (LPVOID user)
   {
     if (! InterlockedCompareExchangeAcquire (&__SK_Init, TRUE, FALSE))
     {
+      // This must initialize COM, do it from a separate thread to avoid
+      //   ReShade constructing objects that require COM and keeping them
+      //     active after this function goes out of scope.
+      SK::Xbox::Init             ();
       SK_D3D_SetupShaderCompiler ();
 
       WritePointerRelease ( (volatile PVOID *)(&hInitThread),

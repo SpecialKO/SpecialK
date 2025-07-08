@@ -817,8 +817,21 @@ SetWindowsHookExA_Detour (
 
     if (idHook == WH_KEYBOARD_LL && hmod == SK_GetModuleHandleW (nullptr))
     {
-      if (PathFileExistsW (L"NoLLKeyboardHooks"))
+      if (PathFileExistsW (L"NoLLKeyboardHooks")) {
+        SK_LOGi0 (
+          L"Game tried to register a low-level keyboard hook, but "
+          L"we are ignoring it..."
+        );
+
         return 0;
+      } else {
+        SK_LOGi0 (
+          L"Game has registered a low-level keyboard hook. "
+          L"Backup input GetKeyboardState optimization will be disabled."
+        );
+
+        SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization = true;
+      }
     }
   }
 

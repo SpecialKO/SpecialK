@@ -84,37 +84,37 @@ using RoGetActivationFactory_pfn = HRESULT (WINAPI *)(HSTRING, REFIID, void **);
       RoGetActivationFactory_pfn
       RoGetActivationFactory_Original = nullptr;
 
-using WGI_GamepadStatistics2_FromGameController_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics2  *This,
-                                                                                    ABI::Windows::Gaming::Input::IGameController   *gameController,
-                                                                                    ABI::Windows::Gaming::Input::IGamepad         **value);
+using WGI_GamepadStatics2_FromGameController_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics2  *This,
+                                                                                 ABI::Windows::Gaming::Input::IGameController   *gameController,
+                                                                                 ABI::Windows::Gaming::Input::IGamepad         **value);
 
-WGI_GamepadStatistics2_FromGameController_pfn
-WGI_GamepadStatistics2_FromGameController_Original = nullptr;
+WGI_GamepadStatics2_FromGameController_pfn
+WGI_GamepadStatics2_FromGameController_Original = nullptr;
 
-using WGI_GamepadStatistics_add_ChangeEvent_pfn    = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
-                                                                           __FIEventHandler_1_Windows__CGaming__CInput__CGamepad *value,
-                                                                                                          EventRegistrationToken *token);
-using WGI_GamepadStatistics_remove_ChangeEvent_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
-                                                                                                           EventRegistrationToken token);
-using WGI_GamepadStatistics_get_Gamepads_pfn       = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
-                                                                      IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value);
-using WGI_Gamepad_GetCurrentReading_pfn            = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
-                                                                                   ABI::Windows::Gaming::Input::GamepadReading   *value);
-using WGI_Gamepad_get_Vibration_pfn                = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
-                                                                                   ABI::Windows::Gaming::Input::GamepadVibration *value);
-using WGI_Gamepad_put_Vibration_pfn                = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
-                                                                                   ABI::Windows::Gaming::Input::GamepadVibration  value);
+using WGI_GamepadStatics_add_ChangeEvent_pfn    = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
+                                                                        __FIEventHandler_1_Windows__CGaming__CInput__CGamepad *value,
+                                                                                                       EventRegistrationToken *token);
+using WGI_GamepadStatics_remove_ChangeEvent_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
+                                                                                                        EventRegistrationToken token);
+using WGI_GamepadStatics_get_Gamepads_pfn       = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
+                                                                   IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value);
+using WGI_Gamepad_GetCurrentReading_pfn         = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
+                                                                                ABI::Windows::Gaming::Input::GamepadReading   *value);
+using WGI_Gamepad_get_Vibration_pfn             = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
+                                                                                ABI::Windows::Gaming::Input::GamepadVibration *value);
+using WGI_Gamepad_put_Vibration_pfn             = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
+                                                                                ABI::Windows::Gaming::Input::GamepadVibration  value);
 
-WGI_GamepadStatistics_get_Gamepads_pfn
-WGI_GamepadStatistics_get_Gamepads_Original = nullptr;
+WGI_GamepadStatics_get_Gamepads_pfn
+WGI_GamepadStatics_get_Gamepads_Original = nullptr;
 
-WGI_GamepadStatistics_add_ChangeEvent_pfn
-WGI_GamepadStatistics_add_GamepadAdded_Original   = nullptr,
-WGI_GamepadStatistics_add_GamepadRemoved_Original = nullptr;
+WGI_GamepadStatics_add_ChangeEvent_pfn
+WGI_GamepadStatics_add_GamepadAdded_Original   = nullptr,
+WGI_GamepadStatics_add_GamepadRemoved_Original = nullptr;
 
-WGI_GamepadStatistics_remove_ChangeEvent_pfn
-WGI_GamepadStatistics_remove_GamepadAdded_Original   = nullptr,
-WGI_GamepadStatistics_remove_GamepadRemoved_Original = nullptr;
+WGI_GamepadStatics_remove_ChangeEvent_pfn
+WGI_GamepadStatics_remove_GamepadAdded_Original   = nullptr,
+WGI_GamepadStatics_remove_GamepadRemoved_Original = nullptr;
 
 WGI_Gamepad_GetCurrentReading_pfn
 WGI_Gamepad_GetCurrentReading_Original = nullptr;
@@ -935,9 +935,9 @@ WGI_VectorView_Gamepads_GetMany_Override (                                   IVe
 //   constantly switch between gamepad and keyboard prompts and drop input.
 HRESULT
 STDMETHODCALLTYPE
-WGI_GamepadStatistics2_FromGameController_Override (ABI::Windows::Gaming::Input::IGamepadStatics2  *This,
-                                                    ABI::Windows::Gaming::Input::IGameController   *gameController,
-                                                    ABI::Windows::Gaming::Input::IGamepad         **value)
+WGI_GamepadStatics2_FromGameController_Override (ABI::Windows::Gaming::Input::IGamepadStatics2  *This,
+                                                 ABI::Windows::Gaming::Input::IGameController   *gameController,
+                                                 ABI::Windows::Gaming::Input::IGamepad         **value)
 {
   SK_LOG_FIRST_CALL
 
@@ -980,19 +980,19 @@ WGI_GamepadStatistics2_FromGameController_Override (ABI::Windows::Gaming::Input:
   }
 
   return
-    WGI_GamepadStatistics2_FromGameController_Original (This, gameController, value);
+    WGI_GamepadStatics2_FromGameController_Original (This, gameController, value);
 }
 
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_GamepadStatistics_get_Gamepads_Override ( ABI::Windows::Gaming::Input::IGamepadStatics  *This,
-                                 IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value )
+WGI_GamepadStatics_get_Gamepads_Override ( ABI::Windows::Gaming::Input::IGamepadStatics  *This,
+                              IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value )
 {
   SK_LOG_FIRST_CALL
 
   HRESULT hr =
-    WGI_GamepadStatistics_get_Gamepads_Original (This, value);
+    WGI_GamepadStatics_get_Gamepads_Original (This, value);
 
   if (config.input.gamepad.xinput.emulate)
   {
@@ -1158,22 +1158,22 @@ private:
   volatile ULONG ulRefs = 1;
 } static SK_HID_WGI_GamepadListener;
 
-using WGI_GamepadStatistics_EventRegistration_t =
+using WGI_GamepadStatics_EventRegistration_t =
   std::pair <EventRegistrationToken,__FIEventHandler_1_Windows__CGaming__CInput__CGamepad*>;
 
-concurrency::concurrent_unordered_multimap <ABI::Windows::Gaming::Input::IGamepadStatics*, WGI_GamepadStatistics_EventRegistration_t> SK_WGI_GamepadAddedEvents;
-concurrency::concurrent_unordered_multimap <ABI::Windows::Gaming::Input::IGamepadStatics*, WGI_GamepadStatistics_EventRegistration_t> SK_WGI_GamepadRemovedEvents;
+concurrency::concurrent_unordered_multimap <ABI::Windows::Gaming::Input::IGamepadStatics*, WGI_GamepadStatics_EventRegistration_t> SK_WGI_GamepadAddedEvents;
+concurrency::concurrent_unordered_multimap <ABI::Windows::Gaming::Input::IGamepadStatics*, WGI_GamepadStatics_EventRegistration_t> SK_WGI_GamepadRemovedEvents;
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_GamepadStatistics_add_GamepadAdded_Override (
+WGI_GamepadStatics_add_GamepadAdded_Override (
     ABI::Windows::Gaming::Input::IGamepadStatics* This, __FIEventHandler_1_Windows__CGaming__CInput__CGamepad* value,
                           EventRegistrationToken* token )
 {
   SK_LOG_FIRST_CALL
 
   HRESULT hr =
-    WGI_GamepadStatistics_add_GamepadAdded_Original (This, value, token);
+    WGI_GamepadStatics_add_GamepadAdded_Original (This, value, token);
 
   if (SUCCEEDED (hr) && token != nullptr)
   {
@@ -1189,14 +1189,14 @@ WGI_GamepadStatistics_add_GamepadAdded_Override (
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_GamepadStatistics_remove_GamepadAdded_Override (
+WGI_GamepadStatics_remove_GamepadAdded_Override (
     ABI::Windows::Gaming::Input::IGamepadStatics* This,
                            EventRegistrationToken token )
 {
   SK_LOG_FIRST_CALL
 
   const HRESULT hr =
-    WGI_GamepadStatistics_remove_GamepadAdded_Original (This, token);
+    WGI_GamepadStatics_remove_GamepadAdded_Original (This, token);
 
   if (SUCCEEDED (hr))
   {
@@ -1217,37 +1217,43 @@ WGI_GamepadStatistics_remove_GamepadAdded_Override (
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_GamepadStatistics_add_GamepadRemoved_Override (
+WGI_GamepadStatics_add_GamepadRemoved_Override (
     ABI::Windows::Gaming::Input::IGamepadStatics* This, __FIEventHandler_1_Windows__CGaming__CInput__CGamepad* value,
                           EventRegistrationToken* token )
 {
   SK_LOG_FIRST_CALL
 
-  const HRESULT hr =
-    WGI_GamepadStatistics_add_GamepadRemoved_Original (This, value, token);
-
-  if (SUCCEEDED (hr) && token != nullptr)
+  // For PlayStation->WGI Emulation, if placeholding is enabled, ignore this.
+  if (! (config.input.gamepad.xinput.placehold [0] && config.input.gamepad.xinput.emulate))
   {
-    SK_WGI_GamepadRemovedEvents.insert (
-      std::make_pair (This,
-        std::make_pair (*token, value)
-      )
-    );
+    const HRESULT hr =
+      WGI_GamepadStatics_add_GamepadRemoved_Original (This, value, token);
+
+    if (SUCCEEDED (hr) && token != nullptr)
+    {
+      SK_WGI_GamepadRemovedEvents.insert (
+        std::make_pair (This,
+          std::make_pair (*token, value)
+        )
+      );
+    }
+
+    return hr;
   }
 
-  return hr;
+  return S_OK;
 }
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_GamepadStatistics_remove_GamepadRemoved_Override (
+WGI_GamepadStatics_remove_GamepadRemoved_Override (
     ABI::Windows::Gaming::Input::IGamepadStatics* This,
                            EventRegistrationToken token )
 {
   SK_LOG_FIRST_CALL
 
   const HRESULT hr =
-    WGI_GamepadStatistics_remove_GamepadRemoved_Original (This, token);
+    WGI_GamepadStatics_remove_GamepadRemoved_Original (This, token);
 
   if (SUCCEEDED (hr))
   {
@@ -1261,6 +1267,12 @@ WGI_GamepadStatistics_remove_GamepadRemoved_Override (
         dispatch     = nullptr;
       }
     }
+  }
+
+  // For PlayStation->WGI Emulation, if placeholding is enabled, ignore this.
+  if (! (config.input.gamepad.xinput.placehold [0] && config.input.gamepad.xinput.emulate))
+  {
+    return S_OK;
   }
 
   return hr;
@@ -1292,30 +1304,33 @@ SK_WGI_BroadcastGamepadRemoved (ABI::Windows::Gaming::Input::IGamepad*        pG
 {
   int recipients = 0;
 
-  for ( const auto &[sender, handler] : SK_WGI_GamepadAddedEvents )
-    if (const auto &[token, dispatch] = handler;
-                            dispatch != nullptr &&
-                                  (pFactory == sender || pFactory == nullptr) &&
-                  SUCCEEDED (dispatch->Invoke (sender, pGamepad))) ++recipients;
+  if (! config.input.gamepad.xinput.placehold [0])
+  {
+    for ( const auto &[sender, handler] : SK_WGI_GamepadAddedEvents )
+      if (const auto &[token, dispatch] = handler;
+                              dispatch != nullptr &&
+                                    (pFactory == sender || pFactory == nullptr) &&
+                    SUCCEEDED (dispatch->Invoke (sender, pGamepad))) ++recipients;
+  }
 
   return recipients;
 }
 
 void
-SK_WGI_DeferGamepadHooks (ABI::Windows::Gaming::Input::IGamepadStatics* pGamepadStatistics)
+SK_WGI_DeferGamepadHooks (ABI::Windows::Gaming::Input::IGamepadStatics* pGamepadStatics)
 {
   SK_RunOnce (
-    SK_HID_WGI_GamepadListener.factory = pGamepadStatistics;
+    SK_HID_WGI_GamepadListener.factory = pGamepadStatics;
 
-    static EventRegistrationToken                                       gamepad_added = {};
-    pGamepadStatistics->add_GamepadAdded (&SK_HID_WGI_GamepadListener, &gamepad_added);
+    static EventRegistrationToken                                    gamepad_added = {};
+    pGamepadStatics->add_GamepadAdded (&SK_HID_WGI_GamepadListener, &gamepad_added);
 
-    pGamepadStatistics->AddRef (); // Keep-alive so we can get add/remove notifications
+    pGamepadStatics->AddRef (); // Keep-alive so we can get add/remove notifications
 
     SK_ComPtr <IVectorView <ABI::Windows::Gaming::Input::Gamepad*>> pGamepads;
 
-    if (SUCCEEDED (pGamepadStatistics->get_Gamepads (&pGamepads.p)) &&
-                                           nullptr != pGamepads.p)
+    if (SUCCEEDED (pGamepadStatics->get_Gamepads (&pGamepads.p)) &&
+                                        nullptr != pGamepads.p)
     {
       SK_ComPtr <ABI::Windows::Gaming::Input::IGamepad> pGamepad;
 
@@ -1446,9 +1461,9 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
             // One and done, don't use hook queuing
             WGI_VIRTUAL_HOOK_IMM ( &pGamepadStats2Factory.p, 6,
                       "ABI::Windows::Gaming::Input::IGamepadStatics2::FromGameController",
-                       WGI_GamepadStatistics2_FromGameController_Override,
-                       WGI_GamepadStatistics2_FromGameController_Original,
-                       WGI_GamepadStatistics2_FromGameController_pfn );
+                       WGI_GamepadStatics2_FromGameController_Override,
+                       WGI_GamepadStatics2_FromGameController_Original,
+                       WGI_GamepadStatics2_FromGameController_pfn );
           });
         }
       }
@@ -1491,27 +1506,27 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
         {
           WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 6,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::add_GamepadAdded",
-                     WGI_GamepadStatistics_add_GamepadAdded_Override,
-                     WGI_GamepadStatistics_add_GamepadAdded_Original,
-                     WGI_GamepadStatistics_add_ChangeEvent_pfn );
+                     WGI_GamepadStatics_add_GamepadAdded_Override,
+                     WGI_GamepadStatics_add_GamepadAdded_Original,
+                     WGI_GamepadStatics_add_ChangeEvent_pfn );
 
           WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 7,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::remove_GamepadAdded",
-                     WGI_GamepadStatistics_remove_GamepadAdded_Override,
-                     WGI_GamepadStatistics_remove_GamepadAdded_Original,
-                     WGI_GamepadStatistics_remove_ChangeEvent_pfn );
+                     WGI_GamepadStatics_remove_GamepadAdded_Override,
+                     WGI_GamepadStatics_remove_GamepadAdded_Original,
+                     WGI_GamepadStatics_remove_ChangeEvent_pfn );
 
           WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 8,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::add_GamepadRemoved",
-                     WGI_GamepadStatistics_add_GamepadRemoved_Override,
-                     WGI_GamepadStatistics_add_GamepadRemoved_Original,
-                     WGI_GamepadStatistics_add_ChangeEvent_pfn );
+                     WGI_GamepadStatics_add_GamepadRemoved_Override,
+                     WGI_GamepadStatics_add_GamepadRemoved_Original,
+                     WGI_GamepadStatics_add_ChangeEvent_pfn );
 
           WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 9,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::remove_GamepadRemoved",
-                     WGI_GamepadStatistics_remove_GamepadRemoved_Override,
-                     WGI_GamepadStatistics_remove_GamepadRemoved_Original,
-                     WGI_GamepadStatistics_remove_ChangeEvent_pfn );
+                     WGI_GamepadStatics_remove_GamepadRemoved_Override,
+                     WGI_GamepadStatics_remove_GamepadRemoved_Original,
+                     WGI_GamepadStatics_remove_ChangeEvent_pfn );
 
           SK_ApplyQueuedHooks ();
         });
@@ -1560,9 +1575,9 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
                 // One and done, don't use hook queuing
                 WGI_VIRTUAL_HOOK_IMM ( &future_stats_factory.p, 10,
                           "ABI::Windows::Gaming::Input::IGamepadStatics::get_Gamepads",
-                           WGI_GamepadStatistics_get_Gamepads_Override,
-                           WGI_GamepadStatistics_get_Gamepads_Original,
-                           WGI_GamepadStatistics_get_Gamepads_pfn );
+                           WGI_GamepadStatics_get_Gamepads_Override,
+                           WGI_GamepadStatics_get_Gamepads_Original,
+                           WGI_GamepadStatics_get_Gamepads_pfn );
 
                 SK_ComPtr <IVectorView <ABI::Windows::Gaming::Input::Gamepad *>> pGamepads;
 

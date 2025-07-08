@@ -2222,7 +2222,8 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   // Update G-Sync; doing this here prevents trying to do this on frames where
   //   the swapchain was resized, which would deadlock the software.
   //
-  if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
+  if (/*sk::NVAPI::nv_hardware &&*/
+             config.apis.NvAPI.gsync_status &&
            ((config.fps.show && config.osd.show)
                              || SK_ImGui_Visible))
   {

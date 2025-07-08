@@ -2392,9 +2392,9 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
     }
 
     SK_PNG_SetUint32 (clli.max_cll,
-      static_cast <uint32_t> ((80.0f *          fMaxLum) / 0.0001f));
+      static_cast <uint32_t> (roundf ((80.0f *          fMaxLum) / 0.0001f)));
     SK_PNG_SetUint32 (clli.max_fall,
-      static_cast <uint32_t> ((80.0f * (fLumAccum / N))  / 0.0001f));
+      static_cast <uint32_t> (roundf ((80.0f * (fLumAccum / N))  / 0.0001f)));
   }
 
   return clli;
@@ -2526,9 +2526,9 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
         rb.displays [rb.active_display];
 
       SK_PNG_SetUint32 (mdcv_data.luminance.minimum,
-        static_cast <uint32_t> (round (active_display.gamut.minY / 0.0001f)));
+        static_cast <uint32_t> (roundf (active_display.gamut.minY / 0.0001f)));
       SK_PNG_SetUint32 (mdcv_data.luminance.maximum,
-        static_cast <uint32_t> (round (active_display.gamut.maxY / 0.0001f)));
+        static_cast <uint32_t> (roundf (active_display.gamut.maxY / 0.0001f)));
 
       SK_PNG_SetUint32 (mdcv_data.primaries.red_x,
         static_cast <uint32_t> (round (active_display.gamut.xr / 0.00002)));
@@ -2571,11 +2571,11 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
 
       SK_LOGi1 (L"Applied HDR10 PNG chunks to %ws.", wszFilePath);
       SK_LOGi1 (L" >> MaxCLL: %.6f nits, MaxFALL: %.6f nits",
-                static_cast <double> (SK_PNG_GetUint32 (clli_data.max_cll))  * 0.0001,
-                static_cast <double> (SK_PNG_GetUint32 (clli_data.max_fall)) * 0.0001);
+                static_cast <double> (round (SK_PNG_GetUint32 (clli_data.max_cll))  * 0.0001),
+                static_cast <double> (round (SK_PNG_GetUint32 (clli_data.max_fall)) * 0.0001));
       SK_LOGi1 (L" >> Mastering Display Min/Max Luminance: %.6f/%.6f nits",
-                static_cast <double> (SK_PNG_GetUint32 (mdcv_data.luminance.minimum)) * 0.0001,
-                static_cast <double> (SK_PNG_GetUint32 (mdcv_data.luminance.maximum)) * 0.0001);
+                static_cast <double> (round (SK_PNG_GetUint32 (mdcv_data.luminance.minimum)) * 0.0001),
+                static_cast <double> (round (SK_PNG_GetUint32 (mdcv_data.luminance.maximum)) * 0.0001));
 
       return true;
     }

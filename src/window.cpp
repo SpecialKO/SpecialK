@@ -281,7 +281,21 @@ public:
   static constexpr bool StyleExHasBorder (DWORD_PTR style_ex)
   {
     return ( ( style_ex & WS_EX_CLIENTEDGE ) ||
-             ( style_ex & WS_EX_WINDOWEDGE ) );
+             ( style_ex & WS_EX_WINDOWEDGE ) ||
+             ( style_ex & WS_EX_DLGMODALFRAME ) );
+  }
+
+  static constexpr DWORD_PTR RemoveBorderFromStyleEx (DWORD_PTR style_ex)
+  {
+    DWORD_PTR
+      style_ex_borderless = style_ex;
+
+      style_ex_borderless &= ~WS_EX_CLIENTEDGE;
+      style_ex_borderless &= ~WS_EX_WINDOWEDGE;
+      style_ex_borderless &= ~WS_EX_DLGMODALFRAME;
+
+    return
+      style_ex_borderless;
   }
 
   bool OnVarChange (SK_IVariable* var, void* val) override
@@ -3436,11 +3450,14 @@ SK_SetWindowStyleEx ( DWORD_PTR            dwStyleEx_ptr,
 
   // Minimal sane set of extended window styles for sane rendering
   dwStyleEx |=    WS_EX_APPWINDOW;
-  dwStyleEx &= ~( WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL |
-                  WS_EX_RIGHT      | WS_EX_RTLREADING  | WS_EX_TOOLWINDOW );
+  //dwStyleEx &= ~( WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL |
+  //                WS_EX_RIGHT      | WS_EX_RTLREADING  | WS_EX_TOOLWINDOW );
 
   if (config.window.borderless)
     dwStyleEx &= ~( WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE );
+
+  if (config.window.allow_drag_n_drop)
+    dwStyleEx |= WS_EX_ACCEPTFILES;
 
   game_window.actual.style_ex = DWORD_PTR (dwStyleEx);
 
@@ -3602,6 +3619,8 @@ SK_AdjustBorder (void)
   const bool has_border =
     SK_WindowManager::StyleHasBorder (
       game_window.actual.style
+    ) || SK_WindowManager::StyleExHasBorder (
+      game_window.actual.style_ex
     );
 
   // If these are opposite, we can skip a whole bunch of
@@ -3614,7 +3633,8 @@ SK_AdjustBorder (void)
     game_window.actual.style    =
        ULONG_PTR (SK_BORDERLESS);
     game_window.actual.style_ex =
-       ULONG_PTR (SK_BORDERLESS_EX);
+       ULONG_PTR (SK_BORDERLESS_EX | (config.window.allow_drag_n_drop ?
+                             WS_EX_ACCEPTFILES                       : 0x0));
 
     //// Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
     //game_window.actual.style_ex &= ~WS_EX_TOPMOST;

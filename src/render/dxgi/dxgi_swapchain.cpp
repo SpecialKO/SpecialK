@@ -422,7 +422,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetPrivateDataInterface (REFGUID Name, const IUnknown *pUnknown)
 {
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   return
     pReal->SetPrivateDataInterface (Name, pUnknown);
@@ -1099,7 +1100,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 {
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   return
     pReal->GetFrameStatistics (pStats);
@@ -1312,7 +1314,8 @@ IWrapDXGISwapChain::SetMaximumFrameLatency (UINT MaxLatency)
 {
   assert (ver_ >= 2);
 
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   HRESULT hr = E_UNEXPECTED;
 
@@ -1351,7 +1354,8 @@ IWrapDXGISwapChain::GetMaximumFrameLatency (UINT *pMaxLatency)
 {
   assert (ver_ >= 2);
 
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   HRESULT hr = S_OK;
 
@@ -1395,9 +1399,10 @@ HANDLE
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
 {
-  assert(ver_ >= 2);
+  assert (ver_ >= 2);
 
-  SK_LOG_FIRST_CALL
+  // SK calls through its own wrapper, ignore those calls...
+  SK_LOG_FIRST_EXTERNAL_CALL
 
 #if 1
   if (config.render.framerate.pre_render_limit > 0)
@@ -1587,19 +1592,19 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
         }
       }
 
-      metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.minY / 0.0001);
-      metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.maxY);
-      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (display.gamut.maxLocalY);
-      metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (display.gamut.maxAverageY);
+      metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (round  (display.gamut.minY / 0.0001));
+      metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (roundf (display.gamut.maxY));
+      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (roundf (display.gamut.maxLocalY));
+      metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (roundf (display.gamut.maxAverageY));
 
-      metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (0.1500/*display.gamut.xb*/ * 50000.0F);
-      metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (0.0600/*display.gamut.yb*/ * 50000.0F);
-      metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (0.6400/*display.gamut.xr*/ * 50000.0F);
-      metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (0.3300/*display.gamut.yr*/ * 50000.0F);
-      metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (0.3000/*display.gamut.xg*/ * 50000.0F);
-      metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (0.6000/*display.gamut.yg*/ * 50000.0F);
-      metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (0.3127/*display.gamut.Xw*/ * 50000.0F);
-      metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (0.3290/*display.gamut.Yw*/ * 50000.0F);
+      metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (round (0.1500/*display.gamut.xb*/ * 50000.0F));
+      metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (round (0.0600/*display.gamut.yb*/ * 50000.0F));
+      metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (round (0.6400/*display.gamut.xr*/ * 50000.0F));
+      metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (round (0.3300/*display.gamut.yr*/ * 50000.0F));
+      metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (round (0.3000/*display.gamut.xg*/ * 50000.0F));
+      metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (round (0.6000/*display.gamut.yg*/ * 50000.0F));
+      metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (round (0.3127/*display.gamut.Xw*/ * 50000.0F));
+      metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (round (0.3290/*display.gamut.Yw*/ * 50000.0F));
         
       SK_RunOnce (
         SK_LOGi0 (
@@ -2772,7 +2777,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
         else
         {
           new_new_params.RefreshRate.Numerator   =
-            sk::narrow_cast <UINT> (std::ceilf (config.render.framerate.refresh_rate));
+            sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate));
           new_new_params.RefreshRate.Denominator = 1;
         }
       }
