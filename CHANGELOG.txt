@@ -1,4 +1,9 @@
-﻿25.7.7
+﻿25.7.8
+======
+ + Added support for EDID data > 256-bytes (up to 32 KiB) for NvAPI-acquired
+     data and system registry cache.
+
+25.7.7
 ======
  + Workaround SDL3 bug (RIDEV_REMOVE passed to RegisterRawInputDevices (...),
      while hwndTarget is non-NULL).

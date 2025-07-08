@@ -3770,11 +3770,8 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
   // Bad checksum, fail EDID
   if ((checksum % 256) != 0)
   {
-    if (config.system.log_level > 0)
-    {
-      SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
-      //return vrr_caps;
-    }
+    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+    //return vrr_caps;
   }
 
   if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
@@ -3995,11 +3992,8 @@ SK_RenderBackend_V2::decodeEDIDForName (uint8_t *edid, size_t length) const
   // Bad checksum, fail EDID
   if ((checksum % 256) != 0)
   {
-    if (config.system.log_level > 0)
-    {
-      SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
-      //return "";
-    }
+    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+    //return "";
   }
 
   if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
@@ -4094,11 +4088,8 @@ SK_RenderBackend_V2::decodeEDIDForNativeRes (uint8_t* edid, size_t length) const
   // Bad checksum, fail EDID
   if (checksum != 0)
   {
-    if (config.system.log_level > 0)
-    {
-      SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
-      //return { };
-    }
+    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+    //return { };
   }
 
   if (0 != memcmp ((const char*)edid + EDID_HEADER,
@@ -4197,7 +4188,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (*display.name == L'\0' || display.vrr.min_refresh == 0)
+  if (*display.name == L'\0')
   {
     std::string edid_name;
 
@@ -4207,9 +4198,10 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
     bool nvSuppliedEDID = false;
 
-    // This is known to return EDIDs with checksums that don't match expected,
-    //   there's not much benefit to getting EDID this way, so use the registry instead.
-#if 1
+    DWORD sizeofEDID = 0;
+    auto  EDID_Data  =
+      std::make_unique <uint8_t []> (32768);
+
     if (sk::NVAPI::nv_hardware != false)
     {
       NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = {     };
@@ -4238,35 +4230,78 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
         NV_EDID edid = {         };
         edid.version = NV_EDID_VER;
 
-        if ( NVAPI_OK ==
-               NvAPI_GPU_GetEDID (
-                 nvGpuHandles [0],
-                 nvDisplayId, &edid
-               )
-           )
+        NvU32 last_edid_id = 0;
+
+        while ( NVAPI_OK ==
+                  NvAPI_GPU_GetEDID (
+                    nvGpuHandles [0],
+                    nvDisplayId, &edid
+                  ) )
+        {
+          static_assert (NV_EDID_DATA_SIZE == 256);
+
+          if (edid.offset     >= 32768 ||
+              edid.sizeofEDID >  32768)
+          {
+            SK_LOGi0 (L"NvAPI_GPU_GetEDID (...) buffer overrun!");
+            sizeofEDID = 0;
+
+            break;
+          }
+
+          if (last_edid_id == 0)
+              last_edid_id = edid.edidId;
+
+          // EDID was updated in the middle of reading... start over!
+          else if (last_edid_id != edid.edidId)
+          {        last_edid_id  = edid.edidId;
+                                   edid.offset = 0;
+                                   continue;
+          }
+
+          memcpy (&EDID_Data [edid.offset],
+                              edid.EDID_Data, NV_EDID_DATA_SIZE);
+
+          sizeofEDID = edid.sizeofEDID;
+
+          if (edid.sizeofEDID > NV_EDID_DATA_SIZE &&
+              edid.offset     < edid.sizeofEDID)
+          {
+            edid.offset += NV_EDID_DATA_SIZE;
+
+            continue;
+          }
+
+          if (edid.sizeofEDID > NV_EDID_DATA_SIZE)
+          {
+            SK_LOGi0 (
+              L"NvAPI_GPU_GetEDID (...) multi-page read returned %d-bytes of data.",
+                  edid.sizeofEDID
+            );
+          }
+
+          break;
+        }
+
+        if (sizeofEDID != 0)
         {
           auto vrr_caps =
-            rb.decodeEDIDForVRRCaps (edid.EDID_Data, edid.sizeofEDID);
+            rb.decodeEDIDForVRRCaps (EDID_Data.get (), sizeofEDID);
 
           if (vrr_caps.min_refresh != vrr_caps.max_refresh)
           {
             display.vrr.min_refresh = vrr_caps.min_refresh;
             display.vrr.max_refresh = vrr_caps.max_refresh;
 
-            strncpy_s ( display.vrr.type, 32,
+            strncpy_s ( display.vrr.type, 31,
                            vrr_caps.type, _TRUNCATE );
           }
 
-          else
-          {
-            display.vrr.min_refresh = 1;
-          }
-
           edid_name =
-            rb.decodeEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+            rb.decodeEDIDForName (EDID_Data.get (), sizeofEDID);
 
           auto nativeRes =
-            rb.decodeEDIDForNativeRes ( edid.EDID_Data, edid.sizeofEDID );
+            rb.decodeEDIDForNativeRes (EDID_Data.get (), sizeofEDID);
 
           if (                      nativeRes.x != 0 &&
                                     nativeRes.y != 0 )
@@ -4281,7 +4316,6 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
         }
       }
     }
-#endif
 
     *display.name = L'\0';
 
@@ -4324,11 +4358,6 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             if (pwszTok != nullptr)
                *pwszTok  = L'\0';
 
-
-            uint8_t EDID_Data [256] = { };
-            DWORD   edid_size       =  sizeof (EDID_Data);
-
-
             DWORD   dwType = REG_NONE;
             LRESULT lStat  =
               RegGetValueW ( HKEY_LOCAL_MACHINE,
@@ -4337,19 +4366,19 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                                      wszDevName, wszDevInst ).c_str (),
                               L"EDID",
                                 RRF_RT_REG_BINARY, &dwType,
-                                  EDID_Data, &edid_size );
+                                  EDID_Data.get (), &sizeofEDID);
 
             if (ERROR_SUCCESS == lStat)
             {
               auto vrr_caps =
-                rb.decodeEDIDForVRRCaps (EDID_Data, edid_size);
+                rb.decodeEDIDForVRRCaps (EDID_Data.get (), sizeofEDID);
 
               if (vrr_caps.min_refresh != vrr_caps.max_refresh)
               {
                 display.vrr.min_refresh = vrr_caps.min_refresh;
                 display.vrr.max_refresh = vrr_caps.max_refresh;
 
-                strncpy_s ( display.vrr.type, 32,
+                strncpy_s ( display.vrr.type, 31,
                                vrr_caps.type, _TRUNCATE );
 
                 auto &monitor_caps =
@@ -4366,10 +4395,10 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
               }
 
               edid_name =
-                rb.decodeEDIDForName ( EDID_Data, edid_size );
+                rb.decodeEDIDForName (EDID_Data.get (), sizeofEDID);
 
               auto nativeRes =
-                rb.decodeEDIDForNativeRes ( EDID_Data, edid_size );
+                rb.decodeEDIDForNativeRes (EDID_Data.get (), sizeofEDID);
 
               if (                      nativeRes.x != 0 &&
                                         nativeRes.y != 0 )
@@ -4480,7 +4509,7 @@ SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
     D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME
       openAdapter = { };
 
-    wcsncpy_s ( openAdapter.DeviceName, 32,
+    wcsncpy_s ( openAdapter.DeviceName, 31,
                     pDisplay->gdi_name, _TRUNCATE );
 
     if ( STATUS_SUCCESS ==
@@ -4613,7 +4642,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 
         if (GetMonitorInfoW (display.monitor, &minfoex))
         {
-          wcsncpy_s ( display.gdi_name, 32,
+          wcsncpy_s ( display.gdi_name, 31,
                       minfoex.szDevice, _TRUNCATE );
         }
 
@@ -5110,7 +5139,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           }
         }
 
-        wcsncpy_s ( display.gdi_name,  32,
+        wcsncpy_s ( display.gdi_name,  31,
                     outDesc.DeviceName, _TRUNCATE );
 
         SK_RBkEnd_UpdateMonitorName (display, outDesc);
