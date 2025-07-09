@@ -146,10 +146,13 @@ SK_InitADL (void)
 int
 SK_ADL_CountPhysicalGPUs (void)
 {
-  int num_gpus = 0;
+  if (ADL_init == ADL_TRUE)
+  {
+    int num_gpus = 0;
 
-  if (ADL_Adapter_NumberOfAdapters_Get (&num_gpus) == ADL_OK) {
-    return num_gpus;
+    if (ADL_Adapter_NumberOfAdapters_Get (&num_gpus) == ADL_OK) {
+      return num_gpus;
+    }
   }
 
   return 0;
@@ -159,25 +162,29 @@ SK_ADL_CountPhysicalGPUs (void)
 int
 SK_ADL_CountActiveGPUs (void)
 {
-  int active_count  = 0;
-  int adapter_count = SK_ADL_CountPhysicalGPUs ();
+  int active_count = 0;
 
-  //dll_log.Log (L"[DisplayLib] Adapter Count: %d", adapter_count);
+  if (ADL_init == ADL_TRUE)
+  {
+    int adapter_count = SK_ADL_CountPhysicalGPUs ();
 
-  ADL_Adapter_AdapterInfo_Get (
-    adl_adapters,
-      adapter_count * sizeof (AdapterInfo)
-  );
+    //dll_log.Log (L"[DisplayLib] Adapter Count: %d", adapter_count);
 
-  for (int i = 0; i < adapter_count; i++) {
-    int adapter_status = ADL_FALSE;
+    ADL_Adapter_AdapterInfo_Get (
+      adl_adapters,
+        adapter_count * sizeof (AdapterInfo)
+    );
 
-    ADL_Adapter_Active_Get (adl_adapters [i].iAdapterIndex, &adapter_status);
+    for (int i = 0; i < adapter_count; i++) {
+      int adapter_status = ADL_FALSE;
 
-    if (adapter_status == ADL_TRUE) {
-      memcpy ( &adl_active     [active_count++],
-                 &adl_adapters [i],
-                   sizeof (AdapterInfo) );
+      ADL_Adapter_Active_Get (adl_adapters [i].iAdapterIndex, &adapter_status);
+
+      if (adapter_status == ADL_TRUE) {
+        memcpy ( &adl_active     [active_count++],
+                   &adl_adapters [i],
+                     sizeof (AdapterInfo) );
+      }
     }
   }
 

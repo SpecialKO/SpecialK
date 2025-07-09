@@ -1,4 +1,9 @@
-﻿25.7.8.3
+﻿25.7.8.4
+========
+ + Allow SK_ADL_CountActiveGPUs (...) and SK_ADL_CountPhysicalGPUs (...) to
+     silently return 0 if ADL has not been initialized.
+
+25.7.8.3
 ========
  + Favor system registry cached EDIDs over extracting them from HW using NvAPI.
 
