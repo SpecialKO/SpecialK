@@ -1,4 +1,13 @@
-﻿25.7.8.2
+﻿25.7.8.3
+========
+ + Favor system registry cached EDIDs over extracting them from HW using NvAPI.
+
+    * NOTE:  Current versions of CRU cause corruption on edited EDIDs for
+               displays with more than 256-bytes of EDID (i.e. AW3423DW).
+
+        Problem has been reported and should be fixed soon.
+
+25.7.8.2
 ========
  + Reduce maximum EDID payload size to 1 KiB and ensure RegGetValueW (...)
      is passed the correct size when reading EDID on non-NV hardware.

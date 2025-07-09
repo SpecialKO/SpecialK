@@ -4200,6 +4200,9 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
     auto  EDID_Data  =
       std::make_unique <uint8_t []> (NV_EDID_DATA_SIZE_MAX);
 
+    // Use the EDID from system registry, this code is provided only to bypass
+    //   corrupted EDIDs written by older versions of CRU if necessary.
+#if 0
     if (sk::NVAPI::nv_hardware != false)
     {
       NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = {     };
@@ -4315,6 +4318,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
         }
       }
     }
+#endif
 
     *display.name = L'\0';
 
@@ -4380,13 +4384,18 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                 display.vrr.max_refresh = vrr_caps.max_refresh;
 
                 strncpy_s ( display.vrr.type, 31,
-                               vrr_caps.type, _TRUNCATE );
+                            display.nvapi.true_gsync ?
+                                     "NVIDIA G-SYNC" : vrr_caps.type, _TRUNCATE );
 
-                auto &monitor_caps =
-                  display.nvapi.monitor_caps;
+                // These caps will be updated in real-time on NVIDIA hardware if NVAPI is enabled.
+                if (sk::NVAPI::nv_hardware == false)
+                {
+                  auto &monitor_caps =
+                    display.nvapi.monitor_caps;
 
-                monitor_caps.data.caps.supportVRR            = true;
-                monitor_caps.data.caps.currentlyCapableOfVRR = true; // A wild guess w/o NVAPI
+                  monitor_caps.data.caps.supportVRR            = true;
+                  monitor_caps.data.caps.currentlyCapableOfVRR = true; // A wild guess w/o NVAPI
+                }
               }
 
               edid_name =
