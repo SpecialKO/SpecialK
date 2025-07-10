@@ -30,6 +30,7 @@
 #define __SK_SUBSYSTEM__ L"Watch_Dogs"
 
 #include <sysinfoapi.h>
+#include <winternl.h>
 
 namespace SK {
 
@@ -74,43 +75,62 @@ namespace SK {
 
       SK_LOGi0(L"Detect VMProtect hooked NtProtectVirtualMemory, unhooking...");
 
-      const auto ntdll_path = std::filesystem::path{ SK_GetSystemDirectory() } / L"ntdll.dll";
+      NTSYSAPI
+      NTSTATUS
+      NTAPI NtOpenSection(OUT PHANDLE SectionHandle, IN ACCESS_MASK DesiredAccess,
+                          IN POBJECT_ATTRIBUTES ObjectAttributes);
 
-      std::ifstream ntdll(ntdll_path, std::ios::binary);
-      ntdll.seekg(offset + sizeof(syscall_prologue));
-      char buf[4] = {};
-      ntdll.read(&buf[0], sizeof(buf));
+      const auto pfnNtOpenSection = reinterpret_cast<decltype(&NtOpenSection)>(SK_GetProcAddress(hNtdll, "NtOpenSection"));
+      if (!pfnNtOpenSection) return false;
 
-      const auto dwNtProtectVirtualMemoryNR = std::bit_cast<DWORD>(buf);
+      static wchar_t szKnownNtdll[] = L"\\KnownDlls\\ntdll.dll";
+      static UNICODE_STRING uniName = {
+        .Length = sizeof(szKnownNtdll) - sizeof(szKnownNtdll[0]),
+        .MaximumLength = sizeof(szKnownNtdll),
+        .Buffer = &szKnownNtdll[0],
+      };
+
+      static OBJECT_ATTRIBUTES oa = {
+        .Length = sizeof(OBJECT_ATTRIBUTES),
+        .RootDirectory = NULL,
+        .ObjectName = &uniName,
+        .Attributes = OBJ_CASE_INSENSITIVE,
+        .SecurityDescriptor = NULL,
+        .SecurityQualityOfService = NULL,
+      };
+
+      HANDLE hSection = INVALID_HANDLE_VALUE;
+      NTSTATUS status = pfnNtOpenSection(&hSection, SECTION_MAP_READ, &oa);
+      if (!NT_SUCCESS(status))
+        return false;
+
+      PVOID lpImageAddr = MapViewOfFile(hSection, FILE_MAP_READ, 0, 0, 0);
+      if (!lpImageAddr)
+        return false;
+
+      PVOID lpCleanNtProtectVirtualMemory = std::bit_cast<PVOID>(std::bit_cast<uintptr_t>(lpImageAddr) + offset);
 
       // VMProtect's inline hook looks like this:
       // 1. rel32 jump (E9 xx xx xx xx) on function entry
-      // 2. allocate an executable page just after ntdllto fit address in 32-bit offset range
+      // 2. allocate an executable page just after ntdll to fit address in 32-bit offset range
       // 3. the usual `jmp qword [rip]` trampoline (FF 25 00 00 00 00 + {absolute addr}) in the newly allocated page
       // So we at least need to restore the first 5 bytes of function entry.
-      // For sanity, also restore the whole syscall NR.
 
       SuspendHelper suspend{};
 
-      DWORD dwOldProtect;
-      if (!::VirtualProtect(
-        pfnNtProtectVirtualMemory,
-        sizeof(syscall_prologue) + sizeof(dwNtProtectVirtualMemoryNR),
-        PAGE_EXECUTE_READWRITE,
-        &dwOldProtect
-      )) return false;
+      constexpr size_t kBytesToRestore = 5;
+      static_assert(kBytesToRestore >= sizeof(syscall_prologue), "not enough bytes to restore");
 
-      std::memcpy(pfnNtProtectVirtualMemory, &syscall_prologue[0], sizeof(syscall_prologue));
-      std::memcpy(
-        std::bit_cast<void*>(
-          std::bit_cast<uintptr_t>(pfnNtProtectVirtualMemory) + sizeof(syscall_prologue)
-        ),
-        &dwNtProtectVirtualMemoryNR,
-        sizeof(dwNtProtectVirtualMemoryNR)
-      );
+      DWORD dwOldProtect;
+      if (!::VirtualProtect(pfnNtProtectVirtualMemory, kBytesToRestore, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+        return false;
+
+      std::memcpy(pfnNtProtectVirtualMemory, lpCleanNtProtectVirtualMemory, kBytesToRestore);
 
       DWORD dwDontCare;
-      ::VirtualProtect(pfnNtProtectVirtualMemory, sizeof(syscall_prologue) + sizeof(dwNtProtectVirtualMemoryNR), dwOldProtect, &dwDontCare);
+      ::VirtualProtect(pfnNtProtectVirtualMemory, kBytesToRestore, dwOldProtect, &dwDontCare);
+
+      UnmapViewOfFile(lpImageAddr);
 
       SK_LOGi0(L"Successfully unhooked NtProtectVirtualMemory.");
 
