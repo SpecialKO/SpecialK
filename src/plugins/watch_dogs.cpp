@@ -355,8 +355,6 @@ namespace SK {
 }
 
 static bool SK_WatchDogs_PlugInCfg(void) {
-  auto dll_ini = SK_GetDLLConfig();
-
   bool changed = false;
 
   if (ImGui::CollapsingHeader("Watch_Dogs", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -365,8 +363,7 @@ static bool SK_WatchDogs_PlugInCfg(void) {
     }
   }
 
-  if (changed)
-    dll_ini->write();
+  config.utility.save_async_if(changed);
 
   return true;
 }
