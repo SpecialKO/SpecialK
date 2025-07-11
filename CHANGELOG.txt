@@ -1,4 +1,10 @@
-﻿25.7.8.4
+﻿25.7.11
+=======
+ + Handle EDID data cached in the system registry that has been truncated to
+     the point where it does not contain a display descriptor data table (ugh!)
+ + Add decoded VRR capabilities to display list in logs.
+
+25.7.8.4
 ========
  + Allow SK_ADL_CountActiveGPUs (...) and SK_ADL_CountPhysicalGPUs (...) to
      silently return 0 if ADL has not been initialized.
@@ -136,7 +142,7 @@
    [Render.DStorage]
    UseDummyD3D12DeviceIfNeeded={true|false}  Default: true
 
-    + In many games, DStorage is initialized beofre graphics / windows are init.
+    + In many games, DStorage is initialized before graphics / windows are init.
         so it may be necessary to use local injection for this feature.
 
 25.6.29
@@ -182,7 +188,7 @@
  + Do not apply NVIDIA Streamline late-injection hacks (for finding SwapChain's
      command queue) to AMD GPUs; Streamline is a nop in that case.
  + Avoid using HID API calls to get button usages for DualShock 4 and DualSense
-     over USB -- use the raw Input Reports instead.
+     over USB -- use the Raw Input Reports instead.
 
 25.6.21.2
 =========

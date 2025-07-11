@@ -3792,7 +3792,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
   uint8_t *end =
     &edid [length - 1];
 
-  while (block < end)
+  while (block < end - 2)
   {
     uint8_t type =
       blockType_CTAv3 (block);
@@ -3801,14 +3801,13 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
     {
       case DETAILED_TIMING_BLOCK:
       {
-        if (block + 2 > end)
-          break;
-
         const unsigned int ver = block [1];
         const unsigned int off = block [2];
 
-        if (block + off > end)
-          break;
+        if (block + off >= end) {
+          block = end;
+          continue;
+        }
 
         // Data Block Collection
         if (ver == 3)
@@ -3909,7 +3908,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
           }
         }
 
-        block += off;
+        block += std::max (1u, off);
       } break;
 
       default:
@@ -3923,7 +3922,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
   block = &edid [DETAILED_TIMING_DESCRIPTIONS_START];
   end   = &edid [length - 1];
 
-  while (block < end)
+  while (block < end - 5)
   {
     uint8_t type =
       blockType_MonitorDescriptor (block);
@@ -4314,6 +4313,12 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           if (! edid_name.empty ())
           {
             nvSuppliedEDID = true;
+
+            FILE* fEDID = _wfopen (L"edid_nvapi.dat", L"wb");
+            if (  fEDID != nullptr)
+            {
+              fwrite (EDID_Data.get (), sizeofEDID, 1, fEDID);
+            }
           }
         }
       }
@@ -4375,6 +4380,12 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
             if (ERROR_SUCCESS == lStat)
             {
+              if (sizeofEDID < 256)
+              {
+                // There's no VRR information here...
+                SK_LOGi0 (L"EDID cached in system registry is shorter than expected: %d-bytes!", sizeofEDID);
+              }
+
               auto vrr_caps =
                 rb.decodeEDIDForVRRCaps (EDID_Data.get (), sizeofEDID);
 
@@ -5621,6 +5632,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  +------------------+---------------------------------------------------------------------\n"
         L"  | EDID Device Name |  %hs\n"
         L"  | GDI  Device Name |  %ws (HMONITOR: %06p)\n"
+        L"  | VRR Capabilities |  %d-%d Hz (%hs)\n"
         L"  | Desktop Display. |  %ws%ws\n"
         L"  | Bits Per Color.. |  %d\n"
         L"  | Color Space..... |  %hs\n"
@@ -5635,6 +5647,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
           display.gdi_name, display.monitor,
+          display.vrr.min_refresh, display.vrr.max_refresh,
+          display.vrr.type,
           display.attached ? L"Yes"                : L"No",
           display.primary  ? L" (Primary Display)" : L"",
                       display.bpc,
