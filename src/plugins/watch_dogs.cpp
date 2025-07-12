@@ -354,11 +354,14 @@ namespace SK {
   }
 }
 
+static sk::ParameterBool* SK_DisableMouseAccel = nullptr;
+
 static bool SK_WatchDogs_PlugInCfg(void) {
   bool changed = false;
 
   if (ImGui::CollapsingHeader("Watch_Dogs", ImGuiTreeNodeFlags_DefaultOpen)) {
     if (ImGui::Checkbox("Disable Mouse Acceleration", &SK::WatchDogs::DisableMouseAccel)) {
+      SK_DisableMouseAccel->store(SK::WatchDogs::DisableMouseAccel);
       changed = true;
     }
   }
@@ -436,7 +439,7 @@ void SK_WatchDogs_InitPlugin(void) {
     return 0;
   }, L"[SK] Watch_Dogs Delayed Init");
 
-  static sk::ParameterBool* SK_DisableMouseAccel = dynamic_cast<sk::ParameterBool*>(
+  SK_DisableMouseAccel = dynamic_cast<sk::ParameterBool*>(
       g_ParameterFactory->create_parameter<bool>(L"Disable Mouse Acceleration")
       );
 
