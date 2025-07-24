@@ -166,8 +166,12 @@ namespace SK
 
       virtual ~Stats ()
       {
-        if (        worker.hSignalShutdown.isValid () )
-          SetEvent (worker.hSignalShutdown);
+        if ( worker.hSignalShutdown.isValid () &&
+             worker.hThread        .isValid () )
+        {
+          SignalObjectAndWait ( worker.hSignalShutdown,
+                                worker.hThread, 2500UL, TRUE );
+        }
       }
 
       std::vector <double>&
@@ -183,6 +187,7 @@ namespace SK
         SK_AutoHandle hSignalProduce;
         SK_AutoHandle hSignalConsume;
         SK_AutoHandle hSignalShutdown;
+        SK_AutoHandle hThread;
                 ULONG ulLastFrame    = 0;
         volatile LONG work_idx       = 0;
         volatile LONG _init          = 0;

@@ -37,6 +37,7 @@
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <SpecialK/nvapi.h>
+#include <SpecialK/adl.h>
 
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
 
@@ -3791,7 +3792,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
   uint8_t *end =
     &edid [length - 1];
 
-  while (block < end)
+  while (block < end - 2)
   {
     uint8_t type =
       blockType_CTAv3 (block);
@@ -3800,14 +3801,13 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
     {
       case DETAILED_TIMING_BLOCK:
       {
-        if (block + 2 > end)
-          break;
-
         const unsigned int ver = block [1];
         const unsigned int off = block [2];
 
-        if (block + off > end)
-          break;
+        if (block + off >= end) {
+          block = end;
+          continue;
+        }
 
         // Data Block Collection
         if (ver == 3)
@@ -3871,14 +3871,16 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
 
                       if (vrr_range.first != vrr_range.second)
                       {
-                        return
-                          { vrr_range.first, vrr_range.second, "AMD FreeSync" };
+                        if (SK_ADL_CountActiveGPUs ())
+                          return { vrr_range.first, vrr_range.second, "AMD FreeSync"      };
+                        else
+                          return { vrr_range.first, vrr_range.second, "VESA AdaptiveSync" };
                       }
                     }
 
                     else
                     {
-                      SK_LOGi0 (L"Unexpected FreeSync Range Size: %d-bytes", size);
+                      SK_LOGi0 (L"Unexpected AdaptiveSync Range Size: %d-bytes", size);
                     }
                   }
                   default:
@@ -3906,7 +3908,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
           }
         }
 
-        block += off;
+        block += std::max (1u, off);
       } break;
 
       default:
@@ -3920,7 +3922,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
   block = &edid [DETAILED_TIMING_DESCRIPTIONS_START];
   end   = &edid [length - 1];
 
-  while (block < end)
+  while (block < end - 5)
   {
     uint8_t type =
       blockType_MonitorDescriptor (block);
@@ -3949,12 +3951,7 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
 
         if (range_min != range_max)
         {
-          if (sk::NVAPI::nv_hardware)
-          {
-            return
-              { range_min, range_max, "NVIDIA G-SYNC" };
-          }
-
+          // No idea what VRR tech is in use, just report Variable Refresh.
           return
             { range_min, range_max, "Variable Refresh" };
         }
@@ -4200,8 +4197,11 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
     DWORD sizeofEDID = 0;
     auto  EDID_Data  =
-      std::make_unique <uint8_t []> (32768);
+      std::make_unique <uint8_t []> (NV_EDID_DATA_SIZE_MAX);
 
+    // Use the EDID from system registry, this code is provided only to bypass
+    //   corrupted EDIDs written by older versions of CRU if necessary.
+#if 0
     if (sk::NVAPI::nv_hardware != false)
     {
       NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = {     };
@@ -4240,8 +4240,8 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
         {
           static_assert (NV_EDID_DATA_SIZE == 256);
 
-          if (edid.offset     >= 32768 ||
-              edid.sizeofEDID >  32768)
+          if (edid.offset     > NV_EDID_DATA_SIZE_MAX - NV_EDID_DATA_SIZE ||
+              edid.sizeofEDID > NV_EDID_DATA_SIZE_MAX)
           {
             SK_LOGi0 (L"NvAPI_GPU_GetEDID (...) buffer overrun!");
             sizeofEDID = 0;
@@ -4294,7 +4294,8 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             display.vrr.max_refresh = vrr_caps.max_refresh;
 
             strncpy_s ( display.vrr.type, 31,
-                           vrr_caps.type, _TRUNCATE );
+                        display.nvapi.true_gsync ?
+                                 "NVIDIA G-SYNC" : vrr_caps.type, _TRUNCATE );
           }
 
           edid_name =
@@ -4312,10 +4313,17 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           if (! edid_name.empty ())
           {
             nvSuppliedEDID = true;
+
+            FILE* fEDID = _wfopen (L"edid_nvapi.dat", L"wb");
+            if (  fEDID != nullptr)
+            {
+              fwrite (EDID_Data.get (), sizeofEDID, 1, fEDID);
+            }
           }
         }
       }
     }
+#endif
 
     *display.name = L'\0';
 
@@ -4358,6 +4366,8 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             if (pwszTok != nullptr)
                *pwszTok  = L'\0';
 
+            sizeofEDID = NV_EDID_DATA_SIZE_MAX;
+
             DWORD   dwType = REG_NONE;
             LRESULT lStat  =
               RegGetValueW ( HKEY_LOCAL_MACHINE,
@@ -4370,6 +4380,12 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
             if (ERROR_SUCCESS == lStat)
             {
+              if (sizeofEDID < 256)
+              {
+                // There's no VRR information here...
+                SK_LOGi0 (L"EDID cached in system registry is shorter than expected: %d-bytes!", sizeofEDID);
+              }
+
               auto vrr_caps =
                 rb.decodeEDIDForVRRCaps (EDID_Data.get (), sizeofEDID);
 
@@ -4379,19 +4395,18 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                 display.vrr.max_refresh = vrr_caps.max_refresh;
 
                 strncpy_s ( display.vrr.type, 31,
-                               vrr_caps.type, _TRUNCATE );
+                            display.nvapi.true_gsync ?
+                                     "NVIDIA G-SYNC" : vrr_caps.type, _TRUNCATE );
 
-                auto &monitor_caps =
-                  display.nvapi.monitor_caps;
+                // These caps will be updated in real-time on NVIDIA hardware if NVAPI is enabled.
+                if (sk::NVAPI::nv_hardware == false)
+                {
+                  auto &monitor_caps =
+                    display.nvapi.monitor_caps;
 
-                auto& bkend = SK_GetCurrentRenderBackend ();
-
-                monitor_caps.data.caps.supportVRR            = true;
-                monitor_caps.data.caps.currentlyCapableOfVRR = true;
-
-                bkend.gsync_state.capable =
-                  monitor_caps.data.caps.supportVRR &&
-                  monitor_caps.data.caps.currentlyCapableOfVRR;
+                  monitor_caps.data.caps.supportVRR            = true;
+                  monitor_caps.data.caps.currentlyCapableOfVRR = true; // A wild guess w/o NVAPI
+                }
               }
 
               edid_name =
@@ -4668,6 +4683,14 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
       ((intptr_t)&display -
        (intptr_t)&displays [0]) /
 sizeof (output_s));
+
+    // TODO: Refactor to eliminate "gsync_state"
+    if (! sk::NVAPI::nv_hardware)
+    {
+      gsync_state.capable =
+        display.nvapi.monitor_caps.data.caps.supportVRR &&
+        display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR;
+    }
 
     routeAudioForDisplay (pOutput);
 
@@ -5136,6 +5159,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
             display.nvapi.monitor_caps = monitor_caps;
             display.nvapi.vrr_enabled  = vrr_info.bIsVRREnabled;
+            display.nvapi.true_gsync   = monitor_caps.data.caps.isTrueGsync ? 1 : 0;
           }
         }
 
@@ -5608,6 +5632,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  +------------------+---------------------------------------------------------------------\n"
         L"  | EDID Device Name |  %hs\n"
         L"  | GDI  Device Name |  %ws (HMONITOR: %06p)\n"
+        L"  | VRR Capabilities |  %d-%d Hz (%hs)\n"
         L"  | Desktop Display. |  %ws%ws\n"
         L"  | Bits Per Color.. |  %d\n"
         L"  | Color Space..... |  %hs\n"
@@ -5622,6 +5647,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
           display.gdi_name, display.monitor,
+          display.vrr.min_refresh, display.vrr.max_refresh,
+          display.vrr.type,
           display.attached ? L"Yes"                : L"No",
           display.primary  ? L" (Primary Display)" : L"",
                       display.bpc,

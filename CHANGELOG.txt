@@ -1,4 +1,35 @@
-﻿25.7.8
+﻿25.7.11
+=======
+ + Handle EDID data cached in the system registry that has been truncated to
+     the point where it does not contain a display descriptor data table (ugh!)
+ + Add decoded VRR capabilities to display list in logs.
+
+25.7.8.4
+========
+ + Allow SK_ADL_CountActiveGPUs (...) and SK_ADL_CountPhysicalGPUs (...) to
+     silently return 0 if ADL has not been initialized.
+
+25.7.8.3
+========
+ + Favor system registry cached EDIDs over extracting them from HW using NvAPI.
+
+    * NOTE:  Current versions of CRU cause corruption on edited EDIDs for
+               displays with more than 256-bytes of EDID (i.e. AW3423DW).
+
+        Problem has been reported and should be fixed soon.
+
+25.7.8.2
+========
+ + Reduce maximum EDID payload size to 1 KiB and ensure RegGetValueW (...)
+     is passed the correct size when reading EDID on non-NV hardware.
+ + Rename "AMD FreeSync" VRR type to "VESA AdaptiveSync" on non-AMD hardware.
+
+25.7.8.1
+========
+ + Implement blocking wait for framepacing statistics producer thread to finish
+     shutting down before allowing framerate limiters to finalize destruction.
+
+25.7.8
 ======
  + Added support for EDID data > 256-bytes (up to 32 KiB) for NvAPI-acquired
      data and system registry cache.
@@ -111,7 +142,7 @@
    [Render.DStorage]
    UseDummyD3D12DeviceIfNeeded={true|false}  Default: true
 
-    + In many games, DStorage is initialized beofre graphics / windows are init.
+    + In many games, DStorage is initialized before graphics / windows are init.
         so it may be necessary to use local injection for this feature.
 
 25.6.29
@@ -157,7 +188,7 @@
  + Do not apply NVIDIA Streamline late-injection hacks (for finding SwapChain's
      command queue) to AMD GPUs; Streamline is a nop in that case.
  + Avoid using HID API calls to get button usages for DualShock 4 and DualSense
-     over USB -- use the raw Input Reports instead.
+     over USB -- use the Raw Input Reports instead.
 
 25.6.21.2
 =========

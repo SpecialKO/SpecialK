@@ -297,6 +297,7 @@ public:
       NV_MONITOR_CAPABILITIES
                           monitor_caps         = { };
       BOOL                vrr_enabled          =  -1;
+      BOOL                true_gsync           =   0;
 
       static output_s*    getDisplayFromId     (NvU32           display_id)     noexcept;
       static output_s*    getDisplayFromHandle (NvDisplayHandle display_handle) noexcept;
