@@ -45,7 +45,7 @@ struct denuvo_file_s
   SYSTEMTIME   st_local;
 };
 
-extern SK_LazyGlobal <std::vector <denuvo_file_s>> denuvo_files;
+extern SK_LazyGlobal<concurrency::concurrent_vector<denuvo_file_s>> denuvo_files;
 
 #if 0
 class SK_Steam_CloudManager
