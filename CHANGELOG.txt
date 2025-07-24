@@ -1,4 +1,9 @@
-﻿25.7.24
+﻿25.7.24.1
+=========
+ + Fix DualShock 4 (v1/v2) D-Pad / analog trigger polling code that was
+     preventing SK from processing PlayStation button chords (>= 25.6.21.3).
+
+25.7.24
 =======
  + Go back to reading EDID straight from the display hardware on NVIDIA GPUs,
      because the EDID stored in system registry is completely unreliable and

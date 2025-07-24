@@ -260,7 +260,7 @@ void SK_HID_SetupPlayStationControllers (void)
             CloseHandle (hDeviceFile);
             continue;
           }
-    
+
           PHIDP_PREPARSED_DATA                          pPreparsedData = nullptr;
           if (! SK_HidD_GetPreparsedData (hDeviceFile, &pPreparsedData))
           {
@@ -1584,8 +1584,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
 
               // Report 0x1, USB Mode
-              else if ((! pDevice->bBluetooth) && ((dwBytesTransferred == 64 && pDevice->bDualSense) ||
-                                                   (dwBytesTransferred == 34 && pDevice->bDualShock4)))
+              else if ((! pDevice->bBluetooth) && ((dwBytesTransferred >= 63 && pDevice->bDualSense) ||
+                                                   (dwBytesTransferred >= 33 && pDevice->bDualShock4)))
               {
                 pDevice->endpoints.usb = pDevice;
 
@@ -1760,10 +1760,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->xinput.report.Gamepad.sThumbRY =
                     static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pDualShock4->RightStickY) / 127));
 
-                  pDevice->xinput.report.Gamepad.bLeftTrigger  = pDualSense->TriggerLeft;
-                  pDevice->xinput.report.Gamepad.bRightTrigger = pDualSense->TriggerRight;
+                  pDevice->xinput.report.Gamepad.bLeftTrigger  = pDualShock4->TriggerLeft;
+                  pDevice->xinput.report.Gamepad.bRightTrigger = pDualShock4->TriggerRight;
 
-                  switch (pDualSense->DPad)
+                  switch (pDualShock4->DPad)
                   {
                     case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
                     case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
