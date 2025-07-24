@@ -1,7 +1,16 @@
-﻿25.7.11
+﻿25.7.24
+=======
+ + Go back to reading EDID straight from the display hardware on NVIDIA GPUs,
+     because the EDID stored in system registry is completely unreliable and
+       often missing information.
+
+   * Reported VRR ranges will not match CRU-defined edited values, but that
+       is a small price to pay.
+
+25.7.11
 =======
  + Handle EDID data cached in the system registry that has been truncated to
-     the point where it does not contain a display descriptor data table (ugh!)
+     the point where it does not contain a Detailed Timing Descriptions (ugh!)
  + Add decoded VRR capabilities to display list in logs.
 
 25.7.8.4

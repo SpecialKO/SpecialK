@@ -4201,7 +4201,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
     // Use the EDID from system registry, this code is provided only to bypass
     //   corrupted EDIDs written by older versions of CRU if necessary.
-#if 0
+#if 1
     if (sk::NVAPI::nv_hardware != false)
     {
       NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = {     };
@@ -4310,6 +4310,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             display.native.height = nativeRes.y;
           }
 
+#if 0
           if (! edid_name.empty ())
           {
             nvSuppliedEDID = true;
@@ -4320,6 +4321,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
               fwrite (EDID_Data.get (), sizeofEDID, 1, fEDID);
             }
           }
+#endif
         }
       }
     }
@@ -5301,7 +5303,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           rect.right  = pSourceMode->position.x + pSourceMode->width;
           rect.bottom = pSourceMode->position.y + pSourceMode->height;
 
-          if (! IsRectEmpty (&rect))
+          if (! IsRectEmpty (&rect) && path->targetInfo.targetAvailable)
           {
             int bx1 = rect.left;
             int by1 = rect.top;
@@ -5553,6 +5555,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             // Didn't get a name using the Windows APIs, let's fallback to EDID
             if (*display.name == L'\0')
             {
+              SK_LOGi0 (L"Setting Display Name Late...");
+
               if (sk::NVAPI::nv_hardware)
               {
                 NV_EDID edid = {         };
