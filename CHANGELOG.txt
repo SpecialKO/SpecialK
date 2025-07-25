@@ -1,6 +1,9 @@
 ﻿25.7.25
 =======
  + Remove various unused Steam functionality since it will never be used again.
+ + Remove SteamAPI crack detection.
+     * Will your pirated Steam game crash? Who knows... who honestly cares?
+       Have fun.
 
 25.7.24.1
 =========

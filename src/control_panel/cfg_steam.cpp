@@ -697,8 +697,6 @@ SK_ShellExecute (const wchar_t* verb, const wchar_t* file)
 bool
 SK::ControlPanel::Steam::DrawMenu (void)
 {
-
-
   return false;
 }
 
@@ -706,22 +704,5 @@ SK::ControlPanel::Steam::DrawMenu (void)
 bool
 SK::ControlPanel::Steam::WarnIfUnsupported (void)
 {
-  static DWORD dwLastTime = 0x00;
-
-  bool pirate = ( SK::SteamAPI::AppID  () != 0 &&
-                  SK_Steam_PiratesAhoy () != 0x0 );
-  if (pirate)
-  {
-    if (dwLastTime < current_time - 1000)
-    {
-      dwLastTime             = current_time;
-
-      eula.show              = true;
-      eula.never_show_again  = false;
-
-      return true;
-    }
-  }
-
   return false;
 }
