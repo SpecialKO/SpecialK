@@ -1,4 +1,8 @@
-﻿25.7.24.1
+﻿25.7.25
+=======
+ + Remove various unused Steam functionality since it will never be used again.
+
+25.7.24.1
 =========
  + Fix DualShock 4 (v1/v2) D-Pad / analog trigger polling code that was
      preventing SK from processing PlayStation button chords (>= 25.6.21.3).

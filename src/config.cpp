@@ -3832,7 +3832,7 @@ auto DeclKeybind =
             if (IDOK ==
                 SK_MessageBox (
                   L"Special K has Compatibility Issues with this Game\r\n\r\n"
-                  L"   * Please use Local Injection or SKinny\r\n\r\n"
+                  L"   * Please use Local Injection or SKinny\r\n\r\n" 
                     L"Click OK to switch to Local Injection.", L"Special K Incompatibility",
                     MB_OKCANCEL|MB_ICONWARNING))
             {
