@@ -1854,6 +1854,7 @@ enum class SK_GAME_ID
   Rimworld,                     // RimWorldWin64.exe
   Valheim,                      // valheim.exe
   StellarBlade,                 // SB-Win64-Shipping.exe
+  Dishonored2,                  // Dishonored2.exe
 
   UNKNOWN_GAME               = 0xffff
 };

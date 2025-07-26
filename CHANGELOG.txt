@@ -1,4 +1,13 @@
-﻿25.7.25
+﻿25.7.26
+=======
+ + Enable D3D11 Deferred Context Isolation in Dishonored 2 to prevent crashes.
+ + Disable SteamAPI integration in Dishonored 2 because SK has logged the game's
+     SteamAPI_RunCallbacks (...) throwing an access violation exception that is
+       caught by SteamAPI_SetTryCatchCallbacks (...) and getting tangled up in
+         that would not be good.
+    * Microsoft Store version works w/o crashing Xbox's internal APIs ;)
+
+25.7.25
 =======
  + Remove various unused Steam functionality since it will never be used again.
  + Remove SteamAPI crack detection.

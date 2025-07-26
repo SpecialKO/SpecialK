@@ -297,7 +297,8 @@ SK_GetCurrentGameID (void)
           { L"Little Kitty, Big City.exe",             SK_GAME_ID::LittleKittyBigCity           },
           { L"RimWorldWin64.exe",                      SK_GAME_ID::Rimworld                     },
           { L"valheim.exe",                            SK_GAME_ID::Valheim                      },
-          { L"SB-Win64-Shipping.exe",                  SK_GAME_ID::StellarBlade                 }
+          { L"SB-Win64-Shipping.exe",                  SK_GAME_ID::StellarBlade                 },
+          { L"Dishonored2.exe",                        SK_GAME_ID::Dishonored2                  }
         };
 
     first_check  = false;
@@ -4196,6 +4197,13 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency         = true;
         config.nvidia.reflex.low_latency_boost   = true;
         config.nvidia.reflex.marker_optimization = true;
+        break;
+
+      case SK_GAME_ID::Dishonored2:
+        // Logs suggest there is a non-continuable exception that occurs inside of
+        //   SteamAPI's TryCatch handler at startup, better to not get tangled up in that.
+        config.platform.silent                = true;
+        config.render.dxgi.deferred_isolation = true; // For thread-safety
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:
