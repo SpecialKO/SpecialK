@@ -1129,8 +1129,13 @@ SK_NV_AdaptiveSyncControl (void)
 
           if (pLimiter != nullptr)
           {
-            const auto snapshots =
-              pLimiter->frame_history_snapshots.getPtr ();
+            auto* snapshots = pLimiter->frame_history_snapshots.getPtr ();
+
+            if (config.apis.NvAPI.gsync_status)
+            {
+              void SK_VRR_UpdateCachedTimings (SK::Framerate::Limiter* pLimiter);
+                   SK_VRR_UpdateCachedTimings (pLimiter);
+            }
 
             const float fFPS =
               static_cast <float> (1000.0 / snapshots->cached_mean.val);

@@ -1,4 +1,11 @@
-﻿25.7.26
+﻿25.7.27
+=======
+ + Spawn PresentMon worker thread in D3D12 if VRR status monitoring is enabled,
+     regardless whether the text OSD is displaying framerate or not.
+ + Ensure that VRR LFC calculations occur in D3D12 even if the text OSD is not
+     visible, as well as AutoVRR-trigger logic.
+
+25.7.26
 =======
  + Enable D3D11 Deferred Context Isolation in Dishonored 2 to prevent crashes.
  + Disable SteamAPI integration in Dishonored 2 because SK has logged the game's

@@ -5383,8 +5383,14 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     {
       pLimiter->frame_history_snapshots->frame_history.calcMean ();
 
-      const auto snapshots =
+      auto snapshots =
         pLimiter->frame_history_snapshots.getPtr ();
+
+      if (config.apis.NvAPI.gsync_status)
+      {
+        void SK_VRR_UpdateCachedTimings (SK::Framerate::Limiter* pLimiter);
+             SK_VRR_UpdateCachedTimings (pLimiter);
+      }
 
       const float fFPS =
         static_cast <float> (1000.0 / snapshots->cached_mean.val);

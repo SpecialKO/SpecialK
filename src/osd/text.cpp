@@ -828,55 +828,12 @@ SK_DrawOSD (void)
   {
     if (config.apis.NvAPI.gsync_status)
     {
-      bool bPresentMonNeeded = false;
-
-      if (sk::NVAPI::nv_hardware && rb.api == SK_RenderAPI::D3D12)
-      {
-        // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
-        bPresentMonNeeded = true;
-      }
-
-      else if (! sk::NVAPI::nv_hardware)
-      {
-        // PresentMon is needed in -all- graphics APIs on non-NVIDIA drivers
-        bPresentMonNeeded = true;
-      }
-
-      if (bPresentMonNeeded)
-      {
-        SK_SpawnPresentMonWorker ();
-      }
+      void SK_VRR_UpdateCachedTimings (SK::Framerate::Limiter* pLimiter);
+           SK_VRR_UpdateCachedTimings (pLimiter);
     }
 
-    auto* snapshots = pLimiter->frame_history_snapshots.getPtr ();
-
-    auto &history =
-      snapshots->frame_history,
-         &history2 =
-      snapshots->frame_history2;
-
-    if (     snapshots->cached_mean.last_update_time < SK::ControlPanel::current_time - 33)
-    {        snapshots->cached_mean.last_update_time = SK::ControlPanel::current_time;
-             snapshots->cached_mean.val              = history.calcMean (); }
-
-    if ((! config.fps.compact) && config.fps.advanced)
-    {
-      if (snapshots->cached_sd.last_update_time                  < SK::ControlPanel::current_time - 150)
-      {        snapshots->cached_sd.last_update_time             = SK::ControlPanel::current_time;
-               snapshots->cached_sd.val                          = history.calcSqStdDev (snapshots->cached_mean.val); }
-      else if (snapshots->cached_min.last_update_time            < SK::ControlPanel::current_time - 150)
-      {        snapshots->cached_min.last_update_time            = SK::ControlPanel::current_time;
-               snapshots->cached_min.val                         = history.calcMin (); }
-      else if (snapshots->cached_max.last_update_time            < SK::ControlPanel::current_time - 150)
-      {        snapshots->cached_max.last_update_time            = SK::ControlPanel::current_time;
-               snapshots->cached_max.val                         = history.calcMax (); }
-      else if (snapshots->cached_hitches.last_update_time        < SK::ControlPanel::current_time - 150)
-      {        snapshots->cached_hitches.last_update_time        = SK::ControlPanel::current_time;
-               snapshots->cached_hitches.val                     = history.calcHitches (1.2, snapshots->cached_mean.val); }
-      else if (snapshots->cached_effective_mean.last_update_time < SK::ControlPanel::current_time - 150)
-      {        snapshots->cached_effective_mean.last_update_time = SK::ControlPanel::current_time;
-               snapshots->cached_effective_mean.val              = history2.calcMin (); }
-    }
+    auto* snapshots = pLimiter ->frame_history_snapshots.getPtr ();
+    auto& history2  = snapshots->frame_history2;
 
     const double mean           = snapshots->cached_mean.val;
     const double sd             = snapshots->cached_sd.val;
