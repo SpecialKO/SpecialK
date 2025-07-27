@@ -1,4 +1,8 @@
-﻿25.7.27
+﻿25.7.27.1
+=========
+ + Eliminate unnecessary NvAPI_Disp_ColorControl log spam caused by fake NvAPI.
+
+25.7.27
 =======
  + Spawn PresentMon worker thread in D3D12 if VRR status monitoring is enabled,
      regardless whether the text OSD is displaying framerate or not.
@@ -83,7 +87,7 @@
 
 25.7.6.2
 ========
- + Also remove UTF8 Byte Order Mark from INI files on Proton/Linux. 
+ + Also remove UTF8 Byte Order Mark from INI files on Proton/Linux.
 
     * Users may hack together shell scripts that prepend text to INI files.
         (i.e. Steam Tinker Launch)
@@ -353,7 +357,7 @@
  + Remove repeated libScePad scePadGetHandle (...) log spam.
  + Uncap internal controller polling rate limit (500 Hz) in libScePad games
      (that use libScePad.dll, as opposed to static linking) in order to correctly
-       support DualSense Edge's full capabiilities (1 kHz native) on.
+       support DualSense Edge's full capabiilities (1 kHz native).
 
 26.6.8
 ======
@@ -598,7 +602,7 @@
 25.5.10
 =======
  + Fixed the position of XInput USB/Bluetooth battery charge indicators so they
-     do not overlay with the Swap A/B and Swap X/Y button settings.
+     do not overlap with the Swap A/B and Swap X/Y button settings.
 
 25.5.9.1
 ========

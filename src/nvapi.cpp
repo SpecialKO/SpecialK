@@ -587,7 +587,13 @@ NvAPI_Disp_ColorControl_Override ( NvU32          displayId,
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_ColorControl);
 
-  SK_LOG_CALL (SK_FormatStringW (L"NvAPI_Disp_ColorControl (%lu, ...)", displayId).c_str ());
+  // This causes log spam from some frameworks that are pretending to be NVIDIA,
+  //   it is mostly harmless and not worth repeatedly logging a function that
+  //     SK does not even alter.
+  if (config.system.log_level > 0)
+  {
+    SK_LOG_CALL (SK_FormatStringW (L"NvAPI_Disp_ColorControl (%lu, ...)", displayId).c_str ());
+  }
 
   return
     NvAPI_Disp_ColorControl_Original (displayId, pColorData);
