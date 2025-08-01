@@ -1,4 +1,8 @@
-﻿25.7.27.1
+﻿25.8.1
+======
+ + Extend the default config for Dishonored 2 to cover Death of the Outsider.
+
+25.7.27.1
 =========
  + Eliminate unnecessary NvAPI_Disp_ColorControl log spam caused by fake NvAPI.
 

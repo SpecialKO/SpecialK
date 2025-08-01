@@ -298,7 +298,8 @@ SK_GetCurrentGameID (void)
           { L"RimWorldWin64.exe",                      SK_GAME_ID::Rimworld                     },
           { L"valheim.exe",                            SK_GAME_ID::Valheim                      },
           { L"SB-Win64-Shipping.exe",                  SK_GAME_ID::StellarBlade                 },
-          { L"Dishonored2.exe",                        SK_GAME_ID::Dishonored2                  }
+          { L"Dishonored2.exe",                        SK_GAME_ID::Dishonored2                  },
+          { L"Dishonored_DO.exe",                      SK_GAME_ID::Dishonored2                  } // Standalone expansion to Dishonored2
         };
 
     first_check  = false;
