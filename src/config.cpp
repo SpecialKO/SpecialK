@@ -4204,7 +4204,8 @@ auto DeclKeybind =
         // Logs suggest there is a non-continuable exception that occurs inside of
         //   SteamAPI's TryCatch handler at startup, better to not get tangled up in that.
         config.platform.silent                = true;
-        config.render.dxgi.deferred_isolation = true; // For thread-safety
+        config.render.dxgi.deferred_isolation = true;  // For thread-safety
+        config.textures.d3d11.cache           = false; // UI gamma issues if this is not disabled
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:
