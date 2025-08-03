@@ -1,4 +1,12 @@
-﻿25.8.1
+﻿25.8.2
+======
+ + Attempt to workaround incorrect Xbox GameBar "input redirection" status info
+     when GameBar has crashed by adding additional checks for visibility.
+   * If the overlay is not ALSO visible when redirecting input, SK will assume
+       it is bugged and ignore the overlay's reported state.
+ + Added OpenGL compat hacks for Postal 2's ancient version of Unreal Engine.
+
+25.8.1
 ======
  + Extend the default config for Dishonored 2 to cover Death of the Outsider.
 

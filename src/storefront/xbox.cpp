@@ -80,7 +80,12 @@ SK_Xbox_GetOverlayState (bool real)
   {
     boolean redirected = false;
 
+    // This whole thing is flaky, we should be using the callback to listen for activation instead...
     SK_GameBar_Statics->get_IsInputRedirected (&redirected);
+
+    // If redirected, but not visible, assume something is wrong and ignore the status.
+    if (redirected != false)
+      SK_GameBar_Statics->get_Visible         (&redirected);
 
     return redirected != false;
   }
