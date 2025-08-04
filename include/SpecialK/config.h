@@ -1855,6 +1855,7 @@ enum class SK_GAME_ID
   Valheim,                      // valheim.exe
   StellarBlade,                 // SB-Win64-Shipping.exe
   Dishonored2,                  // Dishonored2.exe
+  TitanQuest,                   // tq.exe
 
   UNKNOWN_GAME               = 0xffff
 };

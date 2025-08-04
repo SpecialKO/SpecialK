@@ -7162,6 +7162,7 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     (*pWindowClass->lpszClassName == L'T' && !_wcsicmp (pWindowClass->lpszClassName, L"TestDX11WindowClass"))                   || // X-Ray Oxygen
     (*pWindowClass->lpszClassName == L's' && !_wcsicmp (pWindowClass->lpszClassName, L"static"))                                || // AMD's stupid OpenGL interop
     (*pWindowClass->lpszClassName == L'S' && !_wcsicmp (pWindowClass->lpszClassName, L"SKIV_NotificationIcon"))                 || // SKIV's thingy...
+    (*pWindowClass->lpszClassName == L'T' && !_wcsicmp (pWindowClass->lpszClassName, L"TempDirect3D11OverlayWindow"))           || // Steam version of Titan Quest
 
     // F' it, there's a pattern here, just ignore all dummies.
     ((*pWindowClass->lpszClassName == L'D'||

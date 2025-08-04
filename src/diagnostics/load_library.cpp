@@ -922,10 +922,17 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       hMod = nullptr;
     }
 
+    else if (StrStrIW (compliant_path, L"OverlayEngineWin32.dll") ||
+             StrStrIW (compliant_path, L"OverlayReleaseWin32.dll"))
+    {
+      SK_LOGs0 (L"DLL Loader", L"Titan Quest overlay disabled to prevent crashing");
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      hMod = nullptr;
+    }
+
     // Avoid issues in OpenGL caused by GOG's overlay
     else if (StrStrIW (compliant_path, L"overlay_mediator_"))
     {
-
       if (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook)
       {
         SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay in OpenGL game.");
