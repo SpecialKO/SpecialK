@@ -53,6 +53,9 @@
 #include <../depends/include/GL/wglew.h>
 #include <imgui/imgui.h>
 
+// Necessary hack for Postal 2
+#define SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
+
 //SK_OpenGL_KnownPrograms SK_GL_Programs;
 //SK_OpenGL_KnownTextures SK_GL_Textures;
 //SK_OpenGL_KnownBuffers  SK_GL_Buffers;
@@ -3074,6 +3077,12 @@ SwapBuffers (HDC hDC)
   SK_GL_SwapInterval (orig_swap_interval);
 
 
+#ifdef SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
+  bRet = TRUE;
+  SK_SetLastError (NOERROR);
+#endif
+
+
   return bRet;
 }
 
@@ -4808,6 +4817,11 @@ wglSetPixelFormat ( HDC                    hDC,
                                pfd_copy.cStencilBits ),
               L" OpenGL32 " );
   }
+
+#ifdef SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
+  ret = TRUE;
+  SK_SetLastError (NOERROR);
+#endif
 
   return ret;
 }
