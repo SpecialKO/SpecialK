@@ -4930,7 +4930,7 @@ PostMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture () && (SK_ImGui_Active () || ! SK_InputUtil_IsHWCursorVisible ()))
     return TRUE;
 
   return
@@ -4943,7 +4943,7 @@ PostMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture () && (SK_ImGui_Active () || ! SK_InputUtil_IsHWCursorVisible ()))
     return TRUE;
 
   return
@@ -4956,7 +4956,7 @@ SendMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture () && (SK_ImGui_Active () || ! SK_InputUtil_IsHWCursorVisible ()))
     return TRUE;
 
   return
@@ -4969,7 +4969,7 @@ SendMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture () && (SK_ImGui_Active () || ! SK_InputUtil_IsHWCursorVisible ()))
     return TRUE;
 
   return

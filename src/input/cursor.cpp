@@ -1377,8 +1377,9 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
     //game_mouselook = SK_GetFramesDrawn ();
   }
 
-  else if (! SK_ImGui_WantMouseCapture ())
-  {
+  else if ((! SK_ImGui_WantMouseCapture      ()) ||
+              SK_InputUtil_IsHWCursorVisible ())
+  {           // Allow games to set the cursor pos if the HW cursor is visible (i.e. for Unreal Engine virtual cursor)
     return
       SK_SetCursorPos (x, y);
   }
@@ -1534,9 +1535,9 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
 
 
   bool activation_event =
-    ( lpMsg->message == WM_MOUSEMOVE /*|| lpMsg->message == WM_SETCURSOR*/) && (!SK_IsSteamOverlayActive ());
+    ( lpMsg->message == WM_MOUSEMOVE /*|| lpMsg->message == WM_SETCURSOR*/) && (! SK_IsSteamOverlayActive ());
 
-  bool bCapturingMouse =
+  const bool bCapturingMouse =
     SK_ImGui_WantMouseCaptureEx (0xFFFFFFFF & ~REASON_DISABLED);
 
   // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
@@ -1562,23 +1563,32 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
   // If timeout is 0, just hide the thing indefinitely
   if (activation_event)
   {
-    if ( (config.input.cursor.manage && config.input.cursor.timeout != 0) ||
-            bCapturingMouse )
+    if (! bCapturingMouse)
     {
-      SK_Window_ActivateCursor (true);
+      if (config.input.cursor.manage)
+      {
+        if (config.input.cursor.timeout != 0)
+          SK_Window_ActivateCursor (true); 
+      }
+
+      else
+      {
+        SK_Window_ActivateCursor (true);
+      }
     }
   }
+
 
   else if ( lpMsg->message == WM_TIMER            &&
             lpMsg->wParam  == last_mouse.timer_id &&
             (! SK_IsSteamOverlayActive ()) )
   {
-    // If for some reason we get the event multiple times in a frame,
-    //   use the results of the first test only
-    if (std::exchange (dwLastSampled, SK::ControlPanel::current_time) !=
-                                      SK::ControlPanel::current_time)
+    if (! bCapturingMouse)
     {
-      if (! bCapturingMouse)
+      // If for some reason we get the event multiple times in a frame,
+      //   use the results of the first test only
+      if (std::exchange (dwLastSampled, SK::ControlPanel::current_time) !=
+                                        SK::ControlPanel::current_time)
       {
         if (config.input.cursor.manage)
         {
@@ -1595,16 +1605,19 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
           {
             SK_Window_DeactivateCursor ();
           }
+
+          else
+            SK_Window_ActivateCursor (true);
         }
+
+        else
+          SK_Window_ActivateCursor (true);
+
+        // Record the cursor pos (at time of timer fire)
+        last_mouse.pos =
+        { (SHORT)SK_ImGui_Cursor.pos.x,
+          (SHORT)SK_ImGui_Cursor.pos.y };
       }
-
-      else
-        SK_Window_ActivateCursor (true);
-
-      // Record the cursor pos (at time of timer fire)
-      last_mouse.pos =
-      { (SHORT)SK_ImGui_Cursor.pos.x,
-        (SHORT)SK_ImGui_Cursor.pos.y };
     }
 
     return true;

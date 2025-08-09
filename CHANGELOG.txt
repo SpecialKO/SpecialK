@@ -1,4 +1,10 @@
-﻿25.8.8
+﻿25.8.9
+======
+ + Allow Unreal Engine's virtual mouse cursor (gamepad analog stick -> cursor)
+     to function in menu screens even when Mouse input is blocked to a game, as
+       long as the Windows HW cursor is visible and SK's control panel is not.
+
+25.8.8
 ======
  + Ensure that Epic overlay OpenGL incompatibility warnings are only displayed
      once per-runtime.
