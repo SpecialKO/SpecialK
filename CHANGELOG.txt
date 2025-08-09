@@ -1,4 +1,10 @@
-﻿25.8.4
+﻿25.8.8
+======
+ + Ensure that Epic overlay OpenGL incompatibility warnings are only displayed
+     once per-runtime.
+ + Added SK_ImGui_WarnOnce (...) macro to help simplify the above problem.
+
+25.8.4
 ======
  + Disable texture cache for non-mipmapped textures in Titan Quest
  + Workaround problems caused by stupid overlay in Steam version of Titan Quest
