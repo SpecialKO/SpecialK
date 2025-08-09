@@ -1377,9 +1377,11 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
     //game_mouselook = SK_GetFramesDrawn ();
   }
 
-  else if ((! SK_ImGui_WantMouseCapture      ()) ||
-              SK_InputUtil_IsHWCursorVisible ())
-  {           // Allow games to set the cursor pos if the HW cursor is visible (i.e. for Unreal Engine virtual cursor)
+  else if (! SK_ImGui_WantMouseCapture      () ||
+          (! SK_ImGui_WantMouseCaptureEx    (0xFFFFFFFF & ~REASON_DISABLED) &&
+             SK_InputUtil_IsHWCursorVisible ()))
+  { // Allow games to set the cursor pos if the only reason for mouse
+    //   capture is disabled mouse input (allows Unreal Engine virtual mouse)
     return
       SK_SetCursorPos (x, y);
   }
