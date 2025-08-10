@@ -4209,6 +4209,9 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::ElderScrollsOnline:
+        // Workaround anti-debug / anti-cheat crap
+        config.system.handle_crashes    = false;
+        config.window.dont_hook_wndproc = true;
         break;
 
       case SK_GAME_ID::Dishonored2:

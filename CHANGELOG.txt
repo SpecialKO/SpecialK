@@ -1,4 +1,11 @@
-﻿25.8.9
+﻿25.8.10
+=======
+ + Added Vectored Exception Handler overrides for some games stupid attempts at
+     anti-debug.
+ + Bypass functionality that angers Elder Scrolls Online's anti-cheat; reset INI.
+    * Some window management functionality may be reduced or less reliable :-\
+
+25.8.9
 ======
  + Allow Unreal Engine's virtual mouse cursor (gamepad analog stick -> cursor)
      to function in menu screens even when Mouse input is blocked to a game, as

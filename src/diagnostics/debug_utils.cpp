@@ -3774,17 +3774,19 @@ AddVectoredExceptionHandler_Detour (
 {
   SK_LOG_FIRST_CALL
 
+#ifdef DISABLE_ESO_ANTIDEBUG
   if (SK_IsCurrentGame (SK_GAME_ID::ElderScrollsOnline))
   {
-    //HMODULE                                                                            hModHandler;
-    //if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)Handler, &hModHandler))
-    //{
-    //  if (hModHandler == SK_GetModuleHandleW (nullptr))
+    HMODULE                                                                            hModHandler;
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)Handler, &hModHandler))
+    {
+      if (hModHandler == SK_GetModuleHandleW (nullptr))
       {
         return nullptr;
       }
-    //}
+    }
   }
+#endif
 
   return
     AddVectoredExceptionHandler_Original (First, Handler);
