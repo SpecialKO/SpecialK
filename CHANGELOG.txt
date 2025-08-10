@@ -4,6 +4,8 @@
      anti-debug.
  + Bypass functionality that angers Elder Scrolls Online's anti-cheat; reset INI.
     * Some window management functionality may be reduced or less reliable :-\
+ + Apply same workarounds discussed above to Genshin Impact to get past the login
+     screen...
 
 25.8.9
 ======

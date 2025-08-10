@@ -3178,6 +3178,7 @@ auto DeclKeybind =
       case SK_GAME_ID::WutheringWaves:
       {
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
       } break;
@@ -3185,6 +3186,7 @@ auto DeclKeybind =
       case SK_GAME_ID::GenshinImpact:
       {
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
 
@@ -3989,12 +3991,14 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ZenlessZoneZero:
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
         break;
 
       case SK_GAME_ID::HonkaiStarRail:
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
         // Game has native PlayStation support
