@@ -694,7 +694,7 @@ bool SK_CPU_TestForMWAITX (void)
 {
   static bool supported = true;
   auto        handler   = // Workaround CAPCOM DRM
-  AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+  SK_AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
   {
     if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION)
     {

@@ -1782,6 +1782,7 @@ enum class SK_GAME_ID
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   EasyAntiCheat,                // start_protected_game.exe
   EldenRing,                    // eldenring.exe
+  ElderScrollsOnline,           // eso64.exe
   TinyTinasWonderlands,         // Wonderlands.exe
   Elex2,                        // ELEX2.exe
   ChronoCross,                  // CHRONOCROSS.exe

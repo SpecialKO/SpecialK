@@ -828,7 +828,7 @@ SK_ACS_InitPlugin (void)
     {
       // Self-disable cutscene frame generation if it causes a crash, and then
       //   ignore the crash...
-      AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+      SK_AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
       {
         bool continuable = false;
 

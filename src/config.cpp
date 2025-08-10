@@ -300,7 +300,9 @@ SK_GetCurrentGameID (void)
           { L"SB-Win64-Shipping.exe",                  SK_GAME_ID::StellarBlade                 },
           { L"Dishonored2.exe",                        SK_GAME_ID::Dishonored2                  },
           { L"Dishonored_DO.exe",                      SK_GAME_ID::Dishonored2                  }, // Standalone expansion to Dishonored2
-          { L"tq.exe",                                 SK_GAME_ID::TitanQuest                   }
+          { L"tq.exe",                                 SK_GAME_ID::TitanQuest                   },
+          { L"eso64.exe",                              SK_GAME_ID::ElderScrollsOnline           },
+          { L"zosEGSStarter.exe",                      SK_GAME_ID::Launcher                     },
         };
 
     first_check  = false;
@@ -4204,6 +4206,9 @@ auto DeclKeybind =
       case SK_GAME_ID::TitanQuest:
         config.textures.cache.ignore_nonmipped = true; // Avoid UI corruption
         config.render.dxgi.deferred_isolation  = true;
+        break;
+
+      case SK_GAME_ID::ElderScrollsOnline:
         break;
 
       case SK_GAME_ID::Dishonored2:
