@@ -786,6 +786,10 @@ struct sk_config_t
         float target_fps           =   0.0f;
         int   enforcement_policy   =      4;
       } streamline;
+      struct {
+        bool allow_latency_wait    = true;
+        bool allow_wait_for_vblank = true;
+      } engine_overrides;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;

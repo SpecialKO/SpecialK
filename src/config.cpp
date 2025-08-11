@@ -4205,6 +4205,8 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency         = true;
         config.nvidia.reflex.low_latency_boost   = true;
         config.nvidia.reflex.marker_optimization = true;
+        config.render.framerate.engine_overrides.
+                              allow_latency_wait = false;
         break;
 
       case SK_GAME_ID::TitanQuest:

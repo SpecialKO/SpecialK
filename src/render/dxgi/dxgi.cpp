@@ -4680,6 +4680,21 @@ DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This ) noexcept
 {
   SK_LOG_FIRST_CALL
 
+  if (SK_GetCallingDLL () != __SK_hModSelf)
+  {
+    // Log any game that uses this API at least one time at any log level
+    SK_RunOnce (SK_LOGi0 (L"WaitForVBlank (...) called"));
+                SK_LOGi1 (L"WaitForVBlank (...) called");
+                // And every call at log level >= 1
+
+    if (! config.render.framerate.engine_overrides.allow_wait_for_vblank)
+    {
+      SK_RunOnce (SK_LOGi0 (L"WaitForVBlank (...) ignored"));
+
+      return S_OK;
+    }
+  }
+
   return
     WaitForVBlank_Original (This);
 }
@@ -5055,6 +5070,20 @@ SK_DXGI_CreateSwapChain_PreInit (
   {
     rb.active_traits.bFlipMode =
       dxgi_caps.present.flip_sequential;
+  }
+
+
+  if ((! config.render.framerate.engine_overrides.allow_latency_wait) && config.render.framerate.swapchain_wait <= 0)
+  {
+    UINT& Flags = pDesc != nullptr ? pDesc->Flags :
+                                     pDesc1->Flags;
+
+    if (Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    {
+      SK_LOGi0 (L"Removing Latency Waitable Object Flag from SwapChain at User's Request...");
+
+      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    }
   }
 
 

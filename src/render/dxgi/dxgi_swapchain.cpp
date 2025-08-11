@@ -1417,7 +1417,7 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
   //
   //// Disable waitable SwapChains when HW Flip Queue is active, they don't work right...
   //if (rb.windows.unity || rb.windows.unreal)// || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
-  if (false)
+  if (! config.render.framerate.engine_overrides.allow_latency_wait)
   {
     static HANDLE fake_waitable =
       SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
@@ -1425,6 +1425,8 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
     if ( SetHandleInformation ( fake_waitable, HANDLE_FLAG_PROTECT_FROM_CLOSE,
                                                HANDLE_FLAG_PROTECT_FROM_CLOSE ) )
     {
+      SK_LOGi0 (L"Returning fake Latency Waitable Object...");
+
       SetEvent (fake_waitable);
       return    fake_waitable;
     }
