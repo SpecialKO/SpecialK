@@ -1,4 +1,13 @@
-﻿25.8.10
+﻿25.8.11
+=======
+ + Prevent Stellar Blade from using DXGI Latency Waitable SwapChains, since the
+     engine does not actually wait on the SwapChain and that leads to unbounded
+       latency w/o Reflex or external framerate limiters; also causes hitches.
+
+    * It is unclear if this bug exists in all Unreal Engine games yet, so this
+        may be turned into a general INI setting in the future.
+
+25.8.10
 =======
  + Added Vectored Exception Handler overrides for some games stupid attempts at
      anti-debug.

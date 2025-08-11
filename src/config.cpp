@@ -4205,8 +4205,14 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency         = true;
         config.nvidia.reflex.low_latency_boost   = true;
         config.nvidia.reflex.marker_optimization = true;
+
+        config.render.framerate.sleepless_window = true;
+        // Engine does not use Latency Waitable SwapChains correctly,
+        //   which actually leads to unbounded latency!
         config.render.framerate.engine_overrides.
                               allow_latency_wait = false;
+        config.render.framerate.engine_overrides.
+                           allow_wait_for_vblank = false;
         break;
 
       case SK_GAME_ID::TitanQuest:
