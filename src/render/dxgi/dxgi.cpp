@@ -1353,6 +1353,13 @@ SK_GetDXGIAdapterInterfaceVer (gsl::not_null <IUnknown *> pAdapter)
 {
   SK_ComPtr <IUnknown> pTemp;
 
+
+  if (SUCCEEDED(
+    pAdapter->QueryInterface (__uuidof (IDXGIAdapter4), (void **)&pTemp)))
+  {
+    return 4;
+  }
+
   if (SUCCEEDED(
     pAdapter->QueryInterface (__uuidof (IDXGIAdapter3), (void **)&pTemp)))
   {
@@ -5081,19 +5088,6 @@ SK_DXGI_CreateSwapChain_PreInit (
     config.render.framerate.engine_overrides.allow_latency_wait = false;
   }
 
-  if ((! config.render.framerate.engine_overrides.allow_latency_wait) && config.render.framerate.swapchain_wait <= 0)
-  {
-    UINT& Flags = pDesc != nullptr ? pDesc->Flags :
-                                     pDesc1->Flags;
-
-    if (Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-    {
-      SK_LOGi0 (L"Removing Latency Waitable Object Flag from SwapChain at User's Request...");
-
-      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-    }
-  }
-
 
   // Use Flip Sequential if ReShade is present, so that screenshots
   //   work as expected...
@@ -5819,6 +5813,20 @@ SK_DXGI_CreateSwapChain_PreInit (
 
     pDesc->BufferDesc.Width   =  std::max ( max_x , min_x );
     pDesc->BufferDesc.Height  =  std::max ( max_y , min_y );
+  }
+
+
+  if (pDesc != nullptr && (! config.render.framerate.engine_overrides.allow_latency_wait) &&
+                             config.render.framerate.swapchain_wait <= 0)
+  {
+    UINT& Flags = pDesc->Flags;
+
+    if (Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    {
+      SK_LOGi0 (L"Removing Latency Waitable Object Flag from SwapChain at User's Request...");
+
+      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    }
   }
 
 
