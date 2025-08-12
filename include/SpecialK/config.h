@@ -43,6 +43,7 @@ static constexpr int SK_Disabled     =  0;
 static constexpr int SK_Enabled      =  1;
 
 enum {
+  SK_HDR_CLIPBOARD_FORMAT_NONE = 0,
   SK_HDR_CLIPBOARD_FORMAT_PNG  = 1,
   SK_HDR_CLIPBOARD_FORMAT_AVIF = 2,
 };
@@ -58,8 +59,8 @@ struct SK_Keybind
          alt   = FALSE;
   };
 
-  SHORT vKey        =   0;
-  UINT  masked_code = 0x0; // For fast comparison
+  USHORT vKey        =   0;
+  UINT   masked_code = 0x0; // For fast comparison
 
   void parse  (void);
   void update (void);
