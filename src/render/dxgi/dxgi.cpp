@@ -5073,6 +5073,14 @@ SK_DXGI_CreateSwapChain_PreInit (
   }
 
 
+  // NVIDIA Streamline does this, even if frame generation is not being used, causing increased latency
+  //   for no reason (frame generation OFF does not implicitly involve Reflex).
+  if ( (pDesc  != nullptr && pDesc ->BufferCount == 4 && pDesc ->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) ||
+       (pDesc1 != nullptr && pDesc1->BufferCount == 4 && pDesc1->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) )
+  {
+    config.render.framerate.engine_overrides.allow_latency_wait = false;
+  }
+
   if ((! config.render.framerate.engine_overrides.allow_latency_wait) && config.render.framerate.swapchain_wait <= 0)
   {
     UINT& Flags = pDesc != nullptr ? pDesc->Flags :

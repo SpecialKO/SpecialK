@@ -1,4 +1,11 @@
-﻿25.8.11
+﻿25.8.12
+=======
+ + Apply Latency Waitable SwapChain fix universally; cause: NVIDIA Streamline.
+
+    * Streamline never waits on the SwapChain, and when frame generation is
+        not active, Reflex may also not be active, leading to unncessary latency!
+
+25.8.11
 =======
  + Prevent Stellar Blade from using DXGI Latency Waitable SwapChains, since the
      engine does not actually wait on the SwapChain and that leads to unbounded
