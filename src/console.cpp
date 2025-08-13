@@ -288,7 +288,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     return 1;
   }
 
-  char*                          text           = SK_Console::getInstance ()->text;
+  auto&                          text           = SK_Console::getInstance ()->text;
   SK_Console::command_history_t& commands       = SK_Console::getInstance ()->commands;
   bool&                          command_issued = SK_Console::getInstance ()->command_issued;
   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
