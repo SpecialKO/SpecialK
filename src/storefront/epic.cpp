@@ -1417,9 +1417,8 @@ SK::EOS::AppName (void)
                 bool executable = false;
                 bool skip       = false;
 
-                char                         szLine [512] = { };
-                auto& line = mancpn.getline (szLine, 511);
-                while ((! line.eof ()) && (! line.fail ()) && skip == false)
+                char                     szLine [512] = { };
+                while (! mancpn.getline (szLine, 511).eof ())
                 {
                   if (StrStrIA (szLine, "\"DisplayName\"") != nullptr)
                   {
