@@ -10154,7 +10154,7 @@ RegisterDragDrop_Detour (IN HWND hwnd, IN LPDROPTARGET pDropTarget)
       SK_OLE_DragDropChanged    = true;
     }
 
-    else if (ret == DRAGDROP_E_ALREADYREGISTERED && hwnd == game_window.hWnd)
+    else if (ret == DRAGDROP_E_ALREADYREGISTERED)
     {
       RevokeDragDrop_Original (hwnd);
 

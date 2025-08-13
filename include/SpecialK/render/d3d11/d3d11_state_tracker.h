@@ -171,8 +171,8 @@ struct memory_tracking_s
           fresh.constant_buffers.clear ();
         }
       }
-    } empty_set,
-      active_set;
+    } empty_set  = {},
+      active_set = {};
 
     concurrency::concurrent_unordered_set <ID3D11Buffer *>&
       index_buffers    = active_set.index_buffers;

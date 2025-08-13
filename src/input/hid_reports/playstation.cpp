@@ -83,6 +83,8 @@ SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
 
   latency.pollrate   = std::make_shared <SK::Framerate::Stats>     (         );
   xinput.lock_report = std::make_shared <SK_Thread_HybridSpinlock> (/*0x400*/);
+
+  hid_caps = { };
 }
 
 SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)

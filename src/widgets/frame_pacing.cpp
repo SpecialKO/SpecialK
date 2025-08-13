@@ -1336,7 +1336,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
             PERF_DETAIL_WIZARD, 0
         );
 
-      if (status == ERROR_SUCCESS)
+      if (status == ERROR_SUCCESS && InstanceList.Buffer != nullptr)
       {
         const auto physical_name =
           SK_FormatStringW (L" %wc:", L'A' + drive_num);
