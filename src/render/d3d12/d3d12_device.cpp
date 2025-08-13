@@ -2989,15 +2989,15 @@ D3D12CreateDevice_Detour (
                                                        (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
                                                     ).c_str ()
                    );
+
+      bool new_hooks = false;
+
+      new_hooks |= SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
+      new_hooks |= SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
+
+      if (new_hooks)
+        SK_ApplyQueuedHooks ();
     }
-
-    bool new_hooks = false;
-
-    new_hooks |= SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
-    new_hooks |= SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
-
-    if (new_hooks)
-      SK_ApplyQueuedHooks ();
   }
 
   return res;
