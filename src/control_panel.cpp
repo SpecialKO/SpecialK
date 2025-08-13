@@ -3621,7 +3621,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               config.screenshots.clipboard_hdr_format =
                 clipboard_selection == 1 ? SK_HDR_CLIPBOARD_FORMAT_PNG  :
                 clipboard_selection == 2 ? SK_HDR_CLIPBOARD_FORMAT_AVIF :
-                                           SK_HDR_CLIPBOARD_FORMAT_AVIF;
+                                           SK_HDR_CLIPBOARD_FORMAT_NONE;
 
               if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
               {
@@ -3635,7 +3635,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             else
             {
-              config.screenshots.clipboard_hdr_format = 0;
+              config.screenshots.clipboard_hdr_format = SK_HDR_CLIPBOARD_FORMAT_NONE;
             }
           }
           config.screenshots.copy_to_clipboard =

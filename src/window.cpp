@@ -290,9 +290,9 @@ public:
     DWORD_PTR
       style_ex_borderless = style_ex;
 
-      style_ex_borderless &= ~WS_EX_CLIENTEDGE;
-      style_ex_borderless &= ~WS_EX_WINDOWEDGE;
-      style_ex_borderless &= ~WS_EX_DLGMODALFRAME;
+      style_ex_borderless &= (DWORD_PTR)~WS_EX_CLIENTEDGE;
+      style_ex_borderless &= (DWORD_PTR)~WS_EX_WINDOWEDGE;
+      style_ex_borderless &= (DWORD_PTR)~WS_EX_DLGMODALFRAME;
 
     return
       style_ex_borderless;
@@ -2900,7 +2900,7 @@ SetWindowLongPtr_Marshall (
       {
         if (config.window.always_on_top != SK_NoPreference)
         {
-          dwNewLong &= ~WS_EX_TOPMOST;
+          dwNewLong &= (DWORD_PTR)~WS_EX_TOPMOST;
         }
 
         game_window.game.style_ex =
@@ -6759,13 +6759,13 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 
   if (bTop)
   {
-    dwStyleEx |=   WS_EX_TOPMOST;
-    dwStyleEx &= ~(WS_EX_NOACTIVATE);
+    dwStyleEx |=              WS_EX_TOPMOST;
+    dwStyleEx &= (DWORD_PTR)~(WS_EX_NOACTIVATE);
   }
 
   else
   {
-    dwStyleEx &= ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE);
+    dwStyleEx &= (DWORD_PTR)~(WS_EX_TOPMOST | WS_EX_NOACTIVATE);
   }
 
   if (dwStyleEx != dwStyleExOrig)
@@ -9937,7 +9937,7 @@ public:
                 
                 SK_D3D11_ReloadAllTextures ();
 
-                return true;
+                return S_OK;
               }
             }
           }

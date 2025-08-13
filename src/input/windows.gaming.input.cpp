@@ -448,7 +448,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
   {
     HRESULT hr = hr_real;
 
-    if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr) && value != nullptr)
     {
       SK_WGI_EmulatedPlayStation = false;
 

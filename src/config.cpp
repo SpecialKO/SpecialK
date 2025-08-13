@@ -8680,7 +8680,8 @@ SK_AppCache_Manager::setFriendOwnership ( uint64_t                       friend_
     if ( 2 ==
            std::swscanf ( friend_status.c_str (),
                             L"%li {%lli}",
-                              &ownership, (int64_t *)&last_updated
+                              (int32_t *)&ownership,
+                              (int64_t *)&last_updated
                         )
        )
     {
@@ -8737,8 +8738,8 @@ SK_AppCache_Manager::getFriendOwnership ( uint64_t friend_,
       if ( 2 ==
              std::swscanf ( friend_status.c_str (),
                               L"%li {%lli}",
-                                &ownership,
-                                  &last_updated
+                                (int32_t *)&ownership,
+                                (int64_t *)&last_updated
                           )
          )
       {
@@ -8844,7 +8845,7 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
              std::swscanf ( friend_status.c_str (),
                               L"%f {%lli}",
                                 &percent,
-                                  &last_updated
+                                  (int64_t *)&last_updated
                           )
          )
       {
@@ -8894,11 +8895,11 @@ SK_AppCache_Manager::setFriendPreference (FriendPreference set)
 bool
 SK_AppCache_Manager::wantFriendStats (void)
 {
-  if (! config.platform.achievements.pull_friend_stats)
-    return false;
-
   bool global_pref =
     config.platform.achievements.pull_friend_stats;
+
+  if (! global_pref)
+    return false;
 
   if (app_cache_db == nullptr)
     return global_pref;

@@ -871,6 +871,9 @@ using ValueBarFlags = int;
 // Horizontal labels are placed to the right of the rect.
 // Vertical labels are placed below the rect.
 void ValueBar(const char *label, const float value, const ImVec2 &size, const float min_value = 0, const float max_value = 1, const ValueBarFlags flags = ValueBarFlags_None) {
+    if (! label)
+      return;
+
     const bool is_h = !(flags & ValueBarFlags_Vertical);
     const auto &style = GetStyle();
     const auto &draw_list = GetWindowDrawList();

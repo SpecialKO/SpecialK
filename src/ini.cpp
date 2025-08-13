@@ -265,7 +265,10 @@ iSK_INI::reload (const wchar_t *fname)
         return false;
       }
 
-      memcpy (string, start_addr, real_size);
+      if (real_size > 0)
+      {
+        memcpy (string, start_addr, real_size);
+      }
 
       const UINT converted_size =
         std::max ( 0,
@@ -1788,7 +1791,10 @@ iSK_INI::import_file (const wchar_t* fname)
         return false; // Out of Memory
       }
 
-      memcpy (string, start_addr, real_size);
+      if (real_size > 0)
+      {
+        memcpy (string, start_addr, real_size);
+      }
 
       const int converted_size =
         MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS,

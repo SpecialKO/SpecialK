@@ -1753,7 +1753,7 @@ SK::ControlPanel::Input::Draw (void)
                    history->avg      != 0.0 &&
                    history->last_avg != 0.0 )
               {
-                memset (history, sizeof (FrameHistory), 0);
+                memset (history, 0, sizeof (FrameHistory));
 
                 ps_controller.latency.last_ack = 0;
               }

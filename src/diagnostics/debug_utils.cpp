@@ -3786,7 +3786,7 @@ AddVectoredExceptionHandler_Detour (
       }
     }
   }
-#endif
+  #endif
 
   return
     AddVectoredExceptionHandler_Original (First, Handler);

@@ -392,7 +392,7 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
 #endif
 
-  if (! config.nvidia.reflex.disable_native)
+  if (! config.nvidia.reflex.disable_native && pSetLatencyMarkerParams != nullptr)
   {
     const auto fixup =
     SK_Reflex_GameSpecificLatencyMarkerFixups (pDev, pSetLatencyMarkerParams);

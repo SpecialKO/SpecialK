@@ -1,4 +1,8 @@
-﻿25.8.12
+﻿25.8.13
+=======
+ + Fixed various defects spotted by PVS Studio static analysis.
+
+25.8.12
 =======
  + Apply Latency Waitable SwapChain fix universally; cause: NVIDIA Streamline.
 

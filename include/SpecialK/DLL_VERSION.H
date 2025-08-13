@@ -2,7 +2,7 @@
 
 #define SK_YEAR  25
 #define SK_MONTH 8
-#define SK_DATE  12
+#define SK_DATE  13
 #define SK_REV_N 0
 #define SK_REV   0
 

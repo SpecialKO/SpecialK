@@ -1157,7 +1157,7 @@ bool isJXLEncoderAvailable (void)
         std::filesystem::path path_to_brotlienc    = path_to_codecs / L"brotlienc.dll";
         std::filesystem::path path_to_jxl_threads  = path_to_codecs / L"jxl_threads.dll";
         std::filesystem::path path_to_jxl_cms      = path_to_codecs / L"jxl_cms.dll";
-        std::filesystem::path path_to_jxl_dec      = path_to_codecs / L"jxl_dec.dll";
+      //std::filesystem::path path_to_jxl_dec      = path_to_codecs / L"jxl_dec.dll";
         std::filesystem::path path_to_jxl          = path_to_codecs / L"jxl.dll";
 
         // JXL depends on CMS to be loaded first

@@ -421,10 +421,8 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
                         buttonCapsArray [i].Range.UsageMax;
 
                       controller.buttons.resize (
-                        static_cast <size_t> (
-                          controller.button_usage_max -
-                          controller.button_usage_min + 1
-                        )
+                        static_cast <size_t> (controller.button_usage_max) -
+                        static_cast <size_t> (controller.button_usage_min) + 1
                       );
                     }
                   }
