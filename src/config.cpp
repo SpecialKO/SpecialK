@@ -8378,7 +8378,7 @@ SK_AppCache_Manager::getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const
     {
       wchar_t wszEpicApp [65] = { };
 
-      if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%ws ", wszEpicApp))
+      if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%64ws ", wszEpicApp))
       {
         return
           getConfigPathForEpicApp (

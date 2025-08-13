@@ -316,8 +316,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     {
       if (keyDown)
       {
-        size_t len = strlen (text);
-               len--;
+        intptr_t len = (intptr_t)strnlen (text, sizeof (text) / sizeof (*text));
+                 len--;
 
         if (len < 1)
           len = 1;

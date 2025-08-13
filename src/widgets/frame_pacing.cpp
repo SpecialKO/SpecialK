@@ -1766,7 +1766,7 @@ SK_ImGui_DrawFramePercentiles (void)
                                    percentile0.computed_fps * __SK_FramerateScale );
 
       p0_txt [ std::max ((size_t)0,
-               std::min ((size_t)64, p0_len)) ] = '\0';
+               std::min ((size_t)63, p0_len)) ] = '\0';
 
     ImGui::SameLine       ( );
     ImGui::BeginGroup     ( );
@@ -1798,7 +1798,7 @@ SK_ImGui_DrawFramePercentiles (void)
                                   percentile1.computed_fps * __SK_FramerateScale );
 
       p1_txt [ std::max ((size_t)0,
-               std::min ((size_t)64, p1_len)) ] = '\0';
+               std::min ((size_t)63, p1_len)) ] = '\0';
 
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
                               p1_color                 );

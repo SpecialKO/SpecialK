@@ -1493,8 +1493,7 @@ SK::Framerate::Limiter::wait (void)
   if (! standalone)
   {
     SK_Framerate_SetPowerThrottlingPolicy (
-      (! background) ||
-         background && __target_fps_bg <= 0.0f
+      (! background) || __target_fps_bg <= 0.0f
     );
 
     if (! background)
@@ -2660,7 +2659,7 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit)))
+  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit))
   {
     SK::Framerate::TickEx (false, dt, now, swapchain);
   }
