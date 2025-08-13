@@ -1,4 +1,15 @@
-﻿25.8.13
+﻿25.8.13.2
+=========
+ + Add librenpython.dll to list of DLLs that are actually SDL, because this
+     library decided it should build SDL into itself...
+
+   * Should fix major SDL perf. problems caused by Windows.Gaming.Input
+
+25.8.13.1
+=========
+ + Additional static analysis corrections; hopefully nothing broke :)
+
+25.8.13
 =======
  + Fixed various defects spotted by PVS Studio static analysis.
 
