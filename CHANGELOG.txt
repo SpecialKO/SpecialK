@@ -2,6 +2,7 @@
 =========
  + Revert 25.8.12, because the bug was fixed in later versions of NVIDIA Streamline,
      and the fix causes those games to not work.
+ + Auto-load SK's version of DLSS in Dragon Age: The Veilguard to prevent crashes.
  + Add deadlock workaround for Dragon Age: The Veilguard.
 
 25.8.13.2

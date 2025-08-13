@@ -276,6 +276,7 @@ SK_GetCurrentGameID (void)
           { L"MonsterHunterWilds.exe",                 SK_GAME_ID::MonsterHunterWilds           },
           { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           },
           { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        },
+          { L"DragonAgeTheVeilguard_trial.exe",        SK_GAME_ID::DragonAgeTheVeilguard        },
           { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      },
           { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     },
           { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     },
@@ -4056,8 +4057,31 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DragonAgeTheVeilguard:
+      {
         config.input.ui.capture_mouse               = true;
-        break;
+        config.nvidia.dlss.disable_ota_updates      = true;
+        config.nvidia.dlss.auto_redirect_dlss       = true;
+
+        std::filesystem::path dlss_plugin (
+          SK_GetInstallPath ()
+        );
+
+        dlss_plugin /= LR"(PlugIns\ThirdParty\NVIDIA)";
+        dlss_plugin /= SK_RunLHIfBitness (32, L"nvngx_dlss.dll",
+                                              L"nvngx_dlss.dll");
+
+        if (! PathFileExistsW (dlss_plugin.c_str ()))
+        {
+          SK_CreateDirectories (dlss_plugin.c_str ());
+
+          SK_MessageBox ( L"This game requires an updated version of DLSS...\r\n\r\n"
+                          L"Install nvngx_dlss.dll to PlugIns\\ThirdParty\\NVIDIA",
+                          L"DLSS Plug-In Required",
+                            MB_OK | MB_ICONASTERISK );
+
+          SK_SelfDestruct ();
+        }
+      } break;
 
       // Game requires special sRGB treatment.
       case SK_GAME_ID::TombRaider123Remastered:
