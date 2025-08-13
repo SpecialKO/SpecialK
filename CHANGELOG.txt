@@ -1,4 +1,10 @@
-﻿25.8.13.2
+﻿25.8.13.3
+=========
+ + Revert 25.8.12, because the bug was fixed in later versions of NVIDIA Streamline,
+     and the fix causes those games to not work.
+ + Add deadlock workaround for Dragon Age: The Veilguard.
+
+25.8.13.2
 =========
  + Add librenpython.dll to list of DLLs that are actually SDL, because this
      library decided it should build SDL into itself...

@@ -5080,6 +5080,8 @@ SK_DXGI_CreateSwapChain_PreInit (
   }
 
 
+  // This bug only exists in older versions of Streamline, fixing it in new games would cause crashing.
+#if 0
   // NVIDIA Streamline does this, even if frame generation is not being used, causing increased latency
   //   for no reason (frame generation OFF does not implicitly involve Reflex).
   if ( (pDesc  != nullptr && pDesc ->BufferCount == 4 && pDesc ->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) ||
@@ -5087,6 +5089,7 @@ SK_DXGI_CreateSwapChain_PreInit (
   {
     config.render.framerate.engine_overrides.allow_latency_wait = false;
   }
+#endif
 
 
   // Use Flip Sequential if ReShade is present, so that screenshots
