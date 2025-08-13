@@ -139,10 +139,10 @@ struct memory_tracking_s
     //     so we want to swap an already cleared set whenever possible to avoid
     //       disrupting SK's thread-optimized memory placement.
     struct datastore_s {
-      concurrency::concurrent_unordered_set <ID3D11Resource *> mapped_resources;
-      concurrency::concurrent_unordered_set <ID3D11Buffer *>   index_buffers;
-      concurrency::concurrent_unordered_set <ID3D11Buffer *>   vertex_buffers;
-      concurrency::concurrent_unordered_set <ID3D11Buffer *>   constant_buffers;
+      concurrency::concurrent_unordered_set <ID3D11Resource *> mapped_resources { };
+      concurrency::concurrent_unordered_set <ID3D11Buffer *>   index_buffers    { };
+      concurrency::concurrent_unordered_set <ID3D11Buffer *>   vertex_buffers   { };
+      concurrency::concurrent_unordered_set <ID3D11Buffer *>   constant_buffers { };
 
       // It is only safe to call this at the end of a frame
       void clear_using ( datastore_s& fresh )
@@ -245,12 +245,12 @@ struct target_tracking_s
 
 
   struct refs_s {
-    concurrency::concurrent_unordered_set <uint32_t> ref_vs;
-    concurrency::concurrent_unordered_set <uint32_t> ref_ps;
-    concurrency::concurrent_unordered_set <uint32_t> ref_gs;
-    concurrency::concurrent_unordered_set <uint32_t> ref_hs;
-    concurrency::concurrent_unordered_set <uint32_t> ref_ds;
-    concurrency::concurrent_unordered_set <uint32_t> ref_cs;
+    concurrency::concurrent_unordered_set <uint32_t> ref_vs {};
+    concurrency::concurrent_unordered_set <uint32_t> ref_ps {};
+    concurrency::concurrent_unordered_set <uint32_t> ref_gs {};
+    concurrency::concurrent_unordered_set <uint32_t> ref_hs {};
+    concurrency::concurrent_unordered_set <uint32_t> ref_ds {};
+    concurrency::concurrent_unordered_set <uint32_t> ref_cs {};
 
     // It is only safe to call this at the end of a frame
     void clear_using ( refs_s& fresh )
@@ -296,8 +296,8 @@ struct target_tracking_s
         fresh.ref_cs.clear ();
       }
     }
-  } empty_set,
-    active_set;
+  } empty_set  = {},
+    active_set = {};
 
 
   void clear (void)
