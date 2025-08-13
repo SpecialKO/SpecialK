@@ -7710,6 +7710,7 @@ SK_Input_LowLevelKeyboardProc (int code, WPARAM wParam, LPARAM lParam)
   }
 
   const bool bIsWindowsKey =
+      pHookData         != nullptr &&
     ( pHookData->vkCode >= VK_LWIN &&
       pHookData->vkCode <= VK_APPS );
 
