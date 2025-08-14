@@ -321,7 +321,9 @@ public:
     {
       static EOS_NotificationId real_id = id;
 
-      callbacks [++real_id] =
+      ++real_id;
+
+      callbacks [real_id] =
         { real_id, Handle, ClientData, NotificationFn, *Options };
 
       return real_id;
@@ -1416,7 +1418,7 @@ SK::EOS::AppName (void)
                 bool skip       = false;
 
                 char                     szLine [512] = { };
-                while (! mancpn.getline (szLine, 511).eof () && skip == false)
+                while (! mancpn.getline (szLine, 511).eof ())
                 {
                   if (StrStrIA (szLine, "\"DisplayName\"") != nullptr)
                   {

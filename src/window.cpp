@@ -290,9 +290,9 @@ public:
     DWORD_PTR
       style_ex_borderless = style_ex;
 
-      style_ex_borderless &= ~WS_EX_CLIENTEDGE;
-      style_ex_borderless &= ~WS_EX_WINDOWEDGE;
-      style_ex_borderless &= ~WS_EX_DLGMODALFRAME;
+      style_ex_borderless &= (DWORD_PTR)~WS_EX_CLIENTEDGE;
+      style_ex_borderless &= (DWORD_PTR)~WS_EX_WINDOWEDGE;
+      style_ex_borderless &= (DWORD_PTR)~WS_EX_DLGMODALFRAME;
 
     return
       style_ex_borderless;
@@ -2900,7 +2900,7 @@ SetWindowLongPtr_Marshall (
       {
         if (config.window.always_on_top != SK_NoPreference)
         {
-          dwNewLong &= ~WS_EX_TOPMOST;
+          dwNewLong &= (DWORD_PTR)~WS_EX_TOPMOST;
         }
 
         game_window.game.style_ex =
@@ -4930,7 +4930,7 @@ PostMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && (SK_ImGui_Active () || SK_ImGui_WantMouseCapture ()))
     return TRUE;
 
   return
@@ -4943,7 +4943,7 @@ PostMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && (SK_ImGui_Active () || SK_ImGui_WantMouseCapture ()))
     return TRUE;
 
   return
@@ -4956,7 +4956,7 @@ SendMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && (SK_ImGui_Active () || SK_ImGui_WantMouseCapture ()))
     return TRUE;
 
   return
@@ -4969,7 +4969,7 @@ SendMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
   SK_LOG_FIRST_CALL
 
-  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+  if (Msg == WM_MOUSEMOVE && (SK_ImGui_Active () || SK_ImGui_WantMouseCapture ()))
     return TRUE;
 
   return
@@ -5005,7 +5005,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, uiMask & ~QS_PAINT, 0x0 );
+                                      INFINITE, uiMask & ~QS_PAINT, MWMO_INPUTAVAILABLE );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
@@ -5084,7 +5084,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, uiMask & ~QS_PAINT, 0x0 );
+                                      INFINITE, uiMask & ~QS_PAINT, MWMO_INPUTAVAILABLE );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
@@ -6759,13 +6759,13 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 
   if (bTop)
   {
-    dwStyleEx |=   WS_EX_TOPMOST;
-    dwStyleEx &= ~(WS_EX_NOACTIVATE);
+    dwStyleEx |=              WS_EX_TOPMOST;
+    dwStyleEx &= (DWORD_PTR)~(WS_EX_NOACTIVATE);
   }
 
   else
   {
-    dwStyleEx &= ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE);
+    dwStyleEx &= (DWORD_PTR)~(WS_EX_TOPMOST | WS_EX_NOACTIVATE);
   }
 
   if (dwStyleEx != dwStyleExOrig)
@@ -9937,7 +9937,7 @@ public:
                 
                 SK_D3D11_ReloadAllTextures ();
 
-                return true;
+                return S_OK;
               }
             }
           }
@@ -10154,7 +10154,7 @@ RegisterDragDrop_Detour (IN HWND hwnd, IN LPDROPTARGET pDropTarget)
       SK_OLE_DragDropChanged    = true;
     }
 
-    else if (ret == DRAGDROP_E_ALREADYREGISTERED && hwnd == game_window.hWnd)
+    else if (ret == DRAGDROP_E_ALREADYREGISTERED)
     {
       RevokeDragDrop_Original (hwnd);
 

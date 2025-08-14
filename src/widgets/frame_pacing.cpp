@@ -871,6 +871,9 @@ using ValueBarFlags = int;
 // Horizontal labels are placed to the right of the rect.
 // Vertical labels are placed below the rect.
 void ValueBar(const char *label, const float value, const ImVec2 &size, const float min_value = 0, const float max_value = 1, const ValueBarFlags flags = ValueBarFlags_None) {
+    if (! label)
+      return;
+
     const bool is_h = !(flags & ValueBarFlags_Vertical);
     const auto &style = GetStyle();
     const auto &draw_list = GetWindowDrawList();
@@ -1333,7 +1336,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
             PERF_DETAIL_WIZARD, 0
         );
 
-      if (status == ERROR_SUCCESS)
+      if (status == ERROR_SUCCESS && InstanceList.Buffer != nullptr)
       {
         const auto physical_name =
           SK_FormatStringW (L" %wc:", L'A' + drive_num);
@@ -1763,7 +1766,7 @@ SK_ImGui_DrawFramePercentiles (void)
                                    percentile0.computed_fps * __SK_FramerateScale );
 
       p0_txt [ std::max ((size_t)0,
-               std::min ((size_t)64, p0_len)) ] = '\0';
+               std::min ((size_t)63, p0_len)) ] = '\0';
 
     ImGui::SameLine       ( );
     ImGui::BeginGroup     ( );
@@ -1795,7 +1798,7 @@ SK_ImGui_DrawFramePercentiles (void)
                                   percentile1.computed_fps * __SK_FramerateScale );
 
       p1_txt [ std::max ((size_t)0,
-               std::min ((size_t)64, p1_len)) ] = '\0';
+               std::min ((size_t)63, p1_len)) ] = '\0';
 
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
                               p1_color                 );

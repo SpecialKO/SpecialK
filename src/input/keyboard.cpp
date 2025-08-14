@@ -243,10 +243,10 @@ SK_ImGui_WantKeyboardCapture (bool update)
   auto temp_poke_frame = ReadULong64Acquire (&config.input.keyboard.temporarily_allow);
 
   // Poke through input for a special-case
-  if (bWindowActive && (temp_poke_frame == 0 || temp_poke_frame <= framesDrawn - 40))
+  if (bWindowActive && (temp_poke_frame == 0 || framesDrawn > temp_poke_frame + 40))
   {
     if (! update)
-      return capture.load () || lastFrameCaptured > framesDrawn - 2;
+      return capture.load () || lastFrameCaptured + 2 > framesDrawn;
   }
 
   bool imgui_capture =
@@ -266,7 +266,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
     else
     {
       // Poke through input for a special-case
-      if (temp_poke_frame > 0 && temp_poke_frame > framesDrawn - 40)
+      if (temp_poke_frame > 0 && framesDrawn > temp_poke_frame + 40)
       {
         imgui_capture = false;
       }

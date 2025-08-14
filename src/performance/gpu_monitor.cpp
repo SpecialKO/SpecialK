@@ -264,8 +264,7 @@ SK_GPUPollingThread (LPVOID user)
 
           NvPhysicalGpuHandle gpu = { };
 
-          if (NvAPI_GetPhysicalGPUFromGPUID != nullptr)
-              NvAPI_GetPhysicalGPUFromGPUID ( gpu_id, &gpu );
+          NvAPI_GetPhysicalGPUFromGPUID (gpu_id, &gpu);
 
           nv_gpus->emplace_back (
             std::make_pair (gpu_id, gpu)

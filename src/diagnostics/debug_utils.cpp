@@ -63,6 +63,8 @@ OutputDebugStringA_pfn   OutputDebugStringA_Original = nullptr;
 OutputDebugStringW_pfn   OutputDebugStringW_Original = nullptr;
 CloseHandle_pfn          CloseHandle_Original        = nullptr;
 
+AddVectoredExceptionHandler_pfn AddVectoredExceptionHandler_Original = nullptr;
+
 bool SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t* wszDllFullName);\
 
 HMODULE
@@ -2519,6 +2521,11 @@ BOOL
 WINAPI
 IsDebuggerPresent_Detour (void)
 {
+  if (SK_IsCurrentGame (SK_GAME_ID::ElderScrollsOnline))
+  {
+    return FALSE;
+  }
+
   // Most anti-tamper does not use the proper API and this log
   //   serves little purpose.
 #ifdef _DEBUG
@@ -3755,8 +3762,46 @@ SK_HookEngine_HookGetProcAddress (void)
                             "GetProcAddress",
                              GetProcAddress_Detour,
     static_cast_p2p <void> (&GetProcAddress_Original) );
-  
+
   SK_ApplyQueuedHooks ();
+}
+
+LPVOID
+WINAPI
+AddVectoredExceptionHandler_Detour (
+  _In_ ULONG                       First,
+  _In_ PVECTORED_EXCEPTION_HANDLER Handler )
+{
+  SK_LOG_FIRST_CALL
+
+#ifdef DISABLE_ESO_ANTIDEBUG
+  if (SK_IsCurrentGame (SK_GAME_ID::ElderScrollsOnline))
+  {
+    HMODULE                                                                            hModHandler;
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)Handler, &hModHandler))
+    {
+      if (hModHandler == SK_GetModuleHandleW (nullptr))
+      {
+        return nullptr;
+      }
+    }
+  }
+  #endif
+
+  return
+    AddVectoredExceptionHandler_Original (First, Handler);
+}
+
+LPVOID
+WINAPI
+SK_AddVectoredExceptionHandler ( ULONG                       First,
+                                 PVECTORED_EXCEPTION_HANDLER Handler )
+{
+  if (     AddVectoredExceptionHandler_Original != nullptr)
+    return AddVectoredExceptionHandler_Original (First, Handler);
+
+  return
+    AddVectoredExceptionHandler (First, Handler);
 }
 
 bool
@@ -3851,6 +3896,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "IsDebuggerPresent",
                                IsDebuggerPresent_Detour,
       static_cast_p2p <void> (&IsDebuggerPresent_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "AddVectoredExceptionHandler",
+                               AddVectoredExceptionHandler_Detour,
+      static_cast_p2p <void> (&AddVectoredExceptionHandler_Original) );
   }
 
   if (SK_IsHostAppSKIM ())

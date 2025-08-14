@@ -2095,6 +2095,9 @@ public:
   {
     self_listener.Cancel ();
 
+    if (! pParam)
+      return;
+
     uint32 app_id =
       CGameID (pParam->m_nGameID).AppID ();
 
@@ -2220,6 +2223,9 @@ public:
 
     if ( ReadAcquire (&__SK_DLL_Ending) ||
          ReadAcquire (&__SK_Steam_Downloading) )
+      return;
+
+    if (! pParam)
       return;
 
     uint32 app_id =

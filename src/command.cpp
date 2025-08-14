@@ -107,7 +107,7 @@ public:
       if (*line != '\0')
       {
         /* Remove the newline character... */
-        line [strlen (line) - 1] = '\0';
+        line [strnlen (line, 1024) - 1] = '\0';
       }
 
       processor_->ProcessCommandLine (line);

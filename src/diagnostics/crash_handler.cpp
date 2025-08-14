@@ -322,7 +322,7 @@ CrashHandler::Init (void)
     // If user is not intentionally debugging, then disable breakpoint exceptions.
     if ((! config.system.wait_for_debugger) && (! SK_IsDebuggerPresent ()))
     {
-      AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+      SK_AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
       {
         bool continuable = false;
 

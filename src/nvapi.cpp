@@ -2074,11 +2074,6 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         nv_hardware = false;
       }
 
-      if (NvAPI_GetPhysicalGPUFromGPUID == nullptr) {
-        dll_log->LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
-        nv_hardware = false;
-      }
-
       if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
         dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
         nv_hardware = false;

@@ -576,6 +576,8 @@ using ExitProcess_pfn        = void (WINAPI *)(UINT   uExitCode);
 using OutputDebugStringA_pfn = void (WINAPI *)(LPCSTR  lpOutputString);
 using OutputDebugStringW_pfn = void (WINAPI *)(LPCWSTR lpOutputString);
 
+using AddVectoredExceptionHandler_pfn = LPVOID (WINAPI *)(ULONG,PVECTORED_EXCEPTION_HANDLER);
+
 
 
 #define _IMAGEHLP_SOURCE_
@@ -916,5 +918,8 @@ extern ExitProcess_pfn        ExitProcess_Original;
 extern OutputDebugStringA_pfn OutputDebugStringA_Original;
 extern OutputDebugStringW_pfn OutputDebugStringW_Original;
 extern CloseHandle_pfn        CloseHandle_Original;
+
+extern AddVectoredExceptionHandler_pfn AddVectoredExceptionHandler_Original;
+LPVOID WINAPI SK_AddVectoredExceptionHandler (ULONG,PVECTORED_EXCEPTION_HANDLER);
 
 #endif /* __SK__DEBUG_UTILS_H__ */

@@ -276,6 +276,7 @@ SK_GetCurrentGameID (void)
           { L"MonsterHunterWilds.exe",                 SK_GAME_ID::MonsterHunterWilds           },
           { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           },
           { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        },
+          { L"DragonAgeTheVeilguard_trial.exe",        SK_GAME_ID::DragonAgeTheVeilguard        },
           { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      },
           { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     },
           { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     },
@@ -300,7 +301,9 @@ SK_GetCurrentGameID (void)
           { L"SB-Win64-Shipping.exe",                  SK_GAME_ID::StellarBlade                 },
           { L"Dishonored2.exe",                        SK_GAME_ID::Dishonored2                  },
           { L"Dishonored_DO.exe",                      SK_GAME_ID::Dishonored2                  }, // Standalone expansion to Dishonored2
-          { L"tq.exe",                                 SK_GAME_ID::TitanQuest                   }
+          { L"tq.exe",                                 SK_GAME_ID::TitanQuest                   },
+          { L"eso64.exe",                              SK_GAME_ID::ElderScrollsOnline           },
+          { L"zosEGSStarter.exe",                      SK_GAME_ID::Launcher                     },
         };
 
     first_check  = false;
@@ -3176,6 +3179,7 @@ auto DeclKeybind =
       case SK_GAME_ID::WutheringWaves:
       {
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
       } break;
@@ -3183,6 +3187,7 @@ auto DeclKeybind =
       case SK_GAME_ID::GenshinImpact:
       {
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
 
@@ -3987,12 +3992,14 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ZenlessZoneZero:
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
         break;
 
       case SK_GAME_ID::HonkaiStarRail:
         // Work-around anti-cheat
+        config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
         // Game has native PlayStation support
@@ -4050,8 +4057,31 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DragonAgeTheVeilguard:
+      {
         config.input.ui.capture_mouse               = true;
-        break;
+        config.nvidia.dlss.disable_ota_updates      = true;
+        config.nvidia.dlss.auto_redirect_dlss       = true;
+
+        std::filesystem::path dlss_plugin (
+          SK_GetInstallPath ()
+        );
+
+        dlss_plugin /= LR"(PlugIns\ThirdParty\NVIDIA)";
+        dlss_plugin /= SK_RunLHIfBitness (32, L"nvngx_dlss.dll",
+                                              L"nvngx_dlss.dll");
+
+        if (! PathFileExistsW (dlss_plugin.c_str ()))
+        {
+          SK_CreateDirectories (dlss_plugin.c_str ());
+
+          SK_MessageBox ( L"This game requires an updated version of DLSS...\r\n\r\n"
+                          L"Install nvngx_dlss.dll to PlugIns\\ThirdParty\\NVIDIA",
+                          L"DLSS Plug-In Required",
+                            MB_OK | MB_ICONASTERISK );
+
+          SK_SelfDestruct ();
+        }
+      } break;
 
       // Game requires special sRGB treatment.
       case SK_GAME_ID::TombRaider123Remastered:
@@ -4199,11 +4229,25 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency         = true;
         config.nvidia.reflex.low_latency_boost   = true;
         config.nvidia.reflex.marker_optimization = true;
+
+        config.render.framerate.sleepless_window = true;
+        // Engine does not use Latency Waitable SwapChains correctly,
+        //   which actually leads to unbounded latency!
+        config.render.framerate.engine_overrides.
+                              allow_latency_wait = false;
+        config.render.framerate.engine_overrides.
+                           allow_wait_for_vblank = false;
         break;
 
       case SK_GAME_ID::TitanQuest:
         config.textures.cache.ignore_nonmipped = true; // Avoid UI corruption
         config.render.dxgi.deferred_isolation  = true;
+        break;
+
+      case SK_GAME_ID::ElderScrollsOnline:
+        // Workaround anti-debug / anti-cheat crap
+        config.system.handle_crashes    = false;
+        config.window.dont_hook_wndproc = true;
         break;
 
       case SK_GAME_ID::Dishonored2:
@@ -8358,7 +8402,7 @@ SK_AppCache_Manager::getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const
     {
       wchar_t wszEpicApp [65] = { };
 
-      if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%ws ", wszEpicApp))
+      if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%64ws ", wszEpicApp))
       {
         return
           getConfigPathForEpicApp (
@@ -8658,7 +8702,8 @@ SK_AppCache_Manager::setFriendOwnership ( uint64_t                       friend_
     if ( 2 ==
            std::swscanf ( friend_status.c_str (),
                             L"%li {%lli}",
-                              &ownership, (int64_t *)&last_updated
+                              (int32_t *)&ownership,
+                              (int64_t *)&last_updated
                         )
        )
     {
@@ -8715,8 +8760,8 @@ SK_AppCache_Manager::getFriendOwnership ( uint64_t friend_,
       if ( 2 ==
              std::swscanf ( friend_status.c_str (),
                               L"%li {%lli}",
-                                &ownership,
-                                  &last_updated
+                                (int32_t *)&ownership,
+                                (int64_t *)&last_updated
                           )
          )
       {
@@ -8822,7 +8867,7 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
              std::swscanf ( friend_status.c_str (),
                               L"%f {%lli}",
                                 &percent,
-                                  &last_updated
+                                  (int64_t *)&last_updated
                           )
          )
       {
@@ -8872,11 +8917,11 @@ SK_AppCache_Manager::setFriendPreference (FriendPreference set)
 bool
 SK_AppCache_Manager::wantFriendStats (void)
 {
-  if (! config.platform.achievements.pull_friend_stats)
-    return false;
-
   bool global_pref =
     config.platform.achievements.pull_friend_stats;
+
+  if (! global_pref)
+    return false;
 
   if (app_cache_db == nullptr)
     return global_pref;

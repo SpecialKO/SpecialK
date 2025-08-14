@@ -394,6 +394,8 @@ void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
 
+#define SK_ImGui_WarnOnce(x) SK_RunOnce((x))
+
 using SK_ImGui_ToastOwnerDrawn_pfn = bool (__stdcall *)(void *pUserData);
 
 struct SK_ImGui_Toast {

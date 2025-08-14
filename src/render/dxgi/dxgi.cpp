@@ -1353,6 +1353,13 @@ SK_GetDXGIAdapterInterfaceVer (gsl::not_null <IUnknown *> pAdapter)
 {
   SK_ComPtr <IUnknown> pTemp;
 
+
+  if (SUCCEEDED(
+    pAdapter->QueryInterface (__uuidof (IDXGIAdapter4), (void **)&pTemp)))
+  {
+    return 4;
+  }
+
   if (SUCCEEDED(
     pAdapter->QueryInterface (__uuidof (IDXGIAdapter3), (void **)&pTemp)))
   {
@@ -4680,6 +4687,21 @@ DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This ) noexcept
 {
   SK_LOG_FIRST_CALL
 
+  if (SK_GetCallingDLL () != __SK_hModSelf)
+  {
+    // Log any game that uses this API at least one time at any log level
+    SK_RunOnce (SK_LOGi0 (L"WaitForVBlank (...) called"));
+                SK_LOGi1 (L"WaitForVBlank (...) called");
+                // And every call at log level >= 1
+
+    if (! config.render.framerate.engine_overrides.allow_wait_for_vblank)
+    {
+      SK_RunOnce (SK_LOGi0 (L"WaitForVBlank (...) ignored"));
+
+      return S_OK;
+    }
+  }
+
   return
     WaitForVBlank_Original (This);
 }
@@ -5056,6 +5078,18 @@ SK_DXGI_CreateSwapChain_PreInit (
     rb.active_traits.bFlipMode =
       dxgi_caps.present.flip_sequential;
   }
+
+
+  // This bug only exists in older versions of Streamline, fixing it in new games would cause crashing.
+#if 0
+  // NVIDIA Streamline does this, even if frame generation is not being used, causing increased latency
+  //   for no reason (frame generation OFF does not implicitly involve Reflex).
+  if ( (pDesc  != nullptr && pDesc ->BufferCount == 4 && pDesc ->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) ||
+       (pDesc1 != nullptr && pDesc1->BufferCount == 4 && pDesc1->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) )
+  {
+    config.render.framerate.engine_overrides.allow_latency_wait = false;
+  }
+#endif
 
 
   // Use Flip Sequential if ReShade is present, so that screenshots
@@ -5782,6 +5816,20 @@ SK_DXGI_CreateSwapChain_PreInit (
 
     pDesc->BufferDesc.Width   =  std::max ( max_x , min_x );
     pDesc->BufferDesc.Height  =  std::max ( max_y , min_y );
+  }
+
+
+  if (pDesc != nullptr && (! config.render.framerate.engine_overrides.allow_latency_wait) &&
+                             config.render.framerate.swapchain_wait <= 0)
+  {
+    UINT& Flags = pDesc->Flags;
+
+    if (Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    {
+      SK_LOGi0 (L"Removing Latency Waitable Object Flag from SwapChain at User's Request...");
+
+      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    }
   }
 
 

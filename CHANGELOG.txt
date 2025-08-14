@@ -1,4 +1,63 @@
-﻿25.8.4
+﻿25.8.13.3
+=========
+ + Revert 25.8.12, because the bug was fixed in later versions of NVIDIA Streamline,
+     and the fix causes those games to not work.
+ + Auto-load SK's version of DLSS in Dragon Age: The Veilguard to prevent crashes.
+ + Add deadlock workaround for Dragon Age: The Veilguard.
+
+25.8.13.2
+=========
+ + Add librenpython.dll to list of DLLs that are actually SDL, because this
+     library decided it should build SDL into itself...
+
+   * Should fix major SDL perf. problems caused by Windows.Gaming.Input
+
+25.8.13.1
+=========
+ + Additional static analysis corrections; hopefully nothing broke :)
+
+25.8.13
+=======
+ + Fixed various defects spotted by PVS Studio static analysis.
+
+25.8.12
+=======
+ + Apply Latency Waitable SwapChain fix universally; cause: NVIDIA Streamline.
+
+    * Streamline never waits on the SwapChain, and when frame generation is
+        not active, Reflex may also not be active, leading to unncessary latency!
+
+25.8.11
+=======
+ + Prevent Stellar Blade from using DXGI Latency Waitable SwapChains, since the
+     engine does not actually wait on the SwapChain and that leads to unbounded
+       latency w/o Reflex or external framerate limiters; also causes hitches.
+
+    * It is unclear if this bug exists in all Unreal Engine games yet, so this
+        may be turned into a general INI setting in the future.
+
+25.8.10
+=======
+ + Added Vectored Exception Handler overrides for some games stupid attempts at
+     anti-debug.
+ + Bypass functionality that angers Elder Scrolls Online's anti-cheat; reset INI.
+    * Some window management functionality may be reduced or less reliable :-\
+ + Apply same workarounds discussed above to Genshin Impact to get past the login
+     screen...
+
+25.8.9
+======
+ + Allow Unreal Engine's virtual mouse cursor (gamepad analog stick -> cursor)
+     to function in menu screens even when Mouse input is blocked to a game, as
+       long as the Windows HW cursor is visible and SK's control panel is not.
+
+25.8.8
+======
+ + Ensure that Epic overlay OpenGL incompatibility warnings are only displayed
+     once per-runtime.
+ + Added SK_ImGui_WarnOnce (...) macro to help simplify the above problem.
+
+25.8.4
 ======
  + Disable texture cache for non-mipmapped textures in Titan Quest
  + Workaround problems caused by stupid overlay in Steam version of Titan Quest

@@ -43,6 +43,7 @@ static constexpr int SK_Disabled     =  0;
 static constexpr int SK_Enabled      =  1;
 
 enum {
+  SK_HDR_CLIPBOARD_FORMAT_NONE = 0,
   SK_HDR_CLIPBOARD_FORMAT_PNG  = 1,
   SK_HDR_CLIPBOARD_FORMAT_AVIF = 2,
 };
@@ -58,8 +59,8 @@ struct SK_Keybind
          alt   = FALSE;
   };
 
-  SHORT vKey        =   0;
-  UINT  masked_code = 0x0; // For fast comparison
+  USHORT vKey        =   0;
+  UINT   masked_code = 0x0; // For fast comparison
 
   void parse  (void);
   void update (void);
@@ -786,6 +787,10 @@ struct sk_config_t
         float target_fps           =   0.0f;
         int   enforcement_policy   =      4;
       } streamline;
+      struct {
+        bool allow_latency_wait    = true;
+        bool allow_wait_for_vblank = true;
+      } engine_overrides;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;
@@ -1782,6 +1787,7 @@ enum class SK_GAME_ID
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   EasyAntiCheat,                // start_protected_game.exe
   EldenRing,                    // eldenring.exe
+  ElderScrollsOnline,           // eso64.exe
   TinyTinasWonderlands,         // Wonderlands.exe
   Elex2,                        // ELEX2.exe
   ChronoCross,                  // CHRONOCROSS.exe

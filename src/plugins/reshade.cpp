@@ -1255,7 +1255,7 @@ BOOL SK_ReShade_HasRenoDX (void)
         if (SK_Import_HasEarlyImport (import_name))
         {
           SK_MessageBox (
-            L"RenoDX is Incompatible if ReShade is Loaded Early.""\r\n\r\n"
+            L"RenoDX is Incompatible if ReShade is Loaded Early.\r\n\r\n"
             L" >> ReShade's Load Order Has Been Changed to Lazy <<\r\n\r\n"
             L"  * A Game Restart Is Required.",
               L"RenoDX / SpecialK Incompatibility",

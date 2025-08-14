@@ -83,6 +83,8 @@ SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
 
   latency.pollrate   = std::make_shared <SK::Framerate::Stats>     (         );
   xinput.lock_report = std::make_shared <SK_Thread_HybridSpinlock> (/*0x400*/);
+
+  hid_caps = { };
 }
 
 SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
@@ -1151,7 +1153,7 @@ SK_HID_ProcessGamepadButtonBindings (void)
             frames_drawn + 40
         );
 
-#if 0
+#if 1
         const UINT bScancode =
           MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
 
@@ -3932,7 +3934,9 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
         pSetState->LedBlue  = (uint8_t)config.input.gamepad.scepad.led_color_b;
     
         if (config.input.gamepad.scepad.led_color_r == 
+            config.input.gamepad.scepad.led_color_g &&
             config.input.gamepad.scepad.led_color_g ==
+            config.input.gamepad.scepad.led_color_b && 
             config.input.gamepad.scepad.led_color_b == 0)
         {
           disable_player_indicator_lights = true;
@@ -4378,7 +4382,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                 // The analog axes
                 memset (
                   &pData->LeftStickX,  128,   4);
-                memset (
+                memset ( //-V512
                   &pData->TriggerLeft,   0,   2);
                  //pData->Counter++;
                    pData->DPad               = Neutral;
@@ -4396,7 +4400,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                    pData->ButtonR3           = 0;
                    pData->ButtonHome         = 0;
                    pData->ButtonPad          = 0;
-                memset (
+                memset ( //-V512
                   &pData->AngularVelocityX, 0, 12);
 
                 modified_bytes += 34;
@@ -4433,7 +4437,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                   // The analog axes
                   memset (
                     &pData->LeftStickX,  128,   4);
-                  memset (
+                  memset ( //-V512
                     &pData->TriggerLeft,   0,   2);
                    //pData->Counter++;
                      pData->DPad               = Neutral;
@@ -4471,7 +4475,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                   // The analog axes
                   memset (
                     &pData->LeftStickX,  128,   4);
-                  memset (
+                  memset ( //-V512
                     &pData->TriggerLeft,   0,   2);
                    //pData->SeqNo++;
                      pData->DPad               = Neutral;
@@ -4496,7 +4500,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                      pData->ButtonLeftPaddle   = 0;
                      pData->ButtonRightPaddle  = 0;
                      pData->UNK2               = 0;
-                  memset (
+                  memset ( //-V512
                     &pData->AngularVelocityX, 0, 12);
 
                   modified_bytes += 64;
@@ -4519,7 +4523,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                 // The analog axes
                 memset (
                   &pData->LeftStickX,  128,   4);
-                memset (
+                memset ( //-V512
                   &pData->TriggerLeft,   0,   2);
                  //pData->SeqNo++;
                    pData->DPad               = Neutral;
@@ -4544,7 +4548,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
                    pData->ButtonLeftPaddle   = 0;
                    pData->ButtonRightPaddle  = 0;
                    pData->UNK2               = 0;
-                memset (
+                memset ( //-V512
                   &pData->AngularVelocityX, 0, 12);
 
                 modified_bytes += 78;
