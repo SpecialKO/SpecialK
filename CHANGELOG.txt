@@ -1,5 +1,6 @@
 ﻿25.8.16
 =======
+ + Added "NVIDIA DLSS-G MFGLW" to list of valid DLSS Frame Generation DLLs.
  + Added crs-video.exe (used by many SONY ports) to internal injection blacklist.
  + Add input latency markers to various mouse and keyboard codepaths that it did not
      previously apply to.

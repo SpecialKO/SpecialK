@@ -1000,7 +1000,8 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
     SK_DLSS_Context::dlssg_s::Version;
 
   // Verify this is in fact a DLSSG DLL
-  if (StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G -"))
+  if (StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G -") ||
+      StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G MFGLW -"))
   {
     version.driver_override                           |= bIsDriverOverride;
     SK_DLSS_Context::dlssg_s::Version.driver_override |= bIsDriverOverride;
