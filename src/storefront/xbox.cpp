@@ -74,7 +74,17 @@ bool
 __stdcall
 SK_Xbox_GetOverlayState (bool real)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Xbox_GetOverlayState)
+
   std::ignore = real;
+
+  // This is a heavy API that requires IPC, ensure this is done at most
+  //   a single time per-frame...
+  static bool   last_state =      false;
+  static UINT64 last_frame = UINT64_MAX;
+
+  if (last_frame == SK_GetFramesDrawn ())
+    return last_state;
 
   if (SK_GameBar_Statics != nullptr)
   {
@@ -86,6 +96,9 @@ SK_Xbox_GetOverlayState (bool real)
     // If redirected, but not visible, assume something is wrong and ignore the status.
     if (redirected != false)
       SK_GameBar_Statics->get_Visible         (&redirected);
+
+    last_state = redirected != false;
+    last_frame = SK_GetFramesDrawn ();
 
     return redirected != false;
   }

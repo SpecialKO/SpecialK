@@ -1,9 +1,13 @@
-﻿25.8.16
+﻿25.8.16.1
+=========
+ + Reduced overhead of SK_ImGui_WantGamepadCapture and SK_Xbox_GetOverlayState
+
+25.8.16
 =======
  + Added "NVIDIA DLSS-G MFGLW" to list of valid DLSS Frame Generation DLLs.
- + Added crs-video.exe (used by many SONY ports) to internal injection blacklist.
- + Add input latency markers to various mouse and keyboard codepaths that it did not
-     previously apply to.
+ + Added crs-video.exe (used by SONY ports) to internal injection blacklist.
+ + Add input latency markers to various mouse and keyboard codepaths that it
+     did not previously apply to.
 
 25.8.13.3
 =========

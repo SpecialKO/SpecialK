@@ -44,9 +44,6 @@ SK_ImGui_WantGamepadCapture (bool update)
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_WantGamepadCapture)
 
-  if (SK_Xbox_GetOverlayState (true))
-    return true;
-
   static std::atomic <ULONG64> lastFrameCaptured = 0;
   static std::atomic_bool      capture           = false;
 
@@ -159,7 +156,6 @@ SK_ImGui_WantGamepadCapture (bool update)
     if    (bCapture) lastFrameCaptured = SK_GetFramesDrawn ();
     capture.store
           (bCapture);
-          (bCapture);
     return bCapture;
   };
 
@@ -202,6 +198,9 @@ SK_ImGui_WantGamepadCapture (bool update)
       imgui_capture = true;
     }
   }
+
+  if (! imgui_capture)
+        imgui_capture = SK_Xbox_GetOverlayState (true);
 
   return
     _Return (imgui_capture);
@@ -825,7 +824,13 @@ SK_Input_SetLatencyMarker (void) noexcept
   static volatile DWORD64  ulLastFrame  = 0;
   if (ReadULong64Acquire (&ulLastFrame) <= ulFramesDrawn)
   {
-    rb.setLatencyMarkerNV (INPUT_SAMPLE);
+    static float fLastInput = 0.0f;
+           float fTimeNow   =
+                SK_timeGetTimeFloat ();
+    if (fTimeNow > fLastInput + 1.5f || ReadULong64Acquire (&ulLastFrame) < ulFramesDrawn)
+    {              fLastInput = fTimeNow;
+      rb.setLatencyMarkerNV (INPUT_SAMPLE);
+    }
 
     WriteULong64Release (&ulLastFrame, ulFramesDrawn);
   }
