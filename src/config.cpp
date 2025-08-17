@@ -304,6 +304,7 @@ SK_GetCurrentGameID (void)
           { L"tq.exe",                                 SK_GAME_ID::TitanQuest                   },
           { L"eso64.exe",                              SK_GAME_ID::ElderScrollsOnline           },
           { L"zosEGSStarter.exe",                      SK_GAME_ID::Launcher                     },
+          { L"crs-video.exe",                          SK_GAME_ID::Launcher                     }, // Used by many games for FMV playback
         };
 
     first_check  = false;
