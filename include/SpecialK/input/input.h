@@ -254,6 +254,8 @@ struct sk_input_api_context_s
     const auto perfNow =
       sk::narrow_cast <uint64_t> (SK_QueryPerf ().QuadPart);
 
+    SK_Input_SetLatencyMarker ();
+
     switch (type)
     {
       case sk_input_dev_type::Other:               WriteULong64Release (&viewed.other,               perfNow); break;
@@ -272,7 +274,8 @@ struct sk_input_api_context_s
   }
 
   void markHidden (sk_input_dev_type type) noexcept
-  { InterlockedIncrement (&last_frame.reads  [ type == sk_input_dev_type::Mouse    ? 0 :
+  { SK_Input_SetLatencyMarker ();
+    InterlockedIncrement (&last_frame.reads  [ type == sk_input_dev_type::Mouse    ? 0 :
                                                type == sk_input_dev_type::Keyboard ? 1 :
                                                type == sk_input_dev_type::Gamepad  ? 2 : 3 ] );
     InterlockedIncrement (&last_frame.hidden [ type == sk_input_dev_type::Mouse    ? 0 :
@@ -280,7 +283,8 @@ struct sk_input_api_context_s
                                                type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
   void markHidden (sk_win32_func type) noexcept
-  { InterlockedIncrement (&last_frame.reads  [ type == sk_win32_func::GetCursorPos     ? 0 :
+  { SK_Input_SetLatencyMarker ();
+    InterlockedIncrement (&last_frame.reads  [ type == sk_win32_func::GetCursorPos     ? 0 :
                                                type == sk_win32_func::GetKeyState      ? 1 :
                                                type == sk_win32_func::GetKeyboardState ? 2 : 3 ] );
     InterlockedIncrement (&last_frame.hidden [ type == sk_win32_func::GetCursorPos     ? 0 :

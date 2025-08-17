@@ -823,7 +823,7 @@ SK_Input_SetLatencyMarker (void) noexcept
                   DWORD64 ulFramesDrawn =
                       SK_GetFramesDrawn ( );
   static volatile DWORD64  ulLastFrame  = 0;
-  if (ReadULong64Acquire (&ulLastFrame) < ulFramesDrawn)
+  if (ReadULong64Acquire (&ulLastFrame) <= ulFramesDrawn)
   {
     rb.setLatencyMarkerNV (INPUT_SAMPLE);
 
