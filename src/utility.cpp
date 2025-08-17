@@ -5580,6 +5580,30 @@ SK_timeGetTime (void) noexcept
     winmm_timeGetTime ();
 }
 
+float
+WINAPI
+SK_timeGetTimeFloat (void) noexcept
+{
+  LARGE_INTEGER                    qpcNow;
+  if (SK_QueryPerformanceCounter (&qpcNow))
+    return (float)
+             static_cast <double> (qpcNow.QuadPart /
+                  SK_QpcTicksPerMs);
+
+
+  static HMODULE hModWinMM =
+    LoadLibraryEx ( L"winmm.dll", nullptr,
+                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  static timeGetTime_pfn
+   winmm_timeGetTime =
+        (timeGetTime_pfn)SK_GetProcAddress (hModWinMM,
+        "timeGetTime"                      );
+
+  return
+    (float)winmm_timeGetTime ();
+}
+
 BOOL
 WINAPI
 SK_PlaySound ( _In_opt_ LPCWSTR pszSound,
