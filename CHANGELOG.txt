@@ -1,4 +1,29 @@
-﻿25.8.18
+﻿25.8.18.1
+=========
+ + Added INI option to disable Ctrl+Shift+Backspace.
+   
+     [Input.Keyboard]
+     EnableCtrlShiftBackspace={true|false}   Default: true
+
+    - This should likely be set in Global\master_SpecialK.ini in order to
+        not have to disable it in every game...
+
+ + Added boolean command console variable to control UI activation
+
+     ImGui.Active {true|false|~}, ~ toggles
+
+ + Added command console variable to enable/disable Ctrl+Shift+Backspace
+
+     ImGui.CtrlShiftBackspace {true|false|~}
+
+   @ Add a macro to Global\macros.ini like so to customize the activation keys:
+
+      [Macro.ControlPanel]
+      Ctrl+Shift+Backspace=ImGui.Active ~
+
+     - Use some other combination of buttons, or this is pointless ;)
+
+25.8.18
 =======
  + Add frame generation multiplier to LFC calc. when DLSS Frame Generation is
      active and Native Pacing is enabled, since paced framerate and output

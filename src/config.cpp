@@ -1089,6 +1089,7 @@ struct {
     sk::ParameterBool*    disable_ime             = nullptr;
     sk::ParameterBool*    prevent_no_legacy       = nullptr;
     sk::ParameterBool*    prevent_no_hotkeys      = nullptr;
+    sk::ParameterBool*    ctrl_shift_backsp       = nullptr;
   } keyboard;
 
   struct
@@ -1805,6 +1806,7 @@ auto DeclKeybind =
     ConfigEntry (input.keyboard.disable_ime,             L"Disable IME input services for the game",                   dll_ini,         L"Input.Keyboard",        L"DisableIME"),
     ConfigEntry (input.keyboard.prevent_no_legacy,       L"Prevent games from disabling legacy keyboard messages",     dll_ini,         L"Input.Keyboard",        L"PreventRawInputNoLegacy"),
     ConfigEntry (input.keyboard.prevent_no_hotkeys,      L"Prevent games from disabling hotkeys",                      dll_ini,         L"Input.Keyboard",        L"PreventRawInputNoHotkeys"),
+    ConfigEntry (input.keyboard.ctrl_shift_backsp,       L"Enable standard Ctrl+Shift+Backspace keybinding",           dll_ini,         L"Input.Keyboard",        L"EnableCtrlShiftBackspace"),
 
     ConfigEntry (input.mouse.disabled_to_game,           L"Completely stop all mouse input from reaching the Game",    dll_ini,         L"Input.Mouse",           L"DisabledToGame"),
     ConfigEntry (input.mouse.prevent_no_legacy,          L"Prevent games from disabling legacy mouse messages",        dll_ini,         L"Input.Mouse",           L"PreventRawInputNoLegacy"),
@@ -5122,6 +5124,7 @@ auto DeclKeybind =
   input.keyboard.disable_ime->load       (config.input.keyboard.disable_ime);
   input.keyboard.prevent_no_legacy->load (config.input.keyboard.prevent_no_legacy);
   input.keyboard.prevent_no_hotkeys->load(config.input.keyboard.prevent_no_hotkeys);
+  input.keyboard.ctrl_shift_backsp->load (config.input.keyboard.ctrl_shift_backsp);
 
   input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
   config.input.mouse.
@@ -6705,6 +6708,7 @@ SK_SaveConfig ( std::wstring name,
   input.keyboard.disable_ime->store           (config.input.keyboard.disable_ime);
   input.keyboard.prevent_no_legacy->store     (config.input.keyboard.prevent_no_legacy);
   input.keyboard.prevent_no_hotkeys->store    (config.input.keyboard.prevent_no_hotkeys);
+  input.keyboard.ctrl_shift_backsp->store     (config.input.keyboard.ctrl_shift_backsp);
 
   input.mouse.disabled_to_game->store         (config.input.mouse.org_disabled_to_game);
   input.mouse.prevent_no_legacy->store        (config.input.mouse.prevent_no_legacy);

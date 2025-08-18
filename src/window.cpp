@@ -7554,6 +7554,36 @@ SK_InstallWindowHook (HWND hWnd)
       }
     } static background_behavior;
 
+    class ControlPanelActivationListener : public SK_IVariableListener
+    {
+    public:
+      bool  active     = false;
+      bool* visible    = &SK_ImGui_Visible;
+      bool* nav_active = &nav_usable;
+
+      virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+      {
+        if (val != nullptr && var != nullptr )
+        {
+          if (var->getValuePointer () == &active)
+          {
+            auto state = *(bool *)val;
+
+            if (*visible    != state ||
+                *nav_active != state ||
+                     active != state)
+            {
+              *visible    = state;
+              *nav_active = state;
+                   active = state;
+            }
+          }
+        }
+
+        return true;
+      }
+    } static activation_listener;
+
     cmd->AddVariable ("Cursor.Visible",          SK_CreateVar (SK_IVariable::Boolean, (bool *)&cursor_control.cursor_visible, &cursor_control));
     cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
     cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
@@ -7561,7 +7591,13 @@ SK_InstallWindowHook (HWND hWnd)
 
     cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render, &background_behavior));
 
+    // Superset of Visible and NavActive, they will be set in conjunction and emulate
+    //   traditional Ctrl+Shift+Backspace activation behavior.
+    cmd->AddVariable ("ImGui.Active",            SK_CreateVar (SK_IVariable::Boolean, (bool *)&activation_listener.active, &activation_listener));
+
     cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
+    cmd->AddVariable ("ImGui.NavActive",         SK_CreateVar (SK_IVariable::Boolean, (bool *)&nav_usable));
+    cmd->AddVariable ("ImGui.CtrlShiftBackspace",SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.keyboard.ctrl_shift_backsp));
   }
 
   return true;

@@ -1810,14 +1810,17 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       keys.capslock.toggled |= bToggleNav;
     }
 
-    if (! keys.backspace.toggled)
+    if (config.input.keyboard.ctrl_shift_backsp)
     {
-      bToggleVis |=
-         ( Ctrl  &&
-           Shift &&
-            ((! keys.backspace.last) && keys.backspace.now) );
+      if (! keys.backspace.toggled)
+      {
+        bToggleVis |=
+           ( Ctrl  &&
+             Shift &&
+              ((! keys.backspace.last) && keys.backspace.now) );
 
-      keys.backspace.toggled |= bToggleVis;
+        keys.backspace.toggled |= bToggleVis;
+      }
     }
 
     if (! keys.tab.toggled)

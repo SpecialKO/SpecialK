@@ -1255,7 +1255,8 @@ struct sk_config_t
       bool    disable_ime         = false; //   ignore "disabled_to_game"
       bool    prevent_no_legacy   = false;
       bool    prevent_no_hotkeys  = false;
-    } keyboard;                            
+      bool    ctrl_shift_backsp   =  true;
+    } keyboard;
 
     struct mouse_s {
       // Translate WM_MOUSEWHEEL messages into actual events that will trigger
