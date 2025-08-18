@@ -1,4 +1,12 @@
-﻿25.8.16.1
+﻿25.8.17
+=======
+ + Disabled Latency Waitable SwapChains in Unity engine by default.
+ + Added INI option to control whether engines are allowed to use Latency Wait:
+
+     [FrameRate.Engine]
+     AllowDXGILatencyWait={-1,0,1}  Default=-1 (No Preference),  0=No,  1=Yes
+
+25.8.16.1
 =========
  + Reduced overhead of SK_ImGui_WantGamepadCapture and SK_Xbox_GetOverlayState
 

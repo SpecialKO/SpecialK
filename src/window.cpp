@@ -7789,7 +7789,12 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   // Kiss of death for sane window management
   if (! _wcsicmp (wszClassName, L"UnityWndClass"))
   {
-    SK_GetCurrentRenderBackend ().windows.unity =  true;
+    SK_GetCurrentRenderBackend ().windows.unity = true;
+
+    if (config.render.framerate.engine_overrides.allow_latency_wait == -1) {
+        config.render.framerate.engine_overrides.allow_latency_wait  =  0;
+        config.utility.save_async ();
+    }
 
     bool changed = false;
 

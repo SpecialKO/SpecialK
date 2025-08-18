@@ -4696,13 +4696,6 @@ auto DeclKeybind =
                                      ->load   (config.render.framerate.engine_overrides.allow_latency_wait);
   render.framerate.override_cpu_count->load   (config.render.framerate.override_num_cpus);
 
-  // Auto-Off for Unity Engine Games
-  if (PathFileExistsW (L"UnityPlayer.dll") && config.render.framerate.engine_overrides.allow_latency_wait == -1)
-  {
-    config.render.framerate.engine_overrides.allow_latency_wait    = FALSE;
-    config.render.framerate.engine_overrides.allow_wait_for_vblank = FALSE;
-  }
-
   render.framerate.latent_sync.offset->load   (config.render.framerate.latent_sync.scanline_offset);
   render.framerate.latent_sync.resync->load   (config.render.framerate.latent_sync.scanline_resync);
   render.framerate.latent_sync.error->load    (config.render.framerate.latent_sync.scanline_error);
@@ -5934,6 +5927,16 @@ auto DeclKeybind =
   screenshots.allow_hdr_clipboard->load       (config.screenshots.allow_hdr_clipboard);
   screenshots.png.st2084_bits->load           (config.screenshots.max_st2084_bits);
   screenshots.clipboard_hdr_format->load      (config.screenshots.clipboard_hdr_format);
+
+  // Auto-Config for Unity Engine Games on First Launch
+  //
+  if ( PathFileExistsW (L"UnityPlayer.dll") &&
+       config.render.framerate.engine_overrides.allow_latency_wait == -1 )
+  {
+    config.render.framerate.engine_overrides.allow_latency_wait    = FALSE;
+    config.render.framerate.engine_overrides.allow_wait_for_vblank = FALSE;
+    config.textures.cache.ignore_nonmipped                         =  true;
+  }
 
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.osd.keys.console_toggle);
