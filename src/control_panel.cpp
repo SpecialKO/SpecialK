@@ -53,6 +53,7 @@
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/ngx/ngx_dlss.h>
 
 #include <imgui/font_awesome.h>
 
@@ -5392,13 +5393,20 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
              SK_VRR_UpdateCachedTimings (pLimiter);
       }
 
+      // If we are counting native frames, then multiply those by the current
+      //   multi-framegen rate before trying to calculate LFC rate.
+      const float fFrameGenRate =      SK_NGX_IsUsingDLSS_G () &&
+        config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f ?
+          static_cast <float> (SK_NGX_DLSSG_GetMultiFrameCount ()) + 1.0f
+                                                               :     1.0f;
+
       const float fFPS =
         static_cast <float> (1000.0 / snapshots->cached_mean.val);
 
-      if (fVBlankHz > 1.08 * fFPS)
+      if (fVBlankHz > 1.08 * fFPS * fFrameGenRate)
       {
         lfc_rate =
-          static_cast <int> (std::floorf (0.5f + (fVBlankHz / fFPS)));
+          static_cast <int> (std::floorf (0.5f + (fVBlankHz / (fFPS * fFrameGenRate))));
       }
     }
 

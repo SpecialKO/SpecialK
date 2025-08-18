@@ -1,4 +1,10 @@
-﻿25.8.17
+﻿25.8.18
+=======
+ + Add frame generation multiplier to LFC calc. when DLSS Frame Generation is
+     active and Native Pacing is enabled, since paced framerate and output
+       framerate are two different things in that case.
+
+25.8.17
 =======
  + Disabled Latency Waitable SwapChains in Unity engine by default.
  + Added INI option to control whether engines are allowed to use Latency Wait:

@@ -25,6 +25,7 @@
 #include <SpecialK/nvapi.h>
 #include <imgui/font_awesome.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/ngx/ngx_dlss.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -1142,12 +1143,20 @@ SK_NV_AdaptiveSyncControl (void)
             //const float fLFC = 1000000.0f /
             //  static_cast <float> (getAdaptiveSync.maxFrameInterval);
 
-            if (fEffectiveRefresh > 1.08 * fFPS)
+            // If we are counting native frames, then multiply those by the current
+            //   multi-framegen rate before trying to calculate LFC rate.
+            const float fFrameGenRate =      SK_NGX_IsUsingDLSS_G () &&
+              config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f ?
+                static_cast <float> (SK_NGX_DLSSG_GetMultiFrameCount ()) + 1.0f
+                                                                     :     1.0f;
+
+            if (fEffectiveRefresh > 1.08 * fFPS * fFrameGenRate)
             {
               ImGui::SameLine ();
 
               ImGui::TextColored (ImVec4 (.8f, .8f, 0.f, 1.f), " (LFC x%d)",
-                static_cast <int> (std::floorf (0.5f + (fEffectiveRefresh / fFPS))) );
+                static_cast <int> (std::floorf (0.5f + (fEffectiveRefresh / (fFPS * fFrameGenRate))))
+              );
             }
           }
 
