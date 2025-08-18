@@ -788,8 +788,8 @@ struct sk_config_t
         int   enforcement_policy   =      4;
       } streamline;
       struct {
-        bool allow_latency_wait    = true;
-        bool allow_wait_for_vblank = true;
+        int  allow_latency_wait    = -1;
+        int  allow_wait_for_vblank = -1;
       } engine_overrides;
     } framerate;
     struct d3d9_s {

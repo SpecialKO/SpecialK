@@ -937,6 +937,11 @@ struct {
 
     struct
     {
+      sk::ParameterInt*   allow_latency_wait      = nullptr;
+    } engine;
+
+    struct
+    {
       sk::ParameterInt*     offset                = nullptr;
       sk::ParameterInt*     resync                = nullptr;
       sk::ParameterInt*     error                 = nullptr;
@@ -2044,8 +2049,10 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.
                                 streamline_limit_policy, L"When to apply Native Frame pacing.",                        dll_ini,         L"Render.FrameRate",      L"StreamlineEnforcementPolicy"),
 
-    ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
-    ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
+    ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Engine",      L"MaxRenderAheadFrames"),
+    ConfigEntry (render.framerate.engine.
+                                      allow_latency_wait,L"Allow the game to use a Latency Waitable SwapChain.",       dll_ini,         L"FrameRate.Engine",      L"AllowDXGILatencyWait"),
+    ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Engine",      L"OverrideCPUCoreCount"),
     ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
     ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
@@ -4235,9 +4242,9 @@ auto DeclKeybind =
         // Engine does not use Latency Waitable SwapChains correctly,
         //   which actually leads to unbounded latency!
         config.render.framerate.engine_overrides.
-                              allow_latency_wait = false;
+                              allow_latency_wait = FALSE;
         config.render.framerate.engine_overrides.
-                           allow_wait_for_vblank = false;
+                           allow_wait_for_vblank = FALSE;
         break;
 
       case SK_GAME_ID::TitanQuest:
@@ -4685,7 +4692,16 @@ auto DeclKeybind =
 
 //  render.framerate.control.
 //                  render_ahead->load        (config.render.framerate.max_render_ahead);
-  render.framerate.override_cpu_count->load (config.render.framerate.override_num_cpus);
+  render.framerate.engine.allow_latency_wait
+                                     ->load   (config.render.framerate.engine_overrides.allow_latency_wait);
+  render.framerate.override_cpu_count->load   (config.render.framerate.override_num_cpus);
+
+  // Auto-Off for Unity Engine Games
+  if (PathFileExistsW (L"UnityPlayer.dll") && config.render.framerate.engine_overrides.allow_latency_wait == -1)
+  {
+    config.render.framerate.engine_overrides.allow_latency_wait    = FALSE;
+    config.render.framerate.engine_overrides.allow_wait_for_vblank = FALSE;
+  }
 
   render.framerate.latent_sync.offset->load   (config.render.framerate.latent_sync.scanline_offset);
   render.framerate.latent_sync.resync->load   (config.render.framerate.latent_sync.scanline_resync);
@@ -6975,6 +6991,8 @@ SK_SaveConfig ( std::wstring name,
                                        store (config.render.framerate.streamline.enforcement_policy);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
+  render.framerate.engine.allow_latency_wait
+                                     ->store (config.render.framerate.engine_overrides.allow_latency_wait);
 
   if (  SK_IsInjected ()                       ||
       ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
