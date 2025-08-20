@@ -1,4 +1,14 @@
-﻿25.8.20
+﻿25.8.20.1
+=========
+ + Automatically enable Flip Metering in games with NV Smooth Motion enabled.
+ + Add support for Reflex and apply its framerate limiter to Smooth Motion.
+ + Switch from scRGB to HDR10 when Smooth Motion is enabled.
+
+   * Current NVAPI bug does not allow non-admin processes to read the value
+       of DRS DWORD: 0xB0D384C0, so Smooth Motion is detected by the presence
+         of NvPresent{64}.dll instead.
+
+25.8.20
 =======
  + Handle uninitialized IAudioSessionControl2 in SK_WASAPI_AudioSession.
 

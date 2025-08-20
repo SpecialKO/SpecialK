@@ -1803,11 +1803,14 @@ NvAPI_QueryInterface_Detour (unsigned int ordinal)
     case NvAPI_D3D12_SetFlipConfig:
       if (! config.nvidia.dlss.allow_flip_metering)
       {
-        SK_RunOnce (
-          SK_LOGi0 (L"D3D12 Flip Metering Disabled")
-        );
+        if (! SK_NvAPI_IsSmoothingMotion ())
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"D3D12 Flip Metering Disabled")
+          );
 
-        return nullptr;
+          return nullptr;
+        }
       }
       break;
     default:
@@ -2765,6 +2768,110 @@ sk::NVAPI::SetFramerateLimit (uint32_t limit)
 #define SLI_COMPAT_BITS_DX9_ID  0x1095DEF8
 
 
+BOOL SK_NvAPI_IsSmoothingMotion (void)
+{
+  SK_RunOnce (sk::NVAPI::InitializeLibrary (SK_GetFullyQualifiedApp ()));
+
+  if (! nv_hardware)
+    return FALSE;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // This is a status check only, if no profile exists, do not create one.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVAPI_CALL (DRS_GetBaseProfile (hSession, &hProfile));
+
+    if (ret != NVAPI_OK)
+    {
+      NVAPI_CALL (DRS_DestroySession (hSession));
+      return FALSE;
+    }
+  }
+
+  NVDRS_SETTING smooth_motion_enable         = {               };
+                smooth_motion_enable.version = NVDRS_SETTING_VER;
+
+  static constexpr auto SMOOTH_MOTION_ENABLE_ID = 0xB0D384C0;
+
+  // Hack because NvAPI_DRS_GetSetting (...) is unable to read this setting for some reason...
+  //
+  if (SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"NvPresent64.dll",
+                                                  L"NvPresent.dll")) != 0)
+  {
+    __SK_ForceDLSSGPacing = true;
+
+    smooth_motion_enable.u32CurrentValue = 1;
+  }
+
+#if 0
+  NVDRS_PROFILE profileInformation         = {               };
+                profileInformation.version = NVDRS_PROFILE_VER;
+
+  NvAPI_DRS_GetProfileInfo (hSession, hProfile,
+                                      &profileInformation);
+  std::vector <NVDRS_SETTING> settings (profileInformation.numOfSettings);
+
+  settings [0].version = NVDRS_SETTING_VER;
+
+  NvAPI_DRS_EnumSettings (hSession, hProfile, 0, &profileInformation.numOfSettings, settings.data ());
+
+  for (auto i = 0u; i < profileInformation.numOfSettings; ++i)
+  {
+    if (settings [i].settingId == SMOOTH_MOTION_ENABLE_ID)
+    {
+      smooth_motion_enable = settings [i];
+      break;
+    }
+  }
+#endif
+
+  // If NVAPI were working correctly, we would call this code.
+  //
+  //// These settings may not exist, and getting back a value of 0 is okay...
+  //NVAPI_SILENT  ();
+  //NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, SMOOTH_MOTION_ENABLE_ID, &smooth_motion_enable));
+  //NVAPI_VERBOSE ();
+
+  //SK_LOGi0 (L"Smooth Motion: %x", smooth_motion_enable.u32CurrentValue);
+
+  BOOL bRet =
+   ( smooth_motion_enable.u32CurrentValue != 0 )
+                                          ? TRUE
+                                          : FALSE;
+
+  if (bRet)
+  {
+    // Smooth Motion requires this
+    config.nvidia.dlss.allow_flip_metering = true;
+  }
+
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return bRet;
+}
+
 BOOL SK_NvAPI_GetVRREnablement (void)
 {
   if (! nv_hardware)
@@ -2793,50 +2900,15 @@ BOOL SK_NvAPI_GetVRREnablement (void)
                                                   &app ),
                 ret );
 
-  // If no executable exists anywhere by this name, create a profile for it
-  //   and then add the executable to it.
+  // This is a status check only, if no profile exists, do not create one.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
-    NVDRS_PROFILE custom_profile = {   };
+    NVAPI_CALL (DRS_GetBaseProfile (hSession, &hProfile));
 
-    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
-        friendly_name = app_name;
-
-    custom_profile.isPredefined  = FALSE;
-    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
-    custom_profile.version = NVDRS_PROFILE_VER;
-
-    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
-    //   raise a fuss if it happens.
-    NVAPI_SILENT ()
+    if (ret != NVAPI_OK)
     {
-      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
-    }
-    NVAPI_VERBOSE ()
-
-    // Add the application name to the profile, if a profile already exists
-    if (ret == NVAPI_PROFILE_NAME_IN_USE)
-    {
-      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
-                                              (NvU16 *)friendly_name.c_str (),
-                                                &hProfile),
-                      ret );
-    }
-
-    if (ret == NVAPI_OK)
-    {
-      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
-
-      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
-      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
-
-      app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = FALSE;
-      app.isMetro      = FALSE;
-
-      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
-      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
-      NVAPI_CALL  (DRS_LoadSettings      (hSession));
+      NVAPI_CALL (DRS_DestroySession (hSession));
+      return FALSE;
     }
   }
 
@@ -3226,50 +3298,15 @@ BOOL SK_NvAPI_GetFastSync (void)
                                                   &app ),
                 ret );
 
-  // If no executable exists anywhere by this name, create a profile for it
-  //   and then add the executable to it.
+  // This is a status check only, if no profile exists, do not create one.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
-    NVDRS_PROFILE custom_profile = {   };
+    NVAPI_CALL (DRS_GetBaseProfile (hSession, &hProfile));
 
-    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
-        friendly_name = app_name;
-
-    custom_profile.isPredefined  = FALSE;
-    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
-    custom_profile.version = NVDRS_PROFILE_VER;
-
-    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
-    //   raise a fuss if it happens.
-    NVAPI_SILENT ()
+    if (ret != NVAPI_OK)
     {
-      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
-    }
-    NVAPI_VERBOSE ()
-
-    // Add the application name to the profile, if a profile already exists
-    if (ret == NVAPI_PROFILE_NAME_IN_USE)
-    {
-      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
-                                              (NvU16 *)friendly_name.c_str (),
-                                                &hProfile),
-                      ret );
-    }
-
-    if (ret == NVAPI_OK)
-    {
-      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
-
-      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
-      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
-
-      app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = FALSE;
-      app.isMetro      = FALSE;
-
-      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
-      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
-      NVAPI_CALL  (DRS_LoadSettings      (hSession));
+      NVAPI_CALL (DRS_DestroySession (hSession));
+      return FALSE;
     }
   }
 
@@ -3564,49 +3601,15 @@ SK_NvAPI_DRS_GetDWORD (NvU32 setting_id)
                                                   &app ),
                 ret );
 
-  // If no executable exists anywhere by this name, create a profile for it
-  //   and then add the executable to it.
+  // This is a status check only, if no profile exists, do not create one.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
-    NVDRS_PROFILE custom_profile = {   };
+    NVAPI_CALL (DRS_GetBaseProfile (hSession, &hProfile));
 
-    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
-        friendly_name = app_name;
-
-    custom_profile.isPredefined  = FALSE;
-    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
-    custom_profile.version = NVDRS_PROFILE_VER;
-
-    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
-    //   raise a fuss if it happens.
-    NVAPI_SILENT ()
+    if (ret != NVAPI_OK)
     {
-      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
-    }
-    NVAPI_VERBOSE ()
-
-    // Add the application name to the profile, if a profile already exists
-    if (ret == NVAPI_PROFILE_NAME_IN_USE)
-    {
-      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
-                                              (NvU16 *)friendly_name.c_str (),
-                                                &hProfile),
-                      ret );
-    }
-
-    if (ret == NVAPI_OK)
-    {
-      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
-
-      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
-      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
-
-      app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = FALSE;
-      app.isMetro      = FALSE;
-
-      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
-      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+      NVAPI_CALL (DRS_DestroySession (hSession));
+      return 0;
     }
   }
 
@@ -3976,49 +3979,15 @@ SK_NvAPI_GetAnselEnablement (DLL_ROLE role)
                                                   &app ),
                 ret );
 
-  // If no executable exists anywhere by this name, create a profile for it
-  //   and then add the executable to it.
+  // This is a status check only, if no profile exists, do not create one.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
-    NVDRS_PROFILE custom_profile = {   };
+    NVAPI_CALL (DRS_GetBaseProfile (hSession, &hProfile));
 
-    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
-        friendly_name = app_name;
-
-    custom_profile.isPredefined  = FALSE;
-    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
-    custom_profile.version = NVDRS_PROFILE_VER;
-
-    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
-    //   raise a fuss if it happens.
-    NVAPI_SILENT ()
+    if (ret != NVAPI_OK)
     {
-      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
-    }
-    NVAPI_VERBOSE ()
-
-    // Add the application name to the profile, if a profile already exists
-    if (ret == NVAPI_PROFILE_NAME_IN_USE)
-    {
-      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
-                                              (NvU16 *)friendly_name.c_str (),
-                                                &hProfile),
-                      ret );
-    }
-
-    if (ret == NVAPI_OK)
-    {
-      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
-
-      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
-      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
-
-      app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = FALSE;
-      app.isMetro      = FALSE;
-
-      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
-      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+      NVAPI_CALL (DRS_DestroySession (hSession));
+      return 0;
     }
   }
 

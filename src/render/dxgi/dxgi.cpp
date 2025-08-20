@@ -6572,6 +6572,24 @@ DXGIFactory_CreateSwapChain_Override (
                                    pDesc, ppSwapChain );
   }
 
+  if (SK_NvAPI_IsSmoothingMotion ())
+  {
+    extern bool __SK_HDR_Disallow16BitSwap;
+                __SK_HDR_Disallow16BitSwap = true;
+
+    if (__SK_HDR_16BitSwap)
+    {
+      __SK_HDR_10BitSwap =  true;
+      __SK_HDR_16BitSwap = false;
+
+      SK_HDR_SetOverridesForGame (__SK_HDR_16BitSwap, __SK_HDR_10BitSwap);
+
+      SK_ImGui_Warning (
+        L"scRGB HDR has been changed to HDR10 because NVIDIA Smooth Motion was detected."
+      );
+    }
+  }
+
   if (SK_GetCallingDLL () == SK_GetModuleHandleW (L"sl.dlss_g.dll") ||
                              SK_GetModuleHandleW (L"nvngx_dlssg.dll") != nullptr)
   {
