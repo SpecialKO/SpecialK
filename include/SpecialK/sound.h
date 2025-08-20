@@ -560,7 +560,7 @@ public:
   {
     SK_ISimpleAudioVolume pRet;
 
-    if (SUCCEEDED (control_->QueryInterface <ISimpleAudioVolume> (&pRet.p)))
+    if (control_ != nullptr && SUCCEEDED (control_->QueryInterface <ISimpleAudioVolume> (&pRet.p)))
       return pRet;
 
     return nullptr;
@@ -570,7 +570,7 @@ public:
   {
     SK_IChannelAudioVolume pRet;
 
-    if (SUCCEEDED (control_->QueryInterface <IChannelAudioVolume> (&pRet.p)))
+    if (control_ != nullptr && SUCCEEDED (control_->QueryInterface <IChannelAudioVolume> (&pRet.p)))
       return pRet;
 
     return nullptr;
@@ -585,7 +585,7 @@ public:
   {
     DWORD dwProcId = 0;
 
-    if (FAILED (control_->GetProcessId (&dwProcId)))
+    if (control_ == nullptr || FAILED (control_->GetProcessId (&dwProcId)))
       return 0;
 
     return dwProcId;
@@ -593,8 +593,10 @@ public:
 
   bool isActive (void)
   {
-    AudioSessionState    state = AudioSessionStateInactive;
-    control_->GetState (&state);
+    AudioSessionState state = AudioSessionStateInactive;
+
+    if (control_ != nullptr)
+      control_->GetState (&state);
 
     return
       (state == AudioSessionStateActive);
@@ -619,7 +621,7 @@ public:
       }
     }
 
-    if (! custom_name_)
+    if ((! custom_name_) && control_ != nullptr)
     {
       wchar_t  *wszDisplayName = nullptr;
       control_->GetDisplayName (&wszDisplayName);

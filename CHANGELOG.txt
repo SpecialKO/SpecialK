@@ -1,4 +1,8 @@
-﻿25.8.18.1
+﻿25.8.20
+=======
+ + Handle uninitialized IAudioSessionControl2 in SK_WASAPI_AudioSession.
+
+25.8.18.1
 =========
  + Added INI option to disable Ctrl+Shift+Backspace.
    
@@ -17,11 +21,11 @@
      ImGui.CtrlShiftBackspace {true|false|~}
 
    @ Add a macro to Global\macros.ini like so to customize the activation keys:
-
+   =
       [Macro.ControlPanel]
       Ctrl+Shift+Backspace=ImGui.Active ~
 
-     - Use some other combination of buttons, or this is pointless ;)
+     - Use some other combination of keys, or this is pointless ;)
 
 25.8.18
 =======

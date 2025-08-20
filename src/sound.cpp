@@ -89,6 +89,10 @@ SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
       if (hr == E_NOINTERFACE)
         unsupported = true;
 
+      // Delay future attempts on failure
+      dwLastUpdate += 5000UL;
+      pCachedClient = nullptr;
+
       return nullptr;
     }
   }
@@ -195,9 +199,16 @@ SK_WASAPI_GetSpatialAudioClient (SK_IMMDevice pDevice, bool uncached)
       if (hr == E_NOINTERFACE)
         unsupported = true;
 
+      // Delay future attempts on failure
+      dwLastUpdate += 5000UL;
+      pCachedClient = nullptr;
+
       return nullptr;
     }
   }
+
+  if (pCachedClient == nullptr)
+    return nullptr;
 
   AudioObjectType                                obj_type_mask = AudioObjectType_None;
   pCachedClient->GetNativeStaticObjectTypeMask (&obj_type_mask);
@@ -982,6 +993,8 @@ SK_MMDev_GetAutoGainControl (SK_IMMDevice pDevice)
     //   silence this at log level 0!
     SK_LOG1 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
               ),L"  WASAPI  " );
+
+    pAutoGain = nullptr;
   }
 
   return pAutoGain;
