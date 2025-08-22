@@ -372,7 +372,7 @@ SK::ControlPanel::D3D11::Draw (void)
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
   const bool vulkan =
     SK_DXGI_VK_INTEROP_TYPE_NONE !=
-       SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) && is_vulkan_loaded;
+       SK_Render_GetVulkanInteropSwapChainType (rb.swapchain);
 
   // Is the underlying graphics API actually something else?
   const bool indirect =
@@ -383,7 +383,9 @@ SK::ControlPanel::D3D11::Draw (void)
   if (SK_GL_OnD3D11)
     uncollapsed = ImGui::CollapsingHeader ("OpenGL-IK Settings",   ImGuiTreeNodeFlags_DefaultOpen);
   else if (vulkan)
+  { if (is_vulkan_loaded)
     uncollapsed = ImGui::CollapsingHeader ("Vulkan Settings",      ImGuiTreeNodeFlags_DefaultOpen);
+  }
   else if (d3d11)
     uncollapsed = ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen);
   else if (d3d12)
