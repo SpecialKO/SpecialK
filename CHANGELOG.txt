@@ -1,4 +1,9 @@
-﻿25.8.22.1
+﻿25.8.22.2
+=========
+ + Correctly identify OpenGL/DXGI interop on NVIDIA GPUs when Special K's own
+     interop system is disabled.
+
+25.8.22.1
 =========
  + Improved NVIDIA Smooth Motion compatibility by detecting and ignoring
      windows created with the window class 'InvisibleWindowClassNvPresent'.

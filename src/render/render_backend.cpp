@@ -2775,8 +2775,13 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
               break;
             case SK_DXGI_VK_INTEROP_TYPE_NV:
             case SK_DXGI_VK_INTEROP_TYPE_AMD:
-              wcsncpy (name, L"Vulkan", 8);
-              break;
+            {
+              static bool bVulkan =
+                GetModuleHandleW (L"vulkan-1.dll") != 0;
+
+              if (bVulkan) wcsncpy (name, L"Vulkan", 8);
+              else         wcsncpy (name, L"OpenGL", 8);
+            } break;
             default:
               wcsncpy (name, L"Interop??", 10);
               break;
@@ -2823,8 +2828,13 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
                   break;
                 case SK_DXGI_VK_INTEROP_TYPE_NV:
                 case SK_DXGI_VK_INTEROP_TYPE_AMD:
-                  wcsncpy (name, L"Vulkan", 8);
-                  break;
+                {
+                  static bool bVulkan =
+                    GetModuleHandleW (L"vulkan-1.dll") != 0;
+
+                  if (bVulkan) wcsncpy (name, L"Vulkan", 8);
+                  else         wcsncpy (name, L"OpenGL", 8);
+                } break;
                 default:
                   wcsncpy (name, L"Interop??", 10);
                   break;

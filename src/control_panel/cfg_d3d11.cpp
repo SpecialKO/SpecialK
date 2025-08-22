@@ -363,13 +363,16 @@ SK::ControlPanel::D3D11::Draw (void)
   const SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
+  static bool is_vulkan_loaded =
+    GetModuleHandleW (L"vulkan-1.dll") != 0;
+
   const bool d3d11 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
   const bool d3d12 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
   const bool vulkan =
     SK_DXGI_VK_INTEROP_TYPE_NONE !=
-       SK_Render_GetVulkanInteropSwapChainType (rb.swapchain);
+       SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) && is_vulkan_loaded;
 
   // Is the underlying graphics API actually something else?
   const bool indirect =
