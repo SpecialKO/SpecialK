@@ -1,4 +1,12 @@
-﻿25.8.22
+﻿25.8.22.1
+=========
+ + Improved NVIDIA Smooth Motion compatibility by detecting and ignoring
+     windows created with the window class 'InvisibleWindowClassNvPresent'.
+
+    * Upgrading 8-bit SwapChains to HDR causes visual glitches, so non-Unreal
+        games may not use HDR when Smooth Motion is active at the moment.
+
+25.8.22
 =======
  + Disable Flip Model override in FarCry 3 as well as D3D10 warning.
 
