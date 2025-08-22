@@ -1737,6 +1737,7 @@ enum class SK_GAME_ID
   FinalFantasyXVI,              // ffxvi_*.exe
   DragonBallFighterZ,           // DBFighterZ.exe
   NiNoKuni2,                    // Nino2.exe
+  FarCry3,                      // FarCry3.exe
   FarCry4,                      // FarCry4.exe
   FarCry5,                      // FarCry5.exe
   ChronoTrigger,                // Chrono Trigger.exe

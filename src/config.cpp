@@ -165,6 +165,7 @@ SK_GetCurrentGameID (void)
           { L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 },
           { L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           },
           { L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    },
+          { L"FarCry3.exe",                            SK_GAME_ID::FarCry3                      },
           { L"FarCry4.exe",                            SK_GAME_ID::FarCry4                      },
           { L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      },
           { L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                },
@@ -3054,6 +3055,8 @@ auto DeclKeybind =
         // Game shares buggy XInput code with Watch_Dogs2
         config.input.gamepad.xinput.placehold [0] = true;
       } break;
+#endif
+      case SK_GAME_ID::FarCry3:
       case SK_GAME_ID::FarCry4:
       {
         // It is not possible to use flip model in this game due to dxdiagn,
@@ -3061,7 +3064,6 @@ auto DeclKeybind =
         config.render.framerate.disable_flip =  true;
         config.render.framerate.flip_discard = false;
       } break;
-#endif
 
       case SK_GAME_ID::ChronoTrigger:
         // Don't accidentally hook the D3D9 device used for video playback

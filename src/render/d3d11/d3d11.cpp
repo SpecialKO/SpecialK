@@ -8214,7 +8214,11 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     extern volatile LONG SK_DXGI_LiveWrappedSwapChains;
     extern volatile LONG SK_DXGI_LiveWrappedSwapChain1s;
 
-    if (SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey)
+    // Ubisoft shenanigans
+    if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Odyssey) ||
+        SK_IsCurrentGame (SK_GAME_ID::FarCry3)                ||
+        SK_IsCurrentGame (SK_GAME_ID::FarCry4)                ||
+        SK_GetModuleHandleW (L"dxdiagn.dll"))
     {
       return E_NOTIMPL;
     }

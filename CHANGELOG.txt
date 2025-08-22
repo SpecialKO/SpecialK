@@ -1,4 +1,8 @@
-﻿25.8.20.1
+﻿25.8.22
+=======
+ + Disable Flip Model override in FarCry 3 as well as D3D10 warning.
+
+25.8.20.1
 =========
  + Automatically enable Flip Metering in games with NV Smooth Motion enabled.
  + Add support for Reflex and apply its framerate limiter to Smooth Motion.
