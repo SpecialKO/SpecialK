@@ -1,4 +1,9 @@
-﻿25.8.23
+﻿25.8.24
+=======
+ + Slight improvement to NVIDIA Smooth Motion compatibility, only Unreal Engine
+     games work correctly at the moment because they are 10-bpc native.
+
+25.8.23
 =======
  + Identify DualSense Edge controllers as DualSense controllers in Star Wars:
      Jedi Survivor, since it only supports original DualSense.

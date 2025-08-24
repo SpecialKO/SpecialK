@@ -1825,6 +1825,31 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
 {
   std::scoped_lock lock(_ctx_lock);
 
+  if (pSwapChain != nullptr)
+  {
+    SK_ComQIPtr <IDXGISwapChain1>
+             pSwap1 (pSwapChain);
+    if (     pSwap1.p != nullptr)
+    {
+      HWND              hWnd;
+      pSwap1->GetHwnd (&hWnd);
+
+      if (SK_Win32_IsDummyWindowClass (hWnd))
+      {
+        return false;
+      }
+
+      uint8_t x = 0;
+      UINT size = 1;
+      pSwapChain->GetPrivateData (SKID_DXGI_DummySwapChain, &size, &x);
+
+      if (x != 0)
+      {
+        return false;
+      }
+    }
+  }
+
   try
   {
     if (! frames_.empty ())

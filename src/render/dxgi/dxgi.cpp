@@ -572,7 +572,7 @@ bool WaitForInitDXGI (DWORD dwTimeout)
     return true;
 
   // Waiting while Streamline has plugins loaded would deadlock us in local injection
-  if (SK_IsModuleLoaded (L"sl.common.dll"))
+  if (SK_IsModuleLoaded (L"sl.common.dll") || SK_IsModuleLoaded (L"NvPresent64.dll"))
   {
     SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready, 250UL);
   }
@@ -6666,6 +6666,13 @@ DXGIFactory_CreateSwapChain_Override (
                   CreateSwapChain_Original ( This, pDevice,
                                             pDesc, ppSwapChain ) );
 
+    if (ret == S_OK && ppSwapChain != nullptr && pDesc != nullptr &&
+                      !SK_DXGI_IsSwapChainReal (*pDesc))
+    {
+      const uint8_t                                                 x = 1;
+      (*ppSwapChain)->SetPrivateData (SKID_DXGI_DummySwapChain, 1, &x);
+    }
+
     return ret;
   }
 
@@ -7347,6 +7354,12 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
     if (pStreamlineFactory)
       SK_LOGi0 (L"Ignoring call because it came from a Streamline proxy factory...");
+
+    if (ret == S_OK && ppSwapChain != nullptr)
+    {
+      const uint8_t                                                 x = 1;
+      (*ppSwapChain)->SetPrivateData (SKID_DXGI_DummySwapChain, 1, &x);
+    }
 
     return ret;
   }
@@ -9603,7 +9616,8 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.interposer.dll") ||
+    SK_IsModuleLoaded (L"NvPresent64.dll");
 
   SK_ComPtr <IDXGISwapChain> pSwapChain;
 
@@ -9815,7 +9829,8 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.interposer.dll") ||
+    SK_IsModuleLoaded (L"NvPresent64.dll");
 
   SK_ComPtr <IDXGIDevice1> pDevice;
 
@@ -9970,7 +9985,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
   SK_GetDXGIFactoryInterfaceVer (pProxyFactory);
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.interposer.dll") ||
+    SK_IsModuleLoaded (L"NvPresent64.dll");
 
   SK_ComPtr <IDXGIFactory> pFactory;
 
@@ -10309,7 +10325,7 @@ HookDXGI (LPVOID user)
 
 
     bool    bHookSuccess   = false;
-    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
+    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll") || SK_IsModuleLoaded (L"NvPresent64.dll");
     HRESULT hr             = E_NOTIMPL;
 
     SK_ComPtr <IDXGIAdapter>
@@ -11588,7 +11604,7 @@ SK_DXGI_QuickHook (void)
       __SK_DisableQuickHook = TRUE;
     }
 
-    if ( SK_IsModuleLoaded (L"sl.interposer.dll") )
+    if ( SK_IsModuleLoaded (L"sl.interposer.dll") || SK_IsModuleLoaded (L"NvPresent64.dll") )
     {
       SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");
 

@@ -2820,7 +2820,7 @@ BOOL SK_NvAPI_IsSmoothingMotion (void)
   if (SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"NvPresent64.dll",
                                                   L"NvPresent.dll")) != 0)
   {
-    __SK_ForceDLSSGPacing = true;
+    //__SK_ForceDLSSGPacing = true;
 
     smooth_motion_enable.u32CurrentValue = 1;
   }
