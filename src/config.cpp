@@ -166,6 +166,7 @@ SK_GetCurrentGameID (void)
           { L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           },
           { L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    },
           { L"FarCry3.exe",                            SK_GAME_ID::FarCry3                      },
+          { L"farcry3_d3d11.exe",                      SK_GAME_ID::FarCry3                      },
           { L"FarCry4.exe",                            SK_GAME_ID::FarCry4                      },
           { L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      },
           { L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                },
@@ -267,6 +268,7 @@ SK_GetCurrentGameID (void)
           { L"CrashBandicootNSaneTrilogy.exe",         SK_GAME_ID::CrashBandicootNSaneTrilogy   },
           { L"Outlaws.exe",                            SK_GAME_ID::StarWarsOutlaws              },
           { L"Outlaws_Plus.exe",                       SK_GAME_ID::StarWarsOutlaws              },
+          { L"JediSurvivor.exe",                       SK_GAME_ID::StarWarsJediSurvivor         },
           { L"shadPS4.exe",                            SK_GAME_ID::ShadPS4                      },
           { L"GoWR.exe",                               SK_GAME_ID::GodOfWarRagnarok             },
           { L"METAPHOR.exe",                           SK_GAME_ID::Metaphor                     },
@@ -3128,7 +3130,7 @@ auto DeclKeybind =
       case SK_GAME_ID::BaldursGate3:
       {
         // Game has native support for DualSense, but not DualSense Edge
-        config.input.gamepad.scepad.hide_ds_edge_pid = true;
+        config.input.gamepad.scepad.hide_ds_edge_pid = SK_Enabled;
         config.input.gamepad.xinput.emulate          = false;
 
         // The Vulkan executable is simply bg3.exe,
@@ -3913,6 +3915,12 @@ auto DeclKeybind =
       {
         // Avoid anti-debug stuff
         SK_GetCurrentRenderBackend ().windows.capcom = true;
+      } break;
+
+      case SK_GAME_ID::StarWarsJediSurvivor:
+      {
+        // Game has native support for DualSense, but not DualSense Edge
+        config.input.gamepad.scepad.hide_ds_edge_pid = SK_Enabled;
       } break;
 
       case SK_GAME_ID::FinalFantasy7Remake:

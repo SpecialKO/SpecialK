@@ -1836,6 +1836,7 @@ enum class SK_GAME_ID
   TalosPrinciple2,              // Talos2-Win64-Shipping.exe
   CrashBandicootNSaneTrilogy,   // CrashBandicootNSaneTrilogy.exe
   StarWarsOutlaws,              // outlaws.exe
+  StarWarsJediSurvivor,         // JediSurvivor.exe
   ShadPS4,                      // shadPS4.exe
   GodOfWarRagnarok,             // GoWR.exe
   Metaphor,                     // METAPHOR.exe
