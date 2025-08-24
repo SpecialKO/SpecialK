@@ -4094,13 +4094,13 @@ SK_BackgroundRender_EndFrame (void)
   }
 #endif
 
+  const bool implicit_smart_always_on_top =
+    (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
+
   fullscreen_last_frame =
         rb.isTrueFullscreen ();
   if (! fullscreen_last_frame)
   {
-    bool implicit_smart_always_on_top =
-      (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
-
     static bool last_foreground = false;
 
     static const
@@ -4174,6 +4174,68 @@ SK_BackgroundRender_EndFrame (void)
       SK_Inject_PostHeartbeatToSKIF ();
     }
   }
+
+  // Dumber solution to the complicated foreground window cache thing above,
+  //   but more reliable.  Performance?
+  auto HandleSmartAlwaysOnTop = [&](void)
+  {
+    if (config.window.always_on_top != SmartAlwaysOnTop && !implicit_smart_always_on_top)
+      return;
+
+    static DWORD dwLastChecked = 0;
+           DWORD dwTimeNow     = SK_timeGetTime ();
+
+    if (dwTimeNow < dwLastChecked + 666UL)
+      return;
+
+    dwLastChecked = dwTimeNow;
+
+    auto GetWindowsAbove = [&](HWND targetHwnd) -> std::vector <HWND>
+    {
+      std::vector <HWND> windowsAbove;
+
+      HWND hwnd =
+        GetTopWindow (nullptr);
+
+      while (hwnd && hwnd != targetHwnd)
+      {
+        if (IsWindowVisible (hwnd))
+          windowsAbove.push_back (hwnd);
+
+        hwnd = GetNextWindow
+          (hwnd, GW_HWNDNEXT);
+      }
+
+      return windowsAbove;
+    };
+
+    auto windows =
+      GetWindowsAbove (game_window.hWnd);
+
+    int hits = 0;
+
+    for ( auto window : windows )
+    {
+      RECT                    rcWindow = {};
+      GetWindowRect (window, &rcWindow);
+      InflateRect           (&rcWindow, -15, -15);
+
+      RECT                rcIntersect;
+      if (IntersectRect (&rcIntersect, &rcWindow, &game_window.actual.window))
+      {
+        ++hits;
+        break;
+      }
+    }
+
+    if (hits == 0 && !windows.empty ())
+    {
+      //SK_ImGui_Warning (L"Brought Game Window To Top...");
+      SK_DeferCommand ("Window.TopMost true");
+    }
+  };
+
+  HandleSmartAlwaysOnTop ();
 }
 
 void

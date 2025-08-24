@@ -1,4 +1,15 @@
-﻿25.8.24.3
+﻿25.8.24.4
+=========
+ + Improved reliability of "Multitasking-On-Top" in multi-monitor scenarios.
+
+    * Dragging a window from a different monitor to the same monitor as the
+        game is running on will not raise that window above the game unless
+          SK's injection service is "running".
+
+      If you run into this problem, you can always alt-tab twice to force
+        the other application's window to be moved on top.
+
+25.8.24.3
 =========
  + Add list of possible conflicting applications to "Composed Flip" / VRR
      status text in SK's Control Panel.

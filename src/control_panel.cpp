@@ -2372,6 +2372,14 @@ SK_ImGui_ListImmediateFlipConflicts (void)
                           "%hs", std::get <std::string> (row).c_str ());
     }
     ImGui::EndGroup      (  );
+
+    if (config.window.always_on_top < AlwaysOnTop)
+    {
+      ImGui::Separator   (  );
+      ImGui::BulletText  ("Consider \"Multitasking-On-Top\" in "
+        "Window Management | Window Layering if problem applications "
+        "are not overlays." );
+    }
   }
 }
 
