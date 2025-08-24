@@ -1,4 +1,10 @@
-﻿25.8.24.1
+﻿25.8.24.2
+=========
+ + Texture filtering overrides can be configured in real-time in OpenGL-IK.
+
+     * Applies only to older-style engines that do not use Sampler Objects.
+
+25.8.24.1
 =========
  + Apply the existing DXGI OverrideMSAA INI setting to OpenGL's
      "Default Framebuffer".

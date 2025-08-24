@@ -929,6 +929,49 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::PopStyleColor (3);
     }
 
+    else if (SK_GL_OnD3D11)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+      ImGui::TreePush ("");
+
+      const bool filtering =
+        ImGui::CollapsingHeader ("Texture Filtering");
+
+      if (filtering)
+      {
+        ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
+        {
+          config.utility.save_async ();
+        }
+
+        ImGui::SetItemTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+
+        ImGui::SameLine ();
+
+        if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
+                                                   config.render.d3d12.max_anisotropy > 0 ? "%dx" : "Game Default"))
+        {
+          config.utility.save_async ();
+        }
+
+        ImGui::SetItemTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
+                               "filtered render passes as well as any forced.");
+
+        if (ImGui::SliderFloat ("Mipmap LOD Bias", &config.render.d3d12.force_lod_bias, -5.0f, 5.0f,
+                                                    config.render.d3d12.force_lod_bias == 0.0f ? "Game Default" : "%3.2f"))
+        {
+          config.utility.save_async ();
+        }
+
+        ImGui::TreePop     ( );
+      } ImGui::TreePop     ( );
+      ImGui::PopStyleColor (3);
+    }
+
     SK_NGX_DLSS_ControlPanel ();
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));

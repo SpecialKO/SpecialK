@@ -334,8 +334,51 @@ OPENGL_STUB_(glArrayElement,(GLint i),
                             (      i));
 OPENGL_STUB_(glBegin,       (GLenum mode),
                             (       mode));
-OPENGL_STUB_(glBindTexture, (GLenum target,GLuint texture),
-                            (       target,       texture));
+
+typedef void (WINAPI* imp_glBindTexture_pfn)(GLenum target, GLuint texture);
+static                imp_glBindTexture_pfn imp_glBindTexture = nullptr;
+
+void
+WINAPI
+glBindTexture (GLenum target, GLuint texture)
+{
+  SK_LOG_FIRST_CALL
+
+  if (imp_glBindTexture == nullptr)
+  {
+    SK_LoadRealGL ();
+
+    imp_glBindTexture =
+      (imp_glBindTexture_pfn)SK_GetProcAddress (local_gl, "glBindTexture");
+
+    if (imp_glBindTexture == nullptr) {
+      dll_log->Log (L"[ OpenGL32 ] Unable to locate symbol %s in OpenGL32.dll", L"glBindTexture"); return;
+    }
+  }
+
+  imp_glBindTexture (target, texture);
+
+  if ( config.render.d3d12.force_anisotropic ||
+       config.render.d3d12.max_anisotropy > 1.0f )
+  {
+    GLfloat                                           max_aniso, cur_aniso;
+    glGetFloatv         (    GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_aniso);
+    glGetTexParameterfv (target, GL_TEXTURE_MAX_ANISOTROPY_EXT, &cur_aniso);
+
+    if ( cur_aniso <  config.render.d3d12.max_anisotropy &&
+         max_aniso >= config.render.d3d12.max_anisotropy &&
+        (cur_aniso >  1.0f || config.render.d3d12.force_anisotropic) )
+    {   // Apply overrides only to textures that already use anisotropy, unless _forced_
+      glTexParameterf (target, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)config.render.d3d12.max_anisotropy);
+    }
+  }
+
+  if (config.render.d3d12.force_lod_bias != 0.0f)
+  {
+    glTexParameterf (target, GL_TEXTURE_LOD_BIAS, config.render.d3d12.force_lod_bias);
+  }
+}
+
 OPENGL_STUB_(glBitmap,      (GLsizei width,GLsizei height,GLfloat xorig,GLfloat yorig,GLfloat xmove,GLfloat ymove,const GLubyte *bitmap),
                             (        width,        height,        xorig,        yorig,        xmove,        ymove,               bitmap));
 OPENGL_STUB_(glBlendFunc,   (GLenum sfactor,GLenum dfactor),
