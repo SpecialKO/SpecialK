@@ -1,4 +1,8 @@
-﻿25.8.25
+﻿25.8.25.1
+=========
+ + Fixed unintentional Multitasking-on-Top for users who have not set the mode.
+
+25.8.25
 =======
  + Automatically hide the new Discord overlay, since it draws a Win32 window
      on top of games CONSTANTLY whether the image is blank or not and that

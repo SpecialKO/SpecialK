@@ -4246,6 +4246,12 @@ SK_BackgroundRender_EndFrame (void)
       }
     }
 
+    // If not using Multitasking-on-Top, then skip the stuff below.
+    if (config.window.always_on_top != SmartAlwaysOnTop && !implicit_smart_always_on_top)
+      return;
+
+    // There are windows higher in Z-Order than the game,
+    //   but they are not overlapping it...
     if (hits == 0 && !windows.empty ())
     {
       //SK_ImGui_Warning (L"Brought Game Window To Top...");
