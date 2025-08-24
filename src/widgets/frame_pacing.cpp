@@ -1029,13 +1029,22 @@ SK_ImGui_DrawGraph_FramePacing (void)
       " " ICON_FA_LINK "  %8ws    ", rb.name
     );
 
-    ImGui::SameLine ();
-
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
     ImGui::Text (
       "%s%s    ", fast_path ? ICON_FA_TACHOMETER_ALT       " "
                             : ICON_FA_EXCLAMATION_TRIANGLE " ",
         PresentModeToString (rb.presentation.mode)
     );
+
+    if (! fast_path)
+    {
+      if (ImGui::BeginItemTooltip ())
+      {
+        SK_ImGui_ListImmediateFlipConflicts ();
+        ImGui::EndTooltip                   ();
+      }
+    }
 
     ImGui::SameLine ();
 
@@ -1044,9 +1053,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
         szHourglass, rb.presentation.avg_stats.latency * 1000.0
     );
 
-    if (ImGui::IsItemHovered ())
+    if (ImGui::BeginItemTooltip ())
     {
-      ImGui::BeginTooltip    ();
       ImGui::BeginGroup      ();
       ImGui::TextUnformatted ("Present Latency:      ");
       ImGui::TextUnformatted ("GPU Idle Time:        ");
@@ -1062,6 +1070,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();
     }
+
+    ImGui::EndGroup ();
 
     const float
       fBusyWaitMs      = SK_Framerate_GetBusyWaitMs      (),
@@ -1080,9 +1090,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
         ICON_FA_MICROCHIP " %3.1f%%", fBusyWaitPercent
       );
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
         ImGui::Text         (
           "Framerate Limiter CPU busy-wait;"
           " lower values are more energy efficient."
@@ -1104,9 +1113,19 @@ SK_ImGui_DrawGraph_FramePacing (void)
     {
       if (! config.compatibility.using_wine)
       {
-        ImGui::TextUnformatted (
-          "Presentation Model Unknown  (Full SK Install is Required)"
-        );
+        if (SK_IsInjected ())
+        {
+          ImGui::TextUnformatted (
+            "Presentation Model Unknown  (Sign Out of Windows to Finish Installing SK)"
+          );
+        }
+
+        else
+        {
+          ImGui::TextUnformatted (
+            "Presentation Model Unknown  (Full SK Install is Required)"
+          );
+        }
 
         // Show users affected by this a warning, but only if SKIF.exe is running,
         //   because this would cause confusion for people using local injection.

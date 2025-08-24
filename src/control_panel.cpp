@@ -2232,6 +2232,150 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 }
 
 void
+SK_ImGui_ListImmediateFlipConflicts (void)
+{
+  auto GetWindowsAbove = [&](HWND targetHwnd) -> std::vector <HWND>
+  {
+    std::vector <HWND> windowsAbove;
+
+    HWND hwnd =
+      GetTopWindow (nullptr);
+
+    while (hwnd && hwnd != targetHwnd)
+    {
+      if (IsWindowVisible (hwnd))
+        windowsAbove.push_back (hwnd);
+
+      hwnd = GetNextWindow
+        (hwnd, GW_HWNDNEXT);
+    }
+
+    return windowsAbove;
+  };
+
+  auto windows =
+    GetWindowsAbove (game_window.hWnd);
+
+  using tooltip_entry =
+    std::tuple <std::wstring, DWORD, std::string>;
+
+  std::vector <tooltip_entry> tooltip_entries; 
+
+  for ( auto window : windows )
+  {
+    RECT                    rcWindow = {};
+    GetWindowRect (window, &rcWindow);
+    InflateRect           (&rcWindow, 1, 1);
+
+    RECT                rcIntersect;
+    if (IntersectRect (&rcIntersect, &rcWindow, &game_window.actual.window))
+    {
+      wchar_t                        wszTitle [128] = {};
+      InternalGetWindowText (window, wszTitle, 127);
+
+      if (*wszTitle != L'\0')
+      {
+        for (auto i = 0 ; i < 128 ; i++)
+        {
+          if (wszTitle [i] == L'#')
+              wszTitle [i] =  L' ';
+          if (wszTitle [i] == L'\0')
+            break;
+        }
+
+        DWORD                                 dwPid = 0;
+        SK_GetWindowThreadProcessId (window, &dwPid);
+
+        auto GetExecutablePath = [&](DWORD processId) -> std::wstring
+        {
+          SK_AutoHandle hProcess (
+            OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId)
+          );
+
+          if (hProcess.isValid ())
+          {
+            wchar_t wszPath [MAX_PATH + 2] = { };
+            DWORD   size  =  MAX_PATH;
+
+            if (QueryFullProcessImageNameW (hProcess, 0, wszPath, &size))
+            {
+              return wszPath;
+            }
+          }
+
+          return L"";
+        };
+
+        tooltip_entries.push_back ({
+          GetExecutablePath (dwPid), dwPid, SK_WideCharToUTF8 (wszTitle)
+        });
+      }
+    }
+  }
+
+  if (! tooltip_entries.empty ())
+  {
+    ImGui::TextColored
+      (ImVec4 (1.f, 1.f, 0.0f, 1.f),
+                          ICON_FA_EXCLAMATION_TRIANGLE
+                          "");
+    ImGui::SameLine      (  );
+    ImGui::TextColored
+        (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                          "Applications May Be Preventing Variable Refresh / Independent Flip");
+    ImGui::BeginGroup    (  );
+    ImGui::Separator     (  );
+    ImGui::TextColored
+      (ImVec4 (1.f, 1.f, 1.0f, 1.f), "%hs",
+                          "Executable Path");
+    ImGui::Separator     (  );
+    for (auto& row : tooltip_entries)
+    {
+      ImGui::TextColored
+        (ImVec4 (0.75f, 0.75f, 0.75f, 1.f),
+                          "%ws", std::get <std::wstring> (row).c_str ());
+    }
+    ImGui::EndGroup      (  );
+    ImGui::SameLine      (  );
+    ImGui::BeginGroup    (  );
+    ImGui::Separator     (  );
+    ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine      (  );
+    ImGui::TextColored
+      (ImVec4 (1.f, 1.f, 1.0f, 1.f), "%hs",
+                          "PID");
+    ImGui::Separator     (  );
+    for (auto& row : tooltip_entries)
+    {
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    (  );
+      ImGui::TextColored
+        (ImVec4 (0.75f, 0.75f, 0.75f, 1.f),
+                          "%d", std::get <DWORD> (row));
+    }
+    ImGui::EndGroup      (  );
+    ImGui::SameLine      (  );
+    ImGui::BeginGroup    (  );
+    ImGui::Separator     (  );
+    ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine      (  );
+    ImGui::TextColored
+      (ImVec4 (1.f, 1.f, 1.0f, 1.f), "%hs",
+                          "Window Title");
+    ImGui::Separator     (  );
+    for (auto& row : tooltip_entries)
+    {
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    (  );
+      ImGui::TextColored
+        (ImVec4 (0.75f, 0.75f, 0.75f, 1.f),
+                          "%hs", std::get <std::string> (row).c_str ());
+    }
+    ImGui::EndGroup      (  );
+  }
+}
+
+void
 DisplayModeMenu (bool windowed)
 {
   SK_RenderBackend& rb =
@@ -5520,6 +5664,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                    std::min ( display.vrr.max_refresh,
                       sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
           );
+
           ImGui::Separator ();
         }
 
@@ -5557,6 +5702,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
             );
           }
+
+          ImGui::Separator     (  );
+          ImGui::TreePush      ("");
+          SK_ImGui_ListImmediateFlipConflicts ();
+          ImGui::TreePop       (  );
         }
         ImGui::EndTooltip ();
       }

@@ -1,4 +1,9 @@
-﻿25.8.24.2
+﻿25.8.24.3
+=========
+ + Add list of possible conflicting applications to "Composed Flip" / VRR
+     status text in SK's Control Panel.
+
+25.8.24.2
 =========
  + Texture filtering overrides can be configured in real-time in OpenGL-IK.
 

@@ -165,3 +165,4 @@ uint64_t SecondsDeltaToQpc(double secondsDelta);
 double QpcToSeconds(uint64_t qpc);
 
 void SK_SpawnPresentMonWorker (void);
+void SK_ImGui_ListImmediateFlipConflicts (void);
