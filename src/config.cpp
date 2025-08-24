@@ -3061,10 +3061,23 @@ auto DeclKeybind =
       case SK_GAME_ID::FarCry3:
       case SK_GAME_ID::FarCry4:
       {
-        // It is not possible to use flip model in this game due to dxdiagn,
-        //   Windows 11 can successfully upgrade the game however.
-        config.render.framerate.disable_flip =  true;
-        config.render.framerate.flip_discard = false;
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        config.apis.OpenGL.hook = false;
+
+        if (SK_IsCurrentGame (SK_GAME_ID::FarCry3))
+        {
+          // SteamAPI is too old, ignore.
+          config.platform.silent = true;
+        }
+
+        else
+        {
+          // It is not possible to use flip model in this game due to dxdiagn,
+          //   Windows 11 can successfully upgrade the game however.
+          config.render.framerate.disable_flip =  true;
+          config.render.framerate.flip_discard = false;
+        }
       } break;
 
       case SK_GAME_ID::ChronoTrigger:

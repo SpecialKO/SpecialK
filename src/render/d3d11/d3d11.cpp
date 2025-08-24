@@ -7551,7 +7551,7 @@ HookD3D11 (LPVOID user)
 
       if (pDev1 != nullptr)
       {
-        if (! _AreVFtablePtrsSame ((void **)&pDev1.p, 43, (void **)pHooks->ppDevice, 40))
+        if (! _AreVFtablePtrsSame ((void **)&pDev1.p, 43, (void **)pHooks->ppDevice, 40) && !SK_IsCurrentGame (SK_GAME_ID::FarCry3))
         {
           DXGI_VIRTUAL_HOOK ( &pDev1, 43,
                                 "ID3D11Device1::GetImmediateContext1",
@@ -7572,7 +7572,7 @@ HookD3D11 (LPVOID user)
 
       if (pDev2 != nullptr)
       {
-        if (! _AreVFtablePtrsSame ((void **)&pDev2.p, 50, (void **)pHooks->ppDevice, 40))
+        if (! _AreVFtablePtrsSame ((void **)&pDev2.p, 50, (void **)pHooks->ppDevice, 40) && !SK_IsCurrentGame (SK_GAME_ID::FarCry3))
         {
           DXGI_VIRTUAL_HOOK ( &pDev2, 50,
                                 "ID3D11Device2::GetImmediateContext2",
