@@ -2930,6 +2930,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::ClipboardOnly, SK_GetCurrentRenderBackend ());
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::_FlushQueue,   SK_GetCurrentRenderBackend ());
     }
+
+    if (config.render.dxgi.msaa_samples > 0)
+    {
+      glEnable (GL_MULTISAMPLE);
+    }
   }
 
   // Swap happening on a context we don't care about
@@ -4685,10 +4690,21 @@ wglSetPixelFormat ( HDC                    hDC,
     config.render.gl.enable_10bit_hdr||
     config.render.gl.enable_16bit_hdr||
     __SK_HDR_10BitSwap               ||
-    __SK_HDR_16BitSwap;
+    __SK_HDR_16BitSwap               ||
+    config.render.dxgi.msaa_samples > 0;
 
   if (bOverridePixelFormat)
   {
+    // We cannot get an MSAA'd default framebuffer with floating-point color...
+    if (config.render.dxgi.msaa_samples > 0)
+    {
+      if (__SK_HDR_16BitSwap)
+      {
+        __SK_HDR_16BitSwap = false;
+        __SK_HDR_10BitSwap = true;
+      }
+    }
+
     const bool bUse16bpc = (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr);
     const bool bUse10bpc = (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
                                                || config.render.gl.prefer_10bpc;
@@ -4723,13 +4739,21 @@ wglSetPixelFormat ( HDC                    hDC,
       attribs.push_back (WGL_BLUE_BITS_ARB);
       attribs.push_back (iColorBitsBlue);
       attribs.push_back (WGL_ALPHA_BITS_ARB);
-      attribs.push_back (iAlphaBits);
+      attribs.push_back (ppfd->cAlphaBits > 0 ? iAlphaBits : 0);
 
       attribs.push_back (            WGL_PIXEL_TYPE_ARB);
       attribs.push_back (bUse16bpc ? WGL_TYPE_RGBA_FLOAT_ARB
                                    : WGL_TYPE_RGBA_ARB);
 
-      // Don't even bother trying to support color index stuff
+      if (config.render.dxgi.msaa_samples > 0)
+      {
+        attribs.push_back (WGL_SAMPLES_ARB);
+        attribs.push_back (config.render.dxgi.msaa_samples);
+        attribs.push_back (WGL_SAMPLE_BUFFERS_ARB);
+        attribs.push_back (GL_TRUE);
+      }
+
+      ///// Don't even bother trying to support color index stuff
       SK_ReleaseAssert (bUpgradeColor || ppfd->iPixelType == PFD_TYPE_RGBA);
 
       const int iDepthBits   = config.render.gl.upgrade_zbuffer ? 24 : ppfd->cDepthBits;
@@ -4757,14 +4781,17 @@ wglSetPixelFormat ( HDC                    hDC,
         {
           SK_LOG0 ( ( L" * %wcDR Override: "
                           L"R%" _L(PRIi8) L"G%" _L(PRIi8) L"B%"         _L(PRIi8)
-                          L"%ws Depth=%"        _L(PRIi8) L" Stencil=%" _L(PRIi8), (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) ? L'H' : L'S',
+                          L"%ws Depth=%"        _L(PRIi8) L" Stencil=%" _L(PRIi8)
+                                                          L" MSAA=%"    _L(PRIi8),
+                         (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) ? L'H' : L'S',
                        new_pfd.cRedBits,  new_pfd.cGreenBits,
                        new_pfd.cBlueBits, new_pfd.cAlphaBits == 0 ?
                                           L" "                    :
                         SK_FormatStringW (L"A%" _L(PRIi8),
                                           new_pfd.cAlphaBits).c_str (),
                                           new_pfd.cDepthBits,
-                                          new_pfd.cStencilBits ),
+                                          new_pfd.cStencilBits,
+                        std::max (0, config.render.dxgi.msaa_samples)),
                       L" OpenGL32 " );
 
           return TRUE;
@@ -4816,6 +4843,11 @@ wglSetPixelFormat ( HDC                    hDC,
                                pfd_copy.cDepthBits,
                                pfd_copy.cStencilBits ),
               L" OpenGL32 " );
+
+    if (config.render.dxgi.msaa_samples > 0)
+    {
+      glEnable (GL_MULTISAMPLE);
+    }
   }
 
 #ifdef SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND

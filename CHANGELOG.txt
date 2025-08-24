@@ -1,4 +1,17 @@
-﻿25.8.24
+﻿25.8.24.1
+=========
+ + Apply the existing DXGI OverrideMSAA INI setting to OpenGL's
+     "Default Framebuffer".
+
+    ( Does not apply to more advanced engines that use Framebuffer Objects )
+
+    >> NVIDIA GPUs support up to 16x MSAA in OpenGL, but do not support MSAA
+         when 16-bpc color is used.
+
+     * SK will automatically change the HDR format from 16-bpc (scRGB) to
+         10-bpc (HDR10) if necessary to accomodate MSAA.
+
+25.8.24
 =======
  + Slight improvement to NVIDIA Smooth Motion compatibility, only Unreal Engine
      games work correctly at the moment because they are 10-bpc native.
