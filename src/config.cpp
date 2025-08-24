@@ -767,6 +767,7 @@ struct {
   struct
   {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
+    sk::ParameterBool*    allow_windowed_mode     = nullptr;
   } overlay;
 } discord;
 
@@ -1687,8 +1688,9 @@ auto DeclKeybind =
 
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
-    ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
     ConfigEntry (reshade_cfg.overlay.hdr_luminance,      L"Make the ReShade Overlay visible in HDR mode!",             osd_ini,         L"ReShade.Overlay",       L"Luminance_scRGB"),
+    ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
+    ConfigEntry (discord.overlay.allow_windowed_mode,    L"Allow Discord to composite a Win32 window over the game?",  osd_ini,         L"Discord.Overlay",       L"AllowWindowedMode"),
 
     ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
     ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),
@@ -5928,6 +5930,7 @@ auto DeclKeybind =
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
   rtss.overlay.hdr_luminance->load            (config.rtss.overlay_luminance);
   discord.overlay.hdr_luminance->load         (config.discord.overlay_luminance);
+  discord.overlay.allow_windowed_mode->load   (config.discord.allow_windowed_mode);
 
   steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
   screenshots.include_osd_default->load       (config.screenshots.show_osd_by_default);
@@ -7450,8 +7453,9 @@ SK_SaveConfig ( std::wstring name,
   screenshots.avif.compression_speed->store    (config.screenshots.avif.compression_speed);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
-  discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
   rtss.overlay.hdr_luminance->store            (config.rtss.overlay_luminance);
+  discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
+  discord.overlay.allow_windowed_mode->store   (config.discord.allow_windowed_mode);
 
   silent->store                                (config.system.silent);
   log_level->store                             (config.system.log_level);

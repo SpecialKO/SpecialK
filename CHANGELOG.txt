@@ -1,4 +1,15 @@
-﻿25.8.24.4
+﻿25.8.25
+=======
+ + Automatically hide the new Discord overlay, since it draws a Win32 window
+     on top of games CONSTANTLY whether the image is blank or not and that
+       prevents VRR from working.
+
+    * It can be re-enabled in Global\osd.ini:
+
+        [Discord.Overlay]
+        AllowWindowedMode=true
+
+25.8.24.4
 =========
  + Improved reliability of "Multitasking-On-Top" in multi-monitor scenarios.
 

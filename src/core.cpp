@@ -4177,11 +4177,8 @@ SK_BackgroundRender_EndFrame (void)
 
   // Dumber solution to the complicated foreground window cache thing above,
   //   but more reliable.  Performance?
-  auto HandleSmartAlwaysOnTop = [&](void)
+  auto HandleOverlayWindows = [&](void)
   {
-    if (config.window.always_on_top != SmartAlwaysOnTop && !implicit_smart_always_on_top)
-      return;
-
     static DWORD dwLastChecked = 0;
            DWORD dwTimeNow     = SK_timeGetTime ();
 
@@ -4224,7 +4221,28 @@ SK_BackgroundRender_EndFrame (void)
       if (IntersectRect (&rcIntersect, &rcWindow, &game_window.actual.window))
       {
         ++hits;
-        break;
+
+        if (! config.discord.allow_windowed_mode)
+        {
+          wchar_t                        wszTitle [128] = {};
+          InternalGetWindowText (window, wszTitle, 127);
+
+          if (         *wszTitle == L'D' &&
+              StrStrIW (wszTitle,   L"Discord Overlay"))
+          {
+            ShowWindow (window, SW_HIDE);
+
+            SK_ImGui_CreateNotification (
+                  "Discord.OverlayHidden", SK_ImGui_Toast::Warning,
+                    "The Discord Overlay has been hidden to prevent performance problems.\r\n\r\n"
+                    "\t * Consider disabling it, or set AllowWindowedMode=true in Global\\osd.ini to ignore this.",
+                          "Performance Stealing Overlay Hidden", 15000,
+                                  SK_ImGui_Toast::UseDuration |
+                                  SK_ImGui_Toast::ShowTitle   |
+                                  SK_ImGui_Toast::ShowCaption |
+                                  SK_ImGui_Toast::ShowNewest );
+          }
+        }
       }
     }
 
@@ -4235,7 +4253,7 @@ SK_BackgroundRender_EndFrame (void)
     }
   };
 
-  HandleSmartAlwaysOnTop ();
+  HandleOverlayWindows ();
 }
 
 void
