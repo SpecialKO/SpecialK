@@ -5199,6 +5199,7 @@ SK_LazyGlobal <iSK_Logger> game_debug;
 SK_LazyGlobal <iSK_Logger> tex_log;
 SK_LazyGlobal <iSK_Logger> steam_log;
 SK_LazyGlobal <iSK_Logger> epic_log;
+SK_LazyGlobal <iSK_Logger> gog_log;
 
 
 SK_LazyGlobal <concurrency::concurrent_unordered_map <const wchar_t*, uint64_t>> SK_EventMarker_StartTimes;

@@ -1,0 +1,112 @@
+﻿/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
+#ifndef __SK__GOG_H__
+#define __SK__GOG_H__
+
+#define GALAXY_NODLL
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include <SpecialK/log.h>
+#include <SpecialK/command.h>
+
+#include <galaxy/IGalaxy.h>
+
+namespace SK
+{
+  namespace Galaxy
+  {
+    void Init     (void);
+    void Shutdown (void);
+
+    void  __stdcall SetOverlayState  (bool active);
+    bool  __stdcall GetOverlayState  (bool real);
+    bool  __stdcall IsOverlayAware   (void); // Did the game install a callback?
+
+    std::string&      AppName         (void);
+    std::string_view  PlayerName      (void);
+    std::string_view  PlayerNickname  (void);
+
+    LONGLONG GetTicksRetired (void);
+
+    float __stdcall PercentOfAchievementsUnlocked (void);
+    int   __stdcall NumberOfAchievementsUnlocked  (void);
+
+
+    // The state that we are explicitly telling the game
+    //   about, not the state of the actual overlay...
+    extern bool       overlay_state;
+  }
+}
+
+bool
+__stdcall
+SK_Galaxy_GetOverlayState (bool real);
+
+
+
+class SK_GalaxyContext
+{
+public:
+  virtual ~SK_GalaxyContext (void) noexcept
+  {
+    if (              sdk_dll_ != nullptr)
+      SK_FreeLibrary (sdk_dll_);
+  };
+
+  void PreInit                (HMODULE hGalaxyDLL);
+  //bool InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform = nullptr);
+
+  void Shutdown (bool bGameRequested = false);
+
+  galaxy::api::IStats*   Stats   (void) noexcept { return stats_;   }
+  galaxy::api::IFriends* Friends (void) noexcept { return friends_; }
+  galaxy::api::IUtils*   Utils   (void) noexcept { return utils_;   }
+
+  const char*            GetGalaxyInstallPath (void);
+  HMODULE                GetGalaxyDLL         (void) const { return sdk_dll_; }
+
+  std::string_view       GetDisplayName (void) const { return user.display_name; }
+  std::string_view       GetNickName    (void) const { return user.nickname;     }
+
+//protected:
+  struct
+  {
+    std::string display_name;
+    std::string nickname;
+  } user;
+
+private:
+  galaxy::api::IGalaxy*  galaxy_  = nullptr;
+  galaxy::api::IStats*   stats_   = nullptr;
+  galaxy::api::IFriends* friends_ = nullptr;
+  galaxy::api::IUtils*   utils_   = nullptr;
+
+  HMODULE                sdk_dll_ = nullptr;
+};
+
+extern SK_LazyGlobal <SK_GalaxyContext> gog;
+
+
+#endif /* __SK__GOG_H__ */

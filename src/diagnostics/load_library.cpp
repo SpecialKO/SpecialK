@@ -930,6 +930,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       hMod = nullptr;
     }
 
+#if 0
     // Avoid issues in OpenGL caused by GOG's overlay
     else if (StrStrIW (compliant_path, L"overlay_mediator_"))
     {
@@ -944,6 +945,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
     }
+#endif
 
     // Windows Defender likes to deadlock in the Steam Overlay
     else if (StrStrIW (compliant_path, L"Windows Defender"))

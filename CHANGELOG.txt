@@ -1,4 +1,9 @@
-﻿25.8.26
+﻿25.8.27
+=======
+ + Added initial framework for GOG Galaxy integration (achievement/overlay).
+ + Unblocked the GOG Galaxy overlay in OpenGL software.
+
+25.8.26
 =======
  + Fixed Forced Anisotropic Filtering not handling Bilinear -> Anisotropic
      filter upgrade in D3D11 (only Trilinear -> Anisotropic was handled).

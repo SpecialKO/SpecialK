@@ -3237,6 +3237,9 @@
     <ClInclude Include="include\SpecialK\storefront\xbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\storefront\gog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3867,6 +3870,9 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\storefront\xbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\gog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

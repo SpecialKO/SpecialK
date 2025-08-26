@@ -194,6 +194,7 @@ extern SK_LazyGlobal <iSK_Logger> game_debug;
 extern SK_LazyGlobal <iSK_Logger> tex_log;
 extern SK_LazyGlobal <iSK_Logger> steam_log;
 extern SK_LazyGlobal <iSK_Logger> epic_log;
+extern SK_LazyGlobal <iSK_Logger> gog_log;
 
 
 bool SK_GetStoreOverlayState (bool bReal);
