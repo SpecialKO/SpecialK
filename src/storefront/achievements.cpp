@@ -553,6 +553,65 @@ SK_Steam_FormatApiRequest ( const char *apiClass,
   return output;
 }
 
+// Downloads Steam achievement information and updates game
+//   popularity info for non-Steam games.
+//
+void
+SK_Platform_PingBackendForNonSteamGame (void)
+{
+  if (config.platform.silent)
+    return;
+
+  if (config.platform.equivalent_steam_app == -1)
+    return;
+
+  static const auto appid =
+    config.platform.equivalent_steam_app;
+
+  static const auto
+    achievements_path =
+      std::filesystem::path (
+           SK_GetConfigPath () )
+     / LR"(SK_Res/Achievements)";
+
+  static const auto
+    schema = ( achievements_path /
+             L"SchemaForGame.json" );
+
+  static std::error_code                  ec = { };
+
+  if ( static bool        checked_schema = false ;
+      (! std::exchange   (checked_schema,  true))
+  && ((! std::filesystem::exists (schema, ec)) || std::filesystem::file_time_type::clock::now ( ) -
+                                                  std::filesystem::last_write_time ( schema, ec ) > 8h) )
+  {
+    std::filesystem::create_directories (
+                  achievements_path, ec );
+
+    SK_Network_EnqueueDownload (
+      sk_download_request_s (schema,
+        SK_Steam_FormatApiRequest
+        ( "ISteamUserStats", "GetSchemaForGame", 2,
+           SK_HTTP_BundleArgs (
+           { SK_HTTP_MakeKVPair ( "appid",
+                                   appid ) }
+                              )
+        ),
+        []( const std::vector <uint8_t>&& data,
+            const std::wstring_view       file )
+        {
+          if (data.empty ())
+            return true;
+
+          std::ignore = file;
+
+          return false;
+        }
+      )
+    );
+  }
+}
+
 SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, ISteamUserStats* stats)
 {
   static const auto

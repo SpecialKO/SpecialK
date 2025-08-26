@@ -253,6 +253,7 @@ SK::Galaxy::Init (void)
 
     if (cmd != nullptr)
     {
+#if 0
       cmdAddAliasedVar (TakeScreenshot,
           SK_CreateVar (SK_IVariable::Boolean,
                           (bool *)&config.platform.achievements.take_screenshot));
@@ -274,6 +275,7 @@ SK::Galaxy::Init (void)
       cmdAddAliasedVar (PlaySound,
           SK_CreateVar (SK_IVariable::Boolean,
                           (bool *)&config.platform.achievements.play_sound));
+#endif
 
       gog->PreInit (hModGalaxy);
     }

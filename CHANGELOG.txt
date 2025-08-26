@@ -2,6 +2,15 @@
 =======
  + Added initial framework for GOG Galaxy integration (achievement/overlay).
  + Unblocked the GOG Galaxy overlay in OpenGL software.
+ + Added system to ping SK's backend server when non-Steam games are launched,
+     if a known equivalent Steam game exists.
+
+    * Uses [Platform.System] EquivalentSteamApp=... and follows the same
+        privacy policy as Steam games do.
+
+   - Currently EquivalentSteamApp is undefined; it will automatically populate
+       in the future and allow https://backend.special-k.info to aggregate
+         statistics for Epic, GOG and Microsoft Store games.
 
 25.8.26
 =======

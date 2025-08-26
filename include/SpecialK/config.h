@@ -486,6 +486,7 @@ struct sk_config_t
                                                //   control panel
     bool        silent                = false;
     bool        steam_is_b0rked       = false; // Need to swallow some exceptions or Streamline may crash games
+    int         equivalent_steam_app  = -1;    // For non-Steam games, the AppID of the same game on Steam.
   } platform;
 
   struct epic_s {
