@@ -1459,29 +1459,6 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 #endif
-#if 0
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor)
-  {
-    if ( new_desc.Filter         <= D3D11_FILTER_ANISOTROPIC       &&
-        (new_desc.Filter         >  D3D11_FILTER_MIN_MAG_MIP_POINT ||
-        (new_desc.AddressW       != D3D11_TEXTURE_ADDRESS_CLAMP    ||
-         new_desc.AddressV       != D3D11_TEXTURE_ADDRESS_CLAMP    ||
-         new_desc.AddressU       != D3D11_TEXTURE_ADDRESS_CLAMP))  &&
-         new_desc.ComparisonFunc == D3D11_COMPARISON_NEVER )
-    {
-      new_desc.Filter = D3D11_FILTER_ANISOTROPIC;
-    }
-    else if ( new_desc.Filter         <= D3D11_FILTER_ANISOTROPIC       &&
-             (new_desc.Filter         >  D3D11_FILTER_MIN_MAG_MIP_POINT ||
-             (new_desc.AddressW       == D3D11_TEXTURE_ADDRESS_CLAMP    &&
-              new_desc.AddressV       == D3D11_TEXTURE_ADDRESS_CLAMP    &&
-              new_desc.AddressU       == D3D11_TEXTURE_ADDRESS_CLAMP))  &&
-              new_desc.ComparisonFunc == D3D11_COMPARISON_NEVER )
-    {
-      new_desc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
-    }
-  }
-#endif
 #pragma endregion
 
   //
@@ -1510,6 +1487,7 @@ D3D11Dev_CreateSamplerState_Override
 
     switch (new_desc.Filter)
     {
+      // Trilinear
       case D3D11_FILTER_MIN_MAG_MIP_LINEAR:                  new_desc.Filter =
            D3D11_FILTER_ANISOTROPIC;                         break;
       case D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:       new_desc.Filter =
@@ -1518,6 +1496,9 @@ D3D11Dev_CreateSamplerState_Override
            D3D11_FILTER_MINIMUM_ANISOTROPIC;                 break;
       case D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:          new_desc.Filter =
            D3D11_FILTER_MAXIMUM_ANISOTROPIC;                 break;
+      // Bilinear
+      case D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT:            new_desc.Filter =
+           D3D11_FILTER_ANISOTROPIC;                         break;
 
       // Upgrade to trilinear Anisotropic...
       //   * Only D3D12 supports bilinear Anisotropic + Mip Nearest
