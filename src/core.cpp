@@ -3647,7 +3647,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
             std::wstring url =
               SK_FormatStringW (
-                LR"(https://www.pcgamingwiki.com/w/index.php?search=%hs)", appname.c_str ());
+                LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_UTF8ToWideChar (appname).c_str ());
 
             SK_Network_EnqueueDownload (
               sk_download_request_s (L"pcgw_entry.html", url.data (),

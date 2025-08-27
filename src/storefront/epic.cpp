@@ -1488,7 +1488,7 @@ SK::EOS::AppName (void)
       {
         std::wstring url =
           SK_FormatStringW (
-            LR"(https://www.pcgamingwiki.com/w/index.php?search=%hs)", szDisplayName);
+            LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_UTF8ToWideChar (szDisplayName).c_str ());
 
         SK_Network_EnqueueDownload (
           sk_download_request_s (L"pcgw_entry.html", url.data (),
