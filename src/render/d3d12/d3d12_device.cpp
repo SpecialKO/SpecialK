@@ -3178,7 +3178,6 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
   switch (Version)
   {
     case D3D_ROOT_SIGNATURE_VERSION_1_0:
-    case D3D_ROOT_SIGNATURE_VERSION_1_1:
     {
       if (pRootSignature != nullptr)
       {
@@ -3218,6 +3217,9 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
                    idx < pRootSignature->NumStaticSamplers ;
                    idx++ )
         {
+          if (RootSigCopy.pStaticSamplers == nullptr)
+            continue;
+
           D3D12_STATIC_SAMPLER_DESC& static_desc =
             (D3D12_STATIC_SAMPLER_DESC &)RootSigCopy.pStaticSamplers [idx];
 
@@ -3309,14 +3311,149 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
           }
         }
       }
-      break;
+    } break;
+
+    case D3D_ROOT_SIGNATURE_VERSION_1_1:
+    {
+      if (pRootSignature != nullptr)
+      {
+#if 0
+//#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+        D3D12_FEATURE_DATA_D3D12_OPTIONS19
+            opt19 ={.AnisoFilterWithPointMipSupported=0xF};
+        if (opt19.AnisoFilterWithPointMipSupported == 0xF)
+        {
+          if (FAILED (This->CheckFeatureSupport (
+            D3D12_FEATURE_D3D12_OPTIONS19, &opt19, sizeof (opt19)
+             )       )                          )
+          {
+            opt19.AnisoFilterWithPointMipSupported = FALSE;
+          }
+        }
+#endif
+
+        BOOL AnisoFilterWithPointMipSupported =
+//#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+#if 0
+        opt19.AnisoFilterWithPointMipSupported;
+#else
+        FALSE;
+        std::ignore = AnisoFilterWithPointMipSupported;
+#endif
+
+        D3D12_ROOT_SIGNATURE_DESC1
+          RootSigCopy                   = { };
+          RootSigCopy.NumParameters     = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->NumParameters;
+          RootSigCopy.pParameters       = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->pParameters;
+          RootSigCopy.NumStaticSamplers = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->NumStaticSamplers;
+          RootSigCopy.pStaticSamplers   = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->pStaticSamplers;
+          RootSigCopy.Flags             = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->Flags;
+
+        for ( UINT idx = 0U                            ;
+                   idx < RootSigCopy.NumStaticSamplers ;
+                   idx++ )
+        {
+          if (RootSigCopy.pStaticSamplers == nullptr)
+            continue;
+
+          D3D12_STATIC_SAMPLER_DESC1& static_desc =
+            (D3D12_STATIC_SAMPLER_DESC1 &)RootSigCopy.pStaticSamplers [idx];
+
+          if (config.render.d3d12.force_lod_bias != 0.0f)
+          {
+            if (static_desc.MinLOD != static_desc.MaxLOD && (static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_ALWAYS||
+                                                             static_desc.ComparisonFunc == 0||
+                                                             static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NEVER))
+            {
+              SK_LOGi1 (L"Overriding Mip LOD Bias on Static Sampler...");
+
+              static_desc.MipLODBias =
+                config.render.d3d12.force_lod_bias;
+            }
+          }
+
+          if (config.render.d3d12.force_anisotropic)
+          {
+            switch (static_desc.Filter)
+            {
+              case D3D12_FILTER_MIN_MAG_MIP_LINEAR:
+                static_desc.Filter = D3D12_FILTER_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:
+                static_desc.Filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:
+                static_desc.Filter = D3D12_FILTER_MINIMUM_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:
+                static_desc.Filter = D3D12_FILTER_MAXIMUM_ANISOTROPIC;
+                break;
+#if 0
+//#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+              case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                                      : D3D12_FILTER_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                                      : D3D12_FILTER_COMPARISON_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                                      : D3D12_FILTER_MINIMUM_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                                      : D3D12_FILTER_MAXIMUM_ANISOTROPIC;
+#else
+              case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = D3D12_FILTER_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = D3D12_FILTER_MINIMUM_ANISOTROPIC;
+                break;
+              case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+                static_desc.Filter = D3D12_FILTER_MAXIMUM_ANISOTROPIC;
+#endif
+                break;
+              default:
+                break;
+            }
+          }
+
+          switch (static_desc.Filter)
+          {
+            case D3D12_FILTER_ANISOTROPIC:
+            case D3D12_FILTER_COMPARISON_ANISOTROPIC:
+            case D3D12_FILTER_MINIMUM_ANISOTROPIC:
+            case D3D12_FILTER_MAXIMUM_ANISOTROPIC:
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+            case D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT:
+            case D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT:
+            case D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+            case D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+#endif
+              if (config.render.d3d12.max_anisotropy > 0)
+              {
+                SK_LOGi1 (L"Overriding Max Anisotropy on Static Sampler...");
+                static_desc.MaxAnisotropy = (UINT)config.render.d3d12.max_anisotropy;
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    } break;
 
 #ifdef __ID3D12Device11_INTERFACE_DEFINED__
-      case D3D_ROOT_SIGNATURE_VERSION_1_2:
-        SK_LOGi0 (L"Cannot Override Root Signature 1.2...");
+    case D3D_ROOT_SIGNATURE_VERSION_1_2:
+      SK_LOGi0 (L"Cannot Override Root Signature 1.2...");
       break;
 #endif
-    } break;
   }
 
   return

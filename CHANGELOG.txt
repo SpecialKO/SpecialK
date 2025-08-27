@@ -1,4 +1,8 @@
-﻿25.8.27.2
+﻿25.8.27.3
+=========
+ + Fix serialized root sig. 1_1 issues when overriding D3D12 texture filtering.
+
+25.8.27.2
 =========
  + Implement automatic Epic Game Store / Microsoft Store -> Steam AppId mapping
      for games without special Unicode characters in their names.
