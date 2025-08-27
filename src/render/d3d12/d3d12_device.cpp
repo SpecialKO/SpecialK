@@ -3210,18 +3210,18 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
           RootSigCopy.NumParameters     = pRootSignature->NumParameters;
           RootSigCopy.pParameters       = pRootSignature->pParameters;
           RootSigCopy.NumStaticSamplers = pRootSignature->NumStaticSamplers;
-          RootSigCopy.pStaticSamplers   = pRootSignature->pStaticSamplers;
+          RootSigCopy.pStaticSamplers   = new D3D12_STATIC_SAMPLER_DESC [pRootSignature->NumStaticSamplers];
           RootSigCopy.Flags             = pRootSignature->Flags;
 
         for ( UINT idx = 0U                                ;
                    idx < pRootSignature->NumStaticSamplers ;
                    idx++ )
         {
-          if (RootSigCopy.pStaticSamplers == nullptr)
-            continue;
-
           D3D12_STATIC_SAMPLER_DESC& static_desc =
             (D3D12_STATIC_SAMPLER_DESC &)RootSigCopy.pStaticSamplers [idx];
+
+          ((D3D12_STATIC_SAMPLER_DESC *)RootSigCopy    .pStaticSamplers) [idx] =
+          ((D3D12_STATIC_SAMPLER_DESC *)pRootSignature->pStaticSamplers) [idx];
 
           if (config.render.d3d12.force_lod_bias != 0.0f)
           {
@@ -3310,6 +3310,14 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
               break;
           }
         }
+
+        auto ret =
+          D3D12SerializeRootSignature_Original (&RootSigCopy, Version, ppBlob, ppErrorBlob);
+
+        delete [] RootSigCopy.pStaticSamplers;
+
+        if (SUCCEEDED (ret))
+                return ret;
       }
     } break;
 
@@ -3342,22 +3350,22 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
 #endif
 
         D3D12_ROOT_SIGNATURE_DESC1
-          RootSigCopy                   = { };
+          RootSigCopy                   = { };        
           RootSigCopy.NumParameters     = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->NumParameters;
           RootSigCopy.pParameters       = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->pParameters;
           RootSigCopy.NumStaticSamplers = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->NumStaticSamplers;
-          RootSigCopy.pStaticSamplers   = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->pStaticSamplers;
+          RootSigCopy.pStaticSamplers   = new D3D12_STATIC_SAMPLER_DESC [pRootSignature->NumStaticSamplers];
           RootSigCopy.Flags             = ((D3D12_ROOT_SIGNATURE_DESC1 *)pRootSignature)->Flags;
 
-        for ( UINT idx = 0U                            ;
-                   idx < RootSigCopy.NumStaticSamplers ;
+        for ( UINT idx = 0U                                ;
+                   idx < pRootSignature->NumStaticSamplers ;
                    idx++ )
         {
-          if (RootSigCopy.pStaticSamplers == nullptr)
-            continue;
+          D3D12_STATIC_SAMPLER_DESC& static_desc =
+            (D3D12_STATIC_SAMPLER_DESC &)RootSigCopy.pStaticSamplers [idx];
 
-          D3D12_STATIC_SAMPLER_DESC1& static_desc =
-            (D3D12_STATIC_SAMPLER_DESC1 &)RootSigCopy.pStaticSamplers [idx];
+          ((D3D12_STATIC_SAMPLER_DESC *)RootSigCopy    .pStaticSamplers) [idx] =
+          ((D3D12_STATIC_SAMPLER_DESC *)pRootSignature->pStaticSamplers) [idx];
 
           if (config.render.d3d12.force_lod_bias != 0.0f)
           {
@@ -3446,6 +3454,14 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
               break;
           }
         }
+
+        auto ret =
+          D3D12SerializeRootSignature_Original ((const D3D12_ROOT_SIGNATURE_DESC *)&RootSigCopy, Version, ppBlob, ppErrorBlob);
+
+        delete [] RootSigCopy.pStaticSamplers;
+
+        if (SUCCEEDED (ret))
+                return ret;
       }
     } break;
 
