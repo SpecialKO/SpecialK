@@ -1484,6 +1484,45 @@ SK::EOS::AppName (void)
           path.parent_path ().lexically_normal ();
       }
 
+      if (config.platform.equivalent_steam_app == -1)
+      {
+        std::wstring url =
+          SK_FormatStringW (
+            LR"(https://www.pcgamingwiki.com/w/index.php?search=%hs)", szDisplayName);
+
+        SK_Network_EnqueueDownload (
+          sk_download_request_s (L"pcgw_entry.html", url.data (),
+            []( const std::vector <uint8_t>&& data,
+                const std::wstring_view       file )
+            {
+              if (data.empty ())
+                return true;
+
+              std::ignore = file;
+
+              auto steamdb_appid =
+                StrStrIA ((const char *)data.data (), "https://steamdb.info/app/");
+
+              if (steamdb_appid != nullptr)
+              {
+                if (1 != sscanf (steamdb_appid, "https://steamdb.info/app/%d/", &config.platform.equivalent_steam_app))
+                {
+                  config.platform.equivalent_steam_app = 0;
+                }
+              }
+
+              if (config.platform.equivalent_steam_app != -1)
+              {
+                void SK_Platform_PingBackendForNonSteamGame (void);
+                     SK_Platform_PingBackendForNonSteamGame ();
+              }
+
+              return true;
+            } ),
+          true
+        );
+      }
+
       app_cache_mgr->saveAppCache       ();
       app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
 
@@ -1495,7 +1534,7 @@ SK::EOS::AppName (void)
     {
       epic_log->Log (L"App Name Parse Failure: %hs", e.what ());
     }
-  }
+  }  
 
   return
     name;

@@ -1,4 +1,9 @@
-﻿25.8.27.1
+﻿25.8.27.2
+=========
+ + Implement automatic Epic Game Store / Microsoft Store -> Steam AppId mapping
+     for games without special Unicode characters in their names.
+
+25.8.27.1
 =========
  + Implement automatic GOG gameId -> Steam AppId mapping.
 

@@ -3638,6 +3638,50 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         }
 
         SK_RunOnce (rb.gsync_state.update (true));
+
+        if (config.platform.equivalent_steam_app == -1)
+        {
+          SK_RunOnce (
+            auto appname =
+              SK_GetFriendlyAppName ();
+
+            std::wstring url =
+              SK_FormatStringW (
+                LR"(https://www.pcgamingwiki.com/w/index.php?search=%hs)", appname.c_str ());
+
+            SK_Network_EnqueueDownload (
+              sk_download_request_s (L"pcgw_entry.html", url.data (),
+                []( const std::vector <uint8_t>&& data,
+                    const std::wstring_view       file )
+                {
+                  if (data.empty ())
+                    return true;
+
+                  std::ignore = file;
+
+                  auto steamdb_appid =
+                    StrStrIA ((const char *)data.data (), "https://steamdb.info/app/");
+
+                  if (steamdb_appid != nullptr)
+                  {
+                    if (1 != sscanf (steamdb_appid, "https://steamdb.info/app/%d/", &config.platform.equivalent_steam_app))
+                    {
+                      config.platform.equivalent_steam_app = 0;
+                    }
+                  }
+
+                  if (config.platform.equivalent_steam_app != -1)
+                  {
+                    void SK_Platform_PingBackendForNonSteamGame (void);
+                         SK_Platform_PingBackendForNonSteamGame ();
+                  }
+
+                  return true;
+                } ),
+              false
+            );
+          );
+        }
       }
     } break;
   }
