@@ -1,4 +1,8 @@
-﻿25.8.27
+﻿25.8.27.1
+=========
+ + Implement automatic GOG gameId -> Steam AppId mapping.
+
+25.8.27
 =======
  + Added initial framework for GOG Galaxy integration (achievement/overlay).
  + Unblocked the GOG Galaxy overlay in OpenGL software.

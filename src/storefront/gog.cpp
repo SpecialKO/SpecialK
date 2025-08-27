@@ -25,6 +25,8 @@
 #include <storefront/gog.h>
 #include <storefront/achievements.h>
 
+#include <json/json.hpp>
+
 #include <galaxy/IListenerRegistrar.h>
 #include <galaxy/IUtils.h>
 
@@ -225,6 +227,128 @@ SK::Galaxy::Init (void)
 {
   if (config.platform.silent)
     return;
+
+  int             gog_gameId =  0;
+  WIN32_FIND_DATA fd         = {};
+
+  auto _FindGameInfo = [&](const wchar_t* wszPattern)
+  {
+    HANDLE hFind =
+      FindFirstFileW (wszPattern, &fd);
+
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+      do
+      {
+        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+        {
+          if (1 == swscanf (fd.cFileName, L"goggame-%d.info", &gog_gameId))
+          {
+            gog_log->Log (
+              L"GOG gameId: %d", gog_gameId
+            );
+
+            if (config.platform.equivalent_steam_app == -1)
+            {
+              std::wstring url =
+                SK_FormatStringW (
+                  LR"(https://www.pcgamingwiki.com/w/api.php?action=cargoquery&format=json&tables=Infobox_game&fields=Steam_AppID&where=GOGcom_ID+HOLDS+%%27%d%%27)",
+                                                                                                                                       gog_gameId
+                );
+
+              SK_Network_EnqueueDownload (
+                sk_download_request_s (L"pcgw_appid_map.json", url.data (),
+                  []( const std::vector <uint8_t>&& data,
+                      const std::wstring_view       file )
+                  {
+                    if (data.empty ())
+                      return true;
+
+                    std::ignore = file;
+
+                    try {
+                      gog_log->Log (L"PCGW Queried Data: %hs", data.data ());
+
+                      nlohmann::json json =
+                        std::move (
+                          nlohmann::json::parse ( data.cbegin (),
+                                                  data.cend   (), nullptr, true )
+                        );
+
+                      for ( auto& query : json ["cargoquery"] )
+                      {
+                        if ( query.contains ("title") &&
+                             query.at       ("title").contains ("Steam AppID") )
+                        {
+                          config.platform.equivalent_steam_app =
+                            atoi (
+                              query.at ("title").
+                                    at ("Steam AppID").
+                                    get <std::string_view> ().
+                                                      data () );
+                          break;
+                        }
+                      }
+
+                      gog_log->Log (L"Steam AppID: %d", config.platform.equivalent_steam_app);
+
+                      if (config.platform.equivalent_steam_app != -1)
+                      {
+                        void SK_Platform_PingBackendForNonSteamGame (void);
+                             SK_Platform_PingBackendForNonSteamGame ();
+                      }
+
+                      else
+                      {
+                        config.platform.equivalent_steam_app = 0;
+                      }
+                    }
+
+                    catch (const std::exception& e)
+                    {
+                      if (config.system.log_level > 0)
+                      {
+#ifdef __CPP20
+                        const auto&& src_loc =
+                          std::source_location::current ();
+
+                        steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                                     src_loc.file_name     (),
+                                                     src_loc.line          (),
+                                                     src_loc.column        (), e.what ());
+                        steam_log->Log (L"%hs",      src_loc.function_name ());
+                        steam_log->Log (L"%hs",
+                          std::format ( std::string ("{:*>") +
+                                     std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                        std::ignore = e;
+#endif
+                      }
+                    }
+
+                    return true;
+                  }
+                )
+              );
+            }
+
+            break;
+          }
+        }
+      } while (FindNextFileW (hFind, &fd) != 0);
+
+      FindClose (hFind);
+    }
+  };
+
+  if (config.platform.equivalent_steam_app == -1)
+  {
+    // Stupid way of dealing with Unreal Engine games
+                               _FindGameInfo (         L"goggame-*.info");
+    if     (gog_gameId == 0) { _FindGameInfo (      L"../goggame-*.info");
+      if   (gog_gameId == 0) { _FindGameInfo (   L"../../goggame-*.info");
+        if (gog_gameId == 0) { _FindGameInfo (L"../../../goggame-*.info"); } } }
+  }
 
   const wchar_t*
     wszGalaxyDLLName =

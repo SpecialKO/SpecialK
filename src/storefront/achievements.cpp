@@ -562,8 +562,11 @@ SK_Platform_PingBackendForNonSteamGame (void)
   if (config.platform.silent)
     return;
 
-  if (config.platform.equivalent_steam_app == -1)
+  if (config.platform.equivalent_steam_app == -1 ||
+      config.platform.equivalent_steam_app ==  0)
+  {
     return;
+  }
 
   static const auto appid =
     config.platform.equivalent_steam_app;
