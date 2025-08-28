@@ -85,7 +85,7 @@ struct SK_DLSS_Context
     static bool hasPresetsAThroughD (void) { return ( Version.major  < 3   ||   
                                                       Version.major >= 310 || ( Version.major == 3   && ( Version.minor <  8 || ( Version.minor == 8 && Version.build <=  9 ) ) ) ); };
     static bool hasPresetsAThroughE (void) { return ( hasPresetsAThroughD()&&
-                                                     (Version.major  < 310 || ( Version.minor  < 3 )                                                                            ) ); };
+                                                     (Version.major  < 310 || ( Version.minor  < 4 )                                                                            ) ); };
     static bool hasPresetJ          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >= 1                                                  ) ) ); };
     static bool hasPresetK          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >  2 || ( Version.minor == 2 && Version.build >=  1 ) ) ) ); };
 

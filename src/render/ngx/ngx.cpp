@@ -344,15 +344,14 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 
     else if (config.nvidia.dlss.forced_preset != -1)
     {
-      // Deprecated, not removed yet
-      //if (! SK_DLSS_Context::dlss_s::hasPresetsAThroughE ())
-      //{
-      //  if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
-      //      config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
-      //  {
-      //    config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
-      //  }
-      //}
+      if (! SK_DLSS_Context::dlss_s::hasPresetsAThroughE ())
+      {
+        if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
+            config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
+        {
+          config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
+        }
+      }
 
       if (! SK_DLSS_Context::dlss_s::hasPresetsAThroughD ())
       {
@@ -1876,11 +1875,11 @@ SK_NGX_DLSS_ControlPanel (void)
                                       "Override: K\0\0"
                                     : "Game Default\0"
                                       "DLSS Default\0"
-                                      "Override: A (Deprecated)\0"
-                                      "Override: B (Deprecated)\0"
-                                      "Override: C (Deprecated)\0"
-                                      "Override: D (Deprecated)\0"
-                                      "Override: E (Deprecated)\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
                                       "Override: F\0"
                                       "Override: G (Invalid)\0"
                                       "Override: J\0"
@@ -1898,11 +1897,11 @@ SK_NGX_DLSS_ControlPanel (void)
                                       "Override: J\0\0"
                                     : "Game Default\0"
                                       "DLSS Default\0"
-                                      "Override: A (Deprecated)\0"
-                                      "Override: B (Deprecated)\0"
-                                      "Override: C (Deprecated)\0"
-                                      "Override: D (Deprecated)\0"
-                                      "Override: E (Deprecated)\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
                                       "Override: F\0"
                                       "Override: G (Invalid)\0"
                                       "Override: J\0\0"
@@ -1933,15 +1932,14 @@ SK_NGX_DLSS_ControlPanel (void)
 
           if (config.nvidia.dlss.forced_preset != -1)
           {
-            // Deprecated, not removed yet
-            //if (! bHasPresetA)
-            //{
-            //  if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
-            //      config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
-            //  {
-            //    config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
-            //  }
-            //}
+            if (! bHasPresetA)
+            {
+              if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
+                  config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
+              {
+                config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
+              }
+            }
 
             NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
           }
@@ -1953,7 +1951,7 @@ SK_NGX_DLSS_ControlPanel (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::IsItemHovered () && bHasPresetA)
         {
           ImGui::BeginTooltip    ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));

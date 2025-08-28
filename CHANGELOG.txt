@@ -1,4 +1,9 @@
-﻿25.8.28
+﻿25.8.28.1
+=========
+ + Remove DLSS Preset A, B, C, D, E options when users are using DLSS ver.
+     >= 310.4.0, since NVIDIA has forgotten their ABC's.
+
+25.8.28
 =======
  + Fixed potential rounding errors in Latent Sync's scanline timing and set
      new default anti-roll to 0 ticks.
