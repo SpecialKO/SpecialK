@@ -574,6 +574,26 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
               (float)strtof (&cmd_args.c_str ()[2], nullptr);
           }
           /* Assign */
+          else if (     cmd_args.find ('/') != std::string::npos)
+          {
+            if ( cmd_word == "BackgroundFPS" ||
+                 cmd_word == "TargetFPS"     )
+            {
+              int numerator = 1, denominator = 1;
+
+              sscanf (cmd_args.c_str (), "%i/%i", &numerator, &denominator);
+
+              if (denominator != 0)
+              {
+                float_val = static_cast <float> (
+                  ( SK_GetCurrentRenderBackend ()
+                      . getActiveRefreshRate   ()
+                      * numerator
+                  ) / denominator
+                );
+              }
+            }
+          }
           else
             float_val = (float)strtof (cmd_args.c_str (), nullptr);
 

@@ -118,6 +118,16 @@ enum SK_FrametimeMethod
   SK_FrametimeMeasures_NewFrameBegin = 2
 };
 
+enum SK_TearingMode
+{
+  AlwaysOn             = 0,
+  AlwaysOff            = 1,
+  AlwaysOff_LowLatency = 2,
+  AdaptiveOn           = 3,
+  AdaptiveOff          = 4, // Adaptive VSync
+  AppControlled        = SK_NoPreference
+};
+
 struct sk_config_t
 {
   sk_config_t (void)
@@ -729,6 +739,8 @@ struct sk_config_t
       } rescan_;
       int     refresh_denom       =     1;
       int     pin_render_thread   = SK_NoPreference;
+      int     tearing_mode        = SK_TearingMode::AppControlled;
+      bool    turn_vsync_off      = false; // Turns VSync Off in Adaptive VSync mode
       bool    flip_discard        =  true; // Enabled by default (7/6/21)
       bool    flip_sequential     = false;
       bool    disable_flip        = false;
@@ -781,7 +793,7 @@ struct sk_config_t
             }, L"ToggleFCATBars"
           };
         int   scanline_offset      =    -1;
-        int   scanline_resync      =  1000;
+        int   scanline_resync      = 30000;
         float delay_bias           =  0.0f;
         bool  auto_bias            = false;
         float max_auto_bias        =  0.5f;
