@@ -688,7 +688,6 @@ SK_ImGui_LatentSyncConfig (void)
       ImGui::Text     ("Flip Time:       ");
       ImGui::Text     ("Busy Wait %%:    ");
       ImGui::Text     ("");
-      ImGui::Text     ("Anti-Roll:       ");
       if (config.render.framerate.latent_sync.delay_bias != 0.0f)
         ImGui::Text   ("Latency Boost:   ");
     }
@@ -1421,6 +1420,20 @@ SK::Framerate::Limiter::try_wait (void)
 extern ZwSetTimerResolution_pfn
        ZwSetTimerResolution_Original;
 
+void
+SK_Framerate_SanitizeTimerResolution (void)
+{
+  auto _SetTimerResolution =
+    ( ZwSetTimerResolution_Original != nullptr ) ?
+      ZwSetTimerResolution_Original              :
+      ZwSetTimerResolution;
+
+  ULONG set = (ULONG)(10000.0 * SK::Framerate::Limiter::timer_res_ms),
+                                     current = 0;
+  _SetTimerResolution (10000, TRUE, &current);
+  _SetTimerResolution (set,   TRUE, &current);
+}
+
 void SK_Framerate_SetPowerThrottlingPolicy (bool always_high_res)
 {
   // Disable Windows 11 process resolution tinkering when the game is in the background
@@ -1724,6 +1737,8 @@ SK::Framerate::Limiter::wait (void)
     {
       rb.d3d11.immediate_ctx->Flush ();
     }
+
+    SK_Framerate_SanitizeTimerResolution ();
 
     // Create an unnamed waitable timer.
     if (! timer_wait.isValid ())
@@ -2852,6 +2867,8 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
 {
   if (llQPC < SK_QueryPerf ().QuadPart)
     return;
+
+  SK_Framerate_SanitizeTimerResolution ();
 
   if ((LONG_PTR)hTimer < 0)
   {             hTimer = SK_HasHighResWaitableTimer ?
