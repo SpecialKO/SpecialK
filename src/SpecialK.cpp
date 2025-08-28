@@ -239,6 +239,9 @@ SK_KeepAway (void)
   const bool xbox =
     ((StrStrIW (wszAppFullName, L"\\Content\\") != nullptr) || PathFileExistsW (L"gamelaunchhelper.exe"));
 
+  if (xbox)
+    config.platform.type = SK_Platform_Xbox;
+
   auto _TestUndesirableDll = [&]
    (const std::initializer_list <constexpr_module_s>& list,
                                                   INT list_type) ->
@@ -1334,13 +1337,23 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       bool is_gog_game =
         (! is_steamworks_game) && (! is_epic_game)    &&
         (! is_microsoft_game ) && (! is_ubisoft_game) &&
-           SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games)") != nullptr;
+          (SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games)") != nullptr ||
+           PathFileExistsW (L"gog.ico"));
 
       bool is_origin_game =
         (! is_steamworks_game) && (! is_epic_game)    && (! is_gog_game) &&
         (! is_microsoft_game ) && (! is_ubisoft_game) &&
            SK_Path_wcsstr (wszProcessName, LR"(Origin Games\)") != nullptr;
 
+      if (! wcscmp (config.platform.type.c_str (), SK_Platform_Unknown))
+      {
+             if (is_epic_game)       config.platform.type = SK_Platform_Epic;
+        else if (is_steamworks_game) config.platform.type = SK_Platform_Steam;
+        else if (is_microsoft_game)  config.platform.type = SK_Platform_Xbox;
+        else if (is_gog_game)        config.platform.type = SK_Platform_GOG;
+        else if (is_origin_game)     config.platform.type = SK_Platform_Origin;
+        else if (is_ubisoft_game)    config.platform.type = SK_Platform_Ubisoft;
+      }
 
       if (! is_steamworks_game)
       {

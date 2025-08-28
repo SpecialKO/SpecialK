@@ -721,6 +721,7 @@ struct
     sk::ParameterStringW* notify_corner           = nullptr;
     sk::ParameterBool*    reuse_overlay_pause     = nullptr;
     sk::ParameterInt*     equivalent_steam_app    = nullptr;
+    sk::ParameterStringW* type                    = nullptr;
   } system;
 } platform;
 
@@ -2309,6 +2310,7 @@ auto DeclKeybind =
     ConfigEntry (platform.system.notify_corner,          L"Overlay Notification Position  (non-Big Picture Mode)",     dll_ini,         L"Platform.System",       L"NotifyCorner"),
     ConfigEntry (platform.system.reuse_overlay_pause,    L"Pause Overlay Aware games when control panel is visible",   dll_ini,         L"Platform.System",       L"ReuseOverlayPause"),
     ConfigEntry (platform.system.equivalent_steam_app,   L"The Steam AppID for this non-Steam game if it exists",      dll_ini,         L"Platform.System",       L"EquivalentSteamApp"),
+    ConfigEntry (platform.system.type,                   L"String identifying the detected store for this game",       dll_ini,         L"Platform.System",       L"Type"),
 
     ConfigEntry (steam.system.appid,                     L"Steam AppID",                                               dll_ini,         L"Steam.System",          L"AppID"),
     ConfigEntry (steam.system.init_delay,                L"Delay SteamAPI initialization if the game doesn't do it",   dll_ini,         L"Steam.System",          L"AutoInitDelay"),
@@ -5935,6 +5937,7 @@ auto DeclKeybind =
 
   platform.system.reuse_overlay_pause->load   (config.platform.reuse_overlay_pause);
   platform.system.equivalent_steam_app->load  (config.platform.equivalent_steam_app);
+  platform.system.type->load                  (config.platform.type);
   platform.overlay.hdr_luminance->load        (config.platform.overlay_hdr_luminance);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
   galaxy.overlay.hdr_luminance->load          (config.galaxy.overlay_luminance);
@@ -7434,6 +7437,7 @@ SK_SaveConfig ( std::wstring name,
                     SK_Steam_PopupOriginToWStr (config.platform.notify_corner));
   platform.system.reuse_overlay_pause->store   (config.platform.reuse_overlay_pause);
   platform.system.equivalent_steam_app->store  (config.platform.equivalent_steam_app);
+  platform.system.type->store                  (config.platform.type);
   platform.log.silent->store                   (config.platform.silent);
   platform.overlay.hdr_luminance->store        (config.platform.overlay_hdr_luminance);
 

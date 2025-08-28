@@ -801,6 +801,11 @@ SK_EOS_Platform_Tick (EOS_HPlatform Handle)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
+  if (config.steam.appid == 0 && !wcscmp (config.platform.type.c_str (), SK_Platform_Unknown))
+  {
+    config.platform.type = SK_Platform_Epic;
+  }
+
   // Temporarily incompatible
   SK_RunOnce (config.platform.reuse_overlay_pause = false);
   SK_RunOnce (epic_log->Log (L"EOS_Platform_Tick"));
@@ -1534,7 +1539,7 @@ SK::EOS::AppName (void)
     {
       epic_log->Log (L"App Name Parse Failure: %hs", e.what ());
     }
-  }  
+  }
 
   return
     name;

@@ -1,4 +1,14 @@
-﻿25.8.28.1
+﻿25.8.28.2
+=========
+ + Identify a game's storefront platform as (and record in INI) one of:
+
+     Steam, Epic, GOG, Xbox, Origin, Ubisoft or Unknown
+
+    Also include this identifier when querying achievement metadata from
+      Special K's backend server in order to identify which stores are
+        being used for what games.
+
+25.8.28.1
 =========
  + Remove DLSS Preset A, B, C, D, E options when users are using DLSS ver.
      >= 310.4.0, since NVIDIA has forgotten their ABC's.

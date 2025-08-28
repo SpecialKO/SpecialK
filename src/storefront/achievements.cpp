@@ -597,7 +597,9 @@ SK_Platform_PingBackendForNonSteamGame (void)
         ( "ISteamUserStats", "GetSchemaForGame", 2,
            SK_HTTP_BundleArgs (
            { SK_HTTP_MakeKVPair ( "appid",
-                                   appid ) }
+                                   appid ),
+             SK_HTTP_MakeKVPair ( "platform",
+                                   SK_WideCharToUTF8 (config.platform.type).data () ) }
                               )
         ),
         []( const std::vector <uint8_t>&& data,
@@ -645,6 +647,11 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
   static bool          once = false;
   if (! std::exchange (once, true))
   {
+    if (stats != nullptr || SK::SteamAPI::GetCallbacksRun () > 0)
+    {
+      config.platform.type = SK_Platform_Steam;
+    }
+
     static concurrency::concurrent_unordered_set <uint64_t> friends;
     static concurrency::concurrent_unordered_set <uint64_t> friends_who_own;
     static concurrency::concurrent_unordered_set <uint64_t> friends_processed;
@@ -1062,7 +1069,9 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
         ( "ISteamUserStats", "GetSchemaForGame", 2,
            SK_HTTP_BundleArgs (
            { SK_HTTP_MakeKVPair ( "appid",
-                      config.steam.appid ) }
+                      config.steam.appid ),
+             SK_HTTP_MakeKVPair ( "platform",
+                                  "Steam" ) }
                               )
         ),
         []( const std::vector <uint8_t>&& data,

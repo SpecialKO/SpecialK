@@ -42,6 +42,14 @@ static constexpr int SK_NoPreference = -1;
 static constexpr int SK_Disabled     =  0;
 static constexpr int SK_Enabled      =  1;
 
+static constexpr wchar_t* SK_Platform_Unknown = L"Unknown";
+static constexpr wchar_t* SK_Platform_Steam   = L"Steam";
+static constexpr wchar_t* SK_Platform_Epic    = L"Epic";
+static constexpr wchar_t* SK_Platform_GOG     = L"GOG";
+static constexpr wchar_t* SK_Platform_Xbox    = L"Xbox";
+static constexpr wchar_t* SK_Platform_Origin  = L"Origin";
+static constexpr wchar_t* SK_Platform_Ubisoft = L"Ubisoft";
+
 enum {
   SK_HDR_CLIPBOARD_FORMAT_NONE = 0,
   SK_HDR_CLIPBOARD_FORMAT_PNG  = 1,
@@ -487,6 +495,8 @@ struct sk_config_t
     bool        silent                = false;
     bool        steam_is_b0rked       = false; // Need to swallow some exceptions or Streamline may crash games
     int         equivalent_steam_app  = -1;    // For non-Steam games, the AppID of the same game on Steam.
+    std::wstring
+                type                  =  SK_Platform_Unknown;
   } platform;
 
   struct epic_s {

@@ -348,6 +348,11 @@ SK::Galaxy::Init (void)
     if     (gog_gameId == 0) { _FindGameInfo (      L"../goggame-*.info");
       if   (gog_gameId == 0) { _FindGameInfo (   L"../../goggame-*.info");
         if (gog_gameId == 0) { _FindGameInfo (L"../../../goggame-*.info"); } } }
+
+    if (gog_gameId != 0)
+    {
+      config.platform.type = SK_Platform_GOG;
+    }
   }
 
   const wchar_t*
