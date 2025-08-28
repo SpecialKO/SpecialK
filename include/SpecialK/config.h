@@ -767,7 +767,6 @@ struct sk_config_t
           };
         int   scanline_offset      =    -1;
         int   scanline_resync      =  1000;
-        int   scanline_error       =     0;
         float delay_bias           =  0.0f;
         bool  auto_bias            = false;
         float max_auto_bias        =  0.5f;

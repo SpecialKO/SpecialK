@@ -2063,7 +2063,6 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Engine",      L"OverrideCPUCoreCount"),
     ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
     ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
-    ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
     ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.LatentSync",  L"AutoBias"),
       ConfigEntry (render.framerate.latent_sync.
@@ -4727,7 +4726,6 @@ auto DeclKeybind =
 
   render.framerate.latent_sync.offset->load   (config.render.framerate.latent_sync.scanline_offset);
   render.framerate.latent_sync.resync->load   (config.render.framerate.latent_sync.scanline_resync);
-  render.framerate.latent_sync.error->load    (config.render.framerate.latent_sync.scanline_error);
   render.framerate.latent_sync.bias->load     (config.render.framerate.latent_sync.delay_bias);
   render.framerate.latent_sync.auto_bias->load(config.render.framerate.latent_sync.auto_bias);
   render.framerate.latent_sync.max_auto_bias
@@ -7080,7 +7078,6 @@ SK_SaveConfig ( std::wstring name,
 
     render.framerate.latent_sync.offset->store    (config.render.framerate.latent_sync.scanline_offset);
     render.framerate.latent_sync.resync->store    (config.render.framerate.latent_sync.scanline_resync);
-    render.framerate.latent_sync.error->store     (config.render.framerate.latent_sync.scanline_error);
     render.framerate.latent_sync.bias->store      (config.render.framerate.latent_sync.delay_bias);
     render.framerate.latent_sync.auto_bias->store (config.render.framerate.latent_sync.auto_bias);
     render.framerate.latent_sync.max_auto_bias

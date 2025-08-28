@@ -619,16 +619,6 @@ SK_ImGui_LatentSyncConfig (void)
             config.render.framerate.latent_sync.scanline_resync);
         }
 
-        if ( ImGui::SliderInt ( "Anti-Roll",
-                                  &config.render.framerate.latent_sync.scanline_error,
-                                    0, 2, (config.render.framerate.latent_sync.scanline_error != 1) ?
-                                                                                 "%d Clock Ticks" :
-                                                                                 "%d Clock Tick" )
-           )
-        {
-          __scanline.lock.requestResync ();
-        }
-
         ImGui::InputFloat ("Retire Stats",  &__SK_LatentSync_SwapSecs, 0.1f, 1.0f, "After %.3f Seconds");
 
         if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
@@ -732,9 +722,6 @@ SK_ImGui_LatentSyncConfig (void)
                                  static_cast <double> (SK_PerfTicksPerMs)) * 10000.0);
       ImGui::Text       ("%3.1f%%", wait_time.getBusyPercent ());
       ImGui::Text       ("");
-      ImGui::Text       ((const char *)u8"%5.2f μs",
-                                (static_cast <double> (config.render.framerate.latent_sync.scanline_error) /
-                                 static_cast <double> (SK_PerfTicksPerMs)) * 10000.0);
       if (config.render.framerate.latent_sync.delay_bias != 0.0f)
         ImGui::Text     ("-%5.2f ms",
                                 (static_cast <double> (__SK_LatentSyncPostDelay) /
@@ -1358,13 +1345,6 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
     auto const pDisplay =
       &rb.displays [rb.active_display];
 
-    if (pDisplay->signal.timing.vsync_freq.Numerator > 0)
-    {
-      ticks_per_frame +=
-        ( ticks_per_frame / ( (ULONGLONG)round ((double)( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
-                                                (double)  pDisplay->signal.timing.vsync_freq.Numerator ) ) ) * config.render.framerate.latent_sync.scanline_error;
-    }
-
     if (pDisplay->signal.timing.vsync_freq.Numerator > 0 &&
         next_vsync > now - (ULONGLONG)round ((double)(pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq * 120) /
                                              (double)(pDisplay->signal.timing.vsync_freq.Numerator)))
@@ -1926,8 +1906,6 @@ SK::Framerate::Limiter::wait (void)
                   modf ( static_cast <double> (SK_PerfFreq) /
                          static_cast <double> (fps),     &dTicksPerFrame );
           ticks_per_frame  = sk::narrow_cast <ULONGLONG> (dTicksPerFrame);
-          ticks_per_frame +=
-            ( ticks_per_frame / ticks_per_refresh ) * config.render.framerate.latent_sync.scanline_error;
 
           __SK_LatentSync_FrameInterval = ticks_per_frame;
 
