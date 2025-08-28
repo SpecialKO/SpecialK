@@ -4947,5 +4947,7 @@
     <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
+    <FxCompile Include="resource\shaders\galaxy_d3d11_ps.hlsl" />
+    <FxCompile Include="resource\shaders\galaxy_d3d11_vs.hlsl" />
   </ItemGroup>
 </Project>

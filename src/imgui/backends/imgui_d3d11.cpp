@@ -31,6 +31,9 @@
 #include <shaders/discord_d3d11_vs.h>
 #include <shaders/discord_d3d11_ps.h>
 
+#include <shaders/galaxy_d3d11_vs.h>
+#include <shaders/galaxy_d3d11_ps.h>
+
 #include <shaders/uplay_d3d11_vs.h>
 #include <shaders/uplay_d3d11_ps.h>
 
@@ -58,12 +61,14 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
   ID3D11VertexShader*       pVertexShader           = nullptr;
   ID3D11VertexShader*       pVertexShaderSteamHDR   = nullptr;
   ID3D11VertexShader*       pVertexShaderDiscordHDR = nullptr;
+  ID3D11VertexShader*       pVertexShaderGalaxyHDR  = nullptr;
   ID3D11VertexShader*       pVertexShaderRTSSHDR    = nullptr;
   ID3D11VertexShader*       pVertexShaderuPlayHDR   = nullptr;
   ID3D11VertexShader*       pVertexShaderEpicHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderuPlayHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderSteamHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderDiscordHDR  = nullptr;
+  ID3D11PixelShader*        pPixelShaderGalaxyHDR   = nullptr;
   ID3D11InputLayout*        pInputLayout            = nullptr;
   ID3D11Buffer*             pVertexConstantBuffer   = nullptr;
   ID3D11Buffer*             pPixelConstantBuffer    = nullptr;
@@ -939,11 +944,12 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
     E_NOT_VALID_STATE;
 }
 
-#define STEAM_OVERLAY_VS_CRC32C  0xf48cf597
-#define STEAM_OVERLAY_VS2_CRC32C 0x749795c1
+#define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
+#define STEAM_OVERLAY_VS2_CRC32C  0x749795c1
 #define EPIC_OVERLAY_VS_CRC32C    0xa7ee5199
 #define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
 #define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
+#define GALAXY_OVERLAY_VS_CRC32C  0x04d27db4
 
 HRESULT
 SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
@@ -1034,6 +1040,26 @@ SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
 
     return
       S_OK;
+  }
+
+  if ( _P->pVertexShaderGalaxyHDR != nullptr &&
+       _P->pVertexConstantBuffer  != nullptr &&
+       _P->pPixelShaderGalaxyHDR  != nullptr    )
+  {
+    if (crc32 == GALAXY_OVERLAY_VS_CRC32C)
+    {
+      config.galaxy.present = true;
+      pDevCtx->VSSetShader          ( _P->pVertexShaderGalaxyHDR,
+                                        nullptr, 0 );
+      pDevCtx->PSSetShader          ( _P->pPixelShaderGalaxyHDR,
+                                      nullptr, 0 );
+      pDevCtx->VSSetConstantBuffers ( 0, 1,
+                                      &_P->pVertexConstantBuffer );
+      pfnD3D11Draw ( pDevCtx, VertexCount, StartVertexLocation );
+
+      return
+        S_OK;
+    }
   }
 
   return
@@ -1149,6 +1175,17 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                       nullptr, &_P->pVertexShaderDiscordHDR));
       SK_D3D11_SetDebugName (                   _P->pVertexShaderDiscordHDR,
                                 L"Discord Overlay HDR Vertex Shader");
+    }
+
+    if (_P->pVertexShaderGalaxyHDR == nullptr)
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(galaxy_d3d11_vs_bytecode),
+                                    sizeof (galaxy_d3d11_vs_bytecode) /
+                                    sizeof (galaxy_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShaderGalaxyHDR));
+      SK_D3D11_SetDebugName (                   _P->pVertexShaderGalaxyHDR,
+                                L"GOG Galaxy Overlay HDR Vertex Shader");
     }
 
     if (_P->pVertexShaderRTSSHDR == nullptr)
@@ -1274,6 +1311,17 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                       nullptr, &_P->pPixelShaderDiscordHDR ));
       SK_D3D11_SetDebugName (                   _P->pPixelShaderDiscordHDR,
                                  L"Discord Overlay HDR Pixel Shader");
+    }
+
+    if (_P->pPixelShaderGalaxyHDR == nullptr)
+    {
+      ThrowIfFailed (
+        pDev->CreatePixelShader ( (void *) (galaxy_d3d11_ps_bytecode),
+                                    sizeof (galaxy_d3d11_ps_bytecode) /
+                                    sizeof (galaxy_d3d11_ps_bytecode [0]),
+                                      nullptr, &_P->pPixelShaderGalaxyHDR ));
+      SK_D3D11_SetDebugName (                   _P->pPixelShaderGalaxyHDR,
+                                 L"GOG Galaxy Overlay HDR Pixel Shader");
     }
 
     if (_P->pPixelShaderuPlayHDR == nullptr)
@@ -1626,6 +1674,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
     if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
     if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
+    if (_P->pPixelShaderGalaxyHDR)   { _ReleaseAndCountRefs (&_P->pPixelShaderGalaxyHDR);   assert (refs == 0); }
     if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
     if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
     if (_P->pPixelConstantBufferFont){ _ReleaseAndCountRefs (&_P->pPixelConstantBufferFont);assert (refs == 0); }
@@ -1633,6 +1682,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
     if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }
     if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
+    if (_P->pVertexShaderGalaxyHDR ) { _ReleaseAndCountRefs (&_P->pVertexShaderGalaxyHDR);  assert (refs == 0); }
     if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
     if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
     if (_P->pVertexShaderEpicHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderEpicHDR);    assert (refs == 0); }

@@ -3723,6 +3723,14 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           );
         }
 
+        if (config.galaxy.present)
+        {
+          HDRLuminanceSlider (
+            "GOG Galaxy Overlay Luminance###GALAXY_LUMINANCE", config.galaxy.overlay_luminance,
+                                                                  rb.display_gamut.maxAverageY
+          );
+        }
+
         static bool uplay_overlay = false;
 
         if ((! uplay_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))

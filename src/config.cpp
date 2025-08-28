@@ -768,6 +768,13 @@ struct {
   struct
   {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
+  } overlay;
+} galaxy;
+
+struct {
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
     sk::ParameterBool*    allow_windowed_mode     = nullptr;
   } overlay;
 } discord;
@@ -1690,6 +1697,7 @@ auto DeclKeybind =
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
     ConfigEntry (reshade_cfg.overlay.hdr_luminance,      L"Make the ReShade Overlay visible in HDR mode!",             osd_ini,         L"ReShade.Overlay",       L"Luminance_scRGB"),
+    ConfigEntry (galaxy.overlay.hdr_luminance,           L"Make the Galaxy Overlay visible in HDR mode!",              osd_ini,         L"Galaxy.Overlay",        L"Luminance_scRGB"),
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
     ConfigEntry (discord.overlay.allow_windowed_mode,    L"Allow Discord to composite a Win32 window over the game?",  osd_ini,         L"Discord.Overlay",       L"AllowWindowedMode"),
 
@@ -2065,7 +2073,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
     ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.LatentSync",  L"AutoBias"),
-      ConfigEntry (render.framerate.latent_sync.
+    ConfigEntry (render.framerate.latent_sync.
                                        auto_bias_target, L"Target input latency (in milliseconds or %) for auto-bias", dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTarget"),
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
@@ -5929,6 +5937,7 @@ auto DeclKeybind =
   platform.system.equivalent_steam_app->load  (config.platform.equivalent_steam_app);
   platform.overlay.hdr_luminance->load        (config.platform.overlay_hdr_luminance);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
+  galaxy.overlay.hdr_luminance->load          (config.galaxy.overlay_luminance);
   rtss.overlay.hdr_luminance->load            (config.rtss.overlay_luminance);
   discord.overlay.hdr_luminance->load         (config.discord.overlay_luminance);
   discord.overlay.allow_windowed_mode->load   (config.discord.allow_windowed_mode);
@@ -7454,6 +7463,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.avif.compression_speed->store    (config.screenshots.avif.compression_speed);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
+  galaxy.overlay.hdr_luminance->store          (config.galaxy.overlay_luminance);
   rtss.overlay.hdr_luminance->store            (config.rtss.overlay_luminance);
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
   discord.overlay.allow_windowed_mode->store   (config.discord.allow_windowed_mode);
