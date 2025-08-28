@@ -1361,13 +1361,13 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
     if (pDisplay->signal.timing.vsync_freq.Numerator > 0)
     {
       ticks_per_frame +=
-        ( ticks_per_frame / ( ( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
-                                pDisplay->signal.timing.vsync_freq.Numerator ) ) * config.render.framerate.latent_sync.scanline_error;
+        ( ticks_per_frame / ( (ULONGLONG)round ((double)( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
+                                                (double)  pDisplay->signal.timing.vsync_freq.Numerator ) ) ) * config.render.framerate.latent_sync.scanline_error;
     }
 
     if (pDisplay->signal.timing.vsync_freq.Numerator > 0 &&
-        next_vsync > now - (pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq * 120) /
-                           (pDisplay->signal.timing.vsync_freq.Numerator))
+        next_vsync > now - (ULONGLONG)round ((double)(pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq * 120) /
+                                             (double)(pDisplay->signal.timing.vsync_freq.Numerator)))
     {
 #if 0
       SK_ImGui_Warning (SK_FormatStringW (L"VSync Freq: %5.2f Hz, HSync Freq: %5.2f kHz",
@@ -1380,8 +1380,8 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
       while (next_vsync < now)
       {
         next_vsync +=
-          ( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
-          ( pDisplay->signal.timing.vsync_freq.Numerator                 );
+          (ULONGLONG)round ((double)( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
+                            (double)( pDisplay->signal.timing.vsync_freq.Numerator                 ));
       }
     }
 
@@ -1601,13 +1601,13 @@ SK::Framerate::Limiter::wait (void)
       &rb.displays [rb.active_display];
 
 
-  LONGLONG ticks_per_scanline = (pDisplay->signal.timing.hsync_freq.Numerator > 0) ?
-    (pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq) /
-    (pDisplay->signal.timing.hsync_freq.Numerator)                                 : 1;
+  auto ticks_per_scanline = (pDisplay->signal.timing.hsync_freq.Numerator > 0) ?
+   (LONGLONG)round ((double)(pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq) /
+                    (double)(pDisplay->signal.timing.hsync_freq.Numerator))    : 1;
 
-  LONGLONG ticks_per_refresh  = (pDisplay->signal.timing.vsync_freq.Numerator > 0) ?
-    (pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq) /
-    (pDisplay->signal.timing.vsync_freq.Numerator)                                 : 1;
+  auto ticks_per_refresh  = (pDisplay->signal.timing.vsync_freq.Numerator > 0) ?
+   (LONGLONG)round ((double)(pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq) /
+                    (double)(pDisplay->signal.timing.vsync_freq.Numerator))    : 1;
 
 
   if (! standalone)
@@ -2179,8 +2179,8 @@ SK::Framerate::Limiter::wait (void)
               if (pDisplay->signal.timing.hsync_freq.Numerator > 0)
               {
                 ticks_per_scanline =
-                  ( pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq ) /
-                    pDisplay->signal.timing.hsync_freq.Numerator;
+                  (LONGLONG)round ((double)( pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq ) /
+                                   (double)  pDisplay->signal.timing.hsync_freq.Numerator);
               }
 
               if (D3DKMTGetScanLine != nullptr && ticks_per_scanline > 0)

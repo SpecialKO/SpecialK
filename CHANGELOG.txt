@@ -1,4 +1,9 @@
-﻿25.8.27.3
+﻿25.8.28
+=======
+ + Fixed potential rounding errors in Latent Sync's scanline timing and set
+     new default anti-roll to 0 ticks.
+
+25.8.27.3
 =========
  + Fix serialized root sig. 1_1 issues when overriding D3D12 texture filtering.
 
