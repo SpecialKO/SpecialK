@@ -2,6 +2,8 @@
 =======
  + Fixed potential rounding errors in Latent Sync's scanline timing and set
      new default anti-roll to 0 ticks.
+ + Change Latent Sync's default auto-bias mode to % latency and set default
+     maximum auto-bias adjust to 50%.
 
 25.8.27.3
 =========
