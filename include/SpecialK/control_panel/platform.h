@@ -42,4 +42,6 @@ bool SK_Platform_SetOverlayState (bool active      ); // Returns the previous st
 bool SK_Platform_IsOverlayAware  (void);
 void SK_Platform_SetNotifyCorner (void);
 
+int32_t SK_Platform_GetNumPlayers (void);
+
 #endif /* __SK__CPL_PLATFORM_H__ */

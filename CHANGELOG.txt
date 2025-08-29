@@ -1,4 +1,10 @@
-﻿25.8.28.2
+﻿25.8.29
+=======
+ + Download achievement lock/unlock icons for non-Steam games.
+ + Augment non-Steam games with achievement rarity info from Steam.
+ + Add in-game Player Count to bottom of SK's control panel for Epic/GOG/Xbox.
+
+25.8.28.2
 =========
  + Identify a game's storefront platform as (and record in INI) one of:
 

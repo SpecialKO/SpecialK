@@ -401,6 +401,31 @@ SK::ControlPanel::Platform::Draw (void)
     return true;
   }
 
+  else
+  {
+    auto num_players =
+      SK_Platform_GetNumPlayers ();
+
+    if (num_players > 1)
+    {
+      ImGui::Separator ();
+
+      static char szNumber       [16] = { };
+      static char szPrettyNumber [32] = { };
+
+      const NUMBERFMTA fmt = { 0, 0, 3, (char *)".", (char *)",", 0 };
+
+      snprintf (szNumber, 15, "%i", num_players);
+
+      GetNumberFormatA ( MAKELCID (LOCALE_USER_DEFAULT, SORT_DEFAULT),
+                           0x00,
+                             szNumber, &fmt,
+                               szPrettyNumber, 32 );
+
+      ImGui::Text       (" %s Players in-Game  ", szPrettyNumber);
+    }
+  }
+
   return false;
 }
 
