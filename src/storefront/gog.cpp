@@ -298,7 +298,7 @@ SK::Galaxy::Init (void)
                       gog_log->Log (L"Steam AppID: %d", config.platform.equivalent_steam_app);
 
                       if (config.platform.equivalent_steam_app != -1)
-                      {
+                      {   config.utility.save_async ();
                         void SK_Platform_PingBackendForNonSteamGame (void);
                              SK_Platform_PingBackendForNonSteamGame ();
                       }

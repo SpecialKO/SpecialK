@@ -1338,7 +1338,9 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         (! is_steamworks_game) && (! is_epic_game)    &&
         (! is_microsoft_game ) && (! is_ubisoft_game) &&
           (SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games)") != nullptr ||
-           PathFileExistsW (L"gog.ico"));
+           SK_Path_wcsstr (wszProcessName, LR"(GOG Games)")        != nullptr ||
+           PathFileExistsW (L"gog.ico")                                       ||
+           PathFileExistsW (L"goggame-galaxyFileList.ini"));
 
       bool is_origin_game =
         (! is_steamworks_game) && (! is_epic_game)    && (! is_gog_game) &&

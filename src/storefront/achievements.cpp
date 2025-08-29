@@ -553,6 +553,99 @@ SK_Steam_FormatApiRequest ( const char *apiClass,
   return output;
 }
 
+int32_t
+SK_Platform_GetNumPlayers (void)
+{
+  static int32_t players = 0;
+
+  if (config.platform.silent)
+    return players;
+
+  if (config.platform.equivalent_steam_app == -1 ||
+      config.platform.equivalent_steam_app ==  0)
+  {
+    return players;
+  }
+
+  const auto now =
+    std::filesystem::file_time_type::clock::now ();
+
+  static auto last_checked = now - 2h;
+
+  if (now > last_checked + 1h)
+  {
+    last_checked = now;
+
+    static SK_LazyGlobal <nlohmann::json> json;
+    static std::error_code                ec = { };
+
+    static const auto
+      achievements_path =
+        std::filesystem::path (
+             SK_GetConfigPath () )
+       / LR"(SK_Res/Achievements)";
+
+    static const auto
+      num_players = ( achievements_path /
+                    L"NumberOfPlayers.json" );
+
+    std::filesystem::create_directories (
+                  achievements_path, ec );
+
+    SK_Network_EnqueueDownload (
+      sk_download_request_s (num_players,
+        SK_Steam_FormatApiRequest
+        ( "ISteamUserStats", "GetNumberOfCurrentPlayers", 1,
+           SK_HTTP_BundleArgs (
+           { SK_HTTP_MakeKVPair ( "appid",
+                                   config.platform.equivalent_steam_app ),
+             SK_HTTP_MakeKVPair ( "platform",
+                                   SK_WideCharToUTF8 (config.platform.type).data () ),
+             SK_HTTP_MakeKVPair ( "sk_version",
+                                  SK_GetVersionStrA () ) }
+                              )
+        ),[]( const std::vector <uint8_t>&& data,
+              const std::wstring_view       file )
+        {
+          if (data.empty ())
+            return true;
+
+          std::ignore = file;
+
+          try
+          {
+            json.get () = std::move
+              ( nlohmann::json::parse
+                ( data.cbegin (),
+                    data.cend (),
+                         nullptr,
+                         true   )  );
+
+            auto jsonPlayers =
+              json.get ();
+
+            if (jsonPlayers.count ("response") &&
+                jsonPlayers       ["response"].count ("player_count"))
+            {
+              players =
+                jsonPlayers ["response"]["player_count"].get <int> ();
+            }
+          }
+
+          catch (const std::exception& e)
+          {
+            std::ignore = e;
+          }
+
+          return false;
+        }
+      )
+    );
+  }
+
+  return players;
+}
+
 // Downloads Steam achievement information and updates game
 //   popularity info for non-Steam games.
 //
@@ -581,7 +674,62 @@ SK_Platform_PingBackendForNonSteamGame (void)
     schema = ( achievements_path /
              L"SchemaForGame.json" );
 
+  static const auto
+    global_stats = ( achievements_path /
+                   L"GlobalStatsForGame.json" );
+
+  static SK_LazyGlobal <nlohmann::json>   json;
   static std::error_code                  ec = { };
+
+  static const auto _DownloadIcons = [](const nlohmann::basic_json <>& achievement)
+  {
+    const auto szName =
+      achievement ["name"].get <std::string_view> ().data ();
+
+    std::filesystem::path unlock_img (achievements_path /
+        SK_FormatString ("Unlocked_%s.jpg", szName));
+    std::filesystem::path   lock_img (achievements_path /
+        SK_FormatString   ("Locked_%s.jpg", szName));
+
+    if (! std::filesystem::exists (unlock_img, ec)) SK_Network_EnqueueDownload (
+            sk_download_request_s (unlock_img, achievement ["icon"    ].get <std::string_view> ().data ()), true);
+    if (! std::filesystem::exists (lock_img,   ec)) SK_Network_EnqueueDownload (
+            sk_download_request_s (lock_img,   achievement ["icongray"].get <std::string_view> ().data ()), true);
+  };
+
+  if ( static bool        checked_global_stats = false ;
+      (! std::exchange   (checked_global_stats,  true))
+  && ((! std::filesystem::exists (global_stats, ec)) || std::filesystem::file_time_type::clock::now ( ) -
+                                                        std::filesystem::last_write_time ( global_stats, ec ) > 8h) )
+  {
+    std::filesystem::create_directories (
+                  achievements_path, ec );
+
+    SK_Network_EnqueueDownload (
+      sk_download_request_s (global_stats,
+        SK_Steam_FormatApiRequest
+        ( "ISteamUserStats", "GetGlobalAchievementPercentagesForApp", 2,
+           SK_HTTP_BundleArgs (
+           { SK_HTTP_MakeKVPair ( "gameid",
+                                   appid ),
+             SK_HTTP_MakeKVPair ( "platform",
+                                   SK_WideCharToUTF8 (config.platform.type).data () ),
+             SK_HTTP_MakeKVPair ( "sk_version",
+                                  SK_GetVersionStrA () ) }
+                              )
+        ),[]( const std::vector <uint8_t>&& data,
+              const std::wstring_view       file )
+        {
+          if (data.empty ())
+            return true;
+
+          std::ignore = file;
+
+          return false;
+        }
+      )
+    );
+  }
 
   if ( static bool        checked_schema = false ;
       (! std::exchange   (checked_schema,  true))
@@ -612,9 +760,62 @@ SK_Platform_PingBackendForNonSteamGame (void)
 
           std::ignore = file;
 
+          try
+          {
+            json.get () = std::move
+            ( nlohmann::json::parse
+              ( data.cbegin (),
+                  data.cend (),
+                       nullptr,
+                       true   )  );
+
+            const auto& game_ =
+              json.get ()["game"];
+
+            // We can get Epic's icons a different way...
+            if (config.platform.type != SK_Platform_Epic)
+            {
+              if (game_.
+                  contains ("availableGameStats"))
+              { const auto&  availableGameStats_ =
+                  game_.at ("availableGameStats");
+
+                if (availableGameStats_.
+                    contains (              "achievements"))
+                { const auto&                achievements_ =
+                    availableGameStats_.at ("achievements");
+                  for ( auto & achievement : achievements_ )
+                  { _DownloadIcons (
+                               achievement
+                    );
+                  }
+                }
+              }
+            }
+          }
+
+          catch (const std::exception& e)
+          {
+#ifdef __CPP20
+            const auto&& src_loc =
+              std::source_location::current ();
+
+            steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                         src_loc.file_name     (),
+                                         src_loc.line          (),
+                                         src_loc.column        (), e.what ());
+            steam_log->Log (L"%hs",      src_loc.function_name ());
+            steam_log->Log (L"%hs",
+              std::format ( std::string ("{:*>") +
+                         std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+            std::ignore = e;
+#endif
+          }
+
           return false;
         }
-      )
+      ), true
     );
   }
 }
@@ -654,345 +855,42 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
       config.platform.type = SK_Platform_Steam;
     }
 
+    if (config.platform.achievements.pull_friend_stats)
+    {
     static concurrency::concurrent_unordered_set <uint64_t> friends;
     static concurrency::concurrent_unordered_set <uint64_t> friends_who_own;
     static concurrency::concurrent_unordered_set <uint64_t> friends_processed;
 
-    std::error_code                                      ec = { };
-    if ( std::filesystem::exists          (friend_stats, ec) &&
-         std::filesystem::file_time_type::clock::now ( ) -
-         std::filesystem::last_write_time (friend_stats, ec) < 8h )
-    {
-      try {
-        nlohmann::json jsonFriends =
-          std::move (
-            nlohmann::json::parse (
-              std::ifstream (friend_stats), nullptr, true
-            )
-          );
-
-        for ( const auto& friend_ : jsonFriends ["friends"] )
-        {
-          friends_who_own.insert (
-            (uint64_t)std::atoll (
-              friend_ ["steamid"].get <std::string_view> ().data ()
-            )
-          );
-        }
-      }
-
-      catch (const std::exception& e)
+      std::error_code                                      ec = { };
+      if ( std::filesystem::exists          (friend_stats, ec) &&
+           std::filesystem::file_time_type::clock::now ( ) -
+           std::filesystem::last_write_time (friend_stats, ec) < 8h )
       {
-        if (! std::filesystem::remove (friend_stats, ec))
-        {
-          steam_log->Log (L"Error while managing friend ownership file, %hs", ec.message ().c_str ());
-        }
-
-#ifdef __CPP20
-        const auto&& src_loc =
-          std::source_location::current ();
-
-        steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
-                                     src_loc.file_name     (),
-                                     src_loc.line          (),
-                                     src_loc.column        (), e.what ());
-        steam_log->Log (L"%hs",      src_loc.function_name ());
-        steam_log->Log (L"%hs",
-          std::format ( std::string ("{:*>") +
-                     std::to_string (src_loc.column        ()), 'x').c_str ());
-#else
-        std::ignore = e;
-#endif
-      }
-
-      for ( const auto& friend_id : friends_who_own )
-      {
-        SK_Network_EnqueueDownload (
-          sk_download_request_s ( std::to_wstring (friend_id),
-            SK_Steam_FormatApiRequest (
-              "ISteamUserStats", "GetPlayerAchievements", 1,
-               SK_HTTP_BundleArgs (
-              {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
-               SK_HTTP_MakeKVPair ("appid",   config.steam.appid)})
-            ),
-          []( const std::vector <uint8_t>&& data,
-              const std::wstring_view       file )
-          {
-            std::ignore = file;
-
-            if (! data.empty ())
-            {
-              if (config.system.log_level > 0)
-              { steam_log->Log ( L"%hs",
-                   std::string ( data.data (),
-                                 data.data () + data.size ()
-                               ).c_str () );
-              }
-
-              try {
-                nlohmann::json jsonAchieved =
-                  std::move (
-                    nlohmann::json::parse ( data.cbegin (),
-                                            data.cend   (), nullptr, true )
-                  );
-              }
-
-              catch (const std::exception& e)
-              {
-                if (config.system.log_level > 0)
-                {
-#ifdef __CPP20
-                  const auto&& src_loc =
-                    std::source_location::current ();
-
-                  steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
-                                               src_loc.file_name     (),
-                                               src_loc.line          (),
-                                               src_loc.column        (), e.what ());
-                  steam_log->Log (L"%hs",      src_loc.function_name ());
-                  steam_log->Log (L"%hs",
-                    std::format ( std::string ("{:*>") +
-                               std::to_string (src_loc.column        ()), 'x').c_str ());
-#else
-                  std::ignore = e;
-#endif
-                }
-              }
-
-              SK_SleepEx (1UL, FALSE);
-            }
-
-            else
-            {
-              steam_log->Log (
-                L"Unknown Achievement Status for %ws", file.data ()
-              );
-              SK_SleepEx (2UL, FALSE);
-            }
-
-            return true;
-          })
-        );
-      }
-    }
-
-
-    else
-    {
-      SK_Network_EnqueueDownload (
-      sk_download_request_s (friend_stats, url.c_str (),
-      []( const std::vector <uint8_t>&& data,
-          const std::wstring_view       file )
-      {
-        if (data.empty ())
-          return true;
-
-        std::ignore = file;
-
         try {
           nlohmann::json jsonFriends =
             std::move (
-              nlohmann::json::parse ( data.cbegin (),
-                                      data.cend   (), nullptr, true )
+              nlohmann::json::parse (
+                std::ifstream (friend_stats), nullptr, true
+              )
             );
 
-          for ( const auto& friend_ : jsonFriends ["friendslist"]["friends"] )
+          for ( const auto& friend_ : jsonFriends ["friends"] )
           {
-                   const uint64_t
-                 friend_id =  sk::
-            narrow_cast <uint64_t> (
-              std::atoll (
-                &friend_ ["steamid"].get
-                < std::string_view >( )[0]
-                         )         );
-
-            friends.insert (friend_id);
-
-            SK_Network_EnqueueDownload (
-              sk_download_request_s ( std::to_wstring (friend_id),
-                SK_Steam_FormatApiRequest (
-                  "IPlayerService", "GetOwnedGames", 1,
-                   SK_HTTP_BundleArgs (
-                  {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
-                   SK_HTTP_MakeKVPair ("appid",   config.steam.appid)}) ),
-              []( const std::vector <uint8_t>&& data,
-                  const std::wstring_view       file )
-              {
-                if (data.empty ())
-                  return true;
-
-                auto steam_friends =
-                 steam_ctx.Friends ();
-
-                try
-                {
-                  nlohmann::json jsonOwned =
-                    std::move (
-                      nlohmann::json::parse ( data.cbegin (),
-                                              data.cend   (), nullptr, true )
-                    );
-
-                  uint64_t _friend_id =
-                      (uint64_t)std::wcstoll (file.data (), nullptr, 10);
-
-                  if (jsonOwned.count ("response")                      &&
-                      jsonOwned       ["response"].count ("game_count") &&
-                      jsonOwned       ["response"]       ["game_count"].get <int> () != 0)
-                  {
-                    friends_who_own.insert (_friend_id);
-
-                    steam_log->Log (L"Friend: %hs owns this game...",
-                      steam_friends == nullptr ? "Unknown (SteamAPI Malfunction)" :
-                      steam_friends->GetFriendPersonaName (CSteamID (_friend_id))
-                    );
-                  }
-
-                  friends_processed.insert (_friend_id);
-
-                  SK_SleepEx (3UL, FALSE);
-                }
-
-                catch (const std::exception& e)
-                {
-#ifdef __CPP20
-                  const auto&& src_loc =
-                    std::source_location::current ();
-
-                  steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
-                                               src_loc.file_name     (),
-                                               src_loc.line          (),
-                                               src_loc.column        (), e.what ());
-                  steam_log->Log (L"%hs",      src_loc.function_name ());
-                  steam_log->Log (L"%hs",
-                    std::format ( std::string ("{:*>") +
-                               std::to_string (src_loc.column        ()), 'x').c_str ());
-#else
-                  std::ignore = e;
-#endif
-                }
-
-                if (friends_processed.size () == friends.size ())
-                {
-                  static std::atomic <size_t> idx = 0;
-                  static nlohmann::json root_owner;
-
-                  for ( const auto& friend_id : friends_who_own )
-                  {
-                    const std::wstring wszFriendId =
-                        std::to_wstring (friend_id);
-
-                    SK_Network_EnqueueDownload (
-                      sk_download_request_s (wszFriendId,
-                        SK_Steam_FormatApiRequest
-                        ( "ISteamUserStats", "GetPlayerAchievements", 1,
-                           SK_HTTP_BundleArgs (
-                          {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
-                           SK_HTTP_MakeKVPair ("appid",   config.steam.appid)})
-                        ),
-                      []( const std::vector <uint8_t>&& data,
-                          const std::wstring_view       file )
-                      {
-                        //steam_log->Log (L"%hs", std::string (data.data (), data.data () + data.size ()).c_str ());
-
-                        try
-                        {
-                          const size_t idx_ =
-                            idx.fetch_add (1);
-
-                          root_owner ["friends"][idx_]["steamid"] =
-                            SK_WideCharToUTF8 (file.data ()).c_str ();
-
-                          if (! data.empty ())
-                          {
-                            nlohmann::json jsonAchieved =
-                              std::move (
-                                nlohmann::json::parse ( data.cbegin (),
-                                                        data.cend   (), nullptr, true )
-                              );
-
-                            if ( jsonAchieved.contains ("playerstats") &&
-                                 jsonAchieved          ["playerstats"].contains ("achievements") )
-                            {
-                              const auto& achievements_ =
-                                jsonAchieved ["playerstats"]["achievements"];
-
-                              for ( const auto& achievement : achievements_ )
-                              {
-                                auto& cached_achievement =
-                                  root_owner ["friends"][idx_]["achievements"][achievement ["apiname"].get <std::string_view> ().data ()];
-
-                                if ( ( achievement.contains ("unlocktime") && achievement ["unlocktime"].get <int> () != 0 ) ||
-                                     ( achievement.contains ("achieved" )  && achievement ["achieved"  ].get <int> () != 0 )  )
-                                {
-                                  cached_achievement ["achieved"]   = true;
-                                  cached_achievement ["unlocktime"] = achievement ["unlocktime"].get <int> ();
-                                }
-
-                                else
-                                {
-                                  cached_achievement ["achieved"]   = false;
-                                  cached_achievement ["unlocktime"] = 0;
-                                }
-                              }
-                            }
-
-                            // (i.e. {"playerstats":{"error":"Profile is not public","success":false}})
-                            else
-                            {
-                              if (jsonAchieved.contains ("playerstats") && jsonAchieved ["playerstats"].contains ("error"))
-                                root_owner ["friends"][idx_]["error"] = jsonAchieved ["playerstats"]["error"].get <std::string_view> ().data ();
-                              else
-                                root_owner ["friends"][idx_]["state"] = std::string ((char *)data.data ());
-                            }
-                          }
-
-                          else
-                          {
-                            root_owner ["friends"][idx_]["error"] = "Null Steam WebAPI Response";
-                            steam_log->Log (L"Unknown Achievement Status for %ws", file.data ());
-                          }
-                        }
-
-                        catch (const std::exception& e)
-                        {
-#ifdef __CPP20
-                          const auto&& src_loc =
-                            std::source_location::current ();
-
-                          steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
-                                                       src_loc.file_name     (),
-                                                       src_loc.line          (),
-                                                       src_loc.column        (), e.what ());
-                          steam_log->Log (L"%hs",      src_loc.function_name ());
-                          steam_log->Log (L"%hs",
-                            std::format ( std::string ("{:*>") +
-                                       std::to_string (src_loc.column        ()), 'x').c_str ());
-#else
-                          std::ignore = e;
-#endif
-                        }
-
-                        if (idx == friends_who_own.size ())
-                        {
-                          std::ofstream (friend_stats) << root_owner;
-                        }
-
-                        SK_SleepEx (2UL, FALSE);
-
-                        return true;
-                      })
-                    );
-                  }
-                }
-
-                return true;
-              })
+            friends_who_own.insert (
+              (uint64_t)std::atoll (
+                friend_ ["steamid"].get <std::string_view> ().data ()
+              )
             );
           }
         }
 
         catch (const std::exception& e)
         {
+          if (! std::filesystem::remove (friend_stats, ec))
+          {
+            steam_log->Log (L"Error while managing friend ownership file, %hs", ec.message ().c_str ());
+          }
+
 #ifdef __CPP20
           const auto&& src_loc =
             std::source_location::current ();
@@ -1010,8 +908,313 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
 #endif
         }
 
-        return true;
-      }));
+        for ( const auto& friend_id : friends_who_own )
+        {
+          SK_Network_EnqueueDownload (
+            sk_download_request_s ( std::to_wstring (friend_id),
+              SK_Steam_FormatApiRequest (
+                "ISteamUserStats", "GetPlayerAchievements", 1,
+                 SK_HTTP_BundleArgs (
+                {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
+                 SK_HTTP_MakeKVPair ("appid",   config.steam.appid)})
+              ),
+            []( const std::vector <uint8_t>&& data,
+                const std::wstring_view       file )
+            {
+              std::ignore = file;
+
+              if (! data.empty ())
+              {
+                if (config.system.log_level > 0)
+                { steam_log->Log ( L"%hs",
+                     std::string ( data.data (),
+                                   data.data () + data.size ()
+                                 ).c_str () );
+                }
+
+                try {
+                  nlohmann::json jsonAchieved =
+                    std::move (
+                      nlohmann::json::parse ( data.cbegin (),
+                                              data.cend   (), nullptr, true )
+                    );
+                }
+
+                catch (const std::exception& e)
+                {
+                  if (config.system.log_level > 0)
+                  {
+#ifdef __CPP20
+                    const auto&& src_loc =
+                      std::source_location::current ();
+
+                    steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                                 src_loc.file_name     (),
+                                                 src_loc.line          (),
+                                                 src_loc.column        (), e.what ());
+                    steam_log->Log (L"%hs",      src_loc.function_name ());
+                    steam_log->Log (L"%hs",
+                      std::format ( std::string ("{:*>") +
+                                 std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                    std::ignore = e;
+#endif
+                  }
+                }
+
+                SK_SleepEx (1UL, FALSE);
+              }
+
+              else
+              {
+                steam_log->Log (
+                  L"Unknown Achievement Status for %ws", file.data ()
+                );
+                SK_SleepEx (2UL, FALSE);
+              }
+
+              return true;
+            })
+          );
+        }
+      }
+
+      else
+      {
+        SK_Network_EnqueueDownload (
+        sk_download_request_s (friend_stats, url.c_str (),
+        []( const std::vector <uint8_t>&& data,
+            const std::wstring_view       file )
+        {
+          if (data.empty ())
+            return true;
+
+          std::ignore = file;
+
+          try {
+            nlohmann::json jsonFriends =
+              std::move (
+                nlohmann::json::parse ( data.cbegin (),
+                                        data.cend   (), nullptr, true )
+              );
+
+            for ( const auto& friend_ : jsonFriends ["friendslist"]["friends"] )
+            {
+                     const uint64_t
+                   friend_id =  sk::
+              narrow_cast <uint64_t> (
+                std::atoll (
+                  &friend_ ["steamid"].get
+                  < std::string_view >( )[0]
+                           )         );
+
+              friends.insert (friend_id);
+
+              SK_Network_EnqueueDownload (
+                sk_download_request_s ( std::to_wstring (friend_id),
+                  SK_Steam_FormatApiRequest (
+                    "IPlayerService", "GetOwnedGames", 1,
+                     SK_HTTP_BundleArgs (
+                    {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
+                     SK_HTTP_MakeKVPair ("appid",   config.steam.appid)}) ),
+                []( const std::vector <uint8_t>&& data,
+                    const std::wstring_view       file )
+                {
+                  if (data.empty ())
+                    return true;
+
+                  auto steam_friends =
+                   steam_ctx.Friends ();
+
+                  try
+                  {
+                    nlohmann::json jsonOwned =
+                      std::move (
+                        nlohmann::json::parse ( data.cbegin (),
+                                                data.cend   (), nullptr, true )
+                      );
+
+                    uint64_t _friend_id =
+                        (uint64_t)std::wcstoll (file.data (), nullptr, 10);
+
+                    if (jsonOwned.count ("response")                      &&
+                        jsonOwned       ["response"].count ("game_count") &&
+                        jsonOwned       ["response"]       ["game_count"].get <int> () != 0)
+                    {
+                      friends_who_own.insert (_friend_id);
+
+                      steam_log->Log (L"Friend: %hs owns this game...",
+                        steam_friends == nullptr ? "Unknown (SteamAPI Malfunction)" :
+                        steam_friends->GetFriendPersonaName (CSteamID (_friend_id))
+                      );
+                    }
+
+                    friends_processed.insert (_friend_id);
+
+                    SK_SleepEx (3UL, FALSE);
+                  }
+
+                  catch (const std::exception& e)
+                  {
+#ifdef __CPP20
+                    const auto&& src_loc =
+                      std::source_location::current ();
+
+                    steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                                 src_loc.file_name     (),
+                                                 src_loc.line          (),
+                                                 src_loc.column        (), e.what ());
+                    steam_log->Log (L"%hs",      src_loc.function_name ());
+                    steam_log->Log (L"%hs",
+                      std::format ( std::string ("{:*>") +
+                                 std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                    std::ignore = e;
+#endif
+                  }
+
+                  if (friends_processed.size () == friends.size ())
+                  {
+                    static std::atomic <size_t> idx = 0;
+                    static nlohmann::json root_owner;
+
+                    for ( const auto& friend_id : friends_who_own )
+                    {
+                      const std::wstring wszFriendId =
+                          std::to_wstring (friend_id);
+
+                      SK_Network_EnqueueDownload (
+                        sk_download_request_s (wszFriendId,
+                          SK_Steam_FormatApiRequest
+                          ( "ISteamUserStats", "GetPlayerAchievements", 1,
+                             SK_HTTP_BundleArgs (
+                            {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
+                             SK_HTTP_MakeKVPair ("appid",   config.steam.appid)})
+                          ),
+                        []( const std::vector <uint8_t>&& data,
+                            const std::wstring_view       file )
+                        {
+                          //steam_log->Log (L"%hs", std::string (data.data (), data.data () + data.size ()).c_str ());
+
+                          try
+                          {
+                            const size_t idx_ =
+                              idx.fetch_add (1);
+
+                            root_owner ["friends"][idx_]["steamid"] =
+                              SK_WideCharToUTF8 (file.data ()).c_str ();
+
+                            if (! data.empty ())
+                            {
+                              nlohmann::json jsonAchieved =
+                                std::move (
+                                  nlohmann::json::parse ( data.cbegin (),
+                                                          data.cend   (), nullptr, true )
+                                );
+
+                              if ( jsonAchieved.contains ("playerstats") &&
+                                   jsonAchieved          ["playerstats"].contains ("achievements") )
+                              {
+                                const auto& achievements_ =
+                                  jsonAchieved ["playerstats"]["achievements"];
+
+                                for ( const auto& achievement : achievements_ )
+                                {
+                                  auto& cached_achievement =
+                                    root_owner ["friends"][idx_]["achievements"][achievement ["apiname"].get <std::string_view> ().data ()];
+
+                                  if ( ( achievement.contains ("unlocktime") && achievement ["unlocktime"].get <int> () != 0 ) ||
+                                       ( achievement.contains ("achieved" )  && achievement ["achieved"  ].get <int> () != 0 )  )
+                                  {
+                                    cached_achievement ["achieved"]   = true;
+                                    cached_achievement ["unlocktime"] = achievement ["unlocktime"].get <int> ();
+                                  }
+
+                                  else
+                                  {
+                                    cached_achievement ["achieved"]   = false;
+                                    cached_achievement ["unlocktime"] = 0;
+                                  }
+                                }
+                              }
+
+                              // (i.e. {"playerstats":{"error":"Profile is not public","success":false}})
+                              else
+                              {
+                                if (jsonAchieved.contains ("playerstats") && jsonAchieved ["playerstats"].contains ("error"))
+                                  root_owner ["friends"][idx_]["error"] = jsonAchieved ["playerstats"]["error"].get <std::string_view> ().data ();
+                                else
+                                  root_owner ["friends"][idx_]["state"] = std::string ((char *)data.data ());
+                              }
+                            }
+
+                            else
+                            {
+                              root_owner ["friends"][idx_]["error"] = "Null Steam WebAPI Response";
+                              steam_log->Log (L"Unknown Achievement Status for %ws", file.data ());
+                            }
+                          }
+
+                          catch (const std::exception& e)
+                          {
+#ifdef __CPP20
+                            const auto&& src_loc =
+                              std::source_location::current ();
+
+                            steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                                         src_loc.file_name     (),
+                                                         src_loc.line          (),
+                                                         src_loc.column        (), e.what ());
+                            steam_log->Log (L"%hs",      src_loc.function_name ());
+                            steam_log->Log (L"%hs",
+                              std::format ( std::string ("{:*>") +
+                                         std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                            std::ignore = e;
+#endif
+                          }
+
+                          if (idx == friends_who_own.size ())
+                          {
+                            std::ofstream (friend_stats) << root_owner;
+                          }
+
+                          SK_SleepEx (2UL, FALSE);
+
+                          return true;
+                        })
+                      );
+                    }
+                  }
+
+                  return true;
+                })
+              );
+            }
+          }
+
+          catch (const std::exception& e)
+          {
+#ifdef __CPP20
+            const auto&& src_loc =
+            std::source_location::current ();
+
+            steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                         src_loc.file_name     (),
+                                         src_loc.line          (),
+                                         src_loc.column        (), e.what ());
+            steam_log->Log (L"%hs",      src_loc.function_name ());
+            steam_log->Log (L"%hs",
+              std::format ( std::string ("{:*>") +
+                         std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+            std::ignore = e;
+#endif
+          }
+
+          return true;
+        }));
+      }
     }
   }
 
