@@ -248,6 +248,11 @@ SK::Galaxy::Init (void)
               L"GOG gameId: %d", gog_gameId
             );
 
+            if (gog_gameId != 0)
+            {
+              config.platform.type = SK_Platform_GOG;
+            }
+
             if (config.platform.equivalent_steam_app == -1)
             {
               std::wstring url =
@@ -344,10 +349,12 @@ SK::Galaxy::Init (void)
   if (config.platform.equivalent_steam_app == -1)
   {
     // Stupid way of dealing with Unreal Engine games
-                               _FindGameInfo (         L"goggame-*.info");
-    if     (gog_gameId == 0) { _FindGameInfo (      L"../goggame-*.info");
-      if   (gog_gameId == 0) { _FindGameInfo (   L"../../goggame-*.info");
-        if (gog_gameId == 0) { _FindGameInfo (L"../../../goggame-*.info"); } } }
+                                   _FindGameInfo (               L"goggame-*.info");
+    if         (gog_gameId == 0) { _FindGameInfo (            L"../goggame-*.info");
+      if       (gog_gameId == 0) { _FindGameInfo (         L"../../goggame-*.info");
+        if     (gog_gameId == 0) { _FindGameInfo (      L"../../../goggame-*.info");
+          if   (gog_gameId == 0) { _FindGameInfo (   L"../../../../goggame-*.info");
+            if (gog_gameId == 0) { _FindGameInfo (L"../../../../../goggame-*.info"); } } } } }
 
     if (gog_gameId != 0)
     {

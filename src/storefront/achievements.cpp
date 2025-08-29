@@ -599,7 +599,9 @@ SK_Platform_PingBackendForNonSteamGame (void)
            { SK_HTTP_MakeKVPair ( "appid",
                                    appid ),
              SK_HTTP_MakeKVPair ( "platform",
-                                   SK_WideCharToUTF8 (config.platform.type).data () ) }
+                                   SK_WideCharToUTF8 (config.platform.type).data () ),
+             SK_HTTP_MakeKVPair ( "sk_version",
+                                  SK_GetVersionStrA () ) }
                               )
         ),
         []( const std::vector <uint8_t>&& data,
@@ -1071,7 +1073,9 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
            { SK_HTTP_MakeKVPair ( "appid",
                       config.steam.appid ),
              SK_HTTP_MakeKVPair ( "platform",
-                                  "Steam" ) }
+                                  "Steam" ),
+             SK_HTTP_MakeKVPair ( "sk_version",
+                                  SK_GetVersionStrA () ) }
                               )
         ),
         []( const std::vector <uint8_t>&& data,
