@@ -122,5 +122,6 @@ struct sk_download_request_s
 
 void SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio = false);
 
+std::wstring SK_Network_MakeEscapeSequencedURL (std::wstring url);
 
 #endif /* __SK_Update__Network_H__ */

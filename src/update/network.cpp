@@ -1458,3 +1458,13 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   return hr;
 }
+
+
+std::wstring SK_Network_MakeEscapeSequencedURL (std::wstring url)
+{
+  DWORD                                            dwLen = 4095;
+  wchar_t                                 wszURL [4096]  = {  };
+  InternetCanonicalizeUrlW (url.c_str (), wszURL, &dwLen, ICU_ENCODE_PERCENT);
+
+  return wszURL;
+}
