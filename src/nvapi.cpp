@@ -2127,6 +2127,9 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
       if (! SK_IsRunDLLInvocation ())
       {
+        SK_GetCurrentRenderBackend ().nvapi.rebar =
+          SK_NvAPI_DRS_GetDWORD (0x000F00BA) != 0x0;
+
         SK_CreateFuncHook (      L"NvAPI_DRS_GetSetting",
                                    NvAPI_QueryInterface (0x73BF8338),
                                    NvAPI_DRS_GetSetting_Detour,
@@ -2141,9 +2144,6 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
           static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
 
         SK_ApplyQueuedHooks ();
-
-        SK_GetCurrentRenderBackend ().nvapi.rebar =
-          SK_NvAPI_DRS_GetDWORD (0x000F00BA) != 0x0;
 
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();
