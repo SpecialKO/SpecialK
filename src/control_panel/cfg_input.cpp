@@ -145,6 +145,40 @@ SK_ImGui_CenterCursorOnWindow (void)
     SK_ImGui_CenterCursorAtPos ();
 }
 
+static const auto Keybinding =
+[] (SK_ConfigSerializedKeybind* binding, sk::ParameterStringW* param) ->
+auto
+{
+  if (! (binding != nullptr && param != nullptr))
+    return false;
+
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable);
+
+  ImGui::PushID (binding->bind_name);
+
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+  {
+    ImGui::OpenPopup (        binding->bind_name);
+                              binding->assigning = true;
+  }
+
+  std::wstring original_binding = binding->human_readable;
+
+  SK_ImGui_KeybindDialog (binding);
+
+  ImGui::PopID ();
+
+  if (original_binding != binding->human_readable)
+  {
+    param->store (binding->human_readable);
+
+    return true;
+  }
+
+  return false;
+};
+
 static DWORD last_xinput     = 0;
 static DWORD last_scepad     = 0;
 static DWORD last_wgi        = 0;
@@ -845,33 +879,68 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop  ();
     }
 
-    bool bKeyboard = !config.compatibility.disallow_ll_keyhook &&
+    bool bKeyboard =
       ImGui::CollapsingHeader ("Keyboard");
 
-    if (bKeyboard && (config.input.keyboard.needsLowLevelKeyboardHook () == false || SK_Input_HasInstalledLowLevelKeyboardHook ()))
+    if (bKeyboard)
     {
-      ImGui::TreePush       ("");
-      ImGui::SeparatorText  ("Special Keys");
-      ImGui::TreePush       ("");
+      ImGui::TreePush ("");
 
-      bool changed = false;
+      static std::set <SK_ConfigSerializedKeybind *>
+        keybinds = {
+          &config.control_panel.keys.toggle,
+        };
 
-      config.input.keyboard.enable_win_key =
-        std::min (1, std::max (-1, config.input.keyboard.enable_win_key));
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {
+        ImGui::Text ( "%s:  ",
+                        keybind->bind_name );
+      }
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {
+        Keybinding  (   keybind, keybind->param );
+      }
+      ImGui::EndGroup   ();
 
-      config.input.keyboard.enable_alt_tab =
-        std::min (1, std::max (-1, config.input.keyboard.enable_alt_tab));
+      // Never allow this to be unbound, revert back to Ctrl+Shift+Backspace if necessary.
+      //
+      if (config.control_panel.keys.toggle.masked_code == 0)
+      {
+        config.control_panel.keys.toggle.ctrl  = true;
+        config.control_panel.keys.toggle.alt   = false;
+        config.control_panel.keys.toggle.shift = true;
+        config.control_panel.keys.toggle.vKey  = VK_BACK;
+        config.control_panel.keys.toggle.update ();
+        config.control_panel.keys.toggle.param->store (config.control_panel.keys.toggle.human_readable);
+      }
 
-      int enable_alt_tab = config.input.keyboard.enable_alt_tab + 1;
-      int enable_win_key = config.input.keyboard.enable_win_key + 1;
+      if (!config.compatibility.disallow_ll_keyhook && (config.input.keyboard.needsLowLevelKeyboardHook () == false || SK_Input_HasInstalledLowLevelKeyboardHook ()))
+      {
+        ImGui::SeparatorText  ("Special Keys");
+        ImGui::TreePush       ("");
 
-      changed |= ImGui::Combo ("Windows Key", &enable_win_key, "Normal Game Behavior\0Block\0Allow\0\0", 3);
-      changed |= ImGui::Combo ("Alt + Tab",   &enable_alt_tab, "Normal Game Behavior\0Block\0Allow\0\0", 3);
+        bool changed = false;
 
-      bool adhd_pacing =
-        (config.input.keyboard.alt_tab_adhd_pace > 0);
+        config.input.keyboard.enable_win_key =
+          std::min (1, std::max (-1, config.input.keyboard.enable_win_key));
 
-      if (config.input.keyboard.enable_alt_tab != SK_Disabled)
+        config.input.keyboard.enable_alt_tab =
+          std::min (1, std::max (-1, config.input.keyboard.enable_alt_tab));
+
+        int enable_alt_tab = config.input.keyboard.enable_alt_tab + 1;
+        int enable_win_key = config.input.keyboard.enable_win_key + 1;
+
+        changed |= ImGui::Combo ("Windows Key", &enable_win_key, "Normal Game Behavior\0Block\0Allow\0\0", 3);
+        changed |= ImGui::Combo ("Alt + Tab",   &enable_alt_tab, "Normal Game Behavior\0Block\0Allow\0\0", 3);
+
+        bool adhd_pacing =
+          (config.input.keyboard.alt_tab_adhd_pace > 0);
+
+        if (config.input.keyboard.enable_alt_tab != SK_Disabled)
       {
         ImGui::SameLine ();
 
@@ -915,36 +984,37 @@ SK::ControlPanel::Input::Draw (void)
         }
       }
 
-      static bool
-          changed_once = false;
-      if (changed)
-      {   changed_once = true;
+        static bool
+            changed_once = false;
+        if (changed)
+        {   changed_once = true;
 
-        // Implicit RawInput keyboard flags to set for windows key
-        if (enable_win_key == 2) // Allow
-             config.input.keyboard.prevent_no_hotkeys =  true;
-        else config.input.keyboard.prevent_no_hotkeys = false;
+          // Implicit RawInput keyboard flags to set for windows key
+          if (enable_win_key == 2) // Allow
+               config.input.keyboard.prevent_no_hotkeys =  true;
+          else config.input.keyboard.prevent_no_hotkeys = false;
 
-        config.input.keyboard.enable_win_key = enable_win_key - 1;
-        config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
+          config.input.keyboard.enable_win_key = enable_win_key - 1;
+          config.input.keyboard.enable_alt_tab = enable_alt_tab - 1;
 
-        // Install potentially necessary hooks
-        if (config.input.keyboard.needsLowLevelKeyboardHook ())
-          SK_Input_InstallLowLevelKeyboardHook ();
-        else
-          SK_Input_UninstallLowLevelKeyboardHook ();
+          // Install potentially necessary hooks
+          if (config.input.keyboard.needsLowLevelKeyboardHook ())
+            SK_Input_InstallLowLevelKeyboardHook ();
+          else
+            SK_Input_UninstallLowLevelKeyboardHook ();
 
-        config.utility.save_async ();
+          config.utility.save_async ();
+        }
+
+        if (changed_once)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+          ImGui::BulletText     ("Game Restart May Be Required");
+          ImGui::PopStyleColor  ();
+        }
+
+        ImGui::TreePop ();
       }
-
-      if (changed_once)
-      {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
-        ImGui::BulletText     ("Game Restart May Be Required");
-        ImGui::PopStyleColor  ();
-      }
-
-      ImGui::TreePop (  );
       ImGui::TreePop (  );
     }
 

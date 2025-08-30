@@ -7610,7 +7610,8 @@ SK_Input_LowLevelKeyboardProc (int code, WPARAM wParam, LPARAM lParam)
     (KBDLLHOOKSTRUCT *)lParam;
 
   const bool bIsAltTab =
-    ( wParam                            == WM_SYSKEYDOWN &&
+    ((wParam                            == WM_KEYDOWN ||
+      wParam                            == WM_SYSKEYDOWN)&&
       pHookData                         != nullptr       &&
      (pHookData->flags & LLKHF_ALTDOWN) != 0x0           &&
       pHookData->vkCode                 == VK_TAB );
@@ -8114,18 +8115,57 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::TextUnformatted ("Press ");                    ImGui::SameLine ();
 
-    ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
+    int modifiers = 0;
+
+    if (config.control_panel.keys.toggle.ctrl)
+    {
+      ImGui::TextColored   ( ImColor::HSV (.16f, 1.f, 1.f),
                                R"('%hs)", SK_WideCharToUTF8 (virtualToHuman [VK_CONTROL]).c_str () );
-    ImGui::SameLine        (   );
-    ImGui::TextUnformatted ("+");
-    ImGui::SameLine        (   );
-    ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
+
+      ++modifiers;
+    }
+
+    if (config.control_panel.keys.toggle.alt)
+    {
+      if (modifiers)
+      {
+        ImGui::SameLine        (   );
+        ImGui::TextUnformatted ("+");
+        ImGui::SameLine        (   );
+        modifiers--;
+      }
+
+      ImGui::TextColored   ( ImColor::HSV (.16f, 1.f, 1.f),
+                               R"(%hs)", SK_WideCharToUTF8 (virtualToHuman [VK_MENU]).c_str () );
+
+      modifiers++;
+    }
+
+    if (config.control_panel.keys.toggle.shift)
+    {
+      if (modifiers)
+      {
+        ImGui::SameLine        (   );
+        ImGui::TextUnformatted ("+");
+        ImGui::SameLine        (   );
+        modifiers--;
+      }
+
+      ImGui::TextColored   ( ImColor::HSV (.16f, 1.f, 1.f),
                                R"(%hs)", SK_WideCharToUTF8 (virtualToHuman [VK_SHIFT]).c_str () );
-    ImGui::SameLine        (   );
-    ImGui::TextUnformatted ("+");
-    ImGui::SameLine        (   );
+
+      modifiers++;
+    }
+
+    if (modifiers)
+    {
+      ImGui::SameLine        (   );
+      ImGui::TextUnformatted ("+");
+      ImGui::SameLine        (   );
+    }
+
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
-                               R"(%hs')", SK_WideCharToUTF8 (virtualToHuman [VK_BACK]).c_str () );
+                               R"(%hs')", SK_WideCharToUTF8 (virtualToHuman [(BYTE)config.control_panel.keys.toggle.vKey]).c_str () );
 
     const bool bHasControllers = 
       (SK_ImGui_HasPlayStationController () || SK_ImGui_HasXboxController ());

@@ -1750,7 +1750,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         bool now     = false;
         bool toggled = false;
       } capslock,
-        backspace, tab;
+        backspace, tab,
+        cfg_toggle;
 
       ULONG64 last_frame = 0;
     } static keys;
@@ -1768,9 +1769,10 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, VK_TAB);
       }
 
-      keys.capslock.last  = keys.capslock.now;
-      keys.backspace.last = keys.backspace.now;
-      keys.tab.last       = keys.tab.now;
+      keys.capslock.last   = keys.capslock.now;
+      keys.backspace.last  = keys.backspace.now;
+      keys.tab.last        = keys.tab.now;
+      keys.cfg_toggle.last = keys.cfg_toggle.now;
 
       keys.last_frame     = this_frame;
 
@@ -1780,10 +1782,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         ImGui::IsKeyPressed (ImGuiKey_Backspace, false);
       keys.tab.now        =
         (SK_GetAsyncKeyState (VK_TAB) & 0x8000);
+      keys.cfg_toggle.now =
+        ImGui::IsKeyPressed ((ImGuiKey)config.control_panel.keys.toggle.vKey, false);
 
-      keys.capslock.toggled  = false;
-      keys.backspace.toggled = false;
-      keys.tab.toggled       = false;
+      keys.capslock.toggled   = false;
+      keys.backspace.toggled  = false;
+      keys.tab.toggled        = false;
+      keys.cfg_toggle.toggled = false;
 
       io.KeyAlt   = false;
       io.KeyShift = false;
@@ -1800,6 +1805,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       ImGui::IsKeyPressed (ImGuiKey_Backspace, false);
     keys.tab.now |=
       ((SK_GetAsyncKeyState (VK_TAB) & 0x8000) == 0x8000);
+    keys.cfg_toggle.now |=
+      ImGui::IsKeyPressed ((ImGuiKey)config.control_panel.keys.toggle.vKey, false);
 
     if (! keys.capslock.toggled)
     {
@@ -1810,16 +1817,26 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       keys.capslock.toggled |= bToggleNav;
     }
 
-    if (config.input.keyboard.ctrl_shift_backsp)
+    if (! keys.backspace.toggled)
     {
-      if (! keys.backspace.toggled)
-      {
-        bToggleVis |=
-           ( Ctrl  &&
-             Shift &&
-              ((! keys.backspace.last) && keys.backspace.now) );
+      keys.backspace.toggled |=
+        ((! keys.backspace.last) && keys.backspace.now);
+    }
 
-        keys.backspace.toggled |= bToggleVis;
+    if (config.input.keyboard.allow_imgui_toggle)
+    {
+      if (SK_ImGui_GetLastKeybindEditorFrame () < SK_GetFramesDrawn () - 1)
+      {
+        if (! keys.cfg_toggle.toggled)
+        {
+          bToggleVis |=
+             ( (config.control_panel.keys.toggle.ctrl  ? Ctrl  : true) &&
+               (config.control_panel.keys.toggle.shift ? Shift : true) &&
+               (config.control_panel.keys.toggle.alt   ? Alt   : true) &&
+                ((! keys.cfg_toggle.last) && keys.cfg_toggle.now) );
+
+          keys.cfg_toggle.toggled |= bToggleVis;
+        }
       }
     }
 

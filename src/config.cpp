@@ -1102,7 +1102,7 @@ struct {
     sk::ParameterBool*    disable_ime             = nullptr;
     sk::ParameterBool*    prevent_no_legacy       = nullptr;
     sk::ParameterBool*    prevent_no_hotkeys      = nullptr;
-    sk::ParameterBool*    ctrl_shift_backsp       = nullptr;
+    sk::ParameterBool*    allow_imgui_toggle      = nullptr;
   } keyboard;
 
   struct
@@ -1808,6 +1808,8 @@ auto DeclKeybind =
     Keybind ( &config.reshade.toggle_overlay_keybind,    L"Toggle ReShade Overlay (Add-On version)",                   osd_ini,         L"ReShade.AddOn"),
     Keybind ( &config.reshade.inject_reshade_keybind,    L"Inject ReShade (6.0+) as a Global PlugIn",                  osd_ini,         L"ReShade.AddOn"),
 
+    Keybind ( &config.control_panel.keys.toggle,         L"Toggle Special K's Control Panel",                          osd_ini,         L"ImGui.Global"),
+
 
     // Input
     //////////////////////////////////////////////////////////////////////////
@@ -1821,7 +1823,7 @@ auto DeclKeybind =
     ConfigEntry (input.keyboard.disable_ime,             L"Disable IME input services for the game",                   dll_ini,         L"Input.Keyboard",        L"DisableIME"),
     ConfigEntry (input.keyboard.prevent_no_legacy,       L"Prevent games from disabling legacy keyboard messages",     dll_ini,         L"Input.Keyboard",        L"PreventRawInputNoLegacy"),
     ConfigEntry (input.keyboard.prevent_no_hotkeys,      L"Prevent games from disabling hotkeys",                      dll_ini,         L"Input.Keyboard",        L"PreventRawInputNoHotkeys"),
-    ConfigEntry (input.keyboard.ctrl_shift_backsp,       L"Enable standard Ctrl+Shift+Backspace keybinding",           dll_ini,         L"Input.Keyboard",        L"EnableCtrlShiftBackspace"),
+    ConfigEntry (input.keyboard.allow_imgui_toggle,      L"Enable ImGui control panel keybinding",                     dll_ini,         L"Input.Keyboard",        L"EnableImGuiToggle"),
 
     ConfigEntry (input.mouse.disabled_to_game,           L"Completely stop all mouse input from reaching the Game",    dll_ini,         L"Input.Mouse",           L"DisabledToGame"),
     ConfigEntry (input.mouse.prevent_no_legacy,          L"Prevent games from disabling legacy mouse messages",        dll_ini,         L"Input.Mouse",           L"PreventRawInputNoLegacy"),
@@ -5159,7 +5161,7 @@ auto DeclKeybind =
   input.keyboard.disable_ime->load       (config.input.keyboard.disable_ime);
   input.keyboard.prevent_no_legacy->load (config.input.keyboard.prevent_no_legacy);
   input.keyboard.prevent_no_hotkeys->load(config.input.keyboard.prevent_no_hotkeys);
-  input.keyboard.ctrl_shift_backsp->load (config.input.keyboard.ctrl_shift_backsp);
+  input.keyboard.allow_imgui_toggle->load(config.input.keyboard.allow_imgui_toggle);
 
   input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
   config.input.mouse.
@@ -5982,6 +5984,7 @@ auto DeclKeybind =
 
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.osd.keys.console_toggle);
+  LoadKeybind (&config.control_panel.keys.toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
@@ -6007,6 +6010,19 @@ auto DeclKeybind =
   LoadKeybind (&config.widgets.hide_all_widgets_keybind);
   LoadKeybind (&config.reshade.toggle_overlay_keybind);
   LoadKeybind (&config.reshade.inject_reshade_keybind);
+
+
+  // Never allow this to be unbound, revert back to Ctrl+Shift+Backspace if necessary.
+  //
+  if (config.control_panel.keys.toggle.masked_code == 0)
+  {
+    config.control_panel.keys.toggle.ctrl  = true;
+    config.control_panel.keys.toggle.alt   = false;
+    config.control_panel.keys.toggle.shift = true;
+    config.control_panel.keys.toggle.vKey  = VK_BACK;
+    config.control_panel.keys.toggle.update ();
+    config.control_panel.keys.toggle.param->store (config.control_panel.keys.toggle.human_readable);
+  }
 
 
   if (config.steam.dll_path.empty ())
@@ -6747,7 +6763,7 @@ SK_SaveConfig ( std::wstring name,
   input.keyboard.disable_ime->store           (config.input.keyboard.disable_ime);
   input.keyboard.prevent_no_legacy->store     (config.input.keyboard.prevent_no_legacy);
   input.keyboard.prevent_no_hotkeys->store    (config.input.keyboard.prevent_no_hotkeys);
-  input.keyboard.ctrl_shift_backsp->store     (config.input.keyboard.ctrl_shift_backsp);
+  input.keyboard.allow_imgui_toggle->store    (config.input.keyboard.allow_imgui_toggle);
 
   input.mouse.disabled_to_game->store         (config.input.mouse.org_disabled_to_game);
   input.mouse.prevent_no_legacy->store        (config.input.mouse.prevent_no_legacy);
@@ -9175,7 +9191,9 @@ bool
 sk_config_t::input_s::keyboard_s::needsLowLevelKeyboardHook (void)
 {
   return
-    alt_tab_adhd_pace > 0 || enable_win_key != SK_NoPreference || (enable_alt_tab != SK_NoPreference && SK_Input_IsGameUsingLowLevelKeyboardHooks ());
+    alt_tab_adhd_pace > 0 || (enable_win_key != SK_NoPreference && (enable_win_key == SK_Disabled || SK_Input_IsGameUsingLowLevelKeyboardHooks ()))
+                          || (enable_alt_tab != SK_NoPreference && (enable_alt_tab == SK_Disabled || SK_Input_IsGameUsingLowLevelKeyboardHooks ()))
+                          || config.input.keyboard.dinput_win_key == SK_Disabled;
 }
 
 bool

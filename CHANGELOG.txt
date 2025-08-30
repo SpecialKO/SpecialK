@@ -1,4 +1,11 @@
-﻿25.8.30.2
+﻿25.8.30.3
+=========
+ + Make the Ctrl+Shift+Backspace keybinding for toggling SK's Control Panel
+     a standard configurable keybinding.
+
+     * The binding can be edited under Input Management | Keyboard.
+
+25.8.30.2
 =========
  + Query the NVIDIA driver setting for ReBar before installing NvAPI hooks,
      to prevent rare race conditions in 32-bit application init.

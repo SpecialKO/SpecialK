@@ -7599,7 +7599,7 @@ SK_InstallWindowHook (HWND hWnd)
 
     cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
     cmd->AddVariable ("ImGui.NavActive",         SK_CreateVar (SK_IVariable::Boolean, (bool *)&nav_usable));
-    cmd->AddVariable ("ImGui.CtrlShiftBackspace",SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.keyboard.ctrl_shift_backsp));
+    cmd->AddVariable ("ImGui.AllowToggleKeybind",SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.keyboard.allow_imgui_toggle));
   }
 
   return true;
