@@ -1120,11 +1120,6 @@ void BasicInit (void)
   SK::EOS::Init    (false);
   SK::Galaxy::Init (     );
 
-  // If an equivalent Steam AppID is known, perform optional statistical
-  //   recordkeeping for non-Steam games.
-  void SK_Platform_PingBackendForNonSteamGame (void);
-       SK_Platform_PingBackendForNonSteamGame ();
-
   //// Do this from the startup thread [these functions queue, but don't apply]
   if (! config.input.dont_hook_core)
   {
@@ -3671,17 +3666,18 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                     }
                   }
 
-                  if (config.platform.equivalent_steam_app != -1)
-                  {
-                    void SK_Platform_PingBackendForNonSteamGame (void);
-                         SK_Platform_PingBackendForNonSteamGame ();
-                  }
-
                   return true;
                 } ),
               false
             );
           );
+        }
+        else
+        {
+          SK_RunOnce ({
+            void SK_Platform_PingBackendForNonSteamGame (void);
+                 SK_Platform_PingBackendForNonSteamGame ();
+          });
         }
       }
     } break;

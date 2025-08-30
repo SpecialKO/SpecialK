@@ -299,8 +299,6 @@ SK::Galaxy::Init (void)
 
                       if (config.platform.equivalent_steam_app != -1)
                       {   config.utility.save_async ();
-                        void SK_Platform_PingBackendForNonSteamGame (void);
-                             SK_Platform_PingBackendForNonSteamGame ();
                       }
 
                       else

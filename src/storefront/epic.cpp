@@ -1517,12 +1517,6 @@ SK::EOS::AppName (void)
                 }
               }
 
-              if (config.platform.equivalent_steam_app != -1)
-              {
-                void SK_Platform_PingBackendForNonSteamGame (void);
-                     SK_Platform_PingBackendForNonSteamGame ();
-              }
-
               return true;
             } ),
           true
