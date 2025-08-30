@@ -1307,10 +1307,27 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       }
 
 
+      // Detect Steam if an AppID environment variable is set...
+      static constexpr int MAX_APPID_LEN = 32;
+
+      DWORD    dwSteamGameIdLen                  =  0 ;
+      uint64_t AppID                             =  0 ;
+      char     szSteamGameId [MAX_APPID_LEN + 1] = { };
+
+      dwSteamGameIdLen =
+        GetEnvironmentVariableA ( "SteamGameId",
+                                    szSteamGameId,
+                                      MAX_APPID_LEN );
+
+      if (dwSteamGameIdLen > 1)
+        AppID = strtoll (szSteamGameId, nullptr, 0);
+
+
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH + 2] = { };
 
       GetModuleFileNameW (nullptr, wszProcessName, dwProcessSize);
+
 
       // To catch all remaining Steam games, look for "\SteamApps\" in the
       //   executable path.
@@ -1319,7 +1336,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       //    Steamworks platform and we can connect to the client using the
       //      steam_api{64}.dll files distributed with Special K.
       //
-      bool is_steamworks_game =
+      bool is_steamworks_game = AppID > 0 ||
            SK_Path_wcsstr (wszProcessName, L"SteamApps") != nullptr;
 
       bool is_epic_game = (! is_steamworks_game) &&
@@ -1341,14 +1358,15 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
           (SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games)") != nullptr ||
            SK_Path_wcsstr (wszProcessName, LR"(GOG Games)")        != nullptr ||
            PathFileExistsW (L"gog.ico")                                       ||
-           PathFileExistsW (L"../gog.ico")                                    ||
-           PathFileExistsW (L"../../gog.ico")                                 ||
-           PathFileExistsW (L"../../../gog.ico")                              ||
-           PathFileExistsW (L"../../../../gog.ico")                           ||
            PathFileExistsW (L"goggame-galaxyFileList.ini")                    ||
+           // Recursive down-level search to handle Unreal Engine nonsense...
+           PathFileExistsW (L"../gog.ico")                                    ||
            PathFileExistsW (L"../goggame-galaxyFileList.ini")                 ||
+           PathFileExistsW (L"../../gog.ico")                                 ||
            PathFileExistsW (L"../../goggame-galaxyFileList.ini")              ||
+           PathFileExistsW (L"../../../gog.ico")                              ||
            PathFileExistsW (L"../../../goggame-galaxyFileList.ini")           ||
+           PathFileExistsW (L"../../../../gog.ico")                           ||
            PathFileExistsW (L"../../../../goggame-galaxyFileList.ini"));
 
       bool is_origin_game =
@@ -1396,11 +1414,6 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
              SK_Inject_TestWhitelists (SK_GetFullyQualifiedApp ()) ) &&
           (! SK_Inject_TestBlacklists (SK_GetFullyQualifiedApp ()) )  )
       {
-        if (is_steamworks_game || SK_Steam_GetAppID_NoAPI () != 0)
-        {
-          config.platform.type = SK_Platform_Steam;
-        }
-
         SK_InitCentralConfig ();
 
         if (SK_Inject_ProcessBlacklist ())
