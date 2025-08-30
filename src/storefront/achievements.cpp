@@ -570,9 +570,9 @@ SK_Platform_GetNumPlayers (void)
   const auto now =
     std::filesystem::file_time_type::clock::now ();
 
-  static auto last_checked = now - 2h;
+  static auto last_checked = now - 30min;
 
-  if (now > last_checked + 1h)
+  if (now > last_checked + 15min)
   {
     last_checked = now;
 
