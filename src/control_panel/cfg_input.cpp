@@ -3330,6 +3330,11 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
            i == VK_LMENU    || i == VK_RMENU    || i == VK_MENU )
         continue;
 
+      // This key is normally hidden by ImGui and wouldn't work in the
+      //   keybind editor...
+      if (i == VK_TAB && (SK_GetAsyncKeyState (VK_TAB) & 0x8000) != 0)
+        break;
+
       if (ImGui::IsKeyPressed (ImGui_ImplWin32_VirtualKeyToImGuiKey (i), false))
         break;
     }

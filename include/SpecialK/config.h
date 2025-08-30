@@ -231,7 +231,7 @@ struct sk_config_t
       SK_ConfigSerializedKeybind
         toggle = {
           SK_Keybind {
-            "Open/Close Control Panel", L"Ctrl+Shift+Backspace",
+            "Open / Close Control Panel", L"Ctrl+Shift+Backspace",
              true, true, false, VK_BACK
           }, L"ControlPanelToggle"
         };
@@ -299,7 +299,7 @@ struct sk_config_t
       SK_ConfigSerializedKeybind
         console_toggle = {
           SK_Keybind {
-            "Toggle SK's Command Console", L"Ctrl+Shift+Tab",
+            "Toggle Command Console", L"Ctrl+Shift+Tab",
              true, true, false, VK_TAB
           }, L"ConsoleToggle"
         };

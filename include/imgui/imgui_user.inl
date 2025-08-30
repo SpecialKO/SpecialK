@@ -1761,12 +1761,23 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
     if (keys.last_frame < this_frame)
     {
-      if (keys.tab.toggled)
+      for ( auto key = 0; key < 255; ++key )
       {
-        void
-        CALLBACK
-        SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
-        SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, VK_TAB);
+        bool pressed = false;
+
+        // ImGui doesn't like to expose the state of Tab
+        if (key == VK_TAB)
+          pressed = keys.tab.toggled;
+        else
+          pressed = ImGui::IsKeyPressed ((ImGuiKey)key, false);
+
+        if (pressed)
+        {
+          void
+          CALLBACK
+          SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+          SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, (BYTE)key);
+        }
       }
 
       keys.capslock.last   = keys.capslock.now;
@@ -1783,6 +1794,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       keys.tab.now        =
         (SK_GetAsyncKeyState (VK_TAB) & 0x8000);
       keys.cfg_toggle.now =
+        config.control_panel.keys.toggle.vKey == VK_TAB ?
+                                           keys.tab.now :
         ImGui::IsKeyPressed ((ImGuiKey)config.control_panel.keys.toggle.vKey, false);
 
       keys.capslock.toggled   = false;
@@ -1806,6 +1819,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     keys.tab.now |=
       ((SK_GetAsyncKeyState (VK_TAB) & 0x8000) == 0x8000);
     keys.cfg_toggle.now |=
+      config.control_panel.keys.toggle.vKey == VK_TAB ?
+                                         keys.tab.now :
       ImGui::IsKeyPressed ((ImGuiKey)config.control_panel.keys.toggle.vKey, false);
 
     if (! keys.capslock.toggled)
