@@ -889,6 +889,7 @@ SK::ControlPanel::Input::Draw (void)
       static std::set <SK_ConfigSerializedKeybind *>
         keybinds = {
           &config.control_panel.keys.toggle,
+          &config.osd.keys.console_toggle,
         };
 
       ImGui::BeginGroup ();
