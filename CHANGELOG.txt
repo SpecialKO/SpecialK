@@ -1,6 +1,7 @@
 ﻿25.8.30.1
 =========
  + Improved Ubisoft+ and Steam platform identification.
+ + Improved GOG platform detection in Unreal Engine games.
 
 25.8.30
 =======
