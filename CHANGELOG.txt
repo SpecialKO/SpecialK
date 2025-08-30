@@ -1,7 +1,11 @@
-﻿25.8.30
+﻿25.8.30.1
+=========
+ + Improved Ubisoft+ and Steam platform identification.
+
+25.8.30
 =======
  + Handle Steam AppId lookup for games with Unicode characters in their name.
- + Remove Tradmark symbols before performing Steam AppId lookup.
+ + Remove Trademark symbols before performing Steam AppId lookup.
 
 25.8.29
 =======

@@ -1332,7 +1332,8 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       bool is_ubisoft_game =
         (! is_steamworks_game) && (! is_epic_game) &&
         (! is_microsoft_game ) && ( SK_IsModuleLoaded (L"uplay_aux_r164.dll") ||
-                                    SK_IsModuleLoaded (L"uplay_aux_r264.dll") );
+                                    SK_IsModuleLoaded (L"uplay_aux_r264.dll") ||
+                                SK_Path_wcsstr (wszProcessName, L"_Plus.exe") );
 
       bool is_gog_game =
         (! is_steamworks_game) && (! is_epic_game)    &&
@@ -1387,6 +1388,11 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
              SK_Inject_TestWhitelists (SK_GetFullyQualifiedApp ()) ) &&
           (! SK_Inject_TestBlacklists (SK_GetFullyQualifiedApp ()) )  )
       {
+        if (is_steamworks_game || SK_Steam_GetAppID_NoAPI () != 0)
+        {
+          config.platform.type = SK_Platform_Steam;
+        }
+
         SK_InitCentralConfig ();
 
         if (SK_Inject_ProcessBlacklist ())
