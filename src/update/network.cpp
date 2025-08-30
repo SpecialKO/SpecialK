@@ -1462,9 +1462,11 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
 std::wstring SK_Network_MakeEscapeSequencedURL (std::wstring url)
 {
-  DWORD                                            dwLen = 4095;
-  wchar_t                                 wszURL [4096]  = {  };
-  InternetCanonicalizeUrlW (url.c_str (), wszURL, &dwLen, ICU_ENCODE_PERCENT);
+  DWORD                                     dwLen = 4095;
+  wchar_t                          wszURL [4096]  = {  };
+  UrlCanonicalizeW ( url.c_str (), wszURL, &dwLen,
+    URL_ESCAPE_UNSAFE | URL_ESCAPE_URI_COMPONENT
+  );
 
   return wszURL;
 }

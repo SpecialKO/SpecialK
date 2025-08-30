@@ -3646,10 +3646,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               SK_GetFriendlyAppName ();
 
             std::wstring url =
-              SK_Network_MakeEscapeSequencedURL (
-                SK_FormatStringW (
-                  LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_UTF8ToWideChar (appname).c_str ()
-                )
+              SK_FormatStringW (
+                LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_Network_MakeEscapeSequencedURL (SK_UTF8ToWideChar (appname)).c_str ()
               );
 
             SK_Network_EnqueueDownload (

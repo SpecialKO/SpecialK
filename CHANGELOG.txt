@@ -1,4 +1,8 @@
-﻿25.8.29
+﻿25.8.30
+=======
+ + Handle Steam AppId lookup for games with Unicode characters in their name.
+
+25.8.29
 =======
  + Download achievement lock/unlock icons for non-Steam games.
  + Augment non-Steam games with achievement rarity info from Steam.
