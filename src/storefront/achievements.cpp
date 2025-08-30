@@ -637,7 +637,7 @@ SK_Platform_GetNumPlayers (void)
             std::ignore = e;
           }
 
-          return false;
+          return true;
         }
       )
     );
