@@ -249,6 +249,9 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 int
 SK_Platform_DrawOSD (void);
 
+std::wstring
+SK_Platform_RemoveTrademarkSymbols (std::wstring name);
+
 bool SK_IsFirstRun (void); // Is this the first time running after an INI reset?
 
 void SK_Perf_PrintEvents (void);

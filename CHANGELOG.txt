@@ -1,6 +1,7 @@
 ﻿25.8.30
 =======
  + Handle Steam AppId lookup for games with Unicode characters in their name.
+ + Remove Tradmark symbols before performing Steam AppId lookup.
 
 25.8.29
 =======

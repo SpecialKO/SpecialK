@@ -1493,7 +1493,7 @@ SK::EOS::AppName (void)
       {
         std::wstring url =
           SK_FormatStringW (
-            LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_Network_MakeEscapeSequencedURL (SK_UTF8ToWideChar (szDisplayName)).c_str ()
+            LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_Network_MakeEscapeSequencedURL (SK_Platform_RemoveTrademarkSymbols (SK_UTF8ToWideChar (szDisplayName))).c_str ()
           );
 
         SK_Network_EnqueueDownload (
