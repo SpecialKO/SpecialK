@@ -3311,7 +3311,7 @@ SK_Input_PreHookHID (void)
         ret = true;
       }
 
-      SK_Input_EnumOpenHIDFiles ();
+      //SK_Input_EnumOpenHIDFiles ();
     }
 
     InterlockedIncrement (&_init);
