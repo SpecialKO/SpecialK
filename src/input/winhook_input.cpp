@@ -219,8 +219,8 @@ SK_Proxy_MouseProc   (
       DWORD dwTid =
         GetCurrentThreadId ();
 
-      auto local_hook_fn  = __hooks.mouse [(DWORD64)dwTid|((DWORD64)WH_MOUSE<<31ULL)].first;
-      auto global_hook_fn = __hooks.mouse [         0ULL |((DWORD64)WH_MOUSE<<31ULL)].first;
+      auto local_hook_fn  = __hooks.mouse [(DWORD64)dwTid|((DWORD64)WH_MOUSE<<32ULL)].first;
+      auto global_hook_fn = __hooks.mouse [         0ULL |((DWORD64)WH_MOUSE<<32ULL)].first;
 
       SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -354,8 +354,8 @@ SK_Proxy_LLMouseProc   (
     DWORD dwTid =
       GetCurrentThreadId ();
 
-    auto local_hook_fn  = __hooks.mouse [(DWORD64)dwTid|((DWORD64)WH_MOUSE_LL<<31ULL)].first;
-    auto global_hook_fn = __hooks.mouse [0             |((DWORD64)WH_MOUSE_LL<<31ULL)].first;
+    auto local_hook_fn  = __hooks.mouse [(DWORD64)dwTid|((DWORD64)WH_MOUSE_LL<<32ULL)].first;
+    auto global_hook_fn = __hooks.mouse [0             |((DWORD64)WH_MOUSE_LL<<32ULL)].first;
 
     SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -430,8 +430,8 @@ SK_Proxy_KeyboardProc (
 
     SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
-    auto local_hook_fn  = __hooks.keyboard [(DWORD64)dwTid|((DWORD64)WH_KEYBOARD<<31ULL)].first;
-    auto global_hook_fn = __hooks.keyboard [(DWORD64)0    |((DWORD64)WH_KEYBOARD<<31ULL)].first;
+    auto local_hook_fn  = __hooks.keyboard [(DWORD64)dwTid|((DWORD64)WH_KEYBOARD<<32ULL)].first;
+    auto global_hook_fn = __hooks.keyboard [(DWORD64)0    |((DWORD64)WH_KEYBOARD<<32ULL)].first;
 
     SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -558,8 +558,8 @@ SK_Proxy_LLKeyboardProc (
 
     SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
-    auto local_hook_fn  = __hooks.keyboard [(DWORD64)dwTid|((DWORD64)WH_KEYBOARD_LL<<31ULL)].first;
-    auto global_hook_fn = __hooks.keyboard [         0ULL |((DWORD64)WH_KEYBOARD_LL<<31ULL)].first;
+    auto local_hook_fn  = __hooks.keyboard [(DWORD64)dwTid|((DWORD64)WH_KEYBOARD_LL<<32ULL)].first;
+    auto global_hook_fn = __hooks.keyboard [         0ULL |((DWORD64)WH_KEYBOARD_LL<<32ULL)].first;
 
     SK_ReleaseAssert (!(local_hook_fn && global_hook_fn));
 
@@ -671,6 +671,33 @@ SetWindowsHookExAW_Detour (
 }
 
 
+// Poke holes in SK's Windows Hook management for various known overlays that use them,
+//   SK is interested in blocking input through these APIs to the game, not to other overlays.
+bool
+SK_Input_ShouldIgnoreSetWindowsHook (int idHook, const wchar_t* wszCallingModule)
+{
+  if (idHook == WH_KEYBOARD_LL ||
+      idHook == WH_KEYBOARD    ||
+      idHook == WH_MOUSE_LL    ||
+      idHook == WH_MOUSE)
+  {
+#ifndef _M_AMD64
+    if (StrStrIW (wszCallingModule, L"overlay_mediator_Win32_Release.dll"))
+      return true;
+    if (StrStrIW (wszCallingModule, L"overlay_mediator_Win32_ReleaseWithLogging.dll"))
+      return true;
+#else
+    if (StrStrIW (wszCallingModule, L"overlay_mediator_x64_Release.dll"))
+      return true;
+    if (StrStrIW (wszCallingModule, L"overlay_mediator_x64_ReleaseWithLogging.dll"))
+      return true;
+#endif
+  }
+
+  return false;
+}
+
+
 HHOOK
 WINAPI
 SetWindowsHookExW_Detour (
@@ -681,6 +708,14 @@ SetWindowsHookExW_Detour (
 {
   wchar_t                                  wszHookMod [MAX_PATH] = { };
   GetModuleFileNameW (SK_GetCallingDLL (), wszHookMod, MAX_PATH);
+
+  if (SK_Input_ShouldIgnoreSetWindowsHook (idHook, wszHookMod))
+  {
+    return SetWindowsHookExW_Original (
+      idHook, lpfn,
+              hmod, dwThreadId
+    );
+  }
 
   if (StrStrIW (wszHookMod, L"dinput") != nullptr)
   {
@@ -704,10 +739,10 @@ SetWindowsHookExW_Detour (
 
       bool install = false;
 
-      if (       !__hooks.keyboard.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
-                  __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
-      {           __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
-        hook    =&__hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
+      if (       !__hooks.keyboard.count ((DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)) ||
+                  __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first == nullptr)
+      {           __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first = lpfn;
+        hook    =&__hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].second;
         install = true;
       }
 
@@ -748,10 +783,10 @@ SetWindowsHookExW_Detour (
 
       bool install = false;
 
-      if (       !__hooks.mouse.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
-                  __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
-      {           __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
-        hook    =&__hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
+      if (       !__hooks.mouse.count ((DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)) ||
+                  __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first == nullptr)
+      {           __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first = lpfn;
+        hook    =&__hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].second;
         install = true;
       }
 
@@ -805,6 +840,24 @@ SetWindowsHookExA_Detour (
   HINSTANCE hmod,
   DWORD     dwThreadId )
 {
+  wchar_t                                  wszHookMod [MAX_PATH] = { };
+  GetModuleFileNameW (SK_GetCallingDLL (), wszHookMod, MAX_PATH);
+
+  if (StrStrIW (wszHookMod, L"dinput") != nullptr)
+  {
+    // In some weird games, this is the first time that SK will actually be
+    //   able to detect that this DLL has been loaded...
+    SK_Input_PreHookDI8 ();
+  }
+
+  if (SK_Input_ShouldIgnoreSetWindowsHook (idHook, wszHookMod))
+  {
+    return SetWindowsHookExA_Original (
+      idHook, lpfn,
+              hmod, dwThreadId
+    );
+  }
+
   if (idHook == WH_KEYBOARD_LL ||
       idHook == WH_KEYBOARD    ||
       idHook == WH_MOUSE_LL    ||
@@ -835,16 +888,6 @@ SetWindowsHookExA_Detour (
     }
   }
 
-  wchar_t                                  wszHookMod [MAX_PATH] = { };
-  GetModuleFileNameW (SK_GetCallingDLL (), wszHookMod, MAX_PATH);
-
-  if (StrStrIW (wszHookMod, L"dinput") != nullptr)
-  {
-    // In some weird games, this is the first time that SK will actually be
-    //   able to detect that this DLL has been loaded...
-    SK_Input_PreHookDI8 ();
-  }
-
   HHOOK* hook = nullptr;
 
   switch (idHook)
@@ -860,10 +903,10 @@ SetWindowsHookExA_Detour (
 
       bool install = false;
 
-      if (       !__hooks.keyboard.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
-                  __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
-      {           __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
-        hook    =&__hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
+      if (       !__hooks.keyboard.count ((DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)) ||
+                  __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first == nullptr)
+      {           __hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first = lpfn;
+        hook    =&__hooks.keyboard       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].second;
         install = true;
       }
 
@@ -904,10 +947,10 @@ SetWindowsHookExA_Detour (
 
       bool install = false;
 
-      if (       !__hooks.mouse.count ((DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)) ||
-                  __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first == nullptr)
-      {           __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].first = lpfn;
-        hook    =&__hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<31ULL)].second;
+      if (       !__hooks.mouse.count ((DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)) ||
+                  __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first == nullptr)
+      {           __hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].first = lpfn;
+        hook    =&__hooks.mouse       [(DWORD64)dwThreadId|((DWORD64)idHook<<32ULL)].second;
         install = true;
       }
 

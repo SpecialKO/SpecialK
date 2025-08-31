@@ -1,9 +1,15 @@
-﻿25.8.30.3
+﻿25.8.31
+=======
+ + Ignore Keyboard/Mouse Hooks installed by the GOG overlay.
+ + Enumerate HID device files that SK's CreateFile{A|W} hooks miss after
+     15 drawn frames instead of during initialization.
+
+25.8.30.3
 =========
  + Make the Ctrl+Shift+Backspace keybinding for toggling SK's Control Panel
      a standard configurable keybinding.
 
-     * The binding can be edited under Input Management | Keyboard.
+   * The binding can be edited under Input Management | Keyboard.
 
 25.8.30.2
 =========
