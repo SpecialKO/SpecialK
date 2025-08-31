@@ -801,7 +801,7 @@ SK_Input_ReleaseCommonStuckKeys (void) noexcept
 
   for ( auto& [vKey, bScancode] : virt_keys_to_release )
   {  
-    //if ((SK_GetAsyncKeyState (vKey) & 0x8000) == 0x0)
+    if ((SK_GetAsyncKeyState (vKey) & 0x8000) == 0x0)
     {
       DWORD dwFlags  =
         ( bScancode & 0xE0 ) == 0   ?

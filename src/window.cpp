@@ -6326,7 +6326,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         ActivateWindow (hWnd, true, (HWND)wParam);
 
-        if ( ( game_window.wantBackgroundRender () ||
+        if ( ( //game_window.wantBackgroundRender () ||
                config.window.fix_stuck_keys )        &&
                config.input.keyboard.disabled_to_game != SK_InputEnablement::Disabled )
         {
