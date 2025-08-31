@@ -5257,6 +5257,115 @@ SK_Platform_RemoveTrademarkSymbols (std::wstring name)
   return out;
 }
 
+void
+SK_Platform_EstablishStorefrontOnFirstLoad (void)
+{
+  if (config.platform.type != SK_Platform_Unknown)
+    return;
+
+  // Detect Steam if an AppID environment variable is set...
+  static constexpr int MAX_APPID_LEN = 32;
+
+  DWORD    dwSteamGameIdLen                  =  0 ;
+  uint64_t AppID                             =  0 ;
+  char     szSteamGameId [MAX_APPID_LEN + 1] = { };
+
+  dwSteamGameIdLen =
+    GetEnvironmentVariableA ( "SteamGameId",
+                                szSteamGameId,
+                                  MAX_APPID_LEN );
+
+  if (dwSteamGameIdLen > 1)
+    AppID = strtoll (szSteamGameId, nullptr, 0);
+
+
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH + 2] = { };
+
+  GetModuleFileNameW (nullptr, wszProcessName, dwProcessSize);
+
+
+  bool is_steamworks_game = AppID > 0 ||
+       SK_Path_wcsstr (wszProcessName, LR"(SteamApps\)") != nullptr;
+
+  bool is_epic_game = (! is_steamworks_game) &&
+       (    StrStrIW (GetCommandLineW (), L"-epicapp") ||
+          SK_Path_wcsstr (wszProcessName, LR"(Epic Games\)") != nullptr );
+
+  bool is_microsoft_game = (! is_steamworks_game) && (! is_epic_game) &&
+       ( SK_Path_wcsstr (wszProcessName, LR"(XboxGames\)") != nullptr ||
+         SK_IsModuleLoaded (L"AppXDeploymentClient.dll") );
+
+  bool is_ubisoft_game =
+    (! is_steamworks_game) && (! is_epic_game) &&
+    (! is_microsoft_game ) && ( SK_IsModuleLoaded (L"uplay_aux_r164.dll") ||
+                                SK_IsModuleLoaded (L"uplay_aux_r264.dll") ||
+                            SK_Path_wcsstr (wszProcessName, L"_Plus.exe") );
+
+  bool is_gog_game =
+    (! is_steamworks_game) && (! is_epic_game)    &&
+    (! is_microsoft_game ) && (! is_ubisoft_game) &&
+      (SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games\)") != nullptr ||
+       SK_Path_wcsstr (wszProcessName, LR"(GOG Games\)")        != nullptr);
+
+  bool is_origin_game =
+    (! is_steamworks_game) && (! is_epic_game)    && (! is_gog_game) &&
+    (! is_microsoft_game ) && (! is_ubisoft_game) &&
+       SK_Path_wcsstr (wszProcessName, LR"(Origin Games\)") != nullptr;
+
+  if (! is_steamworks_game)
+  {
+    // Most frequently imported DLLs for games that use SteamAPI
+    //
+    //  It is trivial to use SteamAPI without linking to the DLL, so
+    //    this is not the final test to determine Steam compatibility.
+    //
+    sk_import_test_s steam_tests [] =
+    {
+      { SK_RunLHIfBitness (64, "steam_api64.dll",
+                               "steam_api.dll"),  false },
+      {                        "steamnative.dll", false }
+    };
+
+    SK_TestImports (GetModuleHandle (nullptr), steam_tests, 2);
+
+    is_steamworks_game =
+      ( steam_tests [0].used ||
+        steam_tests [1].used );
+  }
+
+       if (is_epic_game)       config.platform.type = SK_Platform_Epic;
+  else if (is_steamworks_game) config.platform.type = SK_Platform_Steam;
+  else if (is_microsoft_game)  config.platform.type = SK_Platform_Xbox;
+  else if (is_gog_game)        config.platform.type = SK_Platform_GOG;
+  else if (is_origin_game)     config.platform.type = SK_Platform_EA;
+  else if (is_ubisoft_game)    config.platform.type = SK_Platform_Ubisoft;
+  else
+  {
+    is_microsoft_game =
+      PathFileExistsW (L"gamelaunchhelper.exe") ||
+      PathFileExistsW (L"appxmanifest.xml");
+
+    is_gog_game =
+     ( PathFileExistsW (L"gog.ico")                                       ||
+       PathFileExistsW (L"goggame-galaxyFileList.ini")                    ||
+       // Recursive down-level search to handle Unreal Engine nonsense...
+       PathFileExistsW (L"../gog.ico")                                    ||
+       PathFileExistsW (L"../goggame-galaxyFileList.ini")                 ||
+       PathFileExistsW (L"../../gog.ico")                                 ||
+       PathFileExistsW (L"../../goggame-galaxyFileList.ini")              ||
+       PathFileExistsW (L"../../../gog.ico")                              ||
+       PathFileExistsW (L"../../../goggame-galaxyFileList.ini") );
+
+         if (is_epic_game)       config.platform.type = SK_Platform_Epic;
+    else if (is_steamworks_game) config.platform.type = SK_Platform_Steam;
+    else if (is_microsoft_game)  config.platform.type = SK_Platform_Xbox;
+    else if (is_gog_game)        config.platform.type = SK_Platform_GOG;
+    else if (is_origin_game)     config.platform.type = SK_Platform_EA;
+    else if (is_ubisoft_game)    config.platform.type = SK_Platform_Ubisoft;
+  }
+}
+
 SK_LazyGlobal <iSK_Logger> dll_log;
 SK_LazyGlobal <iSK_Logger> crash_log;
 SK_LazyGlobal <iSK_Logger> budget_log;

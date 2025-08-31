@@ -1307,22 +1307,6 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       }
 
 
-      // Detect Steam if an AppID environment variable is set...
-      static constexpr int MAX_APPID_LEN = 32;
-
-      DWORD    dwSteamGameIdLen                  =  0 ;
-      uint64_t AppID                             =  0 ;
-      char     szSteamGameId [MAX_APPID_LEN + 1] = { };
-
-      dwSteamGameIdLen =
-        GetEnvironmentVariableA ( "SteamGameId",
-                                    szSteamGameId,
-                                      MAX_APPID_LEN );
-
-      if (dwSteamGameIdLen > 1)
-        AppID = strtoll (szSteamGameId, nullptr, 0);
-
-
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH + 2] = { };
 
@@ -1336,53 +1320,31 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       //    Steamworks platform and we can connect to the client using the
       //      steam_api{64}.dll files distributed with Special K.
       //
-      bool is_steamworks_game = AppID > 0 ||
-           SK_Path_wcsstr (wszProcessName, L"SteamApps") != nullptr;
+      bool is_steamworks_game =
+           SK_Path_wcsstr (wszProcessName, LR"(SteamApps\)") != nullptr;
 
       bool is_epic_game = (! is_steamworks_game) &&
            (    StrStrIW (GetCommandLineW (), L"-epicapp") ||
               SK_Path_wcsstr (wszProcessName, LR"(Epic Games\)") != nullptr );
 
       bool is_microsoft_game = (! is_steamworks_game) && (! is_epic_game) &&
-           SK_IsModuleLoaded (L"AppXDeploymentClient.dll");
+                                    SK_IsModuleLoaded (L"AppXDeploymentClient.dll");
 
       bool is_ubisoft_game =
         (! is_steamworks_game) && (! is_epic_game) &&
         (! is_microsoft_game ) && ( SK_IsModuleLoaded (L"uplay_aux_r164.dll") ||
-                                    SK_IsModuleLoaded (L"uplay_aux_r264.dll") ||
-                                SK_Path_wcsstr (wszProcessName, L"_Plus.exe") );
+                                    SK_IsModuleLoaded (L"uplay_aux_r264.dll") );
 
       bool is_gog_game =
         (! is_steamworks_game) && (! is_epic_game)    &&
         (! is_microsoft_game ) && (! is_ubisoft_game) &&
-          (SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games)") != nullptr ||
-           SK_Path_wcsstr (wszProcessName, LR"(GOG Games)")        != nullptr ||
-           PathFileExistsW (L"gog.ico")                                       ||
-           PathFileExistsW (L"goggame-galaxyFileList.ini")                    ||
-           // Recursive down-level search to handle Unreal Engine nonsense...
-           PathFileExistsW (L"../gog.ico")                                    ||
-           PathFileExistsW (L"../goggame-galaxyFileList.ini")                 ||
-           PathFileExistsW (L"../../gog.ico")                                 ||
-           PathFileExistsW (L"../../goggame-galaxyFileList.ini")              ||
-           PathFileExistsW (L"../../../gog.ico")                              ||
-           PathFileExistsW (L"../../../goggame-galaxyFileList.ini")           ||
-           PathFileExistsW (L"../../../../gog.ico")                           ||
-           PathFileExistsW (L"../../../../goggame-galaxyFileList.ini"));
+          (SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games\)") != nullptr ||
+           SK_Path_wcsstr (wszProcessName, LR"(GOG Games\)")        != nullptr);
 
       bool is_origin_game =
         (! is_steamworks_game) && (! is_epic_game)    && (! is_gog_game) &&
         (! is_microsoft_game ) && (! is_ubisoft_game) &&
            SK_Path_wcsstr (wszProcessName, LR"(Origin Games\)") != nullptr;
-
-      if (! wcscmp (config.platform.type.c_str (), SK_Platform_Unknown))
-      {
-             if (is_epic_game)       config.platform.type = SK_Platform_Epic;
-        else if (is_steamworks_game) config.platform.type = SK_Platform_Steam;
-        else if (is_microsoft_game)  config.platform.type = SK_Platform_Xbox;
-        else if (is_gog_game)        config.platform.type = SK_Platform_GOG;
-        else if (is_origin_game)     config.platform.type = SK_Platform_Origin;
-        else if (is_ubisoft_game)    config.platform.type = SK_Platform_Ubisoft;
-      }
 
       if (! is_steamworks_game)
       {

@@ -47,7 +47,7 @@ static constexpr wchar_t* SK_Platform_Steam   = L"Steam";
 static constexpr wchar_t* SK_Platform_Epic    = L"Epic";
 static constexpr wchar_t* SK_Platform_GOG     = L"GOG";
 static constexpr wchar_t* SK_Platform_Xbox    = L"Xbox";
-static constexpr wchar_t* SK_Platform_Origin  = L"Origin";
+static constexpr wchar_t* SK_Platform_EA      = L"EA";
 static constexpr wchar_t* SK_Platform_Ubisoft = L"Ubisoft";
 
 enum {

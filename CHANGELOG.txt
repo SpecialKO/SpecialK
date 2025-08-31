@@ -3,6 +3,7 @@
  + Ignore Keyboard/Mouse Hooks installed by the GOG overlay.
  + Enumerate HID device files that SK's CreateFile{A|W} hooks miss after
      15 drawn frames instead of during initialization.
+ + Apply platform detection to Local Injection also...
 
 25.8.30.3
 =========

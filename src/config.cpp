@@ -5982,6 +5982,10 @@ auto DeclKeybind =
     config.textures.cache.ignore_nonmipped                         =  true;
   }
 
+  // Figure out the storefront type
+  //
+  SK_Platform_EstablishStorefrontOnFirstLoad ();
+
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.osd.keys.console_toggle);
   LoadKeybind (&config.control_panel.keys.toggle);

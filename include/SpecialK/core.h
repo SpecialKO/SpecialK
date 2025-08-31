@@ -252,6 +252,9 @@ SK_Platform_DrawOSD (void);
 std::wstring
 SK_Platform_RemoveTrademarkSymbols (std::wstring name);
 
+void
+SK_Platform_EstablishStorefrontOnFirstLoad (void);
+
 bool SK_IsFirstRun (void); // Is this the first time running after an INI reset?
 
 void SK_Perf_PrintEvents (void);
