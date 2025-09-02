@@ -2153,6 +2153,14 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   if (! pTLS)
     return;
 
+  static HANDLE hEvent =
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+  SK_ComQIPtr <IDXGIDevice2>
+      pDXGIDev2 (pDev);
+  if (pDXGIDev2 != nullptr)
+      pDXGIDev2->EnqueueSetEvent (hEvent);
+
 #define _SetupThreadContext()                                                   \
                              pTLS->imgui->drawing                      = FALSE; \
                              pTLS->texture_management.injection_thread = FALSE; \
@@ -2300,6 +2308,9 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
       }
     }
   }
+
+  if (pDXGIDev2 != nullptr)
+      pDXGIDev2->EnqueueSetEvent (hEvent);
 }
 
 HRESULT

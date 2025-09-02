@@ -1,4 +1,11 @@
-﻿25.8.31
+﻿25.9.2
+======
+ + Slightly reduced render latency in VRR Optimized mode in D3D11 games,
+     by ensuring all commands before SK draws its overlay are flushed in
+       advance, and then again after SK draws its overlay before any
+         third-party overlays draw theirs.
+
+25.8.31
 =======
  + Ignore Keyboard/Mouse Hooks installed by the GOG overlay.
  + Enumerate HID device files that SK's CreateFile{A|W} hooks miss after
