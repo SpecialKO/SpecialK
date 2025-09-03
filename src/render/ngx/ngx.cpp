@@ -1598,6 +1598,8 @@ SK_NGX_DLSS_ControlPanel (void)
 
       static bool restart_required = false;
 
+      ImGui::BeginGroup ();
+
       if (params != nullptr)
       {
         int                                               dlss_creation_flags = 0x0;
@@ -2281,45 +2283,45 @@ SK_NGX_DLSS_ControlPanel (void)
         }
       }
 
-      else
-        ImGui::BeginGroup  ();
-
       // FIXME:  Implement Vulkan Native Pacing
       if (__SK_IsDLSSGActive && (! config.nvidia.reflex.vulkan))
+      {
+        if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
         {
-          if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
+          config.utility.save_async ();
+        }
+        if (ImGui::BeginItemTooltip ())
+        {
+          ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
+          ImGui::EndTooltip      ();
+        }
+
+        // Remove mode option, it is being phased out...
+#if 0
+        if (config.render.framerate.streamline.enable_native_limit)
+        {
+          ImGui::SameLine ();
+
+          int sel = ( config.render.framerate.streamline.enforcement_policy == 4 ) ? 0 :
+                    ( config.render.framerate.streamline.enforcement_policy == 2 ) ? 1 : 0;
+
+          ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
+
+          if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Normal\0Low-Latency\0\0", 2))
           {
+            config.render.framerate.streamline.enforcement_policy =
+              ( sel == 0 ) ? 4 :
+              ( sel == 1 ) ? 2 : 4;
+
             config.utility.save_async ();
           }
-          if (ImGui::BeginItemTooltip ())
-          {
-            ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
-            ImGui::Separator       ();
-            ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
-            ImGui::EndTooltip      ();
-          }
 
-          if (config.render.framerate.streamline.enable_native_limit)
-          {
-            ImGui::SameLine ();
-
-            int sel = ( config.render.framerate.streamline.enforcement_policy == 4 ) ? 0 :
-                      ( config.render.framerate.streamline.enforcement_policy == 2 ) ? 1 : 0;
-
-            ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
-
-            if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Normal\0Low-Latency\0\0", 2))
-            {
-              config.render.framerate.streamline.enforcement_policy =
-                ( sel == 0 ) ? 4 :
-                ( sel == 1 ) ? 2 : 4;
-
-              config.utility.save_async ();
-            }
-
-            ImGui::PopItemWidth ();
-          }
+          ImGui::PopItemWidth ();
         }
+#endif
+      }
       ImGui::EndGroup    ();
       ImGui::SameLine    ();
       ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);

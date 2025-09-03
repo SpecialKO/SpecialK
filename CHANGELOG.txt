@@ -1,4 +1,8 @@
-﻿25.9.3
+﻿25.9.3.1
+========
+ + Removed mode option from DLSS Frame Generation "Native Pacing".
+
+25.9.3
 ======
  + Add the GOG Galaxy overlay back to the internal blacklist in OpenGL.
  + Allow various DLSS Frame Generation settings to be configured when
