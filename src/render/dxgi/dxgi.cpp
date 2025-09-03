@@ -2000,6 +2000,9 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     else
       SK_D3D11_ClearSwapchainBackbuffer (pSwap);
   }
+
+  extern void SK_ImGui_WaitD3D11 (void);
+              SK_ImGui_WaitD3D11 ();
 }
 
 void
@@ -2130,6 +2133,17 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   }
 }
 
+static HANDLE SK_ImGui_D3D11GPUEvent = 0;
+
+void
+SK_ImGui_WaitD3D11 (void)
+{
+#if 0
+  if (SK_ImGui_D3D11GPUEvent != 0)
+    WaitForSingleObject (SK_ImGui_D3D11GPUEvent, 100UL);
+#endif
+}
+
 void
 SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
 {
@@ -2153,13 +2167,15 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   if (! pTLS)
     return;
 
-  static HANDLE hEvent =
-    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+  SK_RunOnce (
+    SK_ImGui_D3D11GPUEvent =
+      SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+  );
 
   SK_ComQIPtr <IDXGIDevice2>
       pDXGIDev2 (pDev);
   if (pDXGIDev2 != nullptr)
-      pDXGIDev2->EnqueueSetEvent (hEvent);
+      pDXGIDev2->EnqueueSetEvent (SK_ImGui_D3D11GPUEvent);
 
 #define _SetupThreadContext()                                                   \
                              pTLS->imgui->drawing                      = FALSE; \
@@ -2310,7 +2326,7 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   }
 
   if (pDXGIDev2 != nullptr)
-      pDXGIDev2->EnqueueSetEvent (hEvent);
+      pDXGIDev2->EnqueueSetEvent (SK_ImGui_D3D11GPUEvent);
 }
 
 HRESULT
@@ -3483,7 +3499,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     if (hr == DXGI_ERROR_WAS_STILL_DRAWING)
         hr = S_OK;
-
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {

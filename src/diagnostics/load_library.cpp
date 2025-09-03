@@ -930,7 +930,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       hMod = nullptr;
     }
 
-#if 0
+#if 1
     // Avoid issues in OpenGL caused by GOG's overlay
     else if (StrStrIW (compliant_path, L"overlay_mediator_"))
     {

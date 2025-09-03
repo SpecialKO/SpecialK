@@ -1,4 +1,9 @@
-﻿25.9.2
+﻿25.9.3
+======
+ + Add the GOG Galaxy overlay back to SK's internal blacklist in OpenGL
+     games since it destroys performance.
+
+25.9.2
 ======
  + Slightly reduced render latency in VRR Optimized mode in D3D11 games,
      by ensuring all commands before SK draws its overlay are flushed in
