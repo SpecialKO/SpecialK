@@ -1541,7 +1541,7 @@ SK_NGX_DLSS_GetResolution (int& x, int& y, int& out_x, int& out_y)
 void
 SK_NGX_DLSS_ControlPanel (void)
 {
-  if (SK_NGX_IsUsingDLSS () || SK_NGX_IsUsingDLSS_G ())
+  if (SK_NGX_IsUsingDLSS () || SK_NGX_IsUsingDLSS_G () || SK_NGX_IsUsingDLSS_D ())
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
@@ -1575,29 +1575,31 @@ SK_NGX_DLSS_ControlPanel (void)
       auto params =
         SK_NGX_GetDLSSParameters ();
   
+      static auto path_to_plugin_dlss =
+        std::filesystem::path (
+          SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+        ) / L"NVIDIA" / L"nvngx_dlss.dll";
+
+      static std::error_code                          ec;
+      static bool bHasPlugInDLSS =
+        std::filesystem::exists (path_to_plugin_dlss, ec);
+
+      static std::wstring path_to_dlss =
+        SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
+
+      static std::filesystem::path dlss_directory =
+             std::filesystem::path (path_to_dlss).remove_filename ();
+
+      static auto dlss_version =
+        SK_NGX_GetDLSSVersion ();
+
+      static auto dlssg_version =
+        SK_NGX_GetDLSSGVersion ();
+
+      static bool restart_required = false;
+
       if (params != nullptr)
       {
-        static auto path_to_plugin_dlss =
-          std::filesystem::path (
-            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
-          ) / L"NVIDIA" / L"nvngx_dlss.dll";
-
-        static std::error_code                          ec;
-        static bool bHasPlugInDLSS =
-          std::filesystem::exists (path_to_plugin_dlss, ec);
-
-        static std::wstring path_to_dlss =
-          SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
-
-        static std::filesystem::path dlss_directory =
-               std::filesystem::path (path_to_dlss).remove_filename ();
-
-        static auto dlss_version =
-          SK_NGX_GetDLSSVersion ();
-
-        static auto dlssg_version =
-          SK_NGX_GetDLSSGVersion ();
-
         int                                               dlss_creation_flags = 0x0;
         params->Get (
           NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
@@ -1631,8 +1633,6 @@ SK_NGX_DLSS_ControlPanel (void)
           config.nvidia.dlss.forced_auto_exposure != -1 ||
             (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AutoExposure) ==
                                    NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;*/
-
-        static bool restart_required = false;
   
         unsigned int     width,     height;
         unsigned int out_width, out_height;
@@ -2280,269 +2280,268 @@ SK_NGX_DLSS_ControlPanel (void)
             ImGui::EndTooltip      ();
           }
         }
+      }
 
-        // FIXME:  Implement Vulkan Native Pacing
-        if (__SK_IsDLSSGActive && (! config.nvidia.reflex.vulkan))
+      // FIXME:  Implement Vulkan Native Pacing
+      if (__SK_IsDLSSGActive && (! config.nvidia.reflex.vulkan))
+      {
+        if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
         {
-          if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
+          config.utility.save_async ();
+        }
+        if (ImGui::BeginItemTooltip ())
+        {
+          ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
+          ImGui::EndTooltip      ();
+        }
+
+        if (config.render.framerate.streamline.enable_native_limit)
+        {
+          ImGui::SameLine ();
+
+          int sel = ( config.render.framerate.streamline.enforcement_policy == 4 ) ? 0 :
+                    ( config.render.framerate.streamline.enforcement_policy == 2 ) ? 1 : 0;
+
+          ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
+
+          if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Normal\0Low-Latency\0\0", 2))
           {
+            config.render.framerate.streamline.enforcement_policy =
+              ( sel == 0 ) ? 4 :
+              ( sel == 1 ) ? 2 : 4;
+
             config.utility.save_async ();
           }
-          if (ImGui::BeginItemTooltip ())
+
+          ImGui::PopItemWidth ();
+        }
+      }
+      ImGui::EndGroup    ();
+      ImGui::SameLine    ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
+      ImGui::BeginGroup  ();
+
+      ImGui::TextUnformatted ( "DLSS Version:\t" );
+      ImGui::SameLine ();
+
+      auto color = dlss_version.driver_override ?
+                    ImVec4 (1.f, 1.f, 0.f, 1.f) :
+        ImGui::GetStyleColorVec4 (ImGuiCol_Text);
+
+      ImGui::TextColored ( color,
+        "%d.%d.%d%hs", dlss_version.major, dlss_version.minor,
+                                           dlss_version.build,
+                                           dlss_version.driver_override ?
+                                       " " ICON_FA_QUESTION_CIRCLE "\t" :
+                                                                   "\t" );
+
+      if (dlss_version.driver_override)
+      {
+        ImGui::SetItemTooltip (
+          "A forced driver override is active, SK may be unable to "
+          "change DLSS settings and reported active settings may be inaccurate." );
+      }
+
+      if (dlssg_version.major > 0)
+      {
+        ImGui::SameLine ();
+
+        color =
+          dlssg_version.driver_override ? ImVec4 (1.f, 1.f, 0.f, 1.f) :
+                              ImGui::GetStyleColorVec4 (ImGuiCol_Text);
+
+        ImGui::TextUnformatted ( "DLSS-G Version:\t" );
+        ImGui::SameLine        ();
+        ImGui::TextColored     ( color,
+          "%d.%d.%d%hs", dlssg_version.major, dlssg_version.minor,
+                                              dlssg_version.build,
+                                              dlssg_version.driver_override ?
+                                           " " ICON_FA_QUESTION_CIRCLE "\t" :
+                                                                       "\t" );
+
+        if (dlssg_version.driver_override)
+        {
+          ImGui::SetItemTooltip (
+            "A forced driver override is active, SK may be unable to "
+            "change DLSS-G settings and reported active settings may be inaccurate." );
+        }
+      }
+
+      static bool bRestartNeeded = false;
+
+      // Only offer option to replace DLSS DLLs in DLSS 2.x+ games and
+      //   when driver forced overrides are not active.
+      if ( dlss_version.major > 1 && dlss_version.driver_override == false &&
+                                    dlssg_version.driver_override == false )
+      {
+        if (bHasPlugInDLSS)
+        {
+          if (ImGui::Checkbox ("Use Special K's DLSS instead of Game's DLL", &config.nvidia.dlss.auto_redirect_dlss))
           {
-            ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
-            ImGui::Separator       ();
-            ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
-            ImGui::EndTooltip      ();
-          }
+            bRestartNeeded = true;
 
-          if (config.render.framerate.streamline.enable_native_limit)
-          {
-            ImGui::SameLine ();
-
-            int sel = ( config.render.framerate.streamline.enforcement_policy == 4 ) ? 0 :
-                      ( config.render.framerate.streamline.enforcement_policy == 2 ) ? 1 : 0;
-
-            ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
-
-            if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Normal\0Low-Latency\0\0", 2))
-            {
-              config.render.framerate.streamline.enforcement_policy =
-                ( sel == 0 ) ? 4 :
-                ( sel == 1 ) ? 2 : 4;
-
-              config.utility.save_async ();
-            }
-
-            ImGui::PopItemWidth ();
+            config.utility.save_async ();
           }
         }
+
+        else
+        {
+          static bool clicked_once = false;
+
+          bool bClicked =
+            ImGui::Selectable (ICON_FA_INFO_CIRCLE " Auto-Load a Newer DLSS DLL...");
+
+          clicked_once |= bClicked;
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::BulletText   ("Click to Create the Plug-In Directory for Auto-Load.");
+            ImGui::BulletText   ("Place nvngx_dlss.dll in the Directory.");
+            ImGui::EndTooltip   ();
+          }
+
+          if (bClicked)
+          {
+            static std::filesystem::path dlss_plugin_directory =
+                   std::filesystem::path (path_to_plugin_dlss).remove_filename ();
+
+            SK_CreateDirectories (       dlss_plugin_directory.c_str ());
+            if (std::filesystem::exists (dlss_plugin_directory, ec))
+              SK_Util_ExplorePath (      dlss_plugin_directory.wstring ().c_str ());
+            else
+            {
+              clicked_once = false;
+            }
+          }
+
+          if (clicked_once)
+          {
+            bHasPlugInDLSS =
+              std::filesystem::exists (path_to_plugin_dlss, ec);
+          }
+        }
+
+        if ((! bHasPlugInDLSS) || (! config.nvidia.dlss.auto_redirect_dlss))
+        {
+          if (ImGui::Button ("Browse DLSS Directory"))
+          {
+            SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
+          }
+
+          ImGui::SameLine ();
+        }
+      }
+      
+      if (ImGui::TreeNode ("DLSS Indicators"))
+      {
+        ImGui::BeginGroup ();
+
+        bool show_dlss =
+          SK_DLSS_Context::dlss_s::isIndicatorShown ();
+        bool show_dlssg =
+          SK_DLSS_Context::dlssg_s::isIndicatorShown ();
+
+        if (ImGui::Checkbox ("Show DLSS", &show_dlss))
+        {
+          SK_DLSS_Context::dlss_s::showIndicator (show_dlss);
+
+          bRestartNeeded = true;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Shows the official NVIDIA text overlay (bottom-left) for DLSS / DLSS Ray Reconstruction.");
+        }
+
+        if (ImGui::Checkbox ("Show DLSS-G", &show_dlssg))
+        {
+          SK_DLSS_Context::dlssg_s::showIndicator (show_dlssg);
+
+          bRestartNeeded = true;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Shows the official NVIDIA text overlay (top-left) for DLSS Frame Generation.");
+        }
+
         ImGui::EndGroup    ();
         ImGui::SameLine    ();
         ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine    ();
         ImGui::BeginGroup  ();
-
-        ImGui::TextUnformatted ( "DLSS Version:\t" );
-        ImGui::SameLine ();
-
-        auto color = dlss_version.driver_override ?
-                      ImVec4 (1.f, 1.f, 0.f, 1.f) :
-          ImGui::GetStyleColorVec4 (ImGuiCol_Text);
-
-        ImGui::TextColored ( color,
-          "%d.%d.%d%hs", dlss_version.major, dlss_version.minor,
-                                             dlss_version.build,
-                                             dlss_version.driver_override ?
-                                         " " ICON_FA_QUESTION_CIRCLE "\t" :
-                                                                     "\t" );
-
-        if (dlss_version.driver_override)
+        if (ImGui::Checkbox ("Show Active Features", &config.nvidia.dlss.show_active_features))
         {
-          ImGui::SetItemTooltip (
-            "A forced driver override is active, SK may be unable to "
-            "change DLSS settings and reported active settings may be inaccurate." );
+          config.utility.save_async ();
         }
-
-        if (dlssg_version.major > 0)
-        {
-          ImGui::SameLine ();
-
-          color =
-            dlssg_version.driver_override ? ImVec4 (1.f, 1.f, 0.f, 1.f) :
-                                ImGui::GetStyleColorVec4 (ImGuiCol_Text);
-
-          ImGui::TextUnformatted ( "DLSS-G Version:\t" );
-          ImGui::SameLine        ();
-          ImGui::TextColored     ( color,
-            "%d.%d.%d%hs", dlssg_version.major, dlssg_version.minor,
-                                                dlssg_version.build,
-                                                dlssg_version.driver_override ?
-                                             " " ICON_FA_QUESTION_CIRCLE "\t" :
-                                                                         "\t" );
-
-          if (dlssg_version.driver_override)
-          {
-            ImGui::SetItemTooltip (
-              "A forced driver override is active, SK may be unable to "
-              "change DLSS-G settings and reported active settings may be inaccurate." );
-          }
-        }
-
-        static bool bRestartNeeded = false;
-
-        // Only offer option to replace DLSS DLLs in DLSS 2.x+ games and
-        //   when driver forced overrides are not active.
-        if ( dlss_version.major > 1 && dlss_version.driver_override == false &&
-                                      dlssg_version.driver_override == false )
-        {
-          if (bHasPlugInDLSS)
-          {
-            if (ImGui::Checkbox ("Use Special K's DLSS instead of Game's DLL", &config.nvidia.dlss.auto_redirect_dlss))
-            {
-              bRestartNeeded = true;
-
-              config.utility.save_async ();
-            }
-          }
-
-          else
-          {
-            static bool clicked_once = false;
-
-            bool bClicked =
-              ImGui::Selectable (ICON_FA_INFO_CIRCLE " Auto-Load a Newer DLSS DLL...");
-
-            clicked_once |= bClicked;
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip ();
-              ImGui::BulletText   ("Click to Create the Plug-In Directory for Auto-Load.");
-              ImGui::BulletText   ("Place nvngx_dlss.dll in the Directory.");
-              ImGui::EndTooltip   ();
-            }
-
-            if (bClicked)
-            {
-              static std::filesystem::path dlss_plugin_directory =
-                     std::filesystem::path (path_to_plugin_dlss).remove_filename ();
-
-              SK_CreateDirectories (       dlss_plugin_directory.c_str ());
-              if (std::filesystem::exists (dlss_plugin_directory, ec))
-                SK_Util_ExplorePath (      dlss_plugin_directory.wstring ().c_str ());
-              else
-              {
-                clicked_once = false;
-              }
-            }
-
-            if (clicked_once)
-            {
-              bHasPlugInDLSS =
-                std::filesystem::exists (path_to_plugin_dlss, ec);
-            }
-          }
-
-          if ((! bHasPlugInDLSS) || (! config.nvidia.dlss.auto_redirect_dlss))
-          {
-            if (ImGui::Button ("Browse DLSS Directory"))
-            {
-              SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
-            }
-
-            ImGui::SameLine ();
-          }
-        }
-        
-        if (ImGui::TreeNode ("DLSS Indicators"))
-        {
-          ImGui::BeginGroup ();
-
-          bool show_dlss =
-            SK_DLSS_Context::dlss_s::isIndicatorShown ();
-          bool show_dlssg =
-            SK_DLSS_Context::dlssg_s::isIndicatorShown ();
-
-          if (ImGui::Checkbox ("Show DLSS", &show_dlss))
-          {
-            SK_DLSS_Context::dlss_s::showIndicator (show_dlss);
-
-            bRestartNeeded = true;
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Shows the official NVIDIA text overlay (bottom-left) for DLSS / DLSS Ray Reconstruction.");
-          }
-
-          if (ImGui::Checkbox ("Show DLSS-G", &show_dlssg))
-          {
-            SK_DLSS_Context::dlssg_s::showIndicator (show_dlssg);
-
-            bRestartNeeded = true;
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Shows the official NVIDIA text overlay (top-left) for DLSS Frame Generation.");
-          }
-
-          ImGui::EndGroup    ();
-          ImGui::SameLine    ();
-          ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-          ImGui::SameLine    ();
-          ImGui::BeginGroup  ();
-          if (ImGui::Checkbox ("Show Active Features", &config.nvidia.dlss.show_active_features))
-          {
-            config.utility.save_async ();
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Displays which DLSS extensions are in use in the DLSS header.");
-          }
-        }
-        else
-          ImGui::BeginGroup ();
-
-        bool bShowCompatHacks =
-          ImGui::TreeNode ("Compatibility Hacks");
 
         if (ImGui::IsItemHovered ())
         {
-          ImGui::SetTooltip ("Compatibility hacks to fix DLSS black screens in some games");
+          ImGui::SetTooltip ("Displays which DLSS extensions are in use in the DLSS header.");
         }
+      }
+      else
+        ImGui::BeginGroup ();
 
-        if (bShowCompatHacks)
-        {
-          bool bDLAAMinus2 = config.nvidia.dlss.compat.extra_pixels != 0;
+      bool bShowCompatHacks =
+        ImGui::TreeNode ("Compatibility Hacks");
 
-          if (ImGui::Checkbox ("DLAA -2 Pixels", &bDLAAMinus2))
-          {
-            if (! bDLAAMinus2)
-              config.nvidia.dlss.compat.extra_pixels = 0;
-            else
-              config.nvidia.dlss.compat.extra_pixels = -2;
-
-            restart_required = true;
-
-            config.utility.save_async ();
-          }
-
-          bool bFakeGenericAppID =
-            config.nvidia.dlss.compat.override_appid != -1;
-
-          if (ImGui::Checkbox ("Fake Generic AppID", &bFakeGenericAppID))
-          {
-            if (bFakeGenericAppID)
-              config.nvidia.dlss.compat.override_appid = 0x24480451;
-            else
-              config.nvidia.dlss.compat.override_appid = -1;
-
-            restart_required = true;
-
-            config.utility.save_async ();
-          }
-
-          if (ImGui::Checkbox ("Disable Over-The-Air Updates", &config.nvidia.dlss.disable_ota_updates))
-          {
-            config.utility.save_async ();
-          }
-
-          ImGui::TreePop ();
-        }
-
-        if (bRestartNeeded)
-        {
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.1f, .8f, .9f));
-          ImGui::BulletText     ("Game Restart Required");
-          ImGui::PopStyleColor  ();
-        }
-        ImGui::EndGroup   ();
-        ImGui::EndGroup   ();
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Compatibility hacks to fix DLSS black screens in some games");
       }
 
+      if (bShowCompatHacks)
+      {
+        bool bDLAAMinus2 = config.nvidia.dlss.compat.extra_pixels != 0;
+
+        if (ImGui::Checkbox ("DLAA -2 Pixels", &bDLAAMinus2))
+        {
+          if (! bDLAAMinus2)
+            config.nvidia.dlss.compat.extra_pixels = 0;
+          else
+            config.nvidia.dlss.compat.extra_pixels = -2;
+
+          restart_required = true;
+
+          config.utility.save_async ();
+        }
+
+        bool bFakeGenericAppID =
+          config.nvidia.dlss.compat.override_appid != -1;
+
+        if (ImGui::Checkbox ("Fake Generic AppID", &bFakeGenericAppID))
+        {
+          if (bFakeGenericAppID)
+            config.nvidia.dlss.compat.override_appid = 0x24480451;
+          else
+            config.nvidia.dlss.compat.override_appid = -1;
+
+          restart_required = true;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::Checkbox ("Disable Over-The-Air Updates", &config.nvidia.dlss.disable_ota_updates))
+        {
+          config.utility.save_async ();
+        }
+
+        ImGui::TreePop ();
+      }
+
+      if (bRestartNeeded)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.1f, .8f, .9f));
+        ImGui::BulletText     ("Game Restart Required");
+        ImGui::PopStyleColor  ();
+      }
+      ImGui::EndGroup    ( );
+      ImGui::EndGroup    ( );
       ImGui::TreePop     ( );
     }
   

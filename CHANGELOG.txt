@@ -1,7 +1,9 @@
 ﻿25.9.3
 ======
- + Add the GOG Galaxy overlay back to SK's internal blacklist in OpenGL
-     games since it destroys performance.
+ + Add the GOG Galaxy overlay back to the internal blacklist in OpenGL.
+ + Allow various DLSS Frame Generation settings to be configured when
+     DLSS Frame Generation is active but not DLSS Super Resolution.
+
 
 25.9.2
 ======
