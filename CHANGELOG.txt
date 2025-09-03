@@ -4,7 +4,6 @@
  + Allow various DLSS Frame Generation settings to be configured when
      DLSS Frame Generation is active but not DLSS Super Resolution.
 
-
 25.9.2
 ======
  + Slightly reduced render latency in VRR Optimized mode in D3D11 games,
