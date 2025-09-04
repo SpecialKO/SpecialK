@@ -1,7 +1,12 @@
-﻿25.9.4
+﻿25.9.4.1
+========
+ + Apply XInput deadzone to XInputGetStateEx (...) function for engines
+     using SDL or Unity, since they do not use the documented XInput API...
+
+25.9.4
 ======
  + Fixed change made in 25.3.5.1 to address REFramework DirectInput8 input
-     issues that affects non-CRAPCOM games.
+     issues, that was affecting non-CRAPCOM games (i.e. Hollow Knight).
 
 25.9.3.2
 ========

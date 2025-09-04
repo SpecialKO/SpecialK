@@ -913,6 +913,8 @@ XInputGetStateEx1_4_Detour (
       InterlockedExchange (&last_native_packet [0], pState->dwPacketNumber);
       InterlockedExchange (&last_native_time   [0], SK_QueryPerf ().QuadPart);
     }
+
+    SK_XInput_ApplyDeadzone ((XINPUT_STATE *)pState, config.input.gamepad.xinput.deadzone);
   }
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
