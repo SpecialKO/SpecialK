@@ -370,22 +370,32 @@ SK::ControlPanel::D3D11::Draw (void)
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
   const bool d3d12 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
-  const bool vulkan =
+  const bool oglvk =
     SK_DXGI_VK_INTEROP_TYPE_NONE !=
        SK_Render_GetVulkanInteropSwapChainType (rb.swapchain);
 
+  const bool vulkan =
+    ( oglvk && is_vulkan_loaded );
+
   // Is the underlying graphics API actually something else?
   const bool indirect =
-    ( SK_GL_OnD3D11 || vulkan );
+    ( oglvk || SK_GL_OnD3D11 );
 
   bool uncollapsed = false;
 
   if (SK_GL_OnD3D11)
     uncollapsed = ImGui::CollapsingHeader ("OpenGL-IK Settings",   ImGuiTreeNodeFlags_DefaultOpen);
-  else if (vulkan)
-  { if (is_vulkan_loaded)
-    uncollapsed = ImGui::CollapsingHeader ("Vulkan Settings",      ImGuiTreeNodeFlags_DefaultOpen);
-  }
+  else if (oglvk)
+    if (vulkan)
+    uncollapsed = ImGui::CollapsingHeader (
+                                   d3d11 ? "Vulkan Settings (D3D11 Interop)" :
+                                   d3d12 ? "Vulkan Settings (D3D12 Interop)" :
+                                           "Vulkan Settings",      ImGuiTreeNodeFlags_DefaultOpen);
+    else
+    uncollapsed = ImGui::CollapsingHeader (
+                                   d3d11 ? "OpenGL Settings (D3D11 Interop)" :
+                                   d3d12 ? "OpenGL Settings (D3D12 Interop)" :
+                                           "OpenGL Settings",      ImGuiTreeNodeFlags_DefaultOpen);
   else if (d3d11)
     uncollapsed = ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen);
   else if (d3d12)
