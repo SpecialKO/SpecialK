@@ -2743,6 +2743,10 @@ SK_Input_EnumOpenHIDFiles (void)
         if (pHandleInfoEx->Handles [i].ProcessId       != dwPidOfMe &&
             pHandleInfoEx->Handles [i].ProcessId       != dwSteamClientPid)
           continue;
+
+        // Avoid some kind of locked file in Unity games, no idea what these access parameters mean...
+        if (pHandleInfoEx->Handles [i].GrantedAccess == 0x120189)
+          continue; // Failure to skip this file would cause a hang trying to query file details.
     
         HANDLE file =
           pHandleInfoEx->Handles [i].Handle;
@@ -2817,7 +2821,6 @@ SK_Input_EnumOpenHIDFiles (void)
 
         SK_LOGi0 (L"File Name=%ws", handle_name.c_str ());
 #endif
-
         if (SK_HidD_GetAttributes (file, &hidAttribs))
         {
           PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
