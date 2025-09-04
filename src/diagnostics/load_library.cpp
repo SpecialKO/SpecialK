@@ -917,7 +917,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       config.steam.disable_overlay;
 
     // Disable EOS Overlay in local injection
-    if (StrStrIW (compliant_path, L"EOSOVH"))
+    if (StrStrIW (compliant_path, L"EOSOVH") && (disable_platform_overlay || StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping")))
     {
       if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
       {
@@ -940,25 +940,22 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     }
 
     // Avoid issues in OpenGL caused by GOG's overlay
-    else if (StrStrIW (compliant_path, L"overlay_mediator_"))
+    else if (StrStrIW (compliant_path, L"overlay_mediator_") && (disable_platform_overlay || (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook)))
     {
-      if (disable_platform_overlay || (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook))
+      if (! disable_platform_overlay)
       {
-        if (! disable_platform_overlay)
-        {
-          SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay in OpenGL game.");
-          SK_ImGui_Warning (
-            L"GOG Overlay blocked due to OpenGL instability\r\n\r\n\t"
-            L"Turn OpenGL off under Compatibility Settings | Render Backends, or disable the GOG Overlay to get rid of this message."
-          );
-        }
-        else
-        {
-          SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay at User's Request.");
-        }
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-        hMod = nullptr;
+        SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay in OpenGL game.");
+        SK_ImGui_Warning (
+          L"GOG Overlay blocked due to OpenGL instability\r\n\r\n\t"
+          L"Turn OpenGL off under Compatibility Settings | Render Backends, or disable the GOG Overlay to get rid of this message."
+        );
       }
+      else
+      {
+        SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay at User's Request.");
+      }
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      hMod = nullptr;
     }
 
     // Windows Defender likes to deadlock in the Steam Overlay

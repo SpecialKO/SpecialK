@@ -2,6 +2,9 @@
 ========
  + Apply XInput deadzone to XInputGetStateEx (...) function for engines
      using SDL or Unity, since they do not use the documented XInput API...
+ + Disable OpenGL hooks in Unity engine games, since Unity loads the DLL,
+     but does not actually use GL and the GOG overlay has compatibility
+       issues in GL.
 
 25.9.4
 ======

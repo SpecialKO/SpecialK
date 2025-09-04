@@ -4063,6 +4063,10 @@ SK_BackgroundRender_EndFrame (void)
 
           SK_RestartGame ();
         }
+
+        // Unity loads OpenGL but never uses it, disable OpenGL hooks to avoid
+        //   unnecessary complications in GOG games.
+        config.apis.OpenGL.hook = false;
       }
 
       if (SK_GetModuleHandleW (L"SDL2.dll") ||
