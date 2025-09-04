@@ -913,11 +913,20 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       //}
     }
 
+    const bool disable_platform_overlay =
+      config.steam.disable_overlay;
 
     // Disable EOS Overlay in local injection
-    if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
+    if (StrStrIW (compliant_path, L"EOSOVH"))
     {
-      SK_LOGs0 (L"DLL Loader", L"Epic Overlay Disabled in 32-bit game to prevent deadlock");
+      if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
+      {
+        SK_LOGs0 (L"DLL Loader", L"Epic Overlay Disabled in 32-bit game to prevent deadlock");
+      }
+      else
+      {
+        SK_LOGs0 (L"DLL Loader", L"Disabling Epic Overlay at User's Request.");
+      }
       SK_SetLastError (ERROR_MOD_NOT_FOUND);
       hMod = nullptr;
     }
@@ -930,22 +939,27 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       hMod = nullptr;
     }
 
-#if 1
     // Avoid issues in OpenGL caused by GOG's overlay
     else if (StrStrIW (compliant_path, L"overlay_mediator_"))
     {
-      if (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook)
+      if (disable_platform_overlay || (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook))
       {
-        SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay in OpenGL game.");
-        SK_ImGui_Warning (
-          L"GOG Overlay blocked due to OpenGL instability\r\n\r\n\t"
-          L"Turn OpenGL off under Compatibility Settings | Render Backends, or disable the GOG Overlay to get rid of this message."
-        );
+        if (! disable_platform_overlay)
+        {
+          SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay in OpenGL game.");
+          SK_ImGui_Warning (
+            L"GOG Overlay blocked due to OpenGL instability\r\n\r\n\t"
+            L"Turn OpenGL off under Compatibility Settings | Render Backends, or disable the GOG Overlay to get rid of this message."
+          );
+        }
+        else
+        {
+          SK_LOGs0 (L"DLL Loader", L"Disabling GOG Overlay at User's Request.");
+        }
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
         hMod = nullptr;
       }
     }
-#endif
 
     // Windows Defender likes to deadlock in the Steam Overlay
     else if (StrStrIW (compliant_path, L"Windows Defender"))
@@ -964,7 +978,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
     {
       SK_RunOnce (
-        dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.")
+        dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it is unstable.")
       );
 
       SK_SetLastError (ERROR_MOD_NOT_FOUND);
@@ -975,7 +989,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
     {
       SK_RunOnce (
-        dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.")
+        dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it is unstable.")
       );
 
       SK_SetLastError (ERROR_MOD_NOT_FOUND);
