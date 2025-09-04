@@ -3003,8 +3003,6 @@ SK_Input_HookHID (void)
     SK_GetOverlappedResult   = GetOverlappedResult_Original;
     SK_GetOverlappedResultEx = GetOverlappedResultEx_Original;
 
-    SK_Input_EnumOpenHIDFiles ();
-
     SK_ApplyQueuedHooks ();
 
     InterlockedIncrementRelease (&hooked);
@@ -3315,6 +3313,8 @@ SK_Input_PreHookHID (void)
 
         ret = true;
       }
+
+      //SK_Input_EnumOpenHIDFiles ();
     }
 
     InterlockedIncrement (&_init);

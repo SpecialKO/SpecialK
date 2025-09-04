@@ -1,4 +1,9 @@
-﻿25.9.3.2
+﻿25.9.4
+======
+ + Fixed change made in 25.3.5.1 to address REFramework DirectInput8 input
+     issues that affects non-CRAPCOM games.
+
+25.9.3.2
 ========
  + Apply the "NoDrawOverlay" option in [Steam.System] to all platform
      overlays (except Game Bar).

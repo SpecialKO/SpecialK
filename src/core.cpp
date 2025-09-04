@@ -3488,6 +3488,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       //                 * Also fix Steam Input in CAPCOM games
       if (frames_drawn > 15)
       {
+        void        SK_Input_EnumOpenHIDFiles (void);
+        SK_RunOnce (SK_Input_EnumOpenHIDFiles ());
+
         // Horizon: Forbidden West Hack
         // ----------------------------
         //   Since we have to delay injection as a compatibility hack for Nixxes
