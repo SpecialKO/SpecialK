@@ -1,4 +1,9 @@
-﻿25.9.4.1
+﻿25.9.11
+=======
+ + Remove support for Assassin's Creed: Shadows; it will be treated like
+     a generic D3D12 game now. SK's plug-in is no longer compatible.
+
+25.9.4.1
 ========
  + Apply XInput deadzone to XInputGetStateEx (...) function for engines
      using SDL or Unity, since they do not use the documented XInput API...

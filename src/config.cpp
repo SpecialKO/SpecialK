@@ -289,8 +289,8 @@ SK_GetCurrentGameID (void)
           { L"EnderLiliesEOS-Win64-Shipping.exe",      SK_GAME_ID::EnderLilies                  },
           { L"Avowed-WinGDK-Shipping.exe",             SK_GAME_ID::Avowed                       }, // Microsoft Store Version
           { L"Avowed-Win64-Shipping.exe",              SK_GAME_ID::Avowed                       }, // Steam Version
-          { L"ACShadows.exe",                          SK_GAME_ID::AssassinsCreed_Shadows       }, // Normal version
-          { L"ACShadows_Plus.exe",                     SK_GAME_ID::AssassinsCreed_Shadows       }, // Ubisoft+ version
+        //{ L"ACShadows.exe",                          SK_GAME_ID::AssassinsCreed_Shadows       }, // Normal version
+        //{ L"ACShadows_Plus.exe",                     SK_GAME_ID::AssassinsCreed_Shadows       }, // Ubisoft+ version
           { L"Ronin.exe",                              SK_GAME_ID::RiseOfRonin                  },
           { L"SandFallEos-Win64-Shipping.exe",         SK_GAME_ID::ClairObscur_Expedition33     }, // Epic Version
           { L"SandFall-Win64-Shipping.exe",            SK_GAME_ID::ClairObscur_Expedition33     }, // Steam Version
