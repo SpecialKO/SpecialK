@@ -825,21 +825,43 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   {
     if (rb.isHDRCapable ())
     {
-      game_is_engaging_native_hdr = true;
+      bool correct_swapchain_fmt = true;
 
-      if (! sk_is_overriding_hdr)
+      if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                        pSwap3 != nullptr)
       {
-        __SK_HDR_10BitSwap = false;
-        __SK_HDR_16BitSwap = true;
+        DXGI_SWAP_CHAIN_DESC swapDesc = {};
+           pSwap3->GetDesc (&swapDesc);
 
-        __SK_HDR_Preset       = 2;
-        __SK_HDR_Content_EOTF = 1.0f;
+        if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+          correct_swapchain_fmt = false;
+      }
 
-        if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
-                                          pSwap3 != nullptr)
+      if (correct_swapchain_fmt)
+      {
+        game_is_engaging_native_hdr = true;
+
+        if (! sk_is_overriding_hdr)
         {
-          pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+          __SK_HDR_10BitSwap = false;
+          __SK_HDR_16BitSwap = true;
+
+          __SK_HDR_Preset       = 2;
+          __SK_HDR_Content_EOTF = 1.0f;
+
+          if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                            pSwap3 != nullptr)
+          {
+            pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+          }
         }
+      }
+
+      else
+      {
+        SK_LOGi0 (
+          L"Game is trying to use NVAPI to set the wrong HDR colorspace! (scRGB unsupported and ignored)"
+        );
       }
     }
   }

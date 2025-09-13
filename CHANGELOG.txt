@@ -1,4 +1,9 @@
-﻿25.9.11
+﻿25.9.13
+=======
+ + Ignore bug in NVIDIA Streamline in Borderlands 4 that causes it to
+     try to set the wrong HDR colorspace (scRGB) for HDR10.
+
+25.9.11
 =======
  + Remove support for Assassin's Creed: Shadows; it will be treated like
      a generic D3D12 game now. SK's plug-in is no longer compatible.
