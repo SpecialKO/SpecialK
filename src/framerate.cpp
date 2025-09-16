@@ -924,24 +924,27 @@ SK::Framerate::Init (void)
     double& dTimerRes =
       SK::Framerate::Limiter::timer_res_ms;
 
-    ULONG                         min,  max,  cur;
-    if ( ZwQueryTimerResolution (&min, &max, &cur) ==
-           STATUS_SUCCESS )
+    if (config.render.framerate.max_timer_resolution)
     {
-      dTimerRes =
-        static_cast <double> (cur) / 10000.0;
-
-      SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
-                  L"  Timing  " );
-
-      if ( _SetTimerResolution (max, TRUE, &cur) ==
+      ULONG                         min,  max,  cur;
+      if ( ZwQueryTimerResolution (&min, &max, &cur) ==
              STATUS_SUCCESS )
       {
         dTimerRes =
           static_cast <double> (cur) / 10000.0;
 
-        SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
+        SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
                     L"  Timing  " );
+
+        if ( _SetTimerResolution (max, TRUE, &cur) ==
+               STATUS_SUCCESS )
+        {
+          dTimerRes =
+            static_cast <double> (cur) / 10000.0;
+
+          SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
+                      L"  Timing  " );
+        }
       }
     }
   }
@@ -1423,6 +1426,9 @@ extern ZwSetTimerResolution_pfn
 void
 SK_Framerate_SanitizeTimerResolution (void)
 {
+  if (! config.render.framerate.max_timer_resolution)
+    return;
+
   auto _SetTimerResolution =
     ( ZwSetTimerResolution_Original != nullptr ) ?
       ZwSetTimerResolution_Original              :
@@ -1436,6 +1442,9 @@ SK_Framerate_SanitizeTimerResolution (void)
 
 void SK_Framerate_SetPowerThrottlingPolicy (bool always_high_res)
 {
+  if (! config.render.framerate.max_timer_resolution)
+    return;
+
   // Disable Windows 11 process resolution tinkering when the game is in the background
   PROCESS_POWER_THROTTLING_STATE
     state             = {                                      };
@@ -1504,7 +1513,7 @@ SK::Framerate::Limiter::wait (void)
 
 
 
-  if (ZwSetTimerResolution_Original != nullptr)
+  if (ZwSetTimerResolution_Original != nullptr && config.render.framerate.max_timer_resolution)
   {
     ULONG                         min,  max,  cur;
     if ( ZwQueryTimerResolution (&min, &max, &cur) ==

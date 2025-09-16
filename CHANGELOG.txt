@@ -1,4 +1,15 @@
-﻿25.9.13
+﻿25.9.16
+=======
+ + Added INI setting to control whether the Windows kernel's timer resolution
+     is set to maximum supported for the game's process.
+
+    * The is generally no reason to turn this off, other than testing if the
+        improved timer resolution is the reason for a game's performance boost.
+
+    [FrameRate.Engine]
+    UseMaxTimerResolution={true|false}  Default=true (for obvious reasons)
+
+25.9.13
 =======
  + Ignore bug in NVIDIA Streamline in Borderlands 4 that causes it to
      try to set the wrong HDR colorspace (scRGB) for HDR10.
