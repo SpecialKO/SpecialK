@@ -1014,7 +1014,7 @@ static timeEndPeriod_pfn   timeEndPeriod_Original   = nullptr;
 
 MMRESULT
 WINAPI
-timeBeginPeriod_Detour(_In_ UINT uPeriod)
+timeBeginPeriod_Detour (_In_ UINT uPeriod)
 {
   std::ignore = uPeriod;
 
@@ -1023,7 +1023,7 @@ timeBeginPeriod_Detour(_In_ UINT uPeriod)
 
 MMRESULT
 WINAPI
-timeEndPeriod_Detour(_In_ UINT uPeriod) //-V524
+timeEndPeriod_Detour (_In_ UINT uPeriod)
 {
   std::ignore = uPeriod;
 
@@ -1830,19 +1830,22 @@ void SK_Scheduler_Init (void)
                                ZwSetTimerResolution_Detour,
       static_cast_p2p <void> (&ZwSetTimerResolution_Original) );
 
-    //
-    // Turn these into nops because they do nothing useful,
-    //   there is more overhead calling them than there is benefit.
-    //
-    SK_CreateDLLHook2 (      L"Kernel32",
-                              "timeBeginPeriod",
-                               timeBeginPeriod_Detour,
-      static_cast_p2p <void> (&timeBeginPeriod_Original) );
+    if (config.render.framerate.max_timer_resolution)
+    {
+      //
+      // Turn these into nops because they do nothing useful,
+      //   there is more overhead calling them than there is benefit.
+      //
+      SK_CreateDLLHook2 (      L"Kernel32",
+                                "timeBeginPeriod",
+                                 timeBeginPeriod_Detour,
+        static_cast_p2p <void> (&timeBeginPeriod_Original) );
 
-    SK_CreateDLLHook2 (      L"Kernel32",
-                              "timeEndPeriod",
-                               timeEndPeriod_Detour,
-      static_cast_p2p <void> (&timeEndPeriod_Original) );
+      SK_CreateDLLHook2 (      L"Kernel32",
+                                "timeEndPeriod",
+                                 timeEndPeriod_Detour,
+        static_cast_p2p <void> (&timeEndPeriod_Original) );
+    }
 
     if (config.priority.cpu_affinity_mask != -1)
     {

@@ -1,4 +1,10 @@
-﻿25.9.16
+﻿25.9.16.1
+=========
+ + Disable hooks on timeBeginPeriod (...) and timeEndPeriod (...) that SK
+     normally applies to keep games from shooting themselves in the foot w/
+       timer resolution changes -- when UseMaxTimerResolution=false.
+
+25.9.16
 =======
  + Added INI setting to control whether the Windows kernel's timer resolution
      is set to maximum supported for the game's process.
