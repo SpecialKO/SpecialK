@@ -1,4 +1,11 @@
-﻿25.9.16.1
+﻿25.9.17
+=======
+ + Switched controller power-off chord to activate on button release instead
+     of press, in order to prevent powering-off DualSense controllers with
+       updated firmwares when users attempt to press+hold PlayStation+Triangle
+         for 3 seconds to pair the controller to a different device.
+
+25.9.16.1
 =========
  + Disable hooks on timeBeginPeriod (...) and timeEndPeriod (...) that SK
      normally applies to keep games from shooting themselves in the foot w/

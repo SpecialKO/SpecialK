@@ -1988,8 +1988,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                                      bAllowSpecialButtons )
       {
         if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-            (     state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     &&
-          (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y))    && !bChordActivated) // No repeats
+           !(     state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     &&
+          ( (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y))    && !bChordActivated) // No repeats
         {
           static ULONG64     ulLastFrameActivated = 0ULL;
           if (std::exchange (ulLastFrameActivated, SK_GetFramesDrawn ()) < SK_GetFramesDrawn () - 30)
