@@ -1710,7 +1710,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           double dVRROptimalFPS =
             ( config.render.framerate.last_refresh_rate -
              (config.render.framerate.last_refresh_rate *
-              config.render.framerate.last_refresh_rate) / 3600.0 );
+              config.render.framerate.last_refresh_rate) / 4096.0 );
 
           if ( ( config.render.framerate.target_fps <=  config.render.framerate.last_refresh_rate + 0.1f && 
                  config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
@@ -1770,7 +1770,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       }
     
       double dVRROptimalFPS =
-        (dRefreshRate - (dRefreshRate * dRefreshRate) / (3600.0));
+        (dRefreshRate - (dRefreshRate * dRefreshRate) / (4096.0));
 
       dVRROptimalFPS -= 0.005 * dVRROptimalFPS;
 

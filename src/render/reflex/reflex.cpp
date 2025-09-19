@@ -1684,7 +1684,7 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
       static_cast <double> (display.signal.timing.vsync_freq.Denominator);
 
     const double dReflexFPS =
-      (dRefresh - (dRefresh * dRefresh) / 3600.0);
+      (dRefresh - (dRefresh * dRefresh) / 4096.0);
 
     // Set VRR framerate limit accordingly
     reflex_interval =

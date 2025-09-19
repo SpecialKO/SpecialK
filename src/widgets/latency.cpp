@@ -1034,12 +1034,12 @@ SK_ImGui_DrawConfig_Latency ()
       ImGui::TextUnformatted ("Reflex Low Latency FPS Limit (VRR)");
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.6f, .6f, .6f, 1.f));
       ImGui::Spacing         ();
-      ImGui::Text            ("\tRefresh (%4.1f Hz) - Refresh (%4.1f Hz) * Refresh (%4.1f Hz) / 3600.0",
+      ImGui::Text            ("\tRefresh (%4.1f Hz) - Refresh (%4.1f Hz) * Refresh (%4.1f Hz) / 4096.0",
                                 dRefreshRate,        dRefreshRate,        dRefreshRate);
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.8f, .8f, .8f, 1.f));
       ImGui::Spacing         ();
       ImGui::Text            (       "\t\tReflexFPS:\t%4.1f FPS",
-                                dRefreshRate        -dRefreshRate        *dRefreshRate        / 3600.0);
+                                dRefreshRate        -dRefreshRate        *dRefreshRate        / 4096.0);
       ImGui::PopStyleColor   (3);
       ImGui::Separator       ();
       ImGui::TextUnformatted ("To pace VRR framerate while using Reflex, set third-party limits below ReflexFPS");
