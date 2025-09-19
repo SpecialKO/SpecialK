@@ -1,16 +1,4 @@
-﻿25.9.19
-=======
- + Change optimal VRR framerate limit calculation to:
-
-     Refresh - (Refresh * Refresh) / 4096.0, as discussed by Sgt_Dbag in his
-       Reddit post:
-
-     r/nvidia/comments/1lokih2/putting_misconceptions_about_optimal_fps_caps ,
-
-   SK's calculated value will still undercut Reflex even if this new curve is
-     not an ideal fit at lower refresh rates, so the new formula should be fine.
-
-25.9.17
+﻿25.9.17
 =======
  + Switched controller power-off chord to activate on button release instead
      of press, in order to prevent powering-off DualSense controllers with

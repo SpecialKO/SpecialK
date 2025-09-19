@@ -5297,7 +5297,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
              static_cast <float> (vsync_freq.Denominator);
     
     const float fMaxHzForVRR =
-      fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) / 4096.0f;
+      fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) / 3600.0f;
 
     const bool bLimitRequiredForVRR =
       (fVBlankHz > fMaxHzForVRR && (__target_fps <= 0.0f || __target_fps > fMaxHzForVRR));
@@ -5374,7 +5374,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             (static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
              static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator));
 
-          if (fVBlankHz <= fFixedHz - (fFixedHz * fFixedHz) / 4096.0)
+          if (fVBlankHz <= fFixedHz - (fFixedHz * fFixedHz) / 3600.0)
           {
             rb.gsync_state.active = true;
           }
@@ -5385,7 +5385,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         //   the official driver's status is not accurate and we must use the
         //     VBLANK counter rate instead.
         if (  fVBlankHz > 0.0f &&
-              fVBlankHz <= fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) /4096.0f )
+              fVBlankHz <= fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) /3600.0f )
         {
           rb.gsync_state.active = true;
         }
@@ -5776,7 +5776,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             double dVRROptimalFPS =
               ( config.render.framerate.last_refresh_rate -
                (config.render.framerate.last_refresh_rate *
-                config.render.framerate.last_refresh_rate) / 4096.0 );
+                config.render.framerate.last_refresh_rate) / 3600.0 );
 
             if ( ( config.render.framerate.target_fps <=  config.render.framerate.last_refresh_rate + 0.1f && 
                    config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
@@ -6160,7 +6160,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
                 double dBiasedRefresh =
                              dRefresh - (!bVRRBias ? 0.0f :
-                             dRefresh * dRefresh) / (4096.0);
+                             dRefresh * dRefresh) / (3600.0);
 
                 if (bVRRBias)
                   dBiasedRefresh -= 0.005 * dBiasedRefresh;
