@@ -819,6 +819,14 @@ SK_ACS_InitPlugin (void)
                                   // Shader compile
                                   0x0000000000685FC6, 0x0000000000685FCA, 0x0000000000685FCE,
                                   0x000000000068615A, 0x000000000068615E, 0x0000000000686162,
+
+              // 1.0.7 / 1.0.8 (not sorted, because I am lazy at this point)
+              0x0000000003E27ECD, 0x0000000003E28BDA, 0x0000000000686CDA, 0x0000000000686CE0,
+              0x0000000000686346, 0x000000000068634A, 0x000000000068634E, 0x00000000006864DA,
+              0x0000000000686CF7, 0x0000000000686C9B,
+                                  // More Stuff
+                                  0x00000000006864DE, 0x00000000006864E2, 0x0000000003E2EBA5,
+                                  0x0000000003E2EBAC, 0x0000000000686C9F, 0x0000000000686CA3
               } )
     {
       ContinuableCallSites.insert (callsite);

@@ -1,4 +1,8 @@
-﻿25.9.17
+﻿25.9.19
+=======
+ + Added support for Assassin's Creed: Shadows 1.0.7 & 1.0.8.
+
+25.9.17
 =======
  + Switched controller power-off chord to activate on button release instead
      of press, in order to prevent powering-off DualSense controllers with
