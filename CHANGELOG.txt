@@ -1,6 +1,6 @@
 ﻿25.9.19
 =======
- + Added support for Assassin's Creed: Shadows 1.0.7 & 1.0.8.
+ + Added support for Assassin's Creed: Shadows 1.1.2.
 
 25.9.17
 =======
