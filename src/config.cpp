@@ -4317,7 +4317,10 @@ auto DeclKeybind =
                       //memcpy ((uint8_t *)pFramerateLimit + 5, "\x90\x90\x90\x90\x90",5);
                 VirtualProtect (           pFramerateLimit, 10, dwOriginal,  &dwOriginal);
 
-              if (pFramerateLimit == (void *)0x00007FF781F0B36D)
+              uintptr_t base = (uintptr_t)SK_Debug_GetImageBaseAddr ();
+              uintptr_t addr = (uintptr_t)pFramerateLimit;
+
+              if (addr - base == 17150829)
               {
                 SK_ImGui_CreateNotification (
                   "FramerateLimit.Patched", SK_ImGui_Toast::Success,
@@ -4329,7 +4332,11 @@ auto DeclKeybind =
 
                 while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5) != WAIT_OBJECT_0)
                 {
-                  *(float *)0x06226030 = 0.0f;
+                  float* pfLimit =
+                    *(float **)(base + 0x093211A0);
+
+                  if (pfLimit != nullptr)
+                     *pfLimit = 0.0f;
                 }
               }
 

@@ -1,4 +1,9 @@
-﻿25.9.23.2
+﻿25.9.23.3
+=========
+ + Added pointer scan to make Silent Hill f framerate unlock compatible with
+     the Steam version.
+
+25.9.23.2
 =========
  + Added hacky alternative framerate limiter disable for Silent Hill f that
      does not conflict with DLSS resolution scaling (but will stop working
