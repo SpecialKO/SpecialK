@@ -1819,6 +1819,7 @@ enum class SK_GAME_ID
   EasyAntiCheat,                // start_protected_game.exe
   EldenRing,                    // eldenring.exe
   ElderScrollsOnline,           // eso64.exe
+  SilentHill_f,                 // SHf-Win64-Shipping.exe
   TinyTinasWonderlands,         // Wonderlands.exe
   Elex2,                        // ELEX2.exe
   ChronoCross,                  // CHRONOCROSS.exe

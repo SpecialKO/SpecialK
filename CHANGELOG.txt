@@ -1,4 +1,9 @@
-﻿25.9.23
+﻿25.9.23.1
+=========
+ + Added framerate limiter bypass for Silent Hill f; set to unlimited in-game,
+     cutscene framerate will remain unlimited.
+
+25.9.23
 =======
  + Disable Drag N' Drop support in Unreal Engine games to fix Silent Hill f.
 

@@ -308,6 +308,7 @@ SK_GetCurrentGameID (void)
           { L"eso64.exe",                              SK_GAME_ID::ElderScrollsOnline           },
           { L"zosEGSStarter.exe",                      SK_GAME_ID::Launcher                     },
           { L"crs-video.exe",                          SK_GAME_ID::Launcher                     }, // Used by many games for FMV playback
+          { L"SHf-Win64-Shipping.exe",                 SK_GAME_ID::SilentHill_f                 }
         };
 
     first_check  = false;
@@ -4299,6 +4300,36 @@ auto DeclKeybind =
         config.system.handle_crashes    = false;
         config.window.dont_hook_wndproc = true;
         break;
+
+      case SK_GAME_ID::SilentHill_f:
+      {
+        SK_Thread_CreateEx ([](LPVOID)->DWORD
+        {
+          void *pFramerateLimit =
+            SK_ScanAligned ("\xB9\x04\x00\x00\x00\xF3\x0F\x11\x4B\x50", 10,
+                            "\xB9\x04\x00\x00\x00\xF3\x0F\x11\x4B\x50");
+
+          if (pFramerateLimit != nullptr)
+          {
+            DWORD                                                             dwOriginal = 0;
+            if (VirtualProtect (pFramerateLimit, 10, PAGE_EXECUTE_READWRITE, &dwOriginal))
+            {
+              SK_ImGui_CreateNotification (
+                "FramerateLimit.Patched", SK_ImGui_Toast::Success,
+                   "Silent Hill f",
+                     "Framerate Limiter Disabled",
+                     5000, SK_ImGui_Toast::UseDuration |
+                           SK_ImGui_Toast::ShowCaption |
+                           SK_ImGui_Toast::ShowTitle );
+
+                        memcpy ((uint8_t *)pFramerateLimit + 5, "\x90\x90\x90\x90\x90",5);
+                VirtualProtect (           pFramerateLimit, 10, dwOriginal,  &dwOriginal);
+            }
+          }
+
+          return 0;
+        }, L"[SK] Framerate Patch");
+      } break;
 
       case SK_GAME_ID::Dishonored2:
         // Logs suggest there is a non-continuable exception that occurs inside of
