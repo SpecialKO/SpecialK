@@ -1,4 +1,8 @@
-﻿25.9.19
+﻿25.9.23
+=======
+ + Disable Drag N' Drop support in Unreal Engine games to fix Silent Hill f.
+
+25.9.19
 =======
  + Added support for Assassin's Creed: Shadows 1.1.2.
 

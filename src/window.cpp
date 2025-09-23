@@ -10250,6 +10250,12 @@ SK_ImGui_InitDragAndDrop (void)
   if (! config.window.allow_drag_n_drop)
     return;
 
+  if (SK_GetCurrentRenderBackend().windows.unreal)
+  {
+    incompatible = true;
+    return;
+  }
+
   if (SK_GetCurrentRenderBackend ().windows.xgs_Framework)
   {
     incompatible = true;
