@@ -4314,16 +4314,29 @@ auto DeclKeybind =
             DWORD                                                             dwOriginal = 0;
             if (VirtualProtect (pFramerateLimit, 10, PAGE_EXECUTE_READWRITE, &dwOriginal))
             {
-              SK_ImGui_CreateNotification (
-                "FramerateLimit.Patched", SK_ImGui_Toast::Success,
-                   "Silent Hill f",
-                     "Framerate Limiter Disabled",
-                     5000, SK_ImGui_Toast::UseDuration |
-                           SK_ImGui_Toast::ShowCaption |
-                           SK_ImGui_Toast::ShowTitle );
-
-                        memcpy ((uint8_t *)pFramerateLimit + 5, "\x90\x90\x90\x90\x90",5);
+                      //memcpy ((uint8_t *)pFramerateLimit + 5, "\x90\x90\x90\x90\x90",5);
                 VirtualProtect (           pFramerateLimit, 10, dwOriginal,  &dwOriginal);
+
+              if (pFramerateLimit == (void *)0x00007FF781F0B36D)
+              {
+                SK_ImGui_CreateNotification (
+                  "FramerateLimit.Patched", SK_ImGui_Toast::Success,
+                     "Silent Hill f",
+                       "Framerate Limiter Disabled",
+                       5000, SK_ImGui_Toast::UseDuration |
+                             SK_ImGui_Toast::ShowCaption |
+                             SK_ImGui_Toast::ShowTitle );
+
+                while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5) != WAIT_OBJECT_0)
+                {
+                  *(float *)0x06226030 = 0.0f;
+                }
+              }
+
+              else
+              {
+                SK_LOGi0 (L"Unexpected Framerate Limit Addr: %p", pFramerateLimit);
+              }
             }
           }
 

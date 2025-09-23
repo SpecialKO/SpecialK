@@ -1,4 +1,10 @@
-﻿25.9.23.1
+﻿25.9.23.2
+=========
+ + Added hacky alternative framerate limiter disable for Silent Hill f that
+     does not conflict with DLSS resolution scaling (but will stop working
+       after every patch).
+
+25.9.23.1
 =========
  + Added framerate limiter bypass for Silent Hill f; set to unlimited in-game,
      cutscene framerate will remain unlimited.
