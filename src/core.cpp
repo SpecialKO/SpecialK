@@ -5256,7 +5256,17 @@ SK_Platform_RemoveTrademarkSymbols (std::wstring name)
   {
     if (wc != L'™' && wc != L'®')
       out += wc;
+    else
+      out += L' ';
   }
+
+  // Trailing whitespace is not wanted...
+  out.erase (
+    std::find_if ( out.rbegin (),
+                   out.  rend (),
+      std::not_fn ( static_cast <int (*)(int)> (std::isspace) )
+                 ).base (),
+                out.end () );
 
   return out;
 }
