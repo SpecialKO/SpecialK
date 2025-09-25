@@ -1,4 +1,9 @@
-﻿25.9.23.3
+﻿25.9.25
+=======
+ + Added achievement rarity (global unlock %) statistics to Epic Games Store
+     achievement popups.
+
+25.9.23.3
 =========
  + Added pointer scan to make Silent Hill f framerate unlock compatible with
      the Steam version.

@@ -1415,8 +1415,90 @@ SK_AchievementManager::Achievement::Achievement ( int                           
     achievements_path =
       std::filesystem::path (
            SK_GetConfigPath () )
-     / LR"(SK_Res/Achievements)";
+    / LR"(SK_Res/Achievements)";
 
+  static auto const global_stats_filename =
+    achievements_path / LR"(GlobalStatsForGame.json)";
+
+  static FILE*   fGlobalStats  = nullptr;
+  fGlobalStats = fGlobalStats != nullptr ? fGlobalStats :
+        _wfopen (global_stats_filename.c_str (), L"rb+");
+
+  if (fGlobalStats != nullptr)
+  {
+    static bool loaded = false;
+
+    try
+    {
+      static std::vector <BYTE> data;
+
+                   fseek (fGlobalStats, 0, SEEK_END);
+      data.resize (ftell (fGlobalStats));
+                  rewind (fGlobalStats);
+
+      if (! data.empty ())
+      {
+        static nlohmann::json jsonStats;
+
+        if (! loaded)
+        {
+          if (0 != fread (data.data (), data.size (), 1, fGlobalStats))
+          {
+            jsonStats =
+              std::move (
+                nlohmann::json::parse ( data.cbegin (),
+                                        data.cend   (), nullptr, true )
+              );
+
+            loaded = true;
+          }
+        }
+
+        if ( jsonStats.contains ("achievementpercentages") &&
+             jsonStats          ["achievementpercentages"].contains ("achievements") )
+        {
+          const auto& achievements_ =
+            jsonStats ["achievementpercentages"]["achievements"];
+
+          for ( const auto& achievement : achievements_ )
+          {
+            if (! _stricmp (achievement ["name"].get <std::string_view> ().data (), name_.c_str ()))
+            {
+              global_percent_ =
+                static_cast <float> (
+                  atof (achievement ["percent"].get <std::string_view> ().data ())
+                );
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    catch (const std::exception& e)
+    {
+#ifdef __CPP20
+      const auto&& src_loc =
+        std::source_location::current ();
+
+      steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                   src_loc.file_name     (),
+                                   src_loc.line          (),
+                                   src_loc.column        (), e.what ());
+      steam_log->Log (L"%hs",      src_loc.function_name ());
+      steam_log->Log (L"%hs",
+        std::format ( std::string ("{:*>") +
+                   std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+      std::ignore = e;
+#endif
+
+      loaded = false;
+
+      fclose (fGlobalStats);
+              fGlobalStats = nullptr;
+    }
+  }
 
   // Epic allows up to 1024x1024 achievement icons, and also allows PNG
   //
@@ -1782,8 +1864,8 @@ SK_AchievementManager::drawPopups (void)
       const float fGlobalPercent =
         it->achievement->global_percent_;
 
-      // Only Steam has rarity information; Epic has XP, but SK is unable to use that info.
-      if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
+                                  // fGlobalPercent may be 0.0 and still considered valid only on Steam.
+      if (fGlobalPercent < 10.0f && (fGlobalPercent > 0.0f || SK::SteamAPI::AppID () != 0))
         ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
 
       auto text =
@@ -1850,14 +1932,14 @@ SK_AchievementManager::drawPopups (void)
           (SK::SteamAPI::AppID () != 0);
 
         ImGui::BeginGroup    (  );
-        if (bSteam) // Only Steam has unlock percentage stats
+        if (bSteam || fGlobalPercent > 0.0f) // Only Steam has unlock percentage stats that can reach 0.0%
         ImGui::TextUnformatted ("Global: ");
         if (it->achievement->friends_.possible > 0)
         ImGui::TextUnformatted ("Friends: ");
         ImGui::EndGroup      (  );
         ImGui::SameLine      (  );
         ImGui::BeginGroup    (  );
-        if (bSteam) // Only Steam has unlock percentage stats
+        if (bSteam || fGlobalPercent > 0.0f) // Only Steam has unlock percentage stats that can reach 0.0%
         ImGui::Text          ("%6.2f%%", fGlobalPercent);
         if (it->achievement->friends_.possible > 0)
         ImGui::Text          ("%6.2f%%",
