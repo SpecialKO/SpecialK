@@ -880,11 +880,6 @@ SK_ACS_InitPlugin (void)
             if (! continuable)
             {
               SK_LOGi0 (L"Non-Continuable Exception RIP=%p", addr);
-
-              PVOID SKX_GetNextInstruction (LPVOID addr);
-
-              ExceptionInfo->ContextRecord->Rip =
-                (DWORD64)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Rip);
             }
 
             else
