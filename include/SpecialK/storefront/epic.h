@@ -370,6 +370,8 @@ SK_EOS_PlayUnlockSound (void);
 void
 SK_EOS_LoadUnlockSound (const wchar_t* wszUnlockSound);
 
+SK_AchievementManager* SK_EOS_GetAchievementManager (void);
+
 ////std::wstring
 ////SK_Steam_GetApplicationManifestPath (AppId_t appid = 0);
 ////

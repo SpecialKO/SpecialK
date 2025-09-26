@@ -43,7 +43,7 @@ struct SK_Achievement
 
   struct text_s
   {
-    struct
+    struct state_s
     {
       std::wstring human_name;  // UTF-16
       std::wstring desc;        // UTF-16

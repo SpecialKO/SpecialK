@@ -57,6 +57,8 @@ struct SK_ImGui_WidgetRegistry
   SK_Widget* txt_editor      = nullptr;
   SK_Widget* file_browser    = nullptr;
 
+  SK_Widget* achieve_tracker = nullptr;
+
   //SK_Widget* texcache;
 
   SK_Widget* memory_monitor = nullptr;

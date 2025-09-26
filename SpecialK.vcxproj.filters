@@ -3234,11 +3234,11 @@
     <ClInclude Include="include\SpecialK\input\game_input.h">
       <Filter>Header Files\Backends\Input\GameInput</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\storefront\xbox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\storefront\gog.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Storefronts</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\storefront\xbox.h">
+      <Filter>Header Files\Storefronts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3839,9 +3839,6 @@
     <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
       <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\sound.cpp">
-      <Filter>Source Files\Widgets</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\ffxvi.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -3874,6 +3871,12 @@
     </ClCompile>
     <ClCompile Include="src\storefront\gog.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sound.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\achievement_tracker.cpp">
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

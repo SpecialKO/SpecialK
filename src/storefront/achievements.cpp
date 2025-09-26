@@ -1418,11 +1418,13 @@ SK_AchievementManager::Achievement::Achievement ( int                           
       if ( def->StatThresholdsCount          != 1 ||
            def->StatThresholds [0].Threshold != 1 )
       {
+#if 0
         epic_log->Log (
           L"Achievement: '%ws' (%ws) has %d tracked stats for unlock:",
             text_.locked.human_name.c_str (),
             text_.locked.      desc.c_str (), def->StatThresholdsCount
         );
+#endif
       }
     }
 
@@ -1441,10 +1443,12 @@ SK_AchievementManager::Achievement::Achievement ( int                           
 
         if (! def->bIsHidden)
         {
+#if 0
           epic_log->Log (
             L" * %hs [%d]", tracked_stat.name.c_str (),
                             tracked_stat.threshold
           );
+#endif
         }
       }
     }
@@ -1654,11 +1658,20 @@ SK_AchievementManager::getAchievements (size_t* pnAchievements)
   ISteamUserStats* stats =
      steam_ctx.UserStats ();
 
-  if ((! stats) || config.platform.steam_is_b0rked)
-    return nullptr;
+  if (! SK::EOS::GetTicksRetired ())
+  {
+    if ((! stats) || config.platform.steam_is_b0rked)
+    {
+      // If not Epic and Steam is b0rked, abort
+      if (! SK::EOS::GetTicksRetired ())
+        return nullptr;
+    }
+  }
 
-  size_t           count =
-    stats->GetNumAchievements ();
+  const size_t count =
+    (stats != nullptr)            ?
+     stats->GetNumAchievements () : // Steam
+        achievements.list.size ();  // Epic
 
   if (pnAchievements != nullptr)
      *pnAchievements = count;
@@ -1706,14 +1719,14 @@ SK_AchievementManager::clearPopups (void)
 #define UNCOMMON    50.0f
 #define RARE        25.0f
 #define VERY_RARE   15.0f
-#define ONE_PERCENT  1.0f
+#define LEGENDARY    1.0f
 
 
 std::string
 SK_Achievement_RarityToColor (float percent)
 {
 #ifdef SK_USE_OLD_ACHIEVEMENT_COLORS
-  if (percent <= ONE_PERCENT)
+  if (percent <= LEGENDARY)
     return "FFFF1111";
 
   if (percent <= VERY_RARE)
@@ -1746,8 +1759,8 @@ SK_Achievement_RarityToColor (float percent)
 const char*
 SK_Achievement_RarityToName (float percent)
 {
-  if (percent <= ONE_PERCENT)
-    return "The Other 1%";
+  if (percent <= LEGENDARY)
+    return "Legendary";
 
   if (percent <= VERY_RARE)
     return "Very Rare";

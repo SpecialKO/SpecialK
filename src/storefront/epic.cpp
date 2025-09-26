@@ -174,6 +174,17 @@ public:
                    static_cast <double> (achievement->friends_.possible)) );
       }
 
+      if (achievement->progress_.current != achievement->progress_.max &&
+          achievement->progress_.max     != 1) // Don't log achievements that are simple yes/no
+      {
+        epic_log->LogEx (false,
+                         L"  @--- Progress To Unlock.: % 6.2f%%　　[ %d / %d ]\n",
+          100.0 * (static_cast <double> (achievement->progress_.current) /
+                   static_cast <double> (achievement->progress_.max)),
+                                         achievement->progress_.current,
+                                         achievement->progress_.max);
+      }
+
       if (achievement->unlocked_)
       {
         epic_log->LogEx (false,
@@ -381,6 +392,12 @@ public:
 SK_LazyGlobal <SK_EOS_OverlayManager>     eos_overlay;
 SK_LazyGlobal <SK_EOS_AchievementManager> eos_achievements;
 
+SK_AchievementManager* SK_EOS_GetAchievementManager (void)
+{
+  return
+    eos_achievements.getPtr ();
+}
+
 EOS_UI_AddNotifyDisplaySettingsUpdated_pfn                      SK_EOS_OverlayManager::AddNotifyDisplaySettingsUpdated_Original       = nullptr;
 EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn                   SK_EOS_OverlayManager::RemoveNotifyDisplaySettingsUpdated_Original    = nullptr;
 
@@ -570,6 +587,27 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
             (achv->UnlockTime != EOS_ACHIEVEMENTS_ACHIEVEMENT_UNLOCKTIME_UNDEFINED);
           pManagedAchievement->time_                   = achv->UnlockTime;
           pManagedAchievement->progress_.precalculated = achv->Progress;
+
+          for ( size_t i = 0 ; i < pManagedAchievement->tracked_stats_.data.size () ; ++i )
+          {
+            for ( size_t j = 0 ; j < (size_t)achv->StatInfoCount ; ++j )
+            {
+              if (! _stricmp (pManagedAchievement->tracked_stats_.data [i].name.c_str (), achv->StatInfo [j].Name))
+              {
+                pManagedAchievement->tracked_stats_.data [i].threshold = achv->StatInfo [j].ThresholdValue;
+                pManagedAchievement->tracked_stats_.data [i].current   = achv->StatInfo [j].CurrentValue;
+                break;
+              }
+            }
+          }
+
+          if (achv->StatInfoCount == 1)
+          {
+            pManagedAchievement->progress_.current       = pManagedAchievement->tracked_stats_.data [0].current;
+            pManagedAchievement->progress_.max           = pManagedAchievement->tracked_stats_.data [0].threshold;
+            pManagedAchievement->progress_.precalculated = 100.0 * (static_cast <double> (pManagedAchievement->progress_.current) /
+                                                                    static_cast <double> (pManagedAchievement->progress_.max));
+          }
 
           if (pManagedAchievement->unlocked_)
           {

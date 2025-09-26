@@ -1,4 +1,9 @@
-﻿25.9.26
+﻿25.9.26.1
+=========
+ + Added very crappy achievement tracker widget that currently only works for
+     games on Epic Games Store (not currently configurable; tracks everything).
+
+25.9.26
 =======
  + Added achievement stat data (i.e. Achievement awarded for killling 69 wolves,
      count number of wolves killed) to Epic Online Services log in preparation

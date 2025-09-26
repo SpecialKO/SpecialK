@@ -2285,6 +2285,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\update\version.cpp" />
     <ClCompile Include="src\utility.cpp" />
     <ClCompile Include="src\render\vulkan\vulkan.cpp" />
+    <ClCompile Include="src\widgets\achievement_tracker.cpp" />
     <ClCompile Include="src\widgets\cpu_widget.cpp" />
     <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp" />
     <ClCompile Include="src\widgets\denuvo.cpp" />

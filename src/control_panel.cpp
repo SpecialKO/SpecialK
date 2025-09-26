@@ -7007,6 +7007,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     bool threads       = SK_ImGui_Widgets->thread_profiler->isVisible ();
     bool hdr           = SK_ImGui_Widgets->hdr_control->isVisible     ();
     bool tobii         = SK_ImGui_Widgets->tobii->isVisible           ();
+    bool achievements  = SK_ImGui_Widgets->achieve_tracker->isVisible ();
 
     ImGui::TreePush ("###WidgetSelector");
 
@@ -7038,6 +7039,17 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     {
       SK_ImGui_Widgets->volume_control->setVisible (volumecontrol).
                                         setActive  (volumecontrol);
+    }
+
+    // Achievement widget is Epic-only right now
+    if (SK::EOS::GetTicksRetired () > 0)
+    {
+      ImGui::SameLine ();
+      if (ImGui::Checkbox ("Achievements", &achievements))
+      {
+        SK_ImGui_Widgets->achieve_tracker->setVisible (achievements).
+                                           setActive  (achievements);
+      }
     }
 
     if ( (int)render_api & (int)SK_RenderAPI::D3D11 ||
@@ -7873,7 +7885,8 @@ SK_ImGui_StageNextFrame (void)
               SK_ImGui_Widgets->thread_profiler,
                 SK_ImGui_Widgets->hdr_control,
                   SK_ImGui_Widgets->tobii,
-                    SK_ImGui_Widgets->latency
+                    SK_ImGui_Widgets->latency,
+                      SK_ImGui_Widgets->achieve_tracker
   };
 
   // Default action is to draw the Special K Control panel,
@@ -7917,6 +7930,13 @@ SK_ImGui_StageNextFrame (void)
              rb.api != SK_RenderAPI::D3D12 ) continue;
 
         if (widget == SK_ImGui_Widgets->latency && (! sk::NVAPI::nv_hardware))
+          continue;
+      }
+
+      if (widget == SK_ImGui_Widgets->achieve_tracker)
+      {
+        // Achievement Widget is Epic-only for now
+        if (! SK::EOS::GetTicksRetired ())
           continue;
       }
 
@@ -7987,18 +8007,18 @@ SK_ImGui_StageNextFrame (void)
     SK_Platform_GetUserName (szName);
 
     ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%hs   ",
-                                                  SK_WideCharToUTF8 (SK_GetPluginName ()).c_str ()); ImGui::SameLine ();
+                               SK_WideCharToUTF8 (SK_GetPluginName ()).c_str ()); ImGui::SameLine ();
     if (*szName != '\0')
     {
-      ImGui::Text            ("  Hello");                                                            ImGui::SameLine ();
-      ImGui::TextColored     (ImColor::HSV (0.075f, 1.0f, 1.0f), "%s", szName);                      ImGui::SameLine ();
-      ImGui::TextUnformatted ("please see the Discord Release Channel, under");                      ImGui::SameLine ();
+      ImGui::Text            ("  Hello");                                         ImGui::SameLine ();
+      ImGui::TextColored     (ImColor::HSV (0.075f, 1.0f, 1.0f), "%s", szName);   ImGui::SameLine ();
+      ImGui::TextUnformatted ("please see the Discord Release Channel, under");   ImGui::SameLine ();
     }
     else
     {
-      ImGui::TextUnformatted ("  Please see the Discord Release Channel, under");                    ImGui::SameLine ();
+      ImGui::TextUnformatted ("  Please see the Discord Release Channel, under"); ImGui::SameLine ();
     }
-    ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Releases");                    ImGui::SameLine ();
+    ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Releases"); ImGui::SameLine ();
     ImGui::TextUnformatted   ("for beta / stable updates to this project.");
 
     ImGui::Spacing ();
@@ -8085,7 +8105,7 @@ SK_ImGui_StageNextFrame (void)
 
       ImGui::Text          ("You are currently using"); ImGui::SameLine ();
       ImGui::TextColored   (ImColor::HSV (.15f,.9f,1.f), "%s",
-                            SK_GetVersionStrA ()); ImGui::SameLine ();
+                            SK_GetVersionStrA ());      ImGui::SameLine ();
                             //utf8_release_title.c_str());ImGui::SameLine ();
     //ImGui::Text          ("from the");                ImGui::SameLine ();
     //ImGui::TextColored   (ImColor::HSV (.4f,.9f,1.f), "%s",
@@ -8113,7 +8133,7 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::Spacing         ();
 
-    ImGui::TextUnformatted ("Press ");                    ImGui::SameLine ();
+    ImGui::TextUnformatted ("Press ");                  ImGui::SameLine ();
 
     int modifiers = 0;
 
