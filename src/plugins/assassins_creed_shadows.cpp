@@ -826,7 +826,10 @@ SK_ACS_InitPlugin (void)
               0x0000000000686CF7, 0x0000000000686C9B,
                                   // More Stuff
                                   0x00000000006864DE, 0x00000000006864E2, 0x0000000003E2EBA5,
-                                  0x0000000003E2EBAC, 0x0000000000686C9F, 0x0000000000686CA3
+                                  0x0000000003E2EBAC, 0x0000000000686C9F, 0x0000000000686CA3,
+
+              // Supplemental addresses for 1.1.3
+              0x0000000003E27F2D, 0x0000000003E28C3A, 0x0000000003E2EC05, 0x0000000003E2EC0C,
               } )
     {
       ContinuableCallSites.insert (callsite);
@@ -877,6 +880,11 @@ SK_ACS_InitPlugin (void)
             if (! continuable)
             {
               SK_LOGi0 (L"Non-Continuable Exception RIP=%p", addr);
+
+              PVOID SKX_GetNextInstruction (LPVOID addr);
+
+              ExceptionInfo->ContextRecord->Rip =
+                (DWORD64)SKX_GetNextInstruction ((void *)ExceptionInfo->ContextRecord->Rip);
             }
 
             else

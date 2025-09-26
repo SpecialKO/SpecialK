@@ -1,4 +1,9 @@
-﻿25.8.26.2
+﻿25.8.26.3
+=========
+ + Various static analysis code cleanup
+ + Added memory addresses for Assassin's Creed: Shadows 1.1.3
+
+25.8.26.2
 =========
  + Fixed rare mishandling of malformed PNG chunks when altering the colorspace
      of HDR encoded PNGs in order to make them compatible with Discord.
