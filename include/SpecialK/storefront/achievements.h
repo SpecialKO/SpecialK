@@ -39,14 +39,14 @@
 //
 struct SK_Achievement
 {
-  std::string name_;          // UTF-8 (I think?)
+  std::string name_ = "";             // UTF-8 (I think?)
 
   struct text_s
   {
     struct state_s
     {
-      std::wstring human_name;  // UTF-16
-      std::wstring desc;        // UTF-16
+      std::wstring human_name = L"";  // UTF-16
+      std::wstring desc       = L"";  // UTF-16
     } unlocked,
       locked;
   } text_;
@@ -55,9 +55,9 @@ struct SK_Achievement
   {
     struct trackable_s
     {
-      std::string name;      // Human readable name
-      int32_t     current;   // Current stat
-      int32_t     threshold; // Unlock after
+      std::string name      =    ""; // Human readable name
+      int32_t     current   =     0; // Current stat
+      int32_t     threshold =     0; // Unlock after
       bool        trackable = false; // Is this more than a lock/unlock 2-state thing?
     };
 

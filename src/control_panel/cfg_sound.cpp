@@ -72,8 +72,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
   float max_width = 0.0f;
 
-  int sel_idx = -1;
-  int count   =  0;
+  size_t sel_idx = (size_t)-1;
+  int    count   =  0;
 
   SK_WASAPI_AudioSession **pSessions = nullptr;
 
@@ -87,7 +87,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     std::set <DWORD> unique_processes;
 
-    for ( auto i = 0 ; i < count ; ++i )
+    for ( size_t i = 0 ; i < count ; ++i )
     {
       if ( unique_processes.emplace (
              pSessions [i]->getProcessId ()
@@ -140,7 +140,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       if (pSessions != nullptr)
       {
-        for (int i = 0; i < count; i++)
+        for (size_t i = 0; i < count; i++)
         {
           SK_WASAPI_AudioSession* pSession =
             pSessions [i];
@@ -184,7 +184,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
             volume_ctl->GetMasterVolume (&volume);
 
             char      szLabel [32] = { };
-            snprintf (szLabel, 31, "###VolumeSlider%i", i);
+            snprintf (szLabel, 31, "###VolumeSlider%zu", i);
 
             ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImVec4 (0.5f, 0.5f, 0.5f, 1.f) : ImVec4 (1.0f, 1.0f, 1.0f, 1.f));
             ImGui::PushStyleColor (ImGuiCol_FrameBg,        (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
@@ -204,7 +204,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
             ImGui::SameLine      ( );
 
-            snprintf (szLabel, 31, "###VoumeCheckbox%i", i);
+            snprintf (szLabel, 31, "###VoumeCheckbox%zu", i);
 
             ImGui::PushItemWidth (35.0f);
             {
@@ -230,7 +230,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       if (pSessions != nullptr)
       {
-        if (sel_idx != -1)
+        if (sel_idx != (size_t)-1)
         {
           audio_session = pSessions [sel_idx];
 
@@ -459,7 +459,7 @@ SK_ImGui_VolumeManager (void)
       auto** ppSessions =
         sessions.getActive (&session_count);
 
-      for (int i = 0; i < session_count ; ++i)
+      for (size_t i = 0; i < session_count ; ++i)
       {
         if (ppSessions [i] == nullptr)
           continue;
@@ -673,7 +673,7 @@ SK_ImGui_VolumeManager (void)
       sessions.getActive (&count);
 
     // Find the session for the current game and select that first...
-    for (int i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
       if (ppSessions [i]->getProcessId () == GetCurrentProcessId () &&
           ppSessions [i]->isActive ())

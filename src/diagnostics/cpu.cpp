@@ -133,12 +133,12 @@ GetLogicalProcessorInformationEx_Detour (
 
       if (FALSE == GetLogicalProcessorInformationEx_Original (RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer, &len))
       {
-		    if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+        if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
         {
           size_t extraAlloc = 0;
           size_t extraCores = extra_cores;
 
-			    buffer =
+          buffer =
             (char *)malloc (len);
 
           if ( buffer != nullptr &&
@@ -147,11 +147,11 @@ GetLogicalProcessorInformationEx_Detour (
                    &len )
              )
           {
-				    char* ptr = buffer;
+            char* ptr = buffer;
 
-				    while (ptr != nullptr && ptr < buffer + len)
+            while (ptr != nullptr && ptr < buffer + len)
             {
-					    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+              PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
 
               if (pi->Relationship == RelationProcessorCore)
               {
@@ -160,10 +160,10 @@ GetLogicalProcessorInformationEx_Detour (
                   extraCores--;
                   extraAlloc += pi->Size;
                 }
-					    }
-					    ptr            += pi->Size;
-				    }
-			    }
+              }
+              ptr            += (size_t)pi->Size;
+            }
+          }
 
           std::free   (buffer);
                        buffer = (char *)
@@ -183,9 +183,9 @@ GetLogicalProcessorInformationEx_Detour (
             {
               extraCores = extra_cores;
 
-				      while (ptr < buffer + len)
+              while (ptr < buffer + len)
               {
-					      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi =
+                PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi =
                (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
 
                 if (pi->Relationship == RelationProcessorCore)
@@ -195,15 +195,15 @@ GetLogicalProcessorInformationEx_Detour (
 
                   while (extraCores > 0)
                   {
-                    memcpy (pExtra, pi, pi->Size);
-                            pExtra +=   pi->Size;
+                    memcpy (pExtra, pi,       pi->Size);
+                            pExtra += (size_t)pi->Size;
 
                     extraCores--;
                   }
-					      }
+                }
 
-                ptr += pi->Size;
-				      }
+                ptr += (size_t)pi->Size;
+              }
 
               memcpy (ptr, cores_, extraAlloc);
 
@@ -261,7 +261,7 @@ GetLogicalProcessorInformationEx_Detour (
 #endif
             }
           }
-          ptr += pi->Size;
+          ptr += (size_t)pi->Size;
         }
 
 #ifdef LOG_CORE_DISTRIBUTION
@@ -356,7 +356,7 @@ SK_CPU_CountPhysicalCores (void)
     {
       try {
         pLogProcInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
-          new uint8_t [dwNeededBytes];
+          new uint8_t [(size_t)dwNeededBytes];
       }
 
       catch (const std::bad_alloc&)
@@ -372,8 +372,8 @@ SK_CPU_CountPhysicalCores (void)
           PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
             pLogProcInfo;
 
-          DWORD  dwOffset = 0;
-          while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
+          size_t dwOffset = 0;
+          while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= (size_t)dwNeededBytes)
           {
             switch (lpi->Relationship)
             {
@@ -421,14 +421,14 @@ SK_CPU_GetLogicalCorePairs (void)
     {
         SYSTEM_LOGICAL_PROCESSOR_INFORMATION *pLogProcInfo =
        (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
-                              new uint8_t [dwNeededBytes] { };
+                              new uint8_t [(size_t)dwNeededBytes] { };
 
       if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
       {
-        DWORD                                 dwOffset = 0;
+        size_t                                dwOffset = 0;
         PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi      = pLogProcInfo;
 
-        while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
+        while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= (size_t)dwNeededBytes)
         {
           switch (lpi->Relationship)
           {

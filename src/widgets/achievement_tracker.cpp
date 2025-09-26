@@ -60,39 +60,6 @@ public:
     {
       first_run = false;
 
-      std::vector <std::tuple <sk::iParameter *, void *, std::type_index>> params;
-
-      for (auto& it : params)
-      {
-        const std::type_index tidx ( std::get <2> (it) );
-
-        if (tidx == std::type_index (typeid (sk::ParameterBool *)))
-        {
-          sk::ParameterBool *param = (sk::ParameterBool *)std::get <0> (it);
-          bool              *pData =              (bool *)std::get <1> (it);
-
-          if (! param->load (*pData))
-          {
-            param->store (*pData);
-          }
-
-          *pData = param->get_value ();
-        }
-
-        else if (tidx == std::type_index (typeid (sk::ParameterFloat *)))
-        {
-          sk::ParameterFloat *param = (sk::ParameterFloat *)std::get <0> (it);
-          float              *pData =              (float *)std::get <1> (it);
-
-          if (! param->load (*pData))
-          {
-            param->store (*pData);
-          }
-
-          *pData = param->get_value ();
-        }
-      }
-
       setMinSize (
         ImVec2 (std::max (175.0f, getMinSize ().x),
                 std::max (125.0f, getMinSize ().y))

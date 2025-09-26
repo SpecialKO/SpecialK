@@ -2257,10 +2257,10 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
   auto *working_set =
     new enum_working_set_s ();
 
-  if ( EnumProcessModules ( hProc,
+  if ( EnumProcessModulesEx ( hProc,
                               working_set->modules,
                       sizeof (working_set->modules),
-                                  &cbNeeded) )
+                                  &cbNeeded, LIST_MODULES_DEFAULT) )
   {
     assert (cbNeeded <= sizeof (working_set->modules));
 

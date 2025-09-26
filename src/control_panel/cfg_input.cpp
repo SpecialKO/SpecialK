@@ -791,7 +791,8 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
       ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
-      SK_ImGui_BeginDisabled (!cursor_manage || !allow_show_cursor);
+      if (!cursor_manage || !allow_show_cursor)
+      SK_ImGui_BeginDisabled ();
       ImGui::PushItemWidth (button_size.x);
       if ( ImGui::SliderFloat ("###SecondsBeforeHidingCursor",
                                  &seconds, 0.0f, 10.0f, seconds > 0.0 ? "%.2f Second Idle" : "Always Hidden" ) )
@@ -1016,14 +1017,13 @@ SK::ControlPanel::Input::Draw (void)
 
         ImGui::TreePop ();
       }
+      else if (config.compatibility.disallow_ll_keyhook)
+      {
+        ImGui::TreePush ("");
+        ImGui::BulletText ("Features Unavailable Because AutoHotkey Is Running");
+        ImGui::TreePop  (  );
+      }
       ImGui::TreePop (  );
-    }
-
-    else if (bKeyboard)
-    {
-      ImGui::TreePush ("");
-      ImGui::BulletText ("Features Unavailable Because AutoHotkey Is Running");
-      ImGui::TreePop  (  );
     }
 
     // Gamepad debug menus

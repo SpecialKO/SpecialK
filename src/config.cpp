@@ -4118,7 +4118,7 @@ auto DeclKeybind =
         );
 
         dlss_plugin /= LR"(PlugIns\ThirdParty\NVIDIA)";
-        dlss_plugin /= SK_RunLHIfBitness (32, L"nvngx_dlss.dll",
+        dlss_plugin /= SK_RunLHIfBitness (32, L"nvngx_dlss32.dll", // Not a real thing
                                               L"nvngx_dlss.dll");
 
         if (! PathFileExistsW (dlss_plugin.c_str ()))

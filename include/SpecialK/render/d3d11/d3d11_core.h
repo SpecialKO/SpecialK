@@ -218,7 +218,8 @@ SK_D3D11_IsDevCtxDeferred (ID3D11DeviceContext* ctx)
   const bool bIsLastDevCtx     =
     _pLastDeferredCheck->first == ctx;
   const bool bIsDevCtxDeferred = bIsLastDevCtx ?
-    _pLastDeferredCheck->second               :
+    _pLastDeferredCheck->second                :
+    ctx             != nullptr &&
     ctx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED;
 
   _pLastDeferredCheck->second = bIsDevCtxDeferred;
@@ -516,13 +517,13 @@ struct shader_stage_s
   using bind_fn =
     void (shader_stage_s::*)(int, int, ID3D11ShaderResourceView*);
 
-  void nulBind (int slot, ID3D11ShaderResourceView* pView)
+  void nulBind (size_t slot, ID3D11ShaderResourceView* pView)
   {
     IUnknown_Set ((IUnknown **)&skipped_bindings [slot],
                   (IUnknown  *)pView);
   };
 
-  void Bind (int slot, ID3D11ShaderResourceView* pView)
+  void Bind (size_t slot, ID3D11ShaderResourceView* pView)
   {
     IUnknown_AtomicRelease ((void **)&skipped_bindings [slot]);
 

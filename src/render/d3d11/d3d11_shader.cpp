@@ -3942,13 +3942,14 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (tracker->overrides.size () < ++min_size)
         {
-          tracker->overrides.push_back ( { tracker->crc32c, it.size,
-                                             false, it.Slot,
-                                                   it2.var_desc.StartOffset,
-                                                   it2.var_desc.Size, { 0.0f, 0.0f, 0.0f, 0.0f,
-                                                                        0.0f, 0.0f, 0.0f, 0.0f,
-                                                                        0.0f, 0.0f, 0.0f, 0.0f,
-                                                                        0.0f, 0.0f, 0.0f, 0.0f } } );
+          tracker->overrides.emplace_back ( d3d11_shader_tracking_s::cbuffer_override_s
+                                            { tracker->crc32c, it.size,
+                                                false, it.Slot,
+                                                      it2.var_desc.StartOffset,
+                                                      it2.var_desc.Size, { 0.0f, 0.0f, 0.0f, 0.0f,
+                                                                           0.0f, 0.0f, 0.0f, 0.0f,
+                                                                           0.0f, 0.0f, 0.0f, 0.0f,
+                                                                           0.0f, 0.0f, 0.0f, 0.0f } } );
 
           memcpy ( (void *)(tracker->overrides.back ().Values),
                                  (void *)it2.default_value,
@@ -4328,8 +4329,8 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
     {
       bool        used_last_frame       = false;
       bool        ui_link_activated     = false;
-      char        label           [512] = { };
-      char        szPipelineDesc  [512] = { };
+      char        label          [1024] = { };
+      char        szPipelineDesc [ 512] = { };
 
       switch (shader_type)
       {

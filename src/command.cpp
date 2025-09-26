@@ -152,7 +152,7 @@ SK_ICommandProcessor::SK_ICommandProcessor (void)
   add_remove_var_lock =
     std::make_unique <SK_Thread_HybridSpinlock> (/*128*/);
 
-  AddCommand ("source", new SK_SourceCmd (this));
+  SK_ICommandProcessor::AddCommand ("source", new SK_SourceCmd (this));
 }
 
 SK_ICommandProcessor::~SK_ICommandProcessor (void)

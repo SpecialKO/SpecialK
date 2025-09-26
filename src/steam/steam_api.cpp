@@ -6871,7 +6871,7 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
         remote_storage_ver_ = i;
         steam_log->Log (L"SteamAPI DLL Implements Remote Storage v%03lu", i);
 
-        if (remote_storage_ver_ > 14)
+        if (remote_storage_ver_ > INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION)
           steam_log->Log (L" >> Newer than Special K knows about.");
       }
 

@@ -1346,7 +1346,7 @@ BOOL SK_ReShade_HasRenoDX (void)
     _(_HasRenoDX);
 }
 
-const std::filesystem::path
+std::filesystem::path
 SK_ReShadeGetBasePath (void)
 {
   wchar_t          wszReShadeINIPath [MAX_PATH] = {};
@@ -1362,7 +1362,7 @@ SK_ReShadeGetBasePath (void)
   return reshade_base_path;
 }
 
-const std::filesystem::path
+std::filesystem::path
 SK_ReShadeGetConfigPath (void)
 {
   std::filesystem::path
