@@ -1401,6 +1401,7 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
 SK_AchievementManager::Achievement::Achievement ( int                            idx,
                                                   EOS_Achievements_DefinitionV2* def )
 {
+
   idx_                      = idx;
   name_                     = def->AchievementId;
 
@@ -1409,6 +1410,45 @@ SK_AchievementManager::Achievement::Achievement ( int                           
 
   text_.unlocked.human_name = SK_UTF8ToWideChar (def->UnlockedDisplayName);
   text_.unlocked.desc       = SK_UTF8ToWideChar (def->UnlockedDescription);
+
+  if (def->StatThresholdsCount > 0)
+  {
+    if (! def->bIsHidden)
+    {
+      if ( def->StatThresholdsCount          != 1 ||
+           def->StatThresholds [0].Threshold != 1 )
+      {
+        epic_log->Log (
+          L"Achievement: '%ws' (%ws) has %d tracked stats for unlock:",
+            text_.locked.human_name.c_str (),
+            text_.locked.      desc.c_str (), def->StatThresholdsCount
+        );
+      }
+    }
+
+    tracked_stats_.data.resize (def->StatThresholdsCount);
+    for ( uint32_t i = 0 ; i <  def->StatThresholdsCount ; ++i )
+    {
+      auto& tracked_stat =
+        tracked_stats_.data [i];
+
+      tracked_stat.name      = def->StatThresholds [i].Name;
+      tracked_stat.threshold = def->StatThresholds [i].Threshold;
+
+      if (tracked_stat.threshold > 1)
+      {
+        tracked_stat.trackable = true;
+
+        if (! def->bIsHidden)
+        {
+          epic_log->Log (
+            L" * %hs [%d]", tracked_stat.name.c_str (),
+                            tracked_stat.threshold
+          );
+        }
+      }
+    }
+  }
 
 
   static const auto

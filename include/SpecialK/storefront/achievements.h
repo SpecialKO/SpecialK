@@ -51,6 +51,19 @@ struct SK_Achievement
       locked;
   } text_;
 
+  struct tracked_stats_s
+  {
+    struct trackable_s
+    {
+      std::string name;      // Human readable name
+      int32_t     current;   // Current stat
+      int32_t     threshold; // Unlock after
+      bool        trackable = false; // Is this more than a lock/unlock 2-state thing?
+    };
+
+    std::vector <trackable_s> data;
+  } tracked_stats_;
+
   // If we were to call ISteamStats::GetAchievementName (...),
   //   this is the index we could use.
   int         idx_            = -1;

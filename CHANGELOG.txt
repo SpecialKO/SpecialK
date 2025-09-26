@@ -1,4 +1,13 @@
-﻿25.9.25.1
+﻿25.9.26
+=======
+ + Added achievement stat data (i.e. Achievement awarded for killling 69 wolves,
+     count number of wolves killed) to Epic Online Services log in preparation
+       for a new Achievement Tracker Widget and Achievement List UI.
+
+    * New widget will eventually be extended to GOG, but it is doubtful that it
+        will be usable on Steam.
+
+25.9.25.1
 =========
  + Prevent selecting AVIF screenshot clipboard format unless HDR screenshot
      format is also set to AVIF (because of compression overhead and perf cost
