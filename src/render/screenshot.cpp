@@ -2228,38 +2228,48 @@ sk_png_remove_chunk (const char* szName, void* data, size_t& size)
     return false;
   }
 
-  size_t   erase_pos = 0;
-  uint8_t* erase_ptr = nullptr;
+  __try {
+    size_t   erase_pos = 0;
+    uint8_t* erase_ptr = nullptr;
 
-  // Effectively a string search, but ignoring nul-bytes in both
-  //   the character array being searched and the pattern...
-  std::string_view data_view ((const char *)data, size);
-  if (erase_pos  = data_view.find (szName, 0, 4);
-      erase_pos == data_view.npos)
-  {
-    return false;
-  }
+    // Effectively a string search, but ignoring nul-bytes in both
+    //   the character array being searched and the pattern...
+    std::string_view data_view ((const char *)data, size);
+    if (erase_pos  = data_view.find (szName, 0, 4);
+        erase_pos == data_view.npos)
+    {
+      return false;
+    }
 
-  erase_pos -= 4; // Rollback to the chunk's length field
-  erase_ptr =
-    ((uint8_t *)data + erase_pos);
+    erase_pos -= 4; // Rollback to the chunk's length field
+    erase_ptr =
+      ((uint8_t *)data + erase_pos);
 
-  uint32_t chunk_size = *(uint32_t *)erase_ptr;
+    uint32_t chunk_size = *(uint32_t *)erase_ptr;
 
 // Length is Big Endian, Intel/AMD CPUs are Little Endian
 #if (defined _M_IX86) || (defined _M_X64)
-  chunk_size = _byteswap_ulong (chunk_size);
+    chunk_size = _byteswap_ulong (chunk_size);
 #endif
 
-  size_t size_to_erase = (size_t)12 + chunk_size;
+    size_t size_to_erase = (size_t)12 + chunk_size;
 
-  memmove ( erase_ptr,
-            erase_ptr             + size_to_erase,
-                 size - erase_pos - size_to_erase );
+    memmove ( erase_ptr,
+              erase_ptr             + size_to_erase,
+                   size - erase_pos - size_to_erase );
 
-  size -= size_to_erase;
+    size -= size_to_erase;
 
-  return true;
+    return true;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    SK_LOGi0 (
+      L"Encountered Structured Exception While Trying to Remove PNG Chunk '%hs'",
+        szName );
+    return false;
+  }
 }
 
 SK_PNG_HDR_cLLi_Payload

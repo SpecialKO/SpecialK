@@ -1,4 +1,9 @@
-﻿25.9.26.1
+﻿25.8.26.2
+=========
+ + Fixed rare mishandling of malformed PNG chunks when altering the colorspace
+     of HDR encoded PNGs in order to make them compatible with Discord.
+
+25.9.26.1
 =========
  + Added very crappy achievement tracker widget that currently only works for
      games on Epic Games Store (not currently configurable; tracks everything).
