@@ -95,6 +95,10 @@ struct SK_Achievement
 
   bool        unlocked_       = false;
   bool        hidden_         = false;
+
+  // Metadata for the Achievement Tracker widget
+  bool        tracked_        = false;
+  bool        ignored_        = false;
 };
 
 struct ImGuiWindow;

@@ -1,4 +1,8 @@
-﻿25.8.26.3
+﻿25.8.27
+=======
+ + Added rudimentary config support to Epic Games Store achievement tracker.
+
+25.8.26.3
 =========
  + Various static analysis code cleanup
  + Added memory addresses for Assassin's Creed: Shadows 1.1.3
