@@ -87,7 +87,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     std::set <DWORD> unique_processes;
 
-    for ( size_t i = 0 ; i < count ; ++i )
+    for ( size_t i = 0 ; i < (size_t)count ; ++i )
     {
       if ( unique_processes.emplace (
              pSessions [i]->getProcessId ()
@@ -140,7 +140,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       if (pSessions != nullptr)
       {
-        for (size_t i = 0; i < count; i++)
+        for (size_t i = 0; i < (size_t)count; i++)
         {
           SK_WASAPI_AudioSession* pSession =
             pSessions [i];
@@ -459,7 +459,7 @@ SK_ImGui_VolumeManager (void)
       auto** ppSessions =
         sessions.getActive (&session_count);
 
-      for (size_t i = 0; i < session_count ; ++i)
+      for (size_t i = 0; i < (size_t)session_count ; ++i)
       {
         if (ppSessions [i] == nullptr)
           continue;
@@ -673,7 +673,7 @@ SK_ImGui_VolumeManager (void)
       sessions.getActive (&count);
 
     // Find the session for the current game and select that first...
-    for (size_t i = 0; i < count; i++)
+    for (size_t i = 0; i < (size_t)count; i++)
     {
       if (ppSessions [i]->getProcessId () == GetCurrentProcessId () &&
           ppSessions [i]->isActive ())
