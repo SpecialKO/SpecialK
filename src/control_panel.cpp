@@ -3780,9 +3780,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             if (config.screenshots.allow_hdr_clipboard)
             {
               config.screenshots.clipboard_hdr_format =
-                clipboard_selection == 1 ? SK_HDR_CLIPBOARD_FORMAT_PNG  :
-                clipboard_selection == 2 ? SK_HDR_CLIPBOARD_FORMAT_AVIF :
-                                           SK_HDR_CLIPBOARD_FORMAT_NONE;
+                clipboard_selection == 1 ?                                                              SK_HDR_CLIPBOARD_FORMAT_PNG :
+                clipboard_selection == 2 ? config.screenshots.use_avif ? SK_HDR_CLIPBOARD_FORMAT_AVIF : SK_HDR_CLIPBOARD_FORMAT_PNG :
+                                                                                                        SK_HDR_CLIPBOARD_FORMAT_NONE;
 
               if (config.screenshots.clipboard_hdr_format == SK_HDR_CLIPBOARD_FORMAT_AVIF)
               {

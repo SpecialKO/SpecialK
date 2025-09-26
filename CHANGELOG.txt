@@ -1,4 +1,10 @@
-﻿25.9.25
+﻿25.9.25.1
+=========
+ + Prevent selecting AVIF screenshot clipboard format unless HDR screenshot
+     format is also set to AVIF (because of compression overhead and perf cost
+       of encoding twice)...
+
+25.9.25
 =======
  + Added achievement rarity (global unlock %) statistics to Epic Games Store
      achievement popups.
