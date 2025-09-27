@@ -1,4 +1,14 @@
-﻿25.8.27
+﻿25.8.27.1
+=========
+ + Enabled achievement tracker widget for Steam (no idea if it works, lol).
+ + Hide the achievement tracker widget when control panel is closed if no
+     tracked achievements have been setup.
+ + Move unlocked achievements to the bottom of the tracker widget and disable
+     the option to track them.
+ + Fixed widget flash keybind not actually making widgets visible; useful for
+     the achievement tracker to pop the widget up for n-seconds for a glance.
+
+25.8.27
 =======
  + Added rudimentary config support to Epic Games Store achievement tracker.
 

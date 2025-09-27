@@ -176,8 +176,7 @@ public:
     {
       if (last_update < SK::ControlPanel::current_time - update_freq)
       {
-        SK_AchievementManager* SK_EOS_GetAchievementManager (void);
-        auto achievement_mgr = SK_EOS_GetAchievementManager ();
+        auto achievement_mgr = SK_Platform_GetAchievementManager ();
 
         if (achievement_mgr != nullptr)
         {
@@ -187,16 +186,34 @@ public:
           auto                achievements             =
           achievement_mgr->getAchievements (&num_achvs);
 
-          locked = (num_achvs == 0);
+          locked = (num_achvs == 0) || (tracked.names.empty () && (! SK_ImGui_Active ()));
 
           if (num_achvs > 0)
           {
+            max_text_width = 0.0f;
+
             for ( unsigned int i = 0 ; i < num_achvs ; ++i )
             {
               auto achievement = achievements [i];
 
               achievement->tracked_ = (tracked.names.contains (achievement->name_));
               achievement->ignored_ = (ignored.names.contains (achievement->name_));
+
+              // Remove from tracking after unlock...
+              if (achievement->tracked_ && achievement->unlocked_)
+              {
+                                     achievement->tracked_ = false;
+                tracked.names.erase (achievement->name_);
+              }
+
+              const auto& state =
+                  achievement->unlocked_ ? achievement->text_.unlocked :
+                                           achievement->text_.  locked;
+
+              max_text_width =
+                std::max ( max_text_width,
+                  ImGui::CalcTextSize (SK_WideCharToUTF8 (state.desc.c_str ()).c_str ()).x + ImGui::GetStyle ().FramePadding.x * 2
+                );
             }
           }
 
@@ -260,187 +277,280 @@ public:
 
       std::scoped_lock <std::recursive_mutex> list_lock (name_list_s::lock);
 
-      const auto& style = ImGui::GetStyle ();
-      const float fLineHt =
-        (ImGui::GetFontSize () + style.FramePadding    .y  * 2.0f +
-                                 style.ItemInnerSpacing.y);// * ImGui::GetIO ().FontGlobalScale;
+      size_t locked_count          = 0;
+      float  track_checkbox_offset = 0.0f;
 
+      ImGui::PushStyleColor (ImGuiCol_TableRowBg,    ImVec4 (0.000f, 0.000f, 0.000f, 0.5f));
+      ImGui::PushStyleColor (ImGuiCol_TableRowBgAlt, ImVec4 (0.175f, 0.175f, 0.175f, 0.5f));
+
+      auto flags = ImGuiTableFlags_Borders        | ImGuiTableFlags_RowBg          |
+                   ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings;
+
+      // Allow scrolling while the control panel is open.
       if (SK_ImGui_Active ())
+        flags |= ImGuiTableFlags_ScrollY;
+
+      if (ImGui::BeginTable ("Achievements", 3, flags))
       {
-        ImGui::BeginGroup ();
+        ImGui::TableSetupColumn ("Name");
+        ImGui::TableSetupColumn ("Description");
+        ImGui::TableSetupColumn ("Rarity");
+
+        if (num_achvs > 0)
+        {
+          if (SK_ImGui_Active ())
+          {
+            // Table headers
+            ImGui::TableSetupScrollFreeze ( 0,2 );
+            ImGui::TableHeadersRow        (     );
+            ImGui::TableNextRow           (     );
+            ImGui::TableSetColumnIndex    (  0  );
+            ImGui::Separator              (     );
+            ImGui::TableSetColumnIndex    (  1  );
+            ImGui::Separator              (     );
+            ImGui::TableSetColumnIndex    (  2  );
+            ImGui::Separator              (     );
+          }
+
+          else
+          {
+            ImGui::ScrollToItem ();
+          }
+        }
+
+        extern const char* SK_Achievement_RarityToName (float percent);
+
+        // Populate rows (Locked)
         for ( unsigned int i = 0 ; i < num_achvs ; ++i )
         {
-          const auto achievement = achievements [i];
+          const auto achievement =
+            achievements [i];
+
+          if (! achievement->unlocked_)
+            ++locked_count;
 
           if (show_hidden || (! achievement->hidden_))
           {
-            SK_ImGui_VerticalSpacing spacing (fLineHt);
-
             ImGui::PushID (achievement->name_.c_str ());
 
-            if (ignored.show || (! achievement->ignored_))
+            if ((ignored.show || (! achievement->ignored_)) && (! achievement->unlocked_))
             {
-              if (ImGui::Checkbox ("Track", &achievement->tracked_))
+              if ((achievement->tracked_ && tracked.show) || (SK_ImGui_Active () &&
+                ((!achievement->ignored_)|| ignored.show)))
               {
-                bool changed = true;
+                const auto& state =
+                  achievement->unlocked_ ? achievement->text_.unlocked :
+                                           achievement->text_.  locked;
 
-                if      ( achievement->tracked_ && !tracked.names.contains (achievement->name_)) tracked.names.insert (achievement->name_);
-                else if (!achievement->tracked_ &&  tracked.names.contains (achievement->name_)) tracked.names.erase  (achievement->name_);
-                else                                                                                                       changed = false;
+                ImGui::TableNextRow        ( );
+                ImGui::TableSetColumnIndex (0);
 
-                if (changed)
+                if (SK_ImGui_Active ())
                 {
-                  std::wstring tracked_names =
-                    serialize (tracked.names);
+                  const auto x_orig =
+                    ImGui::GetCursorPosX ();
+                  
+                  if (ImGui::Checkbox ("Track", &achievement->tracked_))
+                  {
+                    bool changed = true;
 
-                  if (tracked.ini_pref != nullptr)
-                      tracked.ini_pref->store (tracked_names);
+                    if      ( achievement->tracked_ && !tracked.names.contains (achievement->name_)) tracked.names.insert (achievement->name_);
+                    else if (!achievement->tracked_ &&  tracked.names.contains (achievement->name_)) tracked.names.erase  (achievement->name_);
+                    else                                                                                                       changed = false;
 
-                  dll_ini->write ();
+                    if (changed)
+                    {
+                      std::wstring tracked_names =
+                        serialize (tracked.names);
+
+                      if (tracked.ini_pref != nullptr)
+                          tracked.ini_pref->store (tracked_names);
+
+                      dll_ini->write ();
+                    }
+                  }
+
+                  //ImGui::SameLine ();
+                  //
+                  //if (ImGui::Checkbox ("Ignore", &achievement->ignored_))
+                  //{
+                  //  if (achievement->ignored_) ignored.names.emplace (achievement->name_);
+                  //  else                       ignored.names.erase   (achievement->name_);
+                  //
+                  //  std::wstring ignored_names = serialize (ignored.names);
+                  //
+                  //  if (ignored.ini_pref != nullptr) ignored.ini_pref->store (ignored_names);
+                  //
+                  //  dll_ini->write ();
+                  //}
+                  ImGui::SameLine   ();
+
+                  track_checkbox_offset =
+                    ImGui::GetCursorPosX () - x_orig;
                 }
-              }
 
-              //ImGui::SameLine ();
-              //
-              //if (ImGui::Checkbox ("Ignore", &achievement->ignored_))
-              //{
-              //  if (achievement->ignored_) ignored.names.emplace (achievement->name_);
-              //  else                       ignored.names.erase   (achievement->name_);
-              //
-              //  std::wstring ignored_names = serialize (ignored.names);
-              //
-              //  if (ignored.ini_pref != nullptr) ignored.ini_pref->store (ignored_names);
-              //
-              //  dll_ini->write ();
-              //}
+                ImGui::TextColored ( ImColor (1.0f, 1.0f, 1.0f, 1.0f),
+                                        achievement->unlocked_ ?
+                                                ICON_FA_UNLOCK : ICON_FA_LOCK );
+                ImGui::SameLine    ();
+                ImGui::Text        ("%ws ", state.human_name.c_str ());
+
+
+                ImGui::TableSetColumnIndex (1);
+
+                if (achievement->tracked_stats_.data.size () > 1)
+                {
+                  ImGui::Text (ICON_FA_EXCLAMATION_CIRCLE);
+                  if (ImGui::BeginItemTooltip ())
+                  {
+                    ImGui::Text (
+                      "This achievement is an aggregate of %d different stats and "
+                      "progress cannot be shown in the UI.", achievement->tracked_stats_.data.size ()
+                    );
+                    ImGui::EndTooltip ();
+                  }
+                  ImGui::SameLine ();
+                }
+
+                ImGui::SetNextItemWidth (max_text_width);
+
+                if ( achievement->progress_.max != achievement->progress_.current &&
+                     achievement->progress_.max != 1                              &&
+                     ! state.desc.empty () )
+                {
+                  std::string str_progress =
+                    SK_FormatString ( "%ws  %.0f%%  [%d / %d]", state.desc.c_str (),
+                                          achievement->progress_.getPercent        (),
+                                          achievement->progress_.current,
+                                          achievement->progress_.max );
+                  ImGui::ProgressBar (    achievement->progress_.getPercent () / 100.0F,
+                                                                   ImVec2 (max_text_width, 0),
+                                                   str_progress.c_str () );
+                  ImGui::SameLine        (   );
+                  ImGui::TextUnformatted (" ");
+                }
+
+                else if (! state.desc.empty ())
+                {
+                  ImGui::Text ("%ws ", state.desc.c_str ());
+                }
+
+
+                ImGui::TableSetColumnIndex (2);
+
+                ImVec4 color =
+                  ImColor::HSV (0.4f * (achievement->global_percent_ / 100.0f), 1.0f, 1.0f);
+
+                ImGui::TextColored ( color, "%hs",
+                  SK_Achievement_RarityToName (achievement->global_percent_)
+                );
+              }
             }
 
             ImGui::PopID ();
           }
         }
-        ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-      }
 
-      ImGui::BeginGroup ();
-      for ( unsigned int i = 0 ; i < num_achvs ; ++i )
-      {
-        const auto achievement = achievements [i];
-
-        if (show_hidden || (! achievement->hidden_))
+        // Now for already unlocked achievements...
+        //
+        //   Do not display these unless the control panel is open,
+        //     because there is nothing to actually track.
+        if (locked_count != num_achvs && SK_ImGui_Active ())
         {
-          if ((achievement->tracked_ && tracked.show) || (SK_ImGui_Active () &&
-            ((!achievement->ignored_)|| ignored.show)))
+          ImGui::TableNextRow        ( );
+          ImGui::TableSetColumnIndex (0);
+          ImGui::Separator           ( );
+          ImGui::TableSetColumnIndex (1);
+          ImGui::Separator           ( );
+          ImGui::TableSetColumnIndex (2);
+          ImGui::Separator           ( );
+
+          // Populate rows (Unlocked)
+          for ( unsigned int i = 0 ; i < num_achvs ; ++i )
           {
-            SK_ImGui_VerticalSpacing spacing (fLineHt);
+            const auto achievement = achievements [i];
 
-            ImGui::TextColored ( ImColor (1.0f, 1.0f, 1.0f, 1.0f),
-                                    achievement->unlocked_ ?
-                                            ICON_FA_UNLOCK : ICON_FA_LOCK );
-          }
-        }
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( unsigned int i = 0 ; i < num_achvs ; ++i )
-      {
-        const auto achievement = achievements [i];
-
-        if (show_hidden || (! achievement->hidden_))
-        {
-          if ((achievement->tracked_ && tracked.show) || (SK_ImGui_Active () &&
-            ((!achievement->ignored_)|| ignored.show)))
-          {
-            SK_ImGui_VerticalSpacing spacing (fLineHt);
-
-            const auto& state =
-              achievement->unlocked_ ? achievement->text_.unlocked :
-                                       achievement->text_.  locked;
-
-            ImGui::Text ("%ws\t", state.human_name.c_str ());
-          }
-        }
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( unsigned int i = 0 ; i < num_achvs ; ++i )
-      {
-        const auto achievement = achievements [i];
-
-        if (show_hidden || (! achievement->hidden_))
-        {
-          if ((achievement->tracked_ && tracked.show) || (SK_ImGui_Active () &&
-            ((!achievement->ignored_)|| ignored.show)))
-          {
-            SK_ImGui_VerticalSpacing spacing (fLineHt);
-
-            if (achievement->tracked_stats_.data.size () > 1)
+            if (show_hidden || (! achievement->hidden_))
             {
-              ImGui::Text (ICON_FA_EXCLAMATION_CIRCLE);
-              if (ImGui::BeginItemTooltip ())
+              ImGui::PushID (achievement->name_.c_str ());
+
+              if ((ignored.show || (! achievement->ignored_)) && achievement->unlocked_)
               {
-                ImGui::Text (
-                  "This achievement is an aggregate of %d different stats and "
-                  "progress cannot be shown in the UI.", achievement->tracked_stats_.data.size ()
+                ImGui::TableNextRow        ( );
+                ImGui::TableSetColumnIndex (0);
+
+                ImGui::SetCursorPosX (ImGui::GetCursorPosX () + track_checkbox_offset);
+
+                const auto& state =
+                  achievement->unlocked_ ? achievement->text_.unlocked :
+                                           achievement->text_.  locked;
+
+                ImGui::TextColored ( ImColor (1.0f, 1.0f, 1.0f, 1.0f),
+                                        achievement->unlocked_ ?
+                                                ICON_FA_UNLOCK : ICON_FA_LOCK );
+                ImGui::SameLine    ();
+                ImGui::Text        ("%ws ", state.human_name.c_str ());
+
+
+                ImGui::TableSetColumnIndex (1);
+
+                if (achievement->tracked_stats_.data.size () > 1)
+                {
+                  ImGui::Text (ICON_FA_EXCLAMATION_CIRCLE);
+                  if (ImGui::BeginItemTooltip ())
+                  {
+                    ImGui::Text (
+                      "This achievement is an aggregate of %d different stats and "
+                      "progress cannot be shown in the UI.", achievement->tracked_stats_.data.size ()
+                    );
+                    ImGui::EndTooltip ();
+                  }
+                  ImGui::SameLine ();
+                }
+
+                ImGui::SetNextItemWidth (max_text_width);
+
+                if ( achievement->progress_.max != achievement->progress_.current &&
+                     achievement->progress_.max != 1                              &&
+                     ! state.desc.empty () )
+                {
+                  std::string str_progress =
+                    SK_FormatString ( "%ws  %.0f%%  [%d / %d]", state.desc.c_str (),
+                                          achievement->progress_.getPercent        (),
+                                          achievement->progress_.current,
+                                          achievement->progress_.max );
+                  ImGui::ProgressBar (    achievement->progress_.getPercent () / 100.0F,
+                                                                   ImVec2 (max_text_width, 0),
+                                                   str_progress.c_str () );
+                  ImGui::SameLine        (   );
+                  ImGui::TextUnformatted (" ");
+                }
+
+                else if (! state.desc.empty ())
+                {
+                  ImGui::Text ("%ws ", state.desc.c_str ());
+                }
+
+
+                ImGui::TableSetColumnIndex (2);
+
+                ImVec4 color =
+                  ImColor::HSV (0.4f * (achievement->global_percent_ / 100.0f), 1.0f, 1.0f);
+
+                ImGui::TextColored ( color, "%hs",
+                  SK_Achievement_RarityToName (achievement->global_percent_)
                 );
-                ImGui::EndTooltip ();
               }
-              ImGui::SameLine ();
-            }
 
-            const auto& state =
-              achievement->unlocked_ ? achievement->text_.unlocked :
-                                       achievement->text_.  locked;
-
-            if ( achievement->progress_.max != achievement->progress_.current &&
-                 achievement->progress_.max != 1                              &&
-                 ! state.desc.empty () )
-            {
-              std::string str_progress =
-                SK_FormatString ( "%ws  %.0f%%  [%d / %d]\t", state.desc.c_str (),
-                                      achievement->progress_.getPercent        (),
-                                      achievement->progress_.current,
-                                      achievement->progress_.max );
-              ImGui::ProgressBar (    achievement->progress_.getPercent () / 100.0F,
-                                                               ImVec2 (-FLT_MIN, 0),
-                                               str_progress.c_str () );
-            }
-
-            else if (! state.desc.empty ())
-            {
-              ImGui::Text ("%ws\t", state.desc.c_str ());
+              ImGui::PopID ();
             }
           }
         }
+
+        ImGui::EndTable ();
       }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( unsigned int i = 0 ; i < num_achvs ; ++i )
-      {
-        extern const char* SK_Achievement_RarityToName (float percent);
 
-        const auto achievement = achievements [i];
-
-        if (show_hidden || (! achievement->hidden_))
-        {
-          if ((achievement->tracked_ && tracked.show) || (SK_ImGui_Active () &&
-            ((!achievement->ignored_)|| ignored.show)))
-          {
-            SK_ImGui_VerticalSpacing spacing (fLineHt);
-
-            ImVec4 color =
-              ImColor::HSV (0.4f * (achievement->global_percent_ / 100.0f), 1.0f, 1.0f);
-
-            ImGui::TextColored ( color, "%hs",
-              SK_Achievement_RarityToName (achievement->global_percent_)
-            );
-          }
-        }
-      }
-      ImGui::EndGroup   ();
+      ImGui::PopStyleColor (2);
     }
 
     //const float ui_scale  = ImGui::GetIO ().FontGlobalScale;
@@ -463,7 +573,7 @@ private:
   DWORD last_update = 0UL;
 
 protected:
-  const DWORD update_freq = 666UL;
+  const DWORD update_freq = 250UL;
   bool        show_hidden = false;
   bool        show_icons  = false;
 
@@ -474,6 +584,8 @@ protected:
     std::set <std::string>      names;
   } tracked,
     ignored;
+
+  float       max_text_width = 0.0f;
 };
 SK_LazyGlobal <SKWG_AchievementTracker> __achievement_tracker__;
 

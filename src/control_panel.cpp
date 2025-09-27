@@ -7041,8 +7041,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                                         setActive  (volumecontrol);
     }
 
-    // Achievement widget is Epic-only right now
-    if (SK::EOS::GetTicksRetired () > 0)
+    if (SK_Platform_GetAchievementManager () != nullptr)
     {
       ImGui::SameLine ();
       if (ImGui::Checkbox ("Achievements", &achievements))
@@ -7935,9 +7934,13 @@ SK_ImGui_StageNextFrame (void)
 
       if (widget == SK_ImGui_Widgets->achieve_tracker)
       {
-        // Achievement Widget is Epic-only for now
-        if (! SK::EOS::GetTicksRetired ())
+        if (SK_Platform_GetAchievementManager () == nullptr)
+        {
+          if (widget->isActive ())
+              widget->run_base ();
+
           continue;
+        }
       }
 
       if (widget->isActive ())

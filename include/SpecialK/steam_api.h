@@ -209,6 +209,10 @@ size_t SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* 
 size_t SK_SteamAPI_GetLockedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
 size_t SK_SteamAPI_GetSharedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
 
+class SK_AchievementManager;
+
+SK_AchievementManager* SK_Steam_GetAchievementManager (void);
+
 
 // Returns true if all friend stats have been pulled from the server
       bool  __stdcall SK_SteamAPI_FriendStatsFinished  (void);

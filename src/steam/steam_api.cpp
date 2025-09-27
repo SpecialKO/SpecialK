@@ -2843,6 +2843,12 @@ private:
 static std::unique_ptr <SK_Steam_AchievementManager> steam_achievements = nullptr;
 static std::unique_ptr <SK_Steam_ScreenshotManager>  steam_screenshots  = nullptr;
 
+SK_AchievementManager* SK_Steam_GetAchievementManager (void)
+{
+  return
+    steam_achievements.get ();
+}
+
 void
 SK_Steam_PlayUnlockSound (void)
 {

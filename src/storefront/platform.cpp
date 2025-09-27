@@ -86,3 +86,20 @@ SK_Platform_DrawOSD (void)
 
   return ret;
 }
+
+SK_AchievementManager* SK_Steam_GetAchievementManager (void);
+SK_AchievementManager* SK_EOS_GetAchievementManager   (void);
+
+SK_AchievementManager*
+SK_Platform_GetAchievementManager (void)
+{
+  SK_AchievementManager* pMgr = nullptr;
+
+  if (SK::SteamAPI::AppID () > 0)
+      pMgr = SK_Steam_GetAchievementManager ();
+
+  if (pMgr == nullptr && SK::EOS::GetTicksRetired () > 0)
+      pMgr = SK_EOS_GetAchievementManager ();
+
+  return pMgr;
+}

@@ -44,4 +44,6 @@ void SK_Platform_SetNotifyCorner (void);
 
 int32_t SK_Platform_GetNumPlayers (void);
 
+SK_AchievementManager* SK_Platform_GetAchievementManager (void);
+
 #endif /* __SK__CPL_PLATFORM_H__ */
