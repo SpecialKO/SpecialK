@@ -206,6 +206,8 @@ bool SK_SO2R_DrawHandler           (ID3D11DeviceContext *pDevCtx, uint32_t curre
 
 void SK_EnderLilies_InitPlugIn     (void);
 
+void SK_WatchDogs_InitPlugin       (void);
+
 void SK_MHW_PlugIn_Shutdown (void);
 extern bool __SK_MHW_KillAntiDebug;
 

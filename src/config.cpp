@@ -123,6 +123,7 @@ SK_GetCurrentGameID (void)
           { L"eqgame.exe",                             SK_GAME_ID::EverQuest                    },
           { L"GE2RB.exe",                              SK_GAME_ID::GodEater2RageBurst           },
           { L"ge3.exe",                                SK_GAME_ID::GodEater3                    },
+          { L"watch_dogs.exe",                         SK_GAME_ID::WatchDogs                    },
           { L"WatchDogs2.exe",                         SK_GAME_ID::WatchDogs2                   },
           { L"NieRAutomata.exe",                       SK_GAME_ID::NieRAutomata                 },
           { L"Warframe.x64.exe",                       SK_GAME_ID::Warframe_x64                 },
@@ -2820,6 +2821,10 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   = false;
         break;
 
+      case SK_GAME_ID::WatchDogs:
+        // Prevent the game from layering windows always on top.
+        config.window.always_on_top = PreventAlwaysOnTop;
+        break;
 
       case SK_GAME_ID::WatchDogs2:
         //Does not support XInput hot-plugging, needs Special K loving :)

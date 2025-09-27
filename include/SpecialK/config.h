@@ -1723,6 +1723,7 @@ enum class SK_GAME_ID
   EverQuest,                    // eqgame.exe
   GodEater2RageBurst,           // GE2RB.exe
   GodEater3,                    // ge3.exe
+  WatchDogs,                    // watch_dogs.exe
   WatchDogs2,                   // WatchDogs2.exe
   NieRAutomata,                 // NieRAutomata.exe
   Warframe_x64,                 // Warframe.x64.exe

@@ -3866,6 +3866,9 @@
     <ClCompile Include="src\plugins\assassins_creed_shadows.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\watch_dogs.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
     <ClCompile Include="src\storefront\xbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
