@@ -1,4 +1,8 @@
-﻿25.9.27.4
+﻿25.9.27.5
+=========
+ + Switched all achievement text to UTF-8 to avoid UTF-8 to UTF-16 conversion.
+
+25.9.27.4
 =========
  + Improve handling of null-termination in SK_UTF8ToWideChar (...) and
      SK_WideCharToUTF8 (...).

@@ -1237,14 +1237,14 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
          hidden_ = true;
 
     text_.locked.human_name =
-      (human != nullptr ? SK_UTF8ToWideChar (human) + L'\0' : L"<INVALID>");
+      (human != nullptr ? human : "<INVALID>");
     text_.locked.desc =
-      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  + L'\0' : L"<INVALID>");
+      ( desc != nullptr ? desc  : "<INVALID>");
 
     text_.unlocked.human_name =
-      (human != nullptr ? SK_UTF8ToWideChar (human) + L'\0' : L"<INVALID>");
+      (human != nullptr ? human : "<INVALID>");
     text_.unlocked.desc =
-      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  + L'\0' : L"<INVALID>");
+      ( desc != nullptr ? desc  : "<INVALID>");
   }
 
   static SK_LazyGlobal <nlohmann::json> json;
@@ -1411,11 +1411,11 @@ SK_AchievementManager::Achievement::Achievement ( int                           
   idx_                      = idx;
   name_                     = def->AchievementId;
 
-  text_.locked.human_name   = SK_UTF8ToWideChar (def->LockedDisplayName) + L'\0';
-  text_.locked.desc         = SK_UTF8ToWideChar (def->LockedDescription) + L'\0';
+  text_.locked.human_name   = def->LockedDisplayName;
+  text_.locked.desc         = def->LockedDescription;
 
-  text_.unlocked.human_name = SK_UTF8ToWideChar (def->UnlockedDisplayName) + L'\0';
-  text_.unlocked.desc       = SK_UTF8ToWideChar (def->UnlockedDescription) + L'\0';
+  text_.unlocked.human_name = def->UnlockedDisplayName;
+  text_.unlocked.desc       = def->UnlockedDescription;
 
   hidden_ = def->bIsHidden;
 
@@ -1428,7 +1428,7 @@ SK_AchievementManager::Achievement::Achievement ( int                           
       {
 #if 0
         epic_log->Log (
-          L"Achievement: '%ws' (%ws) has %d tracked stats for unlock:",
+          L"Achievement: '%hs' (%hs) has %d tracked stats for unlock:",
             text_.locked.human_name.c_str (),
             text_.locked.      desc.c_str (), def->StatThresholdsCount
         );
@@ -1967,8 +1967,8 @@ SK_AchievementManager::drawPopups (void)
           ImGui::PopID       (  );
         }
 
-        std::string
-          text_desc = SK_WideCharToUTF8 (text->desc);
+        std::string&
+          text_desc = text->desc;
 
         ImGui::SameLine      (  );
         ImGui::PushID        (it->window);
@@ -1977,7 +1977,7 @@ SK_AchievementManager::drawPopups (void)
           ImGui::GetCursorPosX( );
         ImGui::BeginGroup    (  );
         ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
-               "%hs", SK_WideCharToUTF8 (text->human_name).c_str ());
+               "%hs", text->human_name.c_str ());
         ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f).Value);
         auto size =
           ImGui::CalcTextSize(text_desc.c_str (), nullptr, false, 313.0f);
@@ -2113,7 +2113,7 @@ SK_AchievementManager::drawPopups (void)
 
       SK::SteamAPI::TakeScreenshot (
         SK_ScreenshotStage::PrePresent, false,
-          SK_FormatString ("Achievements\\%ws", text->human_name.c_str ())
+          SK_FormatString ("Achievements\\%hs", text->human_name.c_str ())
                                    );
 
       take_screenshot = -1;
@@ -2146,9 +2146,9 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 
   auto icon_filename =
     achievements_path /
-      SK_FormatStringW ( L"%ws_%hs.jpg",
-            achievement->unlocked_ ? L"Unlocked"
-                                   : L"Locked",
+      SK_FormatStringW ( L"%hs_%hs.jpg",
+            achievement->unlocked_ ? "Unlocked"
+                                   : "Locked",
             achievement->name_.c_str () );
 
   const SK_RenderBackend& rb =

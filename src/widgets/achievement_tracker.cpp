@@ -211,7 +211,7 @@ public:
 
               max_text_width =
                 std::max ( max_text_width,
-                  ImGui::CalcTextSize (SK_WideCharToUTF8 (state.desc.c_str ()).c_str ()).x + ImGui::GetStyle ().FramePadding.x * 2
+                  ImGui::CalcTextSize (state.desc.c_str ()).x + ImGui::GetStyle ().FramePadding.x * 2
                 );
             }
           }
@@ -390,7 +390,7 @@ public:
                                         achievement->unlocked_ ?
                                                 ICON_FA_UNLOCK : ICON_FA_LOCK );
                 ImGui::SameLine    ();
-                ImGui::Text        ("%ws ", state.human_name.c_str ());
+                ImGui::Text        ("%hs ", state.human_name.c_str ());
 
 
                 ImGui::TableSetColumnIndex (1);
@@ -416,7 +416,7 @@ public:
                      ! state.desc.empty () )
                 {
                   std::string str_progress =
-                    SK_FormatString ( "%ws  %.0f%%  [%d / %d]", state.desc.c_str (),
+                    SK_FormatString ( "%hs  %.0f%%  [%d / %d]", state.desc.c_str (),
                                           achievement->progress_.getPercent        (),
                                           achievement->progress_.current,
                                           achievement->progress_.max );
@@ -429,7 +429,7 @@ public:
 
                 else if (! state.desc.empty ())
                 {
-                  ImGui::Text ("%ws ", state.desc.c_str ());
+                  ImGui::Text ("%hs ", state.desc.c_str ());
                 }
 
 
@@ -486,7 +486,7 @@ public:
                                         achievement->unlocked_ ?
                                                 ICON_FA_UNLOCK : ICON_FA_LOCK );
                 ImGui::SameLine    ();
-                ImGui::Text        ("%ws ", state.human_name.c_str ());
+                ImGui::Text        ("%hs ", state.human_name.c_str ());
 
 
                 ImGui::TableSetColumnIndex (1);
@@ -512,8 +512,8 @@ public:
                      ! state.desc.empty () )
                 {
                   std::string str_progress =
-                    SK_FormatString ( "%ws  %.0f%%  [%d / %d]", state.desc.c_str (),
-                                          achievement->progress_.getPercent        (),
+                    SK_FormatString ( "%hs  %.0f%%  [%d / %d]", state.desc.c_str (),
+                                          achievement->progress_.getPercent      (),
                                           achievement->progress_.current,
                                           achievement->progress_.max );
                   ImGui::ProgressBar (    achievement->progress_.getPercent () / 100.0F,
@@ -525,7 +525,7 @@ public:
 
                 else if (! state.desc.empty ())
                 {
-                  ImGui::Text ("%ws ", state.desc.c_str ());
+                  ImGui::Text ("%hs ", state.desc.c_str ());
                 }
 
 

@@ -45,8 +45,8 @@ struct SK_Achievement
   {
     struct state_s
     {
-      std::wstring human_name = L"";  // UTF-16
-      std::wstring desc       = L"";  // UTF-16
+      std::string human_name = "";  // UTF-8
+      std::string desc       = "";  // UTF-8
     } unlocked,
       locked;
   } text_;

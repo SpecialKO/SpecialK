@@ -2059,11 +2059,11 @@ public:
                         achievement->unlocked_ ? L'X' : L' ',
                         i, achievement->name_.c_str ());
       steam_log->LogEx (false,
-                        L"  + Human Readable Name...: %ws\n",
+                        L"  + Human Readable Name...: %hs\n",
                         achievement->text_.locked.human_name.c_str ());
       if (! achievement->text_.locked.desc.empty ())
         steam_log->LogEx (false,
-                          L"  *- Detailed Description.: %ws\n",
+                          L"  *- Detailed Description.: %hs\n",
                           achievement->text_.locked.desc.c_str ());
 
       if (achievement->global_percent_ > 0.0f)
@@ -2614,7 +2614,7 @@ public:
           playSound ();
         }
 
-        steam_log->Log ( L" Achievement: '%ws' (%ws) - Unlocked!",
+        steam_log->Log ( L" Achievement: '%hs' (%hs) - Unlocked!",
                            achievement->text_.unlocked.human_name.c_str (),
                            achievement->text_.unlocked.desc      .c_str ());
 
@@ -2625,7 +2625,7 @@ public:
            {
              SK::SteamAPI::TakeScreenshot (
                SK_ScreenshotStage::EndOfFrame, false,
-                 SK_FormatString ("Achievements\\%ws", achievement->text_.unlocked.human_name.c_str ())
+                 SK_FormatString ("Achievements\\%hs", achievement->text_.unlocked.human_name.c_str ())
              );
            }
         }
@@ -2640,7 +2640,7 @@ public:
           static_cast <float> (pParam->m_nCurProgress) /
           static_cast <float> (pParam->m_nMaxProgress);
 
-        steam_log->Log ( L" Achievement: '%ws' (%ws) - "
+        steam_log->Log ( L" Achievement: '%hs' (%hs) - "
                          L"Progress %lu / %lu (%04.01f%%)",
                            achievement->text_.locked.human_name.c_str (),
                            achievement->text_.locked.desc      .c_str (),

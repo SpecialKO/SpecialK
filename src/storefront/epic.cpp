@@ -121,7 +121,7 @@ public:
        {
          SK::SteamAPI::TakeScreenshot (
            SK_ScreenshotStage::EndOfFrame, false,
-             SK_FormatString ("Achievements\\%ws", achievement->text_.unlocked.human_name.c_str ())
+             SK_FormatString ("Achievements\\%hs", achievement->text_.unlocked.human_name.c_str ())
          );
        }
     }
@@ -143,20 +143,20 @@ public:
                         achievement->unlocked_ ? L'X' : L' ',
                      i, achievement->name_.data ());
       epic_log->LogEx  (false,
-                        L"  + Human Readable Name...: %ws\n",
+                        L"  + Human Readable Name...: %hs\n",
                         achievement->      unlocked_                    ?
                         achievement->text_.unlocked.human_name.c_str () :
                         achievement->text_.  locked.human_name.c_str ());
       if (! (achievement->unlocked_ && achievement->text_.locked.desc.empty ()))
       {
         epic_log->LogEx (false,
-                        L"  *- Detailed Description.: %ws\n",
+                        L"  *- Detailed Description.: %hs\n",
                         achievement->text_.locked.desc.c_str ());
       }
       else if ((achievement->unlocked_ && !achievement->text_.unlocked.desc.empty ()))
       {
         epic_log->LogEx (false,
-                        L"  *- Detailed Description.: %ws\n",
+                        L"  *- Detailed Description.: %hs\n",
                         achievement->text_.unlocked.desc.c_str ());
       }
 
@@ -647,7 +647,7 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
               // This callback gets sent for achievements that are already unlocked...
               if (! pAchievement->unlocked_)
               {
-                epic_log->Log ( L" Achievement: '%ws' (%ws) - Unlocked!",
+                epic_log->Log ( L" Achievement: '%hs' (%hs) - Unlocked!",
                                    pAchievement->text_.unlocked.human_name.c_str (),
                                    pAchievement->text_.unlocked.desc      .c_str () );
 
