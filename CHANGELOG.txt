@@ -1,4 +1,10 @@
-﻿25.9.27.2
+﻿25.9.27.3
+=========
+ + Added the 'hidden' status metadata to Epic and Stam achievements.
+ + Added explicit null terminator to the end of all strings returned by Steam,
+     because it seems Valve is not doing so.
+
+25.9.27.2
 =========
  + Fixed achievement tracker widget in Steam games.
 

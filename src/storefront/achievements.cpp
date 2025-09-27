@@ -1230,15 +1230,21 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
     const char* desc =
       stats->GetAchievementDisplayAttribute (szName, "desc");
 
+    const char* hidden =
+      stats->GetAchievementDisplayAttribute (szName, "hidden");
+
+    if (*hidden == '1')
+         hidden_ = true;
+
     text_.locked.human_name =
-      (human != nullptr ? SK_UTF8ToWideChar (human) : L"<INVALID>");
+      (human != nullptr ? SK_UTF8ToWideChar (human) + L'\0' : L"<INVALID>");
     text_.locked.desc =
-      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  : L"<INVALID>");
+      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  + L'\0' : L"<INVALID>");
 
     text_.unlocked.human_name =
-      (human != nullptr ? SK_UTF8ToWideChar (human) : L"<INVALID>");
+      (human != nullptr ? SK_UTF8ToWideChar (human) + L'\0' : L"<INVALID>");
     text_.unlocked.desc =
-      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  : L"<INVALID>");
+      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  + L'\0' : L"<INVALID>");
   }
 
   static SK_LazyGlobal <nlohmann::json> json;
@@ -1405,11 +1411,13 @@ SK_AchievementManager::Achievement::Achievement ( int                           
   idx_                      = idx;
   name_                     = def->AchievementId;
 
-  text_.locked.human_name   = SK_UTF8ToWideChar (def->LockedDisplayName);
-  text_.locked.desc         = SK_UTF8ToWideChar (def->LockedDescription);
+  text_.locked.human_name   = SK_UTF8ToWideChar (def->LockedDisplayName) + L'\0';
+  text_.locked.desc         = SK_UTF8ToWideChar (def->LockedDescription) + L'\0';
 
-  text_.unlocked.human_name = SK_UTF8ToWideChar (def->UnlockedDisplayName);
-  text_.unlocked.desc       = SK_UTF8ToWideChar (def->UnlockedDescription);
+  text_.unlocked.human_name = SK_UTF8ToWideChar (def->UnlockedDisplayName) + L'\0';
+  text_.unlocked.desc       = SK_UTF8ToWideChar (def->UnlockedDescription) + L'\0';
+
+  hidden_ = def->bIsHidden;
 
   if (def->StatThresholdsCount > 0)
   {

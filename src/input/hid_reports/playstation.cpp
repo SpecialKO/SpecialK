@@ -4312,7 +4312,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
     }
 
     lpBuf =
-      cachedInputReport->data ();  
+      cachedInputReport->data ();
 
     if (! lpBuf)
     {
