@@ -1,4 +1,10 @@
-﻿25.9.28.1
+﻿25.9.28.2
+=========
+ + Fixed rare situation where global achievement unlock %s change while
+     displaying an achievement popup and the rare gold border does not
+       go away when the achievement popup does.
+
+25.9.28.1
 =========
  + Store Achievement Tracker's "Show Hidden" setting globally.
  + Removed unimplemented settings from Achievement Tracker Widget config.

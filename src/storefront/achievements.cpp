@@ -1925,9 +1925,14 @@ SK_AchievementManager::drawPopups (void)
       const float fGlobalPercent =
         it->achievement->global_percent_;
 
+      bool has_rare_border = false;
+
                                   // fGlobalPercent may be 0.0 and still considered valid only on Steam.
       if (fGlobalPercent < 10.0f && (fGlobalPercent > 0.0f || SK::SteamAPI::AppID () != 0))
+      {
+        has_rare_border = true;
         ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
+      }
 
       auto text =
         it->achievement->unlocked_ ? &it->achievement->text_.unlocked
@@ -2034,7 +2039,7 @@ SK_AchievementManager::drawPopups (void)
             it->time = SK_timeGetTime ();
       }
 
-      if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
+      if (has_rare_border)
         ImGui::PopStyleColor (  );
 
       const float delta_y =
