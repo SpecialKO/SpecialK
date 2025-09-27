@@ -2779,8 +2779,8 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
               static bool bVulkan =
                 GetModuleHandleW (L"vulkan-1.dll") != 0;
 
-              if (bVulkan) wcsncpy (name, L"Vulkan", 8);
-              else         wcsncpy (name, L"OpenGL", 8);
+              if (bVulkan) wcsncpy (name, L"Vulkan-12", 10);
+              else         wcsncpy (name, L"OpenGL-12", 10);
             } break;
             default:
               wcsncpy (name, L"Interop??", 10);
@@ -2832,8 +2832,8 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
                   static bool bVulkan =
                     GetModuleHandleW (L"vulkan-1.dll") != 0;
 
-                  if (bVulkan) wcsncpy (name, L"Vulkan", 8);
-                  else         wcsncpy (name, L"OpenGL", 8);
+                  if (bVulkan) wcsncpy (name, L"Vulkan-11", 10);
+                  else         wcsncpy (name, L"OpenGL-11", 10);
                 } break;
                 default:
                   wcsncpy (name, L"Interop??", 10);
