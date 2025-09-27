@@ -5147,6 +5147,21 @@ SK_API_IsDXGIBased (SK_RenderAPI api)
 }
 
 bool
+SK_API_IsLayeredOnD3D10 (SK_RenderAPI api)
+{
+  switch (api)
+  {
+    case SK_RenderAPI::D3D10:
+      return true;
+    default:
+      return
+        ( static_cast <UINT> (api) &
+          static_cast <UINT> (SK_RenderAPI::D3D10) )
+       == static_cast <UINT> (SK_RenderAPI::D3D10);
+  }
+}
+
+bool
 SK_API_IsLayeredOnD3D11 (SK_RenderAPI api)
 {
   switch (api)
