@@ -177,8 +177,7 @@ public:
       if (last_update < SK::ControlPanel::current_time - update_freq)
       {
         auto achievement_mgr = SK_Platform_GetAchievementManager ();
-
-        if (achievement_mgr != nullptr)
+        if ( achievement_mgr != nullptr )
         {
           std::scoped_lock <std::recursive_mutex> list_lock (name_list_s::lock);
 
@@ -253,10 +252,8 @@ public:
   {
     if (ImGui::GetFont () == nullptr) return;
 
-    SK_AchievementManager* SK_EOS_GetAchievementManager (void);
-    auto achievement_mgr = SK_EOS_GetAchievementManager ();
-
-    if (achievement_mgr != nullptr)
+    auto achievement_mgr = SK_Platform_GetAchievementManager ();
+    if ( achievement_mgr != nullptr )
     {
       size_t num_achvs = 0;
 

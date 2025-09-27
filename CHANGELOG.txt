@@ -1,4 +1,8 @@
-﻿25.9.27.1
+﻿25.9.27.2
+=========
+ + Fixed achievement tracker widget in Steam games.
+
+25.9.27.1
 =========
  + Enabled achievement tracker widget for Steam (no idea if it works, lol).
  + Hide the achievement tracker widget when control panel is closed if no
