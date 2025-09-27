@@ -83,7 +83,7 @@ struct SK_Achievement
     int       max             = 0;
     double    precalculated   = 0.0;
 
-    float getPercent (void) noexcept
+    float getPercent (void) const noexcept
     {
       if (precalculated != 0.0)
         return sk::narrow_cast <float> (precalculated);

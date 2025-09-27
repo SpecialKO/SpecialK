@@ -1,4 +1,10 @@
-﻿25.9.28
+﻿25.9.28.1
+=========
+ + Store Achievement Tracker's "Show Hidden" setting globally.
+ + Removed unimplemented settings from Achievement Tracker Widget config.
+ + Fix minor tokenize/serialize issues when configuring tracked achievements.
+
+25.9.28
 =======
  + Merge pull request #288 from mcha-forks:mochaa/watch-dogs
     * Watch_Dogs: New PlugIn (Input / VMProtect-related stuff)
