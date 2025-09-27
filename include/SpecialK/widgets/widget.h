@@ -237,6 +237,7 @@ protected:
   bool        movable        = true;
   bool        resizable      = true;
   bool        border         = true;
+  bool        simple_bg      = false;
   bool        click_through  = true;
   float       flash_duration = 1.5f;
   float       alpha          = 1.0f;

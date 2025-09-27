@@ -163,12 +163,12 @@ public:
         ignored.names.emplace (token);
 
       setMinSize (
-        ImVec2 (std::max (25.0f, getMinSize ().x),
-                std::max (25.0f, getMinSize ().y))
+        ImVec2 (std::max (100.0f, getMinSize ().x),
+                std::max ( 50.0f, getMinSize ().y))
       ).
       setMaxSize (
-        ImVec2 (std::max (100.0f, getMaxSize ().x),
-                std::max ( 50.0f, getMaxSize ().y))
+        ImVec2 (std::max (1024.0f, getMaxSize ().x),
+                std::max ( 768.0f, getMaxSize ().y))
       );
     }
 
@@ -251,6 +251,9 @@ public:
   void draw (void) noexcept override
   {
     if (ImGui::GetFont () == nullptr) return;
+
+    simple_bg =
+      (! SK_ImGui_Active ());
 
     auto achievement_mgr = SK_Platform_GetAchievementManager ();
     if ( achievement_mgr != nullptr )

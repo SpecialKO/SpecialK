@@ -414,7 +414,7 @@ SK_Widget::draw_base (void)
 
   int flags = ImGuiWindowFlags_NoTitleBar      |   ImGuiWindowFlags_NoCollapse         |
             /*ImGuiWindowFlags_NoScrollbar     |*/ ImGuiWindowFlags_NoFocusOnAppearing |
-              ImGuiWindowFlags_NoSavedSettings | (border ? 0x0 : ImGuiWindowFlags_NoBackground);
+              ImGuiWindowFlags_NoSavedSettings | ((border && !simple_bg) ? 0x0 : ImGuiWindowFlags_NoBackground);
 
   if (autofit)
     flags |= ImGuiWindowFlags_AlwaysAutoResize;
