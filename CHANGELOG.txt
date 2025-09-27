@@ -1,4 +1,9 @@
-﻿25.9.27.3
+﻿25.9.27.4
+=========
+ + Improve handling of null-termination in SK_UTF8ToWideChar (...) and
+     SK_WideCharToUTF8 (...).
+
+25.9.27.3
 =========
  + Added the 'hidden' status metadata to Epic and Stam achievements.
  + Added explicit null terminator to the end of all strings returned by Steam,

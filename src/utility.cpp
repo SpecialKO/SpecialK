@@ -64,10 +64,10 @@ SK_WideCharToUTF8 (const std::wstring& in)
       '\0'
   );
 
-  WideCharToMultiByte   ( CP_UTF8, wcFlags,      in.c_str  (),
-                          sk::narrow_cast <int> (in.length ()),
-                                                out.data   (),
-                          sk::narrow_cast <DWORD>       (len),
+  WideCharToMultiByte   ( CP_UTF8, wcFlags, in.c_str (),
+                                                     -1,
+                                           out.data  (),
+                          sk::narrow_cast <DWORD> (len),
                             nullptr,                   FALSE );
 
   return out;
@@ -79,7 +79,7 @@ SK_UTF8ToWideChar (const std::string& in)
   if (in.empty ())
     return L"";
 
-  constexpr UINT mbFlags = MB_PRECOMPOSED;
+  constexpr UINT mbFlags = 0x0;
 
   size_t len =
     MultiByteToWideChar ( CP_UTF8, mbFlags, in.c_str (), -1,
@@ -90,10 +90,10 @@ SK_UTF8ToWideChar (const std::string& in)
       L'\0'
   );
 
-  MultiByteToWideChar   ( CP_UTF8, mbFlags,      in.c_str  (),
-                          sk::narrow_cast <int> (in.length ()),
-                                                out.data   (),
-                          sk::narrow_cast <DWORD>       (len) );
+  MultiByteToWideChar   ( CP_UTF8, mbFlags, in.c_str (),
+                                                     -1,
+                                            out.data (),
+                             sk::narrow_cast <DWORD> (len) );
 
   return out;
 }
