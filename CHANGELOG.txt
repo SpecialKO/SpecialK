@@ -1,4 +1,17 @@
-﻿25.9.27.5
+﻿25.9.28
+=======
+ + Merge pull request #288 from mcha-forks:mochaa/watch-dogs
+    * Watch_Dogs: New PlugIn (Input / VMProtect-related stuff)
+ + Merge pull request #291 from AnubyteCode:denuvo
+    * Improved Steam Denuvo activation file management
+ + Merge pull request #294 from Nustat0:oglvk-interop-api
+    * Identify the API for Vulkan / OpenGL -> DXGI interop
+ + Merge pull request #179 from Kethen:d9vk_double_process_fix
+    * d9vk double processing fix
+ + Merge pull request #152 from Nustat0:latent-sync-adaptive-tearing
+    * Added Adaptive Tearing options and enabled Latent Sync 2x.. modes
+
+25.9.27.5
 =========
  + Switched all achievement text to UTF-8 to avoid UTF-8 to UTF-16 conversion.
 
@@ -9,7 +22,7 @@
 
 25.9.27.3
 =========
- + Added the 'hidden' status metadata to Epic and Stam achievements.
+ + Added the 'hidden' status metadata to Epic and Steam achievements.
  + Added explicit null terminator to the end of all strings returned by Steam,
      because it seems Valve is not doing so.
 
