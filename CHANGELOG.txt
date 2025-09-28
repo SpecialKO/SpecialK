@@ -1,4 +1,10 @@
-﻿25.8.28.7
+﻿25.8.28.8
+=========
+ + Made Silent Hill f's framerate limiter bypass code a config option, but kept
+     it enabled by default because @#$% that stuttery thing ruining cutscenes.
+ + Auto-load SHfFix.asi if it is present in Silent Hill f.
+
+25.8.28.7
 =========
  + Achievement tracker will only show achievements with recent progress updates
      when flashed.

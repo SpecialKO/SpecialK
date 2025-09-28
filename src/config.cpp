@@ -4154,6 +4154,7 @@ auto DeclKeybind =
         // GameInput has poor support for non-Xbox controllers...
         break;
 
+#ifdef _M_AMD64
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
         config.priority.perf_cores_only                = true;
@@ -4193,6 +4194,7 @@ auto DeclKeybind =
           }
         );
         break;
+#endif
 
       case SK_GAME_ID::Avowed:
         config.window.treat_fg_as_active          = true;
@@ -4310,52 +4312,25 @@ auto DeclKeybind =
 
       case SK_GAME_ID::SilentHill_f:
       {
-        SK_Thread_CreateEx ([](LPVOID)->DWORD
-        {
-          void *pFramerateLimit =
-            SK_ScanAligned ("\xB9\x04\x00\x00\x00\xF3\x0F\x11\x4B\x50", 10,
-                            "\xB9\x04\x00\x00\x00\xF3\x0F\x11\x4B\x50");
+#ifdef _M_AMD64
+        SK_SilentHill_f_InitPlugIn ();
 
-          if (pFramerateLimit != nullptr)
+        SK_RunOnce
+        (
+          // Auto-load Silent Hill f Fix if it is present
+          if (PathFileExistsW (L"SHfFix.asi")
+              && LoadLibraryW (L"SHfFix.asi"))
           {
-            DWORD                                                             dwOriginal = 0;
-            if (VirtualProtect (pFramerateLimit, 10, PAGE_EXECUTE_READWRITE, &dwOriginal))
-            {
-                      //memcpy ((uint8_t *)pFramerateLimit + 5, "\x90\x90\x90\x90\x90",5);
-                VirtualProtect (           pFramerateLimit, 10, dwOriginal,  &dwOriginal);
-
-              uintptr_t base = (uintptr_t)SK_Debug_GetImageBaseAddr ();
-              uintptr_t addr = (uintptr_t)pFramerateLimit;
-
-              if (addr - base == 17150829)
-              {
-                SK_ImGui_CreateNotification (
-                  "FramerateLimit.Patched", SK_ImGui_Toast::Success,
-                     "Silent Hill f",
-                       "Framerate Limiter Disabled",
-                       5000, SK_ImGui_Toast::UseDuration |
-                             SK_ImGui_Toast::ShowCaption |
-                             SK_ImGui_Toast::ShowTitle );
-
-                while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5) != WAIT_OBJECT_0)
-                {
-                  float* pfLimit =
-                    *(float **)(base + 0x093211A0);
-
-                  if (pfLimit != nullptr)
-                     *pfLimit = 0.0f;
-                }
-              }
-
-              else
-              {
-                SK_LOGi0 (L"Unexpected Framerate Limit Addr: %p", pFramerateLimit);
-              }
-            }
+            SK_ImGui_CreateNotification (
+              "PlugIn.Load", SK_ImGui_Toast::Success,
+                 "SHfFix.asi",
+                   "Special K Plug-In Loaded",
+                   5000, SK_ImGui_Toast::UseDuration |
+                         SK_ImGui_Toast::ShowCaption |
+                         SK_ImGui_Toast::ShowTitle );
           }
-
-          return 0;
-        }, L"[SK] Framerate Patch");
+        );
+#endif
       } break;
 
       case SK_GAME_ID::Dishonored2:

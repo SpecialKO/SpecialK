@@ -1321,7 +1321,7 @@ SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
   {
     SK_ComPtr <ID3D11RenderTargetView> pRTV;
     pDevCtx->OMGetRenderTargets  ( 1, &pRTV.p, nullptr ); 
-    
+
     if (pRTV.p != nullptr)
     {
       SK_ComPtr <ID3D11Texture2D>     pTexCopy;
@@ -1344,7 +1344,7 @@ SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
           pDevCtx->CopyResource (
             pTexCopy.p, pTex.p
           );
-  
+
           return
             SK_D3D11_BltCopySurface (
               pTexCopy, pTex
@@ -1420,13 +1420,13 @@ SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_
   {
     SK_ComPtr <ID3D11ShaderResourceView>  pSRV;
     pDevCtx->PSGetShaderResources (0, 1, &pSRV.p);
-  
+
     if (pSRV.p != nullptr)
     {
       SK_ComPtr <ID3D11Resource>
                           pRes;
       pSRV->GetResource (&pRes.p);
-  
+
       SK_ComQIPtr <ID3D11Texture2D>
           pTex (pRes);
       if (pTex != nullptr)
@@ -1434,7 +1434,7 @@ SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_
         D3D11_TEXTURE2D_DESC
                         texDesc = { };
         pTex->GetDesc (&texDesc);
-  
+
         if (texDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM && (num_verts == 24 || num_verts == 6))
         {
           UINT       num_vp =   1;
@@ -1458,7 +1458,6 @@ SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_
 
   return false;
 }
-#endif
 
 WNDPROC SK_Metaphor_OrigWndProc = nullptr;
 LRESULT
@@ -1475,14 +1474,14 @@ SK_Metaphor_WindowProc ( _In_  HWND   hWnd,
       if (config.input.keyboard.override_alt_f4 && hWnd == game_window.hWnd)
       {
         SK_ImGui_WantExit = true;
-      
+
         if (! config.input.keyboard.catch_alt_f4)
         {
           return IsWindowUnicode (hWnd)                ?
            DefWindowProcW (hWnd, uMsg, wParam, lParam) :
            DefWindowProcA (hWnd, uMsg, wParam, lParam);
         }
-      
+
         return 0;
       }
     } break;
@@ -1492,6 +1491,7 @@ SK_Metaphor_WindowProc ( _In_  HWND   hWnd,
 
   return SK_Metaphor_OrigWndProc (hWnd, uMsg, wParam, lParam);
 }
+#endif
 
 
 __forceinline
@@ -1522,6 +1522,7 @@ SK_YieldProcessor (INT64 qpcTarget = 0)
   else YieldProcessor ();
 }
 
+#ifdef _M_AMD64
 SleepEx_pfn SK_Metaphor_SleepEx_Original = nullptr;
 
 bool _SK_Metaphor_FixSleepEx = false;
@@ -1658,6 +1659,139 @@ SK_Metaphor_InitPlugin (void)
   SK_ApplyQueuedHooks  ();
 }
 
+static float               SK_SilentHill_f_FPSLimit      =    0.0f;
+static sk::ParameterFloat* SK_SilentHill_f_FPSLimit_Pref = nullptr;
+
+bool
+SK_SilentHill_f_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Silent Hill f", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    int limit = 0;
+
+         if (SK_SilentHill_f_FPSLimit ==  0.0f) limit = 3;
+    else if (SK_SilentHill_f_FPSLimit == 60.0f) limit = 2;
+    else if (SK_SilentHill_f_FPSLimit == 30.0f) limit = 1;
+    else                                        limit = 0;
+
+    static bool restart_required = false;
+
+    if (ImGui::Combo ("Framerate Limit", &limit, "Game Default\000"
+                                                       "30 FPS\000"
+                                                       "60 FPS\000"
+                                                       "Unlimited\0\0"))
+    {
+      if (limit == 0 && SK_SilentHill_f_FPSLimit != -1.0f)
+        restart_required = true;
+
+      switch (limit)
+      {
+        default:
+        case 0: SK_SilentHill_f_FPSLimit = -1.0f; break;
+        case 1: SK_SilentHill_f_FPSLimit = 30.0f; break;
+        case 2: SK_SilentHill_f_FPSLimit = 60.0f; break;
+        case 3: SK_SilentHill_f_FPSLimit =  0.0f; break;
+      }
+
+      SK_SilentHill_f_FPSLimit_Pref->store (SK_SilentHill_f_FPSLimit);
+
+      config.utility.save_async ();
+    }
+
+    ImGui::SetItemTooltip (
+      "Override the game's framerate limiter; set to Unlimited unless you enjoy stutter."
+    );
+
+    if (restart_required && SK_SilentHill_f_FPSLimit == -1.0f)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+      ImGui::BulletText     ("Game Restart May Be Required");
+      ImGui::PopStyleColor  ();
+    }
+
+    ImGui::TreePop  (  );
+  }
+
+  return true;
+}
+
+void
+SK_SilentHill_f_InitPlugIn (void)
+{
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
+  {
+    SK_SilentHill_f_FPSLimit_Pref =
+      dynamic_cast <sk::ParameterFloat *> (
+        SK_Widget_ParameterFactory->create_parameter <float> (L"Framerate Limit")
+      );
+
+    SK_SilentHill_f_FPSLimit_Pref->register_to_ini (
+      SK_GetDLLConfig (), L"SilentHill_f.PlugIn", L"FramerateLimit"
+    );
+
+    SK_SilentHill_f_FPSLimit_Pref->load (SK_SilentHill_f_FPSLimit);
+
+    void *pFramerateLimit =
+      SK_ScanAligned ("\xB9\x04\x00\x00\x00\xF3\x0F\x11\x4B\x50", 10,
+                      "\xB9\x04\x00\x00\x00\xF3\x0F\x11\x4B\x50");
+
+    if (pFramerateLimit != nullptr)
+    {
+      DWORD                                                             dwOriginal = 0;
+      if (VirtualProtect (pFramerateLimit, 10, PAGE_EXECUTE_READWRITE, &dwOriginal))
+      {   VirtualProtect (pFramerateLimit, 10, dwOriginal,             &dwOriginal);
+
+        uintptr_t base = (uintptr_t)SK_Debug_GetImageBaseAddr ();
+        uintptr_t addr = (uintptr_t)pFramerateLimit;
+
+        if (addr - base == 17150829)
+        {
+          plugin_mgr->config_fns.emplace (SK_SilentHill_f_PlugInCfg);
+
+#if 0
+          SK_ImGui_CreateNotification (
+            "FramerateLimit.Patched", SK_ImGui_Toast::Success,
+               "Framerate Code Located",
+                 "Silent Hill f",
+                 5000, SK_ImGui_Toast::UseDuration |
+                       SK_ImGui_Toast::ShowCaption |
+                       SK_ImGui_Toast::ShowTitle );
+#endif
+
+          DWORD timeout = 5UL;
+
+          while (WaitForSingleObject (__SK_DLL_TeardownEvent, timeout) != WAIT_OBJECT_0)
+          {
+            // Sanitize
+            if (SK_SilentHill_f_FPSLimit >  0.0f && SK_SilentHill_f_FPSLimit < 30.0f)
+                SK_SilentHill_f_FPSLimit = 30.0f;
+
+            timeout =
+               (SK_SilentHill_f_FPSLimit != -1.0f ? 5 : 250);
+            if (SK_SilentHill_f_FPSLimit != -1.0f)
+            {
+              float* pfLimit =
+                *(float **)(base + 0x093211A0);
+
+              if (pfLimit != nullptr)
+                 *pfLimit = SK_SilentHill_f_FPSLimit;
+            }
+          }
+        }
+
+        else
+        {
+          SK_LOGi0 (L"Unexpected Framerate Limit Addr: %p", pFramerateLimit);
+        }
+      }
+    }
+
+    return 0;
+  }, L"[SK] Framerate Patch");
+}
+
 void
 SK_EnderLilies_InitPlugIn (void)
 {
@@ -1690,11 +1824,11 @@ SK_EnderLilies_InitPlugIn (void)
       addr->register_to_ini (
                     dll_ini, L"EnderLilies.Widescreen", name);
     };
-  
+
     createCachedAddress (&fov0_addr,      L"Address_Fov0");
     createCachedAddress (&fov1_addr,      L"Address_Fov1");
     createCachedAddress (&pillarbox_addr, L"Address_Pillarbox");
-  
+
     int64_t              addr = 0;
     fov0_addr.load      (addr);
     fov0  =  (uint8_t *) addr;
@@ -1702,18 +1836,18 @@ SK_EnderLilies_InitPlugIn (void)
     fov1  =  (uint8_t *) addr;
     pillarbox_addr.load (addr); pillarbox_code
           =  (uint8_t *) addr;
-  
+
     uint8_t* orig_fov0   = fov0;
     uint8_t* orig_fov1   = fov1;
     uint8_t* orig_pillar = fov1;
-  
+
     pillarbox_code = (uint8_t *)
       SK_ScanAlignedEx ("\xF6\x41\x30\x01\x49", 5,
                         "\xF6\x41\x30\x01\x49", pillarbox_code > (uint8_t*)1 ? pillarbox_code - 1 : 0);
-  
+
     DWORD dwProtect   = 0;
     bool  bFlushAddrs = false;
-  
+
     if (pillarbox_code != nullptr)
     {
       if (VirtualProtect (
@@ -1723,21 +1857,21 @@ SK_EnderLilies_InitPlugIn (void)
             *(pillarbox_code + 3)  = 0;
               pillarbox_addr.store ((uint64_t)(intptr_t)
               pillarbox_code);
-  
+
           bFlushAddrs |=
             (pillarbox_code != orig_pillar);
         }
         VirtualProtect (pillarbox_code, 5, dwProtect, &dwProtect);
       }
     }
-  
+
     fov0 = (uint8_t *)
       SK_ScanAlignedEx ("\x35\xFA\x0E\x3C\x66", 5,
                         "\x35\xFA\x0E\x3C\x66", fov0 > (uint8_t*)1 ? fov0-1 : 0),
     fov1 = (uint8_t *)
       SK_ScanAlignedEx ("\xE0\x2E\xE5\x42",     4,
                         "\xE0\x2E\xE5\x42",     fov1 > (uint8_t*)1 ? fov1-1 : 0);
-  
+
     if ( fov0 != nullptr &&
          fov1 != nullptr )
     {
@@ -1748,13 +1882,13 @@ SK_EnderLilies_InitPlugIn (void)
             *(fov0 + 2)  = 0x33;
               fov0_addr.store ((uint64_t)(intptr_t)
               fov0);
-  
+
           bFlushAddrs |=
             (fov0 != orig_fov0);
         }
         VirtualProtect (fov0, 5, dwProtect, &dwProtect);
       }
-  
+
       if (VirtualProtect (
            fov1, 4, PAGE_EXECUTE_READWRITE, &dwProtect))
       {
@@ -1762,14 +1896,14 @@ SK_EnderLilies_InitPlugIn (void)
             *(fov1 + 3)  = 0x41;
               fov1_addr.store ((uint64_t)(intptr_t)
               fov1);
-  
+
           bFlushAddrs |=
             (fov1 != orig_fov1);
         }
         VirtualProtect (fov1, 4, dwProtect, &dwProtect);
       }
     }
-  
+
     if (bFlushAddrs)
       config.utility.save_async ();
   };
@@ -1783,25 +1917,26 @@ SK_EnderLilies_InitPlugIn (void)
                      pSwapChain (This);
     if (  nullptr != pSwapChain  )
                      pSwapChain->GetDesc (&swapDesc);
-  
+
     if ((float)(swapDesc.BufferDesc.Width)/
         (float)(swapDesc.BufferDesc.Height) > 16.0f/9.0f)
     {
       widescreen_mode = 1;
       widescreen_opt.store (widescreen_mode);
       config.utility.save_async ();
-  
+
       _ApplyPatch ();
     }
-  
+
     return S_OK;
   };
 
   if (widescreen_mode == -1)
     plugin_mgr->first_frame_fns.insert (_FirstFrame);
-  
+
   if (widescreen_mode == 1)
   {
     _ApplyPatch ();
   }
 }
+#endif
