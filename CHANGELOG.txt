@@ -3,6 +3,7 @@
  + Add word-wrap to achievement tracker descriptions.
  + Add achievement list to the control panel itself, without having to open
      the tracker widget.
+ + Process tracked achievements even if the tracker widget has never opened.
 
 25.8.28.5
 =========

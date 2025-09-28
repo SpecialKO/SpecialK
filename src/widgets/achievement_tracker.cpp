@@ -117,7 +117,7 @@ public:
     SK_ImGui_Widgets->achieve_tracker = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).
-    setBorder  (true);
+    setBorder  (true).setActive (true);
   };
 
   void load (iSK_INI* cfg) noexcept override
@@ -209,7 +209,9 @@ public:
       );
     }
 
-    if (isActive ())
+    static bool init_once = false;
+
+    if (isActive () || (! init_once))
     {
       if (last_update < SK::ControlPanel::current_time - update_freq)
       {
@@ -227,6 +229,8 @@ public:
 
           if (num_achvs > 0)
           {
+            init_once = true;
+
             std::set <std::string> tracked_rejects = tracked.names;
             std::set <std::string> ignored_rejects = ignored.names;
 
@@ -391,6 +395,14 @@ public:
         float line_ht;
         float orig_y_pos;
       };
+
+      // Longest text that should reasonably be attempted to display on 1 line.
+      max_text_width =
+        std::max ( max_text_width,
+          ImGui::CalcTextSize (
+            "Activated all 10 Mana Abilities of Valor, Mettle, or Optimism.").x
+            + ImGui::GetStyle ().FramePadding.x * 2
+        );
 
       std::scoped_lock <std::recursive_mutex>
              list_lock (name_list_s::lock);
@@ -713,6 +725,8 @@ private:
       ImGui::SameLine        (   );
       ImGui::TextUnformatted (" ");
 
+      // The entire description text should fit within the progress bar,
+      //   expand the size of a column if necessary...
       max_text_width =
         std::max ( max_text_width,
           ImGui::CalcTextSize (str_progress.c_str ()).x + ImGui::GetStyle ().FramePadding.x * 2
@@ -724,7 +738,9 @@ private:
       const float x_orig =
         ImGui::GetCursorPosX ();
 
-      ImGui::TextWrapped ("%hs ", state.desc.c_str ());
+      ImGui::PushTextWrapPos (x_orig + max_text_width);
+      ImGui::TextWrapped     ("%hs ", state.desc.c_str ());
+      ImGui::PopTextWrapPos  (                           );
 
       max_text_width =
         std::max ( max_text_width,
