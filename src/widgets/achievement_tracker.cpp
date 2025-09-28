@@ -238,6 +238,20 @@ public:
             {
               auto achievement = achievements [i];
 
+#ifdef _TEST_TRACKER_FLASH
+              if (achievement->tracked_)
+              {
+                if (
+                static_cast <DWORD> ( ( static_cast <float> (std::rand ()) /
+                                        static_cast <float> (RAND_MAX) ) *
+                                                1000.0f ) > 950 )
+                {
+                  achievement->progress_.last_update_ms = SK::ControlPanel::current_time;
+                  flashVisible (config.platform.achievements.tracker_flash_seconds);
+                }
+              }
+#endif
+
               if (tracked_rejects.contains (achievement->name_))
                   tracked_rejects.erase    (achievement->name_);
 
@@ -452,6 +466,33 @@ public:
           }
         }
 
+        const DWORD _ProgressIntervalInMs =
+          static_cast <DWORD> (
+            (config.platform.achievements.tracker_flash_seconds + flash_duration) * 1000.0f
+          );
+
+        const auto oldest_progression =
+          SK::ControlPanel::current_time - _ProgressIntervalInMs;
+
+        bool has_recent_progress_update = false;
+
+        // If the widget is flashed, check if there are any recently progressed
+        //   achievements; if so, we will only draw them...
+        if (isFlashed () && (! SK_ImGui_Active ()))
+        {
+          for ( unsigned int i = 0 ; i < num_achvs ; ++i )
+          {
+            const auto achievement =
+              achievements [i];
+
+            if (achievement->progress_.last_update_ms > oldest_progression)
+            {
+              has_recent_progress_update = true;
+              break;
+            }
+          }
+        }
+
         // Populate rows (Locked)
         for ( unsigned int i = 0 ; i < num_achvs ; ++i )
         {
@@ -463,6 +504,10 @@ public:
 
           if (show_hidden || (! achievement->hidden_))
           {
+            // Skip achievements without recent progress
+            if (has_recent_progress_update && ((! achievement->tracked_) || achievement->progress_.last_update_ms < oldest_progression))
+              continue;
+
             ImGui::PushID (achievement->name_.c_str ());
 
             if ((ignored.show || (! achievement->ignored_)) && (! achievement->unlocked_))

@@ -2594,7 +2594,7 @@ public:
         {
           if (auto tracker  = SK_Widget_GetAchievementTracker ();
                    tracker != nullptr)
-                   tracker->flashVisible (2.5f);
+                   tracker->flashVisible (config.platform.achievements.tracker_flash_seconds);
         }
 
         achievement->progress_.last_update_ms =

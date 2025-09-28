@@ -500,6 +500,8 @@ struct sk_config_t
       bool      play_sound            =  true;
       bool      pull_friend_stats     =  true;
       bool      pull_global_stats     =  true; // N/A for EOS
+
+      float     tracker_flash_seconds = 10.0f;
     } achievements;
 
     float       overlay_hdr_luminance = 4.37F; // 350 nits
