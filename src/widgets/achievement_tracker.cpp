@@ -332,14 +332,14 @@ public:
                osd_ini->write (           );
     }
 
-    ImGui::SetTooltip (
+    ImGui::SetItemTooltip (
       "Shows achievement rarity even in the simplified tracker-only view."
     );
 
     static char          szSearchURL [512] = {};
     SK_RunOnce (sprintf (szSearchURL, "%ws", search_url.c_str ()));
 
-    if (ImGui::InputText("Achievement Search URL", szSearchURL, 512))
+    if (ImGui::InputText ("Achievement Search URL", szSearchURL, 512))
     {
       search_url =
         SK_UTF8ToWideChar (szSearchURL);
