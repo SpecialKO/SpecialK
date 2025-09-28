@@ -623,8 +623,19 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
                                                                     static_cast <double> (managed_achievement->progress_.max));
           }
 
+          else if (achv->StatInfoCount == 0)
+          {
+            managed_achievement->progress_.current       = 0;
+            managed_achievement->progress_.max           = 1;
+            managed_achievement->progress_.precalculated = 0.0f;
+          }
+
           if (managed_achievement->unlocked_)
           {
+            managed_achievement->progress_.current =
+            managed_achievement->progress_.max;
+            managed_achievement->progress_.precalculated = 100.0f;
+
             ++unlock_count;
           }
 

@@ -544,7 +544,7 @@ public:
                   ImGui::SetItemTooltip ( (achievement->progress_.max > 1) ?
                     "Display notifications whenever achievement progression occurs."
                       :
-                    "Non-progression achievements will appear if the Achievement Tracker is enabled, "
+                    "Non-progression achievements will appear if the Achievement Tracker is enabled "
                     "or requested using its Widget Flash Key Binding."
                   );
 
