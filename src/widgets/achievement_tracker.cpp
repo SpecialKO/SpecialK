@@ -317,8 +317,8 @@ public:
 
     if (ImGui::Checkbox (szLabel, &show_hidden))
     {
-      show_hidden_pref->store (show_hidden);
-               osd_ini->write (           );
+        show_hidden_pref->store (show_hidden);
+      config.utility.save_async (           );
     }
 
     ImGui::SetItemTooltip (
@@ -328,8 +328,8 @@ public:
 
     if (ImGui::Checkbox ("Always Show Rarity", &show_rarity))
     {
-      show_rarity_pref->store (show_rarity);
-               osd_ini->write (           );
+        show_rarity_pref->store (show_rarity);
+      config.utility.save_async (           );
     }
 
     ImGui::SetItemTooltip (
@@ -344,8 +344,8 @@ public:
       search_url =
         SK_UTF8ToWideChar (szSearchURL);
 
-      search_url_pref->store (search_url);
-              osd_ini->write (          );
+         search_url_pref->store (search_url);
+      config.utility.save_async (          );
     }
 
     ImGui::SetItemTooltip (
@@ -724,8 +724,8 @@ private:
     
     if (tracked.ini_pref != nullptr)
         tracked.ini_pref->store (tracked_names);
-    
-    dll_ini->write ();
+
+    config.utility.save_async ();
   }
 
   void save_ignored_list (void)
@@ -736,7 +736,7 @@ private:
     if (ignored.ini_pref != nullptr)
         ignored.ini_pref->store (ignored_names);
     
-    dll_ini->write ();
+    config.utility.save_async ();
   }
 
 protected:
