@@ -151,6 +151,11 @@ public:
           SK_Widget_ParameterFactory->create_parameter <bool> (L"Show Hidden")
         );
 
+      show_rarity_pref =
+        dynamic_cast <sk::ParameterBool *> (
+          SK_Widget_ParameterFactory->create_parameter <bool> (L"Always Show Rarity")
+        );
+
       search_url_pref =
         dynamic_cast <sk::ParameterStringW *> (
           SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Achievement Guide Search URL")
@@ -167,11 +172,13 @@ public:
         );
 
       show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
+      show_rarity_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",     L"AlwaysShowRarity");
        search_url_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
       tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
       ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
 
       show_hidden_pref->load (show_hidden);
+      show_rarity_pref->load (show_rarity);
       search_url_pref->load  (search_url);
 
       std::wstring            tracked_str;
@@ -319,6 +326,16 @@ public:
       "hidden until unlocked."
     );
 
+    if (ImGui::Checkbox ("Always Show Rarity", &show_rarity))
+    {
+      show_rarity_pref->store (show_rarity);
+               osd_ini->write (           );
+    }
+
+    ImGui::SetTooltip (
+      "Shows achievement rarity even in the simplified tracker-only view."
+    );
+
     static char          szSearchURL [512] = {};
     SK_RunOnce (sprintf (szSearchURL, "%ws", search_url.c_str ()));
 
@@ -333,7 +350,7 @@ public:
 
     ImGui::SetItemTooltip (
       "Clicking on an achievement will use this URL to do a web search.\n\n"
-      " * Replace with an empty string to disable this feature."
+      " " ICON_FA_INFO_CIRCLE " Clear the text to disable this feature."
     );
 
   //ImGui::Checkbox ("Show Icons",                 &show_icons);
@@ -682,6 +699,9 @@ private:
   void
   draw_rarity_text (const SK_Achievement* achievement)
   {
+    if (! (SK_ImGui_Active () || show_rarity))
+      return;
+
     extern const char* SK_Achievement_RarityToName (float percent);
 
     ImVec4 color =
@@ -723,11 +743,14 @@ protected:
   const DWORD update_freq = 250UL;
   bool        show_icons  = false; // Unused for now
 
-  sk::ParameterBool* show_hidden_pref = nullptr;
-  bool               show_hidden      = false;
+  sk::ParameterBool*    show_hidden_pref = nullptr;
+  bool                  show_hidden      = false;
 
-  sk::ParameterStringW* search_url_pref = nullptr;
-  std::wstring          search_url      = L"https://duckduckgo.com/?q=!trueachievements";
+  sk::ParameterStringW* search_url_pref  = nullptr;
+  std::wstring          search_url       = L"https://duckduckgo.com/?q=!trueachievements";
+
+  sk::ParameterBool*    show_rarity_pref = nullptr;
+  bool                  show_rarity      = true;
 
   struct name_list_s {
     static std::recursive_mutex lock;

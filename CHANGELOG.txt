@@ -1,4 +1,9 @@
-﻿25.9.28.3
+﻿25.8.28.4
+=========
+ + Add config setting to show/hide achievement rarity in the achievement
+     widget while it is in tracker-only (control panel closed) mode.
+
+25.9.28.3
 =========
  + Added configurable search URL (i.e. duckduckgo.com/?q=!trueachievements)
      to open the Steam overlay (or web browser if not applicable) to a guide
