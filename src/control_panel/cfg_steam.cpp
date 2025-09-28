@@ -45,7 +45,7 @@ struct denuvo_file_s
   SYSTEMTIME   st_local;
 };
 
-SK_LazyGlobal<concurrency::concurrent_vector<denuvo_file_s>> denuvo_files;
+extern SK_LazyGlobal <std::vector <denuvo_file_s>> denuvo_files;
 
 bool
 SK::ControlPanel::Steam::Draw (void)
