@@ -125,8 +125,9 @@ public:
   SK_Widget& setVisible       (bool          bVisible)      noexcept { visible        = bVisible;
                                                                    if (visible)  {
                                                             setActive (visible); }                      return *this; }
-  SK_Widget& flashVisible     (void)                        noexcept { last_flash     =
-                                                 static_cast <float> ( SK_GetCurrentMS () ) / 1000.0f;  return *this; }
+  SK_Widget& flashVisible     (float seconds = 0.0f)        noexcept { last_flash     =
+                                                 static_cast <float> ( SK_GetCurrentMS () ) / 1000.0f
+                                                                                            + seconds;  return *this; }
   SK_Widget& setActive        (bool          bActive)       noexcept { active         = bActive;        return *this; }
 //--------------------
   SK_Widget& setMovable       (bool          bMovable)      noexcept { movable        = bMovable;       return *this; }

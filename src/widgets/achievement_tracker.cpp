@@ -204,12 +204,12 @@ public:
                 std::max ( 50.0f, getMinSize ().y))
       ).
       setMaxSize (
-        ImVec2 (std::max (1024.0f, getMaxSize ().x),
-                std::max ( 768.0f, getMaxSize ().y))
+        ImVec2 (std::max (3252.0f, getMaxSize ().x),
+                std::max (2048.0f, getMaxSize ().y))
       );
     }
 
-    if (active)
+    if (isActive ())
     {
       if (last_update < SK::ControlPanel::current_time - update_freq)
       {
@@ -763,6 +763,12 @@ protected:
   float       max_text_width = 0.0f;
 };
 SK_LazyGlobal <SKWG_AchievementTracker> __achievement_tracker__;
+
+SK_Widget* SK_Widget_GetAchievementTracker (void)
+{
+  return
+    __achievement_tracker__.getPtr ();
+}
 
 void SK_Widget_InitAchieveTracker (void)
 {

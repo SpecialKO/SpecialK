@@ -2587,6 +2587,20 @@ public:
       if (steam_ctx.UserStats ())
         achievement->update (steam_ctx.UserStats ());
 
+      if (achievement->progress_.current != pParam->m_nCurProgress &&
+                  pParam->m_nMaxProgress != pParam->m_nCurProgress)
+      {
+        if (achievement->progress_.last_update_ms != 0 && achievement->tracked_)
+        {
+          if (auto tracker  = SK_Widget_GetAchievementTracker ();
+                   tracker != nullptr)
+                   tracker->flashVisible (2.5f);
+        }
+
+        achievement->progress_.last_update_ms =
+          SK::ControlPanel::current_time;
+      }
+
       achievement->progress_.current = pParam->m_nCurProgress;
       achievement->progress_.max     = pParam->m_nMaxProgress;
 
