@@ -541,6 +541,13 @@ public:
                     }
                   }
 
+                  ImGui::SetItemTooltip ( (achievement->progress_.max > 1) ?
+                    "Display notifications whenever achievement progression occurs."
+                      :
+                    "Non-progression achievements will appear if the Achievement Tracker is enabled, "
+                    "or requested using its Widget Flash Key Binding."
+                  );
+
                   if (ignored.show)
                   {
                     ImGui::SameLine ();
@@ -651,6 +658,17 @@ public:
     ImGui::SetItemTooltip (
       "Shows achievements that the developer has marked "
       "hidden until unlocked."
+    );
+
+    ImGui::SameLine ();
+
+    if (ImGui::Button (ICON_FA_CLIPBOARD_LIST " Achievement Tracker"))
+    {
+      setVisible (! visible);
+    }
+
+    ImGui::SetItemTooltip (
+      "Right-click the tracker to configure it."
     );
 
     ImGui::SameLine    ();
