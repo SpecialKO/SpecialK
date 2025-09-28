@@ -348,6 +348,9 @@ SK::ControlPanel::Platform::Draw (void)
             config.utility.save_async_if (changed);
           }
 
+          void SK_ImGui_DrawAchievementList (void);
+               SK_ImGui_DrawAchievementList ();
+
           ImGui::TreePop       ( );
           ImGui::PopStyleColor (3);
         }

@@ -1,4 +1,10 @@
-﻿25.8.28.5
+﻿25.8.28.6
+=========
+ + Add word-wrap to achievement tracker descriptions.
+ + Add achievement list to the control panel itself, without having to open
+     the tracker widget.
+
+25.8.28.5
 =========
  + Flash the Achievement Tracker widget visible for 2.5 seconds whenever a
      tracked achievement makes progress and the widget is not visible.

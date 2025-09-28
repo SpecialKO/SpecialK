@@ -227,8 +227,6 @@ public:
 
           if (num_achvs > 0)
           {
-            max_text_width = 0.0f;
-
             std::set <std::string> tracked_rejects = tracked.names;
             std::set <std::string> ignored_rejects = ignored.names;
 
@@ -252,15 +250,6 @@ public:
                                          achievement->tracked_ = false;
                   tracked.names.erase   (achievement->name_);
               }
-
-              const auto& state =
-                  achievement->unlocked_ ? achievement->text_.unlocked :
-                                           achievement->text_.  locked;
-
-              max_text_width =
-                std::max ( max_text_width,
-                  ImGui::CalcTextSize (state.desc.c_str ()).x + ImGui::GetStyle ().FramePadding.x * 2
-                );
             }
 
             for (auto& reject : tracked_rejects)
@@ -375,6 +364,14 @@ public:
         state__ = 1;
     }
 
+    draw_main_view ();
+
+    //const float ui_scale  = ImGui::GetIO ().FontGlobalScale;
+    //const float font_size = ImGui::GetFont ()->FontSize * ui_scale;
+  }
+
+  bool draw_main_view (void)
+  {
     auto achievement_mgr = SK_Platform_GetAchievementManager ();
     if ( achievement_mgr != nullptr )
     {
@@ -384,7 +381,7 @@ public:
         achievement_mgr->getAchievements (&num_achvs);
 
       if (num_achvs == 0)
-        return;
+        return false;
 
       class SK_ImGui_VerticalSpacing {
       public:
@@ -413,9 +410,13 @@ public:
 
       if (ImGui::BeginTable ("Achievements", 3, flags))
       {
-        ImGui::TableSetupColumn ("Name");
-        ImGui::TableSetupColumn ("Description");
-        ImGui::TableSetupColumn ("Rarity");
+        const auto column_flags =
+          ( ImGuiTableColumnFlags_NoSort    | ImGuiTableColumnFlags_NoResize |
+            ImGuiTableColumnFlags_NoReorder | ImGuiTableColumnFlags_NoHide );
+
+        ImGui::TableSetupColumn ("Name",        column_flags);
+        ImGui::TableSetupColumn ("Description", column_flags);
+        ImGui::TableSetupColumn ("Rarity",      column_flags);
 
         if (num_achvs > 0)
         {
@@ -571,10 +572,56 @@ public:
       }
 
       ImGui::PopStyleColor (2);
+
+      return true;
     }
 
-    //const float ui_scale  = ImGui::GetIO ().FontGlobalScale;
-    //const float font_size = ImGui::GetFont ()->FontSize * ui_scale;
+    return false;
+  }
+
+  void draw_list_config_footer (void)
+  {
+    const char* szLabel =
+      show_hidden ? "Show Hidden ( " ICON_FA_EYE       " )"
+                  : "Show Hidden ( " ICON_FA_EYE_SLASH " )";
+
+    if (ImGui::Checkbox (szLabel, &show_hidden))
+    {
+        show_hidden_pref->store (show_hidden);
+      config.utility.save_async (           );
+    }
+
+    ImGui::SetItemTooltip (
+      "Shows achievements that the developer has marked "
+      "hidden until unlocked."
+    );
+
+    ImGui::SameLine    ();
+    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine    ();
+
+    static char          szSearchURL [512] = {};
+    SK_RunOnce (sprintf (szSearchURL, "%ws", search_url.c_str ()));
+
+    ImGui::BeginGroup       ();
+    ImGui::TextUnformatted  ("Achievement Search URL");
+    ImGui::SetNextItemWidth (-FLT_MIN);
+    ImGui::SameLine         ();
+
+    if (ImGui::InputText ("##Achievement Search URL", szSearchURL, 512))
+    {
+      search_url =
+        SK_UTF8ToWideChar (szSearchURL);
+
+         search_url_pref->store (search_url);
+      config.utility.save_async (          );
+    }
+
+    ImGui::EndGroup         ();
+    ImGui::SetItemTooltip   (
+      "Clicking on an achievement will use this URL to do a web search.\n\n"
+      " " ICON_FA_INFO_CIRCLE " Clear the text to disable this feature."
+    );
   }
 
   void OnConfig (ConfigEvent event) override
@@ -650,8 +697,6 @@ private:
       }
       ImGui::SameLine ();
     }
-    
-    ImGui::SetNextItemWidth (max_text_width);
 
     if ( achievement->progress_.max != achievement->progress_.current &&
          achievement->progress_.max != 1                              &&
@@ -667,11 +712,24 @@ private:
                                        str_progress.c_str () );
       ImGui::SameLine        (   );
       ImGui::TextUnformatted (" ");
+
+      max_text_width =
+        std::max ( max_text_width,
+          ImGui::CalcTextSize (str_progress.c_str ()).x + ImGui::GetStyle ().FramePadding.x * 2
+        );
     }
     
     else if (! state.desc.empty ())
     {
-      ImGui::Text ("%hs ", state.desc.c_str ());
+      const float x_orig =
+        ImGui::GetCursorPosX ();
+
+      ImGui::TextWrapped ("%hs ", state.desc.c_str ());
+
+      max_text_width =
+        std::max ( max_text_width,
+          (ImGui::GetCursorPosX () - x_orig) + ImGui::GetStyle ().FramePadding.x
+        );
     }
     ImGui::EndGroup ();
 
@@ -760,7 +818,7 @@ protected:
   } tracked,
     ignored;
 
-  float       max_text_width = 0.0f;
+  float       max_text_width = 150.0f;
 };
 SK_LazyGlobal <SKWG_AchievementTracker> __achievement_tracker__;
 
@@ -773,6 +831,21 @@ SK_Widget* SK_Widget_GetAchievementTracker (void)
 void SK_Widget_InitAchieveTracker (void)
 {
   SK_RunOnce (__achievement_tracker__.getPtr ());
+}
+
+void SK_ImGui_DrawAchievementList (void)
+{
+  SKWG_AchievementTracker* tracker =
+    (SKWG_AchievementTracker *)SK_Widget_GetAchievementTracker ();
+
+  if (! tracker)
+    return;
+
+  if (tracker->draw_main_view ())
+  {
+    ImGui::Separator                 ();
+    tracker->draw_list_config_footer ();
+  }
 }
 
 std::recursive_mutex SKWG_AchievementTracker::name_list_s::lock;
