@@ -1,4 +1,13 @@
-﻿25.9.28.2
+﻿25.9.28.3
+=========
+ + Added configurable search URL (i.e. duckduckgo.com/?q=!trueachievements)
+     to open the Steam overlay (or web browser if not applicable) to a guide
+       page by clicking any achievements listed in the tracker.
+
+    * TrueAchievements is for Xbox, but tends to have more detailed info...
+        !truesteam is also an option, do not expect any useful info though :)
+
+25.9.28.2
 =========
  + Fixed rare situation where global achievement unlock %s change while
      displaying an achievement popup and the rare gold border does not

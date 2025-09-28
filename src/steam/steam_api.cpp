@@ -4741,6 +4741,16 @@ SK_SteamAPI_InitManagers (void)
 
       if (! steam_achievements)
       {
+        auto apps  = steam_ctx.Apps  ();
+        auto utils = steam_ctx.Utils ();
+
+        if (   apps  != nullptr )
+        { if ( utils != nullptr )
+            steam_log->Log (L" Steam UI Language.....: %hs", utils->GetSteamUILanguage        ());
+          steam_log->Log   (L" Current Game Language.: %hs",  apps->GetCurrentGameLanguage    ());
+          steam_log->Log   (L" Supported Languages...: %hs",  apps->GetAvailableGameLanguages ());
+        }
+
         has_global_data = false;
         next_friend     = 0;
 

@@ -151,6 +151,11 @@ public:
           SK_Widget_ParameterFactory->create_parameter <bool> (L"Show Hidden")
         );
 
+      search_url_pref =
+        dynamic_cast <sk::ParameterStringW *> (
+          SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Achievement Guide Search URL")
+        );
+
       tracked.ini_pref =
         dynamic_cast <sk::ParameterStringW *> (
           SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Tracked Achievements")
@@ -161,11 +166,13 @@ public:
           SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Ignored Achievements")
         );
 
-      show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",          L"ShowHidden");
-      tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker", L"TrackedAchievements");
-      ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker", L"IgnoredAchievements");
+      show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
+       search_url_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
+      tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
+      ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
 
       show_hidden_pref->load (show_hidden);
+      search_url_pref->load  (search_url);
 
       std::wstring            tracked_str;
       tracked.ini_pref->load (tracked_str);
@@ -304,7 +311,7 @@ public:
     if (ImGui::Checkbox (szLabel, &show_hidden))
     {
       show_hidden_pref->store (show_hidden);
-               dll_ini->write (           );
+               osd_ini->write (           );
     }
 
     ImGui::SetItemTooltip (
@@ -312,6 +319,22 @@ public:
       "hidden until unlocked."
     );
 
+    static char          szSearchURL [512] = {};
+    SK_RunOnce (sprintf (szSearchURL, "%ws", search_url.c_str ()));
+
+    if (ImGui::InputText("Achievement Search URL", szSearchURL, 512))
+    {
+      search_url =
+        SK_UTF8ToWideChar (szSearchURL);
+
+      search_url_pref->store (search_url);
+              osd_ini->write (          );
+    }
+
+    ImGui::SetItemTooltip (
+      "Clicking on an achievement will use this URL to do a web search.\n\n"
+      " * Replace with an empty string to disable this feature."
+    );
 
   //ImGui::Checkbox ("Show Icons",                 &show_icons);
   }
@@ -556,6 +579,7 @@ private:
   draw_achievement_name ( const SK_Achievement*                  achievement,
                           const SK_Achievement::text_s::state_s& state )
   {
+    ImGui::BeginGroup    ();
     ImGui::TextColored ( ImColor (1.0f, 1.0f, 1.0f, 1.0f),
                             achievement->unlocked_ ?
                                     ICON_FA_UNLOCK : ICON_FA_LOCK );
@@ -567,12 +591,35 @@ private:
       ImGui::SameLine        ();
       ImGui::TextUnformatted (ICON_FA_EYE " ");
     }
+    ImGui::EndGroup    ();
+
+    if (! search_url.empty ())
+    {
+      if (ImGui::IsItemClicked ())
+      {
+        std::string url =
+          SK_FormatString (
+            "%ws %hs Achievement in %hs",
+                    search_url.c_str (),
+              state.human_name.c_str (), SK_GetFriendlyAppName ().c_str ()
+          );
+
+        SK_SteamOverlay_GoToURL (url.c_str (), true);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::TableSetBgColor (ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 255));
+      }
+    }
   }
 
   void
   draw_description_and_progress ( const SK_Achievement*                  achievement,
                                   const SK_Achievement::text_s::state_s& state )
   {
+    ImGui::BeginGroup ();
+
     if (achievement->tracked_stats_.data.size () > 1)
     {
       ImGui::Text (ICON_FA_EXCLAMATION_CIRCLE);
@@ -588,7 +635,7 @@ private:
     }
     
     ImGui::SetNextItemWidth (max_text_width);
-    
+
     if ( achievement->progress_.max != achievement->progress_.current &&
          achievement->progress_.max != 1                              &&
          ! state.desc.empty () )
@@ -608,6 +655,27 @@ private:
     else if (! state.desc.empty ())
     {
       ImGui::Text ("%hs ", state.desc.c_str ());
+    }
+    ImGui::EndGroup ();
+
+    if (! search_url.empty ())
+    {
+      if (ImGui::IsItemClicked ())
+      {
+        std::string url =
+          SK_FormatString (
+            "%ws %hs Achievement in %hs",
+                    search_url.c_str (),
+              state.human_name.c_str (), SK_GetFriendlyAppName ().c_str ()
+          );
+
+        SK_SteamOverlay_GoToURL (url.c_str (), true);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::TableSetBgColor (ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 255));
+      }
     }
   }
 
@@ -657,6 +725,9 @@ protected:
 
   sk::ParameterBool* show_hidden_pref = nullptr;
   bool               show_hidden      = false;
+
+  sk::ParameterStringW* search_url_pref = nullptr;
+  std::wstring          search_url      = L"https://duckduckgo.com/?q=!trueachievements";
 
   struct name_list_s {
     static std::recursive_mutex lock;
