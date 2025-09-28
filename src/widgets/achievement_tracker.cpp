@@ -781,7 +781,7 @@ private:
     ImVec4 color =
       ImColor::HSV (0.4f * (achievement->global_percent_ / 100.0f), 1.0f, 1.0f);
 
-    ImGui::TextColored ( color, "%hs",
+    ImGui::TextColored ( color, "%hs ",
       SK_Achievement_RarityToName (achievement->global_percent_)
     );
     
