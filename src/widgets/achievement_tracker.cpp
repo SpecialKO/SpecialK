@@ -605,30 +605,27 @@ public:
             const auto achievement =
               achievements [i];
 
-            if (show_hidden || (! achievement->hidden_))
+            ImGui::PushID (achievement->name_.c_str ());
+
+            if ((ignored.show || (! achievement->ignored_)) && achievement->unlocked_)
             {
-              ImGui::PushID (achievement->name_.c_str ());
+              ImGui::TableNextRow        ( );
+              ImGui::TableSetColumnIndex (0);
 
-              if ((ignored.show || (! achievement->ignored_)) && achievement->unlocked_)
-              {
-                ImGui::TableNextRow        ( );
-                ImGui::TableSetColumnIndex (0);
+              ImGui::SetCursorPosX (ImGui::GetCursorPosX () + track_checkbox_offset);
 
-                ImGui::SetCursorPosX (ImGui::GetCursorPosX () + track_checkbox_offset);
+              const auto& state =
+                achievement->unlocked_ ? achievement->text_.unlocked :
+                                         achievement->text_.  locked;
 
-                const auto& state =
-                  achievement->unlocked_ ? achievement->text_.unlocked :
-                                           achievement->text_.  locked;
-
-                draw_achievement_name         (achievement, state);
-                ImGui::TableSetColumnIndex    (                 1);
-                draw_description_and_progress (achievement, state);
-                ImGui::TableSetColumnIndex    (                 2);
-                draw_rarity_text              (achievement       );
-              }
-
-              ImGui::PopID ();
+              draw_achievement_name         (achievement, state);
+              ImGui::TableSetColumnIndex    (                 1);
+              draw_description_and_progress (achievement, state);
+              ImGui::TableSetColumnIndex    (                 2);
+              draw_rarity_text              (achievement       );
             }
+
+            ImGui::PopID ();
           }
         }
 
