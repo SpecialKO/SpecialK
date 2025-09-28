@@ -1,4 +1,11 @@
-﻿25.8.28.6
+﻿25.8.28.7
+=========
+ + Achievement tracker will only show achievements with recent progress updates
+     when flashed.
+ + Added tooltips to achievement list in control panel and a button to open the
+     achievements widget.
+
+25.8.28.6
 =========
  + Add word-wrap to achievement tracker descriptions.
  + Add achievement list to the control panel itself, without having to open
