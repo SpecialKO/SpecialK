@@ -2,6 +2,8 @@
 =========
  + Flash the Achievement Tracker widget visible for 2.5 seconds whenever a
      tracked achievement makes progress and the widget is not visible.
+ + Revert pull request #291 from AnubyteCode:denuvo because it is causing
+     crashes in emulated games.
 
 25.8.28.4
 =========
