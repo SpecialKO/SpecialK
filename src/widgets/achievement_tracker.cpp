@@ -205,7 +205,9 @@ public:
     if (! SK_GetFramesDrawn ())
       return;
 
-    if (isActive () || (! tracked.names.empty ()))
+    static bool tracked_names_empty =
+                          tracked.names.empty ();
+    if (isActive () || (! tracked.names.empty ()) || tracked_names_empty != tracked.names.empty ())
     {
       if (last_update + update_freq < SK::ControlPanel::current_time)
       {
@@ -223,6 +225,8 @@ public:
 
           if (num_achvs > 0)
           {
+            tracked_names_empty = tracked.names.empty ();
+
             std::set <std::string> tracked_rejects = tracked.names;
             std::set <std::string> ignored_rejects = ignored.names;
 

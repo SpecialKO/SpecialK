@@ -8344,11 +8344,13 @@ SK_ImGui_StageNextFrame (void)
       {
         if (SK_Platform_GetAchievementManager () == nullptr)
         {
-          if (widget->isActive ())
-              widget->run_base ();
-
           continue;
         }
+
+        // Achievement tracker should run unconditionally,
+        //   it will figure out whether it needs to run...
+        if (! widget->isActive ())
+              widget->run_base ();
       }
 
       if (widget->isActive ())
