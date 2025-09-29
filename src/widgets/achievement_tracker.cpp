@@ -373,6 +373,8 @@ public:
     const auto window =
       ImGui::GetCurrentWindow ();
 
+    ImGui::PushID (&window);
+
     // The Table used by this widget often captures input and prevents
     //   normal right-click behavior, so we need to do it manually...
     if (ImGui::IsMouseHoveringRect (window->Rect ().Min,
@@ -386,6 +388,8 @@ public:
 
     //const float ui_scale  = ImGui::GetIO ().FontGlobalScale;
     //const float font_size = ImGui::GetFont ()->FontSize * ui_scale;
+
+    ImGui::PopID ();
   }
 
   bool draw_main_view (void)
@@ -434,15 +438,19 @@ public:
       if (SK_ImGui_Active ())
         flags |= ImGuiTableFlags_ScrollY;
 
-      if (ImGui::BeginTable ("Achievements", 3, flags))
+      const int column_count =
+        (SK_ImGui_Active () || show_rarity) ? 3 : 2;
+
+      if (ImGui::BeginTable ("Achievements", column_count, flags))
       {
         const auto column_flags =
           ( ImGuiTableColumnFlags_NoSort    | ImGuiTableColumnFlags_NoResize |
             ImGuiTableColumnFlags_NoReorder | ImGuiTableColumnFlags_NoHide );
 
-        ImGui::TableSetupColumn ("Name",        column_flags);
-        ImGui::TableSetupColumn ("Description", column_flags);
-        ImGui::TableSetupColumn ("Rarity",      column_flags);
+        ImGui::TableSetupColumn   ("Name",        column_flags);
+        ImGui::TableSetupColumn   ("Description", column_flags);
+        if (column_count == 3)
+          ImGui::TableSetupColumn ("Rarity",      column_flags);
 
         if (num_achvs > 0)
         {
@@ -456,8 +464,11 @@ public:
             ImGui::Separator              (     );
             ImGui::TableSetColumnIndex    (  1  );
             ImGui::Separator              (     );
-            ImGui::TableSetColumnIndex    (  2  );
-            ImGui::Separator              (     );
+            if (column_count == 3)
+            {
+              ImGui::TableSetColumnIndex  (  2  );
+              ImGui::Separator            (     );
+            }
           }
 
           else
@@ -577,8 +588,12 @@ public:
                 draw_achievement_name         (achievement, state);
                 ImGui::TableSetColumnIndex    (                 1);
                 draw_description_and_progress (achievement, state);
-                ImGui::TableSetColumnIndex    (                 2);
-                draw_rarity_text              (achievement       );
+
+                if (column_count == 3)
+                {
+                  ImGui::TableSetColumnIndex  (                 2);
+                  draw_rarity_text            (achievement       );
+                }
               }
             }
 
@@ -597,8 +612,12 @@ public:
           ImGui::Separator           ( );
           ImGui::TableSetColumnIndex (1);
           ImGui::Separator           ( );
-          ImGui::TableSetColumnIndex (2);
-          ImGui::Separator           ( );
+
+          if (column_count == 3)
+          {
+            ImGui::TableSetColumnIndex (2);
+            ImGui::Separator           ( );
+          }
 
           // Populate rows (Unlocked)
           for ( unsigned int i = 0 ; i < num_achvs ; ++i )
@@ -622,8 +641,12 @@ public:
               draw_achievement_name         (achievement, state);
               ImGui::TableSetColumnIndex    (                 1);
               draw_description_and_progress (achievement, state);
-              ImGui::TableSetColumnIndex    (                 2);
-              draw_rarity_text              (achievement       );
+
+              if (column_count == 3)
+              {
+                ImGui::TableSetColumnIndex  (                 2);
+                draw_rarity_text            (achievement       );
+              }
             }
 
             ImGui::PopID ();
