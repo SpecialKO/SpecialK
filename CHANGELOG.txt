@@ -1,4 +1,10 @@
-﻿25.8.28.8
+﻿25.8.28.9
+=========
+ + Enclose all game-specific plug-in control panels in unique ImGui ID spaces,
+     to prevent name collisions between the plug-in's UI controls and the main
+       software's UI controls.
+
+25.8.28.8
 =========
  + Made Silent Hill f's framerate limiter bypass code a config option, but kept
      it enabled by default because @#$% that stuttery thing ruining cutscenes.

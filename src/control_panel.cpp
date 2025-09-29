@@ -5730,8 +5730,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     };
 
 
-  for ( auto plugin_cfg : plugin_mgr->config_fns )
-  {          plugin_cfg ();                      }
+  for ( auto plugin_cfg : plugin_mgr->config_fns ) { ImGui::PushID (plugin_cfg);
+             plugin_cfg ();                          ImGui::PopID  (          );
+  }
 
 
   static bool has_own_limiter    = hModTBFix;

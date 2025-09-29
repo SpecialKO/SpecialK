@@ -917,11 +917,15 @@ void SK_ImGui_DrawAchievementList (void)
   if (! tracker)
     return;
 
+  ImGui::PushID (&tracker);
+
   if (tracker->draw_main_view ())
   {
     ImGui::Separator                 ();
     tracker->draw_list_config_footer ();
   }
+
+  ImGui::PopID ();
 }
 
 std::recursive_mutex SKWG_AchievementTracker::name_list_s::lock;
