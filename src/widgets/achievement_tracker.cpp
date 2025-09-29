@@ -118,6 +118,71 @@ public:
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).
     setBorder  (true);
+
+    std::scoped_lock <std::recursive_mutex>
+           list_lock (name_list_s::lock);
+
+    show_hidden_pref =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (L"Show Hidden")
+      );
+
+    show_rarity_pref =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (L"Always Show Rarity")
+      );
+
+    search_url_pref =
+      dynamic_cast <sk::ParameterStringW *> (
+        SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Achievement Guide Search URL")
+      );
+
+    tracked.ini_pref =
+      dynamic_cast <sk::ParameterStringW *> (
+        SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Tracked Achievements")
+      );
+
+    ignored.ini_pref =
+      dynamic_cast <sk::ParameterStringW *> (
+        SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Ignored Achievements")
+      );
+
+    show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
+    show_rarity_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",     L"AlwaysShowRarity");
+     search_url_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
+    tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
+    ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
+
+    show_hidden_pref->load (show_hidden);
+    show_rarity_pref->load (show_rarity);
+    search_url_pref->load  (search_url);
+
+    std::wstring            tracked_str;
+    tracked.ini_pref->load (tracked_str);
+
+    auto tokenized_trackers =
+      tokenize (tracked_str);
+
+    for (auto& token : tokenized_trackers)
+      tracked.names.emplace (token.c_str ());
+
+    std::wstring            ignored_str;
+    ignored.ini_pref->load (ignored_str);
+
+    auto tokenized_ignored =
+      tokenize (ignored_str);
+
+    for (auto& token : tokenized_ignored)
+      ignored.names.emplace (token.c_str ());
+
+    setMinSize (
+      ImVec2 (std::max (100.0f, getMinSize ().x),
+              std::max ( 50.0f, getMinSize ().y))
+    ).
+    setMaxSize (
+      ImVec2 (std::max (3252.0f, getMaxSize ().x),
+              std::max (2048.0f, getMaxSize ().y))
+    );
   };
 
   void load (iSK_INI* cfg) noexcept override
@@ -140,77 +205,7 @@ public:
     if (! SK_GetFramesDrawn ())
       return;
 
-    static bool        first_run = true;
-    if (std::exchange (first_run , false))
-    {
-      std::scoped_lock <std::recursive_mutex>
-             list_lock (name_list_s::lock);
-
-      show_hidden_pref =
-        dynamic_cast <sk::ParameterBool *> (
-          SK_Widget_ParameterFactory->create_parameter <bool> (L"Show Hidden")
-        );
-
-      show_rarity_pref =
-        dynamic_cast <sk::ParameterBool *> (
-          SK_Widget_ParameterFactory->create_parameter <bool> (L"Always Show Rarity")
-        );
-
-      search_url_pref =
-        dynamic_cast <sk::ParameterStringW *> (
-          SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Achievement Guide Search URL")
-        );
-
-      tracked.ini_pref =
-        dynamic_cast <sk::ParameterStringW *> (
-          SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Tracked Achievements")
-        );
-
-      ignored.ini_pref =
-        dynamic_cast <sk::ParameterStringW *> (
-          SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Ignored Achievements")
-        );
-
-      show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
-      show_rarity_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",     L"AlwaysShowRarity");
-       search_url_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
-      tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
-      ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
-
-      show_hidden_pref->load (show_hidden);
-      show_rarity_pref->load (show_rarity);
-      search_url_pref->load  (search_url);
-
-      std::wstring            tracked_str;
-      tracked.ini_pref->load (tracked_str);
-
-      auto tokenized_trackers =
-        tokenize (tracked_str);
-
-      for (auto& token : tokenized_trackers)
-        tracked.names.emplace (token.c_str ());
-
-      std::wstring            ignored_str;
-      ignored.ini_pref->load (ignored_str);
-
-      auto tokenized_ignored =
-        tokenize (ignored_str);
-
-      for (auto& token : tokenized_ignored)
-        ignored.names.emplace (token.c_str ());
-
-      setMinSize (
-        ImVec2 (std::max (100.0f, getMinSize ().x),
-                std::max ( 50.0f, getMinSize ().y))
-      ).
-      setMaxSize (
-        ImVec2 (std::max (3252.0f, getMaxSize ().x),
-                std::max (2048.0f, getMaxSize ().y))
-      );
-    }
-
-    static bool init_once = false;
-
+    static bool           init_once = false;
     if (isActive () || (! init_once))
     {
       if (last_update < SK::ControlPanel::current_time - update_freq)

@@ -1,4 +1,9 @@
-﻿25.8.29.1
+﻿25.8.29.2
+=========
+ + Change Silent Hill f Framerate Limiter option to cutscene framerate limit.
+ + Fixed potential crash due to late initialization of achievement tracker.
+
+25.8.29.1
 =========
  + Disable D3D9/D3D9Ex/OpenGL hooks in Stellaris, since the game renders in
      D3D11 and only uses those APIs for video playback.
