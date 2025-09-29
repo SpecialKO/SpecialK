@@ -1910,6 +1910,7 @@ enum class SK_GAME_ID
   StellarBlade,                 // SB-Win64-Shipping.exe
   Dishonored2,                  // Dishonored2.exe
   TitanQuest,                   // tq.exe
+  Stellaris,                    // stellaris.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -1,4 +1,9 @@
-﻿25.8.29
+﻿25.8.29.1
+=========
+ + Disable D3D9/D3D9Ex/OpenGL hooks in Stellaris, since the game renders in
+     D3D11 and only uses those APIs for video playback.
+
+25.8.29
 =======
  + Avoid initializing achievement tracking backend too early,
      (delay until first graphics frame completes).

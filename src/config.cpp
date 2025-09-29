@@ -309,7 +309,8 @@ SK_GetCurrentGameID (void)
           { L"eso64.exe",                              SK_GAME_ID::ElderScrollsOnline           },
           { L"zosEGSStarter.exe",                      SK_GAME_ID::Launcher                     },
           { L"crs-video.exe",                          SK_GAME_ID::Launcher                     }, // Used by many games for FMV playback
-          { L"SHf-Win64-Shipping.exe",                 SK_GAME_ID::SilentHill_f                 }
+          { L"SHf-Win64-Shipping.exe",                 SK_GAME_ID::SilentHill_f                 },
+          { L"stellaris.exe",                          SK_GAME_ID::Stellaris                    }
         };
 
     first_check  = false;
@@ -4308,6 +4309,17 @@ auto DeclKeybind =
         // Workaround anti-debug / anti-cheat crap
         config.system.handle_crashes    = false;
         config.window.dont_hook_wndproc = true;
+        break;
+
+      case SK_GAME_ID::Stellaris:
+        // Ignore D3D9 Video Acceleration and OpenGL (...?)
+        //   - Game is D3D11 for actual gameplay.
+        config.apis.OpenGL.hook = false;
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
       case SK_GAME_ID::SilentHill_f:
