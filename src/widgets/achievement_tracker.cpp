@@ -384,7 +384,7 @@ public:
         state__ = 1;
     }
 
-    draw_main_view ();
+    draw_main_view (true);
 
     //const float ui_scale  = ImGui::GetIO ().FontGlobalScale;
     //const float font_size = ImGui::GetFont ()->FontSize * ui_scale;
@@ -392,7 +392,7 @@ public:
     ImGui::PopID ();
   }
 
-  bool draw_main_view (void)
+  bool draw_main_view (bool as_widget = false)
   {
     auto achievement_mgr = SK_Platform_GetAchievementManager ();
     if ( achievement_mgr != nullptr )
@@ -404,15 +404,6 @@ public:
 
       if (num_achvs == 0)
         return false;
-
-      class SK_ImGui_VerticalSpacing {
-      public:
-         SK_ImGui_VerticalSpacing (float fLineHt) { orig_y_pos = ImGui::GetCursorPosY (); line_ht = fLineHt; };
-        ~SK_ImGui_VerticalSpacing (void)          { ImGui::SetCursorPosY (line_ht + orig_y_pos);             };
-
-        float line_ht;
-        float orig_y_pos;
-      };
 
       // Longest text that should reasonably be attempted to display on 1 line.
       max_text_width =
@@ -439,7 +430,7 @@ public:
         flags |= ImGuiTableFlags_ScrollY;
 
       const int column_count =
-        (SK_ImGui_Active () || show_rarity) ? 3 : 2;
+        ((SK_ImGui_Active () && (! as_widget)) || show_rarity) ? 3 : 2;
 
       if (ImGui::BeginTable ("Achievements", column_count, flags))
       {
@@ -521,7 +512,7 @@ public:
 
             ImGui::PushID (achievement->name_.c_str ());
 
-            if ((ignored.show || (! achievement->ignored_)) && (! achievement->unlocked_))
+            if ((ignored.show || (! achievement->ignored_)) && (! achievement->unlocked_) && ((! as_widget) || achievement->tracked_))
             {
               if ((achievement->tracked_ && tracked.show) || (SK_ImGui_Active () &&
                 ((!achievement->ignored_)|| ignored.show)))
@@ -534,7 +525,7 @@ public:
                 ImGui::TableNextRow        ( );
                 ImGui::TableSetColumnIndex (0);
 
-                if (SK_ImGui_Active ())
+                if (SK_ImGui_Active () && (! as_widget))
                 {
                   const auto x_orig =
                     ImGui::GetCursorPosX ();
@@ -806,8 +797,6 @@ private:
       ImGui::ProgressBar (    achievement->progress_.getPercent () / 100.0F,
                                                        ImVec2 (max_text_width, 0),
                                        str_progress.c_str () );
-      ImGui::SameLine        (   );
-      ImGui::TextUnformatted (" ");
 
       // The entire description text should fit within the progress bar,
       //   expand the size of a column if necessary...
@@ -822,9 +811,9 @@ private:
       const float x_orig =
         ImGui::GetCursorPosX ();
 
-      ImGui::PushTextWrapPos (x_orig + max_text_width);
-      ImGui::TextWrapped     ("%hs ", state.desc.c_str ());
-      ImGui::PopTextWrapPos  (                           );
+      ImGui::PushTextWrapPos (x_orig  +   max_text_width);
+      ImGui::TextWrapped     ("%hs", state.desc.c_str ());
+      ImGui::PopTextWrapPos  (                          );
 
       max_text_width =
         std::max ( max_text_width,
@@ -865,7 +854,7 @@ private:
     ImVec4 color =
       ImColor::HSV (0.4f * (achievement->global_percent_ / 100.0f), 1.0f, 1.0f);
 
-    ImGui::TextColored ( color, "%hs ",
+    ImGui::TextColored ( color, " %hs ",
       SK_Achievement_RarityToName (achievement->global_percent_)
     );
     
