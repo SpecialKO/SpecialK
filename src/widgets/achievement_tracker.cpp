@@ -517,6 +517,7 @@ public:
               {
                 const auto& state =
                   achievement->unlocked_ ? achievement->text_.unlocked :
+                  achievement->hidden_   ? achievement->text_.unlocked :
                                            achievement->text_.  locked;
 
                 ImGui::TableNextRow        ( );
