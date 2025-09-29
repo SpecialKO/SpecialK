@@ -1450,21 +1450,6 @@ SK_AchievementManager::Achievement::Achievement ( int                           
 
   if (def->StatThresholdsCount > 0)
   {
-    if (! def->bIsHidden)
-    {
-      if ( def->StatThresholdsCount          != 1 ||
-           def->StatThresholds [0].Threshold != 1 )
-      {
-#if 0
-        epic_log->Log (
-          L"Achievement: '%hs' (%hs) has %d tracked stats for unlock:",
-            text_.locked.human_name.c_str (),
-            text_.locked.      desc.c_str (), def->StatThresholdsCount
-        );
-#endif
-      }
-    }
-
     tracked_stats_.data.resize (def->StatThresholdsCount);
     for ( uint32_t i = 0 ; i <  def->StatThresholdsCount ; ++i )
     {
@@ -1477,16 +1462,6 @@ SK_AchievementManager::Achievement::Achievement ( int                           
       if (tracked_stat.threshold > 1)
       {
         tracked_stat.trackable = true;
-
-        if (! def->bIsHidden)
-        {
-#if 0
-          epic_log->Log (
-            L" * %hs [%d]", tracked_stat.name.c_str (),
-                            tracked_stat.threshold
-          );
-#endif
-        }
       }
     }
   }
