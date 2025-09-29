@@ -146,9 +146,6 @@ public:
       std::scoped_lock <std::recursive_mutex>
              list_lock (name_list_s::lock);
 
-      ignored.show = false;
-      tracked.show = true;
-
       show_hidden_pref =
         dynamic_cast <sk::ParameterBool *> (
           SK_Widget_ParameterFactory->create_parameter <bool> (L"Show Hidden")
@@ -904,8 +901,9 @@ private:
   }
 
 protected:
-  const DWORD update_freq = 250UL;
-  bool        show_icons  = false; // Unused for now
+  const DWORD           update_freq      = 250UL;
+  bool                  show_icons       = false; // Unused for now
+  float                 max_text_width   = 150.0f;
 
   sk::ParameterBool*    show_hidden_pref = nullptr;
   bool                  show_hidden      = false;
@@ -918,13 +916,11 @@ protected:
 
   struct name_list_s {
     static std::recursive_mutex lock;
-    bool                        show     = true;
-    sk::ParameterStringW*       ini_pref = nullptr;
+    bool                        show;
+    sk::ParameterStringW*       ini_pref;
     std::set <std::string>      names;
-  } tracked,
-    ignored;
-
-  float       max_text_width = 150.0f;
+  } tracked { true,  nullptr, {} },
+    ignored { false, nullptr, {} };
 };
 SK_LazyGlobal <SKWG_AchievementTracker> __achievement_tracker__;
 

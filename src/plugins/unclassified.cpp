@@ -1678,10 +1678,10 @@ SK_SilentHill_f_PlugInCfg (void)
 
     static bool restart_required = false;
 
-    if (ImGui::Combo ("Framerate Limit", &limit, "Game Default\000"
-                                                       "30 FPS\000"
-                                                       "60 FPS\000"
-                                                       "Unlimited\0\0"))
+    if (ImGui::Combo ("Cutscene Framerate Limit", &limit, "Game Default\000"
+                                                          "30 FPS\000"
+                                                          "60 FPS\000"
+                                                          "Unlimited\0\0"))
     {
       if (limit == 0 && SK_SilentHill_f_FPSLimit != -1.0f)
         restart_required = true;
@@ -1700,9 +1700,14 @@ SK_SilentHill_f_PlugInCfg (void)
       config.utility.save_async ();
     }
 
-    ImGui::SetItemTooltip (
-      "Override the game's framerate limiter; set to Unlimited unless you enjoy stutter."
-    );
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ( SK_GetModuleHandleW (L"SHfFix.asi") ?
+        "This setting has no affect if Silent Hill f Fix's Uncap option is Enabled."
+          :
+        "Override the game's framerate limiter; set to Unlimited unless you enjoy stutter."
+      );
+    }
 
     if (restart_required && SK_SilentHill_f_FPSLimit == -1.0f)
     {
@@ -1776,7 +1781,10 @@ SK_SilentHill_f_InitPlugIn (void)
                 *(float **)(base + 0x093211A0);
 
               if (pfLimit != nullptr)
-                 *pfLimit = SK_SilentHill_f_FPSLimit;
+              {
+                if (*pfLimit != 0.0f)
+                    *pfLimit  = SK_SilentHill_f_FPSLimit;
+              }
             }
           }
         }
