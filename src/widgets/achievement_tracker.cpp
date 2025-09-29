@@ -205,10 +205,9 @@ public:
     if (! SK_GetFramesDrawn ())
       return;
 
-    static bool           init_once = false;
-    if (isActive () || (! init_once))
+    if (isActive () || (! tracked.names.empty ()))
     {
-      if (last_update < SK::ControlPanel::current_time - update_freq)
+      if (last_update + update_freq < SK::ControlPanel::current_time)
       {
         auto achievement_mgr = SK_Platform_GetAchievementManager ();
         if ( achievement_mgr != nullptr )
@@ -224,8 +223,6 @@ public:
 
           if (num_achvs > 0)
           {
-            init_once = true;
-
             std::set <std::string> tracked_rejects = tracked.names;
             std::set <std::string> ignored_rejects = ignored.names;
 
