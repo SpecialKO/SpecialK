@@ -117,7 +117,7 @@ public:
     SK_ImGui_Widgets->achieve_tracker = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).
-    setBorder  (true).setActive (true);
+    setBorder  (true);
   };
 
   void load (iSK_INI* cfg) noexcept override
@@ -137,6 +137,9 @@ public:
 
   void run (void) noexcept override
   {
+    if (! SK_GetFramesDrawn ())
+      return;
+
     static bool        first_run = true;
     if (std::exchange (first_run , false))
     {

@@ -1,4 +1,9 @@
-﻿25.8.28.9
+﻿25.8.29
+=======
+ + Avoid initializing achievement tracking backend too early,
+     (delay until first graphics frame completes).
+
+25.8.28.9
 =========
  + Enclose all game-specific plug-in control panels in unique ImGui ID spaces,
      to prevent name collisions between the plug-in's UI controls and the main

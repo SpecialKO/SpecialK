@@ -95,7 +95,7 @@ SK_Platform_GetAchievementManager (void)
 {
   SK_AchievementManager* pMgr = nullptr;
 
-  if (SK::SteamAPI::AppID () > 0)
+  if (SK::SteamAPI::GetCallbacksRun () > 0 && SK::SteamAPI::AppID () > 0)
       pMgr = SK_Steam_GetAchievementManager ();
 
   if (pMgr == nullptr && SK::EOS::GetTicksRetired () > 0)
