@@ -742,6 +742,13 @@ private:
       ImGui::SameLine        ();
       ImGui::TextUnformatted (ICON_FA_EYE " ");
     }
+
+    if (achievement->unlocked_)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text,        ImVec4 (0.7f, 0.7f, 0.7f, 1.f));
+      ImGui::Text           (ICON_FA_CLOCK " %hs", _ctime64 (&achievement->time_));
+      ImGui::PopStyleColor  ();
+    }
     ImGui::EndGroup    ();
 
     if (! search_url.empty ())

@@ -7452,6 +7452,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         SK_ImGui_Widgets->achieve_tracker->setVisible (achievements).
                                            setActive  (achievements);
       }
+
+      ImGui::SetItemTooltip (
+        "Configure tracked achievements from the Store Enhancements >"
+        " Achievements section of the control panel."
+      );
     }
 
     if ( (int)render_api & (int)SK_RenderAPI::D3D11 ||
