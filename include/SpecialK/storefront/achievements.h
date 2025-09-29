@@ -200,4 +200,6 @@ class SK_Widget;
 SK_Widget*
 SK_Widget_GetAchievementTracker (void);
 
+void SK_Platform_DownloadGlobalAchievementStats (void);
+
 #endif /* __SK__ACHIEVEMENTS_H__ */

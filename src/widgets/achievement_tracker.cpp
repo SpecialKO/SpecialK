@@ -405,6 +405,11 @@ public:
       if (num_achvs == 0)
         return false;
 
+      // Refresh global achievement stats
+      SK_RunOnce (
+        SK_Platform_DownloadGlobalAchievementStats ()
+      );
+
       // Longest text that should reasonably be attempted to display on 1 line.
       max_text_width =
         std::max ( max_text_width,
@@ -448,17 +453,18 @@ public:
           if (SK_ImGui_Active ())
           {
             // Table headers
-            ImGui::TableSetupScrollFreeze ( 0,2 );
-            ImGui::TableHeadersRow        (     );
-            ImGui::TableNextRow           (     );
-            ImGui::TableSetColumnIndex    (  0  );
-            ImGui::Separator              (     );
-            ImGui::TableSetColumnIndex    (  1  );
-            ImGui::Separator              (     );
+            ImGui::TableSetupScrollFreeze( column_count,
+                                             2 );
+            ImGui::TableHeadersRow       (     );
+            ImGui::TableNextRow          (     );
+            ImGui::TableSetColumnIndex   (  0  );
+            ImGui::Separator             (     );
+            ImGui::TableSetColumnIndex   (  1  );
+            ImGui::Separator             (     );
             if (column_count == 3)
             {
-              ImGui::TableSetColumnIndex  (  2  );
-              ImGui::Separator            (     );
+              ImGui::TableSetColumnIndex (  2  );
+              ImGui::Separator           (     );
             }
           }
 
@@ -596,18 +602,19 @@ public:
         //
         //   Do not display these unless the control panel is open,
         //     because there is nothing to actually track.
-        if (locked_count != num_achvs && SK_ImGui_Active ())
-        {
-          ImGui::TableNextRow        ( );
-          ImGui::TableSetColumnIndex (0);
-          ImGui::Separator           ( );
-          ImGui::TableSetColumnIndex (1);
-          ImGui::Separator           ( );
+        if (locked_count != num_achvs && SK_ImGui_Active () && (! as_widget))
+        { 
+          // Do not fill the widget with a list of unlocked achievements...
+          ImGui::TableNextRow           (     );
+          ImGui::TableSetColumnIndex    (  0  );
+          ImGui::Separator              (     );
+          ImGui::TableSetColumnIndex    (  1  );
+          ImGui::Separator              (     );
 
           if (column_count == 3)
           {
-            ImGui::TableSetColumnIndex (2);
-            ImGui::Separator           ( );
+            ImGui::TableSetColumnIndex  (  2  );
+            ImGui::Separator            (     );
           }
 
           // Populate rows (Unlocked)

@@ -646,6 +646,61 @@ SK_Platform_GetNumPlayers (void)
   return players;
 }
 
+void
+SK_Platform_DownloadGlobalAchievementStats (void)
+{
+  static const auto appid =
+    config.platform.equivalent_steam_app;
+
+  if (appid == -1)
+    return;
+
+  static const auto
+    achievements_path =
+      std::filesystem::path (
+           SK_GetConfigPath () )
+     / LR"(SK_Res/Achievements)";
+
+  static std::error_code           ec = { };
+
+  std::filesystem::create_directories (
+                achievements_path, ec );
+
+  static const auto
+    global_stats = ( achievements_path /
+                   L"GlobalStatsForGame.json" );
+
+  // Throttle updates to once every 15 minutes
+  if ((! std::filesystem::exists (global_stats, ec)) || std::filesystem::file_time_type::clock::now ( ) -
+                                                        std::filesystem::last_write_time ( global_stats, ec ) > 15min)
+  {  
+    SK_Network_EnqueueDownload (
+      sk_download_request_s (global_stats,
+        SK_Steam_FormatApiRequest
+        ( "ISteamUserStats", "GetGlobalAchievementPercentagesForApp", 2,
+           SK_HTTP_BundleArgs (
+           { SK_HTTP_MakeKVPair ( "gameid",
+                                   appid ),
+             SK_HTTP_MakeKVPair ( "platform",
+                                   SK_WideCharToUTF8 (config.platform.type).data () ),
+             SK_HTTP_MakeKVPair ( "sk_version",
+                                  SK_GetVersionStrA () ) }
+                              )
+        ),[]( const std::vector <uint8_t>&& data,
+              const std::wstring_view       file )
+        {
+          if (data.empty ())
+            return true;
+    
+          std::ignore = file;
+    
+          return false;
+        }
+      )
+    );
+  }
+}
+
 // Downloads Steam achievement information and updates game
 //   popularity info for non-Steam games.
 //
@@ -702,33 +757,7 @@ SK_Platform_PingBackendForNonSteamGame (void)
   && ((! std::filesystem::exists (global_stats, ec)) || std::filesystem::file_time_type::clock::now ( ) -
                                                         std::filesystem::last_write_time ( global_stats, ec ) > 8h) )
   {
-    std::filesystem::create_directories (
-                  achievements_path, ec );
-
-    SK_Network_EnqueueDownload (
-      sk_download_request_s (global_stats,
-        SK_Steam_FormatApiRequest
-        ( "ISteamUserStats", "GetGlobalAchievementPercentagesForApp", 2,
-           SK_HTTP_BundleArgs (
-           { SK_HTTP_MakeKVPair ( "gameid",
-                                   appid ),
-             SK_HTTP_MakeKVPair ( "platform",
-                                   SK_WideCharToUTF8 (config.platform.type).data () ),
-             SK_HTTP_MakeKVPair ( "sk_version",
-                                  SK_GetVersionStrA () ) }
-                              )
-        ),[]( const std::vector <uint8_t>&& data,
-              const std::wstring_view       file )
-        {
-          if (data.empty ())
-            return true;
-
-          std::ignore = file;
-
-          return false;
-        }
-      )
-    );
+    SK_Platform_DownloadGlobalAchievementStats ();
   }
 
   if ( static bool        checked_schema = false ;
