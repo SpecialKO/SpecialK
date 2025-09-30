@@ -8360,6 +8360,27 @@ SK_ImGui_StageNextFrame (void)
                widget == SK_ImGui_Widgets->thread_profiler)
       {
         widget->setActive (true);
+
+        // Perform additional logic that only happens when these widgets
+        //   are drawn, but only for a single frame and only if the
+        //     widget is not visible by default.
+        if (SK_GetFramesDrawn () == 2)
+        {
+          const bool visible =
+            ( widget->isVisible () &&
+             !widget->isFlashed () );
+
+          if (! visible)
+          {
+            const float alpha =
+            widget->getAlpha   (       );
+            widget->setAlpha   (  0.0f );
+            widget->setVisible (  true );
+            widget->draw_base  (       );
+            widget->setVisible (visible);
+            widget->setAlpha   ( alpha );
+          }
+        }
       }
 
       //extern bool SK_Tobii_IsCursorVisible (void);

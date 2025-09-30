@@ -1,4 +1,10 @@
-﻿25.9.30
+﻿25.9.30.1
+=========
+ + Run the HDR widget's draw code at least once per-session to trigger
+     correct behavior when user has configured adjustments to native HDR
+       games (used to require manually opening the widget before they stuck).
+
+25.9.30
 =======
  + Added support for sorting the achievement list by rarity.
  + Made achievement guide links selectable using keyboard / gamepad.
