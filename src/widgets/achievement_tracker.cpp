@@ -388,6 +388,77 @@ public:
     ImGui::PopID ();
   }
 
+  void sort_table_if_needed (size_t num_achvs, SK_Achievement** achievements)
+  {
+    // Initialize sorting on first-use
+    if (sorting.ordered_list.empty ())
+    {
+      for (unsigned int i = 0 ; i < num_achvs ; ++i)
+      {
+        sorting.ordered_list.push_back (i);
+      }
+    }
+
+    if (ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs ())
+    {
+      if ( sort_specs->SpecsDirty &&
+           sort_specs->Specs->SortDirection != ImGuiSortDirection_None )
+      {
+        switch (sort_specs->Specs->ColumnIndex)
+        {
+          case 0:
+          case 1:
+            for (unsigned int i = 0 ; i < num_achvs ; ++i)
+            {
+              sorting.ordered_list [i] =
+                (sort_specs->Specs->SortDirection == ImGuiSortDirection_Ascending ?
+                    i : (unsigned int)num_achvs - i - 1);
+            }
+            break;
+          case 2:
+          {
+            std::vector <SK_Achievement *>
+                     sorted_achievements (num_achvs);
+            for (unsigned int i = 0 ; i < num_achvs ; ++i)
+            {
+              sorted_achievements [i] = achievements [i];
+            }
+
+            if (sort_specs->Specs->SortDirection == ImGuiSortDirection_Ascending)
+            {
+              std::sort ( std::begin (sorted_achievements),
+                          std::end   (sorted_achievements),
+                [](SK_Achievement* a, SK_Achievement* b)
+                {
+                  return ( a->global_percent_ > b->global_percent_ );
+                }
+              );
+            }
+
+            else
+            {
+              std::sort ( std::begin (sorted_achievements),
+                          std::end   (sorted_achievements),
+                [](SK_Achievement* a, SK_Achievement* b)
+                {
+                  return ( a->global_percent_ < b->global_percent_ );
+                }
+              );
+            }
+
+            auto ordered_achievement =
+              std::begin (sorting.ordered_list);
+
+            for (auto achievement : sorted_achievements)
+            {
+              *ordered_achievement++ = achievement->idx_;
+            }
+          } break;
+        }
+      }
+    }
+  }
+
   bool draw_main_view (bool as_widget = false)
   {
     auto achievement_mgr = SK_Platform_GetAchievementManager ();
@@ -423,8 +494,9 @@ public:
       ImGui::PushStyleColor (ImGuiCol_TableRowBg,    ImVec4 (0.00f, 0.00f, 0.00f, 0.666f));
       ImGui::PushStyleColor (ImGuiCol_TableRowBgAlt, ImVec4 (0.15f, 0.15f, 0.15f, 0.666f));
 
-      auto flags = ImGuiTableFlags_Borders        | ImGuiTableFlags_RowBg          |
-                   ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings;
+      auto flags = ImGuiTableFlags_Borders        | ImGuiTableFlags_RowBg           |
+                   ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings |
+                   ImGuiTableFlags_Sortable;
 
       // Allow scrolling while the control panel is open.
       if (SK_ImGui_Active ())
@@ -436,7 +508,7 @@ public:
       if (ImGui::BeginTable ("Achievements", column_count, flags))
       {
         const auto column_flags =
-          ( ImGuiTableColumnFlags_NoSort    | ImGuiTableColumnFlags_NoResize |
+          ( ImGuiTableColumnFlags_NoResize  |
             ImGuiTableColumnFlags_NoReorder | ImGuiTableColumnFlags_NoHide );
 
         ImGui::TableSetupColumn   ("Name",        column_flags);
@@ -446,6 +518,8 @@ public:
 
         if (num_achvs > 0)
         {
+          sort_table_if_needed (num_achvs, achievements);
+
           if (SK_ImGui_Active ())
           {
             // Table headers
@@ -484,7 +558,7 @@ public:
         //   achievements; if so, we will only draw them...
         if (isFlashed () && (! SK_ImGui_Active ()))
         {
-          for ( unsigned int i = 0 ; i < num_achvs ; ++i )
+          for ( auto i : sorting.ordered_list )
           {
             const auto achievement =
               achievements [i];
@@ -498,7 +572,7 @@ public:
         }
 
         // Populate rows (Locked)
-        for ( unsigned int i = 0 ; i < num_achvs ; ++i )
+        for ( auto i : sorting.ordered_list )
         {
           const auto achievement =
             achievements [i];
@@ -614,7 +688,7 @@ public:
           }
 
           // Populate rows (Unlocked)
-          for ( unsigned int i = 0 ; i < num_achvs ; ++i )
+          for ( auto i : sorting.ordered_list )
           {
             const auto achievement =
               achievements [i];
@@ -918,6 +992,10 @@ protected:
     std::set <std::string>      names;
   } tracked { true,  nullptr, {} },
     ignored { false, nullptr, {} };
+
+  struct sorting_s {
+    std::vector <unsigned int>  ordered_list;
+  } sorting;
 };
 SK_LazyGlobal <SKWG_AchievementTracker> __achievement_tracker__;
 

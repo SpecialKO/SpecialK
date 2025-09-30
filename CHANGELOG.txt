@@ -1,52 +1,57 @@
-﻿25.8.29.2
+﻿25.9.30
+=======
+ + Added support for sorting the achievement list by rarity.
+ + Made achievement guide links selectable using keyboard / gamepad.
+
+25.9.29.2
 =========
  + Change Silent Hill f Framerate Limiter option to cutscene framerate limit.
  + Fixed potential crash due to late initialization of achievement tracker.
 
-25.8.29.1
+25.9.29.1
 =========
  + Disable D3D9/D3D9Ex/OpenGL hooks in Stellaris, since the game renders in
      D3D11 and only uses those APIs for video playback.
 
-25.8.29
+25.9.29
 =======
  + Avoid initializing achievement tracking backend too early,
      (delay until first graphics frame completes).
 
-25.8.28.9
+25.9.28.9
 =========
  + Enclose all game-specific plug-in control panels in unique ImGui ID spaces,
      to prevent name collisions between the plug-in's UI controls and the main
        software's UI controls.
 
-25.8.28.8
+25.9.28.8
 =========
  + Made Silent Hill f's framerate limiter bypass code a config option, but kept
      it enabled by default because @#$% that stuttery thing ruining cutscenes.
  + Auto-load SHfFix.asi if it is present in Silent Hill f.
 
-25.8.28.7
+25.9.28.7
 =========
  + Achievement tracker will only show achievements with recent progress updates
      when flashed.
  + Added tooltips to achievement list in control panel and a button to open the
      achievements widget.
 
-25.8.28.6
+25.9.28.6
 =========
  + Add word-wrap to achievement tracker descriptions.
  + Add achievement list to the control panel itself, without having to open
      the tracker widget.
  + Process tracked achievements even if the tracker widget has never opened.
 
-25.8.28.5
+25.9.28.5
 =========
  + Flash the Achievement Tracker widget visible for 2.5 seconds whenever a
      tracked achievement makes progress and the widget is not visible.
  + Revert pull request #291 from AnubyteCode:denuvo because it is causing
      crashes in emulated games.
 
-25.8.28.4
+25.9.28.4
 =========
  + Add config setting to show/hide achievement rarity in the achievement
      widget while it is in tracker-only (control panel closed) mode.
