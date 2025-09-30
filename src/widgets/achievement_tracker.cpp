@@ -729,16 +729,48 @@ public:
 private:
   DWORD last_update = 0UL;
 
+  bool Selectable (const char* label)
+  {
+    bool orig_selected = false;
+
+    const ImVec2 label_size =
+      ImGui::CalcTextSize (label, nullptr, false, 0.0f);
+
+    return
+      ImGui::Selectable ( label, &orig_selected,
+                            ImGuiSelectableFlags_DontClosePopups,
+                              ImVec2 (0, label_size.y) );
+  }
+
   void
   draw_achievement_name ( const SK_Achievement*                  achievement,
                           const SK_Achievement::text_s::state_s& state )
   {
-    ImGui::BeginGroup    ();
+    ImGui::BeginGroup  ();
     ImGui::TextColored ( ImColor (1.0f, 1.0f, 1.0f, 1.0f),
                             achievement->unlocked_ ?
                                     ICON_FA_UNLOCK : ICON_FA_LOCK );
     ImGui::SameLine    ();
-    ImGui::Text        ("%hs ", state.human_name.c_str ());
+
+    if (! search_url.empty ())
+    {
+      if (Selectable (state.human_name.c_str ()))
+      {
+        std::string url =
+          SK_FormatString (
+            "%ws %hs Achievement in %hs",
+                    search_url.c_str (),
+              state.human_name.c_str (), SK_GetFriendlyAppName ().c_str ()
+          );
+
+        SK_SteamOverlay_GoToURL (url.c_str (), true);
+      }
+    }
+
+    else
+    {
+      ImGui::TextUnformatted (state.human_name.c_str ());
+    }
 
     if (achievement->hidden_)
     {
@@ -752,27 +784,7 @@ private:
       ImGui::Text           (ICON_FA_CLOCK " %hs", _ctime64 (&achievement->time_));
       ImGui::PopStyleColor  ();
     }
-    ImGui::EndGroup    ();
-
-    if (! search_url.empty ())
-    {
-      if (ImGui::IsItemClicked ())
-      {
-        std::string url =
-          SK_FormatString (
-            "%ws %hs Achievement in %hs",
-                    search_url.c_str (),
-              state.human_name.c_str (), SK_GetFriendlyAppName ().c_str ()
-          );
-
-        SK_SteamOverlay_GoToURL (url.c_str (), true);
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::TableSetBgColor (ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 255));
-      }
-    }
+    ImGui::EndGroup ();
   }
 
   void
@@ -831,26 +843,6 @@ private:
         );
     }
     ImGui::EndGroup ();
-
-    if (! search_url.empty ())
-    {
-      if (ImGui::IsItemClicked ())
-      {
-        std::string url =
-          SK_FormatString (
-            "%ws %hs Achievement in %hs",
-                    search_url.c_str (),
-              state.human_name.c_str (), SK_GetFriendlyAppName ().c_str ()
-          );
-
-        SK_SteamOverlay_GoToURL (url.c_str (), true);
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::TableSetBgColor (ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 255));
-      }
-    }
   }
 
   void
@@ -864,9 +856,18 @@ private:
     ImVec4 color =
       ImColor::HSV (0.4f * (achievement->global_percent_ / 100.0f), 1.0f, 1.0f);
 
-    ImGui::TextColored ( color, " %hs ",
-      SK_Achievement_RarityToName (achievement->global_percent_)
-    );
+    const char* szRarity =
+      SK_Achievement_RarityToName (achievement->global_percent_);
+
+    const ImVec2 label_size =
+      ImGui::CalcTextSize (szRarity, nullptr, false, 0.0f);
+
+    ImGui::BeginGroup       ();
+    ImGui::SetNextItemWidth (label_size.x);
+    ImGui::TextColored      (color, "%hs", szRarity);
+    ImGui::SameLine         ();
+    ImGui::Spacing          ();
+    ImGui::EndGroup         ();
     
     ImGui::SetItemTooltip (
       "%4.1f%% of players have unlocked this achievement.",
