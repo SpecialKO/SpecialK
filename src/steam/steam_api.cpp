@@ -2948,6 +2948,36 @@ SK_Steam_UnlockAchievement (uint32_t idx)
 }
 
 void
+SK_Steam_ClearAchievement (const char* szName)
+{
+  ISteamUserStats* stats =
+    config.platform.steam_is_b0rked ? nullptr
+                                    : steam_ctx.UserStats ();
+
+  if (stats != nullptr)
+  {
+    stats->ClearAchievement            (szName);
+    stats->IndicateAchievementProgress (szName, 0, 1);
+    stats->StoreStats                  ();
+  }
+}
+
+void
+SK_Steam_UnlockAchievement (const char* szName)
+{
+  ISteamUserStats* stats =
+    config.platform.steam_is_b0rked ? nullptr
+                                    : steam_ctx.UserStats ();
+
+  if (stats != nullptr)
+  {
+    stats->SetAchievement              (szName);
+    stats->IndicateAchievementProgress (szName, 1, 1);
+    stats->StoreStats                  ();
+  }
+}
+
+void
 SK_Steam_UpdateGlobalAchievements (void)
 {
   ISteamUserStats* stats =

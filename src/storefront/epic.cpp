@@ -32,6 +32,15 @@
 #endif
 #define __SK_SUBSYSTEM__ L"EpicOnline"
 
+// Unlike Steam, EGS implements interface versions in the actual DLL, and
+//   this means that we need to use the oldest versions of this stuff possible
+//     or the calls will fail.
+static auto constexpr EOS_ACHIEVEMENTS_QUERYPLAYERACHIEVEMENTS_API_OLDEST         = 1;
+static auto constexpr EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_OLDEST       = 1;
+static auto constexpr EOS_ACHIEVEMENTS_COPYPLAYERACHIEVEMENTBYINDEX_API_OLDEST    = 1;
+static auto constexpr EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_OLDEST = 2;
+static auto constexpr EOS_STATS_INGESTSTAT_API_OLDEST                             = 3;
+
 class SK_EOS_AchievementManager : public SK_AchievementManager
 {
 public:
@@ -196,6 +205,70 @@ public:
     epic_log->LogEx (false, L"\n");
   }
 
+  void clear_achievement (int idx)
+  {
+    const Achievement* achievement =
+                       achievements.list [idx];
+
+    for (auto& stat : achievement->tracked_stats_.data)
+    {
+      epic_log->Log (
+        L"Changing stat: %hs from %d to 0", stat.name.c_str (),
+                                            stat.current
+      );
+
+      ingest_stat (stat.name.c_str (), 0);
+    }
+  }
+
+  void inc_achievement (int idx)
+  {
+    const Achievement* achievement =
+                       achievements.list [idx];
+
+    for (auto& stat : achievement->tracked_stats_.data)
+    {
+      epic_log->Log (
+        L"Changing stat: %hs from %d to %d", stat.name.c_str (),
+                               stat.current, stat.current+1
+      );
+
+      ingest_stat (stat.name.c_str (), stat.current+1);
+    }
+  }
+
+  void dec_achievement (int idx)
+  {
+    const Achievement* achievement =
+                       achievements.list [idx];
+
+    for (auto& stat : achievement->tracked_stats_.data)
+    {
+      epic_log->Log (
+        L"Changing stat: %hs from %d to %d", stat.name.c_str (),
+                               stat.current, stat.current-1
+      );
+
+      ingest_stat (stat.name.c_str (), stat.current-1);
+    }
+  }
+
+  void ingest_stat (const char* name, int value)
+  {
+    EOS_Stats_IngestData IngestData =
+      { EOS_STATS_INGESTSTAT_API_OLDEST, name, value };
+    EOS_Stats_IngestStatOptions IngestStatOptions =
+      { EOS_STATS_INGESTSTAT_API_OLDEST, epic->UserId (), &IngestData,
+                                      1, epic->UserId () };
+
+    IngestStat (epic->Stats (), &IngestStatOptions, nullptr,
+      [](const EOS_Stats_IngestStatCompleteCallbackInfo* Data)
+      {
+        epic_log->Log (L"IngestStat complete: Result=%x", Data->ResultCode);
+      }
+    );
+  }
+
   static EOS_Achievements_GetPlayerAchievementCount_pfn                  GetPlayerAchievementCount;
   static EOS_Achievements_GetUnlockedAchievementCount_pfn                GetUnlockedAchievementCount;
   static EOS_Achievements_GetAchievementDefinitionCount_pfn              GetAchievementDefinitionCount;
@@ -207,6 +280,7 @@ public:
   static EOS_Achievements_CopyAchievementDefinitionV2ByAchievementId_pfn CopyAchievementDefinitionV2ByAchievementId;
   static EOS_Achievements_QueryDefinitions_pfn                           QueryDefinitions;
   static EOS_Achievements_DefinitionV2_Release_pfn                       DefinitionV2_Release;
+  static EOS_Stats_IngestStat_pfn                                        IngestStat;
 };
 
 void EOS_CALL
@@ -398,6 +472,10 @@ SK_AchievementManager* SK_EOS_GetAchievementManager (void)
     eos_achievements.getPtr ();
 }
 
+void SK_EOS_IncAchievementStat (int idx) { if (eos_achievements->IngestStat != nullptr) eos_achievements->inc_achievement   (idx); }
+void SK_EOS_DecAchievementStat (int idx) { if (eos_achievements->IngestStat != nullptr) eos_achievements->dec_achievement   (idx); }
+void SK_EOS_ClearAchievement   (int idx) { if (eos_achievements->IngestStat != nullptr) eos_achievements->clear_achievement (idx); }
+
 EOS_UI_AddNotifyDisplaySettingsUpdated_pfn                      SK_EOS_OverlayManager::AddNotifyDisplaySettingsUpdated_Original       = nullptr;
 EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn                   SK_EOS_OverlayManager::RemoveNotifyDisplaySettingsUpdated_Original    = nullptr;
 
@@ -412,6 +490,7 @@ EOS_Achievements_CopyAchievementDefinitionV2ByIndex_pfn         SK_EOS_Achieveme
 EOS_Achievements_CopyAchievementDefinitionV2ByAchievementId_pfn SK_EOS_AchievementManager::CopyAchievementDefinitionV2ByAchievementId = nullptr;
 EOS_Achievements_QueryDefinitions_pfn                           SK_EOS_AchievementManager::QueryDefinitions                           = nullptr;
 EOS_Achievements_DefinitionV2_Release_pfn                       SK_EOS_AchievementManager::DefinitionV2_Release                       = nullptr;
+EOS_Stats_IngestStat_pfn                                        SK_EOS_AchievementManager::IngestStat                                 = nullptr;
 
 // Cache this instead of getting it from the Steam client constantly;
 //   doing that is far more expensive than you would think.
@@ -524,14 +603,6 @@ SK_EOS_DrawOSD ()
 }
 
 static bool has_unlock_callback = false;
-
-// Unlike Steam, EGS implements interface versions in the actual DLL, and
-//   this means that we need to use the oldest versions of this stuff possible
-//     or the calls will fail.
-static auto constexpr EOS_ACHIEVEMENTS_QUERYPLAYERACHIEVEMENTS_API_OLDEST         = 1;
-static auto constexpr EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_OLDEST       = 1;
-static auto constexpr EOS_ACHIEVEMENTS_COPYPLAYERACHIEVEMENTBYINDEX_API_OLDEST    = 1;
-static auto constexpr EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_OLDEST = 2;
 
 void
 SK_EOS_Achievements_RefreshPlayerStats (void)
@@ -1157,6 +1228,9 @@ SK::EOS::Init (bool pre_load)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_QueryDefinitions");
     eos_achievements->DefinitionV2_Release            = (EOS_Achievements_DefinitionV2_Release_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_DefinitionV2_Release");
+
+    eos_achievements->IngestStat                      = (EOS_Stats_IngestStat_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Stats_IngestStat");
 
 
     epic->Platform_GetAchievementsInterface           = (EOS_Platform_GetAchievementsInterface_pfn)

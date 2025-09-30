@@ -859,6 +859,75 @@ private:
       ImGui::PopStyleColor  ();
     }
     ImGui::EndGroup ();
+
+    static int  achievement_ctx =     0;
+    static bool confirming      = false;
+
+    if (achievement->unlocked_)
+    {
+      if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+      {
+        achievement_ctx = achievement->idx_;
+
+        ImGui::OpenPopup ("AchievementCtxMenu");
+      }
+    }
+
+    if (achievement->idx_ == achievement_ctx)
+    {
+      if (ImGui::BeginPopup ("AchievementCtxMenu"))
+      {
+        if (confirming)
+        {
+          static const char* szConfirm    = " Confirm Reset? ";
+          static const char* szDisclaimer =
+            "\n This will lock the achievement and cause permanent loss of original unlock time. \n\n";
+
+          ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
+          ImGui::Separator   ();
+          ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs", szConfirm);
+          ImGui::SameLine    ();
+          ImGui::Spacing     ();
+          ImGui::SameLine    ();
+
+          if (ImGui::Button  ("Okay"))
+          {
+            confirming = false;
+            ImGui::CloseCurrentPopup ();
+
+            void SK_Steam_ClearAchievement (const char* szName);
+                 SK_Steam_ClearAchievement (achievement->name_.c_str ());
+
+            // This does not work, Epic unlocks are permanent.
+            void SK_EOS_ClearAchievement   (int idx);
+                 SK_EOS_ClearAchievement   (achievement->idx_);
+          }
+
+          ImGui::SameLine    ();
+
+          if (ImGui::Button  ("Cancel"))
+          {
+            confirming = false;
+          }
+
+          ImGui::SameLine        ();
+          ImGui::TextUnformatted (achievement->text_.unlocked.human_name.c_str ());
+        }
+
+        else
+        {
+          if (ImGui::Button ("Reset Achievement"))
+          {
+            confirming = true;
+          }
+
+          ImGui::SameLine        ();
+          ImGui::TextUnformatted (achievement->text_.unlocked.human_name.c_str ());
+        }
+
+        ImGui::EndPopup ();
+      }
+    }
   }
 
   void

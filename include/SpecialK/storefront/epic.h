@@ -249,6 +249,10 @@ using EOS_Achievements_QueryPlayerAchievements_pfn         = void               
                                                                                        const EOS_Achievements_QueryPlayerAchievementsOptions*                    Options,
                                                                                              void*                                                               ClientData,
                                                                                        const EOS_Achievements_OnQueryPlayerAchievementsCompleteCallback          CompletionDelegate);
+using EOS_Stats_IngestStat_pfn                             = void               (EOS_CALL *)(EOS_HStats Handle,
+                                                                                       const EOS_Stats_IngestStatOptions*                                        Options,
+                                                                                             void*                                                               ClientData,
+                                                                                       const EOS_Stats_OnIngestStatCompleteCallback                              CompletionDelegate);
 
 using EOS_Auth_GetLoggedInAccountsCount_pfn                = int32_t            (EOS_CALL *)(EOS_HAuth                                                           Handle);
 using EOS_Auth_GetLoggedInAccountByIndex_pfn               = EOS_EpicAccountId  (EOS_CALL *)(EOS_HAuth                                                           Handle,
