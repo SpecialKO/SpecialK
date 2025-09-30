@@ -471,7 +471,11 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       (fMaxStage * 1.25f + fAvgScale * .75f) * 0.5f;
 
     fScale =
-      std::max (fMaxStage, fAvgScale);
+      std::max (fMaxStage, fAvgScale) * 1.125f;
+
+    // Add some headroom (12.5%) so that the shape of the bounding line
+    //   is visible, rather than being pushed up against the top edge
+    //     of the chart.
 
     static float         fLastScale = fScale;
        fScale = (1.75f * fLastScale + fScale * .25f) * 0.5f;
