@@ -6359,10 +6359,25 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             if (bLatentSync)
             {
-              ImGui::TreePush ("###LatentSync");
-
               double dRefresh =
                 rb.getActiveRefreshRate ();
+
+              int iMultiplier = static_cast <int> (
+                std::round (
+                  static_cast <double> (__target_fps) / dRefresh
+                )
+              );
+
+              if (SK_LatentSync_AllowFrameSkip () && iMultiplier >= 2)
+              {
+                ImGui::SameLine ();
+                ImGui::Checkbox (
+                  "Skip Frames",
+                  &config.render.framerate.latent_sync.skip_frames
+                );
+              }
+
+              ImGui::TreePush ("###LatentSync");
 
               int iMaxAboveRefreshMode = 4;
 
@@ -6370,12 +6385,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               int              iMode     = std::max ( // 1:1
                 iMaxAboveRefreshMode - 1,
                 0
-              );
-
-              int iMultiplier = static_cast <int> (
-                std::round (
-                  static_cast <double> (__target_fps) / dRefresh
-                )
               );
 
               // 2x..

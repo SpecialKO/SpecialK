@@ -967,6 +967,7 @@ struct {
       sk::ParameterBool*    auto_bias             = nullptr;
       sk::ParameterFloat*   max_auto_bias         = nullptr;
       sk::ParameterStringW* auto_bias_target      = nullptr;
+      sk::ParameterBool*    skip_frames           = nullptr;
     } latent_sync;
   } framerate;
 
@@ -2087,6 +2088,8 @@ auto DeclKeybind =
                                        auto_bias_target, L"Target input latency (in milliseconds or %) for auto-bias", dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTarget"),
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
+    ConfigEntry (render.framerate.latent_sync.
+                                            skip_frames, L"Enable __SK_LatentSyncSkip in 2x.. mode",                   dll_ini,         L"FrameRate.LatentSync",  L"SkipFrames"),
 
     ConfigEntry (render.framerate.force_vk_mailbox,      L"Force Vulkan to use Mailbox Presentation Mode",             dll_ini,         L"Render.Vulkan",         L"ForceMailboxPresent"),
     ConfigEntry (render.framerate.force_vk_adaptive,     L"Force Vulkan to use FIFO Relaxed Presentation Mode",        dll_ini,         L"Render.Vulkan",         L"ForceAdaptiveVSYNC"),
@@ -4807,6 +4810,9 @@ auto DeclKeybind =
     }
   }
 
+  render.framerate.latent_sync.skip_frames
+                                      ->load (config.render.framerate.latent_sync.skip_frames);
+
   render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
 
   if (render.osd.hdr_luminance->load         (config.render.osd.hdr_luminance))
@@ -7183,7 +7189,9 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.latent_sync.auto_bias_target->store (wszPercent);
     }
 
-    texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
+    render.framerate.latent_sync.skip_frames->store (config.render.framerate.latent_sync.skip_frames);
+
+    texture.d3d9.clamp_lod_bias->store              (config.textures.clamp_lod_bias);
 
     // SLI only works in Direct3D
     //  + Keep these out of the INI on non-SLI systems for simplicity
