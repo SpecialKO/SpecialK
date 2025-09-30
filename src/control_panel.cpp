@@ -6304,6 +6304,15 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 config.render.framerate.tearing_mode     =
                   iLastNormalSyncTearingMode;
 
+                if (config.render.framerate.present_interval == SK_NoPreference)
+                {
+                  if (config.render.framerate.tearing_mode != SK_TearingMode::AppControlled)
+                  {
+                    config.render.dxgi.allow_tearing =
+                      config.render.framerate.tearing_mode != SK_TearingMode::AlwaysOff;
+                  }
+                }
+
                 if (__target_fps > dRefresh)
                 {
                   lastRefresh = 0.0f;
