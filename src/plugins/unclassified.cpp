@@ -1722,6 +1722,22 @@ SK_SilentHill_f_PlugInCfg (void)
   return true;
 }
 
+bool
+SK_SilentHill_f_SetFPS (float* pfLimit)
+{
+  __try {
+    if (*pfLimit != 0.0f)
+        *pfLimit  = SK_SilentHill_f_FPSLimit;
+  }
+  
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return true;
+  }
+
+  return false;
+}
+
 void
 SK_SilentHill_f_InitPlugIn (void)
 {
@@ -1782,8 +1798,13 @@ SK_SilentHill_f_InitPlugIn (void)
 
               if (pfLimit != nullptr)
               {
-                if (*pfLimit != 0.0f)
-                    *pfLimit  = SK_SilentHill_f_FPSLimit;
+                static bool
+                      crashed = false;
+                if (! crashed)
+                {
+                  crashed =
+                    SK_SilentHill_f_SetFPS (pfLimit);
+                }
               }
             }
           }

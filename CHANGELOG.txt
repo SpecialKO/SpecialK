@@ -4,6 +4,7 @@
      to use (in the control panel).
  + Initial implementation of GOG integration for achievements
     * Works in maybe 2/3 of GOG games at the moment, still a work in progress.
+ + Workaround Steam-only problems in Silent Hill f.
 
 25.9.30.1
 =========
