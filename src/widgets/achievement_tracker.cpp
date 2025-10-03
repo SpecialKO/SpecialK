@@ -985,13 +985,35 @@ private:
       ImGui::SameLine ();
     }
 
+
+    // Add padding to deal with ImGui columns being truncated by 1 character per-line
+    char* desc =
+      (char *)SK_TLS_Bottom ()->scratch_memory->log.formatted_output.alloc (state.desc.length () * 4);
+
+    char* desc_iter = desc;
+
+    for ( auto& ch : state.desc )
+    {
+      if (ch == '\n') {
+        *desc_iter++ = ' ';
+        *desc_iter++ = ' ';
+      }
+
+      *desc_iter++ = ch;
+    }
+
+    *desc_iter++ = ' ';
+    *desc_iter++ = ' ';
+    *desc_iter++ = '\0';
+
+
     if ( achievement->progress_.max != achievement->progress_.current &&
          achievement->progress_.max != 1                              &&
          ! state.desc.empty () )
     {
       std::string str_progress =
-        SK_FormatString ( "%hs  %.0f%%  [%d / %d]", state.desc.c_str (),
-                              achievement->progress_.getPercent      (),
+        SK_FormatString ( "%hs  %.0f%%  [%d / %d]",           desc,
+                              achievement->progress_.getPercent (),
                               achievement->progress_.current,
                               achievement->progress_.max );
       ImGui::ProgressBar (    achievement->progress_.getPercent () / 100.0F,
@@ -1011,9 +1033,9 @@ private:
       const float x_orig =
         ImGui::GetCursorPosX ();
 
-      ImGui::PushTextWrapPos (x_orig  +   max_text_width);
-      ImGui::TextWrapped     ("%hs", state.desc.c_str ());
-      ImGui::PopTextWrapPos  (                          );
+      ImGui::PushTextWrapPos (x_orig + max_text_width - ImGui::CalcTextSize ("  ").x);
+      ImGui::TextWrapped     ("%hs",   desc);
+      ImGui::PopTextWrapPos  (             );
 
       max_text_width =
         std::max ( max_text_width,
