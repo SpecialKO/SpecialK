@@ -779,8 +779,8 @@ public:
   void draw_list_config_footer (void)
   {
     const char* szLabel =
-      show_hidden ? "Show Hidden ( " ICON_FA_EYE       " )"
-                  : "Show Hidden ( " ICON_FA_EYE_SLASH " )";
+      show_hidden ? "Show Hidden ( " ICON_FA_EYE       " )###ShowHidden"
+                  : "Show Hidden ( " ICON_FA_EYE_SLASH " )###ShowHidden";
 
     if (ImGui::Checkbox (szLabel, &show_hidden))
     {
