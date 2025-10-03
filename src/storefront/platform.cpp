@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/storefront/xbox.h>
+#include <SpecialK/storefront/gog.h>
 #include <SpecialK/steam_api.h>
 
 #include <windows.gaming.ui.h>
@@ -51,6 +52,8 @@ bool SK_Platform_SetOverlayState (bool active)
 
   if (SteamAPI::AppID () != 0      ) SteamAPI::SetOverlayState (active);
   if (    EOS::UserID () != nullptr)      EOS::SetOverlayState (active);
+  // Not implemented yet
+//if (Galaxy::GetTicksRetired () >0)   Galaxy::SetOverlayState (active);
 
   return previous;
 }
@@ -59,7 +62,8 @@ bool SK_Platform_IsOverlayAware (void)
 {
   return
     SK::SteamAPI::IsOverlayAware () ||
-         SK::EOS::IsOverlayAware ();
+         SK::EOS::IsOverlayAware () ||
+      SK::Galaxy::IsOverlayAware ();
 }
 
 void SK_Platform_SetNotifyCorner (void)
@@ -84,11 +88,18 @@ SK_Platform_DrawOSD (void)
       SK_EOS_DrawOSD ();
   }
 
+  if (! ret)
+  {
+    ret =
+      SK_Galaxy_DrawOSD ();
+  }
+
   return ret;
 }
 
-SK_AchievementManager* SK_Steam_GetAchievementManager (void);
-SK_AchievementManager* SK_EOS_GetAchievementManager   (void);
+SK_AchievementManager* SK_Steam_GetAchievementManager  (void);
+SK_AchievementManager* SK_EOS_GetAchievementManager    (void);
+SK_AchievementManager* SK_Galaxy_GetAchievementManager (void);
 
 SK_AchievementManager*
 SK_Platform_GetAchievementManager (void)
@@ -100,6 +111,9 @@ SK_Platform_GetAchievementManager (void)
 
   if (pMgr == nullptr && SK::EOS::GetTicksRetired () > 0)
       pMgr = SK_EOS_GetAchievementManager ();
+
+  if (pMgr == nullptr && SK::Galaxy::GetTicksRetired () > 0)
+      pMgr = SK_Galaxy_GetAchievementManager ();
 
   return pMgr;
 }

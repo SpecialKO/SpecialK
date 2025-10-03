@@ -33,6 +33,8 @@
 
 #include <galaxy/IGalaxy.h>
 
+class galaxy::api::IUser;
+
 namespace SK
 {
   namespace Galaxy
@@ -69,6 +71,8 @@ SK_Galaxy_GetOverlayState (bool real);
 class SK_GalaxyContext
 {
 public:
+  class galaxy::api::IListenerRegistrar;
+
   virtual ~SK_GalaxyContext (void) noexcept
   {
     if (              sdk_dll_ != nullptr)
@@ -76,37 +80,59 @@ public:
   };
 
   void PreInit                (HMODULE hGalaxyDLL);
+  void Init                   (galaxy::api::IStats* stats, galaxy::api::IUtils* utils, galaxy::api::IUser* user, galaxy::api::IListenerRegistrar* registrar);
   //bool InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform = nullptr);
 
   void Shutdown (bool bGameRequested = false);
 
-  galaxy::api::IStats*   Stats   (void) noexcept { return stats_;   }
-  galaxy::api::IFriends* Friends (void) noexcept { return friends_; }
-  galaxy::api::IUtils*   Utils   (void) noexcept { return utils_;   }
+  galaxy::api::IStats*             Stats     (void) noexcept { return stats_;     }
+  galaxy::api::IFriends*           Friends   (void) noexcept { return friends_;   }
+  galaxy::api::IUtils*             Utils     (void) noexcept { return utils_;     }
+  galaxy::api::IUser*              User      (void) noexcept { return user_;      }
+  galaxy::api::IListenerRegistrar* Registrar (void) noexcept { return registrar_; }
 
   const char*            GetGalaxyInstallPath (void);
   HMODULE                GetGalaxyDLL         (void) const { return sdk_dll_; }
 
-  std::string_view       GetDisplayName (void) const { return user.display_name; }
-  std::string_view       GetNickName    (void) const { return user.nickname;     }
+  std::string_view       GetDisplayName (void) const { return user_names.display_name; }
+  std::string_view       GetNickName    (void) const { return user_names.nickname;     }
 
 //protected:
   struct
   {
     std::string display_name;
     std::string nickname;
-  } user;
+  } user_names;
 
 private:
-  galaxy::api::IGalaxy*  galaxy_  = nullptr;
-  galaxy::api::IStats*   stats_   = nullptr;
-  galaxy::api::IFriends* friends_ = nullptr;
-  galaxy::api::IUtils*   utils_   = nullptr;
+  galaxy::api::IGalaxy*            galaxy_    = nullptr;
+  galaxy::api::IStats*             stats_     = nullptr;
+  galaxy::api::IFriends*           friends_   = nullptr;
+  galaxy::api::IUtils*             utils_     = nullptr;
+  galaxy::api::IUser*              user_      = nullptr;
+  galaxy::api::IListenerRegistrar* registrar_ = nullptr;
 
-  HMODULE                sdk_dll_ = nullptr;
+  HMODULE                          sdk_dll_   = nullptr;
 };
 
 extern SK_LazyGlobal <SK_GalaxyContext> gog;
 
+
+// The Galaxy client is not capable of reporting this... wtf?!
+size_t SK_Galaxy_GetNumPossibleAchievements (void);
+
+void
+SK_Galaxy_UnlockAchievement (uint32_t idx);
+
+void
+SK_Galaxy_PlayUnlockSound (void);
+
+void
+SK_Galaxy_LoadUnlockSound (const wchar_t* wszUnlockSound);
+
+int
+SK_Galaxy_DrawOSD (void);
+
+SK_AchievementManager* SK_Galaxy_GetAchievementManager (void);
 
 #endif /* __SK__GOG_H__ */

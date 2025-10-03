@@ -115,6 +115,7 @@ public:
   public:
     Achievement (int idx, const char* szName, ISteamUserStats*               stats);
     Achievement (int idx,                     EOS_Achievements_DefinitionV2* def);
+    Achievement (int idx, const char* szName, void*                          stats);
 
      Achievement (const Achievement& copy) = delete;
     ~Achievement (void)                    = delete;

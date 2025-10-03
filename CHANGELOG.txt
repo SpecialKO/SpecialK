@@ -1,4 +1,11 @@
-﻿25.9.30.1
+﻿25.10.3
+=======
+ + Added minimum size to achievement list to prevent it from being too small
+     to use (in the control panel).
+ + Initial implementation of GOG integration for achievements
+    * Works in maybe 2/3 of GOG games at the moment, still a work in progress.
+
+25.9.30.1
 =========
  + Added right-click context menu to unlocked achievements to manually reset
      (re-lock) them; the original unlock time will be permanently lost.

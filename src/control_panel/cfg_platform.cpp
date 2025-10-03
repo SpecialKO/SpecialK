@@ -27,8 +27,10 @@
 #include <SpecialK/control_panel/platform.h>
 #include <SpecialK/control_panel/steam.h>
 #include <SpecialK/control_panel/epic.h>
+#include <SpecialK/control_panel/galaxy.h>
 
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/storefront/gog.h>
 #include <imgui/imfilebrowser.h>
 
 
@@ -40,17 +42,19 @@ SK::ControlPanel::Platform::Draw (void)
   const ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (SK::SteamAPI::AppID () != 0 || SK::EOS::GetTicksRetired () > 0)
+  if (SK::SteamAPI::AppID () != 0 || SK::EOS::GetTicksRetired () > 0 || SK::Galaxy::GetTicksRetired () > 0)
   {
     // Steam AppID never changes, but EOS tick count might...
     //   also some Steam games use EOS but aren't themselves an Epic game
-    static bool bSteam =  (SK::SteamAPI::AppID      () != 0);
-           bool bEpic  = ((SK::EOS::GetTicksRetired () >  0) && (! bSteam));
+    static bool bSteam =  (SK::SteamAPI::AppID         () != 0);
+           bool bEpic  = ((SK::EOS::GetTicksRetired    () >  0) && (! bSteam));
+           bool bGOG   = ((SK::Galaxy::GetTicksRetired () >  0) && (! bSteam) && (! bEpic));
 
     static const std::string header_label =
       SK_FormatString ( "%s Enhancements###Platform_Enhancements",
                         bSteam ? "Steam" :
                          bEpic ? "Epic"  :
+                          bGOG ? "GOG"   :
                              "Platform" );
 
     if ( ImGui::CollapsingHeader (header_label.c_str (), ImGuiTreeNodeFlags_CollapsingHeader |
@@ -75,7 +79,8 @@ SK::ControlPanel::Platform::Draw (void)
 
         bHasAchievements =
             ( bSteamWorks && SK_SteamAPI_GetNumPossibleAchievements () > 0 ) ||
-            ( bEpic       &&      SK_EOS_GetNumPossibleAchievements () > 0 );
+            ( bEpic       &&      SK_EOS_GetNumPossibleAchievements () > 0 ) ||
+            ( bGOG        &&   SK_Galaxy_GetNumPossibleAchievements () > 0 );
       });
 
 
@@ -83,13 +88,16 @@ SK::ControlPanel::Platform::Draw (void)
       {
         static char szProgress [128] = { };
 
-        const float  ratio            = bEpic ? SK::EOS::PercentOfAchievementsUnlocked      ()
+        const float  ratio            = bEpic ? SK::EOS::PercentOfAchievementsUnlocked      () :
+                                        bGOG  ? SK::Galaxy::PercentOfAchievementsUnlocked   ()
                                               : SK::SteamAPI::PercentOfAchievementsUnlocked ();
 
-        const int    unlock_count     = bEpic ? SK::EOS::NumberOfAchievementsUnlocked      ()
+        const int    unlock_count     = bEpic ? SK::EOS::NumberOfAchievementsUnlocked      () :
+                                        bGOG  ? SK::Galaxy::NumberOfAchievementsUnlocked   ()
                                               : SK::SteamAPI::NumberOfAchievementsUnlocked ();
 
-        const size_t num_achievements = bEpic ? SK_EOS_GetNumPossibleAchievements           ()
+        const size_t num_achievements = bEpic ? SK_EOS_GetNumPossibleAchievements           () :
+                                        bGOG  ? SK_Galaxy_GetNumPossibleAchievements        ()
                                               : SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
@@ -158,8 +166,9 @@ SK::ControlPanel::Platform::Draw (void)
           ImGui::BeginGroup ();
 
           if (ImGui::Button (" Test Unlock "))
-            bEpic ? SK_EOS_UnlockAchievement   (0)
-                  : SK_Steam_UnlockAchievement (0);
+            bEpic ? SK_EOS_UnlockAchievement    (0) :
+            bGOG  ? SK_Galaxy_UnlockAchievement (0) :
+                    SK_Steam_UnlockAchievement  (0);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
@@ -201,8 +210,10 @@ SK::ControlPanel::Platform::Draw (void)
             auto SK_Platform_LoadUnlockSound = [](void)
             {
               if (SK::EOS::UserID () != nullptr)
-                   SK_EOS_LoadUnlockSound   (config.platform.achievements.sound_file.c_str ());
-              else SK_Steam_LoadUnlockSound (config.platform.achievements.sound_file.c_str ());
+                   SK_EOS_LoadUnlockSound    (config.platform.achievements.sound_file.c_str ());
+              else if (SK::Galaxy::GetTicksRetired () > 0)
+                   SK_Galaxy_LoadUnlockSound (config.platform.achievements.sound_file.c_str ());
+              else SK_Steam_LoadUnlockSound  (config.platform.achievements.sound_file.c_str ());
             };
 
             if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0"
@@ -250,8 +261,10 @@ SK::ControlPanel::Platform::Draw (void)
                 SK_Platform_LoadUnlockSound ();
 
                 if (SK::EOS::UserID () != nullptr)
-                     SK_EOS_PlayUnlockSound   ();
-                else SK_Steam_PlayUnlockSound ();
+                     SK_EOS_PlayUnlockSound    ();
+                else if (SK::Galaxy::GetTicksRetired () > 0)
+                     SK_Galaxy_PlayUnlockSound ();
+                else SK_Steam_PlayUnlockSound  ();
 
                 i = _Custom;
               }
@@ -361,7 +374,8 @@ SK::ControlPanel::Platform::Draw (void)
         // Handle late init situations
         bHasAchievements =
          ( ( bSteam && SK_SteamAPI_GetNumPossibleAchievements () > 0 )
-        || ( bEpic  &&      SK_EOS_GetNumPossibleAchievements () > 0 ) );
+        || ( bEpic  &&      SK_EOS_GetNumPossibleAchievements () > 0 )
+        || ( bGOG   &&   SK_Galaxy_GetNumPossibleAchievements () > 0 ) );
       }
 
       static bool bSteamOverlayEnabled = config.platform.steam_is_b0rked == false &&
@@ -391,15 +405,17 @@ SK::ControlPanel::Platform::Draw (void)
         ImGui::TreePop ();
       }
 
-      SK::ControlPanel::Steam::Draw ();
-      SK::ControlPanel::Epic::Draw  ();
+      SK::ControlPanel::Steam::Draw  ();
+      SK::ControlPanel::Epic::Draw   ();
+      SK::ControlPanel::Galaxy::Draw ();
 
       ImGui::TreePop       ( );
       ImGui::PopStyleColor (3);
     }
 
-    SK::ControlPanel::Steam::DrawFooter ();
-    SK::ControlPanel::Epic::DrawFooter  ();
+    SK::ControlPanel::Steam::DrawFooter  ();
+    SK::ControlPanel::Epic::DrawFooter   ();
+    SK::ControlPanel::Galaxy::DrawFooter ();
 
     return true;
   }
@@ -435,8 +451,9 @@ SK::ControlPanel::Platform::Draw (void)
 bool
 SK::ControlPanel::Platform::DrawMenu (void)
 {
-  SK::ControlPanel::Steam::DrawMenu ();
-  SK::ControlPanel::Epic::DrawMenu  ();
+  SK::ControlPanel::Steam::DrawMenu  ();
+  SK::ControlPanel::Epic::DrawMenu   ();
+  SK::ControlPanel::Galaxy::DrawMenu ();
 
   return false;
 }
@@ -445,6 +462,7 @@ bool
 SK::ControlPanel::Platform::WarnIfUnsupported (void)
 {
   return
-    SK::ControlPanel::Steam::WarnIfUnsupported () ||
-    SK::ControlPanel::Epic::WarnIfUnsupported  ();
+    SK::ControlPanel::Steam::WarnIfUnsupported  () ||
+    SK::ControlPanel::Epic::WarnIfUnsupported   () ||
+    SK::ControlPanel::Galaxy::WarnIfUnsupported ();
 }

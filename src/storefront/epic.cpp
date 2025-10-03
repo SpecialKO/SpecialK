@@ -492,7 +492,7 @@ EOS_Achievements_QueryDefinitions_pfn                           SK_EOS_Achieveme
 EOS_Achievements_DefinitionV2_Release_pfn                       SK_EOS_AchievementManager::DefinitionV2_Release                       = nullptr;
 EOS_Stats_IngestStat_pfn                                        SK_EOS_AchievementManager::IngestStat                                 = nullptr;
 
-// Cache this instead of getting it from the Steam client constantly;
+// Cache this instead of getting it from the Epic client constantly;
 //   doing that is far more expensive than you would think.
 size_t
 SK_EOS_GetNumPossibleAchievements (void)

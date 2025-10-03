@@ -403,6 +403,9 @@
     <Filter Include="Source Files\Backends\Input\GameInput">
       <UniqueIdentifier>{bd56277a-178a-4f88-bd68-60f7aa34fe67}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Storefronts\Galaxy">
+      <UniqueIdentifier>{6a35ff7c-6000-450c-b557-5e3d8cc380ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3240,6 +3243,45 @@
     <ClInclude Include="include\SpecialK\storefront\xbox.h">
       <Filter>Header Files\Storefronts</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\galaxy.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\Errors.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\GalaxyAllocator.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\GalaxyExport.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\GalaxyFactory.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\GalaxyID.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\GalaxyThread.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\IFriends.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\IGalaxy.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\IListenerRegistrar.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\InitOptions.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\IStats.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\IUtils.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3880,6 +3922,9 @@
     </ClCompile>
     <ClCompile Include="src\widgets\achievement_tracker.cpp">
       <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_galaxy.cpp">
+      <Filter>Source Files\Control Panel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
