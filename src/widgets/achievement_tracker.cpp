@@ -390,6 +390,9 @@ public:
 
   void sort_table_if_needed (size_t num_achvs, SK_Achievement** achievements)
   {
+    static int last_column = -1;
+    static int last_sort   = -1;
+
     // Initialize sorting on first-use
     if (sorting.ordered_list.empty ())
     {
@@ -401,59 +404,68 @@ public:
 
     if (ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs ())
     {
+      // SpecsDirty is not a reliable measure, it is falsely set to true
+      //   when no sorting is actually needed.
       if ( sort_specs->SpecsDirty &&
            sort_specs->Specs->SortDirection != ImGuiSortDirection_None )
       {
-        switch (sort_specs->Specs->ColumnIndex)
+        if (last_sort   != sort_specs->Specs->SortDirection ||
+            last_column != sort_specs->Specs->ColumnIndex)
         {
-          case 0:
-          case 1:
-            for (unsigned int i = 0 ; i < num_achvs ; ++i)
-            {
-              sorting.ordered_list [i] =
-                (sort_specs->Specs->SortDirection == ImGuiSortDirection_Ascending ?
-                    i : (unsigned int)num_achvs - i - 1);
-            }
-            break;
-          case 2:
+          switch (sort_specs->Specs->ColumnIndex)
           {
-            std::vector <SK_Achievement *>
-                     sorted_achievements (num_achvs);
-            for (unsigned int i = 0 ; i < num_achvs ; ++i)
+            case 0:
+            case 1:
+              for (unsigned int i = 0 ; i < num_achvs ; ++i)
+              {
+                sorting.ordered_list [i] =
+                  (sort_specs->Specs->SortDirection == ImGuiSortDirection_Ascending ?
+                      i : (unsigned int)num_achvs - i - 1);
+              }
+              break;
+            case 2:
             {
-              sorted_achievements [i] = achievements [i];
-            }
+              std::vector <SK_Achievement *>
+                       sorted_achievements (num_achvs);
+              for (unsigned int i = 0 ; i < num_achvs ; ++i)
+              {
+                sorted_achievements [i] = achievements [i];
+              }
 
-            if (sort_specs->Specs->SortDirection == ImGuiSortDirection_Ascending)
-            {
-              std::sort ( std::begin (sorted_achievements),
-                          std::end   (sorted_achievements),
-                [](SK_Achievement* a, SK_Achievement* b)
-                {
-                  return ( a->global_percent_ > b->global_percent_ );
-                }
-              );
-            }
+              if (sort_specs->Specs->SortDirection == ImGuiSortDirection_Ascending)
+              {
+                std::sort ( std::begin (sorted_achievements),
+                            std::end   (sorted_achievements),
+                  [](SK_Achievement* a, SK_Achievement* b)
+                  {
+                    return ( a->global_percent_ > b->global_percent_ );
+                  }
+                );
+              }
 
-            else
-            {
-              std::sort ( std::begin (sorted_achievements),
-                          std::end   (sorted_achievements),
-                [](SK_Achievement* a, SK_Achievement* b)
-                {
-                  return ( a->global_percent_ < b->global_percent_ );
-                }
-              );
-            }
+              else
+              {
+                std::sort ( std::begin (sorted_achievements),
+                            std::end   (sorted_achievements),
+                  [](SK_Achievement* a, SK_Achievement* b)
+                  {
+                    return ( a->global_percent_ < b->global_percent_ );
+                  }
+                );
+              }
 
-            auto ordered_achievement =
-              std::begin (sorting.ordered_list);
+              auto ordered_achievement =
+                std::begin (sorting.ordered_list);
 
-            for (auto achievement : sorted_achievements)
-            {
-              *ordered_achievement++ = achievement->idx_;
-            }
-          } break;
+              for (auto achievement : sorted_achievements)
+              {
+                *ordered_achievement++ = achievement->idx_;
+              }
+            } break;
+          }
+
+          last_sort   = sort_specs->Specs->SortDirection;
+          last_column = sort_specs->Specs->ColumnIndex;
         }
       }
     }
@@ -494,9 +506,13 @@ public:
       ImGui::PushStyleColor (ImGuiCol_TableRowBg,    ImVec4 (0.00f, 0.00f, 0.00f, 0.666f));
       ImGui::PushStyleColor (ImGuiCol_TableRowBgAlt, ImVec4 (0.15f, 0.15f, 0.15f, 0.666f));
 
-      auto flags = ImGuiTableFlags_Borders        | ImGuiTableFlags_RowBg           |
-                   ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings |
-                   ImGuiTableFlags_Sortable;
+      auto flags = ImGuiTableFlags_Borders        | ImGuiTableFlags_RowBg          |
+                   ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings;
+
+      if (! as_widget)
+      {
+        flags |= ImGuiTableFlags_Sortable;
+      }
 
       // Allow scrolling while the control panel is open.
       if (SK_ImGui_Active ())
@@ -505,26 +521,50 @@ public:
       const int column_count =
         ((SK_ImGui_Active () && (! as_widget)) || show_rarity) ? 3 : 2;
 
-      if (ImGui::BeginTable ("Achievements", column_count, flags))
+      ImVec2 table_size (-FLT_MIN, -FLT_MIN);
+      if (! as_widget) // Reserve at least 2/3 the height of the table
+      {
+        const ImVec2 avail_size =
+          ImGui::GetContentRegionAvail ();
+
+        float needed_y_min =
+          ((float)num_achvs * ImGui::GetTextLineHeightWithSpacing ()) / 3.0f;
+
+        const float needed_y_max = needed_y_min * 3.0f;
+                    needed_y_min = needed_y_min * 2.0f;
+
+        const float y_size =
+          std::max (
+            std::min (avail_size.y, needed_y_max),
+                                    needed_y_min
+                   );
+      
+        table_size = ImVec2 (-FLT_MIN, y_size);
+      }
+
+      if (ImGui::BeginTable ("Achievements", column_count, flags, table_size))
       {
         const auto column_flags =
           ( ImGuiTableColumnFlags_NoResize  |
             ImGuiTableColumnFlags_NoReorder | ImGuiTableColumnFlags_NoHide );
 
         ImGui::TableSetupColumn   ("Name",        column_flags);
-        ImGui::TableSetupColumn   ("Description", column_flags);
+        ImGui::TableSetupColumn   ("Description", column_flags | ImGuiTableColumnFlags_WidthStretch);
         if (column_count == 3)
           ImGui::TableSetupColumn ("Rarity",      column_flags);
 
         if (num_achvs > 0)
         {
-          sort_table_if_needed (num_achvs, achievements);
-
           if (SK_ImGui_Active ())
           {
+            if (! as_widget)
+            {
+              sort_table_if_needed (num_achvs, achievements);
+            }
+
             // Table headers
             ImGui::TableSetupScrollFreeze( column_count,
-                                             2 );
+                                            2  );
             ImGui::TableHeadersRow       (     );
             ImGui::TableNextRow          (     );
             ImGui::TableSetColumnIndex   (  0  );
@@ -536,11 +576,6 @@ public:
               ImGui::TableSetColumnIndex (  2  );
               ImGui::Separator           (     );
             }
-          }
-
-          else
-          {
-            ImGui::ScrollToItem ();
           }
         }
 
