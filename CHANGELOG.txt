@@ -1,4 +1,11 @@
-﻿25.10.3
+﻿25.10.3.1
+=========
+ + Fixed ImGui table corruption because ImGui::TableSetupScrollFreeze (...)
+     was called in the wrong place relative to column setup.
+ + Added text padding to the description field in the achievement tracker to
+     prevent long descriptions from being clipped.
+
+25.10.3
 =======
  + Added minimum size to achievement list to prevent it from being too small
      to use (in the control panel).
