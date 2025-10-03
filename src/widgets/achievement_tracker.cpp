@@ -522,7 +522,7 @@ public:
         ((SK_ImGui_Active () && (! as_widget)) || show_rarity) ? 3 : 2;
 
       ImVec2 table_size (-FLT_MIN, -FLT_MIN);
-      if (! as_widget) // Reserve at least 2/3 the height of the table
+      if (! as_widget) // Reserve at least 1/3 the height of the table
       {
         const ImVec2 avail_size =
           ImGui::GetContentRegionAvail ();
@@ -530,8 +530,8 @@ public:
         float needed_y_min =
           ((float)num_achvs * ImGui::GetTextLineHeightWithSpacing ()) / 3.0f;
 
-        const float needed_y_max = needed_y_min * 3.0f;
-                    needed_y_min = needed_y_min * 2.0f;
+        const float needed_y_max =           needed_y_min * 3.0f;
+                    needed_y_min = std::max (needed_y_min, 150.0f);
 
         const float y_size =
           std::max (
@@ -548,6 +548,16 @@ public:
           ( ImGuiTableColumnFlags_NoResize  |
             ImGuiTableColumnFlags_NoReorder | ImGuiTableColumnFlags_NoHide );
 
+        if (num_achvs > 0)
+        {
+          if (SK_ImGui_Active ())
+          {
+            // Table headers
+            ImGui::TableSetupScrollFreeze( column_count,
+                                            2  );
+          }
+        }
+
         ImGui::TableSetupColumn   ("Name",        column_flags);
         ImGui::TableSetupColumn   ("Description", column_flags | ImGuiTableColumnFlags_WidthStretch);
         if (column_count == 3)
@@ -563,8 +573,6 @@ public:
             }
 
             // Table headers
-            ImGui::TableSetupScrollFreeze( column_count,
-                                            2  );
             ImGui::TableHeadersRow       (     );
             ImGui::TableNextRow          (     );
             ImGui::TableSetColumnIndex   (  0  );
@@ -576,6 +584,7 @@ public:
               ImGui::TableSetColumnIndex (  2  );
               ImGui::Separator           (     );
             }
+            ImGui::TableSetColumnIndex   (  0  );
           }
         }
 
