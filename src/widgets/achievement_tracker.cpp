@@ -995,15 +995,15 @@ private:
     for ( auto& ch : state.desc )
     {
       if (ch == '\n') {
-        *desc_iter++ = ' ';
-        *desc_iter++ = ' ';
+        *desc_iter++ = ' '; *desc_iter++ = ' ';
+        *desc_iter++ = ' '; *desc_iter++ = ' ';
       }
 
       *desc_iter++ = ch;
     }
 
-    *desc_iter++ = ' ';
-    *desc_iter++ = ' ';
+    *desc_iter++ = ' '; *desc_iter++ = ' ';
+    *desc_iter++ = ' '; *desc_iter++ = ' ';
     *desc_iter++ = '\0';
 
 
