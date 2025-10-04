@@ -1,8 +1,8 @@
 ﻿#ifndef GALAXY_I_STATS_H
 #define GALAXY_I_STATS_H
 
-#include "IListenerRegistrar.h"
-#include "GalaxyID.h"
+#include "galaxy/IListenerRegistrar.h"
+#include "galaxy/GalaxyID.h"
 
 namespace galaxy
 {

@@ -104,6 +104,11 @@ public:
     std::string nickname;
   } user_names;
 
+  enum versions {
+    Version_1_152_1,
+    Version_1_152_10
+  } version = Version_1_152_1;
+
 private:
   galaxy::api::IGalaxy*            galaxy_    = nullptr;
   galaxy::api::IStats*             stats_     = nullptr;
@@ -134,5 +139,19 @@ int
 SK_Galaxy_DrawOSD (void);
 
 SK_AchievementManager* SK_Galaxy_GetAchievementManager (void);
+
+#include <galaxy/GalaxyID.h>
+#include <galaxy/IStats.h>
+uint32_t SK_Galaxy_Stats_GetUserTimePlayed (galaxy::api::IStats *);
+
+void     SK_Galaxy_Stats_GetAchievementNameCopy          (galaxy::api::IStats*, uint32_t index, char* buffer, uint32_t bufferLength);
+void     SK_Galaxy_Stats_GetAchievement                  (galaxy::api::IStats*, const char* name, bool& unlocked, uint32_t& unlockTime, galaxy::api::GalaxyID userID = galaxy::api::GalaxyID());
+void     SK_Galaxy_Stats_GetAchievementDisplayNameCopy   (galaxy::api::IStats*, const char* name, char* buffer, uint32_t bufferLength);
+void     SK_Galaxy_Stats_GetAchievementDescriptionCopy   (galaxy::api::IStats*, const char* name, char* buffer, uint32_t bufferLength);
+bool     SK_Galaxy_Stats_IsAchievementVisibleWhileLocked (galaxy::api::IStats*, const char* name);
+void     SK_Galaxy_Stats_RequestUserTimePlayed           (galaxy::api::IStats*, galaxy::api::GalaxyID userID = galaxy::api::GalaxyID(), galaxy::api::IUserTimePlayedRetrieveListener*           const listener = NULL);
+void     SK_Galaxy_Stats_RequestUserStatsAndAchievements (galaxy::api::IStats*, galaxy::api::GalaxyID userID = galaxy::api::GalaxyID(), galaxy::api::IUserStatsAndAchievementsRetrieveListener* const listener = NULL);
+void     SK_Galaxy_Stats_SetAchievement                  (galaxy::api::IStats*, const char* name);
+void     SK_Galaxy_Stats_ClearAchievement                (galaxy::api::IStats*, const char* name);
 
 #endif /* __SK__GOG_H__ */

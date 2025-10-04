@@ -1,4 +1,13 @@
-﻿25.10.3.1
+﻿25.10.4
+=======
+ + Handle breaking API change in GOG Galaxy API v 1.152.10+ for the
+     galaxy::api::IStats interface.
+
+    * There was another breaking change many years earlier, so achievement
+        related functionality in SK still will not work in 32-bit GOG games
+          or games using ancient GOG Galaxy SDK versions (pre-1.131).
+
+25.10.3.1
 =========
  + Fixed ImGui table corruption because ImGui::TableSetupScrollFreeze (...)
      was called in the wrong place relative to column setup.

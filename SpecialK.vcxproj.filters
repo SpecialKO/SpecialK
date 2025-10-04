@@ -406,6 +406,12 @@
     <Filter Include="Header Files\Storefronts\Galaxy">
       <UniqueIdentifier>{6a35ff7c-6000-450c-b557-5e3d8cc380ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Storefronts\Galaxy\1.152.1">
+      <UniqueIdentifier>{fdf8fc77-0844-4c93-abf1-622d29bbef19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Storefronts\Galaxy\1.152.11">
+      <UniqueIdentifier>{5dec9bb0-1440-458c-ad2c-bd5eb8535e2d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3281,6 +3287,12 @@
     </ClInclude>
     <ClInclude Include="depends\include\galaxy\IUtils.h">
       <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\1_152_11\IStats.h">
+      <Filter>Header Files\Storefronts\Galaxy\1.152.11</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\1_152_1\IStats.h">
+      <Filter>Header Files\Storefronts\Galaxy\1.152.1</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
