@@ -552,10 +552,22 @@ namespace galaxy
         gog->Init (pStats, pUtils, pUser, pRegistrar);
       }
 
+      static bool need_stats_refresh  = true;
+      static bool global_stats_loaded = false;
+
       auto stats = gog->Stats ();
 
       IListenerRegistrar* registrar =
         gog->Registrar ();
+
+      static const auto
+        achievements_path =
+          std::filesystem::path (
+               SK_GetConfigPath () )
+        / LR"(SK_Res/Achievements)";
+
+      static auto const global_stats_filename =
+        achievements_path / LR"(GlobalStatsForGame.json)";
 
       class SK_IUserTimePlayedRetrieveListener : public IUserTimePlayedRetrieveListener
       {
@@ -601,7 +613,7 @@ namespace galaxy
                                pAchievement->text_.unlocked.human_name.c_str (),
                                pAchievement->text_.unlocked.desc      .c_str () );
 
-            //SK_Galaxy_Achievements_RefreshPlayerStats ();
+              SK_Galaxy_Stats_RequestUserStatsAndAchievements (gog->Stats ());
 
               galaxy_achievements->unlock (name);
             }
@@ -624,97 +636,101 @@ namespace galaxy
 
           static int unlock_count = 0;
 
-          SK_RunOnce (
-          auto stats = gog->Stats ();
-
-          static const auto
-            achievements_path =
-              std::filesystem::path (
-                   SK_GetConfigPath () )
-            / LR"(SK_Res/Achievements)";
-
-          static auto const global_stats_filename =
-            achievements_path / LR"(GlobalStatsForGame.json)";
-
-          static FILE*   fGlobalStats  = nullptr;
-          fGlobalStats = fGlobalStats != nullptr ? fGlobalStats :
-                _wfopen (global_stats_filename.c_str (), L"rb+");
-
-          if (fGlobalStats != nullptr)
+          if (! global_stats_loaded)
           {
-            static bool loaded = false;
+            auto stats = gog->Stats ();
 
-            try
+            static FILE*   fGlobalStats  = nullptr;
+            fGlobalStats = fGlobalStats != nullptr ? fGlobalStats :
+                  _wfopen (global_stats_filename.c_str (), L"rb+");
+
+            if (fGlobalStats != nullptr)
             {
-              static std::vector <BYTE> data;
-        
-                           fseek (fGlobalStats, 0, SEEK_END);
-              data.resize (ftell (fGlobalStats));
-                          rewind (fGlobalStats);
+              static bool loaded = false;
 
-              if (! data.empty ())
+              try
               {
-                static nlohmann::json jsonStats;
+                static std::vector <BYTE> data;
+        
+                             fseek (fGlobalStats, 0, SEEK_END);
+                data.resize (ftell (fGlobalStats));
+                            rewind (fGlobalStats);
 
-                if (! loaded)
+                if (! data.empty ())
                 {
-                  if (0 != fread (data.data (), data.size (), 1, fGlobalStats))
+                  static nlohmann::json jsonStats;
+
+                  if (! loaded)
                   {
-                    jsonStats =
-                      std::move (
-                        nlohmann::json::parse ( data.cbegin (),
-                                                data.cend   (), nullptr, true )
+                    if (0 != fread (data.data (), data.size (), 1, fGlobalStats))
+                    {
+                      jsonStats =
+                        std::move (
+                          nlohmann::json::parse ( data.cbegin (),
+                                                  data.cend   (), nullptr, true )
+                        );
+
+                      loaded              = true;
+                      global_stats_loaded = true;
+                    }
+                  }
+
+                  if ( jsonStats.contains ("achievementpercentages") &&
+                       jsonStats          ["achievementpercentages"].contains ("achievements") )
+                  {
+                    const auto& achievements_ =
+                      jsonStats ["achievementpercentages"]["achievements"];
+
+                    int idx = 0;
+
+                    for ( const auto& achievement : achievements_ )
+                    {
+                      auto galaxy_achievement =
+                        new SK_AchievementManager::Achievement (
+                          idx++, achievement ["name"].get <std::string_view> ().data (), (galaxy::api::IStats *)stats
+                        );
+
+                      galaxy_achievement->global_percent_ = static_cast <float> (
+                        atof (achievement ["percent"].get <std::string_view> ().data ())
                       );
 
-                    loaded = true;
+                      galaxy_achievements->possible++;
+                      galaxy_achievements->addAchievement (galaxy_achievement);
+
+                      if (galaxy_achievement->unlocked_)
+                        unlock_count++;
+                    }
                   }
                 }
 
-                if ( jsonStats.contains ("achievementpercentages") &&
-                     jsonStats          ["achievementpercentages"].contains ("achievements") )
+                else
                 {
-                  const auto& achievements_ =
-                    jsonStats ["achievementpercentages"]["achievements"];
-
-                  int idx = 0;
-
-                  for ( const auto& achievement : achievements_ )
-                  {
-                    auto galaxy_achievement =
-                      new SK_AchievementManager::Achievement (
-                        idx++, achievement ["name"].get <std::string_view> ().data (), (galaxy::api::IStats *)stats
-                      );
-
-                    galaxy_achievement->global_percent_ = static_cast <float> (
-                      atof (achievement ["percent"].get <std::string_view> ().data ())
-                    );
-
-                    galaxy_achievements->possible++;
-                    galaxy_achievements->addAchievement (galaxy_achievement);
-
-                    if (galaxy_achievement->unlocked_)
-                      unlock_count++;
-                  }
+                  throw (std::exception ());
                 }
               }
+
+              catch (const std::exception& e)
+              {
+                std::ignore = e;
+
+                loaded = false;
+
+                fclose (fGlobalStats);
+                        fGlobalStats = nullptr;
+
+                DeleteFileW (global_stats_filename.c_str ());
+
+                gog_log->Log (
+                  L"Global Achievement Stats JSON was corrupted and has been deleted."
+                );
+
+                SK_Platform_DownloadGlobalAchievementStats ();
+
+                need_stats_refresh  =  true;
+                global_stats_loaded = false;
+              }
             }
-
-            catch (const std::exception& e)
-            {
-              std::ignore = e;
-
-              loaded = false;
-
-              fclose (fGlobalStats);
-                      fGlobalStats = nullptr;
-
-              DeleteFileW (global_stats_filename.c_str ());
-
-              gog_log->Log (
-                L"Global Achievement Stats JSON was corrupted and has been deleted."
-              );
-            }
-          });
+          };
 
           galaxy_achievements->log_all_achievements ();
 
@@ -747,8 +763,19 @@ namespace galaxy
         registrar->Register (stats_and_achievements.GetListenerType (), &stats_and_achievements);
 
        //stats->RequestUserTimePlayed                    (     );
-         SK_Galaxy_Stats_RequestUserStatsAndAchievements (stats);
+         ;
       );
+
+      if (need_stats_refresh && PathFileExistsW (global_stats_filename.c_str ()))
+      {   need_stats_refresh = false;
+        static int refresh_count = 0;
+
+        // Give up after a few tries...
+        if (++refresh_count < 4)
+        {
+          SK_Galaxy_Stats_RequestUserStatsAndAchievements (stats);
+        }
+      }
     }
 
     void

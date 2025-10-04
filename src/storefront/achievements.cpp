@@ -1719,6 +1719,11 @@ SK_AchievementManager::Achievement::Achievement ( int                  idx,
           }
         }
       }
+
+      else
+      {
+        throw (std::exception ());
+      }
     }
 
     catch (const std::exception& e)
@@ -1749,6 +1754,8 @@ SK_AchievementManager::Achievement::Achievement ( int                  idx,
       SK_LOGi0 (
         L"Global Achievement Stats JSON was corrupted and has been deleted."
       );
+
+      SK_Platform_DownloadGlobalAchievementStats ();
     }
   }
 }
