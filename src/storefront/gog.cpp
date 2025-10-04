@@ -641,8 +641,6 @@ namespace galaxy
             );
           }
 
-          int unlock_count = 0;
-
           if (! global_stats_loaded)
           {
             auto stats = gog->Stats ();
@@ -703,9 +701,6 @@ namespace galaxy
 
                       galaxy_achievements->possible++;
                       galaxy_achievements->addAchievement (galaxy_achievement);
-
-                      if (galaxy_achievement->unlocked_)
-                        unlock_count++;
                     }
                   }
                 }
@@ -739,6 +734,7 @@ namespace galaxy
             }
           };
 
+          int    unlock_count = 0;
           size_t num_achvs    = 0;
           auto   achievements = galaxy_achievements->getAchievements (&num_achvs);
 
