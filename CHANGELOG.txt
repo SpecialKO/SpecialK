@@ -1,4 +1,8 @@
-﻿25.10.4.2
+﻿25.10.4.3
+=========
+ + Fixed Steam-only crash in Silent Hill f.
+
+25.10.4.2
 =========
  + Recover from corrupted global achievement statistics JSON files without
      restarting the game.
