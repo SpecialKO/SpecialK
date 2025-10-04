@@ -3492,6 +3492,21 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       //                 * Also fix Steam Input in CAPCOM games
       if (frames_drawn > 15)
       {
+        static bool
+               init_gog = false;
+        if ((! init_gog) && (! config.platform.silent) &&
+                               config.platform.type._Equal (L"GOG"))
+        {
+          // Lazy Galaxy init. if we somehow missed DLL load events.
+          if (GetModuleHandleW (SK_RunLHIfBitness (64, L"Galaxy64.dll",
+                                                       L"Galaxy.dll")))
+          {
+            SK::Galaxy::Init ();
+
+            init_gog = true;
+          }
+        }
+
         void        SK_Input_EnumOpenHIDFiles (void);
         SK_RunOnce (SK_Input_EnumOpenHIDFiles ());
 

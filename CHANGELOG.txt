@@ -2,6 +2,8 @@
 =========
  + Handle breaking API change in GOG Galaxy API v 1.121.2+ for InitOptions.
  + Enable command console variables and commands for achievements in GOG games.
+ + Implement lazy initialization of GOG Galaxy backend if the game loads the
+     Galaxy DLL after SK is injected.
 
 25.10.4
 =======

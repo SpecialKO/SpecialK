@@ -1073,8 +1073,10 @@ SK::Galaxy::Init (void)
     gog_log->init (L"logs/galaxy.log", L"wt+,ccs=UTF-8");
     gog_log->silent = config.platform.silent;
 
-    gog_log->Log (L"Galaxy DLL.....: %p (%ws)", SK_LoadLibraryW (wszGalaxyDLLName), wszGalaxyDLLName);
     gog->PreInit (hModGalaxy);
+
+    gog_log->Log (L"Galaxy DLL.....: %p (%ws)", gog->GetGalaxyDLL (),
+                          SK_GetModuleFullName (gog->GetGalaxyDLL ()).c_str ());
 
     std::wstring ver_str =
       SK_GetDLLVersionShort (wszGalaxyDLLName);
