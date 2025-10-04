@@ -886,13 +886,6 @@ namespace galaxy
 
       if (instance != nullptr)
       {
-        //IStats*             pStats     = instance->GetStats             ();
-        //IUtils*             pUtils     = instance->GetUtils             ();
-        //IUser*              pUser      = instance->GetUser              ();
-        //IListenerRegistrar* pRegistrar = instance->GetListenerRegistrar ();
-
-        //gog->Init (pStats, pUtils, pUser, pRegistrar);
-
         GALAXY_VIRTUAL_HOOK ( &instance,      3,
                             "IGalaxy::Shutdown",
                              Shutdown_IGalaxy_Detour,
@@ -1108,18 +1101,19 @@ SK::Galaxy::Init (void)
     gog_log->silent = config.platform.silent;
 
     gog->PreInit (hModGalaxy);
-
-    gog_log->Log (L"Galaxy DLL.....: %p (%ws)", gog->GetGalaxyDLL (),
-                          SK_GetModuleFullName (gog->GetGalaxyDLL ()).c_str ());
+    gog_log->Log (
+      L"Galaxy DLL.....: %ws",
+        SK_GetModuleFullName (gog->GetGalaxyDLL ()).c_str ()
+    );
 
     std::wstring ver_str =
       SK_GetDLLVersionShort (wszGalaxyDLLName);
 
-    int major, minor, build, rev = 0;
+    int                                         major,  minor,  build,  rev = 0;
     swscanf (ver_str.c_str (), L"%d.%d.%d.%d", &major, &minor, &build, &rev);
 
     if (rev == 0)
-      gog_log->Log (L"Galaxy Version.: %d.%d.%d", major, minor, build);
+      gog_log->Log (L"Galaxy Version.: %d.%d.%d",    major, minor, build);
     else // This is never expected to be non-zero
       gog_log->Log (L"Galaxy Version.: %d.%d.%d.%d", major, minor, build, rev);
 
@@ -1293,15 +1287,6 @@ bool SK::Galaxy::overlay_state = false;
 LONGLONG
 SK::Galaxy::GetTicksRetired (void)
 {
-  //if (ReadAcquire64 (&galaxy::api::ticks) > 0)
-  //{ static auto
-  //      lastFrame  = SK_GetFramesDrawn ();
-  //  if (lastFrame != SK_GetFramesDrawn ())
-  //  {  galaxy::api::ProcessData_Detour ();
-  //      lastFrame  = SK_GetFramesDrawn ();
-  //  }
-  //}
-
   return
     ReadAcquire64 (&galaxy::api::ticks);
 }
@@ -1322,7 +1307,10 @@ SK_Galaxy_Stats_GetUserTimePlayed (galaxy::api::IStats* This)
 }
 
 void
-SK_Galaxy_Stats_GetAchievementNameCopy (galaxy::api::IStats* This, uint32_t index, char* buffer, uint32_t bufferLength)
+SK_Galaxy_Stats_GetAchievementNameCopy ( galaxy::api::IStats* This,
+                                                    uint32_t  index,
+                                                        char* buffer,
+                                                    uint32_t  bufferLength )
 {
   switch (gog->version)
   {
@@ -1337,7 +1325,11 @@ SK_Galaxy_Stats_GetAchievementNameCopy (galaxy::api::IStats* This, uint32_t inde
   }
 }
 void
-SK_Galaxy_Stats_GetAchievement (galaxy::api::IStats* This, const char* name, bool& unlocked, uint32_t& unlockTime, galaxy::api::GalaxyID userID)
+SK_Galaxy_Stats_GetAchievement ( galaxy::api::IStats* This,
+                                          const char* name,
+                                                bool& unlocked,
+                                            uint32_t& unlockTime,
+                               galaxy::api::GalaxyID  userID )
 {
   switch (gog->version)
   {
@@ -1352,7 +1344,10 @@ SK_Galaxy_Stats_GetAchievement (galaxy::api::IStats* This, const char* name, boo
 }
 
 void
-SK_Galaxy_Stats_GetAchievementDisplayNameCopy (galaxy::api::IStats* This, const char* name, char* buffer, uint32_t bufferLength)
+SK_Galaxy_Stats_GetAchievementDisplayNameCopy ( galaxy::api::IStats* This,
+                                                         const char* name,
+                                                               char* buffer,
+                                                           uint32_t  bufferLength )
 {
   switch (gog->version)
   {
@@ -1366,7 +1361,10 @@ SK_Galaxy_Stats_GetAchievementDisplayNameCopy (galaxy::api::IStats* This, const 
   }
 }
 void
-SK_Galaxy_Stats_GetAchievementDescriptionCopy (galaxy::api::IStats* This, const char* name, char* buffer, uint32_t bufferLength)
+SK_Galaxy_Stats_GetAchievementDescriptionCopy ( galaxy::api::IStats* This,
+                                                         const char* name,
+                                                               char* buffer,
+                                                           uint32_t  bufferLength )
 {
   switch (gog->version)
   {
@@ -1381,7 +1379,8 @@ SK_Galaxy_Stats_GetAchievementDescriptionCopy (galaxy::api::IStats* This, const 
 }
 
 bool
-SK_Galaxy_Stats_IsAchievementVisibleWhileLocked (galaxy::api::IStats* This, const char* name)
+SK_Galaxy_Stats_IsAchievementVisibleWhileLocked ( galaxy::api::IStats* This,
+                                                           const char* name )
 {
   switch (gog->version)
   {
@@ -1396,7 +1395,9 @@ SK_Galaxy_Stats_IsAchievementVisibleWhileLocked (galaxy::api::IStats* This, cons
 }
 
 void
-SK_Galaxy_Stats_RequestUserTimePlayed (galaxy::api::IStats* This, galaxy::api::GalaxyID userID, galaxy::api::IUserTimePlayedRetrieveListener*           const listener)
+SK_Galaxy_Stats_RequestUserTimePlayed ( galaxy::api::IStats*                                This,
+                                        galaxy::api::GalaxyID                               userID,
+                                        galaxy::api::IUserTimePlayedRetrieveListener* const listener )
 {
   switch (gog->version)
   {
@@ -1411,7 +1412,10 @@ SK_Galaxy_Stats_RequestUserTimePlayed (galaxy::api::IStats* This, galaxy::api::G
 }
 
 void
-SK_Galaxy_Stats_RequestUserStatsAndAchievements (galaxy::api::IStats* This, galaxy::api::GalaxyID userID, galaxy::api::IUserStatsAndAchievementsRetrieveListener* const listener)
+SK_Galaxy_Stats_RequestUserStatsAndAchievements (
+  galaxy::api::IStats*                                          This,
+  galaxy::api::GalaxyID                                         userID,
+  galaxy::api::IUserStatsAndAchievementsRetrieveListener* const listener )
 {
   switch (gog->version)
   {
@@ -1425,7 +1429,8 @@ SK_Galaxy_Stats_RequestUserStatsAndAchievements (galaxy::api::IStats* This, gala
   }
 }
 void
-SK_Galaxy_Stats_SetAchievement (galaxy::api::IStats* This, const char* name)
+SK_Galaxy_Stats_SetAchievement ( galaxy::api::IStats* This,
+                                          const char* name )
 {
   switch (gog->version)
   {
@@ -1440,7 +1445,8 @@ SK_Galaxy_Stats_SetAchievement (galaxy::api::IStats* This, const char* name)
 }
 
 void
-SK_Galaxy_Stats_ClearAchievement (galaxy::api::IStats* This, const char* name)
+SK_Galaxy_Stats_ClearAchievement ( galaxy::api::IStats* This,
+                                            const char* name )
 {
   switch (gog->version)
   {
@@ -1453,5 +1459,3 @@ SK_Galaxy_Stats_ClearAchievement (galaxy::api::IStats* This, const char* name)
       break;
   }
 }
-
-// TODO: Add hook on IGalaxy::ProcessData (...) here that increments __SK_Galaxy_Ticks
