@@ -106,6 +106,13 @@ public:
 
         if (achievement->time_ == 0)
             achievement->time_ = time (nullptr);
+
+        eos_achievements->total_unlocked++;
+        eos_achievements->percent_unlocked =
+          static_cast <float> (
+            static_cast <double> (eos_achievements->total_unlocked) /
+            static_cast <double> (SK_EOS_GetNumPossibleAchievements ())
+          );
       }
 
       popup.window      = nullptr;
