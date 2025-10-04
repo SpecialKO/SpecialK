@@ -6,6 +6,7 @@
     * There was another breaking change many years earlier, so achievement
         related functionality in SK still will not work in 32-bit GOG games
           or games using ancient GOG Galaxy SDK versions (pre-1.131).
+ + Added check for corrupted global achievement unlock statistics JSON file.
 
 25.10.3.1
 =========

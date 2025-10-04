@@ -1435,7 +1435,12 @@ namespace galaxy
         virtual void OnUserStatsAndAchievementsRetrieveSuccess (GalaxyID userID) final
         {
           if (userID != ((IUser_1_152_1 *)gog->User ())->GetGalaxyID ())
-            return;
+          {
+            gog_log->Log (
+              L"userID=%d does not match Stats and Achievements userID=%d",
+              userID.ToUint64 (), ((IUser_1_152_1 *)gog->User ())->GetGalaxyID ().ToUint64 ()
+            );
+          }
 
           static int unlock_count = 0;
 
@@ -1522,6 +1527,12 @@ namespace galaxy
 
               fclose (fGlobalStats);
                       fGlobalStats = nullptr;
+
+              DeleteFileW (global_stats_filename.c_str ());
+
+              gog_log->Log (
+                L"Global Achievement Stats JSON was corrupted and has been deleted."
+              );
             }
           });
 
@@ -1546,6 +1557,8 @@ namespace galaxy
         {
           std::ignore = userID;
           std::ignore = failureReason;
+
+          gog_log->Log (L"RequestUserStatsAndAchievements Failed=%x", failureReason);
         }
       } static stats_and_achievements;
 
@@ -1553,13 +1566,8 @@ namespace galaxy
       //registrar->Register (           time_played.GetListenerType (), &time_played);
         registrar->Register (stats_and_achievements.GetListenerType (), &stats_and_achievements);
 
-        std::ignore = stats;
-
-         IUser_1_152_1* user =
-        (IUser_1_152_1*)gog->User ();
-
-       //stats->RequestUserTimePlayed           (user->GetGalaxyID ());
-         SK_Galaxy_Stats_RequestUserStatsAndAchievements (stats, user->GetGalaxyID ());
+       //stats->RequestUserTimePlayed                    (     );
+         SK_Galaxy_Stats_RequestUserStatsAndAchievements (stats);
       );
     }
 

@@ -1743,6 +1743,12 @@ SK_AchievementManager::Achievement::Achievement ( int                  idx,
 
       fclose (fGlobalStats);
               fGlobalStats = nullptr;
+
+      DeleteFileW (global_stats_filename.c_str ());
+
+      SK_LOGi0 (
+        L"Global Achievement Stats JSON was corrupted and has been deleted."
+      );
     }
   }
 }
