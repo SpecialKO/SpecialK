@@ -949,7 +949,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     }
 
     // Avoid issues in OpenGL caused by GOG's overlay
-    else if (StrStrIW (compliant_path, L"overlay_mediator_") && (disable_platform_overlay || (SK_GetModuleHandleW (L"OpenGL32.dll") && config.apis.OpenGL.hook)))
+    else if (StrStrIW (compliant_path, L"overlay_mediator_") && (disable_platform_overlay/*|| (SK_GetModuleHandleW(L"OpenGL32.dll") && config.apis.OpenGL.hook)*/))
     {
       if (! disable_platform_overlay)
       {
