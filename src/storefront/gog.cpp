@@ -613,16 +613,16 @@ namespace galaxy
                                pAchievement->text_.unlocked.human_name.c_str (),
                                pAchievement->text_.unlocked.desc      .c_str () );
 
-              SK_Galaxy_Stats_RequestUserStatsAndAchievements (gog->Stats ());
-
-              galaxy_achievements->unlock (name);
-
               galaxy_achievements->total_unlocked++;
               galaxy_achievements->percent_unlocked =
                 static_cast <float> (
                   static_cast <double> (galaxy_achievements->total_unlocked) /
                   static_cast <double> (galaxy_achievements->possible)
                 );
+
+              SK_Galaxy_Stats_RequestUserStatsAndAchievements (gog->Stats ());
+
+              galaxy_achievements->unlock (name);
             }
           }
         }
@@ -738,7 +738,7 @@ namespace galaxy
           size_t num_achvs    = 0;
           auto   achievements = galaxy_achievements->getAchievements (&num_achvs);
 
-          for ( int i = 0 ; i < num_achvs ; ++i )
+          for ( size_t i = 0 ; i < num_achvs ; ++i )
           {
             auto galaxy_achievement =
               achievements [i];
