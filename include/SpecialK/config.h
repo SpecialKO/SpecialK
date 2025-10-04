@@ -815,6 +815,7 @@ struct sk_config_t
           float ms                 =  0.0f;
           float percent            =  0.5f;
         } auto_bias_target;
+        bool  skip_frames          =   true;
         bool  show_fcat_bars       =  false; // Not INI-persistent
 
         bool  flush_before_present  =  true;
