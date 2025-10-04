@@ -409,8 +409,11 @@
     <Filter Include="Header Files\Storefronts\Galaxy\1.152.1">
       <UniqueIdentifier>{fdf8fc77-0844-4c93-abf1-622d29bbef19}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Storefronts\Galaxy\1.152.11">
+    <Filter Include="Header Files\Storefronts\Galaxy\1.152.10">
       <UniqueIdentifier>{5dec9bb0-1440-458c-ad2c-bd5eb8535e2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Storefronts\Galaxy\1.121.2">
+      <UniqueIdentifier>{7c652af8-40e2-4350-a201-79c0b03ad2d5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3279,20 +3282,23 @@
     <ClInclude Include="depends\include\galaxy\IListenerRegistrar.h">
       <Filter>Header Files\Storefronts\Galaxy</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\galaxy\InitOptions.h">
-      <Filter>Header Files\Storefronts\Galaxy</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\galaxy\IStats.h">
       <Filter>Header Files\Storefronts\Galaxy</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\galaxy\IUtils.h">
       <Filter>Header Files\Storefronts\Galaxy</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\galaxy\1_152_11\IStats.h">
-      <Filter>Header Files\Storefronts\Galaxy\1.152.11</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\galaxy\1_152_1\IStats.h">
       <Filter>Header Files\Storefronts\Galaxy\1.152.1</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\1_152_10\IStats.h">
+      <Filter>Header Files\Storefronts\Galaxy\1.152.10</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\IUser.h">
+      <Filter>Header Files\Storefronts\Galaxy</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\galaxy\1_121_2\InitOptions.h">
+      <Filter>Header Files\Storefronts\Galaxy\1.121.2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -105,6 +105,7 @@ public:
   } user_names;
 
   enum versions {
+    Version_1_121_2,
     Version_1_152_1,
     Version_1_152_10
   } version = Version_1_152_1;

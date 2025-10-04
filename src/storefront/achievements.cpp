@@ -1623,7 +1623,7 @@ SK_AchievementManager::Achievement::Achievement ( int                           
 }
 
 #include <galaxy/IStats.h>
-#include <galaxy/1_152_11/IStats.h>
+#include <galaxy/1_152_10/IStats.h>
 #include <galaxy/1_152_1/IStats.h>
 
 SK_AchievementManager::Achievement::Achievement ( int                  idx,

@@ -1,8 +1,8 @@
 ﻿#ifndef GALAXY_INIT_OPTIONS_H
 #define GALAXY_INIT_OPTIONS_H
 
-#include "GalaxyAllocator.h"
-#include "GalaxyThread.h"
+#include "galaxy/GalaxyAllocator.h"
+#include "galaxy/GalaxyThread.h"
 
 #include "stdint.h"
 #include <cstddef>
@@ -11,9 +11,9 @@ namespace galaxy
 {
     namespace api
     {
-        struct InitOptions
+        struct InitOptions_1_121_2
         {
-            InitOptions(
+            InitOptions_1_121_2(
                 const char* _clientID,
                 const char* _clientSecret,
                 const char* _configFilePath = ".",

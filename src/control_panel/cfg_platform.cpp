@@ -164,7 +164,7 @@ SK::ControlPanel::Platform::Draw (void)
         {
           ImGui::TreePush ("");
           ImGui::BeginGroup ();
-
+          
           if (ImGui::Button (" Test Unlock "))
             bEpic ? SK_EOS_UnlockAchievement    (0) :
             bGOG  ? SK_Galaxy_UnlockAchievement (0) :
@@ -175,7 +175,7 @@ SK::ControlPanel::Platform::Draw (void)
 
           ImGui::SameLine ();
 
-          ImGui::Checkbox ("Play Sound ", &config.platform.achievements.play_sound);
+          ImGui::Checkbox (ICON_FA_MUSIC " Play Sound ", &config.platform.achievements.play_sound);
 
           if (config.platform.achievements.play_sound)
           {
@@ -276,7 +276,7 @@ SK::ControlPanel::Platform::Draw (void)
           ImGui::EndGroup ();
           ImGui::SameLine ();
 
-          ImGui::Checkbox ("Take Screenshot", &config.platform.achievements.take_screenshot);
+          ImGui::Checkbox (ICON_FA_CAMERA " Take Screenshot", &config.platform.achievements.take_screenshot);
 
           ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
           ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));

@@ -1,4 +1,9 @@
-﻿25.10.4
+﻿25.10.4.1
+=========
+ + Handle breaking API change in GOG Galaxy API v 1.121.2+ for InitOptions.
+ + Enable command console variables and commands for achievements in GOG games.
+
+25.10.4
 =======
  + Handle breaking API change in GOG Galaxy API v 1.152.10+ for the
      galaxy::api::IStats interface.
