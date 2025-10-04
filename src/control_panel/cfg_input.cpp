@@ -2584,7 +2584,6 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::TreePop  (  );
           }
           ImGui::EndGroup   ();
-          if (!compat_expanded)
           ImGui::SameLine   ();
           ImGui::BeginGroup ();
           if (ImGui::TreeNode ("Button Mapping"))

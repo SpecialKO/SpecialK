@@ -1488,6 +1488,15 @@ CreateFileA_Detour (LPCSTR                lpFileName,
                     DWORD                 dwFlagsAndAttributes,
                     HANDLE                hTemplateFile)
 {
+  // Allow SK to passthrough if it winds up calling the hooked API
+  if (SK_GetCallingDLL () == SK_GetDLL ())
+  {
+    return
+      CreateFileA_Original ( lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes,
+          hTemplateFile );
+  }
+
   SK_LOG_FIRST_CALL
 
   // hTemplateFile is unused for OPEN_EXISTING,
@@ -1614,6 +1623,14 @@ CreateFile2_Detour (
   _In_     DWORD                             dwCreationDisposition,
   _In_opt_ LPCREATEFILE2_EXTENDED_PARAMETERS pCreateExParams )
 {
+  // Allow SK to passthrough if it winds up calling the hooked API
+  if (SK_GetCallingDLL () == SK_GetDLL ())
+  {
+    return
+      CreateFile2_Original ( lpFileName, dwDesiredAccess, dwShareMode,
+        dwCreationDisposition, pCreateExParams );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (lpFileName == nullptr)
@@ -1722,6 +1739,15 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
                      DWORD                 dwFlagsAndAttributes,
                      HANDLE                hTemplateFile )
 {
+  // Allow SK to passthrough if it winds up calling the hooked API
+  if (SK_GetCallingDLL () == SK_GetDLL ())
+  {
+    return
+      CreateFileW_Original ( lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes,
+          hTemplateFile );
+  }
+
   SK_LOG_FIRST_CALL
 
   // hTemplateFile is unused for OPEN_EXISTING,
@@ -1843,6 +1869,14 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
                               DWORD        dwMilliseconds,
                               BOOL         bWait)
 {
+  // Allow SK to passthrough if it winds up calling the hooked API
+  if (SK_GetCallingDLL () == SK_GetDLL ())
+  {
+    return
+      GetOverlappedResultEx_Original ( hFile, lpOverlapped,
+        lpNumberOfBytesTransferred, dwMilliseconds, bWait );
+  }
+
   SK_LOG_FIRST_CALL
 
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
@@ -2012,6 +2046,14 @@ GetOverlappedResult_Detour (HANDLE       hFile,
                             LPDWORD      lpNumberOfBytesTransferred,
                             BOOL         bWait)
 {
+  // Allow SK to passthrough if it winds up calling the hooked API
+  if (SK_GetCallingDLL () == SK_GetDLL ())
+  {
+    return
+      GetOverlappedResult_Original ( hFile, lpOverlapped,
+        lpNumberOfBytesTransferred, bWait );
+  }
+
   SK_LOG_FIRST_CALL
 
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
@@ -3000,6 +3042,7 @@ SK_Input_HookHID (void)
     SK_CreateFile2           = CreateFile2_Original;
     SK_CreateFileW           = CreateFileW_Original;
     SK_ReadFile              = ReadFile_Original;
+    SK_WriteFile             = WriteFile_Original;
     SK_GetOverlappedResult   = GetOverlappedResult_Original;
     SK_GetOverlappedResultEx = GetOverlappedResultEx_Original;
 

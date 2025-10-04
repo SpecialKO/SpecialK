@@ -64,7 +64,8 @@ bool SK_HID_IsDisconnectedError (DWORD dwError)
 {
   return dwError == ERROR_INVALID_HANDLE ||
          dwError == ERROR_NO_SUCH_DEVICE ||
-         dwError == ERROR_DEVICE_NOT_CONNECTED;
+         dwError == ERROR_DEVICE_NOT_CONNECTED ||
+         dwError == ERROR_NOT_FOUND;
 }
 
 SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
@@ -1406,8 +1407,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
             //   get a device arrival notification.
             if (GetLastError () != NOERROR)
             {
-              // We have an event that will be signalled when the device reconnects...
-              if (dwLastErr != ERROR_DEVICE_NOT_CONNECTED)
+              // We have an event that will be signaled when the device reconnects...
+              if (dwLastErr != ERROR_DEVICE_NOT_CONNECTED &&
+                  dwLastErr != ERROR_NOT_FOUND)
               {
                 _com_error err (dwLastErr);
 
@@ -3407,10 +3409,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 {
                   if (dwLastErr != ERROR_IO_INCOMPLETE)
                   {
-                    if (dwLastErr != ERROR_NOT_READY      &&
-                        dwLastErr != WAIT_TIMEOUT         &&
-                        dwLastErr != ERROR_GEN_FAILURE    &&   // Happens during power-off
-                        dwLastErr != ERROR_OPERATION_ABORTED ) // Happens during power-off
+                    if (dwLastErr != ERROR_NOT_READY            &&
+                        dwLastErr != WAIT_TIMEOUT               &&
+                        dwLastErr != ERROR_DEVICE_NOT_CONNECTED &&
+                        dwLastErr != ERROR_GEN_FAILURE          && // Happens during power-off
+                        dwLastErr != ERROR_OPERATION_ABORTED )     // Happens during power-off
                     {
                       _com_error err (dwLastErr);
 
@@ -3425,9 +3428,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                     if (dwLastErr != ERROR_INVALID_HANDLE)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-                    if (dwLastErr == ERROR_GEN_FAILURE       || 
+                    if (dwLastErr == ERROR_GEN_FAILURE       ||
                         dwLastErr == ERROR_OPERATION_ABORTED ||
-                        dwLastErr == ERROR_INVALID_PARAMETER)
+                        dwLastErr == ERROR_INVALID_PARAMETER ||
+                        dwLastErr == ERROR_DEVICE_NOT_CONNECTED)
                     {
                       SK_SleepEx (333UL, TRUE);
                     }
