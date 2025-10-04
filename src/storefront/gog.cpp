@@ -641,7 +641,7 @@ namespace galaxy
             );
           }
 
-          static int unlock_count = 0;
+          int unlock_count = 0;
 
           if (! global_stats_loaded)
           {
@@ -738,6 +738,27 @@ namespace galaxy
               }
             }
           };
+
+          size_t num_achvs    = 0;
+          auto   achievements = galaxy_achievements->getAchievements (&num_achvs);
+
+          for ( int i = 0 ; i < num_achvs ; ++i )
+          {
+            auto galaxy_achievement =
+              achievements [i];
+
+            uint32_t time;
+            SK_Galaxy_Stats_GetAchievement ( gog->Stats (),
+              galaxy_achievement->name_.c_str (),
+              galaxy_achievement->unlocked_,
+              time
+            );
+
+            if (galaxy_achievement->unlocked_) {
+                galaxy_achievement->time_ = time;
+                unlock_count++;
+            }
+          }
 
           galaxy_achievements->log_all_achievements ();
 
