@@ -1,4 +1,10 @@
-﻿25.10.4.1
+﻿25.10.4.2
+=========
+ + Recover from corrupted global achievement statistics JSON files without
+     restarting the game.
+ + Correctly update total unlock % in GOG games after unlocking an achievement.
+
+25.10.4.1
 =========
  + Fixed "Block HID" option for gamepad input also blocking SK's usage of HID.
  + Handle breaking API change in GOG Galaxy API v 1.121.2+ for InitOptions.

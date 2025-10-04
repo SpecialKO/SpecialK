@@ -616,6 +616,13 @@ namespace galaxy
               SK_Galaxy_Stats_RequestUserStatsAndAchievements (gog->Stats ());
 
               galaxy_achievements->unlock (name);
+
+              galaxy_achievements->total_unlocked++;
+              galaxy_achievements->percent_unlocked =
+                static_cast <float> (
+                  static_cast <double> (galaxy_achievements->total_unlocked) /
+                  static_cast <double> (galaxy_achievements->possible)
+                );
             }
           }
         }
