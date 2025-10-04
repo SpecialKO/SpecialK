@@ -766,14 +766,21 @@ namespace galaxy
          ;
       );
 
-      if (need_stats_refresh && PathFileExistsW (global_stats_filename.c_str ()))
-      {   need_stats_refresh = false;
-        static int refresh_count = 0;
+      // Attempt to auto-recover from errors, but throttle any attempt to do so
+      //   in order to avoid runaway filesystem checks for the JSON file.
+      static DWORD
+          dwLastChecked = 0;
+      if (dwLastChecked < SK::ControlPanel::current_time - 500UL)
+      {   dwLastChecked = SK::ControlPanel::current_time;
+        if (need_stats_refresh && PathFileExistsW (global_stats_filename.c_str ()))
+        {   need_stats_refresh = false;
+          static int refresh_count = 0;
 
-        // Give up after a few tries...
-        if (++refresh_count < 4)
-        {
-          SK_Galaxy_Stats_RequestUserStatsAndAchievements (stats);
+          // Give up after a few tries...
+          if (++refresh_count < 4)
+          {
+            SK_Galaxy_Stats_RequestUserStatsAndAchievements (stats);
+          }
         }
       }
     }
