@@ -760,17 +760,18 @@ SK_Galaxy_User_SignedIn (galaxy::api::IUser* This)
       default:
       case SK_GalaxyContext::Version_1_151_0:
         return ((galaxy::api::IUser_1_151_0*)This)->SignedIn ();
-        break;
+
       case SK_GalaxyContext::Version_1_152_1:
         return ((galaxy::api::IUser_1_152_1*)This)->SignedIn ();
-        break;
+
       case SK_GalaxyContext::Version_1_152_10:
         return ((galaxy::api::IUser_1_152_10*)This)->SignedIn ();
-        break;
     }
   } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
                                      EXCEPTION_EXECUTE_HANDLER  :
                                      EXCEPTION_CONTINUE_SEARCH ){}
+
+  return false;
 }
 
 bool
@@ -789,17 +790,18 @@ SK_Galaxy_User_IsLoggedOn (galaxy::api::IUser* This)
       default:
       case SK_GalaxyContext::Version_1_151_0:
         return ((galaxy::api::IUser_1_151_0*)This)->IsLoggedOn ();
-        break;
+
       case SK_GalaxyContext::Version_1_152_1:
         return ((galaxy::api::IUser_1_152_1*)This)->IsLoggedOn ();
-        break;
+
       case SK_GalaxyContext::Version_1_152_10:
         return ((galaxy::api::IUser_1_152_10*)This)->IsLoggedOn ();
-        break;
     }
   } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
                                      EXCEPTION_EXECUTE_HANDLER  :
                                      EXCEPTION_CONTINUE_SEARCH ){}
+
+  return false;
 }
 
 void
@@ -1724,14 +1726,15 @@ SK_Galaxy_Stats_GetUserTimePlayed (galaxy::api::IStats* This)
       default:
       case SK_GalaxyContext::Version_1_152_1:
         return ((galaxy::api::IStats_1_152_1 *)This)->GetUserTimePlayed ();
-        break;
+
       case SK_GalaxyContext::Version_1_152_10:
         return ((galaxy::api::IStats_1_152_10*)This)->GetUserTimePlayed ();
-        break;
     }
   } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
                                      EXCEPTION_EXECUTE_HANDLER  :
                                      EXCEPTION_CONTINUE_SEARCH ){}
+
+  return 0;
 }
 
 void
@@ -1755,6 +1758,7 @@ SK_Galaxy_Stats_GetAchievementNameCopy ( galaxy::api::IStats* This,
         // Not Implemented
         //((galaxy::api::IStats_1_152_1 *)This)->GetAchievementNameCopy (index, buffer, bufferLength);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10 *)This)->GetAchievementNameCopy (index, buffer, bufferLength);
         break;
@@ -1784,6 +1788,7 @@ SK_Galaxy_Stats_GetAchievement ( galaxy::api::IStats* This,
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->GetAchievement (name, unlocked, unlockTime, userID);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->GetAchievement (name, unlocked, unlockTime, userID);
         break;
@@ -1813,6 +1818,7 @@ SK_Galaxy_Stats_GetAchievementDisplayNameCopy ( galaxy::api::IStats* This,
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->GetAchievementDisplayNameCopy (name, buffer, bufferLength);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->GetAchievementDisplayNameCopy (name, buffer, bufferLength);
         break;
@@ -1841,6 +1847,7 @@ SK_Galaxy_Stats_GetAchievementDescriptionCopy ( galaxy::api::IStats* This,
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->GetAchievementDescriptionCopy (name, buffer, bufferLength);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->GetAchievementDescriptionCopy (name, buffer, bufferLength);
         break;
@@ -1867,14 +1874,15 @@ SK_Galaxy_Stats_IsAchievementVisibleWhileLocked ( galaxy::api::IStats* This,
       default:
       case SK_GalaxyContext::Version_1_152_1:
         return ((galaxy::api::IStats_1_152_1 *)This)->IsAchievementVisibleWhileLocked (name);
-        break;
+
       case SK_GalaxyContext::Version_1_152_10:
         return ((galaxy::api::IStats_1_152_10*)This)->IsAchievementVisibleWhileLocked (name);
-        break;
     }
   } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
                                      EXCEPTION_EXECUTE_HANDLER  :
                                      EXCEPTION_CONTINUE_SEARCH ){}
+
+  return false;
 }
 
 void
@@ -1896,6 +1904,7 @@ SK_Galaxy_Stats_RequestUserTimePlayed ( galaxy::api::IStats*                    
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->RequestUserTimePlayed (userID, listener);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->RequestUserTimePlayed (userID, listener);
         break;
@@ -1929,6 +1938,7 @@ SK_Galaxy_Stats_RequestUserStatsAndAchievements (
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->RequestUserStatsAndAchievements (userID, listener);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->RequestUserStatsAndAchievements (userID, listener);
         break;
@@ -1965,6 +1975,7 @@ SK_Galaxy_Stats_StoreStatsAndAchievements ( galaxy::api::IStats*       This,
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->StoreStatsAndAchievements (listener);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->StoreStatsAndAchievements (listener);
         break;
@@ -1992,6 +2003,7 @@ SK_Galaxy_Stats_SetAchievement ( galaxy::api::IStats* This,
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->SetAchievement (name);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->SetAchievement (name);
         break;
@@ -2033,6 +2045,7 @@ SK_Galaxy_Stats_ClearAchievement ( galaxy::api::IStats* This,
       case SK_GalaxyContext::Version_1_152_1:
         ((galaxy::api::IStats_1_152_1 *)This)->ClearAchievement (name);
         break;
+
       case SK_GalaxyContext::Version_1_152_10:
         ((galaxy::api::IStats_1_152_10*)This)->ClearAchievement (name);
         break;
