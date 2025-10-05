@@ -1160,21 +1160,18 @@ SK_HID_ProcessGamepadButtonBindings (void)
                                           WM_KEYUP : WM_KEYDOWN, VirtualKey, 0);
         }
 
-        else
-        {
-          const UINT bScancode =
-            MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
+        const UINT bScancode =
+          MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
 
-          const DWORD dwFlags =
-            ( ( bScancode & 0xE0 ) == 0   ?
-                static_cast <DWORD> (0x0) :
-                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
-                       ( bReleased ? KEYEVENTF_KEYUP
-                                   : 0x0 );
+        const DWORD dwFlags =
+          ( ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
+                     ( bReleased ? KEYEVENTF_KEYUP
+                                 : 0x0 );
 
-          SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
-                          sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
-        }
+        SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
+                        sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
 
         binding.lastFrame = binding.thisFrame;
       }
