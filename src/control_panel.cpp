@@ -45,6 +45,7 @@
 #include <SpecialK/control_panel/window.h>
 
 #include <SpecialK/storefront/epic.h>
+#include <SpecialK/storefront/gog.h>
 
 #include <SpecialK/nvapi.h>
 
@@ -4546,10 +4547,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         {
 #if 0
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discourse Forums", &selected, true))
-            SK_SteamOverlay_GoToURL ("https://discourse.differentk.fyi/", true);
+            SK_PlatformOverlay_GoToURL ("https://discourse.differentk.fyi/", true);
 #else
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discord Server", &selected, true))
-            SK_SteamOverlay_GoToURL ("https://discord.gg/SpecialK", true);
+            SK_PlatformOverlay_GoToURL ("https://discord.gg/SpecialK", true);
 #endif
         }
         ImGui::TreePop ();
@@ -4560,7 +4561,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         {
           if (ImGui::MenuItem ( "Recurring Donation + Perks", "Become a Patron", &selected ))
           {
-            SK_SteamOverlay_GoToURL (
+            SK_PlatformOverlay_GoToURL (
                 "https://www.patreon.com/bePatron?u=33423623", true
             );
           }
@@ -4591,7 +4592,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
           if (ImGui::MenuItem ( "One-Time Donation", "Donate with PayPal", &selected ))
           {
-            SK_SteamOverlay_GoToURL (
+            SK_PlatformOverlay_GoToURL (
                 "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8A7FSUFJ6KB2U", true
             );
           }
@@ -4601,7 +4602,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         if (ImGui::MenuItem ( "Documentation", "Official Wiki", &selected ))
         {
-          SK_SteamOverlay_GoToURL (
+          SK_PlatformOverlay_GoToURL (
               "https://wiki.special-k.info", true
           );
         }
@@ -4613,7 +4614,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                              )
            )
         {
-          SK_SteamOverlay_GoToURL ("https://discord.gg/specialk",
+          SK_PlatformOverlay_GoToURL ("https://discord.gg/specialk",
               true
           );
         }
@@ -4642,7 +4643,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         {
           if (ImGui::MenuItem ( "Check PCGamingWiki for this Game", "Third-Party Site", &selected ))
           {
-            SK_SteamOverlay_GoToURL (
+            SK_PlatformOverlay_GoToURL (
                 ((0 < config.steam.appid && config.steam.appid <= INT32_MAX)
                   ? SK_FormatString (
                       "https://pcgamingwiki.com/api/appid.php?appid=%lu",
@@ -7593,7 +7594,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     }
 
     const bool bHasPlatformIntegration =
-      SK::EOS::UserID () != 0 || SK::SteamAPI::UserSteamID ().ConvertToUint64 () != 0;
+      SK::EOS::UserID () != 0 || SK::SteamAPI::UserSteamID ().ConvertToUint64 () != 0 ||
+                                   SK::Galaxy::UserID      ().       ToUint64 () != 0;
 
     if (bHasPlatformIntegration)
     {
@@ -7770,7 +7772,13 @@ SK_Platform_GetUserName (char* pszName, int max_len = 512)
   if (*pszName != L'\0')
     return;
 
-  if (SK::SteamAPI::AppID () != 0)
+  if (! SK::Galaxy::PlayerNickname ().empty ())
+  {
+    strncpy_s (pszName,                               max_len,
+               SK::Galaxy::PlayerNickname ().data (), _TRUNCATE);
+  }
+
+  else if (SK::SteamAPI::AppID () != 0)
   {
     if (SK_SteamAPI_Friends () != nullptr)
     {

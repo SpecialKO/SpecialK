@@ -475,6 +475,7 @@ SK_AchievementManager* SK_EOS_GetAchievementManager (void)
 void SK_EOS_IncAchievementStat (int idx) { if (eos_achievements->IngestStat != nullptr) eos_achievements->inc_achievement   (idx); }
 void SK_EOS_DecAchievementStat (int idx) { if (eos_achievements->IngestStat != nullptr) eos_achievements->dec_achievement   (idx); }
 void SK_EOS_ClearAchievement   (int idx) { if (eos_achievements->IngestStat != nullptr) eos_achievements->clear_achievement (idx); }
+void SK_EOS_UnlockAchievement  (int idx) { std::ignore = idx; /* Not Implemented Yet */ }
 
 EOS_UI_AddNotifyDisplaySettingsUpdated_pfn                      SK_EOS_OverlayManager::AddNotifyDisplaySettingsUpdated_Original       = nullptr;
 EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn                   SK_EOS_OverlayManager::RemoveNotifyDisplaySettingsUpdated_Original    = nullptr;

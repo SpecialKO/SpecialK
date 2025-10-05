@@ -32,8 +32,9 @@ bool SK_Platform_GetOverlayState (bool real)
   using namespace SK;
 
   bool state =
-    ((SteamAPI::AppID () != 0      ) ? SteamAPI::GetOverlayState (real) : false) ||
-    ((    EOS::UserID () != nullptr) ?      EOS::GetOverlayState (real) : false);
+    ((SteamAPI::AppID () != 0       ) ? SteamAPI::GetOverlayState (real) : false) ||
+    ((    EOS::UserID () != nullptr ) ?      EOS::GetOverlayState (real) : false) ||
+    ((Galaxy::GetTicksRetired () > 0) ?   Galaxy::GetOverlayState (real) : false);
 
   if (! state)
   {
@@ -52,8 +53,8 @@ bool SK_Platform_SetOverlayState (bool active)
 
   if (SteamAPI::AppID () != 0      ) SteamAPI::SetOverlayState (active);
   if (    EOS::UserID () != nullptr)      EOS::SetOverlayState (active);
-  // Not implemented yet
-//if (Galaxy::GetTicksRetired () >0)   Galaxy::SetOverlayState (active);
+  // Not fully implemented yet
+  if (Galaxy::GetTicksRetired () >0)   Galaxy::SetOverlayState (active);
 
   return previous;
 }
@@ -104,7 +105,10 @@ SK_AchievementManager* SK_Galaxy_GetAchievementManager (void);
 SK_AchievementManager*
 SK_Platform_GetAchievementManager (void)
 {
-  SK_AchievementManager* pMgr = nullptr;
+  static SK_AchievementManager*
+           pMgr  = nullptr;
+  if (     pMgr != nullptr)
+    return pMgr;
 
   if (SK::SteamAPI::GetCallbacksRun () > 0 && SK::SteamAPI::AppID () > 0)
       pMgr = SK_Steam_GetAchievementManager ();

@@ -46,4 +46,6 @@ int32_t SK_Platform_GetNumPlayers (void);
 
 SK_AchievementManager* SK_Platform_GetAchievementManager (void);
 
+bool SK_PlatformOverlay_GoToURL (const char* szURL, bool bUseWindowsShellIfOverlayFails = false);
+
 #endif /* __SK__CPL_PLATFORM_H__ */

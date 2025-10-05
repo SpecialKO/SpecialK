@@ -1,4 +1,13 @@
-﻿25.10.4.3
+﻿25.10.5
+=======
+ + Deactivate Special K's overlay while the GOG overlay is active.
+ + Added secret cheat mode to allow unlocking achievements on Steam/GOG; see
+     the source code if you want to know more about Galaxy Achievement Manager.
+
+    * This mode is disabled for Epic Games Store, because the EOS API has no
+        way to reset an achievement after it has been unlocked :-\
+
+25.10.4.3
 =========
  + Fixed Steam-only crash in Silent Hill f.
 

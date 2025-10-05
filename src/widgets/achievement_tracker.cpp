@@ -23,6 +23,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <imgui/font_awesome.h>
+#include <storefront/gog.h>
 
 #define __SK_SUBSYSTEM__ "   Test   "
 
@@ -788,6 +789,11 @@ public:
       config.utility.save_async (           );
     }
 
+    if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+    {
+      cheat_mode = true;
+    }
+
     ImGui::SetItemTooltip (
       "Shows achievements that the developer has marked "
       "hidden until unlocked."
@@ -845,6 +851,7 @@ public:
   }
 
 private:
+  bool  cheat_mode  = false;
   DWORD last_update = 0UL;
 
   bool Selectable (const char* label)
@@ -881,7 +888,7 @@ private:
               state.human_name.c_str (), SK_GetFriendlyAppName ().c_str ()
           );
 
-        SK_SteamOverlay_GoToURL (url.c_str (), true);
+        SK_PlatformOverlay_GoToURL (url.c_str (), true);
       }
     }
 
@@ -904,24 +911,51 @@ private:
     }
     ImGui::EndGroup ();
 
-    static int  achievement_ctx =     0;
-    static bool confirming      = false;
+    //
+    // Special Right-Click Context Menu for Unlocking/Resetting Achievements
+    //
+    //   * Not offered on Epic, since there is no API to Reset Achievements.
+    //
+    struct {
+      const char* label    = "";
+      int  achievement_ctx =     0;
+      bool confirming      = false;
+    } static locked_popup { "AchievementCtxMenu_Locked"   },
+           unlocked_popup { "AchievementCtxMenu_Unlocked" };
 
-    if (achievement->unlocked_)
+    if ( SK::SteamAPI::GetCallbacksRun () > 0 ||
+         SK::  Galaxy::GetTicksRetired () > 0 )
     {
       if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
       {
-        achievement_ctx = achievement->idx_;
+        if (achievement->unlocked_)
+        {
+          unlocked_popup.achievement_ctx = achievement->idx_;
 
-        ImGui::OpenPopup ("AchievementCtxMenu");
+          ImGui::OpenPopup (unlocked_popup.label);
+        }
+
+        // Do not expose the ability to unlock arbitrary achievements
+        //   by default; it is intended for debugging, not cheating.
+        else if (cheat_mode)
+        {
+          locked_popup.achievement_ctx = achievement->idx_;
+
+          ImGui::OpenPopup (locked_popup.label);
+        }
       }
     }
 
-    if (achievement->idx_ == achievement_ctx)
+    void SK_Steam_UnlockAchievement  (const char* szName);
+    void SK_Steam_ClearAchievement   (const char* szName);
+    void SK_Galaxy_UnlockAchievement (const char* szName);
+    void SK_Galaxy_ClearAchievement  (const char* szName);
+
+    if (achievement->idx_ == unlocked_popup.achievement_ctx)
     {
-      if (ImGui::BeginPopup ("AchievementCtxMenu"))
+      if (ImGui::BeginPopup (unlocked_popup.label))
       {
-        if (confirming)
+        if (unlocked_popup.confirming)
         {
           static const char* szConfirm    = " Confirm Reset? ";
           static const char* szDisclaimer =
@@ -936,22 +970,18 @@ private:
 
           if (ImGui::Button  ("Okay"))
           {
-            confirming = false;
+            unlocked_popup.confirming = false;
             ImGui::CloseCurrentPopup ();
 
-            void SK_Steam_ClearAchievement (const char* szName);
-                 SK_Steam_ClearAchievement (achievement->name_.c_str ());
-
-            // This does not work, Epic unlocks are permanent.
-            void SK_EOS_ClearAchievement   (int idx);
-                 SK_EOS_ClearAchievement   (achievement->idx_);
+            SK_Steam_ClearAchievement  (achievement->name_.c_str ());
+            SK_Galaxy_ClearAchievement (achievement->name_.c_str ());
           }
 
           ImGui::SameLine    ();
 
           if (ImGui::Button  ("Cancel"))
           {
-            confirming = false;
+            unlocked_popup.confirming = false;
           }
 
           ImGui::SameLine        ();
@@ -962,11 +992,63 @@ private:
         {
           if (ImGui::Button ("Reset Achievement"))
           {
-            confirming = true;
+            unlocked_popup.confirming = true;
           }
 
           ImGui::SameLine        ();
           ImGui::TextUnformatted (achievement->text_.unlocked.human_name.c_str ());
+        }
+
+        ImGui::EndPopup ();
+      }
+    }
+
+    if (achievement->idx_ == locked_popup.achievement_ctx)
+    {
+      if (ImGui::BeginPopup (locked_popup.label))
+      {
+        if (locked_popup.confirming)
+        {
+          static const char* szConfirm    = " Confirm Unlock? ";
+          static const char* szDisclaimer =
+            "\n You can reset it after unlocking, usually with no negative consequences. \n\n";
+
+          ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
+          ImGui::Separator   ();
+          ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs", szConfirm);
+          ImGui::SameLine    ();
+          ImGui::Spacing     ();
+          ImGui::SameLine    ();
+
+          if (ImGui::Button  ("Okay"))
+          {
+            locked_popup.confirming = false;
+            ImGui::CloseCurrentPopup ();
+
+            SK_Steam_UnlockAchievement  (achievement->name_.c_str ());
+            SK_Galaxy_UnlockAchievement (achievement->name_.c_str ());
+          }
+
+          ImGui::SameLine    ();
+
+          if (ImGui::Button  ("Cancel"))
+          {
+            locked_popup.confirming = false;
+          }
+
+          ImGui::SameLine        ();
+          ImGui::TextUnformatted (achievement->text_.locked.human_name.c_str ());
+        }
+
+        else
+        {
+          if (ImGui::Button ("Unlock Achievement"))
+          {
+            locked_popup.confirming = true;
+          }
+
+          ImGui::SameLine        ();
+          ImGui::TextUnformatted (achievement->text_.locked.human_name.c_str ());
         }
 
         ImGui::EndPopup ();
