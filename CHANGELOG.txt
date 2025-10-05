@@ -1,4 +1,11 @@
-﻿25.10.5.5
+﻿25.10.6
+=======
+ + Added more details to SK's control panel in GOG games that use Galaxy;
+     * Total time played, Sign-In (local) and Online (network) status.
+ + Added a passthrough codepath if SK's WriteFile hook is ever accidentally
+     called by SK (HID device files only).
+
+25.10.5.5
 =========
  + Improved handling of PlayStation special buttons (i.e. Paddle/Macro/Touchpad)
      in SDL games when binding the buttons to keyboard input.

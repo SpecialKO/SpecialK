@@ -113,12 +113,6 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
 {
   if (SK::Galaxy::GetTicksRetired () > 0)
   {
-    //const float fLineHt =
-    //  ImGui::GetTextLineHeightWithSpacing () *
-    //  ImGui::GetFontSize ();
-
-    //ImGui::SetNextWindowSize (ImVec2 (-0.5f, fLineHt));
-
     ImGui::BeginGroup (   );
     ImGui::Separator  (   );
 

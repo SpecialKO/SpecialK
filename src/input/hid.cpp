@@ -917,8 +917,8 @@ WriteFile_Detour (HANDLE       hFile,
   {
     return
       WriteFile_Original (
-            hFile, lpBuffer, nNumberOfBytesToWrite,
-              lpNumberOfBytesWritten, lpOverlapped
+          hFile, lpBuffer, nNumberOfBytesToWrite,
+            lpNumberOfBytesWritten, lpOverlapped
       );
   }
 
@@ -931,6 +931,16 @@ WriteFile_Detour (HANDLE       hFile,
     {
       case SK_Input_DeviceFileType::HID:
       {
+        // Allow SK to passthrough if it winds up calling the hooked API
+        if (SK_GetCallingDLL () == SK_GetDLL ())
+        {
+          return
+            WriteFile_Original (
+                hFile, lpBuffer, nNumberOfBytesToWrite,
+                  lpNumberOfBytesWritten, lpOverlapped
+            );
+        }
+
         if (config.input.gamepad.disable_hid)
         {
           SetLastError (ERROR_DEVICE_NOT_CONNECTED);
@@ -1015,8 +1025,8 @@ ReadFile_Detour (HANDLE       hFile,
   {
     return
       ReadFile_Original (
-            hFile, lpBuffer, nNumberOfBytesToRead,
-              lpNumberOfBytesRead, lpOverlapped
+         hFile, lpBuffer, nNumberOfBytesToRead,
+           lpNumberOfBytesRead, lpOverlapped
       );
   }
 
@@ -1034,8 +1044,8 @@ ReadFile_Detour (HANDLE       hFile,
         {
           return
             ReadFile_Original (
-              hFile, lpBuffer, nNumberOfBytesToRead,
-                lpNumberOfBytesRead, lpOverlapped );
+               hFile, lpBuffer, nNumberOfBytesToRead,
+                 lpNumberOfBytesRead, lpOverlapped );
         }
 
         if (((SK_HID_DeviceFile *)dev_ptr)->device_vid == SK_HID_VID_SONY)
@@ -1100,8 +1110,8 @@ ReadFile_Detour (HANDLE       hFile,
 
         BOOL bRet =
           ReadFile_Original (
-            hFile, pBuffer, nNumberOfBytesToRead,
-              lpNumberOfBytesRead, lpOverlapped
+             hFile, pBuffer, nNumberOfBytesToRead,
+               lpNumberOfBytesRead, lpOverlapped
           );
 
         if (lpOverlapped != nullptr && bRet)
@@ -1338,8 +1348,8 @@ ReadFile_Detour (HANDLE       hFile,
 
   return
     ReadFile_Original (
-      hFile, lpBuffer, nNumberOfBytesToRead,
-        lpNumberOfBytesRead, lpOverlapped );
+       hFile, lpBuffer, nNumberOfBytesToRead,
+         lpNumberOfBytesRead, lpOverlapped );
 }
 
 static
@@ -1355,8 +1365,8 @@ ReadFileEx_Detour (HANDLE                          hFile,
 
   BOOL bRet =
     ReadFileEx_Original (
-      hFile, lpBuffer, nNumberOfBytesToRead,
-        lpOverlapped, lpCompletionRoutine
+       hFile, lpBuffer, nNumberOfBytesToRead,
+         lpOverlapped, lpCompletionRoutine
     );
 
   // Early-out
