@@ -53,12 +53,7 @@ SK::ControlPanel::Galaxy::Draw (void)
         config.utility.save_async_if (restart_required);
       }
 
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip    ();
-        ImGui::TextUnformatted ("Turns off almost all Galaxy-related features");
-        ImGui::EndTooltip      ();
-      }
+      ImGui::SetItemTooltip ("Turns off almost all Galaxy-related features");
 
       if (ImGui::Checkbox (" Prevent Overlay From Drawing  ",    &config.steam.disable_overlay))
       {
