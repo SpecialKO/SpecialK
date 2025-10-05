@@ -90,19 +90,6 @@ SK::ControlPanel::Galaxy::Draw (void)
         ImGui::EndGroup    ();
       }
 
-      ImGui::TextUnformatted ("Galaxy Services:  ");
-      ImGui::SameLine        ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsSignedIn () ? ImVec4 (0.f, 1.f, 0.f, 1.f)
-                                                                       : ImVec4 (1.f, 0.f, 0.f, 1.f));
-      ImGui::TextUnformatted ( SK::Galaxy::IsSignedIn () ? "Signed In"
-                                                         : "Not Signed In" );
-      ImGui::SameLine        ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsLoggedOn () ? ImVec4 (1.f, 1.f, 1.f, 1.f)
-                                                                       : ImVec4 (.5f, .5f, .5f, 1.f));
-      ImGui::TextUnformatted ( SK::Galaxy::IsLoggedOn () ? " (Online)"
-                                                         : " (Offline)" );
-      ImGui::PopStyleColor   (2);
-
       if (restart_required)
       {
         ImGui::SameLine       ();
@@ -152,12 +139,26 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
       ImGui::NextColumn (   );
     }
 
+    ImGui::TextUnformatted ("Galaxy Services:  ");
+    ImGui::SameLine        ();
+    ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsSignedIn () ? ImVec4 (0.f, 1.f, 0.f, 1.f)
+                                                                     : ImVec4 (1.f, 0.f, 0.f, 1.f));
+    ImGui::TextUnformatted ( SK::Galaxy::IsSignedIn () ? "Signed In"
+                                                       : "Not Signed In" );
+    ImGui::SameLine        ();
+    ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsLoggedOn () ? ImVec4 (1.f, 1.f, 1.f, 1.f)
+                                                                     : ImVec4 (.5f, .5f, .5f, 1.f));
+    ImGui::TextUnformatted ( SK::Galaxy::IsLoggedOn () ? " (Online)  "
+                                                       : " (Offline)  " );
+    ImGui::PopStyleColor   (2);
+
+    ImGui::SameLine   ();
     ImGui::Bullet     ();   ImGui::SameLine ();
 
     bool pause =
       SK_Platform_GetOverlayState (false);
 
-    if ( ImGui::Selectable ( "GOG Galaxy Tick", &pause) &&
+    if ( ImGui::Selectable ( "Tick", &pause) &&
                              SK_Platform_IsOverlayAware () )
     {
       SK_Platform_SetOverlayState (pause);
