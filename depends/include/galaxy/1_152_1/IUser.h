@@ -1,337 +1,26 @@
-﻿#ifndef GALAXY_I_USER_H
-#define GALAXY_I_USER_H
+﻿#ifndef GALAXY_I_USER_1_152_1_H
+#define GALAXY_I_USER_1_152_1_H
 
 /**
  * @file
  * Contains data structures and interfaces related to user account.
  */
 
-#include "GalaxyID.h"
-#include "IListenerRegistrar.h"
+#include "galaxy/GalaxyID.h"
+#include "galaxy/IListenerRegistrar.h"
 
 namespace galaxy
 {
   namespace api
   {
     /**
-     * @addtogroup api
-     * @{
-     */
-
-    /**
-     * The ID of the session.
-     */
-    typedef uint64_t SessionID;
-
-    /**
-     * Listener for the events related to user authentication.
-     */
-    class IAuthListener : public GalaxyTypeAwareListener<AUTH>
-    {
-    public:
-
-      /**
-       * Notification for the event of successful sign in.
-       */
-      virtual void OnAuthSuccess() = 0;
-
-      /**
-       * Reason of authentication failure.
-       */
-      enum FailureReason
-      {
-        FAILURE_REASON_UNDEFINED, ///< Undefined error.
-        FAILURE_REASON_GALAXY_SERVICE_NOT_AVAILABLE, ///< Galaxy Service is not installed properly or fails to start.
-        FAILURE_REASON_GALAXY_SERVICE_NOT_SIGNED_IN, ///< Galaxy Service is not signed in properly.
-        FAILURE_REASON_CONNECTION_FAILURE, ///< Unable to communicate with backend services.
-        FAILURE_REASON_NO_LICENSE, ///< User that is being signed in has no license for this application.
-        FAILURE_REASON_INVALID_CREDENTIALS, ///< Unable to match client credentials (ID, secret) or user credentials (username, password).
-        FAILURE_REASON_GALAXY_NOT_INITIALIZED, ///< Galaxy has not been initialized.
-        FAILURE_REASON_EXTERNAL_SERVICE_FAILURE ///< Unable to communicate with external service.
-      };
-
-      /**
-       * Notification for the event of unsuccessful sign in.
-       *
-       * @param [in] failureReason The cause of the failure.
-       */
-      virtual void OnAuthFailure(FailureReason failureReason) = 0;
-
-      /**
-       * Notification for the event of loosing authentication.
-       *
-       * @remark Might occur any time after successfully signing in.
-       */
-      virtual void OnAuthLost() = 0;
-    };
-
-    /**
-     * Globally self-registering version of IAuthListener.
-     */
-    typedef SelfRegisteringListener<IAuthListener> GlobalAuthListener;
-
-    /**
-     * Globally self-registering version of IAuthListener for the Game Server.
-     */
-    typedef SelfRegisteringListener<IAuthListener, GameServerListenerRegistrar> GameServerGlobalAuthListener;
-
-    /**
-     * Listener for the events related to starting of other sessions.
-     */
-    class IOtherSessionStartListener : public GalaxyTypeAwareListener<OTHER_SESSION_START>
-    {
-    public:
-
-      /**
-       * Notification for the event of other session being started.
-       */
-      virtual void OnOtherSessionStarted() = 0;
-    };
-
-    /**
-     * Globally self-registering version of IOtherSessionStartListener.
-     */
-    typedef SelfRegisteringListener<IOtherSessionStartListener> GlobalOtherSessionStartListener;
-
-    /**
-     * Globally self-registering version of IOtherSessionStartListener for the Game Server.
-     */
-    typedef SelfRegisteringListener<IOtherSessionStartListener, GameServerListenerRegistrar> GameServerGlobalOtherSessionStartListener;
-
-    /**
-     * Listener for the event of a change of the operational state.
-     */
-    class IOperationalStateChangeListener : public GalaxyTypeAwareListener<OPERATIONAL_STATE_CHANGE>
-    {
-    public:
-
-      /**
-       * Aspect of the operational state.
-       */
-      enum OperationalState
-      {
-        OPERATIONAL_STATE_SIGNED_IN = 0x0001, ///< User signed in.
-        OPERATIONAL_STATE_LOGGED_ON = 0x0002 ///< User logged on.
-      };
-
-      /**
-       * Notification for the event of a change of the operational state.
-       *
-       * @param [in] operationalState The sum of the bit flags representing the operational state, as defined in IOperationalStateChangeListener::OperationalState.
-       */
-      virtual void OnOperationalStateChanged(uint32_t operationalState) = 0;
-    };
-
-    /**
-     * Globally self-registering version of IOperationalStateChangeListener.
-     */
-    typedef SelfRegisteringListener<IOperationalStateChangeListener> GlobalOperationalStateChangeListener;
-
-    /**
-     * Globally self-registering version of IOperationalStateChangeListener for the GameServer.
-     */
-    typedef SelfRegisteringListener<IOperationalStateChangeListener, GameServerListenerRegistrar> GameServerGlobalOperationalStateChangeListener;
-
-    /**
-     * Listener for the events related to user data changes of current user only.
-     *
-     * @remark In order to get notifications about changes to user data of all users,
-     * use ISpecificUserDataListener instead.
-     */
-    class IUserDataListener : public GalaxyTypeAwareListener<USER_DATA>
-    {
-    public:
-
-      /**
-       * Notification for the event of user data change.
-       */
-      virtual void OnUserDataUpdated() = 0;
-    };
-
-    /**
-     * Globally self-registering version of IUserDataListener.
-     */
-    typedef SelfRegisteringListener<IUserDataListener> GlobalUserDataListener;
-
-    /**
-     * Globally self-registering version of IUserDataListener for the GameServer.
-     */
-    typedef SelfRegisteringListener<IUserDataListener, GameServerListenerRegistrar> GameServerGlobalUserDataListener;
-
-    /**
-     * Listener for the events related to user data changes.
-     */
-    class ISpecificUserDataListener : public GalaxyTypeAwareListener<SPECIFIC_USER_DATA>
-    {
-    public:
-
-      /**
-       * Notification for the event of user data change.
-       *
-       * @param [in] userID The ID of the user.
-       */
-      virtual void OnSpecificUserDataUpdated(GalaxyID userID) = 0;
-    };
-
-    /**
-     * Globally self-registering version of ISpecificUserDataListener.
-     */
-    typedef SelfRegisteringListener<ISpecificUserDataListener> GlobalSpecificUserDataListener;
-
-    /**
-     * Globally self-registering version of ISpecificUserDataListener for the Game Server.
-     */
-    typedef SelfRegisteringListener<ISpecificUserDataListener, GameServerListenerRegistrar> GameServerGlobalSpecificUserDataListener;
-
-    /**
-     * Listener for the event of retrieving a requested Encrypted App Ticket.
-     */
-    class IEncryptedAppTicketListener : public GalaxyTypeAwareListener<ENCRYPTED_APP_TICKET_RETRIEVE>
-    {
-    public:
-
-      /**
-       * Notification for an event of a success in retrieving the Encrypted App Ticket.
-       *
-       * In order to read the Encrypted App Ticket, call IUser::GetEncryptedAppTicket().
-       */
-      virtual void OnEncryptedAppTicketRetrieveSuccess() = 0;
-
-      /**
-       * The reason of a failure in retrieving an Encrypted App Ticket.
-       */
-      enum FailureReason
-      {
-        FAILURE_REASON_UNDEFINED, ///< Unspecified error.
-        FAILURE_REASON_CONNECTION_FAILURE ///< Unable to communicate with backend services.
-      };
-
-      /**
-       * Notification for the event of a failure in retrieving an Encrypted App Ticket.
-       *
-       * @param [in] failureReason The cause of the failure.
-       */
-      virtual void OnEncryptedAppTicketRetrieveFailure(FailureReason failureReason) = 0;
-    };
-
-    /**
-     * Globally self-registering version of IEncryptedAppTicketListener.
-     */
-    typedef SelfRegisteringListener<IEncryptedAppTicketListener> GlobalEncryptedAppTicketListener;
-
-    /**
-     * Globally self-registering version of IEncryptedAppTicketListener for the Game Server.
-     */
-    typedef SelfRegisteringListener<IEncryptedAppTicketListener, GameServerListenerRegistrar> GameServerGlobalEncryptedAppTicketListener;
-
-
-    /**
-     * Listener for the event of a change of current access token.
-     */
-    class IAccessTokenListener : public GalaxyTypeAwareListener<ACCESS_TOKEN_CHANGE>
-    {
-    public:
-
-      /**
-       * Notification for an event of retrieving an access token.
-       *
-       * In order to read the access token, call IUser::GetAccessToken().
-       */
-      virtual void OnAccessTokenChanged() = 0;
-    };
-
-    /**
-     * Globally self-registering version of IAccessTokenListener.
-     */
-    typedef SelfRegisteringListener<IAccessTokenListener> GlobalAccessTokenListener;
-
-    /**
-     * Globally self-registering version of IAccessTokenListener for the GameServer.
-     */
-    typedef SelfRegisteringListener<IAccessTokenListener, GameServerListenerRegistrar> GameServerGlobalAccessTokenListener;
-
-    /**
-     * Listener for the event of creating an OpenID connection.
-     */
-    class IPlayFabCreateOpenIDConnectionListener : public GalaxyTypeAwareListener<PLAYFAB_CREATE_OPENID_CONNECTION>
-    {
-    public:
-
-      /**
-       * Notification for an event of a success in creating OpenID connection.
-       *
-       */
-      virtual void OnPlayFabCreateOpenIDConnectionSuccess(bool connectionAlreadyExists) = 0;
-
-      enum FailureReason
-      {
-        FAILURE_REASON_UNDEFINED, ///< Unspecified error.
-        FAILURE_REASON_CONNECTION_FAILURE ///< Unable to communicate with backend services.
-      };
-
-      /**
-       * Notification for the event of a failure in creating OpenID connection.
-       *
-       * @param [in] failureReason The cause of the failure.
-       */
-      virtual void OnPlayFabCreateOpenIDConnectionFailure(FailureReason failureReason) = 0;
-    };
-
-    /**
-     * Globally self-registering version of IPlayFabCreateOpenIDConnectionListener.
-     */
-    typedef SelfRegisteringListener<IPlayFabCreateOpenIDConnectionListener> GlobalPlayFabCreateOpenIDConnectionListener;
-
-    /**
-     * Globally self-registering version of IPlayFabCreateOpenIDConnectionListener for the GameServer.
-     */
-    typedef SelfRegisteringListener<IPlayFabCreateOpenIDConnectionListener, GameServerListenerRegistrar> GameServerGlobalPlayFabCreateOpenIDConnectionListener;
-
-    /**
-     * Listener for the event of logging with an OpenID Connect.
-     */
-    class IPlayFabLoginWithOpenIDConnectListener : public GalaxyTypeAwareListener<PLAYFAB_LOGIN_WITH_OPENID_CONNECT>
-    {
-    public:
-
-      /**
-       * Notification for an event of a success in logging with OpenID Connect.
-       *
-       */
-      virtual void OnPlayFabLoginWithOpenIDConnectSuccess() = 0;
-
-      enum FailureReason
-      {
-        FAILURE_REASON_UNDEFINED, ///< Unspecified error.
-        FAILURE_REASON_CONNECTION_FAILURE ///< Unable to communicate with backend services.
-      };
-
-      /**
-       * Notification for the event of a failure in logging with OpenID Connect.
-       *
-       * @param [in] failureReason The cause of the failure.
-       */
-      virtual void OnPlayFabLoginWithOpenIDConnectFailure(FailureReason failureReason) = 0;
-    };
-
-    /**
-     * Globally self-registering version of IPlayFabLoginWithOpenIDConnectListener.
-     */
-    typedef SelfRegisteringListener<IPlayFabLoginWithOpenIDConnectListener> GlobalPlayFabLoginWithOpenIDConnectListener;
-
-    /**
-     * Globally self-registering version of IPlayFabLoginWithOpenIDConnectListener for the GameServer.
-     */
-    typedef SelfRegisteringListener<IPlayFabLoginWithOpenIDConnectListener, GameServerListenerRegistrar> GameServerGlobalPlayFabLoginWithOpenIDConnectListener;
-
-    /**
      * The interface for handling the user account.
      */
-    class IUser
+    class IUser_1_152_1
     {
     public:
 
-      virtual ~IUser()
+      virtual ~IUser_1_152_1()
       {
       }
 
@@ -437,10 +126,9 @@ namespace galaxy
        * the IOperationalStateChangeListener.
        *
        * @param [in] requireOnline Indicates if sign in with Galaxy backend is required.
-       * @param [in] timeout Time in seconds for AuthListener to trigger timeout
        * @param [in] listener The listener for specific operation.
        */
-      virtual void SignInGalaxy(bool requireOnline = false, uint32_t timeout = 15, IAuthListener* const listener = NULL) = 0;
+      virtual void SignInGalaxy(bool requireOnline = false, IAuthListener* const listener = NULL) = 0;
 
       /**
        * Authenticates the Galaxy Peer based on PS4 credentials.
@@ -553,8 +241,7 @@ namespace galaxy
        * @remark Information about being signed in or signed out also comes to
        * the IOperationalStateChangeListener.
        *
-       * @param [in] authorizationCode Authorization code aquired from auth service.
-       * @param [in] redirectURI URL to be redirected to with user code parameter added.
+       * @param [in] requireOnline Indicates if sign in with Galaxy backend is required.
        * @param [in] listener The listener for specific operation.
        */
       virtual void SignInAuthorizationCode(const char* authorizationCode, const char* redirectURI, IAuthListener* const listener = NULL) = 0;
@@ -703,32 +390,6 @@ namespace galaxy
        * @param [out] currentEncryptedAppTicketSize The actual size of the Encrypted App Ticket.
        */
       virtual void GetEncryptedAppTicket(void* encryptedAppTicket, uint32_t maxEncryptedAppTicketSize, uint32_t& currentEncryptedAppTicketSize) = 0;
-
-      /**
-       * Performs a request for a PlayFab's CreateOpenIdConnection
-       * 
-       * This call is asynchronous. Responses come to the IPlayFabCreateOpenIDConnectionListener.
-       * 
-       * @param [in] secretKey This API requires a title secret key, available to title admins, from PlayFab Game Manager.
-       * @param [in] titleID Unique identifier for the title, found in the Settings > Game Properties section of the PlayFab developer site when a title has been selected.
-       * @param [in] connectionID A name for the connection that identifies it within the title.
-       * @param [in] ignoreNonce Ignore 'nonce' claim in identity tokens.
-      */
-      virtual void CreateOpenIDConnection(const char* secretKey, const char* titleID, const char* connectionID, bool ignoreNonce = true, IPlayFabCreateOpenIDConnectionListener* const listener = NULL) = 0;
-
-      /**
-       * Performs a request for a PlayFab's LoginWithOpenIdConnect
-       * 
-       * This call is asynchronous. Responses come to the IPlayFabLoginWithOpenIDConnectListener.
-       * 
-       * @param [in] titleID Unique identifier for the title, found in the Settings > Game Properties section of the PlayFab developer site when a title has been selected.
-       * @param [in] connectionID A name that identifies which configured OpenID Connect provider relationship to use.
-       * @param [in] idToken The JSON Web token (JWT) returned by the identity provider after login.
-       * @param [in] createAccount Automatically create a PlayFab account if one is not currently linked to this ID.
-       * @param [in] encryptedRequest Base64 encoded body that is encrypted with the Title's public RSA key (Enterprise Only).
-       * @param [in] playerSecret Player secret that is used to verify API request signatures (Enterprise Only).
-      */
-      virtual void LoginWithOpenIDConnect(const char* titleID, const char* connectionID, const char* idToken, bool createAccount = true, const char* encryptedRequest = NULL, const char* playerSecret = NULL, IPlayFabLoginWithOpenIDConnectListener* const listener = NULL) = 0;
 
       /**
        * Returns the ID of current session.

@@ -1221,8 +1221,11 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="depends\include\EOS\eos_userinfo_types.h" />
     <ClInclude Include="depends\include\EOS\eos_version.h" />
     <ClInclude Include="depends\include\galaxy\1_121_2\InitOptions.h" />
+    <ClInclude Include="depends\include\galaxy\1_151_0\IUser.h" />
     <ClInclude Include="depends\include\galaxy\1_152_10\IStats.h" />
+    <ClInclude Include="depends\include\galaxy\1_152_10\IUser.h" />
     <ClInclude Include="depends\include\galaxy\1_152_1\IStats.h" />
+    <ClInclude Include="depends\include\galaxy\1_152_1\IUser.h" />
     <ClInclude Include="depends\include\galaxy\Errors.h" />
     <ClInclude Include="depends\include\galaxy\GalaxyAllocator.h" />
     <ClInclude Include="depends\include\galaxy\GalaxyExport.h" />

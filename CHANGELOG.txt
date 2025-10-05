@@ -1,4 +1,9 @@
-﻿25.10.5.2
+﻿25.10.5.3
+=========
+ + Handle breaking API changes in Galaxy 1.151.0, 1.152.1 and 1.152.10 for the
+     galaxy::api::IUser interface.
+
+25.10.5.2
 =========
  + Added option to force an online connection to GOG's backend servers when using
      SpawnGalaxyCommunication (versus the default offline-mode).

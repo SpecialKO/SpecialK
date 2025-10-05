@@ -34,6 +34,9 @@
 #include <galaxy/IFriends.h>
 #include <galaxy/1_152_10/IStats.h>
 #include <galaxy/1_152_1/IStats.h>
+#include <galaxy/1_151_0/IUser.h>
+#include <galaxy/1_152_1/IUser.h>
+#include <galaxy/1_152_10/IUser.h>
 #include <galaxy/1_121_2/InitOptions.h>
 
 #ifdef  __SK_SUBSYSTEM__
@@ -741,6 +744,63 @@ SK_Galaxy_DrawOSD ()
   return 0;
 }
 
+bool
+SK_Galaxy_User_SignedIn (galaxy::api::IUser* This)
+{
+  switch (gog->version)
+  {
+    default:
+    case SK_GalaxyContext::Version_1_151_0:
+      return ((galaxy::api::IUser_1_151_0*)This)->SignedIn ();
+      break;
+    case SK_GalaxyContext::Version_1_152_1:
+      return ((galaxy::api::IUser_1_152_1*)This)->SignedIn ();
+      break;
+    case SK_GalaxyContext::Version_1_152_10:
+      return ((galaxy::api::IUser_1_152_10*)This)->SignedIn ();
+      break;
+  }
+}
+
+bool
+SK_Galaxy_User_IsLoggedOn (galaxy::api::IUser* This)
+{
+  switch (gog->version)
+  {
+    default:
+    case SK_GalaxyContext::Version_1_151_0:
+      return ((galaxy::api::IUser_1_151_0*)This)->IsLoggedOn ();
+      break;
+    case SK_GalaxyContext::Version_1_152_1:
+      return ((galaxy::api::IUser_1_152_1*)This)->IsLoggedOn ();
+      break;
+    case SK_GalaxyContext::Version_1_152_10:
+      return ((galaxy::api::IUser_1_152_10*)This)->IsLoggedOn ();
+      break;
+  }
+}
+
+void
+SK_Galaxy_User_SignInGalaxy ( galaxy::api::IUser* This,
+                                         bool     requireOnline = false,
+                                         uint32_t timeout       =    15,
+                      galaxy::api::IAuthListener* listener      = nullptr )
+{
+  switch (gog->version)
+  {
+    default:
+    case SK_GalaxyContext::Version_1_151_0:
+      return ((galaxy::api::IUser_1_151_0*)This)->SignInGalaxy (requireOnline, listener);
+      break;
+    case SK_GalaxyContext::Version_1_152_1:
+      return ((galaxy::api::IUser_1_152_1*)This)->SignInGalaxy (requireOnline, listener);
+      break;
+    case SK_GalaxyContext::Version_1_152_10:
+      return ((galaxy::api::IUser_1_152_10*)This)->SignInGalaxy (requireOnline, timeout, listener);
+      break;
+  }
+}
+
 namespace galaxy
 {
   namespace api
@@ -818,6 +878,19 @@ namespace galaxy
           galaxy_achievements.getPtr ()                   )
         );
       );
+
+      static bool logged_in =
+        SK_Galaxy_User_IsLoggedOn (gog->User ()) &&
+        SK_Galaxy_User_SignedIn   (gog->User ());
+
+      if (logged_in == false && SK_Galaxy_User_IsLoggedOn (gog->User ()) &&
+                                SK_Galaxy_User_SignedIn   (gog->User ()) )
+      {
+        logged_in                               = true;
+        galaxy_achievements->need_stats_refresh = true;
+        galaxy_achievements->refresh_count      =    0;
+        gog->galaxy_id_ = gog->User ()->GetGalaxyID ();
+      }
 
       // Attempt to auto-recover from errors, but throttle any attempt to do so
       //   in order to avoid runaway filesystem checks for the JSON file.
@@ -1241,6 +1314,8 @@ SK::Galaxy::Init (void)
       gog->version = SK_GalaxyContext::Version_1_152_10;
     else if ((major == 1 && (minor > 152 || (minor == 152 && build >= 1))))
       gog->version = SK_GalaxyContext::Version_1_152_1;
+    else if ((major == 1 && (minor > 151 || (minor == 151 && build >= 0))))
+      gog->version = SK_GalaxyContext::Version_1_151_0;
     else if ((major == 1 && (minor > 121 || (minor == 121 && build >= 2))))
       gog->version = SK_GalaxyContext::Version_1_121_2;
 
@@ -1372,10 +1447,13 @@ public:
       if (personaStateChange == PERSONA_CHANGE_NAME ||
           personaStateChange == PERSONA_CHANGE_NONE)
       {
+// Does not work, needs more debuggin...
+#if 0
         char                                 persona_name [512] = {};
         gog->Friends ()->GetPersonaNameCopy (persona_name, 511);
         gog->user_names.display_name    =    persona_name;
         gog->user_names.nickname        =    persona_name;
+#endif
       }
     }
   }
@@ -1411,8 +1489,8 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
   if (user_ != nullptr)
   {
     logged_on =
-      user_->IsLoggedOn () &&
-      user_->  SignedIn ();
+      SK_Galaxy_User_IsLoggedOn (user_) &&
+      SK_Galaxy_User_SignedIn   (user_);
 
     if (! logged_on)
     {
@@ -1428,6 +1506,8 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
             L"SignInGalaxy (...) success! GalaxyID=%d",
                                   gog->GetGalaxyID ().ToUint64 () );
 
+// Does not work, needs more debuggin...
+#if 0
           if (gog->Friends () != nullptr)
           {
             char                                  persona_name [512] = {};
@@ -1437,6 +1517,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
             gog->Friends ()->RequestUserInformation (gog->GetGalaxyID ());
           }
+#endif
 
           SK_Galaxy_Stats_RequestUserStatsAndAchievements ( gog->Stats       (),
                                                             gog->GetGalaxyID () );
@@ -1461,14 +1542,16 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
       if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
       {
-        user_->SignInGalaxy ( config.galaxy.require_online_mode,
-                              config.galaxy.require_online_mode ? 15 : 5, &auth_listener );
+        SK_Galaxy_User_SignInGalaxy ( user_, config.galaxy.require_online_mode,
+                                             config.galaxy.require_online_mode ? 15 : 5, &auth_listener );
       }
     }
 
     galaxy_id_ = user_->GetGalaxyID ();
   }
 
+  // Does not work, needs more debuggin...
+#if 0
   if (friends_ != nullptr)
   {
     char                           persona_name [512] = {};
@@ -1478,6 +1561,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
     friends_->RequestUserInformation (gog->GetGalaxyID ());
   }
+#endif
 }
 
 void
@@ -1570,7 +1654,7 @@ SK::Galaxy::IsSignedIn (void)
   if (user != nullptr)
   {
     return
-      user->SignedIn ();
+      SK_Galaxy_User_SignedIn (user);
   }
 
   return false;
@@ -1585,7 +1669,7 @@ SK::Galaxy::IsLoggedOn (void)
   if (user != nullptr)
   {
     return
-      user->IsLoggedOn ();
+      SK_Galaxy_User_IsLoggedOn (user);
   }
 
   return false;

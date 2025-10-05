@@ -115,14 +115,16 @@ public:
     std::string nickname;
   } user_names;
 
+  galaxy::api::GalaxyID            galaxy_id_ = {     };
+
   enum versions {
     Version_1_121_2,
+    Version_1_151_0,
     Version_1_152_1,
     Version_1_152_10
   } version = Version_1_152_1;
 
 private:
-  galaxy::api::GalaxyID            galaxy_id_ = {     };
   galaxy::api::IGalaxy*            galaxy_    = nullptr;
   galaxy::api::IStats*             stats_     = nullptr;
   galaxy::api::IFriends*           friends_   = nullptr;
