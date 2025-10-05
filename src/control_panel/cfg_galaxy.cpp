@@ -34,6 +34,63 @@ SK::ControlPanel::Galaxy::Draw (void)
 {
   if (SK::Galaxy::GetTicksRetired () > 0)
   {
+    bool restart_required = false;
+    bool bDefaultOpen     = false;
+
+    // Uncollapse this header by default if the user is forcing the overlay off; make it obvious!
+    if ( config.steam.disable_overlay ||
+         config.platform.silent ) bDefaultOpen = true;
+
+    if (ImGui::CollapsingHeader ("Compatibility", bDefaultOpen ? ImGuiTreeNodeFlags_DefaultOpen
+                                                               : 0x0))
+    {
+      ImGui::TreePush   ("");
+      ImGui::BeginGroup (  );
+
+      if (ImGui::Checkbox (" Disable Galaxy Integration", &config.platform.silent))
+      {
+        restart_required = true;
+        config.utility.save_async_if (restart_required);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Turns off almost all Galaxy-related features");
+        ImGui::EndTooltip      ();
+      }
+
+      if (ImGui::Checkbox (" Prevent Overlay From Drawing  ",    &config.steam.disable_overlay))
+      {
+        restart_required = true;
+        config.utility.save_async_if (restart_required);
+      }
+      ImGui::EndGroup   (  );
+
+      if (! config.platform.silent)
+      {
+        ImGui::SameLine    ();
+        ImGui::BeginGroup  ();
+        if (ImGui::Checkbox(" Always Enable Galaxy Services", &config.galaxy.spawn_mini_client))
+        {
+          restart_required = true;
+          config.utility.save_async_if (restart_required);
+        }
+        ImGui::SetItemTooltip
+                           ( "Allows Achievements and Multiplayer Matchmaking "
+                             "even when the Galaxy client is not running." );
+        ImGui::EndGroup    ();
+      }
+
+      if (restart_required)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::BulletText     ("Game Restart Required");
+        ImGui::PopStyleColor  ();
+      }
+
+      ImGui::TreePop ();
+    }
     return true;
   }
 
@@ -96,9 +153,9 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
       else if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip   (       );
-        ImGui::Text           ( "In"  );                ImGui::SameLine ();
+        ImGui::Text           ( "In"  );                  ImGui::SameLine ();
         ImGui::PushStyleColor ( ImGuiCol_Text, ImVec4 (0.95f, 0.75f, 0.25f, 1.0f) );
-        ImGui::Text           ( "Epic Overlay Aware");  ImGui::SameLine ();
+        ImGui::Text           ( "Galaxy Overlay Aware");  ImGui::SameLine ();
         ImGui::PopStyleColor  (       );
         ImGui::Text           ( "software, click to toggle the game's overlay pause mode." );
         ImGui::EndTooltip     (       );
