@@ -192,7 +192,6 @@ sk_hook_cache_array local_d3d9_records =
      &LocalHook_Direct3DCreate9,          &LocalHook_Direct3DCreate9Ex,
      &LocalHook_D3D9CreateDevice,         &LocalHook_D3D9CreateDeviceEx   };
 
-
 void
 WINAPI
 WaitForInit_D3D9 (void)
@@ -974,7 +973,7 @@ SK_D3DXCreateTextureFromFileInMemoryEx (
   if (config.render.d3d9.force_d3d9ex)
   {
     if (Pool == D3DPOOL_MANAGED)
-    {   Pool  = D3DPOOL_DEFAULT;
+    {   Pool  = D3DPOOL_MANAGED_EX;
        Usage |= D3DUSAGE_DYNAMIC;
     }
   }
@@ -3130,7 +3129,7 @@ D3D9CreateVolumeTexture_Override ( IDirect3DDevice9         *This,
   {
     SK_LOGi1 (L" >> Reassigning Managed Volume Texture to 'Default' Pool (D3D9Ex Override)");
 
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   = D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   }
 
@@ -3160,7 +3159,7 @@ D3D9CreateCubeTexture_Override ( IDirect3DDevice9       *This,
   {
     SK_LOGi1 (L" >> Reassigning Managed Cube Texture to 'Default' Pool (D3D9Ex Override)");
 
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   =  D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   }
 
@@ -3263,7 +3262,7 @@ D3D9CreateVertexBuffer_Override
   {
     SK_LOGi1 (L" >> Reassigning Managed Vertex Buffer to 'Default' Pool (D3D9Ex Override)");
 
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   =  D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   //Usage |= D3DUSAGE_WRITEONLY;
   }
@@ -3355,7 +3354,7 @@ D3D9CreateIndexBuffer_Override ( IDirect3DDevice9         *This,
   {
     SK_LOGi1 (L" >> Reassigning Managed Index Buffer to 'Default' Pool (D3D9Ex Override)");
 
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   =  D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   //Usage |= D3DUSAGE_WRITEONLY;
   }
@@ -9362,16 +9361,18 @@ SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal)
 const char*
 SK_D3D9_PoolToStr (D3DPOOL pool)
 {
-  switch (pool)
+  switch ((int)pool)
   {
     case D3DPOOL_DEFAULT:
-      return "    Default   (0)";
+      return "    Default     (0)";
     case D3DPOOL_MANAGED:
-      return "    Managed   (1)";
+      return "    Managed     (1)";
     case D3DPOOL_SYSTEMMEM:
-      return "System Memory (2)";
+      return " System Memory  (2)";
     case D3DPOOL_SCRATCH:
-      return "   Scratch    (3)";
+      return "    Scratch     (3)";
+    case D3DPOOL_MANAGED_EX:
+      return "   Managed Ex   (6)";
     default:
       return "   UNKNOWN?!     ";
   }

@@ -519,7 +519,7 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
   {
     SK_LOGi1 (L" >> Reassigning Managed 2D Texture to 'Default' Pool (D3D9Ex Override)");
 
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   =  D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   }
 
@@ -1669,7 +1669,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   if ( pDev9Ex.p != nullptr &&
             Pool == D3DPOOL_MANAGED )
   {
-    Pool  =  D3DPOOL_DEFAULT;
+    Pool  =  D3DPOOL_MANAGED_EX;
     Usage = D3DUSAGE_DYNAMIC;
   }
 
@@ -2087,7 +2087,7 @@ D3DXCreateTextureFromFileExA_Detour (
   if ( pDev9Ex.p != nullptr &&
             Pool == D3DPOOL_MANAGED )
   {
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   =  D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   }
 
@@ -2139,7 +2139,7 @@ D3DXCreateTextureFromFileExW_Detour (
   if ( pDev9Ex.p != nullptr &&
             Pool == D3DPOOL_MANAGED )
   {
-    Pool   =  D3DPOOL_DEFAULT;
+    Pool   =  D3DPOOL_MANAGED_EX;
     Usage |= D3DUSAGE_DYNAMIC;
   }
 
@@ -2193,7 +2193,7 @@ D3DXCreateVolumeTextureFromFileInMemoryEx_Detour (
   if ( pDev9Ex.p != nullptr &&
             Pool == D3DPOOL_MANAGED )
   {
-    Pool  =  D3DPOOL_DEFAULT;
+    Pool  =  D3DPOOL_MANAGED_EX;
     Usage = D3DUSAGE_DYNAMIC;
   }
 
@@ -2243,7 +2243,7 @@ D3DXCreateCubeTextureFromFileInMemoryEx_Detour (
   if ( pDev9Ex.p != nullptr &&
             Pool == D3DPOOL_MANAGED )
   {
-    Pool  =  D3DPOOL_DEFAULT;
+    Pool  =  D3DPOOL_MANAGED_EX;
     Usage = D3DUSAGE_DYNAMIC;
   }
 

@@ -1,4 +1,9 @@
-﻿25.10.5.3
+﻿25.10.5.4
+=========
+ + Implement undocumented memory pool (D3DPOOL_MANAGED_EX) for D3D9, to make
+     forcing D3D9Ex more likely to work.
+
+25.10.5.3
 =========
  + Handle breaking API changes in Galaxy 1.151.0, 1.152.1 and 1.152.10 for the
      galaxy::api::IUser interface.

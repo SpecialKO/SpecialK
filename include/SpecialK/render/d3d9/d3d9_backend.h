@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -29,6 +29,8 @@ struct ID3DXConstantTable;
 typedef enum _D3DXREGISTER_SET    D3DXREGISTER_SET,    *LPD3DXREGISTER_SET;
 typedef enum _D3DXPARAMETER_CLASS D3DXPARAMETER_CLASS, *LPD3DXPARAMETER_CLASS;
 typedef enum _D3DXPARAMETER_TYPE  D3DXPARAMETER_TYPE,  *LPD3DXPARAMETER_TYPE;
+
+static const D3DPOOL D3DPOOL_MANAGED_EX = D3DPOOL(6);
 
 struct IUnknown;
 #include <Unknwnbase.h>
