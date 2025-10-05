@@ -1691,6 +1691,35 @@ SK::Galaxy::GetTicksRetired (void)
     ReadAcquire64 (&galaxy::api::ticks);
 }
 
+uint32_t
+SK::Galaxy::MinutesPlayed (void)
+{
+  static DWORD last_check = 0;
+
+  auto stats =
+    gog->Stats ();
+
+  static auto minutes = 0;
+
+  if (last_check < SK::ControlPanel::current_time - 1000)
+  {   last_check = SK::ControlPanel::current_time;
+    minutes =
+      SK_Galaxy_Stats_GetUserTimePlayed (stats);
+  }
+
+  if ( minutes == 0 && IsSignedIn ()
+                    && IsLoggedOn () )
+  {
+    SK_RunOnce (
+      SK_Galaxy_Stats_RequestUserTimePlayed (
+                stats, gog->GetGalaxyID ()
+       );
+    );
+  }
+
+  return minutes;
+}
+
 bool
 SK::Galaxy::IsSignedIn (void)
 {

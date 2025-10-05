@@ -58,6 +58,8 @@ namespace SK
     bool                  IsSignedIn      (void);
     bool                  IsLoggedOn      (void);
 
+    uint32_t              MinutesPlayed   (void);
+
     float __stdcall PercentOfAchievementsUnlocked (void);
     int   __stdcall NumberOfAchievementsUnlocked  (void);
 

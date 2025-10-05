@@ -7439,7 +7439,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     //ImGui::Checkbox ("Disk",         &SK_ImGui_Widgets->disk);
     //ImGui::SameLine ();
 
-    if (ImGui::Checkbox ("Volume Control", &volumecontrol))
+    if (ImGui::Checkbox ("Volume", &volumecontrol))
     {
       SK_ImGui_Widgets->volume_control->setVisible (volumecontrol).
                                         setActive  (volumecontrol);
@@ -7473,7 +7473,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
       if ((int)render_api & (int)SK_RenderAPI::D3D11)
       {
-        if (ImGui::Checkbox ("Pipeline Stats###Pipeline11", &pipeline11))
+        if (ImGui::Checkbox ("Pipeline###Pipeline11", &pipeline11))
         {
           SK_ImGui_Widgets->d3d11_pipeline->setVisible (pipeline11).
                                             setActive  (pipeline11);
@@ -7484,7 +7484,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
       if (rb.isReflexSupported ())
       {
-        if (ImGui::Checkbox ("Latency Analysis###ReflexLatency", &latency))
+        if (ImGui::Checkbox ("Latency###ReflexLatency", &latency))
         {
           SK_ImGui_Widgets->latency->setVisible (latency).
                                      setActive  (latency);
@@ -7495,7 +7495,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
     if (rb.isHDRCapable () || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
     {
       ImGui::SameLine ();
-      if (ImGui::Checkbox ("HDR Display", &hdr))
+      if (ImGui::Checkbox ("HDR", &hdr))
       {
         SK_ImGui_Widgets->hdr_control->setVisible (hdr).
                                        setActive  (hdr);

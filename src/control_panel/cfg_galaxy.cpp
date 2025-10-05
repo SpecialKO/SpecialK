@@ -113,20 +113,24 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
 {
   if (SK::Galaxy::GetTicksRetired () > 0)
   {
-    ImGui::Columns    ( 1 );
+    //const float fLineHt =
+    //  ImGui::GetTextLineHeightWithSpacing () *
+    //  ImGui::GetFontSize ();
+
+    //ImGui::SetNextWindowSize (ImVec2 (-0.5f, fLineHt));
+
+    ImGui::BeginGroup (   );
     ImGui::Separator  (   );
 
-    auto num_players =
+    const auto num_players =
       SK_Platform_GetNumPlayers ();
 
     if (num_players > 1)
-    {
-      ImGui::Columns    ( 2, "GalaxySep", true );
-    
+    { 
       static char szNumber       [16] = { };
       static char szPrettyNumber [32] = { };
     
-      const NUMBERFMTA fmt = { 0, 0, 3, (char *)".", (char *)",", 0 };
+      static const NUMBERFMTA fmt = { 0, 0, 3, (char *)".", (char *)",", 0 };
     
       snprintf (szNumber, 15, "%i", num_players);
     
@@ -136,10 +140,30 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
                                szPrettyNumber, 32 );
     
       ImGui::Text       (" %s Players in-Game  ", szPrettyNumber);
-      ImGui::NextColumn (   );
+
+      // Track cumulative total time played in the status bar.
+      uint32_t
+          minutes = SK::Galaxy::MinutesPlayed ();
+      if (minutes > 0)
+      {
+        ImGui::SameLine    ();
+        ImGui::SameLine    ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine    ();
+        ImGui::SameLine    ();
+        ImGui::Text        ("  Your Hours Played :\t %4.1f ",
+          static_cast <float> (SK::Galaxy::MinutesPlayed ()) / 60.0f
+                            );
+      }
     }
 
-    ImGui::TextUnformatted ("Galaxy Services:  ");
+    ImGui::SameLine    ();
+    ImGui::SameLine    ();
+    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine    ();
+    ImGui::SameLine    ();
+
+    ImGui::TextUnformatted ("  Galaxy Services:  ");
     ImGui::SameLine        ();
     ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsSignedIn () ? ImVec4 (0.f, 1.f, 0.f, 1.f)
                                                                      : ImVec4 (1.f, 0.f, 0.f, 1.f));
@@ -148,17 +172,18 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
     ImGui::SameLine        ();
     ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsLoggedOn () ? ImVec4 (1.f, 1.f, 1.f, 1.f)
                                                                      : ImVec4 (.5f, .5f, .5f, 1.f));
-    ImGui::TextUnformatted ( SK::Galaxy::IsLoggedOn () ? " (Online)  "
-                                                       : " (Offline)  " );
+    ImGui::TextUnformatted ( SK::Galaxy::IsLoggedOn () ? " (Online)"
+                                                       : " (Offline)" );
     ImGui::PopStyleColor   (2);
 
-    ImGui::SameLine   ();
-    ImGui::Bullet     ();   ImGui::SameLine ();
+    ImGui::SameLine        ( );
+    ImGui::Bullet          ( );
+    ImGui::SameLine        ( );
 
     bool pause =
       SK_Platform_GetOverlayState (false);
 
-    if ( ImGui::Selectable ( "Tick", &pause) &&
+    if ( ImGui::Selectable ( " Tick", &pause) &&
                              SK_Platform_IsOverlayAware () )
     {
       SK_Platform_SetOverlayState (pause);
@@ -200,7 +225,7 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
 
     ImGui::SameLine ();
     ImGui::Text     ( ": %10llu  ", SK::Galaxy::GetTicksRetired () );
-    ImGui::Columns  (1, nullptr, false);
+    ImGui::EndGroup ();
 
     return true;
   }
