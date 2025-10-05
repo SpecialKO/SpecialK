@@ -289,6 +289,36 @@ SK_GetLocalAppDataDir (void)
   return dir;
 }
 
+std::wstring&
+SK_GetProgramDataDir (void)
+{
+  static volatile LONG __init = 0;
+
+  // Fast Path  (cached)
+  //
+  static std::wstring dir;
+
+  if (ReadAcquire (&__init) == 2)
+  {
+    if (! dir.empty ())
+      return dir;
+  }
+
+  HRESULT hr =
+    SK_Shell32_GetKnownFolderPath (FOLDERID_ProgramData, dir, &__init);
+
+  if (FAILED (hr))
+  {
+    SK_LOG0 ( ( L"ERROR: Could not get System's ProgramData Directory!  [HRESULT=%x]",
+                  hr ),
+                L" SpecialK " );
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
+
+  return dir;
+}
+
 std::wstring
 SK_GetFontsDir (void)
 {
