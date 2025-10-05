@@ -1154,27 +1154,36 @@ SK_HID_ProcessGamepadButtonBindings (void)
             frames_drawn + 40
         );
 
+        const UINT bScancode =
+          MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
+
+        const DWORD dwFlags =
+           ( ( bScancode & 0xE100 ) != 0                  ?
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) :
+              static_cast <DWORD> (0x0) )                 |
+                                   KEYEVENTF_SCANCODE     |
+                     ( bReleased ? KEYEVENTF_KEYUP
+                                 : 0x0 );
+
+        SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
+                        sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
+
+        // This hack is no longer necessary, since the scancode is included
+        //   in SK_keybd_event now.
+#if 0
         if (SK_GetCurrentRenderBackend ().windows.sdl)
-        { // Mostly this hack is just needed for SDL games.
-          PostMessage (game_window.hWnd, bReleased ?
-                                          WM_KEYUP : WM_KEYDOWN, VirtualKey, 0);
-        }
-
-        else
         {
-          const UINT bScancode =
-            MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
+          int key_state_flags  = {};
+              key_state_flags |= sk::narrow_cast <BYTE> (bScancode) << 16;
+              key_state_flags |= ( bScancode & 0xE0 ) ?  0x1 << 24  : 0X0;
+              key_state_flags |= ( bReleased          ?  0x1        : 0x0 );
+              key_state_flags |= ( bReleased          ? (0x3 << 30) : 0x0 );
 
-          const DWORD dwFlags =
-            ( ( bScancode & 0xE0 ) == 0   ?
-                static_cast <DWORD> (0x0) :
-                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
-                       ( bReleased ? KEYEVENTF_KEYUP
-                                   : 0x0 );
-
-          SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
-                          sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
+          PostMessage ( game_window.hWnd,
+            bReleased ? WM_KEYUP : WM_KEYDOWN,
+              VirtualKey, key_state_flags );
         }
+#endif
 
         binding.lastFrame = binding.thisFrame;
       }

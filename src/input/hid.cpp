@@ -2922,6 +2922,61 @@ SK_Input_EnumOpenHIDFiles (void)
   }, L"[SK] Existing HID Device Enumerator");
 }
 
+#include <SetupAPI.h>
+#include <initguid.h>
+#include <devpkey.h>
+#include <devpropdef.h>
+
+#pragma comment (lib, "setupapi.lib")
+
+using SetupDiGetDevicePropertyW_pfn = BOOL (WINAPI *)(
+    _In_         HDEVINFO         DeviceInfoSet,
+    _In_         PSP_DEVINFO_DATA DeviceInfoData,
+    _In_   CONST DEVPROPKEY      *PropertyKey,
+    _Out_        DEVPROPTYPE     *PropertyType,
+    _Out_writes_bytes_to_opt_(PropertyBufferSize, *RequiredSize) PBYTE PropertyBuffer,
+    _In_         DWORD            PropertyBufferSize,
+    _Out_opt_    PDWORD           RequiredSize,
+    _In_         DWORD            Flags);
+
+static SetupDiGetDevicePropertyW_pfn
+       SetupDiGetDevicePropertyW_Original = nullptr;
+
+BOOL
+WINAPI
+SetupDiGetDevicePropertyW_Detour (
+    _In_         HDEVINFO         DeviceInfoSet,
+    _In_         PSP_DEVINFO_DATA DeviceInfoData,
+    _In_   CONST DEVPROPKEY      *PropertyKey,
+    _Out_        DEVPROPTYPE     *PropertyType,
+    _Out_writes_bytes_to_opt_(PropertyBufferSize, *RequiredSize) PBYTE PropertyBuffer,
+    _In_         DWORD            PropertyBufferSize,
+    _Out_opt_    PDWORD           RequiredSize,
+    _In_         DWORD            Flags )
+{
+  SK_LOG_FIRST_CALL
+
+  BOOL bRet =
+    SetupDiGetDevicePropertyW_Original (
+      DeviceInfoSet, DeviceInfoData, PropertyKey, PropertyType,
+        PropertyBuffer, PropertyBufferSize, RequiredSize, Flags );
+
+  if (bRet && *PropertyKey == DEVPKEY_Device_HardwareIds && PropertyBuffer != nullptr)
+  {
+    if (StrStrIW ((const wchar_t *)PropertyBuffer, L"54c&PID_"))
+    {
+      SK_LOGi0 (L"GetDevicePropertyW (%ws)", (const wchar_t *)PropertyBuffer);
+
+      if (config.input.gamepad.scepad.hide_ds_edge_pid)
+      {
+
+      }
+    }
+  }
+
+  return bRet;
+}
+
 void
 SK_Input_HookHID (void)
 {
@@ -3038,6 +3093,11 @@ SK_Input_HookHID (void)
                               "GetOverlappedResultEx",
                                GetOverlappedResultEx_Detour,
       static_cast_p2p <void> (&GetOverlappedResultEx_Original) );
+
+    SK_CreateDLLHook2 (      L"SetupAPI.dll",
+                              "SetupDiGetDevicePropertyW",
+                               SetupDiGetDevicePropertyW_Detour,
+      static_cast_p2p <void> (&SetupDiGetDevicePropertyW_Original) );
 
     SK_CreateFile2           = CreateFile2_Original;
     SK_CreateFileW           = CreateFileW_Original;
