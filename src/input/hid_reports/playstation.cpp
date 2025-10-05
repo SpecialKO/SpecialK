@@ -1154,23 +1154,27 @@ SK_HID_ProcessGamepadButtonBindings (void)
             frames_drawn + 40
         );
 
-#if 1
-        const UINT bScancode =
-          MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
+        if (SK_GetCurrentRenderBackend ().windows.sdl)
+        { // Mostly this hack is just needed for SDL games.
+          PostMessage (game_window.hWnd, bReleased ?
+                                          WM_KEYUP : WM_KEYDOWN, VirtualKey, 0);
+        }
 
-        const DWORD dwFlags =
-          ( ( bScancode & 0xE0 ) == 0   ?
-              static_cast <DWORD> (0x0) :
-              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
-                     ( bReleased ? KEYEVENTF_KEYUP
-                                 : 0x0 );
+        else
+        {
+          const UINT bScancode =
+            MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
 
-        SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
-                        sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
-#endif
+          const DWORD dwFlags =
+            ( ( bScancode & 0xE0 ) == 0   ?
+                static_cast <DWORD> (0x0) :
+                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
+                       ( bReleased ? KEYEVENTF_KEYUP
+                                   : 0x0 );
 
-        PostMessage (game_window.hWnd, bReleased ?
-                                        WM_KEYUP : WM_KEYDOWN, VirtualKey, 0);
+          SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
+                          sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
+        }
 
         binding.lastFrame = binding.thisFrame;
       }
