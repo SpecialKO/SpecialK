@@ -1461,7 +1461,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
       if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
       {
-        user_->SignInGalaxy (false, 1, &auth_listener);
+        user_->SignInGalaxy (false, 30, &auth_listener);
       }
     }
 
