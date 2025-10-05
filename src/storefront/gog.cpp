@@ -1149,6 +1149,8 @@ SK::Galaxy::Init (void)
 
     auto _FindGameInfo = [&](const wchar_t* wszPattern)
     {
+      SK_PROFILE_FIRST_CALL
+
       HANDLE hFind =
         FindFirstFileW (wszPattern, &fd);
 
@@ -1397,9 +1399,18 @@ SK::Galaxy::Init (void)
   {
     // Hook code here (i.e. Listener registrar Register/Unregister and IGalaxy::ProcessData (...))
 #ifdef _M_AMD64
+    void* Init_Addr = nullptr;
+
+    SK_Thread_ScopedPriority
+              scoped_prio (THREAD_PRIORITY_TIME_CRITICAL);
+
     SK_CreateDLLHook2 (     wszGalaxyDLLName, "?Init@api@galaxy@@YAXAEBUInitOptions@12@@Z",
                                galaxy::api::Init_Detour,
-      static_cast_p2p <void> (&galaxy::api::Init_Original) );
+      static_cast_p2p <void> (&galaxy::api::Init_Original),
+                                           &Init_Addr );
+    SK_EnableHook     (                     Init_Addr );
+
+    // Queue these ones, we don't need it immediately
     SK_CreateDLLHook2 (     wszGalaxyDLLName, "?ProcessData@api@galaxy@@YAXXZ",
                                galaxy::api::ProcessData_Detour,
       static_cast_p2p <void> (&galaxy::api::ProcessData_Original) );
@@ -1482,7 +1493,7 @@ public:
       if (personaStateChange == PERSONA_CHANGE_NAME ||
           personaStateChange == PERSONA_CHANGE_NONE)
       {
-// Does not work, needs more debuggin...
+// Does not work, needs more debugging...
 #if 0
         char                                 persona_name [512] = {};
         gog->Friends ()->GetPersonaNameCopy (persona_name, 511);
@@ -1541,7 +1552,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
             L"SignInGalaxy (...) success! GalaxyID=%d",
                                   gog->GetGalaxyID ().ToUint64 () );
 
-// Does not work, needs more debuggin...
+// Does not work, needs more debugging...
 #if 0
           if (gog->Friends () != nullptr)
           {
@@ -1585,7 +1596,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
     galaxy_id_ = user_->GetGalaxyID ();
   }
 
-  // Does not work, needs more debuggin...
+  // Does not work, needs more debugging...
 #if 0
   if (friends_ != nullptr)
   {
