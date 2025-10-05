@@ -117,3 +117,32 @@ SK_Platform_GetAchievementManager (void)
 
   return pMgr;
 }
+
+bool
+SK_PlatformOverlay_GoToURL (const char* szURL, bool bUseWindowsShellIfOverlayFails)
+{
+  if (SK::Galaxy::GetTicksRetired () > 0)
+  {
+    if (SK_GalaxyOverlay_GoToURL (szURL))
+    {
+      return true;
+    }
+  }
+
+  if (SK::SteamAPI::GetCallbacksRun () > 0)
+  {
+    if (SK_SteamOverlay_GoToURL (szURL))
+    {
+      return true;
+    }
+  }
+
+  if (bUseWindowsShellIfOverlayFails)
+  {
+    SK_ShellExecuteA ( nullptr, "open",
+                         szURL, nullptr, nullptr, SW_NORMAL );
+    return true;
+  }
+
+  return false;
+}
