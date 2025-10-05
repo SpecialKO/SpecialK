@@ -1277,9 +1277,7 @@ SK::Galaxy::Init (void)
     }
 #endif
 
-    bool bEnable = SK_EnableApplyQueuedHooks ();
-                         SK_ApplyQueuedHooks ();
-    if (!bEnable) SK_DisableApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
   };
 
   if (hModGalaxy != nullptr)
