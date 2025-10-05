@@ -1,4 +1,10 @@
-﻿25.10.5.4
+﻿25.10.5.5
+=========
+ + Improved handling of PlayStation special buttons (i.e. Paddle/Macro/Touchpad)
+     in SDL games when binding the buttons to keyboard input.
+ + Adjusted file I/O hooks to passthrough reads for HID devices.
+
+25.10.5.4
 =========
  + Implement undocumented memory pool (D3DPOOL_MANAGED_EX) for D3D9, to make
      forcing D3D9Ex more likely to work.

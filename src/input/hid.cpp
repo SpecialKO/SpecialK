@@ -1029,6 +1029,15 @@ ReadFile_Detour (HANDLE       hFile,
     {
       case SK_Input_DeviceFileType::HID:
       {
+        // Allow SK to passthrough if it winds up calling the hooked API
+        if (SK_GetCallingDLL () == SK_GetDLL ())
+        {
+          return
+            ReadFile_Original (
+              hFile, lpBuffer, nNumberOfBytesToRead,
+                lpNumberOfBytesRead, lpOverlapped );
+        }
+
         if (((SK_HID_DeviceFile *)dev_ptr)->device_vid == SK_HID_VID_SONY)
         {
           config.input.gamepad.scepad.pollig_thread_tid =
@@ -1367,6 +1376,12 @@ ReadFileEx_Detour (HANDLE                          hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
+      // Allow SK to passthrough if it winds up calling the hooked API
+      if (SK_GetCallingDLL () == SK_GetDLL ())
+      {
+        return bRet;
+      }
+
       if (config.input.gamepad.disable_hid)
       {
         SetLastError (ERROR_DEVICE_NOT_CONNECTED);
@@ -1869,14 +1884,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
                               DWORD        dwMilliseconds,
                               BOOL         bWait)
 {
-  // Allow SK to passthrough if it winds up calling the hooked API
-  if (SK_GetCallingDLL () == SK_GetDLL ())
-  {
-    return
-      GetOverlappedResultEx_Original ( hFile, lpOverlapped,
-        lpNumberOfBytesTransferred, dwMilliseconds, bWait );
-  }
-
   SK_LOG_FIRST_CALL
 
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
@@ -1887,6 +1894,14 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
+      // Allow SK to passthrough if it winds up calling the hooked API
+      if (SK_GetCallingDLL () == SK_GetDLL ())
+      {
+        return
+          GetOverlappedResultEx_Original ( hFile, lpOverlapped,
+            lpNumberOfBytesTransferred, dwMilliseconds, bWait );
+      }
+
       if (config.input.gamepad.disable_hid)
       {
         SetLastError (ERROR_DEVICE_NOT_CONNECTED);
@@ -2046,14 +2061,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
                             LPDWORD      lpNumberOfBytesTransferred,
                             BOOL         bWait)
 {
-  // Allow SK to passthrough if it winds up calling the hooked API
-  if (SK_GetCallingDLL () == SK_GetDLL ())
-  {
-    return
-      GetOverlappedResult_Original ( hFile, lpOverlapped,
-        lpNumberOfBytesTransferred, bWait );
-  }
-
   SK_LOG_FIRST_CALL
 
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
@@ -2064,6 +2071,14 @@ GetOverlappedResult_Detour (HANDLE       hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
+      // Allow SK to passthrough if it winds up calling the hooked API
+      if (SK_GetCallingDLL () == SK_GetDLL ())
+      {
+        return
+          GetOverlappedResult_Original ( hFile, lpOverlapped,
+            lpNumberOfBytesTransferred, bWait );
+      }
+
       if (config.input.gamepad.disable_hid)
       {
         SetLastError (ERROR_DEVICE_NOT_CONNECTED);
