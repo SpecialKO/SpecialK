@@ -1461,7 +1461,8 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
       if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
       {
-        user_->SignInGalaxy (config.galaxy.require_online_mode, 30, &auth_listener);
+        user_->SignInGalaxy ( config.galaxy.require_online_mode,
+                              config.galaxy.require_online_mode ? 15 : 5, &auth_listener );
       }
     }
 

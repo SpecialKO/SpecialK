@@ -108,7 +108,7 @@ SK::ControlPanel::Galaxy::Draw (void)
         ImGui::SameLine       ();
         ImGui::SeparatorEx    (ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine       ();
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.2f, .8f, .9f).Value);
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.15f, .8f, .9f).Value);
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
