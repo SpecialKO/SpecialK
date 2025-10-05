@@ -55,6 +55,9 @@ namespace SK
 
     LONGLONG              GetTicksRetired (void);
 
+    bool                  IsSignedIn      (void);
+    bool                  IsLoggedOn      (void);
+
     float __stdcall PercentOfAchievementsUnlocked (void);
     int   __stdcall NumberOfAchievementsUnlocked  (void);
 

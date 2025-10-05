@@ -539,6 +539,7 @@ struct sk_config_t
     float       overlay_luminance     = 4.375F; // 350 nits
     bool        present               = false;  // Is the overlay detected?
     bool        spawn_mini_client     = true;
+    bool        require_online_mode   = false;
   } galaxy;
 
   struct discord_s {

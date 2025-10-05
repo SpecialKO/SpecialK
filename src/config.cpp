@@ -776,6 +776,7 @@ struct {
   struct
   {
     sk::ParameterBool*    spawn_mini_client       = nullptr;
+    sk::ParameterBool*    require_online_mode     = nullptr;
   } system;
 } galaxy;
 
@@ -2349,6 +2350,7 @@ auto DeclKeybind =
     ConfigEntry (eos.system.warned_online,               L"Has user been told about EOS incompatibility?",             dll_ini,         L"Platform.System",       L"WarnedEOSIncompat"),
 
     ConfigEntry (galaxy.system.spawn_mini_client,        L"Start GalaxyCommunication.exe if Galaxy is not running.",   dll_ini,         L"Platform.System",       L"SpawnGalaxyCommunication"),
+    ConfigEntry (galaxy.system.require_online_mode,      L"Enable if the current game is unsuitable for offline-only.",dll_ini,         L"Platform.System",       L"RequireOnlineGalaxyMode"),
 
     // These are all system-wide for all Steam games
     ConfigEntry (platform.overlay.hdr_luminance,         L"Make the Steam Overlay visible in HDR mode!",               platform_ini,    L"Platform.Overlay",      L"Luminance_scRGB"),
@@ -5994,6 +5996,7 @@ auto DeclKeybind =
   platform.system.equivalent_steam_app->load  (config.platform.equivalent_steam_app);
   platform.system.type->load                  (config.platform.type);
   galaxy.system.spawn_mini_client->load       (config.galaxy.spawn_mini_client);
+  galaxy.system.require_online_mode->load     (config.galaxy.require_online_mode);
   galaxy.overlay.hdr_luminance->load          (config.galaxy.overlay_luminance);
   platform.overlay.hdr_luminance->load        (config.platform.overlay_hdr_luminance);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
@@ -7544,6 +7547,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.avif.compression_speed->store    (config.screenshots.avif.compression_speed);
 
   galaxy.system.spawn_mini_client->store       (config.galaxy.spawn_mini_client);
+  galaxy.system.require_online_mode->store     (config.galaxy.require_online_mode);
   galaxy.overlay.hdr_luminance->store          (config.galaxy.overlay_luminance);
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
   rtss.overlay.hdr_luminance->store            (config.rtss.overlay_luminance);

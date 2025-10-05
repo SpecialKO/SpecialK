@@ -34,8 +34,8 @@ SK::ControlPanel::Galaxy::Draw (void)
 {
   if (SK::Galaxy::GetTicksRetired () > 0)
   {
-    bool restart_required = false;
-    bool bDefaultOpen     = false;
+    static bool restart_required = false;
+    bool        bDefaultOpen     = false;
 
     // Uncollapse this header by default if the user is forcing the overlay off; make it obvious!
     if ( config.steam.disable_overlay ||
@@ -65,6 +65,8 @@ SK::ControlPanel::Galaxy::Draw (void)
       if (! config.platform.silent)
       {
         ImGui::SameLine    ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine    ();
         ImGui::BeginGroup  ();
         if (ImGui::Checkbox(" Always Enable Galaxy Services", &config.galaxy.spawn_mini_client))
         {
@@ -74,16 +76,43 @@ SK::ControlPanel::Galaxy::Draw (void)
         ImGui::SetItemTooltip
                            ( "Allows Achievements and Multiplayer Matchmaking "
                              "even when the Galaxy client is not running." );
+        if (config.galaxy.spawn_mini_client)
+        {
+          if (ImGui::Checkbox("Require Online Galaxy Functionality", &config.galaxy.require_online_mode))
+          {
+            restart_required = true;
+            config.utility.save_async_if (restart_required);
+          }
+          ImGui::SetItemTooltip (
+            "Enable this if your game needs to connect to the Internet for some features."
+          );
+        }
         ImGui::EndGroup    ();
       }
 
+      ImGui::TextUnformatted ("Galaxy Services:  ");
+      ImGui::SameLine        ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsSignedIn () ? ImVec4 (0.f, 1.f, 0.f, 1.f)
+                                                                       : ImVec4 (1.f, 0.f, 0.f, 1.f));
+      ImGui::TextUnformatted ( SK::Galaxy::IsSignedIn () ? "Signed In"
+                                                         : "Not Signed In" );
+      ImGui::SameLine        ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsLoggedOn () ? ImVec4 (1.f, 1.f, 1.f, 1.f)
+                                                                       : ImVec4 (.5f, .5f, .5f, 1.f));
+      ImGui::TextUnformatted ( SK::Galaxy::IsLoggedOn () ? " (Online)"
+                                                         : " (Offline)" );
+      ImGui::PopStyleColor   (2);
+
       if (restart_required)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::SameLine       ();
+        ImGui::SeparatorEx    (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine       ();
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.2f, .8f, .9f).Value);
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
       }
-
+  
       ImGui::TreePop ();
     }
     return true;

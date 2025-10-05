@@ -1461,7 +1461,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
       if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
       {
-        user_->SignInGalaxy (false, 30, &auth_listener);
+        user_->SignInGalaxy (config.galaxy.require_online_mode, 30, &auth_listener);
       }
     }
 
@@ -1558,6 +1558,36 @@ SK::Galaxy::GetTicksRetired (void)
 {
   return
     ReadAcquire64 (&galaxy::api::ticks);
+}
+
+bool
+SK::Galaxy::IsSignedIn (void)
+{
+  auto user =
+    gog->User ();
+
+  if (user != nullptr)
+  {
+    return
+      user->SignedIn ();
+  }
+
+  return false;
+}
+
+bool
+SK::Galaxy::IsLoggedOn (void)
+{
+  auto user =
+    gog->User ();
+
+  if (user != nullptr)
+  {
+    return
+      user->IsLoggedOn ();
+  }
+
+  return false;
 }
 
 uint32_t

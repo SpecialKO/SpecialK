@@ -1,4 +1,11 @@
-﻿25.10.5.1
+﻿25.10.5.2
+=========
+ + Added option to force an online connection to GOG's backend servers when using
+     SpawnGalaxyCommunication (versus the default offline-mode).
+ + Added section to the GOG Enhancements control panel to configure the two things
+     mentioned above.
+
+25.10.5.1
 =========
  + Added INI option to control whether Special K will start GOG's minimalistic
      client (GalaxyCommunication.exe) if either it or the full-blown client are
