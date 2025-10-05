@@ -2603,29 +2603,29 @@ SK::ControlPanel::Input::Draw (void)
             bool               selected     = false;
             static std::string mapping_name = "";
             static UINT        mapping_idx  = 0;
-            if (ImGui::Selectable  (SK_FormatString ("%ws###Touchpad_Binding", SK_HID_GetGamepadButtonBinding (13)->c_str ()).c_str (),  &selected))
+            if (ImGui::Selectable (SK_FormatString ("%ws###Touchpad_Binding",    SK_HID_GetGamepadButtonBinding (13)->c_str ()).c_str (), &selected, ImGuiSelectableFlags_DontClosePopups))
             {
               mapping_idx  = 13;
               mapping_name = "Touchpad Click";
             }
             if (bHasDualSenseEdge)
             {
-              if (ImGui::Selectable  (SK_FormatString ("%ws###FnLeft_Binding", SK_HID_GetGamepadButtonBinding (15)->c_str ()).c_str (),  &selected))
+              if (ImGui::Selectable (SK_FormatString ("%ws###FnLeft_Binding",    SK_HID_GetGamepadButtonBinding (15)->c_str ()).c_str (), &selected, ImGuiSelectableFlags_DontClosePopups))
               {
                 mapping_idx  = 15;
                 mapping_name = "Fn Left";
               }
-              if (ImGui::Selectable  (SK_FormatString ("%ws###FnRight_Binding", SK_HID_GetGamepadButtonBinding (16)->c_str ()).c_str (),  &selected))
+              if (ImGui::Selectable (SK_FormatString ("%ws###FnRight_Binding",   SK_HID_GetGamepadButtonBinding (16)->c_str ()).c_str (), &selected, ImGuiSelectableFlags_DontClosePopups))
               {
                 mapping_idx  = 16;
                 mapping_name = "Fn Right";
               }
-              if (ImGui::Selectable  (SK_FormatString ("%ws###BackLeft_Binding", SK_HID_GetGamepadButtonBinding (17)->c_str ()).c_str (),  &selected))
+              if (ImGui::Selectable (SK_FormatString ("%ws###BackLeft_Binding",  SK_HID_GetGamepadButtonBinding (17)->c_str ()).c_str (), &selected, ImGuiSelectableFlags_DontClosePopups))
               {
                 mapping_idx  = 17;
                 mapping_name = "Back Left";
               }
-              if (ImGui::Selectable  (SK_FormatString ("%ws###BackRight_Binding", SK_HID_GetGamepadButtonBinding (18)->c_str ()).c_str (),  &selected))
+              if (ImGui::Selectable (SK_FormatString ("%ws###BackRight_Binding", SK_HID_GetGamepadButtonBinding (18)->c_str ()).c_str (), &selected, ImGuiSelectableFlags_DontClosePopups))
               {
                 mapping_idx  = 18;
                 mapping_name = "Back Right";
@@ -2672,7 +2672,7 @@ SK::ControlPanel::Input::Draw (void)
                 {
                   for ( UINT idx = 8; idx < 255 ; ++idx )
                   {
-                    if (ImGui::GetIO ().KeysDown [idx])
+                    if (ImGui::IsKeyPressed (ImGui_ImplWin32_VirtualKeyToImGuiKey (idx)))
                     {
                       SK_HID_AssignGamepadButtonBinding (
                         mapping_idx,
