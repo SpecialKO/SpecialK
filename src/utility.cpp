@@ -698,36 +698,40 @@ SK_IsAdmin (void)
 bool
 SK_IsProcessRunning (const wchar_t* wszProcName)
 {
-  MODULEENTRY32 me32 = { };
+  PROCESSENTRY32W pe32 = { };
 
-  SK_AutoHandle hModSnap (
-    CreateToolhelp32Snapshot ( TH32CS_SNAPMODULE32 | TH32CS_SNAPMODULE,
+  SK_AutoHandle hProcSnap (
+    CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32,
                                  0 )
   );
 
-  if ((intptr_t)hModSnap.m_h <= 0)
+  if ((intptr_t)hProcSnap.m_h <= 0)
     return false;
 
-  me32.dwSize =
-    sizeof (MODULEENTRY32W);
+  pe32.dwSize =
+    sizeof (PROCESSENTRY32W);
 
-  if (! Module32FirstW ( hModSnap,
-                           &me32 )
-     )
+  while (! Process32FirstW ( hProcSnap,
+                               &pe32 )
+        )
   {
-    return false;
+    if (GetLastError () != ERROR_BAD_LENGTH)
+      return false;
   }
 
   do
   {
     if (! SK_Path_wcsicmp ( wszProcName,
-                              me32.szModule )
+                              pe32.szExeFile )
        )
     {
       return true;
     }
-  } while ( Module32NextW ( hModSnap,
-                               &me32 )
+
+    pe32.dwSize =
+      sizeof (PROCESSENTRY32W);
+  } while ( Process32NextW ( hProcSnap,
+                               &pe32 )
           );
 
   return false;
