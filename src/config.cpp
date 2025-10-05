@@ -773,6 +773,10 @@ struct {
   {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
+  struct
+  {
+    sk::ParameterBool*    spawn_mini_client       = nullptr;
+  } system;
 } galaxy;
 
 struct {
@@ -2343,6 +2347,8 @@ auto DeclKeybind =
     ConfigEntry (screenshots.include_osd_default,        L"Should a screenshot triggered BY Steam include SK's OSD?",  platform_ini,    L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
 
     ConfigEntry (eos.system.warned_online,               L"Has user been told about EOS incompatibility?",             dll_ini,         L"Platform.System",       L"WarnedEOSIncompat"),
+
+    ConfigEntry (galaxy.system.spawn_mini_client,        L"Start GalaxyCommunication.exe if Galaxy is not running.",   dll_ini,         L"Platform.System",       L"SpawnGalaxyCommunication"),
 
     // These are all system-wide for all Steam games
     ConfigEntry (platform.overlay.hdr_luminance,         L"Make the Steam Overlay visible in HDR mode!",               platform_ini,    L"Platform.Overlay",      L"Luminance_scRGB"),
@@ -5987,9 +5993,10 @@ auto DeclKeybind =
   platform.system.reuse_overlay_pause->load   (config.platform.reuse_overlay_pause);
   platform.system.equivalent_steam_app->load  (config.platform.equivalent_steam_app);
   platform.system.type->load                  (config.platform.type);
+  galaxy.system.spawn_mini_client->load       (config.galaxy.spawn_mini_client);
+  galaxy.overlay.hdr_luminance->load          (config.galaxy.overlay_luminance);
   platform.overlay.hdr_luminance->load        (config.platform.overlay_hdr_luminance);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
-  galaxy.overlay.hdr_luminance->load          (config.galaxy.overlay_luminance);
   rtss.overlay.hdr_luminance->load            (config.rtss.overlay_luminance);
   discord.overlay.hdr_luminance->load         (config.discord.overlay_luminance);
   discord.overlay.allow_windowed_mode->load   (config.discord.allow_windowed_mode);
@@ -7536,8 +7543,9 @@ SK_SaveConfig ( std::wstring name,
   screenshots.avif.scrgb_bit_depth->store      (config.screenshots.avif.scrgb_bit_depth);
   screenshots.avif.compression_speed->store    (config.screenshots.avif.compression_speed);
 
-  uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
+  galaxy.system.spawn_mini_client->store       (config.galaxy.spawn_mini_client);
   galaxy.overlay.hdr_luminance->store          (config.galaxy.overlay_luminance);
+  uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
   rtss.overlay.hdr_luminance->store            (config.rtss.overlay_luminance);
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
   discord.overlay.allow_windowed_mode->store   (config.discord.allow_windowed_mode);

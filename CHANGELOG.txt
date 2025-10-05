@@ -1,4 +1,16 @@
-﻿25.10.5
+﻿25.10.5.1
+=========
+ + Added INI option to control whether Special K will start GOG's minimalistic
+     client (GalaxyCommunication.exe) if either it or the full-blown client are
+       not running.
+
+    [Platform.System]
+    SpawnGalaxyCommunication={true|false}  Default: true
+
+      Setting to true allows you to earn achievements even if the Galaxy client
+        is not running (i.e. because you used Special K's 'Instant Play').
+
+25.10.5
 =======
  + Deactivate Special K's overlay while the GOG overlay is active.
  + Added secret cheat mode to allow unlocking achievements on Steam/GOG; see

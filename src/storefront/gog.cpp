@@ -419,11 +419,11 @@ public:
       gog_log->Log (L"OnUserStatsAndAchievementsRetrieveSuccess (...)")
     );
 
-    if (userID != gog->User ()->GetGalaxyID ())
+    if (userID != gog->GetGalaxyID ())
     {
       gog_log->Log (
         L"userID=%d does not match Stats and Achievements userID=%d",
-        userID.ToUint64 (), gog->User ()->GetGalaxyID ().ToUint64 ()
+        userID.ToUint64 (), gog->GetGalaxyID ().ToUint64 ()
       );
     }
 
@@ -807,12 +807,15 @@ namespace galaxy
       SK_RunOnce (
         //registrar->Register (            USER_TIME_PLAYED_RETRIEVE,
         //  (galaxy::api::IUserTimePlayedRetrieveListener           *)galaxy_achievements.getPtr () );
-        registrar->Register ( USER_STATS_AND_ACHIEVEMENTS_RETRIEVE,
-          (galaxy::api::IUserStatsAndAchievementsRetrieveListener *)galaxy_achievements.getPtr () );
+        registrar->Register ( USER_STATS_AND_ACHIEVEMENTS_RETRIEVE, dynamic_cast <
+                         galaxy::api::IUserStatsAndAchievementsRetrieveListener *> (
+                         galaxy_achievements.getPtr ()                             )
+        );
 
         stats->RequestUserTimePlayed (
-          galaxy::api::GalaxyID (),
-         (galaxy::api::IUserTimePlayedRetrieveListener *)galaxy_achievements.getPtr ()
+          gog->GetGalaxyID (),             dynamic_cast <
+          galaxy::api::IUserTimePlayedRetrieveListener *> (
+          galaxy_achievements.getPtr ()                   )
         );
       );
 
@@ -829,7 +832,9 @@ namespace galaxy
           if (++galaxy_achievements->refresh_count < 4)
           {
             SK_Galaxy_Stats_RequestUserStatsAndAchievements (
-              stats, galaxy::api::GalaxyID (), galaxy_achievements.getPtr ()
+              stats, gog->GetGalaxyID (),                       dynamic_cast <
+                     galaxy::api::IUserStatsAndAchievementsRetrieveListener *> (
+                     galaxy_achievements.getPtr ()                             )
             );
           }
         }
@@ -850,7 +855,9 @@ namespace galaxy
           ProcessDataHook_Impl ();
         }
 
-        __except (EXCEPTION_EXECUTE_HANDLER)
+        __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                         EXCEPTION_EXECUTE_HANDLER  :
+                                         EXCEPTION_CONTINUE_SEARCH)
         {
           crashed = true;
         }
@@ -862,7 +869,9 @@ namespace galaxy
         ProcessData_Original ();
       }
 
-      __except (EXCEPTION_EXECUTE_HANDLER)
+      __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                       EXCEPTION_EXECUTE_HANDLER  :
+                                       EXCEPTION_CONTINUE_SEARCH)
       {
         gog_log->Log (
           L"Structured Exception encountered during ProcessData (...)"
@@ -884,7 +893,9 @@ namespace galaxy
           ProcessDataHook_Impl ();
         }
 
-        __except (EXCEPTION_EXECUTE_HANDLER)
+        __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                         EXCEPTION_EXECUTE_HANDLER  :
+                                         EXCEPTION_CONTINUE_SEARCH)
         {
           crashed = true;
         }
@@ -896,7 +907,9 @@ namespace galaxy
         ProcessData_IGalaxy_Original (This);
       }
 
-      __except (EXCEPTION_EXECUTE_HANDLER)
+      __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                       EXCEPTION_EXECUTE_HANDLER  :
+                                       EXCEPTION_CONTINUE_SEARCH)
       {
         gog_log->Log (
           L"Structured Exception encountered during ProcessData (...)"
@@ -1011,139 +1024,188 @@ SK::Galaxy::Init (void)
   if (config.platform.silent)
     return;
 
-  int             gog_gameId =  0;
-  WIN32_FIND_DATA fd         = {};
+  SK_PROFILE_FIRST_CALL
 
-  auto _FindGameInfo = [&](const wchar_t* wszPattern)
+  static auto _InitGOGLog = [&](void)
   {
-    HANDLE hFind =
-      FindFirstFileW (wszPattern, &fd);
-
-    if (hFind != INVALID_HANDLE_VALUE)
+    if (gog_log->fLog == nullptr)
     {
-      do
-      {
-        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
-        {
-          if (1 == swscanf (fd.cFileName, L"goggame-%d.info", &gog_gameId))
-          {
-            gog_log->Log (
-              L"GOG gameId: %d", gog_gameId
-            );
-
-            if (gog_gameId != 0)
-            {
-              config.platform.type = SK_Platform_GOG;
-            }
-
-            if (config.platform.equivalent_steam_app == -1)
-            {
-              std::wstring url =
-                SK_FormatStringW (
-                  LR"(https://www.pcgamingwiki.com/w/api.php?action=cargoquery&format=json&tables=Infobox_game&fields=Steam_AppID&where=GOGcom_ID+HOLDS+%%27%d%%27)",
-                                                                                                                                       gog_gameId
-                );
-
-              SK_Network_EnqueueDownload (
-                sk_download_request_s (L"pcgw_appid_map.json", url.data (),
-                  []( const std::vector <uint8_t>&& data,
-                      const std::wstring_view       file )
-                  {
-                    if (data.empty ())
-                      return true;
-
-                    std::ignore = file;
-
-                    try {
-                      gog_log->Log (L"PCGW Queried Data: %hs", data.data ());
-
-                      nlohmann::json json =
-                        std::move (
-                          nlohmann::json::parse ( data.cbegin (),
-                                                  data.cend   (), nullptr, true )
-                        );
-
-                      for ( auto& query : json ["cargoquery"] )
-                      {
-                        if ( query.contains ("title") &&
-                             query.at       ("title").contains ("Steam AppID") )
-                        {
-                          config.platform.equivalent_steam_app =
-                            atoi (
-                              query.at ("title").
-                                    at ("Steam AppID").
-                                    get <std::string_view> ().
-                                                      data () );
-                          break;
-                        }
-                      }
-
-                      gog_log->Log (L"Steam AppID: %d", config.platform.equivalent_steam_app);
-
-                      if (config.platform.equivalent_steam_app != -1)
-                      {   config.utility.save_async ();
-                      }
-
-                      else
-                      {
-                        config.platform.equivalent_steam_app = 0;
-                      }
-                    }
-
-                    catch (const std::exception& e)
-                    {
-                      if (config.system.log_level > 0)
-                      {
-#ifdef __CPP20
-                        const auto&& src_loc =
-                          std::source_location::current ();
-
-                        steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
-                                                     src_loc.file_name     (),
-                                                     src_loc.line          (),
-                                                     src_loc.column        (), e.what ());
-                        steam_log->Log (L"%hs",      src_loc.function_name ());
-                        steam_log->Log (L"%hs",
-                          std::format ( std::string ("{:*>") +
-                                     std::to_string (src_loc.column        ()), 'x').c_str ());
-#else
-                        std::ignore = e;
-#endif
-                      }
-                    }
-
-                    return true;
-                  }
-                )
-              );
-            }
-
-            break;
-          }
-        }
-      } while (FindNextFileW (hFind, &fd) != 0);
-
-      FindClose (hFind);
+      gog_log->init (L"logs/galaxy.log", L"wt+,ccs=UTF-8");
+      gog_log->silent = config.platform.silent;
     }
   };
 
-  if (config.platform.equivalent_steam_app == -1)
-  {
-    // Stupid way of dealing with Unreal Engine games
-                                   _FindGameInfo (               L"goggame-*.info");
-    if         (gog_gameId == 0) { _FindGameInfo (            L"../goggame-*.info");
-      if       (gog_gameId == 0) { _FindGameInfo (         L"../../goggame-*.info");
-        if     (gog_gameId == 0) { _FindGameInfo (      L"../../../goggame-*.info");
-          if   (gog_gameId == 0) { _FindGameInfo (   L"../../../../goggame-*.info");
-            if (gog_gameId == 0) { _FindGameInfo (L"../../../../../goggame-*.info"); } } } } }
+  SK_RunOnce (
+    int             gog_gameId =  0;
+    WIN32_FIND_DATA fd         = {};
 
-    if (gog_gameId != 0)
+    auto _FindGameInfo = [&](const wchar_t* wszPattern)
     {
-      config.platform.type = SK_Platform_GOG;
-    }
-  }
+      HANDLE hFind =
+        FindFirstFileW (wszPattern, &fd);
 
-  const wchar_t*
+      if (hFind != INVALID_HANDLE_VALUE)
+      {
+        do
+        {
+          if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+          {
+            if (1 == swscanf (fd.cFileName, L"goggame-%d.info", &gog_gameId))
+            {
+              _InitGOGLog ();
+
+              gog_log->Log (
+                L"GOG gameId: %d", gog_gameId
+              );
+
+              if (gog_gameId != 0)
+              {
+                config.platform.type = SK_Platform_GOG;
+              }
+
+              if (config.platform.equivalent_steam_app == -1)
+              {
+                std::wstring url =
+                  SK_FormatStringW (
+                    LR"(https://www.pcgamingwiki.com/w/api.php?action=cargoquery&format=json&tables=Infobox_game&fields=Steam_AppID&where=GOGcom_ID+HOLDS+%%27%d%%27)",
+                                                                                                                                         gog_gameId
+                  );
+
+                SK_Network_EnqueueDownload (
+                  sk_download_request_s (L"pcgw_appid_map.json", url.data (),
+                    []( const std::vector <uint8_t>&& data,
+                        const std::wstring_view       file )
+                    {
+                      if (data.empty ())
+                        return true;
+
+                      std::ignore = file;
+
+                      try {
+                        gog_log->Log (L"PCGW Queried Data: %hs", data.data ());
+
+                        nlohmann::json json =
+                          std::move (
+                            nlohmann::json::parse ( data.cbegin (),
+                                                    data.cend   (), nullptr, true )
+                          );
+
+                        for ( auto& query : json ["cargoquery"] )
+                        {
+                          if ( query.contains ("title") &&
+                               query.at       ("title").contains ("Steam AppID") )
+                          {
+                            config.platform.equivalent_steam_app =
+                              atoi (
+                                query.at ("title").
+                                      at ("Steam AppID").
+                                      get <std::string_view> ().
+                                                        data () );
+                            break;
+                          }
+                        }
+
+                        gog_log->Log (L"Steam AppID: %d", config.platform.equivalent_steam_app);
+
+                        if (config.platform.equivalent_steam_app != -1)
+                        {   config.utility.save_async ();
+                        }
+
+                        else
+                        {
+                          config.platform.equivalent_steam_app = 0;
+                        }
+                      }
+
+                      catch (const std::exception& e)
+                      {
+                        if (config.system.log_level > 0)
+                        {
+/*
+#ifdef __CPP20
+                          const auto&& src_loc =
+                            std::source_location::current ();
+
+                          steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                                       src_loc.file_name     (),
+                                                       src_loc.line          (),
+                                                       src_loc.column        (), e.what ());
+                          steam_log->Log (L"%hs",      src_loc.function_name ());
+                          steam_log->Log (L"%hs",
+                            std::format ( std::string ("{:*>") +
+                                       std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+*/
+                          std::ignore = e;
+/*#endif*/
+                       }
+                     }
+
+                     return true;
+                   }
+                 )
+               );
+             }
+
+             break;
+           }
+         }
+       } while (FindNextFileW (hFind, &fd) != 0);
+
+       FindClose (hFind);
+      }
+    };
+
+    if (config.platform.equivalent_steam_app == -1)
+    {
+      // Stupid way of dealing with Unreal Engine games
+                                     _FindGameInfo (               L"goggame-*.info");
+      if         (gog_gameId == 0) { _FindGameInfo (            L"../goggame-*.info");
+        if       (gog_gameId == 0) { _FindGameInfo (         L"../../goggame-*.info");
+          if     (gog_gameId == 0) { _FindGameInfo (      L"../../../goggame-*.info");
+            if   (gog_gameId == 0) { _FindGameInfo (   L"../../../../goggame-*.info");
+              if (gog_gameId == 0) { _FindGameInfo (L"../../../../../goggame-*.info"); } } } } }
+
+      if (gog_gameId != 0)
+      {
+        config.platform.type = SK_Platform_GOG;
+      }
+    }
+
+    if (config.platform.type._Equal (SK_Platform_GOG))
+    {
+      _InitGOGLog ();
+
+      if (config.galaxy.spawn_mini_client)
+      {
+        SK_Thread_CreateEx ([](LPVOID)->DWORD
+        {
+          if (! SK_IsProcessRunning (L"GalaxyCommunication.exe"))
+          {
+            std::filesystem::path exec_dir (SK_GetProgramDataDir ());
+                                  exec_dir /= LR"(GOG.com\Galaxy\redists\)";
+            std::filesystem::path exec_target
+                                 (exec_dir / L"GalaxyCommunication.exe");
+
+            gog_log->Log (L"Attempting to start: %ws...", exec_target.c_str ());
+            gog_log->Log (L"-------------------");
+
+            SK_ShellExecuteW (
+              HWND_DESKTOP,
+                L"open", exec_target.c_str (), nullptr,
+                         exec_dir   .c_str (), SW_SHOWNORMAL
+            );
+          }
+
+          SK_Thread_CloseSelf ();
+
+          return 0;
+        }, L"[SK] Galaxy Kickstart Thread");
+      }
+    }
+  );
+
+  static const wchar_t*
     wszGalaxyDLLName =
       SK_RunLHIfBitness ( 64, L"Galaxy64.dll",
                                 L"Galaxy.dll" );
@@ -1151,8 +1213,7 @@ SK::Galaxy::Init (void)
   static HMODULE     hModGalaxy = nullptr;
   if (std::exchange (hModGalaxy, SK_LoadLibraryW (wszGalaxyDLLName)) == nullptr && hModGalaxy != nullptr)
   {
-    gog_log->init (L"logs/galaxy.log", L"wt+,ccs=UTF-8");
-    gog_log->silent = config.platform.silent;
+    _InitGOGLog ();
 
     gog->PreInit (hModGalaxy);
     gog_log->Log (
@@ -1306,7 +1367,7 @@ public:
   virtual void OnPersonaDataChanged ( galaxy::api::GalaxyID userID,
                                                    uint32_t personaStateChange ) final
   {
-    if (userID == gog->User ()->GetGalaxyID ())
+    if (userID == gog->GetGalaxyID ())
     {
       if (personaStateChange == PERSONA_CHANGE_NAME ||
           personaStateChange == PERSONA_CHANGE_NONE)
@@ -1345,6 +1406,68 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
                            galaxy_overlay.getPtr           () );
   }
 
+  bool logged_on = false;
+
+  if (user_ != nullptr)
+  {
+    logged_on =
+      user_->IsLoggedOn () &&
+      user_->  SignedIn ();
+
+    if (! logged_on)
+    {
+      class SK_IAuthListener : public galaxy::api::IAuthListener
+      {
+      public:
+        virtual void OnAuthSuccess (void) final
+        {
+          gog->galaxy_id_ =
+            gog->User ()->GetGalaxyID ();
+
+          gog_log->Log (
+            L"SignInGalaxy (...) success! GalaxyID=%d",
+                                  gog->GetGalaxyID ().ToUint64 () );
+
+          if (gog->Friends () != nullptr)
+          {
+            char                                  persona_name [512] = {};
+            gog->Friends ()->GetPersonaNameCopy ( persona_name, 511 );
+            gog->user_names.display_name        = persona_name;
+            gog->user_names.nickname            = persona_name;
+
+            gog->Friends ()->RequestUserInformation (gog->GetGalaxyID ());
+          }
+
+          SK_Galaxy_Stats_RequestUserStatsAndAchievements ( gog->Stats       (),
+                                                            gog->GetGalaxyID () );
+        }
+
+        virtual void OnAuthFailure (
+          galaxy::api::IAuthListener::FailureReason
+                                      failureReason ) final
+        {
+          gog_log->Log (
+            L"LogIn Authorization Failed, Error=%d", failureReason
+          );
+        }
+
+        virtual void OnAuthLost (void) final
+        {
+          gog_log->Log (
+            L"Authorization Lost?!"
+          );
+        }
+      } static auth_listener;
+
+      if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
+      {
+        user_->SignInGalaxy (false, 1, &auth_listener);
+      }
+    }
+
+    galaxy_id_ = user_->GetGalaxyID ();
+  }
+
   if (friends_ != nullptr)
   {
     char                           persona_name [512] = {};
@@ -1352,7 +1475,7 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
     gog->user_names.display_name = persona_name;
     gog->user_names.nickname     = persona_name;
 
-    friends_->RequestUserInformation (user_->GetGalaxyID ());
+    friends_->RequestUserInformation (gog->GetGalaxyID ());
   }
 }
 
@@ -1395,9 +1518,9 @@ bool SK::Galaxy::overlay_state = false;
 galaxy::api::GalaxyID
 SK::Galaxy::UserID (void)
 {
-  return gog->User () != nullptr      ?
-         gog->User ()->GetGalaxyID () :
-             galaxy::api::GalaxyID ();
+  return gog->GetGalaxyID ().ToUint64 () != 0 ?
+         gog->GetGalaxyID ()                  :
+    galaxy::api::GalaxyID ();
 }
 
 std::string_view
@@ -1677,4 +1800,48 @@ SK_GalaxyOverlay_GoToURL (const char* szURL, bool bUseWindowsShellIfOverlayFails
   }
 
   return false;
+}
+
+const wchar_t*
+SK_GetGalaxyDir (void)
+{
+  static wchar_t
+       wszGalaxyPath [MAX_PATH + 2] = { };
+  if (*wszGalaxyPath == L'\0')
+  {
+    // Don't keep querying the registry if Galaxy is not installed
+    wszGalaxyPath [0] = L'?';
+
+    DWORD     len    =      MAX_PATH;
+    LSTATUS   status =
+      RegGetValueW ( HKEY_CURRENT_USER,
+                       LR"(SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths\)",
+                                                            L"client",
+                         RRF_RT_REG_SZ,
+                           nullptr,
+                             wszGalaxyPath,
+                               (LPDWORD)&len );
+
+    if (status == ERROR_SUCCESS)
+      return wszGalaxyPath;
+    else
+    {
+      len    = MAX_PATH;
+      status =
+        RegGetValueW ( HKEY_CURRENT_USER,
+                         LR"(SOFTWARE\GOG.com\GalaxyClient\paths\)",
+                                                  L"client",
+                           RRF_RT_REG_SZ,
+                             nullptr,
+                               wszGalaxyPath,
+                                 (LPDWORD)&len );
+
+      if (status == ERROR_SUCCESS)
+        return wszGalaxyPath;
+      else
+        return L"";
+    }
+  }
+
+  return wszGalaxyPath;
 }

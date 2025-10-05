@@ -103,6 +103,7 @@ public:
 
   std::string_view       GetDisplayName (void) const { return user_names.display_name; }
   std::string_view       GetNickName    (void) const { return user_names.nickname;     }
+  galaxy::api::GalaxyID  GetGalaxyID    (void) const { return galaxy_id_;              }
 
 //protected:
   struct
@@ -118,6 +119,7 @@ public:
   } version = Version_1_152_1;
 
 private:
+  galaxy::api::GalaxyID            galaxy_id_ = {     };
   galaxy::api::IGalaxy*            galaxy_    = nullptr;
   galaxy::api::IStats*             stats_     = nullptr;
   galaxy::api::IFriends*           friends_   = nullptr;
