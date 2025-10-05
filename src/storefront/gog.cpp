@@ -747,37 +747,59 @@ SK_Galaxy_DrawOSD ()
 bool
 SK_Galaxy_User_SignedIn (galaxy::api::IUser* This)
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_151_0:
-      return ((galaxy::api::IUser_1_151_0*)This)->SignedIn ();
-      break;
-    case SK_GalaxyContext::Version_1_152_1:
-      return ((galaxy::api::IUser_1_152_1*)This)->SignedIn ();
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      return ((galaxy::api::IUser_1_152_10*)This)->SignedIn ();
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_151_0:
+        return ((galaxy::api::IUser_1_151_0*)This)->SignedIn ();
+        break;
+      case SK_GalaxyContext::Version_1_152_1:
+        return ((galaxy::api::IUser_1_152_1*)This)->SignedIn ();
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        return ((galaxy::api::IUser_1_152_10*)This)->SignedIn ();
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 bool
 SK_Galaxy_User_IsLoggedOn (galaxy::api::IUser* This)
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_151_0:
-      return ((galaxy::api::IUser_1_151_0*)This)->IsLoggedOn ();
-      break;
-    case SK_GalaxyContext::Version_1_152_1:
-      return ((galaxy::api::IUser_1_152_1*)This)->IsLoggedOn ();
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      return ((galaxy::api::IUser_1_152_10*)This)->IsLoggedOn ();
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_151_0:
+        return ((galaxy::api::IUser_1_151_0*)This)->IsLoggedOn ();
+        break;
+      case SK_GalaxyContext::Version_1_152_1:
+        return ((galaxy::api::IUser_1_152_1*)This)->IsLoggedOn ();
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        return ((galaxy::api::IUser_1_152_10*)This)->IsLoggedOn ();
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
@@ -786,19 +808,30 @@ SK_Galaxy_User_SignInGalaxy ( galaxy::api::IUser* This,
                                          uint32_t timeout       =    15,
                       galaxy::api::IAuthListener* listener      = nullptr )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_151_0:
-      return ((galaxy::api::IUser_1_151_0*)This)->SignInGalaxy (requireOnline, listener);
-      break;
-    case SK_GalaxyContext::Version_1_152_1:
-      return ((galaxy::api::IUser_1_152_1*)This)->SignInGalaxy (requireOnline, listener);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      return ((galaxy::api::IUser_1_152_10*)This)->SignInGalaxy (requireOnline, timeout, listener);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_151_0:
+        return ((galaxy::api::IUser_1_151_0*)This)->SignInGalaxy (requireOnline, listener);
+        break;
+      case SK_GalaxyContext::Version_1_152_1:
+        return ((galaxy::api::IUser_1_152_1*)This)->SignInGalaxy (requireOnline, listener);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        return ((galaxy::api::IUser_1_152_10*)This)->SignInGalaxy (requireOnline, timeout, listener);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 namespace galaxy
@@ -1678,16 +1711,27 @@ SK::Galaxy::IsLoggedOn (void)
 uint32_t
 SK_Galaxy_Stats_GetUserTimePlayed (galaxy::api::IStats* This)
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      return ((galaxy::api::IStats_1_152_1 *)This)->GetUserTimePlayed ();
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      return ((galaxy::api::IStats_1_152_10*)This)->GetUserTimePlayed ();
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        return ((galaxy::api::IStats_1_152_1 *)This)->GetUserTimePlayed ();
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        return ((galaxy::api::IStats_1_152_10*)This)->GetUserTimePlayed ();
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
@@ -1696,17 +1740,28 @@ SK_Galaxy_Stats_GetAchievementNameCopy ( galaxy::api::IStats* This,
                                                         char* buffer,
                                                     uint32_t  bufferLength )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      // Not Implemented
-      //((galaxy::api::IStats_1_152_1 *)This)->GetAchievementNameCopy (index, buffer, bufferLength);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10 *)This)->GetAchievementNameCopy (index, buffer, bufferLength);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        // Not Implemented
+        //((galaxy::api::IStats_1_152_1 *)This)->GetAchievementNameCopy (index, buffer, bufferLength);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10 *)This)->GetAchievementNameCopy (index, buffer, bufferLength);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 void
 SK_Galaxy_Stats_GetAchievement ( galaxy::api::IStats* This,
@@ -1715,16 +1770,27 @@ SK_Galaxy_Stats_GetAchievement ( galaxy::api::IStats* This,
                                             uint32_t& unlockTime,
                                galaxy::api::GalaxyID  userID )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->GetAchievement (name, unlocked, unlockTime, userID);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->GetAchievement (name, unlocked, unlockTime, userID);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->GetAchievement (name, unlocked, unlockTime, userID);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->GetAchievement (name, unlocked, unlockTime, userID);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
@@ -1733,16 +1799,27 @@ SK_Galaxy_Stats_GetAchievementDisplayNameCopy ( galaxy::api::IStats* This,
                                                                char* buffer,
                                                            uint32_t  bufferLength )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->GetAchievementDisplayNameCopy (name, buffer, bufferLength);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->GetAchievementDisplayNameCopy (name, buffer, bufferLength);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->GetAchievementDisplayNameCopy (name, buffer, bufferLength);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->GetAchievementDisplayNameCopy (name, buffer, bufferLength);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 void
 SK_Galaxy_Stats_GetAchievementDescriptionCopy ( galaxy::api::IStats* This,
@@ -1750,32 +1827,54 @@ SK_Galaxy_Stats_GetAchievementDescriptionCopy ( galaxy::api::IStats* This,
                                                                char* buffer,
                                                            uint32_t  bufferLength )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->GetAchievementDescriptionCopy (name, buffer, bufferLength);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->GetAchievementDescriptionCopy (name, buffer, bufferLength);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->GetAchievementDescriptionCopy (name, buffer, bufferLength);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->GetAchievementDescriptionCopy (name, buffer, bufferLength);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 bool
 SK_Galaxy_Stats_IsAchievementVisibleWhileLocked ( galaxy::api::IStats* This,
                                                            const char* name )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      return ((galaxy::api::IStats_1_152_1 *)This)->IsAchievementVisibleWhileLocked (name);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      return ((galaxy::api::IStats_1_152_10*)This)->IsAchievementVisibleWhileLocked (name);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        return ((galaxy::api::IStats_1_152_1 *)This)->IsAchievementVisibleWhileLocked (name);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        return ((galaxy::api::IStats_1_152_10*)This)->IsAchievementVisibleWhileLocked (name);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
@@ -1783,16 +1882,27 @@ SK_Galaxy_Stats_RequestUserTimePlayed ( galaxy::api::IStats*                    
                                         galaxy::api::GalaxyID                               userID,
                                         galaxy::api::IUserTimePlayedRetrieveListener* const listener )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->RequestUserTimePlayed (userID, listener);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->RequestUserTimePlayed (userID, listener);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->RequestUserTimePlayed (userID, listener);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->RequestUserTimePlayed (userID, listener);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
@@ -1805,59 +1915,92 @@ SK_Galaxy_Stats_RequestUserStatsAndAchievements (
     gog_log->Log (L"galaxy::api::IStats::RequestUserStatsAndAchievements (...)")
   );
 
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->RequestUserStatsAndAchievements (userID, listener);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->RequestUserStatsAndAchievements (userID, listener);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->RequestUserStatsAndAchievements (userID, listener);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->RequestUserStatsAndAchievements (userID, listener);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
 SK_Galaxy_Stats_StoreStatsAndAchievements ( galaxy::api::IStats*       This,
                 galaxy::api::IStatsAndAchievementsStoreListener* const _listener = nullptr )
 {
-  galaxy::api::IStatsAndAchievementsStoreListener* listener =
-                                                  _listener;
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    galaxy::api::IStatsAndAchievementsStoreListener* listener =
+                                                    _listener;
 
-  if (listener == nullptr)
-  {
-    listener =
-      (galaxy::api::IStatsAndAchievementsStoreListener *)galaxy_achievements.getPtr ();
-  }
+    if (listener == nullptr)
+    {
+      listener =
+        (galaxy::api::IStatsAndAchievementsStoreListener *)galaxy_achievements.getPtr ();
+    }
 
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->StoreStatsAndAchievements (listener);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->StoreStatsAndAchievements (listener);
-      break;
-  }
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->StoreStatsAndAchievements (listener);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->StoreStatsAndAchievements (listener);
+        break;
+    }
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
 SK_Galaxy_Stats_SetAchievement ( galaxy::api::IStats* This,
                                           const char* name )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->SetAchievement (name);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->SetAchievement (name);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->SetAchievement (name);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->SetAchievement (name);
+        break;
+    }
 
-  SK_Galaxy_Stats_StoreStatsAndAchievements (This);
+    SK_Galaxy_Stats_StoreStatsAndAchievements (This);
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH ){}
 }
 
 void
@@ -1876,18 +2019,31 @@ void
 SK_Galaxy_Stats_ClearAchievement ( galaxy::api::IStats* This,
                                             const char* name )
 {
-  switch (gog->version)
-  {
-    default:
-    case SK_GalaxyContext::Version_1_152_1:
-      ((galaxy::api::IStats_1_152_1 *)This)->ClearAchievement (name);
-      break;
-    case SK_GalaxyContext::Version_1_152_10:
-      ((galaxy::api::IStats_1_152_10*)This)->ClearAchievement (name);
-      break;
-  }
+  //
+  // Galaxy API is full of all kinds of breaking API changes, so
+  //   crashing is inevitable on older builds of Galaxy SDK until
+  //     SK has reviewed all of the official releases...
+  // 
+  //  * Try to avoid a crash for now.
+  //
+  __try {
+    switch (gog->version)
+    {
+      default:
+      case SK_GalaxyContext::Version_1_152_1:
+        ((galaxy::api::IStats_1_152_1 *)This)->ClearAchievement (name);
+        break;
+      case SK_GalaxyContext::Version_1_152_10:
+        ((galaxy::api::IStats_1_152_10*)This)->ClearAchievement (name);
+        break;
+    }
 
-  SK_Galaxy_Stats_StoreStatsAndAchievements (This);
+    SK_Galaxy_Stats_StoreStatsAndAchievements (This);
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                     EXCEPTION_EXECUTE_HANDLER  :
+                                     EXCEPTION_CONTINUE_SEARCH )
+  {
+  }
 }
 
 bool
