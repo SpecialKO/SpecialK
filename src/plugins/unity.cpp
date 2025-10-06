@@ -82,7 +82,7 @@ bool SK_Unity_SetupInputHooks     (void);
 bool
 SK_Unity_PlugInCfg (void)
 {
-  if (! (SK_ImGui_HasPlayStationController () && SK_Unity_FixablePlayStationRumble))
+  if (! (SK_ImGui_HasPlayStationController () || SK_XInput_PollController (0)))
     return true;
 
   if (ImGui::CollapsingHeader ("Unity Engine", ImGuiTreeNodeFlags_DefaultOpen))
@@ -161,7 +161,7 @@ SK_Unity_PlugInCfg (void)
       ImGui::SetItemTooltip ("Game defaults to 60 Hz, regardless of framerate cap!");
 #endif
 
-      if (SK_ImGui_HasPlayStationController ())
+      if (SK_ImGui_HasPlayStationController () && SK_Unity_FixablePlayStationRumble)
       {
         ImGui::SeparatorText (ICON_FA_PLAYSTATION " PlayStation Controllers");
 
