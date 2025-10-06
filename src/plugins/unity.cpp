@@ -68,10 +68,12 @@ struct sk_unity_cfg_s {
   //      regardless of device caps or framerate limit, ugh!
   PlugInParameter <float> gamepad_polling_hz      = 10000.0f;
   PlugInParameter <bool>  gamepad_fix_playstation = true;
+  std::string             gamepad_glyphs          = "Game Default";
 } SK_Unity_Cfg;
 
 float SK_Unity_InputPollingFrequency    = 60.0f;
 bool  SK_Unity_FixablePlayStationRumble = false;
+int   SK_Unity_GlyphEnumVal             =    -1;
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
@@ -98,6 +100,54 @@ SK_Unity_PlugInCfg (void)
     {
       ImGui::TreePush ("");
 
+      static std::map <int, std::string> table_fwd = {
+        {  0, "Game Default"   },
+        {  1, "Xbox360"        },
+        {  2, "XboxOne"        },
+        {  3, "XboxSeriesX"    },
+        {  4, "PlayStation3"   },
+        {  5, "PlayStation4"   },
+        {  6, "PlayStation5"   },
+        {  7, "Steam"          },
+        {  8, "SteamDeck"      },
+        {  9, "NintendoSwitch" },
+        { 10, "GoogleStadia"   }
+      };
+
+      static std::map <std::string, int> table_rev = {
+        { "Game Default"  ,  0 },
+        { "Xbox360"       ,  1 },
+        { "XboxOne"       ,  2 },
+        { "XboxSeriesX"   ,  3 },
+        { "PlayStation3"  ,  4 },
+        { "PlayStation4"  ,  5 },
+        { "PlayStation5"  ,  6 },
+        { "Steam"         ,  7 },
+        { "SteamDeck"     ,  8 },
+        { "NintendoSwitch",  9 },
+        { "GoogleStadia"  , 10 }
+      };
+
+      int sel =
+        std::max (0, table_rev [SK_Unity_Cfg.gamepad_glyphs]);
+
+      if (ImGui::Combo ("Button Prompts", &sel, "Game Default\0"
+                                                "Xbox360\0"
+                                                "XboxOne\0"
+                                                "XboxSeriesX\0"
+                                                "PlayStation3\0"
+                                                "PlayStation4\0"
+                                                "PlayStation5\0"
+                                                "Steam\0"
+                                                "SteamDeck\0"
+                                                "NintendoSwitch\0"
+                                                "GoogleStadia\0\0"))
+      {
+        SK_Unity_Cfg.gamepad_glyphs = table_fwd [sel];
+        //SK_Unity_Cfg.gamepad_glyphs.store ();
+
+        //config.utility.save_async ();
+      }
 #if 0
       if (ImGui::SliderFloat ("Polling Frequency", &SK_Unity_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
       {
@@ -983,9 +1033,11 @@ SK_Unity_SetInputPollingFreq (float PollingHz)
 
 using InControl_InputDevice_OnAttached_pfn    = void (*)(MonoObject*);
 using InControl_NativeInputDevice_Vibrate_pfn = void (*)(MonoObject*, float leftSpeed, float rightSpeed);
+using InControl_NativeInputDevice_Update_pfn  = void (*)(MonoObject*, ULONG updateTick, float deltaTime);
 
 static InControl_InputDevice_OnAttached_pfn    InControl_InputDevice_OnAttached_Original    = nullptr;
 static InControl_NativeInputDevice_Vibrate_pfn InControl_NativeInputDevice_Vibrate_Original = nullptr;
+static InControl_NativeInputDevice_Update_pfn  InControl_NativeInputDevice_Update_Original  = nullptr;
 
 static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
 {
@@ -993,10 +1045,74 @@ static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
 
   InControl_InputDevice_OnAttached_Original (__this);
 
-  // XXX: TODO
-  // 
-  //int                                                                                      value = 6;
-  //SK_mono_field_set_value (__this, SK_Unity_MonoFields.InControl.InputDevice.DeviceStyle, &value);
+  if (SK_Unity_GlyphEnumVal != -1)
+  {
+    void* params [1] = { &SK_Unity_GlyphEnumVal };
+
+    InvokeMethod ("InControl", "InputDevice", "set_DeviceStyle", 1, __this,
+          SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+                                                   "InControl" :
+                                             "Assembly-CSharp", params);
+  }
+}
+
+static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG updateTick, float deltaTime)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_ImGui_WantGamepadCapture ())
+  {
+    // TODO: Clear the controller buttons, etc.
+
+    if (! config.input.gamepad.disable_rumble)
+    {
+      InvokeMethod ( "InControl",
+                     "NativeInputDevice",
+                     "SendStatusUpdates", 0, __this,
+        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+                                                 "InControl" :
+                                           "Assembly-CSharp" );
+    }
+    return;
+  }
+
+  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
+  {
+    static std::string
+        last_glyphs  = "";
+    if (last_glyphs != SK_Unity_Cfg.gamepad_glyphs)
+    {
+      auto assemblyInControl =
+        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+        SK_Unity_MonoAssemblies.assemblyInControl            :
+        SK_Unity_MonoAssemblies.assemblyCSharp;
+
+      MonoClass* DeviceStyle =
+        SK_mono_class_from_name (assemblyInControl, "InControl", "InputDeviceStyle");
+
+      if (DeviceStyle != nullptr)
+      {
+        MonoClassField* enumValueField =
+          SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs.c_str ());
+
+        if (enumValueField != nullptr)
+        {
+          MonoObject* enumValueObject =
+            SK_mono_field_get_value_object (SK_Unity_MonoDomain, enumValueField, NULL);
+
+          if (enumValueObject != nullptr)
+          {
+            SK_Unity_GlyphEnumVal =
+              *(int32_t *)SK_mono_object_unbox (enumValueObject);
+          }
+        }
+      }
+
+      last_glyphs = SK_Unity_Cfg.gamepad_glyphs;
+    }
+  }
+
+  InControl_NativeInputDevice_Update_Original (__this, updateTick, deltaTime);
 }
 
 static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, float leftSpeed, float rightSpeed)
@@ -1033,17 +1149,18 @@ SK_Unity_SetupInputHooks (void)
   SK_Unity_MonoAssemblies.assemblyInControl =
     SK_mono_image_loaded ("InControl");
 
-  SK_Unity_MonoClasses.InControl.InputDevice =
-    SK_mono_class_from_name (SK_Unity_MonoAssemblies.assemblyCSharp, "InControl", "InputDevice");
+  auto assemblyInControl =
+    SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+    SK_Unity_MonoAssemblies.assemblyInControl            :
+    SK_Unity_MonoAssemblies.assemblyCSharp;
 
-  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
-  {
-    SK_Unity_MonoFields.InControl.InputDevice.DeviceStyle =
-      SK_mono_class_get_field_from_name (SK_Unity_MonoClasses.InControl.InputDevice, "DeviceStyle");
-  }
+  SK_Unity_MonoClasses.InControl.InputDevice =
+    SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice");
 
   auto pfnInControl_NativeInputDevice_Vibrate =
     CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
+  auto pfnInControl_NativeInputDevice_Update =
+    CompileMethod ("InControl", "NativeInputDevice", "Update",     2);
   auto pfnInControl_InputDevice_OnAttached =
     CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
 
@@ -1054,6 +1171,8 @@ SK_Unity_SetupInputHooks (void)
 
     pfnInControl_NativeInputDevice_Vibrate =
       CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
+    pfnInControl_NativeInputDevice_Update =
+      CompileMethod ("InControl", "NativeInputDevice", "Update",     2, "InControl");
     pfnInControl_InputDevice_OnAttached =
       CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
   }
@@ -1067,6 +1186,15 @@ SK_Unity_SetupInputHooks (void)
     SK_QueueEnableHook     (pfnInControl_NativeInputDevice_Vibrate);
 
     SK_Unity_FixablePlayStationRumble = true;
+  }
+
+  if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+  {
+    SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
+                            pfnInControl_NativeInputDevice_Update,
+                               InControl_NativeInputDevice_Update_Detour,
+      static_cast_p2p <void> (&InControl_NativeInputDevice_Update_Original) );
+    SK_QueueEnableHook     (pfnInControl_NativeInputDevice_Update);
   }
 
   if (pfnInControl_InputDevice_OnAttached != nullptr)
