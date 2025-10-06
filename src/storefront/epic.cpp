@@ -1092,6 +1092,8 @@ SK::EOS::Init (bool pre_load)
   if (config.platform.silent)
     return;
 
+  SK_PROFILE_FIRST_CALL
+
   const wchar_t*
     wszEOSDLLName =
       SK_RunLHIfBitness ( 64, L"EOSSDK-Win64-Shipping.dll",

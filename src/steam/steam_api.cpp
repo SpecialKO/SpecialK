@@ -3692,6 +3692,8 @@ SK_Steam_LoadOverlayEarly (void)
 int
 SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 {
+  SK_PROFILE_FIRST_CALL
+
 #define MAX_STEAM_LIBRARIES 32
 
   static volatile LONG   scanned_libs = 0L;
@@ -6529,6 +6531,8 @@ SK_SteamAPI_DebugText (int nSeverity, const char *pchDebugText)
 bool
 SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
 {
+  SK_PROFILE_FIRST_CALL
+
   if (SteamAPI_InitSafe == nullptr)
   {
     SteamAPI_InitSafe =
@@ -7691,6 +7695,8 @@ SK::SteamAPI::GetDataDir (void)
 uint64_t
 SK_Steam_GetAppID_NoAPI (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   static constexpr int MAX_APPID_LEN = 32;
 
   DWORD    dwSteamGameIdLen                  =  0 ;
