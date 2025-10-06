@@ -1,6 +1,10 @@
-﻿25.10.6.5
+﻿25.10.6.6
 =========
- + Unity buttom prompt override now applies in real-time.
+ + Added additional error handling to Mono embedding in Unity.
+
+25.10.6.5
+=========
+ + Unity button prompt override now applies in real-time.
  + Clear cached InControl controller state when blocking input to Unity.
 
 25.10.6.4

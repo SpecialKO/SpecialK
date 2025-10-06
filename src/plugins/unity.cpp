@@ -83,6 +83,9 @@ void SK_Unity_UpdateGlyphOverride (void);
 bool
 SK_Unity_PlugInCfg (void)
 {
+  if (! SK_Unity_FixablePlayStationRumble)
+    return true;
+
   if (! (SK_ImGui_HasPlayStationController () || SK_XInput_PollController (0)))
     return true;
 
@@ -380,7 +383,7 @@ mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_
 static
 void AttachThread (void)
 {
-  SK_LOGi1 (L"Attaching Mono to Thread: %x", GetCurrentThreadId ());
+  SK_LOGi3 (L"Attaching Mono to Thread: %x", GetCurrentThreadId ());
 
   SK_mono_thread_attach (SK_Unity_MonoDomain);
 }
@@ -551,6 +554,8 @@ SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 static
 bool LoadMonoAssembly (const char* assemblyName)
 {
+  AttachThread ();
+
   MonoImage* pImage =
     SK_mono_image_loaded (assemblyName);
 
@@ -692,6 +697,9 @@ MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly
 static
 MonoClass* GetClassFromMethod (MonoMethod* method)
 {
+  if (method == nullptr)
+         return nullptr;
+
   return
     SK_mono_method_get_class (method);
 }
@@ -739,6 +747,9 @@ static
 // Helpers for GetStaticFieldValue
 MonoClassField* GetField (MonoClass* pKlass, const char* fieldName)
 {
+  if (pKlass == nullptr)
+         return nullptr;
+
   MonoClassField* pField =
     SK_mono_class_get_field_from_name (pKlass, fieldName);
 
@@ -755,6 +766,9 @@ uint32_t GetFieldOffset (MonoClassField* field)
 static
 void GetFieldValue (MonoObject* obj, MonoClassField* field, void* out)
 {
+  if (obj == nullptr || field == nullptr || out == nullptr)
+    return;
+
   AttachThread ();
 
   SK_mono_field_get_value (obj, field, out);
@@ -763,12 +777,18 @@ void GetFieldValue (MonoObject* obj, MonoClassField* field, void* out)
 static
 void SetFieldValue (MonoObject* obj, MonoClassField* field, void* value)
 {
+  if (obj == nullptr || field == nullptr || value == nullptr)
+    return;
+
   SK_mono_field_set_value (obj, field, value);
 }
 
 static
 MonoVTable* GetVTable (MonoClass* pKlass)
 {
+  if (pKlass == nullptr)
+         return nullptr;
+
   return
     SK_mono_class_vtable (SK_Unity_MonoDomain, pKlass);
 }
@@ -776,6 +796,9 @@ MonoVTable* GetVTable (MonoClass* pKlass)
 static
 void* GetStaticFieldData (MonoVTable* pVTable)
 {
+  if (pVTable == nullptr)
+    return nullptr;
+
   return
     SK_mono_vtable_get_static_field_data (pVTable);
 }
@@ -783,6 +806,9 @@ void* GetStaticFieldData (MonoVTable* pVTable)
 static
 void* GetStaticFieldData (MonoClass* pKlass)
 {
+  if (pKlass == nullptr)
+    return nullptr;
+
   MonoVTable* pVTable =
     GetVTable (pKlass);
 
@@ -826,6 +852,9 @@ MonoImage* GetImage (const char* name)
 static
 MonoClass* GetClass (MonoImage* image, const char* _namespace, const char* _class)
 {
+  if (image == nullptr)
+    return nullptr;
+
   return
     SK_mono_class_from_name (image, _namespace, _class);
 }
@@ -833,6 +862,9 @@ MonoClass* GetClass (MonoImage* image, const char* _namespace, const char* _clas
 static
 MonoMethod* GetClassMethod (MonoClass* class_, const char* name, int params)
 {
+  if (class_ == nullptr)
+    return nullptr;
+
   return
     SK_mono_class_get_method_from_name (class_, name, params);
 }
@@ -840,29 +872,56 @@ MonoMethod* GetClassMethod (MonoClass* class_, const char* name, int params)
 static
 MonoMethod* GetClassMethod (MonoImage* image, const char* namespace_, const char* class_, const char* name, int params)
 {
-  MonoClass* hClass =
-    GetClass (image, namespace_, class_);
+  if (image == nullptr)
+    return nullptr;
 
-  return hClass ? GetClassMethod (hClass, name, params) : NULL;
+  const auto
+      klass  = GetClass (image, namespace_, class_);
+  if (klass == nullptr)
+    return nullptr;
+
+  return
+    GetClassMethod (klass, name, params);
 }
 
 static
 MonoMethod* GetClassMethod (const char* namespace_, const char* class_, const char* name, int params, const char* image_ = "Assembly-CSharp")
 {
-  MonoClass* hClass = GetClass (GetImage (image_), namespace_, class_);
-  return     hClass ? GetClassMethod (hClass, name, params) : NULL;
+  const auto
+      image  = GetImage (image_);
+  if (image == nullptr)
+    return nullptr;
+
+  const auto
+      klass  = GetClass (image, namespace_, class_);
+  if (klass == nullptr)
+    return nullptr;
+
+  return
+    GetClassMethod (klass, name, params);
 }
 
 static
 MonoProperty* GetProperty (MonoImage* image, const char* namespace_, const char* class_, const char* name)
 {
+  if (image == nullptr)
+    return nullptr;
+
+  const auto
+      klass  = GetClass (image, namespace_, class_);
+  if (klass == nullptr)
+    return nullptr;
+
   return
-    SK_mono_class_get_property_from_name (GetClass (image, namespace_, class_), name);
+    SK_mono_class_get_property_from_name (klass, name);
 }
 
 static
 MonoObject* GetPropertyValue (MonoProperty* property, uintptr_t instance = 0)
 {
+  if (property == nullptr)
+    return nullptr;
+
   return
     SK_mono_property_get_value (property, reinterpret_cast <void *>(instance), nullptr, 0);
 }
@@ -870,38 +929,73 @@ MonoObject* GetPropertyValue (MonoProperty* property, uintptr_t instance = 0)
 static
 MonoObject* GetPropertyValue (MonoImage* image, const char* namespace_, const char* class_, const char* name, uintptr_t instance = 0)
 {
+  if (image == nullptr)
+    return nullptr;
+
+  const auto
+      property  = GetProperty (image, namespace_, class_, name);
+  if (property == nullptr)
+           return nullptr;
+
   return
-    GetPropertyValue (GetProperty (image, namespace_, class_, name), instance);
+    GetPropertyValue (property, instance);
 }
 
 static
-MonoObject* InvokeMethod (const char* namespace_, const char* class_, const char* method, int paramsCount, void* instance, const char* image_ = "Assembly-CSharp", void** params = nullptr)
+MonoObject* InvokeMethod (const char* namespace_, const char* class_, const char* method_, int paramsCount, void* instance, const char* image_ = "Assembly-CSharp", void** params = nullptr)
 {
   if (instance == nullptr)
-           return nullptr;
+    return nullptr;
+
+  const auto
+      image  = GetImage (image_);
+  if (image == nullptr)
+        return nullptr;
+
+  const auto
+      method  = GetClassMethod (image, namespace_, class_, method_, paramsCount);
+  if (method == nullptr)
+    return nullptr;
 
   AttachThread ();
 
   return
-    SK_mono_runtime_invoke (GetClassMethod (GetImage (image_), namespace_, class_, method, paramsCount), instance, params, nullptr);
+    SK_mono_runtime_invoke (method, instance, params, nullptr);
 }
 
 static
 void* CompileMethod (MonoMethod* method)
 {
-  return method ? SK_mono_compile_method (method) : NULL;
+  if (method == nullptr)
+    return nullptr;
+
+  return
+    SK_mono_compile_method (method);
 }
 
 static
 void* CompileMethod (const char* namespace_, const char* class_, const char* name, int params, const char* image_ = "Assembly-CSharp")
 {
+  const auto
+      image  = GetImage (image_);
+  if (image == nullptr)
+    return nullptr;
+
+  const auto
+      method  = GetClassMethod (image, namespace_, class_, name, params);
+  if (method == nullptr)
+    return nullptr;
+
   return
-    CompileMethod (GetClassMethod (GetImage (image_), namespace_, class_, name, params));
+    CompileMethod (method);
 }
 
 static
 MonoObject* NewObject (MonoClass* klass)
 {
+  if (klass == nullptr)
+    return nullptr;
+
   SK_mono_thread_attach (SK_Unity_MonoDomain);
 
   return
@@ -911,6 +1005,9 @@ MonoObject* NewObject (MonoClass* klass)
 static
 MonoObject* Invoke (MonoMethod* method, void* obj, void** params)
 {
+  if (method == nullptr)
+    return nullptr;
+
   SK_mono_thread_attach (SK_Unity_MonoDomain);
  
   MonoObject* exc;
@@ -922,8 +1019,14 @@ MonoObject* Invoke (MonoMethod* method, void* obj, void** params)
 static
 MonoObject* ConstructNewObject (MonoClass* klass, int num_args, void** args)
 {
+  if (klass == nullptr)
+    return nullptr;
+
   auto ctor =
     SK_mono_class_get_method_from_name (klass, ".ctor", num_args);
+
+  if (ctor == nullptr)
+    return nullptr;
 
   MonoObject*
       instance = NewObject (klass);
@@ -939,10 +1042,13 @@ MonoObject* ConstructNewObject (MonoClass* klass, int num_args, void** args)
 static
 MonoObject* ConstructObject (MonoClass* klass, MonoObject* instance, int num_args, void** args)
 {
+  if (klass == nullptr || instance == nullptr)
+    return nullptr;
+
   auto ctor =
     SK_mono_class_get_method_from_name (klass, ".ctor", num_args);
 
-  if (instance != nullptr)
+  if (ctor != nullptr)
   {
     return
       SK_mono_runtime_invoke (ctor, instance, args, nullptr);
@@ -1086,17 +1192,22 @@ SK_Unity_UpdateGlyphOverride (void)
 
 static void SK_Unity_InControl_SetDeviceStyle (MonoObject* device)
 {
+  if (device == nullptr)
+    return;
+
   if (SK_Unity_GlyphEnumVal == -1)
     return;
 
   static auto image =
-    SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-                                  GetImage ("InControl") :
-                            GetImage ("Assembly-CSharp");
+    (SK_Unity_MonoAssemblies.assemblyInControl != nullptr) ?
+                                    GetImage ("InControl") :
+                              GetImage ("Assembly-CSharp");
 
-  static auto method = (image == nullptr) ? nullptr :
-    GetClassMethod (image, "InControl", "InputDevice", "set_DeviceStyle", 1);
+  if (image == nullptr)
+    return;
 
+  static auto
+        method = GetClassMethod (image, "InControl", "InputDevice", "set_DeviceStyle", 1);
   if (! method)
     return;
 
@@ -1176,16 +1287,18 @@ SK_Unity_SetupInputHooks (void)
   if (SK_mono_thread_attach == nullptr)
     return false;
 
-  if (! LoadMonoAssembly ("Assembly-CSharp"))
-    return false;
-
   AttachThread ();
 
-  SK_Unity_MonoAssemblies.assemblyCSharp =
-    SK_mono_image_loaded ("Assembly-CSharp");
+  if (! LoadMonoAssembly ("Assembly-CSharp"))
+  {
+    return false;
+  }
 
-  SK_Unity_MonoAssemblies.assemblyInControl =
-    SK_mono_image_loaded ("InControl");
+  // Optional, may not exist.
+  LoadMonoAssembly ("InControl");
+
+  SK_Unity_MonoAssemblies.assemblyCSharp    = SK_mono_image_loaded ("Assembly-CSharp");
+  SK_Unity_MonoAssemblies.assemblyInControl = SK_mono_image_loaded ("InControl");
 
   auto assemblyInControl =
     SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
@@ -1193,62 +1306,78 @@ SK_Unity_SetupInputHooks (void)
     SK_Unity_MonoAssemblies.assemblyCSharp;
 
   SK_Unity_MonoClasses.InControl.InputDevice =
+                             assemblyInControl == nullptr ?
+                                                  nullptr :
     SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice");
 
-  auto pfnInControl_NativeInputDevice_Vibrate =
-    CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
-  auto pfnInControl_NativeInputDevice_Update =
-    CompileMethod ("InControl", "NativeInputDevice", "Update",     2);
-  auto pfnInControl_InputDevice_OnAttached =
-    CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
+  void* pfnInControl_NativeInputDevice_Vibrate = nullptr;
+  void* pfnInControl_NativeInputDevice_Update  = nullptr;
+  void* pfnInControl_InputDevice_OnAttached    = nullptr;
 
-  // Sometimes this ships as a separate DLL (InControl.dll)
-  if (pfnInControl_NativeInputDevice_Vibrate == nullptr)
+  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
   {
-    LoadMonoAssembly ("InControl");
-
     pfnInControl_NativeInputDevice_Vibrate =
-      CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
+      CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
     pfnInControl_NativeInputDevice_Update =
-      CompileMethod ("InControl", "NativeInputDevice", "Update",     2, "InControl");
+      CompileMethod ("InControl", "NativeInputDevice", "Update",     2);
     pfnInControl_InputDevice_OnAttached =
-      CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
+      CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
+
+    // Sometimes this ships as a separate DLL (InControl.dll)
+    if (pfnInControl_NativeInputDevice_Vibrate == nullptr)
+    {
+      pfnInControl_NativeInputDevice_Vibrate =
+        CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
+      pfnInControl_NativeInputDevice_Update =
+        CompileMethod ("InControl", "NativeInputDevice", "Update",     2, "InControl");
+      pfnInControl_InputDevice_OnAttached =
+        CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
+    }
+
+    if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+    {
+      SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
+                              pfnInControl_NativeInputDevice_Vibrate,
+                                 InControl_NativeInputDevice_Vibrate_Detour,
+        static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_Original) );
+    }
+
+    if (pfnInControl_NativeInputDevice_Update != nullptr)
+    {
+      SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
+                              pfnInControl_NativeInputDevice_Update,
+                                 InControl_NativeInputDevice_Update_Detour,
+        static_cast_p2p <void> (&InControl_NativeInputDevice_Update_Original) );
+    }
+
+    if (pfnInControl_InputDevice_OnAttached != nullptr)
+    {
+      SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
+                              pfnInControl_InputDevice_OnAttached,
+                                 InControl_InputDevice_OnAttached_Detour,
+        static_cast_p2p <void> (&InControl_InputDevice_OnAttached_Original) );
+    }
   }
 
-  if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+  if ( pfnInControl_NativeInputDevice_Vibrate != nullptr &&
+       pfnInControl_NativeInputDevice_Update  != nullptr &&
+       pfnInControl_InputDevice_OnAttached    != nullptr )
   {
-    SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
-                            pfnInControl_NativeInputDevice_Vibrate,
-                               InControl_NativeInputDevice_Vibrate_Detour,
-      static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_Original) );
-    SK_QueueEnableHook     (pfnInControl_NativeInputDevice_Vibrate);
+    SK_QueueEnableHook (pfnInControl_NativeInputDevice_Vibrate);
+    SK_QueueEnableHook (pfnInControl_NativeInputDevice_Update);
+    SK_QueueEnableHook (pfnInControl_InputDevice_OnAttached);
+
+    SK_ApplyQueuedHooks ();
 
     SK_Unity_FixablePlayStationRumble = true;
+
+    SK_Unity_UpdateGlyphOverride ();
   }
 
-  if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+  else
   {
-    SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
-                            pfnInControl_NativeInputDevice_Update,
-                               InControl_NativeInputDevice_Update_Detour,
-      static_cast_p2p <void> (&InControl_NativeInputDevice_Update_Original) );
-    SK_QueueEnableHook     (pfnInControl_NativeInputDevice_Update);
+    SK_LOGi0 (L"Game does not appear to use InControl for gamepads...");
   }
-
-  if (pfnInControl_InputDevice_OnAttached != nullptr)
-  {
-    SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
-                            pfnInControl_InputDevice_OnAttached,
-                               InControl_InputDevice_OnAttached_Detour,
-      static_cast_p2p <void> (&InControl_InputDevice_OnAttached_Original) );
-    SK_QueueEnableHook     (pfnInControl_InputDevice_OnAttached);
-  }
-
-  SK_ApplyQueuedHooks ();
-
-  SK_Unity_UpdateGlyphOverride ();
-
-  DetachCurrentThreadIfNotNative ();
 
   return true;
 }
