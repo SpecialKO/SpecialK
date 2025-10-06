@@ -1330,6 +1330,14 @@ SK::Galaxy::Init (void)
     }
   );
 
+  // We already know the platform and it is not GOG...
+  if (config.platform.type._Equal (SK_Platform_Epic)  ||
+      config.platform.type._Equal (SK_Platform_Steam) ||
+      config.platform.type._Equal (SK_Platform_Xbox))
+  {
+    return;
+  }
+
   static const wchar_t*
     wszGalaxyDLLName =
       SK_RunLHIfBitness ( 64, L"Galaxy64.dll",
