@@ -1137,23 +1137,28 @@ FindProcessByName (const wchar_t* wszName)
   PROCESSENTRY32W pe32 = { };
 
   SK_AutoHandle hProcessSnap (
-    CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0)
+    CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, 0)
   );
 
   if ((intptr_t)hProcessSnap.m_h <= 0)// == INVALID_HANDLE_VALUE)
     return pe32;
 
-  pe32.dwSize = sizeof (PROCESSENTRY32W);
+  pe32.dwSize =
+    sizeof (PROCESSENTRY32W);
 
-  if (! Process32FirstW (hProcessSnap, &pe32))
+  while (! Process32FirstW ( hProcessSnap,
+                               &pe32 )
+        )
   {
-    return pe32;
+    if (GetLastError () != ERROR_BAD_LENGTH)
+      return { };
   }
 
   do
   {
-    if (wcsstr (pe32.szExeFile, wszName))
-      return pe32;
+    if (! SK_Path_wcsicmp ( wszName,
+                        pe32.szExeFile )
+       ) return pe32;
   } while (Process32NextW (hProcessSnap, &pe32));
 
   return pe32;

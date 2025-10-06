@@ -2248,6 +2248,9 @@ void
 __stdcall
 SK_EnumLoadedModules (SK_ModuleEnum when)
 {
+  SK_Thread_ScopedPriority
+            scoped_prio (THREAD_PRIORITY_TIME_CRITICAL);
+
   SK_PROFILE_FIRST_CALL
 
   // Begin logging new loads after this
@@ -2296,7 +2299,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       );
 
       SetCurrentThreadDescription (L"[SK] DLL Enumerator");
-      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
 
       if ( WAIT_TIMEOUT ==
              SK_WaitForSingleObject (hWalkDone.m_h, 7500UL) )

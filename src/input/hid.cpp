@@ -2719,6 +2719,9 @@ SK_Input_EnumOpenHIDFiles (void)
   static HANDLE hDeviceEnumThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
+    SK_Thread_ScopedPriority
+              scoped_prio (THREAD_PRIORITY_TIME_CRITICAL);
+
     auto* pTLS =
       SK_TLS_Bottom ();
 
