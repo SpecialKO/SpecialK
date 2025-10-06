@@ -1,4 +1,9 @@
-﻿25.10.6.2
+﻿25.10.6.3
+=========
+ + Added universal fix for missing controller vibration in Unity engine games
+     using the InControl input backend and Mono embedding framework.
+
+25.10.6.2
 =========
  + Added warnings if a mod uses winhttp.dll in a GOG game, because that will
      break Galaxy and prevent achievements; it also breaks some of Special K!

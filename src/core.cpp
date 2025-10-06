@@ -4061,14 +4061,12 @@ SK_BackgroundRender_EndFrame (void)
   {
     if (std::exchange (first_frame, false))
     {
-      // Universal Unity plug-in not ready yet.
-#if 0
+      // Lazy-init universal Unity Engine plug-in.
       if (SK_GetCurrentRenderBackend ().windows.unity)
       {
         void SK_Unity_InitPlugin (void);
              SK_Unity_InitPlugin ();
       }
-#endif
 
       if (PathFileExistsW (L"REFramework.dll"))
              LoadLibraryW (L"REFramework.dll");

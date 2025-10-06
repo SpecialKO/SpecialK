@@ -542,6 +542,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI ( lpFileName, SK_TEXT("libScePad")) ||
                 StrStrIW (wszCallingMod,     L"libScePad") )
       SK_RunOnce (SK_Input_HookScePad ());
+    else if (   StrStrI ( lpFileName, SK_TEXT("mono-2.0-bdwgc.dll")) ||
+                StrStrIW (wszCallingMod,     L"mono-2.0-bdwgc.dll") )
+    {
+      void        SK_Unity_InitPlugin (void);
+      SK_RunOnce (SK_Unity_InitPlugin ());
+    }
     else if (   StrStrI ( lpFileName, SK_TEXT("dstorage.dll")) ||
                 StrStrIW (wszCallingMod,     L"dstorage.dll") )
     {

@@ -66,18 +66,23 @@ struct sk_unity_cfg_s {
   // 
   //  * Game is hardcoded to poll gamepad input at 60 Hz
   //      regardless of device caps or framerate limit, ugh!
-  PlugInParameter <float> gamepad_polling_hz = 10000.0f;
+  PlugInParameter <float> gamepad_polling_hz      = 10000.0f;
+  PlugInParameter <bool>  gamepad_fix_playstation = true;
 } SK_Unity_Cfg;
 
-float SK_Unity_InputPollingFrequency = 60.0f;
+float SK_Unity_InputPollingFrequency    = 60.0f;
+bool  SK_Unity_FixablePlayStationRumble = false;
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
-bool SK_Unity_SetupFramerateHooks (void);
+bool SK_Unity_SetupInputHooks     (void);
 
 bool
 SK_Unity_PlugInCfg (void)
 {
+  if (! (SK_ImGui_HasPlayStationController () && SK_Unity_FixablePlayStationRumble))
+    return true;
+
   if (ImGui::CollapsingHeader ("Unity Engine", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush       ("");
@@ -93,9 +98,10 @@ SK_Unity_PlugInCfg (void)
     {
       ImGui::TreePush ("");
 
+#if 0
       if (ImGui::SliderFloat ("Polling Frequency", &SK_Unity_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
       {
-        SK_Unity_SetInputPollingFreq (SK_Unity_Cfg.gamepad_polling_hz);
+        ////SK_Unity_SetInputPollingFreq (SK_Unity_Cfg.gamepad_polling_hz);
 
         SK_Unity_Cfg.gamepad_polling_hz.store ();
 
@@ -103,126 +109,24 @@ SK_Unity_PlugInCfg (void)
       }
 
       ImGui::SetItemTooltip ("Game defaults to 60 Hz, regardless of framerate cap!");
+#endif
 
-#if 0
       if (SK_ImGui_HasPlayStationController ())
       {
         ImGui::SeparatorText (ICON_FA_PLAYSTATION " PlayStation Controllers");
 
-        static std::error_code                    ec = { };
-        static std::filesystem::path pathPlayStation =
-          SK_Resource_GetRoot () / LR"(inject/textures/8E9DD816.dds)";
-
-        static bool fetching_buttons = false;
-        static bool has_buttons      = std::filesystem::exists (pathPlayStation, ec);
-
-        bool disable_native_playstation =
-          (config.input.gamepad.disable_hid && config.input.gamepad.xinput.emulate);
-
-        if (ImGui::Checkbox ("Disable Native PlayStation Support", &disable_native_playstation))
+        if (ImGui::Checkbox ("Fix Missing Vibration", &SK_Unity_Cfg.gamepad_fix_playstation))
         {
-          if (disable_native_playstation)
-          {
-            restart_reqs++;
-            config.input.gamepad.disable_hid    = true;
-            config.input.gamepad.xinput.emulate = true;
-          }
-
-          else
-          {
-            if (std::filesystem::remove (pathPlayStation, ec))
-            {
-              has_buttons = false;
-              restart_reqs++;
-            }
-
-            config.input.gamepad.disable_hid    = false;
-            config.input.gamepad.xinput.emulate = false;
-          }
+          SK_Unity_Cfg.gamepad_fix_playstation.store ();
 
           config.utility.save_async ();
         }
 
-        if (ImGui::BeginItemTooltip ())
-        {
-          ImGui::TextUnformatted ("Native PlayStation support in this game does not work with Rumble");
-          ImGui::Separator       ();
-          ImGui::BulletText      ("Special K can translate PlayStation to XInput and correct the button icons.");
-          ImGui::BulletText      ("Disabling the game's native support will break support for local multiplayer.");
-          ImGui::EndTooltip      ();
-        }
-
-        if (disable_native_playstation)
-        {
-          if (! has_buttons)
-          {
-            if (! fetching_buttons)
-            {
-              if (ImGui::Button ("Download " ICON_FA_PLAYSTATION " Icons\t\t DualShock 4 "))
-              {
-                fetching_buttons = true;
-
-                SK_Network_EnqueueDownload (
-                     sk_download_request_s (
-                       pathPlayStation.wstring (),
-                         R"(https://sk-data.special-k.info/addon/TalesOfGraces/DualShock4.dds)",
-                         []( const std::vector <uint8_t>&&,
-                             const std::wstring_view )
-                          -> bool
-                             {
-                               fetching_buttons = false;
-                               has_buttons      = true;
-                               restart_reqs++;
-                         
-                               return false;
-                             }
-                         ),
-                     true);
-              }
-
-              if (ImGui::Button ("Download " ICON_FA_PLAYSTATION " Icons\t\t DualSense "))
-              {
-                fetching_buttons = true;
-
-                SK_Network_EnqueueDownload (
-                     sk_download_request_s (
-                       pathPlayStation.wstring (),
-                         R"(https://sk-data.special-k.info/addon/TalesOfGraces/DualSense.dds)",
-                         []( const std::vector <uint8_t>&&,
-                             const std::wstring_view )
-                          -> bool
-                             {
-                               fetching_buttons = false;
-                               has_buttons      = true;
-                               restart_reqs++;
-                         
-                               return false;
-                             }
-                         ),
-                     true);
-              }
-            }
-
-            else
-            {
-              ImGui::BulletText ("Downloading New Button Icons...");
-            }
-          }
-
-          else
-          {
-            if (ImGui::Button ("Revert to " ICON_FA_XBOX " Icons"))
-            {
-              if (std::filesystem::remove (pathPlayStation, ec))
-              {
-                has_buttons = false;
-                restart_reqs++;
-              }
-            }
-          }
-        }
+        ImGui::SetItemTooltip (
+          "Unity Engine has non-functional vibration on PlayStation controllers.\r\n\r\n  "
+          ICON_FA_INFO_CIRCLE " Rather than emulating Xbox, this will fix Unity's native PlayStation code."
+        );
       }
-#endif
 
       ImGui::TreePop  (  );
     }
@@ -252,10 +156,18 @@ SK_Unity_InitPlugin (void)
   SK_RunOnce (
     SK_Unity_HookMonoInit ();
 
+/*
     SK_Unity_Cfg.gamepad_polling_hz.bind_to_ini (
       _CreateConfigParameterFloat ( L"Unity.Input",
                                     L"PollingFrequency",  SK_Unity_Cfg.gamepad_polling_hz,
                                     L"Gamepad Polling Frequency (30.0 Hz - 1000.0Hz; 60.0 Hz == hard-coded game default)" )
+    );
+*/
+
+    SK_Unity_Cfg.gamepad_fix_playstation.bind_to_ini (
+      _CreateConfigParameterBool ( L"Unity.Input",
+                                   L"FixPlayStationVibration",  SK_Unity_Cfg.gamepad_fix_playstation,
+                                   L"Add Vibration Support for DualShock 4 and DualSense" )
     );
 
     plugin_mgr->config_fns.emplace      (SK_Unity_PlugInCfg);
@@ -307,6 +219,7 @@ typedef MonoGCHandle    (*mono_gchandle_free_v2_pfn)(MonoGCHandle gchandle);
 typedef MonoObject*     (*mono_gchandle_get_target_v2_pfn)(MonoGCHandle gchandle);
 
 typedef MonoObject*     (*mono_property_get_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
+typedef void            (*mono_property_set_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
 typedef MonoProperty*   (*mono_class_get_property_from_name_pfn)(MonoClass *klass, const char *name);
 typedef MonoMethod*     (*mono_property_get_get_method_pfn)(MonoProperty *prop);
 typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
@@ -342,6 +255,7 @@ static mono_array_addr_with_size_pfn         SK_mono_array_addr_with_size       
 static mono_array_length_pfn                 SK_mono_array_length                 = nullptr;
 
 static mono_property_get_value_pfn           SK_mono_property_get_value           = nullptr;
+static mono_property_set_value_pfn           SK_mono_property_set_value           = nullptr;
 static mono_class_get_property_from_name_pfn SK_mono_class_get_property_from_name = nullptr;
 static mono_property_get_get_method_pfn      SK_mono_property_get_get_method      = nullptr;
 static mono_property_get_get_method_pfn      SK_mono_property_get_set_method      = nullptr;
@@ -473,6 +387,7 @@ SK_Unity_HookMonoInit (void)
   SK_mono_field_get_offset             = reinterpret_cast <mono_field_get_offset_pfn>             (SK_GetProcAddress (hMono, "mono_field_get_offset"));
 
   SK_mono_property_get_value           = reinterpret_cast <mono_property_get_value_pfn>           (SK_GetProcAddress (hMono, "mono_property_get_value"));
+  SK_mono_property_set_value           = reinterpret_cast <mono_property_set_value_pfn>           (SK_GetProcAddress (hMono, "mono_property_set_value"));
   SK_mono_class_get_property_from_name = reinterpret_cast <mono_class_get_property_from_name_pfn> (SK_GetProcAddress (hMono, "mono_class_get_property_from_name"));
   SK_mono_property_get_get_method      = reinterpret_cast <mono_property_get_get_method_pfn>      (SK_GetProcAddress (hMono, "mono_property_get_get_method"));
   SK_mono_property_get_set_method      = reinterpret_cast <mono_property_get_get_method_pfn>      (SK_GetProcAddress (hMono, "mono_property_get_set_method"));
@@ -511,7 +426,6 @@ SK_Unity_HookMonoInit (void)
       SK_Unity_OnInitMono (SK_mono_get_root_domain ());
   }
 
-
   return true;
 }
 
@@ -528,14 +442,28 @@ void SK_Unity_OnInitMono (MonoDomain* domain)
 
     SK_ReleaseAssert (domain == SK_mono_get_root_domain ());
 
-    init = SK_Unity_SetupFramerateHooks ();
+    init = SK_Unity_SetupInputHooks ();
   }
 }
 
 struct {
-  MonoImage* assemblyCSharp            = nullptr;
-  MonoImage* UnityEngine_CoreModule    = nullptr;
+  MonoImage* assemblyCSharp    = nullptr;
+  MonoImage* assemblyInControl = nullptr;
 } SK_Unity_MonoAssemblies;
+
+struct {
+  struct {
+    struct {
+      MonoClassField* DeviceStyle = nullptr;
+    } InputDevice;
+  } InControl;
+} SK_Unity_MonoFields;
+
+struct {
+  struct {
+    MonoClass* InputDevice = nullptr;
+  } InControl;
+} SK_Unity_MonoClasses;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -905,8 +833,7 @@ MonoObject* InvokeMethod (const char* namespace_, const char* class_, const char
 static
 void* CompileMethod (MonoMethod* method)
 {
-  return
-    SK_mono_compile_method (method);
+  return method ? SK_mono_compile_method (method) : NULL;
 }
 
 static
@@ -1031,91 +958,11 @@ SK_Mono_InvokeAndUnbox (MonoMethod* method, MonoObject* obj, void** params, Mono
     std::nullopt;
 }
 
-bool
-SK_Unity_SetupFramerateHooks (void)
-{
-  // Mono not init'd
-  if (SK_mono_thread_attach == nullptr)
-    return false;
-
-  if (! LoadMonoAssembly ("Assembly-CSharp"))
-    return false;
-
-  AttachThread ();
-
-#if 0
-  SK_RunOnce (
-  {
-    //
-    // Framerate Hooks
-    //
-    auto pfnNobleFrameRateManager_SetQualitySettingFrameRate =
-      CompileMethod ("Noble", "FrameRateManager",
-             "SetQualitySettingFrameRate", 1);
-
-    auto pfnNobleFrameRateManager_SetTargetFrameRate =
-      CompileMethod ("Noble", "FrameRateManager",
-                     "SetTargetFrameRate", 1);
-
-    SK_CreateFuncHook (              L"Noble.FrameRateManager.SetQualitySettingFrameRate",
-                                     pfnNobleFrameRateManager_SetQualitySettingFrameRate,
-                               SK_TGFix_NobleFrameRateManager_SetQualitySettingFrameRate_Detour,
-      static_cast_p2p <void> (&         NobleFrameRateManager_SetQualitySettingFrameRate_Original) );
-
-    SK_CreateFuncHook (              L"Noble.FrameRateManager.SetTargetFrameRate",
-                                     pfnNobleFrameRateManager_SetTargetFrameRate,
-                               SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour,
-      static_cast_p2p <void> (&         NobleFrameRateManager_SetTargetFrameRate_Original) );
-
-    SK_QueueEnableHook (pfnNobleFrameRateManager_SetQualitySettingFrameRate);
-    SK_QueueEnableHook (pfnNobleFrameRateManager_SetTargetFrameRate);
-
-    SK_ApplyQueuedHooks ();
-  });
-#endif
-
-  SK_Unity_MonoAssemblies.assemblyCSharp         = SK_mono_image_loaded ("Assembly-CSharp");
-  SK_Unity_MonoAssemblies.UnityEngine_CoreModule = SK_mono_image_loaded ("UnityEngine.CoreModule");
-
-//auto& assemblyCSharp                           = SK_Unity_MonoAssemblies.assemblyCSharp;
-
-  DetachCurrentThreadIfNotNative ();
-
-  if (! LoadMonoAssembly ("UnityEngine.CoreModule"))
-    return false;
-
-#if 0
-  AttachThread ();
-
-  SK_RunOnce (
-  {
-    auto pfnUnityEngine_Screen_SetResolution =
-      CompileMethod ("UnityEngine", "Screen",
-                     "SetResolution", 3, "UnityEngine.CoreModule");
-
-    SK_CreateFuncHook (               L"UnityEngine.Screen.SetResolution",
-                                     pfnUnityEngine_Screen_SetResolution,
-                               SK_TGFix_UnityEngine_Screen_SetResolution_Detour,
-      static_cast_p2p <void> (&         UnityEngine_Screen_SetResolution_Original) );
-
-    SK_QueueEnableHook (pfnUnityEngine_Screen_SetResolution);
-
-    SK_ApplyQueuedHooks ();
-  });
-
-  DetachCurrentThreadIfNotNative ();
-#endif
-
-  if (! (LoadMonoAssembly ("Unity.RenderPipelines.Core.Runtime") &&
-         LoadMonoAssembly ("Unity.RenderPipelines.Universal.Runtime")))
-    return false;
-
-  return true;
-}
-
 void
 SK_Unity_SetInputPollingFreq (float PollingHz)
 {
+  return;
+
   if (std::exchange (SK_Unity_InputPollingFrequency, PollingHz) == PollingHz)
     return;
 
@@ -1132,4 +979,108 @@ SK_Unity_SetInputPollingFreq (float PollingHz)
 
   // We don't want garbage collection overhead on this thread just because we called a function once!
   DetachCurrentThreadIfNotNative ();
+}
+
+using InControl_InputDevice_OnAttached_pfn    = void (*)(MonoObject*);
+using InControl_NativeInputDevice_Vibrate_pfn = void (*)(MonoObject*, float leftSpeed, float rightSpeed);
+
+static InControl_InputDevice_OnAttached_pfn    InControl_InputDevice_OnAttached_Original    = nullptr;
+static InControl_NativeInputDevice_Vibrate_pfn InControl_NativeInputDevice_Vibrate_Original = nullptr;
+
+static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  InControl_InputDevice_OnAttached_Original (__this);
+
+  // XXX: TODO
+  // 
+  //int                                                                                      value = 6;
+  //SK_mono_field_set_value (__this, SK_Unity_MonoFields.InControl.InputDevice.DeviceStyle, &value);
+}
+
+static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, float leftSpeed, float rightSpeed)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    if (SK_ImGui_HasPlayStationController ())
+        SK_HID_GetActivePlayStationDevice ()->setVibration (
+          static_cast <USHORT> (std::clamp (leftSpeed  * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f)),
+          static_cast <USHORT> (std::clamp (rightSpeed * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f))
+        );
+  }
+
+  InControl_NativeInputDevice_Vibrate_Original (__this, leftSpeed, rightSpeed);
+}
+
+bool
+SK_Unity_SetupInputHooks (void)
+{
+  // Mono not init'd
+  if (SK_mono_thread_attach == nullptr)
+    return false;
+
+  if (! LoadMonoAssembly ("Assembly-CSharp"))
+    return false;
+
+  AttachThread ();
+
+  SK_Unity_MonoAssemblies.assemblyCSharp =
+    SK_mono_image_loaded ("Assembly-CSharp");
+
+  SK_Unity_MonoAssemblies.assemblyInControl =
+    SK_mono_image_loaded ("InControl");
+
+  SK_Unity_MonoClasses.InControl.InputDevice =
+    SK_mono_class_from_name (SK_Unity_MonoAssemblies.assemblyCSharp, "InControl", "InputDevice");
+
+  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
+  {
+    SK_Unity_MonoFields.InControl.InputDevice.DeviceStyle =
+      SK_mono_class_get_field_from_name (SK_Unity_MonoClasses.InControl.InputDevice, "DeviceStyle");
+  }
+
+  auto pfnInControl_NativeInputDevice_Vibrate =
+    CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
+  auto pfnInControl_InputDevice_OnAttached =
+    CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
+
+  // Sometimes this ships as a separate DLL (InControl.dll)
+  if (pfnInControl_NativeInputDevice_Vibrate == nullptr)
+  {
+    LoadMonoAssembly ("InControl");
+
+    pfnInControl_NativeInputDevice_Vibrate =
+      CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
+    pfnInControl_InputDevice_OnAttached =
+      CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
+  }
+
+  if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+  {
+    SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
+                            pfnInControl_NativeInputDevice_Vibrate,
+                               InControl_NativeInputDevice_Vibrate_Detour,
+      static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_Original) );
+    SK_QueueEnableHook     (pfnInControl_NativeInputDevice_Vibrate);
+
+    SK_Unity_FixablePlayStationRumble = true;
+  }
+
+  if (pfnInControl_InputDevice_OnAttached != nullptr)
+  {
+    SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
+                            pfnInControl_InputDevice_OnAttached,
+                               InControl_InputDevice_OnAttached_Detour,
+      static_cast_p2p <void> (&InControl_InputDevice_OnAttached_Original) );
+    SK_QueueEnableHook     (pfnInControl_InputDevice_OnAttached);
+  }
+
+  SK_ApplyQueuedHooks ();
+
+  DetachCurrentThreadIfNotNative ();
+
+  return true;
 }
