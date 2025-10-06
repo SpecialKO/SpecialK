@@ -100,6 +100,10 @@ struct SK_Achievement
   // Metadata for the Achievement Tracker widget
   bool        tracked_        = false;
   bool        ignored_        = false;
+
+  // Hash value so that unchanged achievements do not
+  //   flood log files when logging achievement updates.
+  uint32_t    crc32c_         =     0;
 };
 
 struct ImGuiWindow;

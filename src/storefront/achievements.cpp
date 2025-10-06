@@ -62,7 +62,10 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 {
   auto log =
     ( SK::EOS::UserID () != nullptr ) ?
-                   epic_log.getPtr () : steam_log.getPtr ();
+                   epic_log.getPtr () :
+    ( SK::Galaxy::UserID () != 0 )    ?
+                    gog_log.getPtr () :
+                  steam_log.getPtr ();
 
   if (log == nullptr || (! wszUnlockSound)) // Try again, stupid
     return;

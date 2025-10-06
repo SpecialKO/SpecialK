@@ -75,7 +75,7 @@ public:
         SK::Galaxy::overlay_state = overlayIsActive;
 
 
-    // If we want to use this as our own, then don't let the Epic overlay
+    // If we want to use this as our own, then don't let the Galaxy overlay
     //   unpause the game on deactivation unless the control panel is closed.
     if (config.platform.reuse_overlay_pause && SK_Platform_IsOverlayAware ())
     {
@@ -318,11 +318,18 @@ public:
   {
     for (uint32 i = 0; i < SK_Galaxy_GetNumPossibleAchievements (); i++)
     {
-      const Achievement* achievement =
-                         achievements.list [i];
+      Achievement* achievement =
+                   achievements.list [i];
 
       if (achievement == nullptr || achievement->name_.empty ())
         continue;
+
+      uint32_t crc =
+        crc32c (0, achievement, (uintptr_t)&(achievement->ignored_)
+                              - (uintptr_t)  achievement);
+
+      if  (achievement->crc32c_ == crc) continue;
+      else achievement->crc32c_  = crc;
 
       gog_log->LogEx  (false, L"\n [%c] Achievement %03lu......: '%hs'\n",
                        achievement->unlocked_ ? L'X' : L' ',
@@ -378,7 +385,7 @@ public:
       }
     }
 
-    epic_log->LogEx (false, L"\n");
+    gog_log->LogEx (false, L"\n");
   }
 
   void clear_achievement (const char* szName)
@@ -544,8 +551,6 @@ public:
       }
     }
 
-    log_all_achievements ();
-
     static bool          has_unlock_callback = false;
     if (! std::exchange (has_unlock_callback, true))
     {
@@ -556,6 +561,8 @@ public:
         (galaxy::api::IAchievementChangeListener *)this
       );
     }
+
+    log_all_achievements ();
 
     total_unlocked   = unlock_count;
     percent_unlocked =
@@ -1140,6 +1147,14 @@ SK::Galaxy::Init (void)
     {
       gog_log->init (L"logs/galaxy.log", L"wt+,ccs=UTF-8");
       gog_log->silent = config.platform.silent;
+
+      if (! gog_log->silent)
+      {
+         steam_log->close ();
+        *steam_log =
+          *gog_log;
+         steam_log->cloned = true;
+      }
     }
   };
 

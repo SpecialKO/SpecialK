@@ -135,6 +135,7 @@ interface iSK_Logger : public IUnknown
   DWORD            last_flush  =   0;
   DWORD            flush_freq  =   100; // msecs
   _locale_t        locale      = {   };
+  bool             cloned      = false;
 
 public:
   bool             lockless    = true;

@@ -2049,11 +2049,18 @@ public:
 
     for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
     {
-      const Achievement* achievement =
-                         achievements.list [i];
+      Achievement* achievement =
+                   achievements.list [i];
 
       if (achievement == nullptr || achievement->name_.empty ())
         continue;
+
+      uint32_t crc =
+        crc32c (0, achievement, (uintptr_t)&(achievement->ignored_)
+                              - (uintptr_t)  achievement);
+
+      if  (achievement->crc32c_ == crc) continue;
+      else achievement->crc32c_  = crc;
 
       steam_log->LogEx (false, L"\n [%c] Achievement %03lu......: '%hs'\n",
                         achievement->unlocked_ ? L'X' : L' ',

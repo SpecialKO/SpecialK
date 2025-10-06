@@ -222,6 +222,9 @@ __declspec(nothrow)
 void
 iSK_Logger::close (void)
 {
+  if (cloned)
+    return;
+
   if (initialized)
     EnterCriticalSection (&log_mutex);
 
