@@ -74,11 +74,11 @@ struct sk_unity_cfg_s {
 float SK_Unity_InputPollingFrequency    = 60.0f;
 bool  SK_Unity_FixablePlayStationRumble = false;
 int   SK_Unity_GlyphEnumVal             =    -1;
-int   SK_Unity_LastGlyphSel             =    -2;
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
 bool SK_Unity_SetupInputHooks     (void);
+void SK_Unity_UpdateGlyphOverride (void);
 
 bool
 SK_Unity_PlugInCfg (void)
@@ -148,6 +148,8 @@ SK_Unity_PlugInCfg (void)
         //SK_Unity_Cfg.gamepad_glyphs.store ();
 
         //config.utility.save_async ();
+
+        SK_Unity_UpdateGlyphOverride ();
       }
 #if 0
       if (ImGui::SliderFloat ("Polling Frequency", &SK_Unity_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
@@ -1043,15 +1045,12 @@ static InControl_InputDevice_OnAttached_pfn    InControl_InputDevice_OnAttached_
 static InControl_NativeInputDevice_Vibrate_pfn InControl_NativeInputDevice_Vibrate_Original = nullptr;
 static InControl_NativeInputDevice_Update_pfn  InControl_NativeInputDevice_Update_Original  = nullptr;
 
-static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
+void
+SK_Unity_UpdateGlyphOverride (void)
 {
-  SK_LOG_FIRST_CALL
-
-  InControl_InputDevice_OnAttached_Original (__this);
-
   if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
   {
-    auto assemblyInControl =
+    static auto assemblyInControl =
       SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
       SK_Unity_MonoAssemblies.assemblyInControl            :
       SK_Unity_MonoAssemblies.assemblyCSharp;
@@ -1083,16 +1082,38 @@ static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
         SK_Unity_GlyphEnumVal = -1;
     }
   }
+}
 
-  if (SK_Unity_GlyphEnumVal != -1)
-  {
-    void* params [1] = { &SK_Unity_GlyphEnumVal };
+static void SK_Unity_InControl_SetDeviceStyle (MonoObject* device)
+{
+  if (SK_Unity_GlyphEnumVal == -1)
+    return;
 
-    InvokeMethod ("InControl", "InputDevice", "set_DeviceStyle", 1, __this,
-          SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-                                                   "InControl" :
-                                             "Assembly-CSharp", params);
-  }
+  static auto image =
+    SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+                                  GetImage ("InControl") :
+                            GetImage ("Assembly-CSharp");
+
+  static auto method = (image == nullptr) ? nullptr :
+    GetClassMethod (image, "InControl", "InputDevice", "set_DeviceStyle", 1);
+
+  if (! method)
+    return;
+
+  AttachThread ();
+
+  void* params [1] = { &SK_Unity_GlyphEnumVal };
+
+  SK_mono_runtime_invoke (method, device, params, nullptr);
+}
+
+static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  InControl_InputDevice_OnAttached_Original (__this);
+
+  SK_Unity_InControl_SetDeviceStyle (__this);
 }
 
 static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG updateTick, float deltaTime)
@@ -1128,6 +1149,8 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
   }
 
   InControl_NativeInputDevice_Update_Original (__this, updateTick, deltaTime);
+
+  SK_Unity_InControl_SetDeviceStyle (__this);
 }
 
 static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, float leftSpeed, float rightSpeed)
@@ -1222,6 +1245,8 @@ SK_Unity_SetupInputHooks (void)
   }
 
   SK_ApplyQueuedHooks ();
+
+  SK_Unity_UpdateGlyphOverride ();
 
   DetachCurrentThreadIfNotNative ();
 

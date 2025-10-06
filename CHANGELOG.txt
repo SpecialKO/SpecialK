@@ -1,6 +1,6 @@
 ﻿25.10.6.5
 =========
- + Optimized Unity button prompt override.
+ + Unity buttom prompt override now applies in real-time.
  + Clear cached InControl controller state when blocking input to Unity.
 
 25.10.6.4
