@@ -1,4 +1,8 @@
-﻿25.10.6.4
+﻿25.10.6.5
+=========
+ + Optimized Unity button prompt override.
+
+25.10.6.4
 =========
  + Added experimental button prompt override for Unity engine games.
     * Setting is not stored in INI at the moment; in order for the button

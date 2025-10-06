@@ -74,6 +74,7 @@ struct sk_unity_cfg_s {
 float SK_Unity_InputPollingFrequency    = 60.0f;
 bool  SK_Unity_FixablePlayStationRumble = false;
 int   SK_Unity_GlyphEnumVal             =    -1;
+int   SK_Unity_LastGlyphSel             =    -2;
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
@@ -1045,6 +1046,41 @@ static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
 
   InControl_InputDevice_OnAttached_Original (__this);
 
+  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
+  {
+    auto assemblyInControl =
+      SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+      SK_Unity_MonoAssemblies.assemblyInControl            :
+      SK_Unity_MonoAssemblies.assemblyCSharp;
+
+    static MonoClass* DeviceStyle =
+      SK_mono_class_from_name (assemblyInControl, "InControl", "InputDeviceStyle");
+
+    if (DeviceStyle != nullptr)
+    {
+      MonoClassField* enumValueField =
+        SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs.c_str ());
+
+      if (enumValueField != nullptr)
+      {
+        MonoObject* enumValueObject =
+          SK_mono_field_get_value_object (SK_Unity_MonoDomain, enumValueField, NULL);
+
+        if (enumValueObject != nullptr)
+        {
+          SK_Unity_GlyphEnumVal =
+            *(int32_t *)SK_mono_object_unbox (enumValueObject);
+        }
+
+        else
+          SK_Unity_GlyphEnumVal = -1;
+      }
+
+      else
+        SK_Unity_GlyphEnumVal = -1;
+    }
+  }
+
   if (SK_Unity_GlyphEnumVal != -1)
   {
     void* params [1] = { &SK_Unity_GlyphEnumVal };
@@ -1064,6 +1100,7 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
   {
     // TODO: Clear the controller buttons, etc.
 
+#if 0
     if (! config.input.gamepad.disable_rumble)
     {
       InvokeMethod ( "InControl",
@@ -1072,44 +1109,11 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
         SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
                                                  "InControl" :
                                            "Assembly-CSharp" );
+
+      DetachCurrentThreadIfNotNative ();
     }
+#endif
     return;
-  }
-
-  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
-  {
-    static std::string
-        last_glyphs  = "";
-    if (last_glyphs != SK_Unity_Cfg.gamepad_glyphs)
-    {
-      auto assemblyInControl =
-        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-        SK_Unity_MonoAssemblies.assemblyInControl            :
-        SK_Unity_MonoAssemblies.assemblyCSharp;
-
-      MonoClass* DeviceStyle =
-        SK_mono_class_from_name (assemblyInControl, "InControl", "InputDeviceStyle");
-
-      if (DeviceStyle != nullptr)
-      {
-        MonoClassField* enumValueField =
-          SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs.c_str ());
-
-        if (enumValueField != nullptr)
-        {
-          MonoObject* enumValueObject =
-            SK_mono_field_get_value_object (SK_Unity_MonoDomain, enumValueField, NULL);
-
-          if (enumValueObject != nullptr)
-          {
-            SK_Unity_GlyphEnumVal =
-              *(int32_t *)SK_mono_object_unbox (enumValueObject);
-          }
-        }
-      }
-
-      last_glyphs = SK_Unity_Cfg.gamepad_glyphs;
-    }
   }
 
   InControl_NativeInputDevice_Update_Original (__this, updateTick, deltaTime);
