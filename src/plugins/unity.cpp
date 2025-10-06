@@ -243,6 +243,7 @@ typedef void*           (*mono_object_unbox_pfn)(MonoObject* obj);
 typedef MonoDomain*     (*mono_object_get_domain_pfn)(MonoObject* obj);
 typedef MonoClass*      (*mono_object_get_class_pfn)(MonoObject* obj);
 typedef MonoClass*      (*mono_class_from_name_pfn)(MonoImage* image, const char* name_space, const char* name);
+typedef MonoClass*      (*mono_class_get_parent_pfn)(MonoClass* klass);
 typedef MonoMethod*     (*mono_class_get_method_from_name_pfn)(MonoClass* klass, const char* name, int param_count);
 typedef MonoType*       (*mono_class_get_type_pfn)(MonoClass* klass);
 typedef const char*     (*mono_class_get_name_pfn)(MonoClass* klass);
@@ -297,6 +298,7 @@ static mono_object_get_class_pfn             SK_mono_object_get_class           
 static mono_object_unbox_pfn                 SK_mono_object_unbox                 = nullptr;
 static mono_class_from_name_pfn              SK_mono_class_from_name              = nullptr;
 static mono_class_get_method_from_name_pfn   SK_mono_class_get_method_from_name   = nullptr;
+static mono_class_get_parent_pfn             SK_mono_class_get_parent             = nullptr;
 static mono_class_get_type_pfn               SK_mono_class_get_type               = nullptr;
 static mono_class_get_name_pfn               SK_mono_class_get_name               = nullptr;
 static mono_type_get_object_pfn              SK_mono_type_get_object              = nullptr;
@@ -420,6 +422,7 @@ SK_Unity_HookMonoInit (void)
   SK_mono_assembly_get_image           = reinterpret_cast <mono_assembly_get_image_pfn>           (SK_GetProcAddress (hMono, "mono_assembly_get_image"));
   SK_mono_class_from_name              = reinterpret_cast <mono_class_from_name_pfn>              (SK_GetProcAddress (hMono, "mono_class_from_name"));
   SK_mono_class_get_method_from_name   = reinterpret_cast <mono_class_get_method_from_name_pfn>   (SK_GetProcAddress (hMono, "mono_class_get_method_from_name"));
+  SK_mono_class_get_parent             = reinterpret_cast <mono_class_get_parent_pfn>             (SK_GetProcAddress (hMono, "mono_class_get_parent"));
   SK_mono_class_get_type               = reinterpret_cast <mono_class_get_type_pfn>               (SK_GetProcAddress (hMono, "mono_class_get_type"));
   SK_mono_class_get_name               = reinterpret_cast <mono_class_get_name_pfn>               (SK_GetProcAddress (hMono, "mono_class_get_name"));
   SK_mono_type_get_object              = reinterpret_cast <mono_type_get_object_pfn>              (SK_GetProcAddress (hMono, "mono_type_get_object"));
@@ -1098,7 +1101,17 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
 
   if (SK_ImGui_WantGamepadCapture ())
   {
-    // TODO: Clear the controller buttons, etc.
+    MonoMethod* ClearInputState =
+      SK_mono_class_get_method_from_name (
+        SK_mono_class_get_parent (
+          SK_mono_object_get_class (__this)
+        ), "ClearInputState", 0);
+
+    if (ClearInputState != nullptr)
+    {
+      AttachThread           ();
+      SK_mono_runtime_invoke (ClearInputState, __this, nullptr, nullptr);
+    }
 
 #if 0
     if (! config.input.gamepad.disable_rumble)
@@ -1109,8 +1122,6 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
         SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
                                                  "InControl" :
                                            "Assembly-CSharp" );
-
-      DetachCurrentThreadIfNotNative ();
     }
 #endif
     return;
