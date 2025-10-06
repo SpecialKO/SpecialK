@@ -1143,7 +1143,7 @@ ReadFile_Detour (HANDLE       hFile,
             SK_COMPAT_ApplyHIDAttachFixUps ();
 
             const bool harmful =
-              config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
+              ((config.input.gamepad.xinput.emulate || SK_XInput_PollController (0)) && SK_ImGui_HasPlayStationController ());
 
             if (config.input.gamepad.hid.always_show_attach || harmful)
             {
@@ -1424,7 +1424,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
         SK_COMPAT_ApplyHIDAttachFixUps ();
 
         const bool harmful =
-          config.input.gamepad.xinput.emulate || SK_XInput_PollController (0);
+          ((config.input.gamepad.xinput.emulate || SK_XInput_PollController (0)) && SK_ImGui_HasPlayStationController ());
 
         if (config.input.gamepad.hid.always_show_attach || harmful)
         {

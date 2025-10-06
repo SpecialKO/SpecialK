@@ -2,6 +2,8 @@
 =========
  + Added universal fix for missing controller vibration in Unity engine games
      using the InControl input backend and Mono embedding framework.
+ + Only show XInput Emulation HID warning when a PlayStation controller is
+     connected.
 
 25.10.6.2
 =========
