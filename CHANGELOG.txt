@@ -1,4 +1,11 @@
-﻿25.10.6
+﻿25.10.6.1
+=========
+ + Rename GOG Galaxy INI otions to Galaxy.System instead of Platform.System.
+ + Prevent initializing GOG Galaxy backend in non-GOG games.
+ + Reduce log spam for achievement updates by only printing achivements with
+     changed states.
+
+25.10.6
 =======
  + Added more details to SK's control panel in GOG games that use Galaxy;
      * Total time played, Sign-In (local) and Online (network) status.
