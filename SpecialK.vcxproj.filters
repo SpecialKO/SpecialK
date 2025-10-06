@@ -3956,6 +3956,9 @@
     <ClCompile Include="src\control_panel\cfg_galaxy.cpp">
       <Filter>Source Files\Control Panel</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\unity.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

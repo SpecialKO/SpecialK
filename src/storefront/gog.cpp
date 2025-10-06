@@ -26,6 +26,7 @@
 #include <storefront/achievements.h>
 
 #include <json/json.hpp>
+#include <imgui/font_awesome.h>
 
 #include <galaxy/IListenerRegistrar.h>
 #include <galaxy/IUtils.h>
@@ -1346,6 +1347,23 @@ SK::Galaxy::Init (void)
   static HMODULE     hModGalaxy = nullptr;
   if (std::exchange (hModGalaxy, SK_LoadLibraryW (wszGalaxyDLLName)) == nullptr && hModGalaxy != nullptr)
   {
+    if (PathFileExistsW (L"winhttp.dll"))
+    {
+      SK_ImGui_CreateNotification (
+        "WinHTTP.Conflict", SK_ImGui_Toast::Warning,
+          "A mod is using winhttp.dll, which prevents GOG Galaxy "
+          "(and parts of Special K) from working!\r\n"
+          "\r\n"
+          "\t " ICON_FA_INFO_CIRCLE
+             "  Use an alternate injection DLL, or GOG achievements"
+              " will not work.\r\n",
+          "Incompatible Injection DLL",
+            30000, SK_ImGui_Toast::ShowCaption |
+                   SK_ImGui_Toast::ShowTitle   |
+                   SK_ImGui_Toast::ShowOnce    |
+                   SK_ImGui_Toast::UseDuration );
+    }
+
     _InitGOGLog ();
 
     gog->PreInit (hModGalaxy);

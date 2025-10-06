@@ -27,6 +27,8 @@
 #include <SpecialK/storefront/gog.h>
 #include <SpecialK/control_panel/platform.h>
 
+#include <imgui/font_awesome.h>
+
 using namespace SK::ControlPanel;
 
 bool
@@ -78,7 +80,7 @@ SK::ControlPanel::Galaxy::Draw (void)
                              "even when the Galaxy client is not running." );
         if (config.galaxy.spawn_mini_client)
         {
-          if (ImGui::Checkbox("Require Online Galaxy Functionality", &config.galaxy.require_online_mode))
+          if (ImGui::Checkbox ("Require Online Galaxy Functionality", &config.galaxy.require_online_mode))
           {
             restart_required = true;
             config.utility.save_async_if (restart_required);
@@ -157,8 +159,25 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
     ImGui::SameLine    ();
     ImGui::SameLine    ();
 
+    static bool has_winhttp = false;
+
+    ImGui::BeginGroup      ();
     ImGui::TextUnformatted ("  Galaxy Services:  ");
     ImGui::SameLine        ();
+    if (! SK::Galaxy::IsSignedIn ())
+    {
+      SK_RunOnce (
+        has_winhttp = PathFileExistsW (L"winhttp.dll");
+      );
+
+      if (has_winhttp)
+      {
+        ImGui::TextColored (
+          ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE
+        );
+        ImGui::SameLine ();
+      }
+    }
     ImGui::PushStyleColor  (ImGuiCol_Text, SK::Galaxy::IsSignedIn () ? ImVec4 (0.f, 1.f, 0.f, 1.f)
                                                                      : ImVec4 (1.f, 0.f, 0.f, 1.f));
     ImGui::TextUnformatted ( SK::Galaxy::IsSignedIn () ? "Signed In"
@@ -169,6 +188,14 @@ SK::ControlPanel::Galaxy::DrawFooter (void)
     ImGui::TextUnformatted ( SK::Galaxy::IsLoggedOn () ? " (Online)"
                                                        : " (Offline)" );
     ImGui::PopStyleColor   (2);
+    ImGui::EndGroup        ( );
+
+    if (has_winhttp)
+    {
+      ImGui::SetItemTooltip (
+        "winhttp.dll in the game's install directory is preventing GOG Galaxy from working!"
+      );
+    }
 
     ImGui::SameLine        ( );
     ImGui::Bullet          ( );

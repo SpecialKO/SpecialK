@@ -227,6 +227,23 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 void
 SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
 {
+  SK_RunOnce(
+  if (PathFileExistsW (L"winhttp.dll"))
+  {
+    SK_ImGui_CreateNotification (
+      "WinHTTP.Conflict", SK_ImGui_Toast::Error,
+        "A mod is using winhttp.dll, which prevents GOG Galaxy, "
+        "parts of Special K and other mods from working correctly!\r\n"
+        "\r\n"
+        "\t " ICON_FA_INFO_CIRCLE
+           "  Use an alternate injection DLL.\r\n",
+        "Incompatible Injection DLL",
+          30000, SK_ImGui_Toast::ShowCaption |
+                 SK_ImGui_Toast::ShowTitle   |
+                 SK_ImGui_Toast::ShowOnce    |
+                 SK_ImGui_Toast::UseDuration );
+  });
+
   static SK_AutoHandle hFetchEvent (
     SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr )
   );

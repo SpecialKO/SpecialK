@@ -1,4 +1,12 @@
-﻿25.10.6.1
+﻿25.10.6.2
+=========
+ + Added warnings if a mod uses winhttp.dll in a GOG game, because that will
+     break Galaxy and prevent achievements; it also breaks some of Special K!
+
+    * In other words, don't install mods using winhttp.dll, find a different
+        DLL name to use (!!)
+
+25.10.6.1
 =========
  + Rename GOG Galaxy INI otions to Galaxy.System instead of Platform.System.
  + Prevent initializing GOG Galaxy backend in non-GOG games.
