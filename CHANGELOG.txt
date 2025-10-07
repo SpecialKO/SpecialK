@@ -1,4 +1,8 @@
-﻿25.10.7
+﻿25.10.7.1
+=========
+ + Implement a glyph cache for Unity engine (InControl) buttom prompts.
+
+25.10.7
 =======
  + Unity engine button prompt preferences are now saved in profile INI.
 

@@ -75,6 +75,7 @@ struct sk_unity_cfg_s {
 float SK_Unity_InputPollingFrequency    = 60.0f;
 bool  SK_Unity_FixablePlayStationRumble = false;
 int   SK_Unity_GlyphEnumVal             =    -1;
+bool  SK_Unity_GlyphCacheDirty          = false;
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
@@ -1267,6 +1268,8 @@ SK_Unity_UpdateGlyphOverride (void)
         SK_Unity_GlyphEnumVal            =              -1;
       }
     }
+
+    SK_Unity_GlyphCacheDirty = true;
   }
 }
 
@@ -1313,7 +1316,7 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
 
   if (SK_ImGui_WantGamepadCapture ())
   {
-    MonoMethod* ClearInputState =
+    static MonoMethod* ClearInputState =
       SK_mono_class_get_method_from_name (
         SK_mono_class_get_parent (
           SK_mono_object_get_class (__this)
@@ -1341,7 +1344,10 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
 
   InControl_NativeInputDevice_Update_Original (__this, updateTick, deltaTime);
 
-  SK_Unity_InControl_SetDeviceStyle (__this);
+  // This should be per-device, but is global; OnAttached (...) will be necessary
+  //   to change glyphs on a system with more than one input device active.
+  if (std::exchange (SK_Unity_GlyphCacheDirty, false))
+    SK_Unity_InControl_SetDeviceStyle (__this);
 }
 
 static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, float leftSpeed, float rightSpeed)
