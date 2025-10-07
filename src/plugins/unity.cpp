@@ -66,9 +66,10 @@ struct sk_unity_cfg_s {
   // 
   //  * Game is hardcoded to poll gamepad input at 60 Hz
   //      regardless of device caps or framerate limit, ugh!
-  PlugInParameter <float> gamepad_polling_hz      = 10000.0f;
-  PlugInParameter <bool>  gamepad_fix_playstation = true;
-  std::string             gamepad_glyphs          = "Game Default";
+  PlugInParameter <float>        gamepad_polling_hz      = 10000.0f;
+  PlugInParameter <bool>         gamepad_fix_playstation = true;
+  PlugInParameter <std::wstring> gamepad_glyphs          = std::wstring (L"Game Default");
+  std::string                    gamepad_glyphs_utf8     =                "Game Default";
 } SK_Unity_Cfg;
 
 float SK_Unity_InputPollingFrequency    = 60.0f;
@@ -105,54 +106,117 @@ SK_Unity_PlugInCfg (void)
       ImGui::TreePush ("");
 
       static std::map <int, std::string> table_fwd = {
-        {  0, "Game Default"   },
-        {  1, "Xbox360"        },
-        {  2, "XboxOne"        },
-        {  3, "XboxSeriesX"    },
-        {  4, "PlayStation3"   },
-        {  5, "PlayStation4"   },
-        {  6, "PlayStation5"   },
-        {  7, "Steam"          },
-        {  8, "SteamDeck"      },
-        {  9, "NintendoSwitch" },
-        { 10, "GoogleStadia"   }
+        {  0, "Game Default"     },
+        {  1, "Xbox360"          },
+        {  2, "XboxOne"          },
+        {  3, "XboxSeriesX"      },
+        {  4, "PlayStation2"     },
+        {  5, "PlayStation3"     },
+        {  6, "PlayStation4"     },
+        {  7, "PlayStation5"     },
+        {  8, "PlayStationVita"  },
+        {  9, "PlayStationMove"  },
+        { 10, "Steam"            },
+        { 11, "SteamDeck"        },
+        { 12, "AppleMFi"         },
+        { 13, "AmazonFireTV"     },
+        { 14, "NVIDIAShield"     },
+        { 15, "NintendoNES"      },
+        { 16, "NintendoSNES"     },
+        { 17, "Nintendo64"       },
+        { 18, "NintendoGameCube" },
+        { 19, "NintendoWii"      },
+        { 20, "NintendoWiiU"     },
+        { 21, "NintendoSwitch"   },
+        { 22, "GoogleStadia"     },
+        { 23, "Vive"             },
+        { 24, "Oculus"           },
+        { 25, "Logitech"         },
+        { 26, "Thrustmaster"     }
       };
 
       static std::map <std::string, int> table_rev = {
-        { "Game Default"  ,  0 },
-        { "Xbox360"       ,  1 },
-        { "XboxOne"       ,  2 },
-        { "XboxSeriesX"   ,  3 },
-        { "PlayStation3"  ,  4 },
-        { "PlayStation4"  ,  5 },
-        { "PlayStation5"  ,  6 },
-        { "Steam"         ,  7 },
-        { "SteamDeck"     ,  8 },
-        { "NintendoSwitch",  9 },
-        { "GoogleStadia"  , 10 }
+        { "Game Default",      0 },
+        { "Xbox360",           1 },
+        { "XboxOne",           2 },
+        { "XboxSeriesX",       3 },
+        { "PlayStation2",      4 },
+        { "PlayStation3",      5 },
+        { "PlayStation4",      6 },
+        { "PlayStation5",      7 },
+        { "PlayStationVita",   8 },
+        { "PlayStationMove",   9 },
+        { "Steam",            10 },
+        { "SteamDeck",        11 },
+        { "AppleMFi",         12 },
+        { "AmazonFireTV",     13 },
+        { "NVIDIAShield",     14 },
+        { "NintendoNES",      15 },
+        { "NintendoSNES",     16 },
+        { "Nintendo64",       17 },
+        { "NintendoGameCube", 18 },
+        { "NintendoWii",      19 },
+        { "NintendoWiiU",     20 },
+        { "NintendoSwitch",   21 },
+        { "GoogleStadia",     22 },
+        { "Vive",             23 },
+        { "Oculus",           24 },
+        { "Logitech",         25 },
+        { "Thrustmaster",     26 }
       };
 
-      int sel =
-        std::max (0, table_rev [SK_Unity_Cfg.gamepad_glyphs]);
+      static int sel =
+        std::max (0, table_rev [SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ()]);
 
       if (ImGui::Combo ("Button Prompts", &sel, "Game Default\0"
-                                                "Xbox360\0"
-                                                "XboxOne\0"
-                                                "XboxSeriesX\0"
-                                                "PlayStation3\0"
-                                                "PlayStation4\0"
-                                                "PlayStation5\0"
-                                                "Steam\0"
-                                                "SteamDeck\0"
-                                                "NintendoSwitch\0"
-                                                "GoogleStadia\0\0"))
+                                                "Xbox 360\0"
+                                                "Xbox One\0"
+                                                "Xbox Series X\0"
+                                                "PlayStation 2\0"
+                                                "PlayStation 3\0"
+                                                "PlayStation 4\0"
+                                                "PlayStation 5\0"
+                                                "PlayStation Vita\0"
+                                                "PlayStation Move\0"
+                                                "Steam\0" 
+                                                "Steam Deck\0"
+                                                "Apple MFi\0"
+                                                "Amazon FireTV\0"
+                                                "NVIDIA Shield\0"
+                                                "Nintendo NES\0"
+                                                "Nintendo SNES\0"
+                                                "Nintendo 64\0"
+                                                "Nintendo GameCube\0"
+                                                "Nintendo Wii\0"
+                                                "Nintendo WiiU\0"
+                                                "Nintendo Switch\0"
+                                                "Google Stadia\0"
+                                                "Vive\0"
+                                                "Oculus\0"
+                                                "Logitech\0"
+                                                "Thrustmaster\0\0"))
       {
-        SK_Unity_Cfg.gamepad_glyphs = table_fwd [sel];
-        //SK_Unity_Cfg.gamepad_glyphs.store ();
+        SK_Unity_Cfg.gamepad_glyphs_utf8 = table_fwd [sel];
+        SK_Unity_Cfg.gamepad_glyphs      =
+          SK_UTF8ToWideChar (SK_Unity_Cfg.gamepad_glyphs_utf8);
 
-        //config.utility.save_async ();
+        SK_Unity_Cfg.gamepad_glyphs.store ();
+
+        config.utility.save_async ();
 
         SK_Unity_UpdateGlyphOverride ();
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextUnformatted (
+          "Games will typically revert to Xbox 360 prompts or closest match "
+          "if they do not have the exact buttons requested." );
+        ImGui::Separator  ( );
+        ImGui::BulletText (
+          "If changes do not take effect immediately, try "
+          "disconnecting and reconnecting the controller." );
+        ImGui::EndTooltip ( );
       }
 #if 0
       if (ImGui::SliderFloat ("Polling Frequency", &SK_Unity_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
@@ -210,8 +274,6 @@ void
 SK_Unity_InitPlugin (void)
 {
   SK_RunOnce (
-    SK_Unity_HookMonoInit ();
-
 /*
     SK_Unity_Cfg.gamepad_polling_hz.bind_to_ini (
       _CreateConfigParameterFloat ( L"Unity.Input",
@@ -226,8 +288,18 @@ SK_Unity_InitPlugin (void)
                                    L"Add Vibration Support for DualShock 4 and DualSense" )
     );
 
+    SK_Unity_Cfg.gamepad_glyphs.bind_to_ini (
+      _CreateConfigParameterStringW ( L"Unity.Input",
+                                      L"ButtonPrompts",  SK_Unity_Cfg.gamepad_glyphs,
+                                      L"Override a game's displayed prompts" )
+    );
+
+    SK_Unity_Cfg.gamepad_glyphs_utf8 = SK_WideCharToUTF8 (SK_Unity_Cfg.gamepad_glyphs);
+
     plugin_mgr->config_fns.emplace      (SK_Unity_PlugInCfg);
     plugin_mgr->first_frame_fns.emplace (SK_Unity_PresentFirstFrame);
+
+    SK_Unity_HookMonoInit ();
   );
 }
 
@@ -1167,7 +1239,7 @@ SK_Unity_UpdateGlyphOverride (void)
     if (DeviceStyle != nullptr)
     {
       MonoClassField* enumValueField =
-        SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs.c_str ());
+        SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ());
 
       if (enumValueField != nullptr)
       {
@@ -1181,11 +1253,19 @@ SK_Unity_UpdateGlyphOverride (void)
         }
 
         else
-          SK_Unity_GlyphEnumVal = -1;
+        {
+          SK_Unity_Cfg.gamepad_glyphs_utf8 =  "Game Default";
+          SK_Unity_Cfg.gamepad_glyphs      = L"Game Default";
+          SK_Unity_GlyphEnumVal            =              -1;
+        }
       }
 
       else
-        SK_Unity_GlyphEnumVal = -1;
+      {
+        SK_Unity_Cfg.gamepad_glyphs_utf8 =  "Game Default";
+        SK_Unity_Cfg.gamepad_glyphs      = L"Game Default";
+        SK_Unity_GlyphEnumVal            =              -1;
+      }
     }
   }
 }

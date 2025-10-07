@@ -1,4 +1,8 @@
-﻿25.10.6.6
+﻿25.10.7
+=======
+ + Unity engine button prompt preferences are now saved in profile INI.
+
+25.10.6.6
 =========
  + Added additional error handling to Mono embedding in Unity.
 

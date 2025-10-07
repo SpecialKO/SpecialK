@@ -294,6 +294,14 @@ _CreateConfigParameterBool  ( const wchar_t* wszSection,
                               const wchar_t* wszOldSectionName = nullptr,
                               const wchar_t* wszOldKeyName     = nullptr );
 
+sk::ParameterStringW*
+_CreateConfigParameterStringW ( const wchar_t* wszSection,
+                                const wchar_t* wszKey,
+                                 std::wstring& backingStore,
+                                const wchar_t* wszDescription    = L"No Description",
+                                const wchar_t* wszOldSectionName = nullptr,
+                                const wchar_t* wszOldKeyName     = nullptr );
+
 sk::ParameterInt*
 _CreateConfigParameterInt   ( const wchar_t* wszSection,
                               const wchar_t* wszKey,
