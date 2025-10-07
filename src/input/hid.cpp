@@ -1356,6 +1356,42 @@ ReadFile_Detour (HANDLE       hFile,
          lpNumberOfBytesRead, lpOverlapped );
 }
 
+struct SK_DetouredOverlap {
+  LPVOID                          lpBuffer;
+  DWORD                           nNumberOfBytesToRead;
+  LPOVERLAPPED                    lpOverlapped;
+  LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine;
+  HANDLE                          hOriginalEvent;
+};
+
+concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_DetouredOverlap> SK_OverlapDetours;
+
+void
+WINAPI
+SK_ErasingCompletionRoutine (_In_    DWORD        dwErrorCode,
+                             _In_    DWORD        dwNumberOfBytesTransfered,
+                             _Inout_ LPOVERLAPPED lpOverlapped)
+{
+  SK_LOG_FIRST_CALL
+
+  auto detoured_overlap =
+    SK_OverlapDetours [lpOverlapped];
+
+  // Erase the destination buffer to nullify input
+  memset (detoured_overlap.lpBuffer, 0, dwNumberOfBytesTransfered);
+
+  // Get the jump target and restore the original hEvent.
+  auto trampoline =
+    ((LPOVERLAPPED_COMPLETION_ROUTINE)lpOverlapped->hEvent);
+                                      lpOverlapped->hEvent =
+                           detoured_overlap.hOriginalEvent;
+
+  trampoline (
+    dwErrorCode,
+    dwNumberOfBytesTransfered,
+    detoured_overlap.lpOverlapped );
+}
+
 static
 BOOL
 WINAPI
@@ -1366,6 +1402,25 @@ ReadFileEx_Detour (HANDLE                          hFile,
                    LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
 {
   SK_LOG_FIRST_CALL
+
+  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
+    SK_Input_GetDeviceFileAndState (hFile);
+
+  //
+  // Detour the completion routine by re-writing the OVERLAPPED's hEvent
+  //   to point to a function that will erase the buffer on completion.
+  //
+  if (dev_file_type == SK_Input_DeviceFileType::HID && dev_allowed == false)
+  {
+    SK_OverlapDetours [lpOverlapped] = {
+      lpBuffer, nNumberOfBytesToRead,
+      lpOverlapped, lpCompletionRoutine,
+      lpOverlapped->hEvent
+    };
+
+    lpOverlapped->hEvent = (HANDLE)lpCompletionRoutine;
+    lpCompletionRoutine  = SK_ErasingCompletionRoutine;
+  }
 
   BOOL bRet =
     ReadFileEx_Original (
@@ -1382,9 +1437,6 @@ ReadFileEx_Detour (HANDLE                          hFile,
     return
       bRet;
   }
-
-  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
-    SK_Input_GetDeviceFileAndState (hFile);
 
   switch (dev_file_type)
   {
@@ -1407,16 +1459,13 @@ ReadFileEx_Detour (HANDLE                          hFile,
 
       if (! dev_allowed)
       {
-        if (CancelIo (hFile))
-        {
-          SK_HID_HIDE (hid_file->device_type);
+        SK_HID_HIDE (hid_file->device_type);
 
-          SK_RunOnce (
-            SK_LOGi0 (L"ReadFileEx HID IO Cancelled")
-          );
+        SK_RunOnce (
+          SK_LOGi0 (L"ReadFileEx HID IO Queued For Zeroing")
+        );
 
-          return TRUE;
-        }
+        return TRUE;
       }
 
       uint8_t report_id = ((uint8_t *)(lpBuffer))[0];
