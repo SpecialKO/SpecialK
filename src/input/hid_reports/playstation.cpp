@@ -4339,7 +4339,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
 
   if (report_id == 0)
   {
-    auto sizeToClear =
+    auto sizeToClear =                   cachedInputReport == nullptr?dwSize :
       std::min (sk::narrow_cast <DWORD> (cachedInputReport->size ()), dwSize);
 
     SK_RunOnce (

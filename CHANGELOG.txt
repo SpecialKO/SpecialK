@@ -1,4 +1,9 @@
-﻿25.10.10
+﻿25.10.10.1
+==========
+ + Fixed rare crash when attempting to zero-out HID input reports for
+     DualSense controllers.
+
+25.10.10
 ========
  + Implemented PlayStation rumble support for Unity games using Rewired.
 
