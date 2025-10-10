@@ -761,8 +761,6 @@ SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 static
 bool LoadMonoAssembly (const char* assemblyName)
 {
-  AttachThread ();
-
   MonoImage* pImage =
     SK_mono_image_loaded (assemblyName);
 
@@ -774,6 +772,8 @@ bool LoadMonoAssembly (const char* assemblyName)
 
   if (pDomain == nullptr)
     return false;
+
+  AttachThread ();
  
   MonoAssembly* pAssembly =
     SK_mono_domain_assembly_open (pDomain, assemblyName);
@@ -1882,8 +1882,6 @@ SK_Unity_SetupInputHooks (void)
 
     WaitForSingleObject (hMonoInitFinished, INFINITE)
   );
-
-  DetachCurrentThreadIfNotNative ();
 
   return true;
 }
