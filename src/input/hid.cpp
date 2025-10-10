@@ -1465,7 +1465,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
           SK_LOGi0 (L"ReadFileEx HID IO Queued For Zeroing")
         );
 
-        return TRUE;
+        return bRet;
       }
 
       uint8_t report_id = ((uint8_t *)(lpBuffer))[0];

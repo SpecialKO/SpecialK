@@ -4061,14 +4061,7 @@ SK_BackgroundRender_EndFrame (void)
   {
     if (std::exchange (first_frame, false))
     {
-      // Lazy-init universal Unity Engine plug-in.
-      if (SK_GetCurrentRenderBackend ().windows.unity)
-      {
-        void SK_Unity_InitPlugin (void);
-             SK_Unity_InitPlugin ();
-      }
-
-      if (PathFileExistsW (L"REFramework.dll"))
+     if (PathFileExistsW (L"REFramework.dll"))
              LoadLibraryW (L"REFramework.dll");
 
       if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)

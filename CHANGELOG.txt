@@ -1,4 +1,9 @@
-﻿25.10.7.1
+﻿25.10.9
+=======
+ + Added support for InControl input fixes in Unity engine games using il2cpp
+     (i.e. Tunic).
+
+25.10.7.1
 =========
  + Implement a glyph cache for Unity engine (InControl) buttom prompts.
 

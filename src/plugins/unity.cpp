@@ -271,6 +271,9 @@ HRESULT
 STDMETHODCALLTYPE
 SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
 
+bool SK_Unity_Hookil2cppInit         (void);
+bool SK_Unity_SetupInputHooks_il2cpp (void);
+
 void
 SK_Unity_InitPlugin (void)
 {
@@ -301,6 +304,7 @@ SK_Unity_InitPlugin (void)
     plugin_mgr->first_frame_fns.emplace (SK_Unity_PresentFirstFrame);
 
     SK_Unity_HookMonoInit ();
+    SK_Unity_Hookil2cppInit ();
   );
 }
 
@@ -597,6 +601,107 @@ struct {
   } InControl;
 } SK_Unity_MonoClasses;
 
+typedef int (*il2cpp_init_pfn)(const char* domain_name);
+typedef int (*il2cpp_init_utf16_pfn)(const wchar_t* domain_name);
+typedef void (*il2cpp_shutdown_pfn)(void);
+
+static il2cpp_init_pfn       il2cpp_init_Original       = nullptr;
+static il2cpp_init_utf16_pfn il2cpp_init_utf16_Original = nullptr;
+static il2cpp_shutdown_pfn   il2cpp_shutdown_Original   = nullptr;
+
+int
+il2cpp_init_Detour (const char* domain_name)
+{
+  SK_LOG_FIRST_CALL
+
+  auto ret =
+    il2cpp_init_Original (domain_name);
+
+  SK_Unity_SetupInputHooks_il2cpp ();
+
+  return ret;
+}
+
+int
+il2cpp_init_utf16_Detour (const wchar_t* domain_name)
+{
+  SK_LOG_FIRST_CALL
+
+  auto ret =
+    il2cpp_init_utf16_Original (domain_name);
+
+  SK_Unity_SetupInputHooks_il2cpp ();
+
+  return ret;
+}
+
+void
+il2cpp_shutdown_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    il2cpp_shutdown_Original ();
+}
+
+#include <aetherim/image.hpp>
+#include <aetherim/field.hpp>
+#include <aetherim/class.hpp>
+#include <aetherim/wrapper.hpp>
+
+#include <aetherim/api.hpp>
+
+bool
+SK_Unity_Hookil2cppInit (void)
+{
+  HMODULE hModIl2Cpp =
+    GetModuleHandleW (L"GameAssembly.dll");
+
+  if (hModIl2Cpp == NULL)
+    return false;
+
+  Il2cpp::initialize ();
+
+  void*                   pfnil2cpp_init = nullptr;
+  SK_CreateDLLHook (       L"GameAssembly.dll",
+                            "il2cpp_init",
+                             il2cpp_init_Detour,
+    static_cast_p2p <void> (&il2cpp_init_Original),
+                         &pfnil2cpp_init );
+  SK_EnableHook    (      pfnil2cpp_init );
+
+  void*                   pfnil2cpp_init_utf16 = nullptr;
+  SK_CreateDLLHook (       L"GameAssembly.dll",
+                            "il2cpp_init_utf16",
+                             il2cpp_init_utf16_Detour,
+    static_cast_p2p <void> (&il2cpp_init_utf16_Original),
+                         &pfnil2cpp_init_utf16 );
+  SK_EnableHook    (      pfnil2cpp_init_utf16 );
+
+  return true;
+}
+
+il2cpp::Wrapper* SK_il2cpp_Wrapper = nullptr;
+
+struct {  
+  Image* assemblyCSharp    = nullptr;
+  Image* assemblyInControl = nullptr;
+} SK_Unity_il2cppAssemblies;
+
+struct {
+  struct {
+    struct {
+      Field* DeviceStyle = nullptr;
+    } InputDevice;
+  } InControl;
+} SK_Unity_il2cppFields;
+
+struct {
+  struct {
+    Class* InputDevice = nullptr;
+  } InControl;
+} SK_Unity_il2cppClasses;
+
 HRESULT
 STDMETHODCALLTYPE
 SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
@@ -606,8 +711,10 @@ SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (Flags);
 
   // Better late initialization than never...
-  if ( nullptr !=        SK_mono_get_root_domain )
+  if ( nullptr !=        SK_mono_get_root_domain ) {
     SK_Unity_OnInitMono (SK_mono_get_root_domain ());
+    DetachCurrentThreadIfNotNative ();
+  }
 
   if (SK_Unity_Cfg.gamepad_polling_hz != 60.0f)
   {
@@ -1229,28 +1336,40 @@ SK_Unity_UpdateGlyphOverride (void)
 {
   if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
   {
-    static auto assemblyInControl =
-      SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-      SK_Unity_MonoAssemblies.assemblyInControl            :
-      SK_Unity_MonoAssemblies.assemblyCSharp;
-
-    static MonoClass* DeviceStyle =
-      SK_mono_class_from_name (assemblyInControl, "InControl", "InputDeviceStyle");
-
-    if (DeviceStyle != nullptr)
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      MonoClassField* enumValueField =
-        SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ());
+      AttachThread ();
 
-      if (enumValueField != nullptr)
+      static auto assemblyInControl =
+        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+        SK_Unity_MonoAssemblies.assemblyInControl            :
+        SK_Unity_MonoAssemblies.assemblyCSharp;
+
+      static MonoClass* DeviceStyle =
+        SK_mono_class_from_name (assemblyInControl, "InControl", "InputDeviceStyle");
+
+      if (DeviceStyle != nullptr)
       {
-        MonoObject* enumValueObject =
-          SK_mono_field_get_value_object (SK_Unity_MonoDomain, enumValueField, NULL);
+        MonoClassField* enumValueField =
+          SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ());
 
-        if (enumValueObject != nullptr)
+        if (enumValueField != nullptr)
         {
-          SK_Unity_GlyphEnumVal =
-            *(int32_t *)SK_mono_object_unbox (enumValueObject);
+          MonoObject* enumValueObject =
+            SK_mono_field_get_value_object (SK_Unity_MonoDomain, enumValueField, NULL);
+
+          if (enumValueObject != nullptr)
+          {
+            SK_Unity_GlyphEnumVal =
+              *(int32_t *)SK_mono_object_unbox (enumValueObject);
+          }
+
+          else
+          {
+            SK_Unity_Cfg.gamepad_glyphs_utf8 =  "Game Default";
+            SK_Unity_Cfg.gamepad_glyphs      = L"Game Default";
+            SK_Unity_GlyphEnumVal            =              -1;
+          }
         }
 
         else
@@ -1261,15 +1380,70 @@ SK_Unity_UpdateGlyphOverride (void)
         }
       }
 
-      else
-      {
-        SK_Unity_Cfg.gamepad_glyphs_utf8 =  "Game Default";
-        SK_Unity_Cfg.gamepad_glyphs      = L"Game Default";
-        SK_Unity_GlyphEnumVal            =              -1;
-      }
-    }
+      SK_Unity_GlyphCacheDirty = true;
 
-    SK_Unity_GlyphCacheDirty = true;
+      DetachCurrentThreadIfNotNative ();
+      SK_Thread_CloseSelf            ();
+
+      return 0;
+    }, L"[SK] Mono Temporary Thread");
+  }
+
+  else if (SK_Unity_il2cppClasses.InControl.InputDevice != nullptr)
+  {
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      Il2cpp::thread_attach (Il2cpp::get_domain ());
+      //AttachThread ();
+
+      static auto assemblyInControl =
+        SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
+        SK_Unity_il2cppAssemblies.assemblyInControl            :
+        SK_Unity_il2cppAssemblies.assemblyCSharp;
+
+      static Class* DeviceStyle =
+        assemblyInControl->get_class ("InputDeviceStyle", "InControl");
+
+      if (DeviceStyle != nullptr)
+      {
+        Field* enumValueField =
+          DeviceStyle->get_field (SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ());
+
+        if (enumValueField != nullptr)
+        {
+          void* enumValueObject =
+            enumValueField->get_object (nullptr);
+            //SK_mono_field_get_value_object (SK_Unity_MonoDomain, enumValueField, NULL);
+
+          if (enumValueObject != nullptr)
+          {
+            SK_Unity_GlyphEnumVal =
+              *(int32_t *)Il2cpp::object_unbox (enumValueObject);
+          }
+
+          else
+          {
+            SK_Unity_Cfg.gamepad_glyphs_utf8 =  "Game Default";
+            SK_Unity_Cfg.gamepad_glyphs      = L"Game Default";
+            SK_Unity_GlyphEnumVal            =              -1;
+          }
+        }
+
+        else
+        {
+          SK_Unity_Cfg.gamepad_glyphs_utf8 =  "Game Default";
+          SK_Unity_Cfg.gamepad_glyphs      = L"Game Default";
+          SK_Unity_GlyphEnumVal            =              -1;
+        }
+      }
+
+      SK_Unity_GlyphCacheDirty = true;
+
+    //DetachCurrentThreadIfNotNative ();
+      SK_Thread_CloseSelf            ();
+
+      return 0;
+    }, L"[SK] il2cpp Temporary Thread");
   }
 }
 
@@ -1293,8 +1467,6 @@ static void SK_Unity_InControl_SetDeviceStyle (MonoObject* device)
         method = GetClassMethod (image, "InControl", "InputDevice", "set_DeviceStyle", 1);
   if (! method)
     return;
-
-  AttachThread ();
 
   void* params [1] = { &SK_Unity_GlyphEnumVal };
 
@@ -1324,7 +1496,6 @@ static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG
 
     if (ClearInputState != nullptr)
     {
-      AttachThread           ();
       SK_mono_runtime_invoke (ClearInputState, __this, nullptr, nullptr);
     }
 
@@ -1366,14 +1537,214 @@ static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, floa
   InControl_NativeInputDevice_Vibrate_Original (__this, leftSpeed, rightSpeed);
 }
 
+using InControl_InputDevice_OnAttached_il2cpp_pfn    = void (*)(void*);
+using InControl_NativeInputDevice_Vibrate_il2cpp_pfn = void (*)(void*, float leftSpeed, float rightSpeed);
+using InControl_NativeInputDevice_Update_il2cpp_pfn  = void (*)(void*, ULONG updateTick, float deltaTime);
+
+static InControl_InputDevice_OnAttached_il2cpp_pfn    InControl_InputDevice_OnAttached_il2cpp_Original    = nullptr;
+static InControl_NativeInputDevice_Vibrate_il2cpp_pfn InControl_NativeInputDevice_Vibrate_il2cpp_Original = nullptr;
+static InControl_NativeInputDevice_Update_il2cpp_pfn  InControl_NativeInputDevice_Update_il2cpp_Original  = nullptr;
+
+static void SK_Unity_InControl_SetDeviceStyle_il2cpp (void* device)
+{
+  if (device == nullptr)
+    return;
+
+  if (SK_Unity_GlyphEnumVal == -1)
+    return;
+
+  static auto image =
+    SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
+    SK_Unity_il2cppAssemblies.assemblyInControl            :
+    SK_Unity_il2cppAssemblies.assemblyCSharp;
+
+  if (image == nullptr)
+    return;
+
+  static auto
+        method = image->get_class ("InputDevice", "InControl")->get_method ("set_DeviceStyle", 1);
+  if (! method)
+    return;
+
+  void* params [1] = { &SK_Unity_GlyphEnumVal };
+
+  method->invoke (device, params);
+}
+
+static void InControl_InputDevice_OnAttached_il2cpp_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  InControl_InputDevice_OnAttached_il2cpp_Original (__this);
+
+  SK_Unity_InControl_SetDeviceStyle_il2cpp (__this);
+}
+
+static void InControl_NativeInputDevice_Update_il2cpp_Detour (void* __this, ULONG updateTick, float deltaTime)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_ImGui_WantGamepadCapture ())
+  {
+    static void* ClearInputState =
+      Il2cpp::get_method (
+        Il2cpp::get_class_get_parent (
+          Il2cpp::object_get_class (__this)
+        ), "ClearInputState", 0);
+
+    if (ClearInputState != nullptr)
+    {
+      Il2cpp::method_call ((Method *)ClearInputState, __this, nullptr, nullptr);
+    }
+
+#if 0
+    if (! config.input.gamepad.disable_rumble)
+    {
+      InvokeMethod ( "InControl",
+                     "NativeInputDevice",
+                     "SendStatusUpdates", 0, __this,
+        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+                                                 "InControl" :
+                                           "Assembly-CSharp" );
+    }
+#endif
+    return;
+  }
+
+  InControl_NativeInputDevice_Update_il2cpp_Original (__this, updateTick, deltaTime);
+
+  // This should be per-device, but is global; OnAttached (...) will be necessary
+  //   to change glyphs on a system with more than one input device active.
+  if (std::exchange (SK_Unity_GlyphCacheDirty, false))
+    SK_Unity_InControl_SetDeviceStyle_il2cpp (__this);
+}
+
+static void InControl_NativeInputDevice_Vibrate_il2cpp_Detour (void* __this, float leftSpeed, float rightSpeed)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    if (SK_ImGui_HasPlayStationController ())
+        SK_HID_GetActivePlayStationDevice ()->setVibration (
+          static_cast <USHORT> (std::clamp (leftSpeed  * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f)),
+          static_cast <USHORT> (std::clamp (rightSpeed * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f))
+        );
+  }
+
+  InControl_NativeInputDevice_Vibrate_il2cpp_Original (__this, leftSpeed, rightSpeed);
+}
+
+bool
+SK_Unity_SetupInputHooks_il2cpp (void)
+{
+  static auto Aetherim = il2cpp::Wrapper ();
+
+  if (! Aetherim.get_image ("Assembly-CSharp.dll"))
+  {
+    return false;
+  }
+
+  static HANDLE hil2cppInitFinished =
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+  // Create a managed thread to keep assemblies and their JIT'd functions alive.
+  SK_RunOnce (
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      Il2cpp::thread_attach (Il2cpp::get_domain ());
+      //AttachThread ();
+
+      SK_Unity_il2cppAssemblies.assemblyCSharp    = Aetherim.get_image ("Assembly-CSharp.dll");
+      SK_Unity_il2cppAssemblies.assemblyInControl = Aetherim.get_image ("InControl.dll");
+
+      auto assemblyInControl =
+        SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
+        SK_Unity_il2cppAssemblies.assemblyInControl            :
+        SK_Unity_il2cppAssemblies.assemblyCSharp;
+
+      SK_Unity_il2cppClasses.InControl.InputDevice =
+                                 assemblyInControl == nullptr ?
+                                                      nullptr :
+        assemblyInControl->get_class ("InputDevice", "InControl");
+
+      void* pfnInControl_NativeInputDevice_Vibrate = nullptr;
+      void* pfnInControl_NativeInputDevice_Update  = nullptr;
+      void* pfnInControl_InputDevice_OnAttached    = nullptr;
+
+      if (SK_Unity_il2cppClasses.InControl.InputDevice != nullptr)
+      {
+        pfnInControl_NativeInputDevice_Vibrate = assemblyInControl->get_class ("NativeInputDevice", "InControl")->get_method ("Vibrate",    2);
+        pfnInControl_NativeInputDevice_Update  = assemblyInControl->get_class ("NativeInputDevice", "InControl")->get_method ("Update",     2);
+        pfnInControl_InputDevice_OnAttached    = assemblyInControl->get_class (      "InputDevice", "InControl")->get_method ("OnAttached", 0);
+
+        if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+        {
+          SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
+                         *(void**)pfnInControl_NativeInputDevice_Vibrate,
+                                     InControl_NativeInputDevice_Vibrate_il2cpp_Detour,
+            static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_il2cpp_Original) );
+        }
+
+        if (pfnInControl_NativeInputDevice_Update != nullptr)
+        {
+          SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
+                         *(void**)pfnInControl_NativeInputDevice_Update,
+                                     InControl_NativeInputDevice_Update_il2cpp_Detour,
+            static_cast_p2p <void> (&InControl_NativeInputDevice_Update_il2cpp_Original) );
+        }
+
+        if (pfnInControl_InputDevice_OnAttached != nullptr)
+        {
+          SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
+                         *(void**)pfnInControl_InputDevice_OnAttached,
+                                     InControl_InputDevice_OnAttached_il2cpp_Detour,
+            static_cast_p2p <void> (&InControl_InputDevice_OnAttached_il2cpp_Original) );
+        }
+      }
+
+      if ( pfnInControl_NativeInputDevice_Vibrate != nullptr &&
+           pfnInControl_NativeInputDevice_Update  != nullptr &&
+           pfnInControl_InputDevice_OnAttached    != nullptr )
+      {
+        SK_QueueEnableHook (*(void**)pfnInControl_NativeInputDevice_Vibrate);
+        SK_QueueEnableHook (*(void**)pfnInControl_NativeInputDevice_Update);
+        SK_QueueEnableHook (*(void**)pfnInControl_InputDevice_OnAttached);
+
+        SK_ApplyQueuedHooks ();
+
+        SK_Unity_FixablePlayStationRumble = true;
+
+        SK_Unity_UpdateGlyphOverride ();
+      }
+
+      else
+      {
+        SK_LOGi0 (L"Game does not appear to use InControl for gamepads...");
+      }
+
+      SetEvent (hil2cppInitFinished);
+
+      WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
+
+      DetachCurrentThreadIfNotNative ();
+      SK_Thread_CloseSelf            ();
+
+      return 0;
+    }, L"[SK] il2cpp Backing Thread");
+
+    WaitForSingleObject (hil2cppInitFinished, INFINITE);
+  );
+
+  return true;
+}
+
 bool
 SK_Unity_SetupInputHooks (void)
 {
   // Mono not init'd
   if (SK_mono_thread_attach == nullptr)
     return false;
-
-  AttachThread ();
 
   if (! LoadMonoAssembly ("Assembly-CSharp"))
   {
@@ -1383,87 +1754,109 @@ SK_Unity_SetupInputHooks (void)
   // Optional, may not exist.
   LoadMonoAssembly ("InControl");
 
-  SK_Unity_MonoAssemblies.assemblyCSharp    = SK_mono_image_loaded ("Assembly-CSharp");
-  SK_Unity_MonoAssemblies.assemblyInControl = SK_mono_image_loaded ("InControl");
+  static HANDLE hMonoInitFinished =
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
-  auto assemblyInControl =
-    SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-    SK_Unity_MonoAssemblies.assemblyInControl            :
-    SK_Unity_MonoAssemblies.assemblyCSharp;
-
-  SK_Unity_MonoClasses.InControl.InputDevice =
-                             assemblyInControl == nullptr ?
-                                                  nullptr :
-    SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice");
-
-  void* pfnInControl_NativeInputDevice_Vibrate = nullptr;
-  void* pfnInControl_NativeInputDevice_Update  = nullptr;
-  void* pfnInControl_InputDevice_OnAttached    = nullptr;
-
-  if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
-  {
-    pfnInControl_NativeInputDevice_Vibrate =
-      CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
-    pfnInControl_NativeInputDevice_Update =
-      CompileMethod ("InControl", "NativeInputDevice", "Update",     2);
-    pfnInControl_InputDevice_OnAttached =
-      CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
-
-    // Sometimes this ships as a separate DLL (InControl.dll)
-    if (pfnInControl_NativeInputDevice_Vibrate == nullptr)
+  // Create a managed thread to keep assemblies and their JIT'd functions alive.
+  SK_RunOnce (
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      pfnInControl_NativeInputDevice_Vibrate =
-        CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
-      pfnInControl_NativeInputDevice_Update =
-        CompileMethod ("InControl", "NativeInputDevice", "Update",     2, "InControl");
-      pfnInControl_InputDevice_OnAttached =
-        CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
-    }
+      AttachThread ();
 
-    if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
-    {
-      SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
-                              pfnInControl_NativeInputDevice_Vibrate,
-                                 InControl_NativeInputDevice_Vibrate_Detour,
-        static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_Original) );
-    }
+      SK_Unity_MonoAssemblies.assemblyCSharp    = SK_mono_image_loaded ("Assembly-CSharp");
+      SK_Unity_MonoAssemblies.assemblyInControl = SK_mono_image_loaded ("InControl");
 
-    if (pfnInControl_NativeInputDevice_Update != nullptr)
-    {
-      SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
-                              pfnInControl_NativeInputDevice_Update,
-                                 InControl_NativeInputDevice_Update_Detour,
-        static_cast_p2p <void> (&InControl_NativeInputDevice_Update_Original) );
-    }
+      auto assemblyInControl =
+        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
+        SK_Unity_MonoAssemblies.assemblyInControl            :
+        SK_Unity_MonoAssemblies.assemblyCSharp;
 
-    if (pfnInControl_InputDevice_OnAttached != nullptr)
-    {
-      SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
-                              pfnInControl_InputDevice_OnAttached,
-                                 InControl_InputDevice_OnAttached_Detour,
-        static_cast_p2p <void> (&InControl_InputDevice_OnAttached_Original) );
-    }
-  }
+      SK_Unity_MonoClasses.InControl.InputDevice =
+                                 assemblyInControl == nullptr ?
+                                                      nullptr :
+        SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice");
 
-  if ( pfnInControl_NativeInputDevice_Vibrate != nullptr &&
-       pfnInControl_NativeInputDevice_Update  != nullptr &&
-       pfnInControl_InputDevice_OnAttached    != nullptr )
-  {
-    SK_QueueEnableHook (pfnInControl_NativeInputDevice_Vibrate);
-    SK_QueueEnableHook (pfnInControl_NativeInputDevice_Update);
-    SK_QueueEnableHook (pfnInControl_InputDevice_OnAttached);
+      void* pfnInControl_NativeInputDevice_Vibrate = nullptr;
+      void* pfnInControl_NativeInputDevice_Update  = nullptr;
+      void* pfnInControl_InputDevice_OnAttached    = nullptr;
 
-    SK_ApplyQueuedHooks ();
+      if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
+      {
+        pfnInControl_NativeInputDevice_Vibrate =
+          CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
+        pfnInControl_NativeInputDevice_Update =
+          CompileMethod ("InControl", "NativeInputDevice", "Update",     2);
+        pfnInControl_InputDevice_OnAttached =
+          CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
 
-    SK_Unity_FixablePlayStationRumble = true;
+        // Sometimes this ships as a separate DLL (InControl.dll)
+        if (pfnInControl_NativeInputDevice_Vibrate == nullptr)
+        {
+          pfnInControl_NativeInputDevice_Vibrate =
+            CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
+          pfnInControl_NativeInputDevice_Update =
+            CompileMethod ("InControl", "NativeInputDevice", "Update",     2, "InControl");
+          pfnInControl_InputDevice_OnAttached =
+            CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
+        }
 
-    SK_Unity_UpdateGlyphOverride ();
-  }
+        if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+        {
+          SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
+                                  pfnInControl_NativeInputDevice_Vibrate,
+                                     InControl_NativeInputDevice_Vibrate_Detour,
+            static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_Original) );
+        }
 
-  else
-  {
-    SK_LOGi0 (L"Game does not appear to use InControl for gamepads...");
-  }
+        if (pfnInControl_NativeInputDevice_Update != nullptr)
+        {
+          SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
+                                  pfnInControl_NativeInputDevice_Update,
+                                     InControl_NativeInputDevice_Update_Detour,
+            static_cast_p2p <void> (&InControl_NativeInputDevice_Update_Original) );
+        }
+
+        if (pfnInControl_InputDevice_OnAttached != nullptr)
+        {
+          SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
+                                  pfnInControl_InputDevice_OnAttached,
+                                     InControl_InputDevice_OnAttached_Detour,
+            static_cast_p2p <void> (&InControl_InputDevice_OnAttached_Original) );
+        }
+      }
+
+      if ( pfnInControl_NativeInputDevice_Vibrate != nullptr &&
+           pfnInControl_NativeInputDevice_Update  != nullptr &&
+           pfnInControl_InputDevice_OnAttached    != nullptr )
+      {
+        SK_QueueEnableHook (pfnInControl_NativeInputDevice_Vibrate);
+        SK_QueueEnableHook (pfnInControl_NativeInputDevice_Update);
+        SK_QueueEnableHook (pfnInControl_InputDevice_OnAttached);
+
+        SK_ApplyQueuedHooks ();
+
+        SK_Unity_FixablePlayStationRumble = true;
+
+        SK_Unity_UpdateGlyphOverride ();
+      }
+
+      else
+      {
+        SK_LOGi0 (L"Game does not appear to use InControl for gamepads...");
+      }
+
+      SetEvent (hMonoInitFinished);
+
+      WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
+
+      DetachCurrentThreadIfNotNative ();
+      SK_Thread_CloseSelf            ();
+
+      return 0;
+    }, L"[SK] Mono Backing Thread");
+
+    WaitForSingleObject (hMonoInitFinished, INFINITE)
+  );
 
   return true;
 }

@@ -548,6 +548,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       void        SK_Unity_InitPlugin (void);
       SK_RunOnce (SK_Unity_InitPlugin ());
     }
+    else if (   StrStrI ( lpFileName, SK_TEXT("GameAssembly.dll")) ||
+                StrStrIW (wszCallingMod,     L"GameAssembly.dll") )
+    {
+      void        SK_Unity_InitPlugin (void);
+      SK_RunOnce (SK_Unity_InitPlugin ());
+    }
     else if (   StrStrI ( lpFileName, SK_TEXT("dstorage.dll")) ||
                 StrStrIW (wszCallingMod,     L"dstorage.dll") )
     {
