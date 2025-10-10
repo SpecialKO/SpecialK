@@ -2,6 +2,7 @@
 =======
  + Added support for InControl input fixes in Unity engine games using il2cpp
      (i.e. Tunic).
+ + Added support for older versions of Mono used by Unity engine.
 
 25.10.7.1
 =========

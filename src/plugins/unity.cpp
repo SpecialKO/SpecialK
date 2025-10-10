@@ -473,7 +473,9 @@ bool DetachCurrentThreadIfNotNative (void)
 
   if (this_thread != nullptr)
   {
-    if (SK_mono_thread_is_foreign (this_thread))
+    // This API doesn't exist in older versions of Mono.
+    if (SK_mono_thread_is_foreign != nullptr &&
+        SK_mono_thread_is_foreign (this_thread))
     {
       SK_mono_thread_detach (this_thread);
 
@@ -489,16 +491,33 @@ bool DetachCurrentThreadIfNotNative (void)
 static constexpr wchar_t* mono_dll  = L"mono-2.0-bdwgc.dll";
 static constexpr wchar_t* mono_path = LR"(MonoBleedingEdge\EmbedRuntime\mono-2.0-bdwgc.dll)";
 
+static constexpr wchar_t* mono_alt_dll  = L"mono.dll";
+static constexpr wchar_t* mono_alt_path = LR"(Mono\EmbedRuntime\mono.dll)";
+
 bool
 SK_Unity_HookMonoInit (void)
 {
+  const wchar_t* loaded_mono_dll = mono_dll;
+
   SK_LoadLibraryW (mono_path);
 
   HMODULE hMono =
     GetModuleHandleW (mono_dll);
 
   if (hMono == NULL)
-    return false;
+  {
+    SK_LoadLibraryW (mono_alt_path);
+
+    hMono =
+      GetModuleHandleW (mono_alt_dll);
+
+    if (hMono == NULL)
+    {
+      return false;
+    }
+
+    loaded_mono_dll = mono_alt_dll;
+  }
 
   SK_mono_domain_assembly_open         = reinterpret_cast <mono_domain_assembly_open_pfn>         (SK_GetProcAddress (hMono, "mono_domain_assembly_open"));
   SK_mono_assembly_get_image           = reinterpret_cast <mono_assembly_get_image_pfn>           (SK_GetProcAddress (hMono, "mono_assembly_get_image"));
@@ -548,7 +567,7 @@ SK_Unity_HookMonoInit (void)
   SK_mono_thread_is_foreign            = reinterpret_cast <mono_thread_is_foreign_pfn>            (SK_GetProcAddress (hMono, "mono_thread_is_foreign"));
 
   void*                   pfnMonoJitInitVersion = nullptr;
-  SK_CreateDLLHook (         mono_dll,
+  SK_CreateDLLHook (  loaded_mono_dll,
                             "mono_jit_init_version",
                              mono_jit_init_version_Detour,
     static_cast_p2p <void> (&mono_jit_init_version_Original),
@@ -1678,7 +1697,7 @@ SK_Unity_SetupInputHooks_il2cpp (void)
         pfnInControl_NativeInputDevice_Update  = assemblyInControl->get_class ("NativeInputDevice", "InControl")->get_method ("Update",     2);
         pfnInControl_InputDevice_OnAttached    = assemblyInControl->get_class (      "InputDevice", "InControl")->get_method ("OnAttached", 0);
 
-        if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
+        if (pfnInControl_NativeInputDevice_Vibrate != nullptr && *(void**)pfnInControl_NativeInputDevice_Vibrate != nullptr)
         {
           SK_CreateFuncHook (      L"InControl.NativeInputDevice.Vibrate",
                          *(void**)pfnInControl_NativeInputDevice_Vibrate,
@@ -1686,7 +1705,7 @@ SK_Unity_SetupInputHooks_il2cpp (void)
             static_cast_p2p <void> (&InControl_NativeInputDevice_Vibrate_il2cpp_Original) );
         }
 
-        if (pfnInControl_NativeInputDevice_Update != nullptr)
+        if (pfnInControl_NativeInputDevice_Update != nullptr && *(void**)pfnInControl_NativeInputDevice_Update != nullptr)
         {
           SK_CreateFuncHook (      L"InControl.NativeInputDevice.Update",
                          *(void**)pfnInControl_NativeInputDevice_Update,
@@ -1694,7 +1713,7 @@ SK_Unity_SetupInputHooks_il2cpp (void)
             static_cast_p2p <void> (&InControl_NativeInputDevice_Update_il2cpp_Original) );
         }
 
-        if (pfnInControl_InputDevice_OnAttached != nullptr)
+        if (pfnInControl_InputDevice_OnAttached != nullptr && *(void**)pfnInControl_InputDevice_OnAttached != nullptr)
         {
           SK_CreateFuncHook (      L"InControl.InputDevice.OnAttached",
                          *(void**)pfnInControl_InputDevice_OnAttached,
@@ -1707,9 +1726,9 @@ SK_Unity_SetupInputHooks_il2cpp (void)
            pfnInControl_NativeInputDevice_Update  != nullptr &&
            pfnInControl_InputDevice_OnAttached    != nullptr )
       {
-        SK_QueueEnableHook (*(void**)pfnInControl_NativeInputDevice_Vibrate);
-        SK_QueueEnableHook (*(void**)pfnInControl_NativeInputDevice_Update);
-        SK_QueueEnableHook (*(void**)pfnInControl_InputDevice_OnAttached);
+        if (*(void**)pfnInControl_NativeInputDevice_Vibrate != nullptr) SK_QueueEnableHook (*(void**)pfnInControl_NativeInputDevice_Vibrate);
+        if (*(void**)pfnInControl_NativeInputDevice_Update  != nullptr) SK_QueueEnableHook (*(void**)pfnInControl_NativeInputDevice_Update);
+        if (*(void**)pfnInControl_InputDevice_OnAttached    != nullptr) SK_QueueEnableHook (*(void**)pfnInControl_InputDevice_OnAttached);
 
         SK_ApplyQueuedHooks ();
 
