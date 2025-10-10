@@ -1,4 +1,8 @@
-﻿25.10.9
+﻿25.10.10
+========
+ + Implemented PlayStation rumble support for Unity games using Rewired.
+
+25.10.9
 =======
  + Added support for InControl input fixes in Unity engine games using il2cpp
      (i.e. Tunic).

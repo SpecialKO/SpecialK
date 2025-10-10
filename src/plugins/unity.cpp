@@ -74,6 +74,7 @@ struct sk_unity_cfg_s {
 
 float SK_Unity_InputPollingFrequency    = 60.0f;
 bool  SK_Unity_FixablePlayStationRumble = false;
+bool  SK_Unity_CustomizableGlyphs       = false;
 int   SK_Unity_GlyphEnumVal             =    -1;
 bool  SK_Unity_GlyphCacheDirty          = false;
 
@@ -169,6 +170,8 @@ SK_Unity_PlugInCfg (void)
       static int sel =
         std::max (0, table_rev [SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ()]);
 
+      if (SK_Unity_CustomizableGlyphs)
+      {
       if (ImGui::Combo ("Button Prompts", &sel, "Game Default\0"
                                                 "Xbox 360\0"
                                                 "Xbox One\0"
@@ -218,6 +221,7 @@ SK_Unity_PlugInCfg (void)
           "If changes do not take effect immediately, try "
           "disconnecting and reconnecting the controller." );
         ImGui::EndTooltip ( );
+      }
       }
 #if 0
       if (ImGui::SliderFloat ("Polling Frequency", &SK_Unity_Cfg.gamepad_polling_hz, 30.0f, 1000.0f, "%.3f Hz", ImGuiSliderFlags_Logarithmic))
@@ -619,6 +623,7 @@ void SK_Unity_OnInitMono (MonoDomain* domain)
 struct {
   MonoImage* assemblyCSharp    = nullptr;
   MonoImage* assemblyInControl = nullptr;
+  MonoImage* assemblyRewired   = nullptr;
 } SK_Unity_MonoAssemblies;
 
 struct {
@@ -713,6 +718,7 @@ il2cpp::Wrapper* SK_il2cpp_Wrapper = nullptr;
 struct {  
   Image* assemblyCSharp    = nullptr;
   Image* assemblyInControl = nullptr;
+  Image* assemblyRewired   = nullptr;
 } SK_Unity_il2cppAssemblies;
 
 struct {
@@ -1377,6 +1383,8 @@ SK_Unity_UpdateGlyphOverride (void)
 
       if (DeviceStyle != nullptr)
       {
+        SK_Unity_CustomizableGlyphs = true;
+
         MonoClassField* enumValueField =
           SK_mono_class_get_field_from_name (DeviceStyle, SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ());
 
@@ -1432,6 +1440,8 @@ SK_Unity_UpdateGlyphOverride (void)
 
       if (DeviceStyle != nullptr)
       {
+        SK_Unity_CustomizableGlyphs = true;
+
         Field* enumValueField =
           DeviceStyle->get_field (SK_Unity_Cfg.gamepad_glyphs_utf8.c_str ());
 
@@ -1661,6 +1671,148 @@ static void InControl_NativeInputDevice_Vibrate_il2cpp_Detour (void* __this, flo
   InControl_NativeInputDevice_Vibrate_il2cpp_Original (__this, leftSpeed, rightSpeed);
 }
 
+
+struct {
+  float level      = 0.0f;
+  float last_level = 0.0f;
+  DWORD until      =    0;
+} static motors_ [2];
+
+using  Rewired_Joystick_get_supportsVibration_il2cpp_pfn = bool(*)(void*);
+static Rewired_Joystick_get_supportsVibration_il2cpp_pfn
+       Rewired_Joystick_get_supportsVibration_il2cpp_Original = nullptr;
+
+using Rewired_Joystick_SetVibration4_il2cpp_pfn  = void(*)(void*, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration);
+using Rewired_Joystick_SetVibration2_il2cpp_pfn  = void(*)(void*, float leftMotorLevel, float rightMotorLevel);
+using Rewired_Joystick_StopVibration_il2cpp_pfn = void(*)(void*);
+
+static Rewired_Joystick_SetVibration4_il2cpp_pfn
+       Rewired_Joystick_SetVibration4_il2cpp_Original = nullptr;
+
+static Rewired_Joystick_SetVibration2_il2cpp_pfn
+       Rewired_Joystick_SetVibration2_il2cpp_Original = nullptr;
+
+static Rewired_Joystick_StopVibration_il2cpp_pfn
+       Rewired_Joystick_StopVibration_il2cpp_Original = nullptr;
+
+void Rewired_Joystick_SetVibration_Impl (float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration)
+{
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    SK_RunOnce (
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5) != WAIT_OBJECT_0)
+      {
+        if (! SK_Unity_Cfg.gamepad_fix_playstation)
+          continue;
+
+        auto controller = SK_HID_GetActivePlayStationDevice (false);
+        if ( controller != nullptr )
+        {
+          if (motors_[0].level != motors_[0].last_level || (motors_[0].level != 0.0f && motors_[0].until < SK::ControlPanel::current_time))
+          {
+            if (motors_[0].until < SK::ControlPanel::current_time && motors_[0].until != 0)
+                motors_[0].level = 0.0f;
+
+            controller->setVibration (
+              static_cast <USHORT> (std::clamp (motors_[0].level * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f)),
+              static_cast <USHORT> (std::clamp (motors_[1].level * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f))
+            );
+
+            motors_[0].last_level = motors_[0].level;
+          }
+
+          if (motors_[1].level != motors_[1].last_level || (motors_[1].level != 0.0f && motors_[1].until < SK::ControlPanel::current_time))
+          {
+            if (motors_[1].until < SK::ControlPanel::current_time && motors_[1].until != 0)
+                motors_[1].level = 0.0f;
+
+            controller->setVibration (
+              static_cast <USHORT> (std::clamp (motors_[0].level * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f)),
+              static_cast <USHORT> (std::clamp (motors_[1].level * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f))
+            );
+
+            motors_[1].last_level = motors_[1].level;
+          }
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Unity Rumble Thread");
+    );
+  }
+
+  motors_[0].level = leftMotorLevel;
+  motors_[1].level = rightMotorLevel;
+
+  motors_[0].until = leftMotorDuration  > 0.0f ? SK::ControlPanel::current_time + static_cast <DWORD> (1000.0f * leftMotorDuration)  : 0;
+  motors_[1].until = rightMotorDuration > 0.0f ? SK::ControlPanel::current_time + static_cast <DWORD> (1000.0f * rightMotorDuration) : 0;
+}
+static
+void
+Rewired_Joystick_SetVibration4_il2cpp_Detour (void* __this, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration)
+{
+  SK_LOG_FIRST_CALL
+
+  Rewired_Joystick_SetVibration_Impl (leftMotorLevel, rightMotorLevel, leftMotorDuration, rightMotorDuration);
+
+  Rewired_Joystick_SetVibration4_il2cpp_Original (__this, leftMotorLevel, rightMotorLevel, leftMotorDuration, rightMotorDuration);
+}
+
+static
+void
+Rewired_Joystick_SetVibration2_il2cpp_Detour (void* __this, float leftMotorLevel, float rightMotorLevel)
+{
+  SK_LOG_FIRST_CALL
+
+  Rewired_Joystick_SetVibration_Impl (leftMotorLevel, rightMotorLevel, 0.0f, 0.0f);
+
+  Rewired_Joystick_SetVibration2_il2cpp_Original (__this, leftMotorLevel, rightMotorLevel);
+}
+
+static
+void
+Rewired_Joystick_StopVibration_il2cpp_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    motors_[0].level = 0.0f;
+    motors_[1].level = 0.0f;
+  }
+
+  Rewired_Joystick_StopVibration_il2cpp_Original (__this);
+}
+
+static
+bool
+Rewired_Joystick_get_supportsVibration_il2cpp_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    //static MonoClass*      klass = SK_mono_object_get_class (__this);
+    //static MonoClassField* field = SK_mono_class_get_field_from_name (klass, "SxXaAJAfPoDKOfgvxNlhugQUrVFq");
+    //
+    //if (field) {
+    //  uint32_t  offset        = SK_mono_field_get_offset (field);
+    //  uintptr_t field_address = (uintptr_t)__this + offset;
+    //
+    //  *(int32_t *)field_address = 2;
+    //}
+
+    return true;
+  }
+
+  return
+    Rewired_Joystick_get_supportsVibration_il2cpp_Original (__this);
+}
+
 bool
 SK_Unity_SetupInputHooks_il2cpp (void)
 {
@@ -1682,6 +1834,7 @@ SK_Unity_SetupInputHooks_il2cpp (void)
 
       SK_Unity_il2cppAssemblies.assemblyCSharp    = Aetherim.get_image ("Assembly-CSharp.dll");
       SK_Unity_il2cppAssemblies.assemblyInControl = Aetherim.get_image ("InControl.dll");
+      SK_Unity_il2cppAssemblies.assemblyRewired   = Aetherim.get_image ("Rewired_Core.dll");
 
       auto assemblyInControl =
         SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
@@ -1728,6 +1881,61 @@ SK_Unity_SetupInputHooks_il2cpp (void)
         }
       }
 
+      if (SK_Unity_il2cppAssemblies.assemblyRewired != nullptr)
+      {
+        void* pfnRewired_Joystick_get_supportsVibration = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("get_supportsVibration", 0);
+        void* pfnRewired_Joystick_SetVibration4         = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("SetVibration",          4);
+        void* pfnRewired_Joystick_SetVibration2         = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("SetVibration",          2);
+        void* pfnRewired_Joystick_StopVibration         = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("StopVibration",         0);
+
+        if (pfnRewired_Joystick_get_supportsVibration != nullptr && *(void**)pfnRewired_Joystick_get_supportsVibration != nullptr)
+        {
+          SK_CreateFuncHook (      L"Rewired.Joystick.get_supportsVibration",
+                         *(void**)pfnRewired_Joystick_get_supportsVibration,
+                                     Rewired_Joystick_get_supportsVibration_il2cpp_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_get_supportsVibration_il2cpp_Original) );
+        }
+
+        if (pfnRewired_Joystick_SetVibration4 != nullptr && *(void**)pfnRewired_Joystick_SetVibration4 != nullptr)
+        {
+          SK_CreateFuncHook (      L"Rewired.Joystick.SetVibration",
+                         *(void**)pfnRewired_Joystick_SetVibration4,
+                                     Rewired_Joystick_SetVibration4_il2cpp_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_SetVibration4_il2cpp_Original) );
+        }
+
+        if (pfnRewired_Joystick_SetVibration2 != nullptr && *(void**)pfnRewired_Joystick_SetVibration2 != nullptr)
+        {
+          SK_CreateFuncHook (      L"Rewired.Joystick.SetVibration",
+                         *(void**)pfnRewired_Joystick_SetVibration2,
+                                     Rewired_Joystick_SetVibration2_il2cpp_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_SetVibration2_il2cpp_Original) );
+        }
+
+        if (pfnRewired_Joystick_StopVibration != nullptr && *(void **)pfnRewired_Joystick_StopVibration != nullptr)
+        {
+          SK_CreateFuncHook (      L"Rewired.Joystick.StopVibration",
+                         *(void**)pfnRewired_Joystick_StopVibration,
+                                     Rewired_Joystick_StopVibration_il2cpp_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_StopVibration_il2cpp_Original) );
+        }
+
+        if (pfnRewired_Joystick_get_supportsVibration != nullptr &&
+            pfnRewired_Joystick_SetVibration4         != nullptr &&
+            pfnRewired_Joystick_SetVibration2         != nullptr && 
+            pfnRewired_Joystick_StopVibration         != nullptr)
+        {
+          if (*(void**)pfnRewired_Joystick_get_supportsVibration != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_supportsVibration);
+          if (*(void**)pfnRewired_Joystick_SetVibration4         != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration4);
+          if (*(void**)pfnRewired_Joystick_SetVibration2         != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration2);
+          if (*(void**)pfnRewired_Joystick_StopVibration         != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_StopVibration);
+
+          SK_ApplyQueuedHooks ();
+
+          SK_Unity_FixablePlayStationRumble = true;
+        }
+      }
+
       if ( pfnInControl_NativeInputDevice_Vibrate != nullptr &&
            pfnInControl_NativeInputDevice_Update  != nullptr &&
            pfnInControl_InputDevice_OnAttached    != nullptr )
@@ -1764,6 +1972,70 @@ SK_Unity_SetupInputHooks_il2cpp (void)
   return true;
 }
 
+using  Rewired_Joystick_get_supportsVibration_pfn = bool(*)(MonoObject*);
+static Rewired_Joystick_get_supportsVibration_pfn
+       Rewired_Joystick_get_supportsVibration_Original = nullptr;
+
+using Rewired_Joystick_SetVibration_pfn  = void(*)(MonoObject*, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration);
+using Rewired_Joystick_StopVibration_pfn = void(*)(MonoObject*);
+
+static Rewired_Joystick_SetVibration_pfn
+       Rewired_Joystick_SetVibration_Original = nullptr;
+
+static Rewired_Joystick_StopVibration_pfn
+       Rewired_Joystick_StopVibration_Original = nullptr;
+
+static
+void
+Rewired_Joystick_SetVibration_Detour (MonoObject* __this, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration)
+{
+  SK_LOG_FIRST_CALL
+
+  Rewired_Joystick_SetVibration_Impl (leftMotorLevel, rightMotorLevel, leftMotorDuration, rightMotorDuration);
+
+  Rewired_Joystick_SetVibration_Original (__this, leftMotorLevel, rightMotorLevel, leftMotorDuration, rightMotorDuration);
+}
+
+static
+void
+Rewired_Joystick_StopVibration_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    motors_[0].level = 0.0f;
+    motors_[1].level = 0.0f;
+  }
+
+  Rewired_Joystick_StopVibration_Original (__this);
+}
+
+static
+bool
+Rewired_Joystick_get_supportsVibration_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    static MonoClass*      klass = SK_mono_object_get_class (__this);
+    static MonoClassField* field = SK_mono_class_get_field_from_name (klass, "SxXaAJAfPoDKOfgvxNlhugQUrVFq");
+
+    if (field) {
+      uint32_t  offset        = SK_mono_field_get_offset (field);
+      uintptr_t field_address = (uintptr_t)__this + offset;
+
+      *(int32_t *)field_address = 2;
+    }
+
+    return true;
+  }
+
+  return
+    Rewired_Joystick_get_supportsVibration_Original (__this);
+}
+
 bool
 SK_Unity_SetupInputHooks (void)
 {
@@ -1778,6 +2050,7 @@ SK_Unity_SetupInputHooks (void)
 
   // Optional, may not exist.
   LoadMonoAssembly ("InControl");
+  LoadMonoAssembly ("Rewired_Core");
 
   static HANDLE hMonoInitFinished =
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
@@ -1790,6 +2063,7 @@ SK_Unity_SetupInputHooks (void)
 
       SK_Unity_MonoAssemblies.assemblyCSharp    = SK_mono_image_loaded ("Assembly-CSharp");
       SK_Unity_MonoAssemblies.assemblyInControl = SK_mono_image_loaded ("InControl");
+      SK_Unity_MonoAssemblies.assemblyRewired   = SK_mono_image_loaded ("Rewired_Core");
 
       auto assemblyInControl =
         SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
@@ -1847,6 +2121,42 @@ SK_Unity_SetupInputHooks (void)
                                   pfnInControl_InputDevice_OnAttached,
                                      InControl_InputDevice_OnAttached_Detour,
             static_cast_p2p <void> (&InControl_InputDevice_OnAttached_Original) );
+        }
+      }
+
+      if (SK_Unity_MonoAssemblies.assemblyRewired != nullptr)
+      {
+        void* pfnRewired_Joystick_get_supportsVibration =
+          CompileMethod ("Rewired", "Joystick", "get_supportsVibration", 0, "Rewired_Core");
+
+        if (pfnRewired_Joystick_get_supportsVibration != nullptr)
+        {
+          SK_CreateFuncHook (      L"Rewired.Joystick.get_supportsVibration",
+                                  pfnRewired_Joystick_get_supportsVibration,
+                                     Rewired_Joystick_get_supportsVibration_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_get_supportsVibration_Original) );
+          SK_QueueEnableHook     (pfnRewired_Joystick_get_supportsVibration);
+
+          void* pfnRewired_Joystick_SetVibration =
+            CompileMethod ("Rewired", "Joystick", "SetVibration", 4, "Rewired_Core");
+          void* pfnRewired_Joystick_StopVibration =
+            CompileMethod ("Rewired", "Joystick", "StopVibration", 0, "Rewired_Core");
+
+          SK_CreateFuncHook (      L"Rewired.Joystick.SetVibration",
+                                  pfnRewired_Joystick_SetVibration,
+                                     Rewired_Joystick_SetVibration_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_SetVibration_Original) );
+          SK_QueueEnableHook     (pfnRewired_Joystick_SetVibration);
+
+          SK_CreateFuncHook (      L"Rewired.Joystick.StopVibration",
+                                  pfnRewired_Joystick_StopVibration,
+                                     Rewired_Joystick_StopVibration_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_StopVibration_Original) );
+          SK_QueueEnableHook     (pfnRewired_Joystick_StopVibration);
+
+          SK_ApplyQueuedHooks ();
+
+          SK_Unity_FixablePlayStationRumble = true;
         }
       }
 
