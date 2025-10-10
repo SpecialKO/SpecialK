@@ -418,6 +418,15 @@
     <Filter Include="Header Files\Storefronts\Galaxy\1.151.0">
       <UniqueIdentifier>{ddf15973-dcdf-43c8-a2a1-7f7b12d4ccea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Storefronts\Galaxy">
+      <UniqueIdentifier>{63715b72-0806-400a-8eb4-140e0bae5fba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Storefronts\Xbox Live">
+      <UniqueIdentifier>{f215d4ab-a494-427c-b2b3-109d8ef48f81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\External Libraries\Aetherim">
+      <UniqueIdentifier>{661f86ae-1902-49d1-b202-5139b9248730}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3312,6 +3321,30 @@
     <ClInclude Include="depends\include\galaxy\1_152_10\IUser.h">
       <Filter>Header Files\Storefronts\Galaxy\1.152.10</Filter>
     </ClInclude>
+    <ClInclude Include="depends\include\aetherim\api.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\class.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\field.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\image.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\method.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\table_defs.h">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\type.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\aetherim\wrapper.hpp">
+      <Filter>Header Files\External Libraries\Aetherim</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3941,12 +3974,6 @@
     <ClCompile Include="src\plugins\watch_dogs.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
-    <ClCompile Include="src\storefront\xbox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\storefront\gog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\sound.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -3958,6 +3985,12 @@
     </ClCompile>
     <ClCompile Include="src\plugins\unity.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\gog.cpp">
+      <Filter>Source Files\Storefronts\Galaxy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\xbox.cpp">
+      <Filter>Source Files\Storefronts\Xbox Live</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

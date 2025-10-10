@@ -924,6 +924,14 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="depends\include\adl\adl_defines.h" />
     <ClInclude Include="depends\include\adl\adl_sdk.h" />
     <ClInclude Include="depends\include\adl\adl_structures.h" />
+    <ClInclude Include="depends\include\aetherim\api.hpp" />
+    <ClInclude Include="depends\include\aetherim\class.hpp" />
+    <ClInclude Include="depends\include\aetherim\field.hpp" />
+    <ClInclude Include="depends\include\aetherim\image.hpp" />
+    <ClInclude Include="depends\include\aetherim\method.hpp" />
+    <ClInclude Include="depends\include\aetherim\table_defs.h" />
+    <ClInclude Include="depends\include\aetherim\type.hpp" />
+    <ClInclude Include="depends\include\aetherim\wrapper.hpp" />
     <ClInclude Include="depends\include\avif\avif.h" />
     <ClInclude Include="depends\include\avif\internal.h" />
     <ClInclude Include="depends\include\boost\align.hpp" />
