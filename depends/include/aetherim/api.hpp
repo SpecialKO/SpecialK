@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(_WIN64) || defined(_WIN32)
 #  include <Windows.h>
@@ -42,6 +42,8 @@ namespace Il2cpp
 
   // thread, domain, and assembly
   DEF_API( thread_attach, void *, ( void * domain ) );
+  DEF_API( thread_detach, void, ( void * thread ) );
+  DEF_API( thread_current, void *, (void) );
   DEF_API( get_domain, void *, (void) );
   DEF_API( get_assemblies, void **, ( const void * domain, size_t * count ) );
 
@@ -141,6 +143,8 @@ namespace Il2cpp
 
     // thread, domains, and assemblies
     DEF_ADDR( thread_attach, "il2cpp_thread_attach", GameAssemblyHandle );
+    DEF_ADDR( thread_detach, "il2cpp_thread_detach", GameAssemblyHandle );
+    DEF_ADDR( thread_current, "il2cpp_thread_current", GameAssemblyHandle );
     DEF_ADDR( get_domain, "il2cpp_domain_get", GameAssemblyHandle );
     DEF_ADDR( get_assemblies, "il2cpp_domain_get_assemblies", GameAssemblyHandle );
 

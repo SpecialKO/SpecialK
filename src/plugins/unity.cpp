@@ -457,6 +457,13 @@ mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_
   return domain;
 }
 
+#include <aetherim/image.hpp>
+#include <aetherim/field.hpp>
+#include <aetherim/class.hpp>
+#include <aetherim/wrapper.hpp>
+
+#include <aetherim/api.hpp>
+
 static
 void AttachThread (void)
 {
@@ -468,13 +475,21 @@ void AttachThread (void)
 static
 bool DetachCurrentThreadIfNotNative (void)
 {
+  if (! SK_mono_thread_current)
+  {
+    if (Il2cpp::thread_detach != nullptr)
+      Il2cpp::thread_detach (Il2cpp::thread_current ());
+
+    return false;
+  }
+
   MonoThread* this_thread =
     SK_mono_thread_current ();
 
   if (this_thread != nullptr)
   {
     // This API doesn't exist in older versions of Mono.
-    if (SK_mono_thread_is_foreign != nullptr &&
+    if (SK_mono_thread_is_foreign == nullptr ||
         SK_mono_thread_is_foreign (this_thread))
     {
       SK_mono_thread_detach (this_thread);
@@ -662,13 +677,6 @@ il2cpp_shutdown_Detour (void)
   return
     il2cpp_shutdown_Original ();
 }
-
-#include <aetherim/image.hpp>
-#include <aetherim/field.hpp>
-#include <aetherim/class.hpp>
-#include <aetherim/wrapper.hpp>
-
-#include <aetherim/api.hpp>
 
 bool
 SK_Unity_Hookil2cppInit (void)
@@ -1401,7 +1409,7 @@ SK_Unity_UpdateGlyphOverride (void)
 
       SK_Unity_GlyphCacheDirty = true;
 
-      DetachCurrentThreadIfNotNative ();
+      SK_mono_thread_detach (SK_mono_thread_current ());
       SK_Thread_CloseSelf            ();
 
       return 0;
@@ -1413,7 +1421,6 @@ SK_Unity_UpdateGlyphOverride (void)
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
       Il2cpp::thread_attach (Il2cpp::get_domain ());
-      //AttachThread ();
 
       static auto assemblyInControl =
         SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
@@ -1458,7 +1465,7 @@ SK_Unity_UpdateGlyphOverride (void)
 
       SK_Unity_GlyphCacheDirty = true;
 
-    //DetachCurrentThreadIfNotNative ();
+      Il2cpp::thread_detach (Il2cpp::thread_current ());
       SK_Thread_CloseSelf            ();
 
       return 0;
@@ -1672,7 +1679,6 @@ SK_Unity_SetupInputHooks_il2cpp (void)
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
       Il2cpp::thread_attach (Il2cpp::get_domain ());
-      //AttachThread ();
 
       SK_Unity_il2cppAssemblies.assemblyCSharp    = Aetherim.get_image ("Assembly-CSharp.dll");
       SK_Unity_il2cppAssemblies.assemblyInControl = Aetherim.get_image ("InControl.dll");
@@ -1744,9 +1750,9 @@ SK_Unity_SetupInputHooks_il2cpp (void)
 
       SetEvent (hil2cppInitFinished);
 
-      WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
+      WaitForSingleObject (__SK_DLL_TeardownEvent, 2500UL);
 
-      DetachCurrentThreadIfNotNative ();
+      Il2cpp::thread_detach (Il2cpp::thread_current ());
       SK_Thread_CloseSelf            ();
 
       return 0;
@@ -1866,9 +1872,9 @@ SK_Unity_SetupInputHooks (void)
 
       SetEvent (hMonoInitFinished);
 
-      WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
+      WaitForSingleObject (__SK_DLL_TeardownEvent, 2500UL);
 
-      DetachCurrentThreadIfNotNative ();
+      SK_mono_thread_detach (SK_mono_thread_current ());
       SK_Thread_CloseSelf            ();
 
       return 0;
@@ -1876,6 +1882,8 @@ SK_Unity_SetupInputHooks (void)
 
     WaitForSingleObject (hMonoInitFinished, INFINITE)
   );
+
+  DetachCurrentThreadIfNotNative ();
 
   return true;
 }

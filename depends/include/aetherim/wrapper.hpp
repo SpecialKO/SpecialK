@@ -25,7 +25,7 @@ public:
     size_t count = 0U;
 
     const auto domain = Il2cpp::get_domain();
-    Il2cpp::thread_attach( domain );
+    //Il2cpp::thread_attach( domain );
 
     const auto assemblies = Il2cpp::get_assemblies( domain, &count );
 
