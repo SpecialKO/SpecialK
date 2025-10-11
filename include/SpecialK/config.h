@@ -1913,6 +1913,7 @@ enum class SK_GAME_ID
   Dishonored2,                  // Dishonored2.exe
   TitanQuest,                   // tq.exe
   Stellaris,                    // stellaris.exe
+  PrinceOfPersia_TheLostCrown,  // TheLostCrown.exe, TheLostCrown_plus.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -310,7 +310,9 @@ SK_GetCurrentGameID (void)
           { L"zosEGSStarter.exe",                      SK_GAME_ID::Launcher                     },
           { L"crs-video.exe",                          SK_GAME_ID::Launcher                     }, // Used by many games for FMV playback
           { L"SHf-Win64-Shipping.exe",                 SK_GAME_ID::SilentHill_f                 },
-          { L"stellaris.exe",                          SK_GAME_ID::Stellaris                    }
+          { L"stellaris.exe",                          SK_GAME_ID::Stellaris                    },
+          { L"TheLostCrown.exe",                       SK_GAME_ID::PrinceOfPersia_TheLostCrown  },
+          { L"TheLostCrown_plus.exe",                  SK_GAME_ID::PrinceOfPersia_TheLostCrown  },
         };
 
     first_check  = false;
@@ -4306,6 +4308,9 @@ auto DeclKeybind =
                               allow_latency_wait = FALSE;
         config.render.framerate.engine_overrides.
                            allow_wait_for_vblank = FALSE;
+        break;
+
+      case SK_GAME_ID::PrinceOfPersia_TheLostCrown:
         break;
 
       case SK_GAME_ID::TitanQuest:

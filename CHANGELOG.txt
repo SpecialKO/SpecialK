@@ -1,4 +1,9 @@
-﻿25.18.11.1
+﻿25.10.11.2
+==========
+ + Default Prince of Persia: The Lost Crown to use auto-adjusted fixedDeltaTime
+ + Change the tooltip on fixedDeltaTime from a warning to info.
+
+25.10.11.1
 ==========
  + Added option to automatically adjust Unity engine's fixedDeltaTime to
      always match SK's configured framerate limit for a game.
