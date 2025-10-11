@@ -2,6 +2,7 @@
 ==========
  + Default Prince of Persia: The Lost Crown to use auto-adjusted fixedDeltaTime
  + Change the tooltip on fixedDeltaTime from a warning to info.
+ + Changed DualSense controllers to use "enhanced rumble emulation".
 
 25.10.11.1
 ==========

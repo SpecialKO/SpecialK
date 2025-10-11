@@ -112,7 +112,8 @@ SK_Unity_PlugInCfg (void)
     {
       if (SK_Unity_Cfg.time_fixed_delta_time == SK_Unity_OriginalFixedDeltaTime)
       {
-        ImGui::TextColored    (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+        ImGui::TextColored    (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
+        ImGui::SameLine       ();
         ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
         ImGui::SameLine       ();
       }
@@ -396,6 +397,10 @@ SK_Unity_InitPlugin (void)
                                     L"Gamepad Polling Frequency (30.0 Hz - 1000.0Hz; 60.0 Hz == hard-coded game default)" )
     );
 */
+
+    // Needs this setting or judder is out of control.
+    if (SK_IsCurrentGame (SK_GAME_ID::PrinceOfPersia_TheLostCrown))
+      SK_Unity_Cfg.fixed_delta_auto_sync = true;
 
     SK_Unity_Cfg.gamepad_fix_playstation.bind_to_ini (
       _CreateConfigParameterBool ( L"Unity.Input",
