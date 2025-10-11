@@ -71,6 +71,7 @@ struct sk_unity_cfg_s {
   PlugInParameter <std::wstring> gamepad_glyphs          = std::wstring (L"Game Default");
   std::string                    gamepad_glyphs_utf8     =                "Game Default";
   PlugInParameter <float>        time_fixed_delta_time   = 0.0f;
+  PlugInParameter <bool>         fixed_delta_auto_sync   = false;
 } SK_Unity_Cfg;
 
 float SK_Unity_InputPollingFrequency    = 60.0f;
@@ -99,60 +100,97 @@ SK_Unity_PlugInCfg (void)
 
   if (ImGui::CollapsingHeader ("Unity Engine", ImGuiTreeNodeFlags_DefaultOpen))
   {
-
     ImGui::TreePush       ("");
 
     if (SK_Unity_Cfg.time_fixed_delta_time == 0.0f && SK_Unity_OriginalFixedDeltaTime != 0.0f)
-    {
-      SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
-    }
-
-    float delta_hz = 1.0f/SK_Unity_Cfg.time_fixed_delta_time;
-
-    if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
-    {
-      SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f/delta_hz : SK_Unity_OriginalFixedDeltaTime;
-      SK_Unity_Cfg.time_fixed_delta_time.store ();
-
-      config.utility.save_async ();
-
-      SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
-    }
+    {   SK_Unity_Cfg.time_fixed_delta_time =          SK_Unity_OriginalFixedDeltaTime;       }
     
-    if (SK_ImGui_IsItemRightClicked ())
+    float delta_hz =
+      (1.0f / SK_Unity_Cfg.time_fixed_delta_time);
+
+    if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::BeginDisabled ();
     {
-      if (config.render.framerate.target_fps > 0.0f)
+      if (SK_Unity_Cfg.time_fixed_delta_time == SK_Unity_OriginalFixedDeltaTime)
       {
-        SK_Unity_Cfg.time_fixed_delta_time = 1.0f/config.render.framerate.target_fps;
+        ImGui::TextColored    (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+        ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
+        ImGui::SameLine       ();
+      }
+
+      if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
+      {
+        SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f / delta_hz : SK_Unity_OriginalFixedDeltaTime;
         SK_Unity_Cfg.time_fixed_delta_time.store ();
 
         config.utility.save_async ();
 
         SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
       }
-    }
-
-    if (ImGui::BeginItemTooltip ())
-    { ImGui::TextUnformatted    ("Set the animation/simulation framerate for Unity.");
-      ImGui::Separator          ();
-      ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
-      if (config.render.framerate.target_fps > 0.0f)
-      { ImGui::Separator        ();
-        ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to match framerate limit");
-      } ImGui::EndTooltip       ();
-    }
-
-    if (SK_Unity_OriginalFixedDeltaTime != SK_Unity_Cfg.time_fixed_delta_time)
-    {
-      ImGui::SameLine   ();
-      if (ImGui::Button ("Reset"))
+      
+      if (SK_ImGui_IsItemRightClicked ())
       {
-        SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
+        if (__target_fps > 0.0f)
+        {
+          SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+          SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+          config.utility.save_async ();
+
+          SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+        }
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      { ImGui::TextUnformatted    ("Set the animation rate for Unity.");
+        ImGui::Separator          ();
+        ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
+        if (__target_fps > 0.0f)
+        { ImGui::Separator        ();
+          ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to Match Framerate Limit");
+        } ImGui::EndTooltip       ();
+      }
+      ImGui::SameLine ();
+    }
+
+    auto _Reset = [&](void)
+    {
+      SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
+      SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+      SK_Unity_Cfg.fixed_delta_auto_sync = false;
+      SK_Unity_Cfg.fixed_delta_auto_sync.store ();
+
+      config.utility.save_async ();
+
+      SK_Unity_SetFixedDeltaTime (SK_Unity_OriginalFixedDeltaTime);
+    };
+
+    if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::EndDisabled ();
+
+    if (ImGui::Checkbox ("Match Framerate Limit", &SK_Unity_Cfg.fixed_delta_auto_sync))
+    {
+      if (SK_Unity_Cfg.fixed_delta_auto_sync && __target_fps > 0.0f)
+      {
+        SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
         SK_Unity_Cfg.time_fixed_delta_time.store ();
+        SK_Unity_Cfg.fixed_delta_auto_sync.store ();
 
         config.utility.save_async ();
 
-        SK_Unity_SetFixedDeltaTime (SK_Unity_OriginalFixedDeltaTime);
+        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+      }
+
+      else if (! SK_Unity_Cfg.fixed_delta_auto_sync) _Reset ();
+    }
+
+    ImGui::SetItemTooltip ("Enable for Smoothest Frame Pacing");
+
+    if (SK_Unity_OriginalFixedDeltaTime != SK_Unity_Cfg.time_fixed_delta_time)
+    {
+      ImGui::SameLine   (       );
+      if (ImGui::Button ("Reset"))
+      {
+        _Reset ();
       }
     }
 
@@ -375,6 +413,12 @@ SK_Unity_InitPlugin (void)
       _CreateConfigParameterFloat ( L"Unity.Framerate",
                                     L"FixedDeltaTimeInMsec",  SK_Unity_Cfg.time_fixed_delta_time,
                                     L"Fixed Delta Time (in Msec)" )
+    );
+
+    SK_Unity_Cfg.fixed_delta_auto_sync.bind_to_ini (
+      _CreateConfigParameterBool ( L"Unity.Framerate",
+                                   L"MatchDeltaTimeToLimit",  SK_Unity_Cfg.fixed_delta_auto_sync,
+                                   L"Adjust Delte Time to match SK's configured Framerate Limit" )
     );
 
     SK_Unity_Cfg.gamepad_glyphs_utf8 = SK_WideCharToUTF8 (SK_Unity_Cfg.gamepad_glyphs);
@@ -875,17 +919,29 @@ void
 __stdcall
 SK_Unity_EndFrame (void)
 {
-  if (SK_GetFramesDrawn () >= 15)
+  static float last_fps = 0;
+
+  bool forced_update =
+    (SK_Unity_Cfg.fixed_delta_auto_sync) && last_fps != __target_fps && __target_fps > 0.0f;
+
+  // Stupid hack to ensure this is applied initially; may take many frames.
+  if (SK_GetFramesDrawn () >= 15 && (forced_update || SK_GetFramesDrawn () < 1500))
   {
     static DWORD
         dwLastForced = 0;
-    if (dwLastForced < SK::ControlPanel::current_time - 2500UL)
+    if (dwLastForced < SK::ControlPanel::current_time - 2500UL || forced_update)
     {   dwLastForced = SK::ControlPanel::current_time;
       SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
+
+      if (forced_update)
+      {
+        SK_Unity_Cfg.time_fixed_delta_time = 1.0f/__target_fps;
+      }
 
       if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
           SK_Unity_Cfg.time_fixed_delta_time != SK_Unity_OriginalFixedDeltaTime)
       {
+        if (SK_Unity_Cfg.fixed_delta_auto_sync) last_fps = __target_fps;
         SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
       }
 

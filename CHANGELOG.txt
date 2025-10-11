@@ -1,7 +1,12 @@
-﻿25.10.11
+﻿25.18.11.1
+==========
+ + Added option to automatically adjust Unity engine's fixedDeltaTime to
+     always match SK's configured framerate limit for a game.
+
+25.10.11
 ========
  + Added Unity Time.fixedDeltaTime setting to run Unity games at display
-     refresh instead of the usual hardcoded value that stutters.
+     refresh instead of the usual hardcoded (50 Hz) value that stutters.
 
 25.10.10.1
 ==========
