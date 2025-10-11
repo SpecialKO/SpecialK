@@ -341,6 +341,7 @@ STDMETHODCALLTYPE
 SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
 
 void
+__stdcall
 SK_Unity_EndFrame (void);
 
 bool SK_Unity_Hookil2cppInit         (void);
@@ -871,6 +872,7 @@ struct {
 } SK_Unity_il2cppClasses;
 
 void
+__stdcall
 SK_Unity_EndFrame (void)
 {
   if (SK_GetFramesDrawn () >= 15)
