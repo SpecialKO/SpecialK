@@ -132,21 +132,27 @@ void SK_HID_SetupPlayStationControllers (void)
     auto cmd_proc =
       SK_GetCommandProcessor ();
 
-    static auto dualsense_impulse_str_l = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.trigger_strength_l);
-    static auto dualsense_resist_str_l  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_strength_l);
-    static auto dualsense_resist_pos_l  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_start_l);
+    static auto dualsense_impulse_str_l   = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.trigger_strength_l);
+    static auto dualsense_resist_str_l    = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_strength_l);
+    static auto dualsense_resist_pos_l    = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_start_l);
 
-    static auto dualsense_impulse_str_r = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.trigger_strength_r);
-    static auto dualsense_resist_str_r  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_strength_r);
-    static auto dualsense_resist_pos_r  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_start_r);
+    static auto dualsense_impulse_str_r   = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.trigger_strength_r);
+    static auto dualsense_resist_str_r    = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_strength_r);
+    static auto dualsense_resist_pos_r    = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_start_r);
 
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrL", &dualsense_impulse_str_l->setRange ( 0.0f, 255.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrL",  &dualsense_resist_str_l-> setRange (-1.0f,   1.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosL",  &dualsense_resist_pos_l-> setRange (-1.0f,   1.0f));
+    static auto dualsense_rumble_str      = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.rumble_strength);
+    static auto dualsense_improved_rumble = std::make_unique <SK_IVarStub <bool>>  (&config.input.gamepad.dualsense.improved_rumble);
 
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrR", &dualsense_impulse_str_r->setRange ( 0.0f, 255.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrR",  &dualsense_resist_str_r-> setRange (-1.0f,   1.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosR",  &dualsense_resist_pos_r-> setRange (-1.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrL",    &dualsense_impulse_str_l->setRange ( 0.0f, 255.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrL",     &dualsense_resist_str_l-> setRange (-1.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosL",     &dualsense_resist_pos_l-> setRange (-1.0f,   1.0f));
+
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrR",    &dualsense_impulse_str_r->setRange ( 0.0f, 255.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrR",     &dualsense_resist_str_r-> setRange (-1.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosR",     &dualsense_resist_pos_r-> setRange (-1.0f,   1.0f));
+
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.RumbleStr",      &dualsense_rumble_str->   setRange (12.5f, 100.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImprovedRumble",  dualsense_improved_rumble.get ());
 
     HDEVINFO hid_device_set = 
       SK_SetupDiGetClassDevsW (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
@@ -2930,12 +2936,26 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
-              WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
-              output->AllowMotorPowerLevel   = true;
-            //output->EnableRumbleEmulation  = true;
-              // Firmware reqs
-              output->
-                 EnableImprovedRumbleEmulation = true;
+              if (! bRumble)
+                WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
+
+              if (config.input.gamepad.dualsense.improved_rumble)
+              {
+                // Firmware reqs
+                output->EnableImprovedRumbleEmulation = true;
+                output->AllowMotorPowerLevel          = true;
+                output->RumbleMotorPowerReduction     = 0;
+                output->TriggerMotorPowerReduction    = 0;
+              }
+
+              else
+              {
+                output->EnableImprovedRumbleEmulation = false;
+                output->AllowMotorPowerLevel          = true;
+                output->EnableRumbleEmulation         = true;
+                output->RumbleMotorPowerReduction     = std::min (7ui8, (uint8_t)(std::clamp (100.0f - config.input.gamepad.dualsense.rumble_strength, 0.0f, 100.0f) / 12.5f));
+                output->TriggerMotorPowerReduction    = std::min (7ui8, (uint8_t)(std::clamp (100.0f - config.input.gamepad.dualsense.rumble_strength, 0.0f, 100.0f) / 12.5f));
+              }
             }
 
             output->AllowMuteLight           = true;
@@ -2952,11 +2972,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             output->RumbleEmulationRight =
               sk::narrow_cast <BYTE> (
-                ReadULongAcquire (&pDevice->_vibration.right)
+                ReadULongAcquire (&pDevice->_vibration.right)// * (std::max (std::min (config.input.gamepad.dualsense.rumble_strength, 100.0f), 0.0f) / 100.0f)
               );
             output->RumbleEmulationLeft  =
               sk::narrow_cast <BYTE> (
-                ReadULongAcquire (&pDevice->_vibration.left)
+                ReadULongAcquire (&pDevice->_vibration.left)// * (std::max (std::min (config.input.gamepad.dualsense.rumble_strength, 100.0f), 0.0f) / 100.0f)
               );
 
             if (dwLeftTrigger != 0 || dwRightTrigger != 0 || last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
@@ -3150,33 +3170,45 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
               WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
-              output->AllowMotorPowerLevel  = true;
-              output->EnableRumbleEmulation = true;
+
+              if (config.input.gamepad.dualsense.improved_rumble)
+              {
+                // Firmware reqs
+                output->EnableImprovedRumbleEmulation = true;
+                output->AllowMotorPowerLevel          = true;
+                output->RumbleMotorPowerReduction     = 0;
+                output->TriggerMotorPowerReduction    = 0;
+              }
+
+              else
+              {
+                output->EnableImprovedRumbleEmulation = false;
+                output->AllowMotorPowerLevel          = true;
+                output->EnableRumbleEmulation         = true;
+                output->RumbleMotorPowerReduction     = std::min (7ui8, (uint8_t)(std::clamp (100.0f - config.input.gamepad.dualsense.rumble_strength, 0.0f, 100.0f) / 12.5f));
+                output->TriggerMotorPowerReduction    = std::min (7ui8, (uint8_t)(std::clamp (100.0f - config.input.gamepad.dualsense.rumble_strength, 0.0f, 100.0f) / 12.5f));
+              }
             }
 
-            output->AllowMuteLight          = true;
+            output->AllowMuteLight           = true;
 
-            if (config.input.gamepad.scepad.led_color_r    >= 0 || 
+            if (config.input.gamepad.scepad.led_color_r    >= 0 ||
                 config.input.gamepad.scepad.led_color_g    >= 0 ||
                 config.input.gamepad.scepad.led_color_b    >= 0 ||
                 config.input.gamepad.scepad.led_brightness >= 0)
             {
-              output->AllowLedColor         = true;
+              output->AllowLedColor          = true;
             }
 
-            output->AllowPlayerIndicators   = config.input.gamepad.xinput.debug;
-
-            // Firmware reqs
-            output->
-              EnableImprovedRumbleEmulation = true;
+            output->AllowPlayerIndicators    = config.input.gamepad.xinput.debug;
 
             output->RumbleEmulationRight =
               sk::narrow_cast <BYTE> (
-                ReadULongAcquire (&pDevice->_vibration.right)
+                ReadULongAcquire (&pDevice->_vibration.right)// * (std::max (std::min (config.input.gamepad.dualsense.rumble_strength, 100.0f), 0.0f) / 100.0f)
               );
             output->RumbleEmulationLeft  =
               sk::narrow_cast <BYTE> (
-                ReadULongAcquire (&pDevice->_vibration.left)
+                ReadULongAcquire (&pDevice->_vibration.left)// * (std::max (std::min (config.input.gamepad.dualsense.rumble_strength, 100.0f), 0.0f) / 100.0f)
               );
 
             if (dwLeftTrigger != 0 || dwRightTrigger != 0 || last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)

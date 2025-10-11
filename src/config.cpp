@@ -1200,6 +1200,8 @@ struct {
       sk::ParameterStringW* left_paddle_bind      = nullptr;
       sk::ParameterStringW* right_paddle_bind     = nullptr;
       sk::ParameterStringW* touch_click_bind      = nullptr;
+      sk::ParameterFloat*   rumble_strength       = nullptr;
+      sk::ParameterBool*    improved_rumble       = nullptr;
     } scepad;
 
     struct {
@@ -1922,6 +1924,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.left_paddle_bind,  L"Keyboard Input to Generate when Left Paddle is Pressed",    dll_ini,         L"Input.libScePad",       L"LeftPaddle"),
     ConfigEntry (input.gamepad.scepad.right_paddle_bind, L"Keyboard Input to Generate when Right Paddle is Pressed",   dll_ini,         L"Input.libScePad",       L"RightPaddle"),
     ConfigEntry (input.gamepad.scepad.touch_click_bind,  L"Keyboard Input to Generate when Touch Pad is Clicked",      dll_ini,         L"Input.libScePad",       L"TouchpadClick"),
+    ConfigEntry (input.gamepad.scepad.rumble_strength,   L"Intensity of emulated rumble on DualSense controllers",     dll_ini,         L"Input.libScePad",       L"RumbleStrength"),
+    ConfigEntry (input.gamepad.scepad.improved_rumble,   L"Whether to use SONY's improved rumble on DualSense",        dll_ini,         L"Input.libScePad",       L"ImproveDualSenseRumble"),
 
     ConfigEntry (input.gamepad.hid.always_show_attach,   L"Show HID Attach Notifications if no Conflicts are Detected",input_ini,       L"Input.HID",             L"AlwaysShowAttachNotifications"),
     ConfigEntry (input.gamepad.low_battery_warning,      L"Percentage when SK will warn controller batteries are low", input_ini,       L"Input.Battery",         L"WarnIfPercentIsBelow"),
@@ -5403,6 +5407,8 @@ auto DeclKeybind =
   input.gamepad.scepad.right_paddle_bind->load    (config.input.gamepad.scepad.right_paddle);
   input.gamepad.scepad.right_fn_bind->load        (config.input.gamepad.scepad.right_fn);
   input.gamepad.scepad.touch_click_bind->load     (config.input.gamepad.scepad.touch_click);
+  input.gamepad.scepad.improved_rumble->load      (config.input.gamepad.dualsense.improved_rumble);
+  input.gamepad.scepad.rumble_strength->load      (config.input.gamepad.dualsense.rumble_strength);
 
   input.gamepad.hid.always_show_attach->load      (config.input.gamepad.hid.always_show_attach);
   input.gamepad.low_battery_warning->load         (config.input.gamepad.low_battery_percent);
@@ -6961,6 +6967,8 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.right_paddle_bind->store    (config.input.gamepad.scepad.right_paddle);
   input.gamepad.scepad.right_fn_bind->store        (config.input.gamepad.scepad.right_fn);
   input.gamepad.scepad.touch_click_bind->store     (config.input.gamepad.scepad.touch_click);
+  input.gamepad.scepad.improved_rumble->store      (config.input.gamepad.dualsense.improved_rumble);
+  input.gamepad.scepad.rumble_strength->store      (config.input.gamepad.dualsense.rumble_strength);
 
   input.gamepad.hid.always_show_attach->store      (config.input.gamepad.hid.always_show_attach);
   input.gamepad.low_battery_warning->store         (config.input.gamepad.low_battery_percent);

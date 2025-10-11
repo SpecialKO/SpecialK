@@ -1,4 +1,9 @@
-﻿25.10.11.2
+﻿25.10.12
+========
+ + Added user-configurable options for DualSense rumble strength and improved
+     or legacy mode.
+
+25.10.11.2
 ==========
  + Default Prince of Persia: The Lost Crown to use auto-adjusted fixedDeltaTime
  + Change the tooltip on fixedDeltaTime from a warning to info.
