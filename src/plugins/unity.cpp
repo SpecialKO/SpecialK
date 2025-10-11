@@ -66,15 +66,17 @@ struct sk_unity_cfg_s {
   // 
   //  * Game is hardcoded to poll gamepad input at 60 Hz
   //      regardless of device caps or framerate limit, ugh!
-  PlugInParameter <float>        gamepad_polling_hz      = 10000.0f;
+  PlugInParameter <float>        gamepad_polling_hz      = 1000.0f;
   PlugInParameter <bool>         gamepad_fix_playstation = true;
   PlugInParameter <std::wstring> gamepad_glyphs          = std::wstring (L"Game Default");
   std::string                    gamepad_glyphs_utf8     =                "Game Default";
+  PlugInParameter <float>        time_fixed_delta_time   = 0.0f;
 } SK_Unity_Cfg;
 
 float SK_Unity_InputPollingFrequency    = 60.0f;
 bool  SK_Unity_FixablePlayStationRumble = false;
 bool  SK_Unity_CustomizableGlyphs       = false;
+float SK_Unity_OriginalFixedDeltaTime   =  0.0f;
 int   SK_Unity_GlyphEnumVal             =    -1;
 bool  SK_Unity_GlyphCacheDirty          = false;
 
@@ -82,19 +84,80 @@ bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
 bool SK_Unity_SetupInputHooks     (void);
 void SK_Unity_UpdateGlyphOverride (void);
+void SK_Unity_SetFixedDeltaTime   (float fixed_delta_time);
 
 bool
 SK_Unity_PlugInCfg (void)
 {
+  bool show_controller_cfg = true;
+
   if (! SK_Unity_FixablePlayStationRumble)
-    return true;
+    show_controller_cfg = false;
 
   if (! (SK_ImGui_HasPlayStationController () || SK_XInput_PollController (0)))
-    return true;
+    show_controller_cfg = false;
 
   if (ImGui::CollapsingHeader ("Unity Engine", ImGuiTreeNodeFlags_DefaultOpen))
   {
+
     ImGui::TreePush       ("");
+
+    if (SK_Unity_Cfg.time_fixed_delta_time == 0.0f && SK_Unity_OriginalFixedDeltaTime != 0.0f)
+    {
+      SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
+    }
+
+    float delta_hz = 1.0f/SK_Unity_Cfg.time_fixed_delta_time;
+
+    if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
+    {
+      SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f/delta_hz : SK_Unity_OriginalFixedDeltaTime;
+      SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+      config.utility.save_async ();
+
+      SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+    }
+    
+    if (SK_ImGui_IsItemRightClicked ())
+    {
+      if (config.render.framerate.target_fps > 0.0f)
+      {
+        SK_Unity_Cfg.time_fixed_delta_time = 1.0f/config.render.framerate.target_fps;
+        SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+        config.utility.save_async ();
+
+        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+      }
+    }
+
+    if (ImGui::BeginItemTooltip ())
+    { ImGui::TextUnformatted    ("Set the animation/simulation framerate for Unity.");
+      ImGui::Separator          ();
+      ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
+      if (config.render.framerate.target_fps > 0.0f)
+      { ImGui::Separator        ();
+        ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to match framerate limit");
+      } ImGui::EndTooltip       ();
+    }
+
+    if (SK_Unity_OriginalFixedDeltaTime != SK_Unity_Cfg.time_fixed_delta_time)
+    {
+      ImGui::SameLine   ();
+      if (ImGui::Button ("Reset"))
+      {
+        SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
+        SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+        config.utility.save_async ();
+
+        SK_Unity_SetFixedDeltaTime (SK_Unity_OriginalFixedDeltaTime);
+      }
+    }
+
+    if (show_controller_cfg)
+    {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
@@ -265,6 +328,8 @@ SK_Unity_PlugInCfg (void)
     }
 
     ImGui::PopStyleColor (3);
+    }
+
     ImGui::TreePop       ( );
   }
 
@@ -274,6 +339,9 @@ SK_Unity_PlugInCfg (void)
 HRESULT
 STDMETHODCALLTYPE
 SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
+
+void
+SK_Unity_EndFrame (void);
 
 bool SK_Unity_Hookil2cppInit         (void);
 bool SK_Unity_SetupInputHooks_il2cpp (void);
@@ -302,10 +370,17 @@ SK_Unity_InitPlugin (void)
                                       L"Override a game's displayed prompts" )
     );
 
+    SK_Unity_Cfg.time_fixed_delta_time.bind_to_ini (
+      _CreateConfigParameterFloat ( L"Unity.Framerate",
+                                    L"FixedDeltaTimeInMsec",  SK_Unity_Cfg.time_fixed_delta_time,
+                                    L"Fixed Delta Time (in Msec)" )
+    );
+
     SK_Unity_Cfg.gamepad_glyphs_utf8 = SK_WideCharToUTF8 (SK_Unity_Cfg.gamepad_glyphs);
 
     plugin_mgr->config_fns.emplace      (SK_Unity_PlugInCfg);
     plugin_mgr->first_frame_fns.emplace (SK_Unity_PresentFirstFrame);
+    plugin_mgr->end_frame_fns.emplace   (SK_Unity_EndFrame);
 
     SK_Unity_HookMonoInit ();
     SK_Unity_Hookil2cppInit ();
@@ -418,6 +493,9 @@ static mono_method_desc_search_in_image_pfn  SK_mono_method_desc_search_in_image
 
 static MonoDomain* SK_Unity_MonoDomain = nullptr;
 
+using  mono_jit_exec_pfn              = int         (*)(MonoDomain *domain, MonoAssembly *assembly, int argc, char *argv[]);
+static mono_jit_exec_pfn
+       mono_jit_exec_Original         = nullptr;
 using  mono_jit_init_pfn              = MonoDomain* (*)(const char *file);
 static mono_jit_init_pfn
        mono_jit_init_Original         = nullptr;
@@ -425,7 +503,22 @@ using  mono_jit_init_version_pfn      = MonoDomain* (*)(const char *root_domain_
 static mono_jit_init_version_pfn
        mono_jit_init_version_Original = nullptr;
 
-void SK_Unity_OnInitMono (MonoDomain* domain);
+void SK_Unity_OnInitMono (MonoDomain* domain = nullptr);
+
+static
+int
+mono_jit_exec_Detour (MonoDomain *domain, MonoAssembly *assembly, int argc, char *argv[])
+{
+  auto ret =
+    mono_jit_exec_Original (domain, assembly, argc, argv);
+
+  if (domain != nullptr)
+  {
+    SK_Unity_OnInitMono (domain);
+  }
+
+  return ret;
+}
 
 static
 MonoDomain*
@@ -469,11 +562,15 @@ mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_
 #include <aetherim/api.hpp>
 
 static
-void AttachThread (void)
+MonoThread* AttachThread (void)
 {
+  if (! SK_mono_thread_attach)
+    return nullptr;
+
   SK_LOGi3 (L"Attaching Mono to Thread: %x", GetCurrentThreadId ());
 
-  SK_mono_thread_attach (SK_Unity_MonoDomain);
+  return
+    SK_mono_thread_attach (SK_Unity_MonoDomain);
 }
 
 static
@@ -506,6 +603,33 @@ bool DetachCurrentThreadIfNotNative (void)
 
   return false;
 }
+
+class SK_Mono_ScopedThreadAttach
+{
+public:
+  SK_Mono_ScopedThreadAttach (void)
+  {
+    if (SK_mono_thread_current != nullptr)
+    {
+      if (SK_mono_thread_current () == nullptr)
+         attached_thread = AttachThread ();
+    }
+  }
+
+  ~SK_Mono_ScopedThreadAttach (void)
+  {
+    if (SK_mono_thread_detach != nullptr)
+    {
+      if (attached_thread != nullptr)
+      {
+        SK_mono_thread_detach (attached_thread);
+      }
+    }
+  }
+
+private:
+  MonoThread* attached_thread = nullptr;
+};
 
 static constexpr wchar_t* mono_dll  = L"mono-2.0-bdwgc.dll";
 static constexpr wchar_t* mono_path = LR"(MonoBleedingEdge\EmbedRuntime\mono-2.0-bdwgc.dll)";
@@ -593,6 +717,14 @@ SK_Unity_HookMonoInit (void)
                            &pfnMonoJitInitVersion );
   SK_EnableHook    (        pfnMonoJitInitVersion );
 
+  void*                   pfnMonoJitExec = nullptr;
+  SK_CreateDLLHook (  loaded_mono_dll,
+                            "mono_jit_exec",
+                             mono_jit_exec_Detour,
+    static_cast_p2p <void> (&mono_jit_exec_Original),
+                           &pfnMonoJitExec );
+  SK_EnableHook    (        pfnMonoJitExec );
+
   // If this was pre-loaded, then the above hooks never run and we should initialize everything immediately...
   if (SK_GetModuleHandleW (L"BepInEx.Core.dll"))
   {
@@ -605,6 +737,9 @@ SK_Unity_HookMonoInit (void)
 
 void SK_Unity_OnInitMono (MonoDomain* domain)
 {
+  if (domain == nullptr && SK_mono_get_root_domain != nullptr)
+      domain = SK_mono_get_root_domain ();
+
   if ((! domain) || SK_mono_thread_attach == nullptr)
     return;
 
@@ -735,6 +870,31 @@ struct {
   } InControl;
 } SK_Unity_il2cppClasses;
 
+void
+SK_Unity_EndFrame (void)
+{
+  if (SK_GetFramesDrawn () >= 15)
+  {
+    static DWORD
+        dwLastForced = 0;
+    if (dwLastForced < SK::ControlPanel::current_time - 2500UL)
+    {   dwLastForced = SK::ControlPanel::current_time;
+      SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
+
+      if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
+          SK_Unity_Cfg.time_fixed_delta_time != SK_Unity_OriginalFixedDeltaTime)
+      {
+        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+      }
+
+      if (SK_Unity_Cfg.gamepad_polling_hz != 60.0f)
+      {
+        SK_Unity_SetInputPollingFreq (SK_Unity_Cfg.gamepad_polling_hz);
+      }
+    }
+  }
+}
+
 HRESULT
 STDMETHODCALLTYPE
 SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
@@ -744,15 +904,10 @@ SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (Flags);
 
   // Better late initialization than never...
-  if ( nullptr !=        SK_mono_get_root_domain ) {
-    SK_Unity_OnInitMono (SK_mono_get_root_domain ());
-    DetachCurrentThreadIfNotNative ();
-  }
-
-  if (SK_Unity_Cfg.gamepad_polling_hz != 60.0f)
-  {
-    SK_Unity_SetInputPollingFreq (SK_Unity_Cfg.gamepad_polling_hz);
-  }
+  if (SK_mono_get_root_domain != nullptr)
+    SK_Unity_OnInitMono ();
+  else
+    SK_Unity_SetupInputHooks_il2cpp ();
 
   return S_OK;
 }
@@ -1346,14 +1501,99 @@ SK_Unity_SetInputPollingFreq (float PollingHz)
   auto NativeInputRuntime_instance =
     GetStaticFieldValue ("NativeInputRuntime", "instance", "Unity.InputSystem", "UnityEngine.InputSystem.LowLevel");
 
-  void* params [1] = { &PollingHz };
+  if (NativeInputRuntime_instance != nullptr)
+  {
+    void* params [1] = { &PollingHz };
 
-  SK_LOGi0 (L"Setting Input Polling Hz: %f", PollingHz);
+    SK_LOGi0 (L"Setting Input Polling Hz: %f", PollingHz);
 
-  InvokeMethod ("UnityEngine.InputSystem.LowLevel", "NativeInputRuntime", "set_pollingFrequency", 1, NativeInputRuntime_instance, "Unity.InputSystem", params);
+    InvokeMethod ("UnityEngine.InputSystem.LowLevel", "NativeInputRuntime", "set_pollingFrequency", 1, NativeInputRuntime_instance, "Unity.InputSystem", params);
+  }
 
   // We don't want garbage collection overhead on this thread just because we called a function once!
   DetachCurrentThreadIfNotNative ();
+}
+
+void
+SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
+{
+  if (SK_mono_thread_attach != nullptr)
+  {
+    AttachThread ();
+
+    SK_RunOnce (LoadMonoAssembly ("UnityEngine.CoreModule"));
+
+    static MonoMethod* set_fixedDeltaTime = SK_mono_class_get_method_from_name (SK_mono_class_from_name (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "Time"), "set_fixedDeltaTime", 1);
+    static MonoMethod* get_fixedDeltaTime = SK_mono_class_get_method_from_name (SK_mono_class_from_name (SK_mono_image_loaded ("UnityEngine.CoreModule"), "UnityEngine", "Time"), "get_fixedDeltaTime", 0);
+
+    if (set_fixedDeltaTime != nullptr &&
+        get_fixedDeltaTime != nullptr)
+    {
+      if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
+      {
+        MonoObject* obj =
+          SK_mono_runtime_invoke (get_fixedDeltaTime, nullptr, nullptr, nullptr);
+
+        SK_Unity_OriginalFixedDeltaTime = *(float *)SK_mono_object_unbox (obj);
+      }
+
+      if (fixed_delta_time != 0.0f)
+      {
+        void* params [1] = { &fixed_delta_time };
+
+        SK_mono_runtime_invoke (set_fixedDeltaTime, nullptr, params, nullptr);
+      }
+
+      else
+      {
+        void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
+
+        SK_mono_runtime_invoke (set_fixedDeltaTime, nullptr, params, nullptr);
+      }
+    }
+
+    DetachCurrentThreadIfNotNative ();
+  }
+
+  else
+  {
+    Il2cpp::thread_attach (Il2cpp::get_domain ());
+
+    static il2cpp::Wrapper wrapper;
+
+    static auto image = wrapper.get_image ("UnityEngine.CoreModule.dll");
+    static auto klass = image != nullptr ? image->get_class ("Time", "UnityEngine") : nullptr;
+
+    static Method* set_fixedDeltaTime = klass != nullptr ? klass->get_method ("set_fixedDeltaTime", 1) : nullptr;
+    static Method* get_fixedDeltaTime = klass != nullptr ? klass->get_method ("get_fixedDeltaTime", 0) : nullptr;
+
+    if (set_fixedDeltaTime != nullptr &&
+        get_fixedDeltaTime != nullptr)
+    {
+      if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
+      {
+        void* obj = Il2cpp::method_call (get_fixedDeltaTime, nullptr, nullptr, nullptr);
+
+        SK_Unity_OriginalFixedDeltaTime = *(float *)Il2cpp::object_unbox (obj);
+      }
+
+      if (fixed_delta_time != 0.0f)
+      {
+        void* params [1] = { &fixed_delta_time };
+
+        Il2cpp::method_call (set_fixedDeltaTime, nullptr, params, nullptr);
+      }
+
+      else
+      {
+        void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
+
+        Il2cpp::method_call (set_fixedDeltaTime, nullptr, params, nullptr);
+      }
+    }
+
+    Il2cpp::thread_detach (Il2cpp::thread_current ());
+  }
 }
 
 using InControl_InputDevice_OnAttached_pfn    = void (*)(MonoObject*);
@@ -1682,6 +1922,10 @@ using  Rewired_Joystick_get_supportsVibration_il2cpp_pfn = bool(*)(void*);
 static Rewired_Joystick_get_supportsVibration_il2cpp_pfn
        Rewired_Joystick_get_supportsVibration_il2cpp_Original = nullptr;
 
+using  Rewired_Joystick_get_vibrationMotorCount_il2cpp_pfn = int(*)(void*);
+static Rewired_Joystick_get_vibrationMotorCount_il2cpp_pfn
+       Rewired_Joystick_get_vibrationMotorCount_il2cpp_Original = nullptr;
+
 using Rewired_Joystick_SetVibration4_il2cpp_pfn  = void(*)(void*, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration);
 using Rewired_Joystick_SetVibration2_il2cpp_pfn  = void(*)(void*, float leftMotorLevel, float rightMotorLevel);
 using Rewired_Joystick_StopVibration_il2cpp_pfn = void(*)(void*);
@@ -1813,10 +2057,36 @@ Rewired_Joystick_get_supportsVibration_il2cpp_Detour (void* __this)
     Rewired_Joystick_get_supportsVibration_il2cpp_Original (__this);
 }
 
+static
+int
+Rewired_Joystick_get_vibrationMotorCount_il2cpp_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    //static MonoClass*      klass = SK_mono_object_get_class (__this);
+    //static MonoClassField* field = SK_mono_class_get_field_from_name (klass, "SxXaAJAfPoDKOfgvxNlhugQUrVFq");
+    //
+    //if (field) {
+    //  uint32_t  offset        = SK_mono_field_get_offset (field);
+    //  uintptr_t field_address = (uintptr_t)__this + offset;
+    //
+    //  *(int32_t *)field_address = 2;
+    //}
+
+    return 2;
+  }
+
+  return
+    Rewired_Joystick_get_vibrationMotorCount_il2cpp_Original (__this);
+}
+
 bool
 SK_Unity_SetupInputHooks_il2cpp (void)
 {
   static auto Aetherim = il2cpp::Wrapper ();
+              Aetherim = il2cpp::Wrapper ();
 
   if (! Aetherim.get_image ("Assembly-CSharp.dll"))
   {
@@ -1883,10 +2153,11 @@ SK_Unity_SetupInputHooks_il2cpp (void)
 
       if (SK_Unity_il2cppAssemblies.assemblyRewired != nullptr)
       {
-        void* pfnRewired_Joystick_get_supportsVibration = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("get_supportsVibration", 0);
-        void* pfnRewired_Joystick_SetVibration4         = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("SetVibration",          4);
-        void* pfnRewired_Joystick_SetVibration2         = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("SetVibration",          2);
-        void* pfnRewired_Joystick_StopVibration         = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("StopVibration",         0);
+        void* pfnRewired_Joystick_get_supportsVibration   = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("get_supportsVibration",   0);
+        void* pfnRewired_Joystick_get_vibrationMotorCount = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("get_vibrationMotorCount", 0);
+        void* pfnRewired_Joystick_SetVibration4           = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("SetVibration",            4);
+        void* pfnRewired_Joystick_SetVibration2           = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("SetVibration",            2);
+        void* pfnRewired_Joystick_StopVibration           = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("StopVibration",           0);
 
         if (pfnRewired_Joystick_get_supportsVibration != nullptr && *(void**)pfnRewired_Joystick_get_supportsVibration != nullptr)
         {
@@ -1894,6 +2165,14 @@ SK_Unity_SetupInputHooks_il2cpp (void)
                          *(void**)pfnRewired_Joystick_get_supportsVibration,
                                      Rewired_Joystick_get_supportsVibration_il2cpp_Detour,
             static_cast_p2p <void> (&Rewired_Joystick_get_supportsVibration_il2cpp_Original) );
+        }
+
+        if (pfnRewired_Joystick_get_vibrationMotorCount != nullptr && *(void**)pfnRewired_Joystick_get_vibrationMotorCount != nullptr)
+        {
+          SK_CreateFuncHook (      L"Rewired.Joystick.get_vibrationMotorCount",
+                         *(void**)pfnRewired_Joystick_get_vibrationMotorCount,
+                                     Rewired_Joystick_get_vibrationMotorCount_il2cpp_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_get_vibrationMotorCount_il2cpp_Original) );
         }
 
         if (pfnRewired_Joystick_SetVibration4 != nullptr && *(void**)pfnRewired_Joystick_SetVibration4 != nullptr)
@@ -1920,15 +2199,17 @@ SK_Unity_SetupInputHooks_il2cpp (void)
             static_cast_p2p <void> (&Rewired_Joystick_StopVibration_il2cpp_Original) );
         }
 
-        if (pfnRewired_Joystick_get_supportsVibration != nullptr &&
-            pfnRewired_Joystick_SetVibration4         != nullptr &&
-            pfnRewired_Joystick_SetVibration2         != nullptr && 
-            pfnRewired_Joystick_StopVibration         != nullptr)
+        if (pfnRewired_Joystick_get_supportsVibration   != nullptr &&
+            pfnRewired_Joystick_get_vibrationMotorCount != nullptr &&
+            pfnRewired_Joystick_SetVibration4           != nullptr &&
+            pfnRewired_Joystick_SetVibration2           != nullptr && 
+            pfnRewired_Joystick_StopVibration           != nullptr)
         {
-          if (*(void**)pfnRewired_Joystick_get_supportsVibration != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_supportsVibration);
-          if (*(void**)pfnRewired_Joystick_SetVibration4         != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration4);
-          if (*(void**)pfnRewired_Joystick_SetVibration2         != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration2);
-          if (*(void**)pfnRewired_Joystick_StopVibration         != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_StopVibration);
+          if (*(void**)pfnRewired_Joystick_get_supportsVibration   != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_supportsVibration);
+          if (*(void**)pfnRewired_Joystick_get_vibrationMotorCount != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_vibrationMotorCount);
+          if (*(void**)pfnRewired_Joystick_SetVibration4           != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration4);
+          if (*(void**)pfnRewired_Joystick_SetVibration2           != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration2);
+          if (*(void**)pfnRewired_Joystick_StopVibration           != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_StopVibration);
 
           SK_ApplyQueuedHooks ();
 
@@ -1957,8 +2238,6 @@ SK_Unity_SetupInputHooks_il2cpp (void)
       }
 
       SetEvent (hil2cppInitFinished);
-
-      WaitForSingleObject (__SK_DLL_TeardownEvent, 2500UL);
 
       Il2cpp::thread_detach (Il2cpp::thread_current ());
       SK_Thread_CloseSelf            ();
@@ -2019,8 +2298,17 @@ Rewired_Joystick_get_supportsVibration_Detour (MonoObject* __this)
 
   if (SK_Unity_Cfg.gamepad_fix_playstation)
   {
-    static MonoClass*      klass = SK_mono_object_get_class (__this);
-    static MonoClassField* field = SK_mono_class_get_field_from_name (klass, "SxXaAJAfPoDKOfgvxNlhugQUrVFq");
+    MonoClass*      klass = SK_mono_object_get_class (__this);
+    MonoClassField* field = SK_mono_class_get_field_from_name (klass, "SxXaAJAfPoDKOfgvxNlhugQUrVFq");
+
+    if (field) {
+      uint32_t  offset        = SK_mono_field_get_offset (field);
+      uintptr_t field_address = (uintptr_t)__this + offset;
+
+      *(int32_t *)field_address = 2;
+    }
+
+    field = SK_mono_class_get_field_from_name (klass, "WuMCStPIpMXRuogRDRDpBoDVIzSHA");
 
     if (field) {
       uint32_t  offset        = SK_mono_field_get_offset (field);
@@ -2036,6 +2324,35 @@ Rewired_Joystick_get_supportsVibration_Detour (MonoObject* __this)
     Rewired_Joystick_get_supportsVibration_Original (__this);
 }
 
+using  Rewired_Joystick_get_vibrationMotorCount_pfn = int(*)(void*);
+static Rewired_Joystick_get_vibrationMotorCount_pfn
+       Rewired_Joystick_get_vibrationMotorCount_Original = nullptr;
+
+static
+int
+Rewired_Joystick_get_vibrationMotorCount_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  {
+    //static MonoClass*      klass = SK_mono_object_get_class (__this);
+    //static MonoClassField* field = SK_mono_class_get_field_from_name (klass, "SxXaAJAfPoDKOfgvxNlhugQUrVFq");
+    //
+    //if (field) {
+    //  uint32_t  offset        = SK_mono_field_get_offset (field);
+    //  uintptr_t field_address = (uintptr_t)__this + offset;
+    //
+    //  *(int32_t *)field_address = 2;
+    //}
+
+    return 2;
+  }
+
+  return
+    Rewired_Joystick_get_vibrationMotorCount_Original (__this);
+}
+
 bool
 SK_Unity_SetupInputHooks (void)
 {
@@ -2043,14 +2360,10 @@ SK_Unity_SetupInputHooks (void)
   if (SK_mono_thread_attach == nullptr)
     return false;
 
-  if (! LoadMonoAssembly ("Assembly-CSharp"))
+  if (! SK_mono_image_loaded ("Assembly-CSharp"))
   {
     return false;
   }
-
-  // Optional, may not exist.
-  LoadMonoAssembly ("InControl");
-  LoadMonoAssembly ("Rewired_Core");
 
   static HANDLE hMonoInitFinished =
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
@@ -2060,6 +2373,11 @@ SK_Unity_SetupInputHooks (void)
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
       AttachThread ();
+
+      // Optional, may not exist.
+      LoadMonoAssembly ("InControl");
+      LoadMonoAssembly ("Rewired_Core");
+      LoadMonoAssembly ("UnityEngine.CoreModule");
 
       SK_Unity_MonoAssemblies.assemblyCSharp    = SK_mono_image_loaded ("Assembly-CSharp");
       SK_Unity_MonoAssemblies.assemblyInControl = SK_mono_image_loaded ("InControl");
@@ -2128,6 +2446,8 @@ SK_Unity_SetupInputHooks (void)
       {
         void* pfnRewired_Joystick_get_supportsVibration =
           CompileMethod ("Rewired", "Joystick", "get_supportsVibration", 0, "Rewired_Core");
+        void* pfnRewired_Joystick_get_vibrationMotorCount =
+          CompileMethod ("Rewired", "Joystick", "get_vibrationMotorCount", 0, "Rewired_Core");
 
         if (pfnRewired_Joystick_get_supportsVibration != nullptr)
         {
@@ -2136,6 +2456,12 @@ SK_Unity_SetupInputHooks (void)
                                      Rewired_Joystick_get_supportsVibration_Detour,
             static_cast_p2p <void> (&Rewired_Joystick_get_supportsVibration_Original) );
           SK_QueueEnableHook     (pfnRewired_Joystick_get_supportsVibration);
+
+          SK_CreateFuncHook (      L"Rewired.Joystick.get_vibrationMotorCount",
+                                  pfnRewired_Joystick_get_vibrationMotorCount,
+                                     Rewired_Joystick_get_vibrationMotorCount_Detour,
+            static_cast_p2p <void> (&Rewired_Joystick_get_vibrationMotorCount_Original) );
+          SK_QueueEnableHook     (pfnRewired_Joystick_get_vibrationMotorCount);
 
           void* pfnRewired_Joystick_SetVibration =
             CompileMethod ("Rewired", "Joystick", "SetVibration", 4, "Rewired_Core");
@@ -2181,8 +2507,6 @@ SK_Unity_SetupInputHooks (void)
       }
 
       SetEvent (hMonoInitFinished);
-
-      WaitForSingleObject (__SK_DLL_TeardownEvent, 2500UL);
 
       SK_mono_thread_detach (SK_mono_thread_current ());
       SK_Thread_CloseSelf            ();
