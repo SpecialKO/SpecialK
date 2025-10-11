@@ -989,6 +989,7 @@ SK_HID_PlayStationDevice::setVibration (
         std::clamp (static_cast <double> (right_trigger)/
                     static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
 
+  if (low_freq != 0 || high_freq != 0 || left_trigger != 0 || right_trigger != 0)
   WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
   WriteRelease      (&bNeedOutput, TRUE);
 }
@@ -1032,6 +1033,7 @@ SK_HID_PlayStationDevice::setVibration (
   WriteULongRelease (&_vibration.trigger.left,  0);
   WriteULongRelease (&_vibration.trigger.right, 0);
 
+  if (left != 0 || right != 0)
   WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
   WriteRelease      (&bNeedOutput, TRUE);
 }
@@ -2923,11 +2925,17 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                                                   || bResistChange  ||
               (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
 
+            output->AllowHapticLowPassFilter = true;
+            output->HapticLowPassFilter      = false;
+
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
               WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
               output->AllowMotorPowerLevel   = true;
-              output->EnableRumbleEmulation  = true;
+            //output->EnableRumbleEmulation  = true;
+              // Firmware reqs
+              output->
+                 EnableImprovedRumbleEmulation = true;
             }
 
             output->AllowMuteLight           = true;
@@ -2941,10 +2949,6 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             }
 
             output->AllowPlayerIndicators    = config.input.gamepad.xinput.debug;
-
-            // Firmware reqs
-            output->
-               EnableImprovedRumbleEmulation = true;
 
             output->RumbleEmulationRight =
               sk::narrow_cast <BYTE> (
@@ -3085,6 +3089,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               _FinishPollRequest (false);
               continue;
+            }
+
+            else
+            {
+              WriteRelease (&pDevice->bNeedOutput, TRUE);
             }
 
             InterlockedIncrement (&pDevice->output.writes_retired);
