@@ -2946,7 +2946,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    +
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
-            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0 || bQuit);
+            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
@@ -2993,11 +2993,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             output->AllowPlayerIndicators    = config.input.gamepad.xinput.debug;
 
             output->RumbleEmulationRight =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.right)
               );
             output->RumbleEmulationLeft  =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
@@ -3125,7 +3125,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc  && !bQuit)
+                                                            base_data_crc)
             {
               bFinished = true;
 
@@ -3176,7 +3176,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    +
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
-            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0) || bQuit;
+            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
@@ -3220,11 +3220,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             output->AllowPlayerIndicators    = config.input.gamepad.xinput.debug;
 
             output->RumbleEmulationRight =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.right)
               );
             output->RumbleEmulationLeft  =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
@@ -3404,7 +3404,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc  && !bQuit)
+                                                            base_data_crc)
             {
               bFinished = true;
 
@@ -3668,11 +3668,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             }
 
             output->RumbleRight =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.right)
               );
             output->RumbleLeft  =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
@@ -3727,7 +3727,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc  && !bQuit)
+                                                            base_data_crc)
             {
               bFinished = true;
 
@@ -3775,11 +3775,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             }
 
             output->RumbleRight =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.right)
               );
             output->RumbleLeft  =
-              sk::narrow_cast <BYTE> ( bQuit ? 0 :
+              sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
@@ -3834,7 +3834,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc && !bQuit)
+                                                            base_data_crc)
             {
               bFinished = true;
 
