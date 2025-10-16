@@ -2362,20 +2362,15 @@ SK::ControlPanel::Input::Draw (void)
 
           if (bDualSense)
           {
-            if (ImGui::Checkbox ("Improved DualSense Rumble", &config.input.gamepad.dualsense.improved_rumble))
+            if (config.input.gamepad.dualsense.improved_rumble)
             {
-            }
+              if (ImGui::Checkbox ("Enhanced DualSense Rumble", &config.input.gamepad.dualsense.improved_rumble))
+              {
+                config.utility.save_async ();
+              }
 
-            if (ImGui::BeginItemTooltip ())
-            {
-              ImGui::TextUnformatted ("DualSense controllers lack rumble motors, their firmware has code to emulate rumble using haptics...");
-              ImGui::Separator       ();
-              ImGui::BulletText      ("The original attempt by SONY to emulate rumble was quite harsh and required manually adjusting motor strength.");
-              ImGui::BulletText      ("Improved rumble emulation tends to be the sweet spot, it is weaker than the original, but requires less tuning.");
-              ImGui::EndTooltip      ();
+              ImGui::SameLine ();
             }
-
-            ImGui::SameLine ();
 
             if (! config.input.gamepad.dualsense.improved_rumble)
             {
@@ -2384,6 +2379,7 @@ SK::ControlPanel::Input::Draw (void)
                                           &config.input.gamepad.dualsense.rumble_strength,
                                             12.5f, 100.0f, "%4.1f%%"))
               {
+                config.utility.save_async ();
                 //if (     config.input.gamepad.dualsense.rumble_strength > 93.75f && config.input.gamepad.dualsense.rumble_strength > orig)
                 //         config.input.gamepad.dualsense.rumble_strength = 100.0f;
                 //else if (config.input.gamepad.dualsense.rumble_strength > 12.5   && config.input.gamepad.dualsense.rumble_strength != 100.0f)
@@ -2394,7 +2390,15 @@ SK::ControlPanel::Input::Draw (void)
                 {
                   ps_controller.write_output_report ();
                 }
-              }           
+              }
+
+              if (ImGui::BeginItemTooltip ())
+              {
+                ImGui::TextUnformatted ("DualSense controllers lack rumble motors, their firmware has code to emulate rumble using haptics...");
+                ImGui::Separator       ();
+                ImGui::BulletText      ("This is simulated motor strength, in 12.5%% increments.");
+                ImGui::EndTooltip      ();
+              }
             }
 
             else
