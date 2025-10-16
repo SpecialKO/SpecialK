@@ -1432,15 +1432,6 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
         SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
     }
   }
-
-  else
-  {
-    // Unity never sets the Maximum Frame Latency.
-    if (config.render.framerate.pre_render_limit <= 0 && SK_GetCurrentRenderBackend ().windows.unity)
-    {
-      static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (1);
-    }
-  }
 #endif
 
   return
