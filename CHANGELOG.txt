@@ -1,5 +1,7 @@
 ﻿25.10.15
 ========
+ + Fixed mouse cursor configured to auto-hide sometimes not auto-hiding until
+     SK's control panel has been opened one time.
  + Remove "Improved Rumble" option from the control panel for now
      (unless user has already set it).
  + Changed default DualSense rumble policy to 100% motor strength standard

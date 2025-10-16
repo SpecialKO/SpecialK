@@ -3753,11 +3753,13 @@ SK_ImGui_User_NewFrame (void)
                           L"[SK] Backup Input Thread", nullptr);
   );
 
-  if (SK_ImGui_Active ())
+  static bool managed_once = false;
+
+  if (SK_ImGui_Active () || (config.input.cursor.manage && managed_once == false))
   SK_GetCursorPos  (&SK_ImGui_LastKnownCursorPos);
   POINT cursor_pos = SK_ImGui_LastKnownCursorPos;
 
-  if (SK_ImGui_Active ())
+  if (SK_ImGui_Active () || (config.input.cursor.manage && managed_once == false))
   SK_ImGui_LastKnownCursor = SK_GetCursor ();
 
   bool capture_mouse    = SK_ImGui_WantMouseCapture  (false, &cursor_pos);
@@ -4097,7 +4099,7 @@ SK_ImGui_User_NewFrame (void)
 
   if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 0 ||
        abs (last_y - SK_ImGui_Cursor.pos.y) > 0 ||
-            bWantMouseCaptureForUI )
+            bWantMouseCaptureForUI              || (config.input.cursor.manage && managed_once == false))
   {
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
                     last_x    = SK_ImGui_Cursor.pos.x;
@@ -4316,6 +4318,9 @@ SK_ImGui_User_NewFrame (void)
   SK_IsGameWindowActive        (true, hWndForeground);
 
   SK_ImGui_Cursor.last_screen_pos = cursor_pos;
+
+  if (config.input.cursor.manage && managed_once == false)
+                                    managed_once  = true;
 }
 
 bool
