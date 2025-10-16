@@ -1279,8 +1279,8 @@ struct sk_config_t
         float  resist_start_r     = -1.0f;     // Ratio (0.0-1.0) of trigger pull before resistance starts
         effect trigger_effect_r   = Vibration; // Effect to apply for Xbox Impulse Triggers
         effect trigger_effect_l   = Vibration; // Effect to apply for Xbox Impulse Triggers
-        bool   improved_rumble    =  true;
-        float  rumble_strength    = 75.0f;
+        bool   improved_rumble    =  false;
+        float  rumble_strength    = 100.0f;
       } dualsense;
 
       bool    blocks_screensaver  =  true;

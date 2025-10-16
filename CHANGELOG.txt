@@ -1,4 +1,13 @@
-﻿25.10.12
+﻿25.10.15
+========
+ + Remove "Improved Rumble" option from the control panel for now
+     (unless user has already set it).
+ + Changed default DualSense rumble policy to 100% motor strength standard
+     rumble emulation mode.
+   * Configuration for the "Improved Rumble" mode will be re-introduced in
+       the upcoming gamepad config overhaul.
+
+25.10.12
 ========
  + Added user-configurable options for DualSense rumble strength and improved
      or legacy mode.
