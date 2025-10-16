@@ -1,4 +1,9 @@
-﻿25.10.15
+﻿25.10.16
+========
+ + Allow Unity to use latency waitable SwapChains, but explicitly set the
+     pre-render limit to 1 if Unity has not requested a frame latency itself.
+
+25.10.15
 ========
  + Fixed mouse cursor configured to auto-hide sometimes not auto-hiding until
      SK's control panel has been opened one time.

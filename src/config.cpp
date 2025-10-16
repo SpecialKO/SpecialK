@@ -6042,10 +6042,15 @@ auto DeclKeybind =
 
   // Auto-Config for Unity Engine Games on First Launch
   //
-  if ( PathFileExistsW (L"UnityPlayer.dll") &&
-       config.render.framerate.engine_overrides.allow_latency_wait == -1 )
+  if (SK_GetModuleHandleW (L"UnityPlayer.dll") || PathFileExistsW (L"UnityPlayer.dll"))
   {
-    config.render.framerate.engine_overrides.allow_latency_wait    = FALSE;
+    if (config.render.framerate.engine_overrides.allow_latency_wait == -1 ||
+        config.render.framerate.pre_render_limit                    == -1)
+    {
+      // Unity will be assigned a maximum frame latency of 1 frame if it tries
+      //   to use latency waitable and user has not overriden the pre-render limit.
+      config.render.framerate.engine_overrides.allow_latency_wait  =  TRUE;
+    }
     config.render.framerate.engine_overrides.allow_wait_for_vblank = FALSE;
     config.textures.cache.ignore_nonmipped                         =  true;
   }
