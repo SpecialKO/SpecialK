@@ -1103,6 +1103,30 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
   // SK calls through its own wrapper, ignore those calls...
   SK_LOG_FIRST_EXTERNAL_CALL
 
+  static HMODULE hModUnityPlayer =
+    SK_GetModuleHandleW (L"UnityPlayer.dll");
+
+  if (SK_GetCurrentRenderBackend ().windows.unity && SK_GetCallingDLL () == hModUnityPlayer)
+  {
+    extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
+    extern bool   SK_Unity_PaceGameThread;
+
+    if (SK_Unity_PaceGameThread)
+    {
+      SK_RunOnce (
+        SK_Unity_GetFrameStatsWaitEvent =
+          SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
+      );
+
+      auto ret =
+        pReal->GetFrameStatistics (pStats);
+
+      WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, 150);
+
+      return ret;
+    }
+  }
+
   return
     pReal->GetFrameStatistics (pStats);
 }

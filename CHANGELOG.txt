@@ -1,4 +1,9 @@
-﻿25.10.16
+﻿25.10.17
+========
+ + Added experimental "Pace Unity Game Thread" option for Unity versions from
+     2020 or newer to apply frame pacing to game and render thread.
+
+25.10.16
 ========
  + Allow Unity to use latency waitable SwapChains, but explicitly set the
      pre-render limit to 1 if Unity has not requested a frame latency itself.

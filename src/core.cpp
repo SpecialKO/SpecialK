@@ -3017,6 +3017,21 @@ SK_ShutdownCore (const wchar_t* backend)
   if (__SK_bypass)
     return true;
 
+
+  // Reset haptics
+  //
+  for (auto& ps_controller : SK_HID_PlayStationControllers)
+  {
+    if (ps_controller._vibration.last_set > SK::ControlPanel::current_time - 500UL)
+    {
+      ps_controller.setVibration   (0, 0, 0, 0);
+      ps_controller.write_output_report (false);
+      SK_SleepEx (15UL, FALSE);
+    }
+  }
+
+
+
   static bool
       log_unloads = true;
   if (log_unloads)
@@ -4847,6 +4862,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   if (game_window.size_move)
   {
     SK_Window_RepositionIfNeeded ();
+  }
+
+  extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
+  if (          SK_Unity_GetFrameStatsWaitEvent != 0)
+  {
+    SetEvent (SK_Unity_GetFrameStatsWaitEvent);
   }
 
   SK_GetCurrentRenderBackend ().in_present_call = false;

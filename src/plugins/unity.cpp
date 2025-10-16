@@ -81,6 +81,9 @@ float SK_Unity_OriginalFixedDeltaTime   =  0.0f;
 int   SK_Unity_GlyphEnumVal             =    -1;
 bool  SK_Unity_GlyphCacheDirty          = false;
 
+HANDLE SK_Unity_GetFrameStatsWaitEvent = 0;
+bool   SK_Unity_PaceGameThread         = true;
+
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
 bool SK_Unity_SetupInputHooks     (void);
@@ -193,6 +196,13 @@ SK_Unity_PlugInCfg (void)
       {
         _Reset ();
       }
+    }
+
+    if (SK_Unity_GetFrameStatsWaitEvent != 0)
+    {
+      ImGui::Checkbox ("Pace Unity Game Thread", &SK_Unity_PaceGameThread);
+
+      ImGui::SetItemTooltip ("Experimental synchronization between render thread and game thread using framerate limiter timing.");
     }
 
     if (show_controller_cfg)
