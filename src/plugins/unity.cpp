@@ -101,6 +101,8 @@ SK_Unity_PlugInCfg (void)
   if (! (SK_ImGui_HasPlayStationController () || SK_XInput_PollController (0)))
     show_controller_cfg = false;
 
+  SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
+
   const bool has_fixed_tick  = SK_Unity_OriginalFixedDeltaTime != 0.0f;
   const bool has_game_pacing = SK_Unity_GetFrameStatsWaitEvent != 0;
 
@@ -226,10 +228,6 @@ SK_Unity_PlugInCfg (void)
         ImGui::TextUnformatted ("Latency reduction is not reflected in Reflex timing diagram.");
         ImGui::EndTooltip ();
       }
-      ImGui::SetItemTooltip (
-        
-        "Decreases latency by 1 frame and should produce smoother animation, but needs more testing."
-      );
     }
 
     if (show_controller_cfg)
@@ -483,53 +481,51 @@ SK_Unity_InitPlugin (void)
 #include <mono/metadata/threads.h>
 #include <mono/metadata/object.h>
 
-#define SK_MONO_API
-
-typedef MonoThread*     (SK_MONO_API *mono_thread_attach_pfn)(MonoDomain* domain);
-typedef MonoThread*     (SK_MONO_API *mono_thread_current_pfn)(void);
-typedef void            (SK_MONO_API *mono_thread_detach_pfn)(MonoThread* thread);
-typedef mono_bool       (SK_MONO_API *mono_thread_is_foreign_pfn)(MonoThread* thread);
-typedef MonoDomain*     (SK_MONO_API *mono_get_root_domain_pfn)(void);
-typedef MonoAssembly*   (SK_MONO_API *mono_domain_assembly_open_pfn)(MonoDomain* doamin, const char* name);
-typedef MonoImage*      (SK_MONO_API *mono_assembly_get_image_pfn)(MonoAssembly* assembly);
-typedef MonoString*     (SK_MONO_API *mono_string_new_pfn)(MonoDomain* domain, const char* text);
-typedef MonoObject*     (SK_MONO_API *mono_object_new_pfn)(MonoDomain* domain, MonoClass* klass);
-typedef void*           (SK_MONO_API *mono_object_unbox_pfn)(MonoObject* obj);
-typedef MonoDomain*     (SK_MONO_API *mono_object_get_domain_pfn)(MonoObject* obj);
-typedef MonoClass*      (SK_MONO_API *mono_object_get_class_pfn)(MonoObject* obj);
-typedef MonoClass*      (SK_MONO_API *mono_class_from_name_pfn)(MonoImage* image, const char* name_space, const char* name);
-typedef MonoClass*      (SK_MONO_API *mono_class_get_parent_pfn)(MonoClass* klass);
-typedef MonoMethod*     (SK_MONO_API *mono_class_get_method_from_name_pfn)(MonoClass* klass, const char* name, int param_count);
-typedef MonoType*       (SK_MONO_API *mono_class_get_type_pfn)(MonoClass* klass);
-typedef const char*     (SK_MONO_API *mono_class_get_name_pfn)(MonoClass* klass);
+typedef MonoThread*     (*mono_thread_attach_pfn)(MonoDomain* domain);
+typedef MonoThread*     (*mono_thread_current_pfn)(void);
+typedef void            (*mono_thread_detach_pfn)(MonoThread* thread);
+typedef mono_bool       (*mono_thread_is_foreign_pfn)(MonoThread* thread);
+typedef MonoDomain*     (*mono_get_root_domain_pfn)(void);
+typedef MonoAssembly*   (*mono_domain_assembly_open_pfn)(MonoDomain* doamin, const char* name);
+typedef MonoImage*      (*mono_assembly_get_image_pfn)(MonoAssembly* assembly);
+typedef MonoString*     (*mono_string_new_pfn)(MonoDomain* domain, const char* text);
+typedef MonoObject*     (*mono_object_new_pfn)(MonoDomain* domain, MonoClass* klass);
+typedef void*           (*mono_object_unbox_pfn)(MonoObject* obj);
+typedef MonoDomain*     (*mono_object_get_domain_pfn)(MonoObject* obj);
+typedef MonoClass*      (*mono_object_get_class_pfn)(MonoObject* obj);
+typedef MonoClass*      (*mono_class_from_name_pfn)(MonoImage* image, const char* name_space, const char* name);
+typedef MonoClass*      (*mono_class_get_parent_pfn)(MonoClass* klass);
+typedef MonoMethod*     (*mono_class_get_method_from_name_pfn)(MonoClass* klass, const char* name, int param_count);
+typedef MonoType*       (*mono_class_get_type_pfn)(MonoClass* klass);
+typedef const char*     (*mono_class_get_name_pfn)(MonoClass* klass);
 typedef MonoReflectionType*
-                        (SK_MONO_API *mono_type_get_object_pfn)(MonoDomain* domain, MonoType* type);
-typedef void*           (SK_MONO_API *mono_compile_method_pfn)(MonoMethod* method);
-typedef MonoObject*     (SK_MONO_API *mono_runtime_invoke_pfn)(MonoMethod* method, void* obj, void** params, MonoObject** exc);
-typedef char*           (SK_MONO_API *mono_array_addr_with_size_pfn)(MonoArray* array, int size, uintptr_t idx);
-typedef uintptr_t       (SK_MONO_API *mono_array_length_pfn)(MonoArray* array);
+                        (*mono_type_get_object_pfn)(MonoDomain* domain, MonoType* type);
+typedef void*           (*mono_compile_method_pfn)(MonoMethod* method);
+typedef MonoObject*     (*mono_runtime_invoke_pfn)(MonoMethod* method, void* obj, void** params, MonoObject** exc);
+typedef char*           (*mono_array_addr_with_size_pfn)(MonoArray* array, int size, uintptr_t idx);
+typedef uintptr_t       (*mono_array_length_pfn)(MonoArray* array);
 
-typedef MonoClassField* (SK_MONO_API *mono_class_get_field_from_name_pfn)(MonoClass* klass, const char* name);
-typedef void*           (SK_MONO_API *mono_field_get_value_pfn)(void* obj, MonoClassField* field, void* value);
-typedef void            (SK_MONO_API *mono_field_set_value_pfn)(MonoObject* obj, MonoClassField* field, void* value);
-typedef MonoObject*     (SK_MONO_API *mono_field_get_value_object_pfn)(MonoDomain* domain, MonoClassField* field, MonoObject* obj);
-typedef MonoClass*      (SK_MONO_API *mono_method_get_class_pfn)(MonoMethod* method);
-typedef MonoVTable*     (SK_MONO_API *mono_class_vtable_pfn)(MonoDomain* domain, MonoClass* klass);
-typedef void*           (SK_MONO_API *mono_vtable_get_static_field_data_pfn)(MonoVTable* vt);
-typedef uint32_t        (SK_MONO_API *mono_field_get_offset_pfn)(MonoClassField* field);
+typedef MonoClassField* (*mono_class_get_field_from_name_pfn)(MonoClass* klass, const char* name);
+typedef void*           (*mono_field_get_value_pfn)(void* obj, MonoClassField* field, void* value);
+typedef void            (*mono_field_set_value_pfn)(MonoObject* obj, MonoClassField* field, void* value);
+typedef MonoObject*     (*mono_field_get_value_object_pfn)(MonoDomain* domain, MonoClassField* field, MonoObject* obj);
+typedef MonoClass*      (*mono_method_get_class_pfn)(MonoMethod* method);
+typedef MonoVTable*     (*mono_class_vtable_pfn)(MonoDomain* domain, MonoClass* klass);
+typedef void*           (*mono_vtable_get_static_field_data_pfn)(MonoVTable* vt);
+typedef uint32_t        (*mono_field_get_offset_pfn)(MonoClassField* field);
 
-typedef MonoMethodDesc* (SK_MONO_API *mono_method_desc_new_pfn)(const char* name, mono_bool include_namespace);
-typedef MonoMethod*     (SK_MONO_API *mono_method_desc_search_in_image_pfn)(MonoMethodDesc* desc, MonoImage* image);
+typedef MonoMethodDesc* (*mono_method_desc_new_pfn)(const char* name, mono_bool include_namespace);
+typedef MonoMethod*     (*mono_method_desc_search_in_image_pfn)(MonoMethodDesc* desc, MonoImage* image);
 
-typedef MonoGCHandle    (SK_MONO_API *mono_gchandle_new_v2_pfn)(MonoObject* obj, mono_bool pinned);
-typedef MonoGCHandle    (SK_MONO_API *mono_gchandle_free_v2_pfn)(MonoGCHandle gchandle);
-typedef MonoObject*     (SK_MONO_API *mono_gchandle_get_target_v2_pfn)(MonoGCHandle gchandle);
+typedef MonoGCHandle    (*mono_gchandle_new_v2_pfn)(MonoObject* obj, mono_bool pinned);
+typedef MonoGCHandle    (*mono_gchandle_free_v2_pfn)(MonoGCHandle gchandle);
+typedef MonoObject*     (*mono_gchandle_get_target_v2_pfn)(MonoGCHandle gchandle);
 
-typedef MonoObject*     (SK_MONO_API *mono_property_get_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
-typedef void            (SK_MONO_API *mono_property_set_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
-typedef MonoProperty*   (SK_MONO_API *mono_class_get_property_from_name_pfn)(MonoClass *klass, const char *name);
-typedef MonoMethod*     (SK_MONO_API *mono_property_get_get_method_pfn)(MonoProperty *prop);
-typedef MonoImage*      (SK_MONO_API *mono_image_loaded_pfn)(const char *name);
+typedef MonoObject*     (*mono_property_get_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
+typedef void            (*mono_property_set_value_pfn)(MonoProperty *prop, void *obj, void **params, MonoObject **exc);
+typedef MonoProperty*   (*mono_class_get_property_from_name_pfn)(MonoClass *klass, const char *name);
+typedef MonoMethod*     (*mono_property_get_get_method_pfn)(MonoProperty *prop);
+typedef MonoImage*      (*mono_image_loaded_pfn)(const char *name);
 
 #define SK_mono_array_addr(array,type,index) ((type*)SK_mono_array_addr_with_size ((array), sizeof (type), (index)))
 #define SK_mono_array_get(array,type,index) (*(type*)SK_mono_array_addr           ((array),         type,  (index)))
@@ -587,13 +583,13 @@ static mono_method_desc_search_in_image_pfn  SK_mono_method_desc_search_in_image
 
 static MonoDomain* SK_Unity_MonoDomain = nullptr;
 
-using  mono_jit_exec_pfn              = int         (SK_MONO_API *)(MonoDomain *domain, MonoAssembly *assembly, int argc, char *argv[]);
+using  mono_jit_exec_pfn              = int         (*)(MonoDomain *domain, MonoAssembly *assembly, int argc, char *argv[]);
 static mono_jit_exec_pfn
        mono_jit_exec_Original         = nullptr;
-using  mono_jit_init_pfn              = MonoDomain* (SK_MONO_API *)(const char *file);
+using  mono_jit_init_pfn              = MonoDomain* (*)(const char *file);
 static mono_jit_init_pfn
        mono_jit_init_Original         = nullptr;
-using  mono_jit_init_version_pfn      = MonoDomain* (SK_MONO_API *)(const char *root_domain_name, const char *runtime_version);
+using  mono_jit_init_version_pfn      = MonoDomain* (*)(const char *root_domain_name, const char *runtime_version);
 static mono_jit_init_version_pfn
        mono_jit_init_version_Original = nullptr;
 
@@ -601,7 +597,6 @@ void SK_Unity_OnInitMono (MonoDomain* domain = nullptr);
 
 static
 int
-SK_MONO_API
 mono_jit_exec_Detour (MonoDomain *domain, MonoAssembly *assembly, int argc, char *argv[])
 {
   auto ret =
@@ -617,7 +612,6 @@ mono_jit_exec_Detour (MonoDomain *domain, MonoAssembly *assembly, int argc, char
 
 static
 MonoDomain*
-SK_MONO_API
 mono_jit_init_Detour (const char *file)
 {
   SK_LOG_FIRST_CALL
@@ -635,7 +629,6 @@ mono_jit_init_Detour (const char *file)
 
 static
 MonoDomain*
-SK_MONO_API
 mono_jit_init_version_Detour (const char *root_domain_name, const char *runtime_version)
 {
   SK_LOG_FIRST_CALL
@@ -1038,8 +1031,6 @@ SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
     SK_Unity_OnInitMono ();
   else
     SK_Unity_SetupInputHooks_il2cpp ();
-
-  SK_Unity_SetFixedDeltaTime (0.0f);
 
   return S_OK;
 }
@@ -1668,49 +1659,28 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       SK_RunOnce (LoadMonoAssembly ("UnityEngine.CoreModule"));
       SK_RunOnce (LoadMonoAssembly ("UnityEngine"));
 
-      static MonoMethod* set_fixedDeltaTime = nullptr;
-      static MonoMethod* get_fixedDeltaTime = nullptr;
-      static MonoClassField* fixedDeltaTime = nullptr;
+      auto core_module = SK_mono_image_loaded ("UnityEngine.CoreModule");
+      if (!core_module)
+           core_module = SK_mono_image_loaded ("UnityEngine");
 
-      SK_RunOnce (
-      {
-        auto core_module = SK_mono_image_loaded ("UnityEngine.CoreModule");
-        if ( core_module == nullptr ) // Older path
-             core_module = SK_mono_image_loaded ("UnityEngine");
+      static auto klass = SK_mono_class_from_name (core_module, "UnityEngine", "Time");
 
-        if (core_module != nullptr)
-        {
-          auto
-              klass = SK_mono_class_from_name (core_module, "UnityEngine", "Time");
-          if (klass != nullptr)
-          {
-            set_fixedDeltaTime = SK_mono_class_get_method_from_name (klass, "get_fixedDeltaTime", 0);
-            get_fixedDeltaTime = SK_mono_class_get_method_from_name (klass, "set_fixedDeltaTime", 1);
-                fixedDeltaTime = SK_mono_class_get_field_from_name  (klass, "fixedDeltaTime");
-
-            if (get_fixedDeltaTime != nullptr) SK_mono_compile_method (get_fixedDeltaTime);
-            if (set_fixedDeltaTime != nullptr) SK_mono_compile_method (set_fixedDeltaTime);
-          }
-        }
-      });
-
-      //SK_LOGi0 (L"set_fixedDeltaTime: %p, get_fixedDeltaTime: %p", set_fixedDeltaTime, get_fixedDeltaTime);
+      static MonoMethod* set_fixedDeltaTime = klass != nullptr ? SK_mono_class_get_method_from_name (klass, "set_fixedDeltaTime", 1) : nullptr;
+      static MonoMethod* get_fixedDeltaTime = klass != nullptr ? SK_mono_class_get_method_from_name (klass, "get_fixedDeltaTime", 0) : nullptr;
 
       if (set_fixedDeltaTime != nullptr &&
           get_fixedDeltaTime != nullptr)
       {
         if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
         {
-          SK_RunOnce (
-            MonoObject* exc = nullptr;
-            MonoObject* obj =
-              SK_mono_runtime_invoke (get_fixedDeltaTime, nullptr, nullptr, &exc);
+          MonoObject* exc = nullptr;
+          MonoObject* obj =
+            SK_mono_runtime_invoke (get_fixedDeltaTime, nullptr, nullptr, &exc);
 
-            if (obj != nullptr)
-            {
-              SK_Unity_OriginalFixedDeltaTime = *(float *)SK_mono_object_unbox (obj);
-            }
-          );
+          if (obj != nullptr)
+          {
+            SK_Unity_OriginalFixedDeltaTime = *(float *)SK_mono_object_unbox (obj);
+          }
         }
 
         if (fixed_delta_time_static != 0.0f)
@@ -1720,7 +1690,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           SK_mono_runtime_invoke (set_fixedDeltaTime, nullptr, params, nullptr);
         }
 
-        else if (SK_Unity_OriginalFixedDeltaTime != 0.0f)
+        else
         {
           void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
 
@@ -1744,10 +1714,9 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
       static il2cpp::Wrapper wrapper;
 
-      static auto
-          image = wrapper.get_image ("UnityEngine.CoreModule.dll");
-      if (image == nullptr)
-          image = wrapper.get_image ("UnityEngine.dll");
+      static auto image = wrapper.get_image ("UnityEngine.CoreModule.dll") != nullptr ?
+                          wrapper.get_image ("UnityEngine.CoreModule.dll")            :
+                          wrapper.get_image ("UnityEngine.dll");
       static auto klass = image != nullptr ? image->get_class ("Time", "UnityEngine") : nullptr;
 
       static Method* set_fixedDeltaTime = klass != nullptr ? klass->get_method ("set_fixedDeltaTime", 1) : nullptr;
@@ -1758,15 +1727,13 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       {
         if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
         {
-          SK_RunOnce (
-            void* exc = nullptr;
-            void* obj = Il2cpp::method_call (get_fixedDeltaTime, nullptr, nullptr, &exc);
+          void* exc = nullptr;
+          void* obj = Il2cpp::method_call (get_fixedDeltaTime, nullptr, nullptr, &exc);
 
-            if (obj != nullptr)
-            {
-              SK_Unity_OriginalFixedDeltaTime = *(float *)Il2cpp::object_unbox (obj);
-            }
-          );
+          if (obj != nullptr)
+          {
+            SK_Unity_OriginalFixedDeltaTime = *(float *)Il2cpp::object_unbox (obj);
+          }
         }
 
         if (fixed_delta_time_static != 0.0f)
@@ -1776,7 +1743,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           Il2cpp::method_call (set_fixedDeltaTime, nullptr, params, nullptr);
         }
 
-        else if (SK_Unity_OriginalFixedDeltaTime != 0.0f)
+        else
         {
           void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
 
@@ -1793,9 +1760,9 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
   }
 }
 
-using InControl_InputDevice_OnAttached_pfn    = void (SK_MONO_API *)(MonoObject*);
-using InControl_NativeInputDevice_Vibrate_pfn = void (SK_MONO_API *)(MonoObject*, float leftSpeed, float rightSpeed);
-using InControl_NativeInputDevice_Update_pfn  = void (SK_MONO_API *)(MonoObject*, ULONG updateTick, float deltaTime);
+using InControl_InputDevice_OnAttached_pfn    = void (*)(MonoObject*);
+using InControl_NativeInputDevice_Vibrate_pfn = void (*)(MonoObject*, float leftSpeed, float rightSpeed);
+using InControl_NativeInputDevice_Update_pfn  = void (*)(MonoObject*, ULONG updateTick, float deltaTime);
 
 static InControl_InputDevice_OnAttached_pfn    InControl_InputDevice_OnAttached_Original    = nullptr;
 static InControl_NativeInputDevice_Vibrate_pfn InControl_NativeInputDevice_Vibrate_Original = nullptr;
@@ -1946,7 +1913,7 @@ static void SK_Unity_InControl_SetDeviceStyle (MonoObject* device)
   SK_mono_runtime_invoke (method, device, params, nullptr);
 }
 
-static void SK_MONO_API InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
+static void InControl_InputDevice_OnAttached_Detour (MonoObject* __this)
 {
   SK_LOG_FIRST_CALL
 
@@ -1955,7 +1922,7 @@ static void SK_MONO_API InControl_InputDevice_OnAttached_Detour (MonoObject* __t
   SK_Unity_InControl_SetDeviceStyle (__this);
 }
 
-static void SK_MONO_API InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG updateTick, float deltaTime)
+static void InControl_NativeInputDevice_Update_Detour (MonoObject* __this, ULONG updateTick, float deltaTime)
 {
   SK_LOG_FIRST_CALL
 
@@ -1994,7 +1961,7 @@ static void SK_MONO_API InControl_NativeInputDevice_Update_Detour (MonoObject* _
     SK_Unity_InControl_SetDeviceStyle (__this);
 }
 
-static void SK_MONO_API InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, float leftSpeed, float rightSpeed)
+static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, float leftSpeed, float rightSpeed)
 {
   SK_LOG_FIRST_CALL
 
@@ -2495,12 +2462,12 @@ SK_Unity_SetupInputHooks_il2cpp (void)
   return true;
 }
 
-using  Rewired_Joystick_get_supportsVibration_pfn = bool(SK_MONO_API *)(MonoObject*);
+using  Rewired_Joystick_get_supportsVibration_pfn = bool(*)(MonoObject*);
 static Rewired_Joystick_get_supportsVibration_pfn
        Rewired_Joystick_get_supportsVibration_Original = nullptr;
 
-using Rewired_Joystick_SetVibration_pfn  = void(SK_MONO_API *)(MonoObject*, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration);
-using Rewired_Joystick_StopVibration_pfn = void(SK_MONO_API *)(MonoObject*);
+using Rewired_Joystick_SetVibration_pfn  = void(*)(MonoObject*, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration);
+using Rewired_Joystick_StopVibration_pfn = void(*)(MonoObject*);
 
 static Rewired_Joystick_SetVibration_pfn
        Rewired_Joystick_SetVibration_Original = nullptr;
@@ -2508,13 +2475,12 @@ static Rewired_Joystick_SetVibration_pfn
 static Rewired_Joystick_StopVibration_pfn
        Rewired_Joystick_StopVibration_Original = nullptr;
 
-using  VibrationController_Rumble_pfn = void(SK_MONO_API *)(MonoObject*,MonoObject*,float level, float duration);
+using  VibrationController_Rumble_pfn = void(*)(MonoObject*,MonoObject*,float level, float duration);
 static VibrationController_Rumble_pfn
        VibrationController_Rumble_Original = nullptr;
 
 static
 void
-SK_MONO_API
 VibrationController_Rumble_Detour (MonoObject* __this, MonoObject* __player, float level, float duration)
 {
   SK_LOG_FIRST_CALL
@@ -2526,7 +2492,6 @@ VibrationController_Rumble_Detour (MonoObject* __this, MonoObject* __player, flo
 
 static
 void
-SK_MONO_API
 Rewired_Joystick_SetVibration_Detour (MonoObject* __this, float leftMotorLevel, float rightMotorLevel, float leftMotorDuration, float rightMotorDuration)
 {
   SK_LOG_FIRST_CALL
@@ -2538,7 +2503,6 @@ Rewired_Joystick_SetVibration_Detour (MonoObject* __this, float leftMotorLevel, 
 
 static
 void
-SK_MONO_API
 Rewired_Joystick_StopVibration_Detour (MonoObject* __this)
 {
   SK_LOG_FIRST_CALL
@@ -2554,7 +2518,6 @@ Rewired_Joystick_StopVibration_Detour (MonoObject* __this)
 
 static
 bool
-SK_MONO_API
 Rewired_Joystick_get_supportsVibration_Detour (MonoObject* __this)
 {
   SK_LOG_FIRST_CALL
@@ -2587,13 +2550,12 @@ Rewired_Joystick_get_supportsVibration_Detour (MonoObject* __this)
     Rewired_Joystick_get_supportsVibration_Original (__this);
 }
 
-using  Rewired_Joystick_get_vibrationMotorCount_pfn = int(SK_MONO_API *)(void*);
+using  Rewired_Joystick_get_vibrationMotorCount_pfn = int(*)(void*);
 static Rewired_Joystick_get_vibrationMotorCount_pfn
        Rewired_Joystick_get_vibrationMotorCount_Original = nullptr;
 
 static
 int
-SK_MONO_API
 Rewired_Joystick_get_vibrationMotorCount_Detour (void* __this)
 {
   SK_LOG_FIRST_CALL
