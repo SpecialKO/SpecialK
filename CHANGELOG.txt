@@ -1,4 +1,9 @@
-﻿25.10.17.1
+﻿25.10.17.2
+==========
+ + Improved support for 32-bit Unity games.
+ + Improved support for late injection into Unity games.
+
+25.10.17.1
 ==========
  + Improved "Pace Unity Game Thread" smoothness.
 

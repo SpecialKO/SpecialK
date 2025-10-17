@@ -551,6 +551,18 @@ void SK_FetchBuiltinSounds (void)
   ));
 }
 
+void SK_Unity_PreInit (void)
+{
+  if (SK_GetModuleHandleW (L"mono.dll")           ||
+      SK_GetModuleHandleW (L"mono-2.0-bdwgc.dll") ||
+      SK_GetModuleHandleW (L"UnityPlayer.dll")    ||
+      SK_GetModuleHandleW (L"GameAssembly.dll"))
+  {
+    extern void SK_Unity_InitPlugin (void);
+                SK_Unity_InitPlugin ();
+  }
+}
+
 void
 __stdcall
 SK_InitCore (std::wstring, void* callback)
@@ -1116,6 +1128,8 @@ void BasicInit (void)
   // This installs hooks for COM's CoCreateInstance, used for various old DirectX
   //   features in addition to Special K's WMI monitoring services
   SK_WMI_Init ();
+
+  SK_Unity_PreInit ();
 
   SK::EOS::Init    (false);
   SK::Galaxy::Init (     );
