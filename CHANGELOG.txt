@@ -2,6 +2,7 @@
 ==========
  + Display "No Unity-specific features are supported in this game." in the
      control panel if a game has no configurable engine-level options.
+ + Simplified implementation of Unity game thread pacing.
 
 25.10.17.2
 ==========

@@ -216,7 +216,20 @@ SK_Unity_PlugInCfg (void)
     {
       ImGui::Checkbox ("Pace Unity Game Thread", &SK_Unity_PaceGameThread);
 
-      ImGui::SetItemTooltip ("Experimental synchronization between render thread and game thread using framerate limiter timing.");
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextUnformatted ("Experimental game/render thread framerate limiting");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Normal framerate limiting only limits the render thread.");
+        ImGui::BulletText      ("This mode reduces latency by one frame and should be smoother.");
+        ImGui::Separator       ();
+        ImGui::TextUnformatted ("Latency reduction is not reflected in Reflex timing diagram.");
+        ImGui::EndTooltip ();
+      }
+      ImGui::SetItemTooltip (
+        
+        "Decreases latency by 1 frame and should produce smoother animation, but needs more testing."
+      );
     }
 
     if (show_controller_cfg)

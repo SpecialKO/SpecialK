@@ -1125,15 +1125,16 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
         SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain);
       if (pLimiter != nullptr)
       {
-        next_frame = pLimiter->get_next_tick ();
+        next_frame = pLimiter->get_next_tick () +
+                     pLimiter->get_ticks_per_frame ();
       }
 
-      DWORD dwTimeStart = SK_timeGetTime ();
+      //DWORD dwTimeStart = SK_timeGetTime ();
 
       void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
            SK_Framerate_WaitUntilQPC (next_frame, hTimer);
 
-      SK_LOGi0 (L"Waited %d msecs on Unity Game Thread...", SK_timeGetTime () - dwTimeStart);
+      //SK_LOGi0 (L"Waited %d msecs on Unity Game Thread...", SK_timeGetTime () - dwTimeStart);
 
       // Unity doesn't need to see this, give it fake data...
       //   the actual reliability of the frame stats is much lower
