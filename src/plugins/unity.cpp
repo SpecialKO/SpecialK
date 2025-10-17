@@ -1705,7 +1705,10 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
       static il2cpp::Wrapper wrapper;
 
-      static auto image = wrapper.get_image ("UnityEngine.CoreModule.dll");
+      static auto
+          image = wrapper.get_image ("UnityEngine.CoreModule.dll");
+      if (image == nullptr)
+          image = wrapper.get_image ("UnityEngine.dll");
       static auto klass = image != nullptr ? image->get_class ("Time", "UnityEngine") : nullptr;
 
       static Method* set_fixedDeltaTime = klass != nullptr ? klass->get_method ("set_fixedDeltaTime", 1) : nullptr;
@@ -1719,6 +1722,9 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           void* obj = Il2cpp::method_call (get_fixedDeltaTime, nullptr, nullptr, nullptr);
 
           SK_Unity_OriginalFixedDeltaTime = *(float *)Il2cpp::object_unbox (obj);
+
+          if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
+              SK_Unity_OriginalFixedDeltaTime  = 50.0f;
         }
 
         if (fixed_delta_time_static != 0.0f)
