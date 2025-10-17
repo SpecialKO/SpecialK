@@ -1111,6 +1111,9 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
     extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
     extern bool   SK_Unity_PaceGameThread;
 
+    static SK::Framerate::Limiter Limiter =
+           SK::Framerate::Limiter (config.render.framerate.target_fps, false);
+
     if (SK_Unity_PaceGameThread)
     {
       SK_RunOnce (
@@ -1118,10 +1121,40 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
           SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
       );
 
-      auto ret =
-        pReal->GetFrameStatistics (pStats);
+      Limiter.standalone = true;
 
-      WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, 150);
+      float      target_fps = __target_fps;
+      static float last_fps = 0.0f;
+
+      static HANDLE   hTimer     = 0;
+      static LONGLONG next_frame = 0;
+
+      if (last_fps != target_fps)
+      {
+        Limiter.init (target_fps);
+        auto *pLimiter =
+          SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain);
+        if (pLimiter != nullptr)
+        {
+          next_frame = pLimiter->get_next_tick ();
+          SK_LOGi0 (L"Next_frame from limiter: %d", next_frame);
+          last_fps = target_fps;
+        }
+        else
+          next_frame = 0;
+      }
+
+      void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+           SK_Framerate_WaitUntilQPC (next_frame, hTimer);
+
+      // Unity doesn't need to see this, give it fake data...
+      //   the actual reliability of the frame stats is much lower
+      //     than Unity believes and they are better off with an error :)
+      next_frame += Limiter.get_ticks_per_frame ();
+
+      auto ret = E_ACCESSDENIED;
+      //auto ret =
+      //  pReal->GetFrameStatistics (pStats);
 
       return ret;
     }

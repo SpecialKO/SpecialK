@@ -1,4 +1,8 @@
-﻿25.10.17
+﻿25.10.17.1
+==========
+ + Improved "Pace Unity Game Thread" smoothness.
+
+25.10.17
 ========
  + Added experimental "Pace Unity Game Thread" option for Unity versions from
      2020 or newer to apply frame pacing to game and render thread.
