@@ -101,6 +101,17 @@ SK_Unity_PlugInCfg (void)
   if (! (SK_ImGui_HasPlayStationController () || SK_XInput_PollController (0)))
     show_controller_cfg = false;
 
+  const bool has_fixed_tick  = SK_Unity_OriginalFixedDeltaTime != 0.0f;
+  const bool has_game_pacing = SK_Unity_GetFrameStatsWaitEvent != 0;
+
+  if (! (show_controller_cfg || has_fixed_tick || has_game_pacing))
+  {
+    ImGui::TextColored (ImVec4 (0.999f, 0.5f, 0.25f, 1.f), ICON_FA_INFO_CIRCLE);
+    ImGui::SameLine    ();
+    ImGui::TextUnformatted ("No Unity-specific features are supported in this game.");
+    return true;
+  }
+
   if (ImGui::CollapsingHeader ("Unity Engine", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush       ("");
@@ -111,94 +122,97 @@ SK_Unity_PlugInCfg (void)
     float delta_hz =
       (1.0f / SK_Unity_Cfg.time_fixed_delta_time);
 
-    if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::BeginDisabled ();
+    if (has_fixed_tick)
     {
-      if (SK_Unity_Cfg.time_fixed_delta_time == SK_Unity_OriginalFixedDeltaTime)
+      if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::BeginDisabled ();
       {
-        ImGui::TextColored    (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
-        ImGui::SameLine       ();
-        ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
-        ImGui::SameLine       ();
-      }
-
-      if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
-      {
-        SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f / delta_hz : SK_Unity_OriginalFixedDeltaTime;
-        SK_Unity_Cfg.time_fixed_delta_time.store ();
-
-        config.utility.save_async ();
-
-        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
-      }
-      
-      if (SK_ImGui_IsItemRightClicked ())
-      {
-        if (__target_fps > 0.0f)
+        if (SK_Unity_Cfg.time_fixed_delta_time == SK_Unity_OriginalFixedDeltaTime)
         {
-          SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+          ImGui::TextColored    (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
+          ImGui::SameLine       ();
+          ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
+          ImGui::SameLine       ();
+        }
+
+        if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
+        {
+          SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f / delta_hz : SK_Unity_OriginalFixedDeltaTime;
           SK_Unity_Cfg.time_fixed_delta_time.store ();
 
           config.utility.save_async ();
 
           SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
         }
+        
+        if (SK_ImGui_IsItemRightClicked ())
+        {
+          if (__target_fps > 0.0f)
+          {
+            SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+            SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+            config.utility.save_async ();
+
+            SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+          }
+        }
+
+        if (ImGui::BeginItemTooltip ())
+        { ImGui::TextUnformatted    ("Set the animation rate for Unity.");
+          ImGui::Separator          ();
+          ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
+          if (__target_fps > 0.0f)
+          { ImGui::Separator        ();
+            ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to Match Framerate Limit");
+          } ImGui::EndTooltip       ();
+        }
+        ImGui::SameLine ();
       }
 
-      if (ImGui::BeginItemTooltip ())
-      { ImGui::TextUnformatted    ("Set the animation rate for Unity.");
-        ImGui::Separator          ();
-        ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
-        if (__target_fps > 0.0f)
-        { ImGui::Separator        ();
-          ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to Match Framerate Limit");
-        } ImGui::EndTooltip       ();
-      }
-      ImGui::SameLine ();
-    }
-
-    auto _Reset = [&](void)
-    {
-      SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
-      SK_Unity_Cfg.time_fixed_delta_time.store ();
-
-      SK_Unity_Cfg.fixed_delta_auto_sync = false;
-      SK_Unity_Cfg.fixed_delta_auto_sync.store ();
-
-      config.utility.save_async ();
-
-      SK_Unity_SetFixedDeltaTime (SK_Unity_OriginalFixedDeltaTime);
-    };
-
-    if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::EndDisabled ();
-
-    if (ImGui::Checkbox ("Match Framerate Limit", &SK_Unity_Cfg.fixed_delta_auto_sync))
-    {
-      if (SK_Unity_Cfg.fixed_delta_auto_sync && __target_fps > 0.0f)
+      auto _Reset = [&](void)
       {
-        SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+        SK_Unity_Cfg.time_fixed_delta_time = SK_Unity_OriginalFixedDeltaTime;
         SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+        SK_Unity_Cfg.fixed_delta_auto_sync = false;
         SK_Unity_Cfg.fixed_delta_auto_sync.store ();
 
         config.utility.save_async ();
 
-        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
-      }
+        SK_Unity_SetFixedDeltaTime (SK_Unity_OriginalFixedDeltaTime);
+      };
 
-      else if (! SK_Unity_Cfg.fixed_delta_auto_sync) _Reset ();
-    }
+      if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::EndDisabled ();
 
-    ImGui::SetItemTooltip ("Enable for Smoothest Frame Pacing");
-
-    if (SK_Unity_OriginalFixedDeltaTime != SK_Unity_Cfg.time_fixed_delta_time)
-    {
-      ImGui::SameLine   (       );
-      if (ImGui::Button ("Reset"))
+      if (ImGui::Checkbox ("Match Framerate Limit", &SK_Unity_Cfg.fixed_delta_auto_sync))
       {
-        _Reset ();
+        if (SK_Unity_Cfg.fixed_delta_auto_sync && __target_fps > 0.0f)
+        {
+          SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+          SK_Unity_Cfg.time_fixed_delta_time.store ();
+          SK_Unity_Cfg.fixed_delta_auto_sync.store ();
+
+          config.utility.save_async ();
+
+          SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+        }
+
+        else if (! SK_Unity_Cfg.fixed_delta_auto_sync) _Reset ();
+      }
+
+      ImGui::SetItemTooltip ("Enable for Smoothest Frame Pacing");
+
+      if (SK_Unity_OriginalFixedDeltaTime != SK_Unity_Cfg.time_fixed_delta_time)
+      {
+        ImGui::SameLine   (       );
+        if (ImGui::Button ("Reset"))
+        {
+          _Reset ();
+        }
       }
     }
 
-    if (SK_Unity_GetFrameStatsWaitEvent != 0)
+    if (has_game_pacing)
     {
       ImGui::Checkbox ("Pace Unity Game Thread", &SK_Unity_PaceGameThread);
 
@@ -1012,6 +1026,8 @@ SK_Unity_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   else
     SK_Unity_SetupInputHooks_il2cpp ();
 
+  SK_Unity_SetFixedDeltaTime (0.0f);
+
   return S_OK;
 }
 
@@ -1641,6 +1657,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
       static MonoMethod* set_fixedDeltaTime = nullptr;
       static MonoMethod* get_fixedDeltaTime = nullptr;
+      static MonoClassField* fixedDeltaTime = nullptr;
 
       SK_RunOnce (
       {
@@ -1656,22 +1673,31 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           {
             set_fixedDeltaTime = SK_mono_class_get_method_from_name (klass, "get_fixedDeltaTime", 0);
             get_fixedDeltaTime = SK_mono_class_get_method_from_name (klass, "set_fixedDeltaTime", 1);
+                fixedDeltaTime = SK_mono_class_get_field_from_name  (klass, "fixedDeltaTime");
+
+            if (get_fixedDeltaTime != nullptr) SK_mono_compile_method (get_fixedDeltaTime);
+            if (set_fixedDeltaTime != nullptr) SK_mono_compile_method (set_fixedDeltaTime);
           }
         }
       });
+
+      //SK_LOGi0 (L"set_fixedDeltaTime: %p, get_fixedDeltaTime: %p", set_fixedDeltaTime, get_fixedDeltaTime);
 
       if (set_fixedDeltaTime != nullptr &&
           get_fixedDeltaTime != nullptr)
       {
         if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
         {
-          MonoObject* obj =
-            SK_mono_runtime_invoke (get_fixedDeltaTime, nullptr, nullptr, nullptr);
+          SK_RunOnce (
+            MonoObject* exc = nullptr;
+            MonoObject* obj =
+              SK_mono_runtime_invoke (get_fixedDeltaTime, nullptr, nullptr, &exc);
 
-          SK_Unity_OriginalFixedDeltaTime = *(float *)SK_mono_object_unbox (obj);
-
-          if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
-              SK_Unity_OriginalFixedDeltaTime = 50.0f;
+            if (obj != nullptr)
+            {
+              SK_Unity_OriginalFixedDeltaTime = *(float *)SK_mono_object_unbox (obj);
+            }
+          );
         }
 
         if (fixed_delta_time_static != 0.0f)
@@ -1681,7 +1707,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           SK_mono_runtime_invoke (set_fixedDeltaTime, nullptr, params, nullptr);
         }
 
-        else
+        else if (SK_Unity_OriginalFixedDeltaTime != 0.0f)
         {
           void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
 
@@ -1719,12 +1745,15 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       {
         if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
         {
-          void* obj = Il2cpp::method_call (get_fixedDeltaTime, nullptr, nullptr, nullptr);
+          SK_RunOnce (
+            void* exc = nullptr;
+            void* obj = Il2cpp::method_call (get_fixedDeltaTime, nullptr, nullptr, &exc);
 
-          SK_Unity_OriginalFixedDeltaTime = *(float *)Il2cpp::object_unbox (obj);
-
-          if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
-              SK_Unity_OriginalFixedDeltaTime  = 50.0f;
+            if (obj != nullptr)
+            {
+              SK_Unity_OriginalFixedDeltaTime = *(float *)Il2cpp::object_unbox (obj);
+            }
+          );
         }
 
         if (fixed_delta_time_static != 0.0f)
@@ -1734,7 +1763,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           Il2cpp::method_call (set_fixedDeltaTime, nullptr, params, nullptr);
         }
 
-        else
+        else if (SK_Unity_OriginalFixedDeltaTime != 0.0f)
         {
           void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
 

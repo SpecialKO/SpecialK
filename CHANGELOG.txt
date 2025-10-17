@@ -1,4 +1,9 @@
-﻿25.10.17.2
+﻿25.10.17.3
+==========
+ + Display "No Unity-specific features are supported in this game." in the
+     control panel if a game has no configurable engine-level options.
+
+25.10.17.2
 ==========
  + Improved support for 32-bit Unity games.
  + Improved support for late injection into Unity games.
