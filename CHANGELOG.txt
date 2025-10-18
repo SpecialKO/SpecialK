@@ -1,4 +1,8 @@
-﻿25.10.18
+﻿25.10.18.1
+==========
+ + Increase injection whitelist limit from 128 to 512 games.
+
+25.10.18
 ========
  + Added 'Maximum Lag Reduction' setting to Unity game pacing; Reflex
      integration is not hooked up correctly to measure this mode yet.

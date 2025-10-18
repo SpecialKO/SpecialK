@@ -105,9 +105,9 @@ extern "C"
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                     =   0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers                 =   0L;
 
-  __declspec (dllexport)          wchar_t whitelist_patterns [128 * MAX_PATH] = { };
+  __declspec (dllexport)          wchar_t whitelist_patterns [512 * MAX_PATH] = { };
   __declspec (dllexport)          int     whitelist_count                     =  0;
-  __declspec (dllexport)          wchar_t blacklist_patterns [128 * MAX_PATH] = { };
+  __declspec (dllexport)          wchar_t blacklist_patterns [512 * MAX_PATH] = { };
   __declspec (dllexport)          int     blacklist_count                     =  0;
   __declspec (dllexport) volatile LONG    injected_procs                      =  0;
 
