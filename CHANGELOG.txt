@@ -1,4 +1,9 @@
-﻿25.10.17.3
+﻿25.10.18
+========
+ + Added 'Maximum Lag Reduction' setting to Unity game pacing; Reflex
+     integration is not hooked up correctly to measure this mode yet.
+
+25.10.17.3
 ==========
  + Display "No Unity-specific features are supported in this game." in the
      control panel if a game has no configurable engine-level options.

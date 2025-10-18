@@ -1110,6 +1110,7 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
   {
     extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
     extern bool   SK_Unity_PaceGameThread;
+    extern bool   SK_Unity_OneFrameLag;
 
     if (SK_Unity_PaceGameThread)
     {
@@ -1125,8 +1126,7 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
         SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain);
       if (pLimiter != nullptr)
       {
-        next_frame = pLimiter->get_next_tick () +
-                     pLimiter->get_ticks_per_frame ();
+        next_frame = pLimiter->get_next_tick () + (SK_Unity_OneFrameLag ? pLimiter->get_ticks_per_frame () : 0);
       }
 
       //DWORD dwTimeStart = SK_timeGetTime ();
