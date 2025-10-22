@@ -1,4 +1,8 @@
-﻿25.10.18.1
+﻿25.10.22
+========
+ + Disable DirectInput 8 hooks in Ninja Gaiden 4.
+
+25.10.18.1
 ==========
  + Increase injection whitelist limit from 128 to 512 games.
 

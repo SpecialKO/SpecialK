@@ -313,6 +313,8 @@ SK_GetCurrentGameID (void)
           { L"stellaris.exe",                          SK_GAME_ID::Stellaris                    },
           { L"TheLostCrown.exe",                       SK_GAME_ID::PrinceOfPersia_TheLostCrown  },
           { L"TheLostCrown_plus.exe",                  SK_GAME_ID::PrinceOfPersia_TheLostCrown  },
+          { L"NINJAGAIDEN4-Steam.exe",                 SK_GAME_ID::NinjaGaiden4                 }, // Steam Version
+          { L"NINJAGAIDEN4-WinGDK.exe",                SK_GAME_ID::NinjaGaiden4                 }, // Microsoft Store Version
         };
 
     first_check  = false;
@@ -4337,6 +4339,12 @@ auto DeclKeybind =
         apis.d3d9.hook->store   (config.apis.d3d9.  hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
         apis.OpenGL.hook->store (config.apis.OpenGL.hook);
+        break;
+
+      case SK_GAME_ID::NinjaGaiden4:
+        // Force DirectInput 8 hooks off to avoid controller disconnect messages
+        config.input.gamepad.hook_dinput8 = false;
+        input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
         break;
 
       case SK_GAME_ID::SilentHill_f:

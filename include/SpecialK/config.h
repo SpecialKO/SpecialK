@@ -1916,6 +1916,7 @@ enum class SK_GAME_ID
   TitanQuest,                   // tq.exe
   Stellaris,                    // stellaris.exe
   PrinceOfPersia_TheLostCrown,  // TheLostCrown.exe, TheLostCrown_plus.exe
+  NinjaGaiden4,                 // NINJAGAIDEN4-WinGDK.exe, NINJAGAIDEN4-Steam.exe
 
   UNKNOWN_GAME               = 0xffff
 };
