@@ -844,26 +844,6 @@ SK_ImGui_LatentSyncConfig (void)
         }
       }
 
-      if (! bIsInvalidTearingMode)
-      {
-        if ( config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff ||
-             config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOn  )
-        {
-          if (rb.isTrueFullscreen ())
-          {
-            bIsInvalidTearingMode = true;
-
-            ImGui::SameLine    ();
-            ImGui::TextColored (
-              ImColor (0.0f, 1.0f, 1.0f),
-              ICON_FA_EXCLAMATION_TRIANGLE
-            );
-
-            ImGui::SetItemTooltip ("Adaptive Tearing works better in Fake Fullscreen or Windowed Mode");
-          }
-        }
-      }
-
       if (bIsD3D9)
       {
         bool bIsTearingD3D9 = [&]() -> bool
@@ -911,6 +891,57 @@ SK_ImGui_LatentSyncConfig (void)
             ImGui::SetItemTooltip ("Game Restart Required");
           }
         }
+      }
+
+      else if ((! bIsInvalidTearingMode) && rb.isTrueFullscreen ())
+      {
+        if ( config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff ||
+             config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOn  )
+        {
+          bIsInvalidTearingMode = true;
+
+          ImGui::SameLine    ();
+          ImGui::TextColored (
+            ImColor (0.0f, 1.0f, 1.0f),
+            ICON_FA_EXCLAMATION_TRIANGLE
+          );
+
+          ImGui::SetItemTooltip ("Adaptive Tearing works better in Fake Fullscreen or Windowed Mode");
+        }
+      }
+
+      switch (config.render.framerate.tearing_mode)
+      {
+        case SK_TearingMode::AdaptiveOff:
+        {
+          if (! rb.isTrueFullscreen ())
+          {
+            break;
+          }
+        }
+
+        case SK_TearingMode::AlwaysOff_LowLatency:
+        {
+          ImGui::Combo (
+            "Latency Mode",
+            &config.render.framerate.latency_mode,
+            "Smooth\0"
+            "Aggressive\0\0"
+          );
+
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::Text       ("Controls latency reduction behavior");
+            ImGui::Separator  ();
+            ImGui::BulletText ("Smooth mode is slower, but uses a parabola curve to minimize judder");
+            ImGui::BulletText ("Aggressive mode causes more judder, but reduces latency much faster");
+            ImGui::EndTooltip ();
+          }
+        } break;
+
+        default:
+        {
+        } break;
       }
 
       ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
@@ -2325,7 +2356,7 @@ SK::Framerate::Limiter::wait (void)
 
 
     static double      lastFps = fps;
-    if (std::exchange (lastFps,  fps) != lastFps) {
+    if (std::exchange (lastFps,  fps) != lastFps && __target_fps_temp <= 0.0f) {
       __scanline.lock.requestResync ();
     }
 
@@ -2694,6 +2725,32 @@ SK::Framerate::Limiter::wait (void)
               _RevertACTION (true);
             }
 
+            if ( ( bIsTearingModeAdaptiveOff &&
+                   bIsTrueFullscreen          ) ||
+                 ( bIsTearingModeAlwaysOffLL  ) )
+            {
+              switch (config.render.framerate.latency_mode)
+              {
+                case  SK_LatencyMode::Smooth:
+                case  SK_LatencyMode::Aggressive:
+                  break;
+                default:
+                  config.render.framerate.latency_mode =
+                      SK_LatencyMode::Smooth;
+                  break;
+              }
+            }
+
+            int iLatencyMode =
+              config.render.framerate.latency_mode;
+
+            static int         iLastLatencyMode = iLatencyMode;
+            if (std::exchange (iLastLatencyMode,  iLatencyMode) !=
+                                                  iLatencyMode)
+            {
+              _RevertACTION (true);
+            }
+
             bool bHighVariation = [&]() -> bool
             {
               bool bIgnoreHighVariation =
@@ -2849,6 +2906,15 @@ SK::Framerate::Limiter::wait (void)
 
               if (rb.presentation.avg_stats.display != 0.0)
               {
+                if ( __target_fps_temp > 0.0f &&
+                       SK_LatencyMode::Smooth ==
+                       config.render.framerate.latency_mode )
+                {
+                  return
+                    rb.presentation.avg_stats.latency /
+                    rb.presentation.avg_stats.display > 1.55;
+                }
+
                 return
                   rb.presentation.avg_stats.latency /
                   rb.presentation.avg_stats.display > 1.64;
@@ -3082,6 +3148,9 @@ SK::Framerate::Limiter::wait (void)
 
                     if (! bIsNewACTION)
                     {
+                      bool bIsNormalRenderLatency =
+                            (! bHighRenderLatency);
+
                       if (__target_fps_temp > 0.0f)
                       {
                         bHighRenderLatency = true;
@@ -3122,24 +3191,104 @@ SK::Framerate::Limiter::wait (void)
 
                         else if (bDontTear)
                         {
-                          if (__target_fps_temp >= __target_fps)
+                          if (__target_fps_temp > __target_fps)
                           {
                             bAbortACTION = true;
                             break;
                           }
 
-                          if ( dwWaitTime >=
-                               dwMaxWaitTime )
+                          if (__target_fps_temp > 0.0f)
                           {
-                            if (__target_fps_temp > 0.0f)
+                            switch (iLatencyMode)
                             {
-                              _RevertACTION ();
-                            }
+                              case SK_LatencyMode::Smooth:
+                              {
+                                static DWORD dwLastTempTime = 0;
 
-                            else
-                            {
-                              bIsNewACTION = true;
+                                static double dHalfMax =  20000.0,
+                                              dDiffMax =      1.0,
+                                              dHalf    = dHalfMax,
+                                              dDiff    = dDiffMax;
+
+                                if (__target_fps_temp == __target_fps)
+                                {
+                                  dHalf = dHalfMax;
+                                  dDiff = dDiffMax;
+
+                                  dwLastTempTime =
+                                  SK_timeGetTime () - dwMaxWaitTime;
+                                }
+
+                                if ( bIsNormalRenderLatency &&
+                                          dHalf == dHalfMax &&
+                                     dwWaitTime <= dHalfMax * 2.0 )
+                                {
+                                  dwLastTempTime =
+                                  SK_timeGetTime () - dwMaxWaitTime;
+
+                                  if (! SK_RenderBackend_V2::latency.stale)
+                                  {
+                                    dHalf = 2500.0;
+
+                                    dDiff = static_cast <double> (
+                                      fabs (
+                                        __target_fps_temp -
+                                        __target_fps
+                                      )
+                                    );
+
+                                    iLastWaitTime = SK_timeGetTime () -
+                                      (dwWaitTime = static_cast <DWORD> (dHalf));
+                                  }
+
+                                  else
+                                  {
+                                    iLastWaitTime = SK_timeGetTime () -
+                                      (dwWaitTime = static_cast <DWORD> (dHalf * 2.0));
+                                  }
+                                }
+
+                                if ( SK_timeGetTime () -
+                                     dwLastTempTime >= ( dHalf !=
+                                                         dHalfMax ? 500
+                                                                  : dwMaxWaitTime ) )
+                                {
+                                  dwLastTempTime =
+                                  SK_timeGetTime ();
+
+                                  __target_fps_temp = std::min (
+                                    static_cast <float> (
+                                      pow ( ( dwWaitTime   - dHalf )   *
+                                            ( sqrt (dDiff) / dHalf ), 2.0 ) + ( __target_fps - dDiff )
+                                    ),                                          __target_fps
+                                  );
+
+                                  if (__target_fps_temp == __target_fps)
+                                  {
+                                    _RevertACTION ();
+                                  }
+                                }
+                              } break;
+
+                              case SK_LatencyMode::Aggressive:
+                              {
+                                if ( dwWaitTime >=
+                                     dwMaxWaitTime )
+                                {
+                                  _RevertACTION ();
+                                }
+                              } break;
+
+                              default:
+                              {
+                              } break;
                             }
+                          }
+
+                          else if ( dwWaitTime >=
+                                    dwMaxWaitTime )
+                          {
+                            bIsNewACTION = true;
                           }
                         }
 
@@ -3167,8 +3316,19 @@ SK::Framerate::Limiter::wait (void)
 
                         else if (bDontTear)
                         {
-                          __target_fps_temp =
-                          __target_fps - 2.0f;
+                          switch (iLatencyMode)
+                          {
+                            case SK_LatencyMode::Smooth:
+                              __target_fps_temp =
+                              __target_fps;
+                              break;
+                            case SK_LatencyMode::Aggressive:
+                              __target_fps_temp =
+                              __target_fps - 2.0f;
+                              break;
+                            default:
+                              break;
+                          }
                         }
                       }
                     }
@@ -3855,8 +4015,10 @@ SK::Framerate::Limiter::set_limit (float& target)
     return;
   }
 
-  __scanline.lock.requestResync ();
-  wait_time.reset               ();
+  if (__target_fps_temp <= 0.0f)
+      __scanline.lock.requestResync ();
+
+  wait_time.reset ();
 
   init (target);
 }
