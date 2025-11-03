@@ -1854,7 +1854,7 @@ enum class SK_GAME_ID
   HonkaiStarRail,               // StarRail.exe
   NoMansSky,                    // NMS.exe
   DiabloIV,                     // Diablo IV.exe
-  CallOfDuty,                   // CoDSP.exe, CoDMP.exe (???)
+  CallOfDuty,                   // CoDSP.exe, CoDMP.exe (2003); CoDUOSP.exe, CoDUOMP.exe (2004)
   RatchetAndClank_RiftApart,    // RiftApart.exe
   SeriousSamFusion2017,         // Sam2017.exe / Sam2017_Unrestricted.exe
   Starfield,                    // Starfield.exe
