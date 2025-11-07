@@ -3079,13 +3079,22 @@ wglSwapBuffers (HDC hDC)
   if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
-  if (! config.render.osd.draw_in_vidcap)
-    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (wgl_swap_buffers));
+
+  config.render.osd._last_normal_frame = SK_GetFramesDrawn ();
+
+  if (                  config.render.framerate.present_interval != SK_NoPreference)
+    SK_GL_SwapInterval (config.render.framerate.present_interval);
+
+  if (config.render.osd.draw_in_vidcap)
+    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (gdi_swap_buffers));
 
   else
-    bRet = wgl_swap_buffers (hDC);
+    bRet = gdi_swap_buffers (hDC);
 
-  config.render.osd._last_vidcap_frame = SK_GetFramesDrawn ();
+#ifdef SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
+  bRet = TRUE;
+  SK_SetLastError (NOERROR);
+#endif
 
   SK_GL_SwapInterval (orig_swap_interval);
 
@@ -3690,7 +3699,7 @@ SK_HookGL (LPVOID)
         (wglGetProcAddress_pfn)SK_GetProcAddress       (local_gl, "wglGetProcAddress");
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
-                                 "wglSwapBuffers",
+                                 "5",
          static_cast_pfn <void*> (wglSwapBuffers),
          static_cast_p2p <void> (&wgl_swap_buffers) );
 
@@ -3718,6 +3727,12 @@ SK_HookGL (LPVOID)
                                  "wglSetPixelFormat",
          static_cast_pfn <void*> (wglSetPixelFormat),
          static_cast_p2p <void> (&wgl_set_pixel_format) );
+
+      // This hook is necessary for Kingpin: Life of Crime
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
+                                 "wglSwapBuffers",
+         static_cast_pfn <void*> (wglSwapBuffers),
+         static_cast_p2p <void> (&wgl_swap_buffers) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapMultipleBuffers",

@@ -1,4 +1,8 @@
-﻿25.10.22
+﻿25.11.7
+=======
+ + Added support for some older idTech (Quake 2 era) games.
+
+25.10.22
 ========
  + Disable DirectInput 8 hooks in Ninja Gaiden 4.
 
