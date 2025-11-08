@@ -1571,70 +1571,86 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
                            galaxy_overlay.getPtr           () );
   }
 
-  bool logged_on = false;
+  static bool logged_on = false;
 
   if (user_ != nullptr)
   {
-    logged_on =
-      SK_Galaxy_User_IsLoggedOn (user_) &&
-      SK_Galaxy_User_SignedIn   (user_);
-
-    if (! logged_on)
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      class SK_IAuthListener : public galaxy::api::IAuthListener
-      {
-      public:
-        virtual void OnAuthSuccess (void) final
-        {
-          gog->galaxy_id_ =
-            gog->User ()->GetGalaxyID ();
+      logged_on =
+        SK_Galaxy_User_IsLoggedOn (gog->user_) &&
+        SK_Galaxy_User_SignedIn   (gog->user_);
 
-          gog_log->Log (
-            L"SignInGalaxy (...) success! GalaxyID=%d",
-                                  gog->GetGalaxyID ().ToUint64 () );
+      if (! logged_on)
+      {
+        class SK_IAuthListener : public galaxy::api::IAuthListener
+        {
+        public:
+          virtual void OnAuthSuccess (void) final
+          {
+            gog->galaxy_id_ =
+              gog->User ()->GetGalaxyID ();
+
+            gog_log->Log (
+              L"SignInGalaxy (...) success! GalaxyID=%d",
+                                    gog->GetGalaxyID ().ToUint64 () );
 
 // Does not work, needs more debugging...
 #if 0
-          if (gog->Friends () != nullptr)
-          {
-            char                                  persona_name [512] = {};
-            gog->Friends ()->GetPersonaNameCopy ( persona_name, 511 );
-            gog->user_names.display_name        = persona_name;
-            gog->user_names.nickname            = persona_name;
+            if (gog->Friends () != nullptr)
+            {
+              char                                  persona_name [512] = {};
+              gog->Friends ()->GetPersonaNameCopy ( persona_name, 511 );
+              gog->user_names.display_name        = persona_name;
+              gog->user_names.nickname            = persona_name;
 
-            gog->Friends ()->RequestUserInformation (gog->GetGalaxyID ());
-          }
+              gog->Friends ()->RequestUserInformation (gog->GetGalaxyID ());
+            }
 #endif
 
-          SK_Galaxy_Stats_RequestUserStatsAndAchievements ( gog->Stats       (),
-                                                            gog->GetGalaxyID () );
-        }
+            SK_Galaxy_Stats_RequestUserStatsAndAchievements ( gog->Stats       (),
+                                                              gog->GetGalaxyID () );
+          }
 
-        virtual void OnAuthFailure (
-          galaxy::api::IAuthListener::FailureReason
-                                      failureReason ) final
+          virtual void OnAuthFailure (
+            galaxy::api::IAuthListener::FailureReason
+                                        failureReason ) final
+          {
+            gog_log->Log (
+              L"LogIn Authorization Failed, Error=%d", failureReason
+            );
+          }
+
+          virtual void OnAuthLost (void) final
+          {
+            gog_log->Log (
+              L"Authorization Lost?!"
+            );
+          }
+        } static auth_listener;
+
+        if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
         {
-          gog_log->Log (
-            L"LogIn Authorization Failed, Error=%d", failureReason
-          );
-        }
+          SK_SleepEx (1500UL, FALSE);
 
-        virtual void OnAuthLost (void) final
-        {
-          gog_log->Log (
-            L"Authorization Lost?!"
-          );
-        }
-      } static auth_listener;
+          logged_on =
+            SK_Galaxy_User_IsLoggedOn (gog->user_) &&
+            SK_Galaxy_User_SignedIn   (gog->user_);
 
-      if (SK_IsProcessRunning (L"GalaxyCommunication.exe"))
-      {
-        SK_Galaxy_User_SignInGalaxy ( user_, config.galaxy.require_online_mode,
-                                             config.galaxy.require_online_mode ? 15 : 5, &auth_listener );
+          if (! logged_on)
+          {
+            SK_Galaxy_User_SignInGalaxy ( gog->user_, config.galaxy.require_online_mode,
+                                                      config.galaxy.require_online_mode ? 15 : 5, &auth_listener );
+          }
+        }
       }
-    }
 
-    galaxy_id_ = user_->GetGalaxyID ();
+      gog->galaxy_id_ = gog->user_->GetGalaxyID ();
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Galaxy Deferred LogOn");
   }
 
   // Does not work, needs more debugging...
