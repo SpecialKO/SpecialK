@@ -315,6 +315,7 @@ SK_GetCurrentGameID (void)
           { L"TheLostCrown_plus.exe",                  SK_GAME_ID::PrinceOfPersia_TheLostCrown  },
           { L"NINJAGAIDEN4-Steam.exe",                 SK_GAME_ID::NinjaGaiden4                 }, // Steam Version
           { L"NINJAGAIDEN4-WinGDK.exe",                SK_GAME_ID::NinjaGaiden4                 }, // Microsoft Store Version
+          { L"Fall of Avalon.exe",                     SK_GAME_ID::TaintedGrail_FallOfAvalon    }
         };
 
     first_check  = false;
@@ -4345,6 +4346,10 @@ auto DeclKeybind =
         // Force DirectInput 8 hooks off to avoid controller disconnect messages
         config.input.gamepad.hook_dinput8 = false;
         input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
+        break;
+
+      case SK_GAME_ID::TaintedGrail_FallOfAvalon:
+        config.steam.disable_integration = true;
         break;
 
       case SK_GAME_ID::SilentHill_f:

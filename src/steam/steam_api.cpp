@@ -538,7 +538,7 @@ bool
 SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
                       size_t   max_size = MAX_PATH )
 {
-  if (max_size == 0 || config.platform.silent)
+  if (max_size == 0 || config.platform.silent || config.steam.disable_integration)
     return false;
 
   const wchar_t* wszSteamLib =
@@ -2894,7 +2894,7 @@ SK_Steam_LogAllAchievements (void)
 void
 SK_Steam_UnlockAchievement (uint32_t idx)
 {
-  if (config.platform.silent)
+  if (config.platform.silent || config.steam.disable_integration)
     return;
 
   if (! steam_achievements)
@@ -3297,7 +3297,7 @@ SK::SteamAPI::Init (bool pre_load)
 {
   UNREFERENCED_PARAMETER (pre_load);
 
-  if (config.platform.silent)
+  if (config.platform.silent || config.steam.disable_integration)
     return;
 }
 
@@ -3961,7 +3961,7 @@ void
 __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
 {
-  if (config.platform.silent)
+  if (config.platform.silent || config.steam.disable_integration)
     return;
 
   if (__SK_Steam_IgnoreOverlayActivation)
@@ -4588,7 +4588,7 @@ SK_HookSteamAPI (void)
 {
   static int hooks = 0;
 
-  if (config.platform.silent)
+  if (config.platform.silent || config.steam.disable_integration)
     return hooks;
 
   static const wchar_t* wszSteamAPI =
@@ -5988,7 +5988,7 @@ SK_Steam_RunClientCommand (const wchar_t *wszCommand)
 void
 SK_Steam_ForceInputAppId (AppId64_t appid)
 {
-  if (config.platform.silent)
+  if (config.platform.silent || config.steam.disable_integration)
     return;
 
   char                                                  configurator [8] = { };

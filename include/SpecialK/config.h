@@ -474,6 +474,8 @@ struct sk_config_t
     bool        auto_inject           =  true;  // Control implicit steam_api.dll bootstrapping
     bool        disable_overlay       = false;  // Sets an Env. Var to prevent drawing
     bool        crapcom_mode          = false;  // Workaround for CAPCOM DRM
+    bool        disable_integration   = false;  // Specifically disables Steam integration,
+                                                //   while allowing other stores...
 
     struct screenshot_handler_s {
       bool      enable_hook           =  true;
@@ -1917,6 +1919,7 @@ enum class SK_GAME_ID
   Stellaris,                    // stellaris.exe
   PrinceOfPersia_TheLostCrown,  // TheLostCrown.exe, TheLostCrown_plus.exe
   NinjaGaiden4,                 // NINJAGAIDEN4-WinGDK.exe, NINJAGAIDEN4-Steam.exe
+  TaintedGrail_FallOfAvalon,    // Fall of Avalon.exe
 
   UNKNOWN_GAME               = 0xffff
 };

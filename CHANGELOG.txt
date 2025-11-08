@@ -1,4 +1,9 @@
-﻿25.11.7
+﻿25.11.8
+=======
+ + Disabled SteamAPI integration in Tainted Grail: Fall of Avalon
+     (other Unity cross-store games may need this also).
+
+25.11.7
 =======
  + Added support for some older idTech (Quake 2 era) games.
 
