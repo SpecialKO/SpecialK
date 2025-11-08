@@ -1,4 +1,8 @@
-﻿25.11.8
+﻿25.11.8.1
+=========
+ + Fixed SecuROM issues in F.E.A.R. games.
+
+25.11.8
 =======
  + Disabled SteamAPI integration in Tainted Grail: Fall of Avalon
      (other Unity cross-store games may need this also).

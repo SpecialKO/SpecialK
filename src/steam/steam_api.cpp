@@ -704,6 +704,9 @@ WaitForSingleObject_Detour (
 BOOL
 SK_Steam_PreHookCore (const wchar_t* wszTry)
 {
+  if (config.steam.disable_integration)
+    return FALSE;
+
   static volatile LONG             init    =   FALSE;
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
     return TRUE;
@@ -3357,6 +3360,12 @@ SteamAPI_PumpThread (LPVOID user)
 
     return false;
   };
+
+  if (config.steam.disable_integration)
+  {
+    return
+      _Terminate ();
+  }
 
   static auto game_id =
     SK_GetCurrentGameID ();

@@ -1920,6 +1920,7 @@ enum class SK_GAME_ID
   PrinceOfPersia_TheLostCrown,  // TheLostCrown.exe, TheLostCrown_plus.exe
   NinjaGaiden4,                 // NINJAGAIDEN4-WinGDK.exe, NINJAGAIDEN4-Steam.exe
   TaintedGrail_FallOfAvalon,    // Fall of Avalon.exe
+  FEAR_Perseus_Mandate,         // ??
 
   UNKNOWN_GAME               = 0xffff
 };

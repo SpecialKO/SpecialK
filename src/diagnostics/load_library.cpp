@@ -2105,7 +2105,7 @@ SK_WalkModules_StepImpl (       HMODULE       hMod,
            StrStrIW (wszModName, wszSteamClientDLL) ||
            StrStrIW (wszModName, L"steamwrapper") )
       {
-        if (SK_GetCurrentGameID () != SK_GAME_ID::JustCause3)
+        if (! config.steam.disable_integration)
         {
           BOOL
           SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
@@ -2115,22 +2115,6 @@ SK_WalkModules_StepImpl (       HMODULE       hMod,
 
           if (SK_HookSteamAPI () > 0)
             new_hooks = true;
-        }
-
-        else
-        {
-          static volatile               LONG __init = 0;
-          if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
-          {
-            SK_Thread_Create ([](LPVOID) -> DWORD
-            {
-              SK_HookSteamAPI ();
-
-              SK_Thread_CloseSelf ();
-
-              return 0;
-            });
-          }
         }
       }
     }
