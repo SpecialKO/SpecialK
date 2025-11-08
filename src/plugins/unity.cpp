@@ -944,25 +944,30 @@ SK_Unity_Hookil2cppInit (void)
 
   once = true;
 
-  Il2cpp::initialize ();
+  if (SK_GetProcAddress (L"GameAssembly.dll", "il2cpp_init"))
+  {
+    Il2cpp::initialize ();
 
-  void*                   pfnil2cpp_init = nullptr;
-  SK_CreateDLLHook (       L"GameAssembly.dll",
-                            "il2cpp_init",
-                             il2cpp_init_Detour,
-    static_cast_p2p <void> (&il2cpp_init_Original),
-                         &pfnil2cpp_init );
-  SK_EnableHook    (      pfnil2cpp_init );
+    void*                   pfnil2cpp_init = nullptr;
+    SK_CreateDLLHook (       L"GameAssembly.dll",
+                              "il2cpp_init",
+                               il2cpp_init_Detour,
+      static_cast_p2p <void> (&il2cpp_init_Original),
+                           &pfnil2cpp_init );
+    SK_EnableHook    (      pfnil2cpp_init );
 
-  void*                   pfnil2cpp_init_utf16 = nullptr;
-  SK_CreateDLLHook (       L"GameAssembly.dll",
-                            "il2cpp_init_utf16",
-                             il2cpp_init_utf16_Detour,
-    static_cast_p2p <void> (&il2cpp_init_utf16_Original),
-                         &pfnil2cpp_init_utf16 );
-  SK_EnableHook    (      pfnil2cpp_init_utf16 );
+    void*                   pfnil2cpp_init_utf16 = nullptr;
+    SK_CreateDLLHook (       L"GameAssembly.dll",
+                              "il2cpp_init_utf16",
+                               il2cpp_init_utf16_Detour,
+      static_cast_p2p <void> (&il2cpp_init_utf16_Original),
+                           &pfnil2cpp_init_utf16 );
+    SK_EnableHook    (      pfnil2cpp_init_utf16 );
 
-  return true;
+    return true;
+  }
+
+  return false;
 }
 
 il2cpp::Wrapper* SK_il2cpp_Wrapper = nullptr;

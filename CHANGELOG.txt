@@ -1,4 +1,10 @@
-﻿25.11.8.1
+﻿25.11.8.2
+=========
+ + Add 1.5 second GalaxyAPI init delay for compatability with Unity
+     games on GOG.
+ + Disable il2cpp hooks in some games that do not support it.
+
+25.11.8.1
 =========
  + Fixed SecuROM issues in F.E.A.R. games.
 
