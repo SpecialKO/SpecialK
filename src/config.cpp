@@ -6238,9 +6238,12 @@ auto DeclKeybind =
       if ( SK_GetModuleHandleW (L"UnityPlayer.dll") ||
                PathFileExistsW (L"UnityPlayer.dll") )
       {
-        // Automatically disable Windows.Gaming.Input, because Unity's
-        //   implementation sucks
-        config.input.gamepad.windows_gaming_input.blackout_api = true;
+        if (!SK_IsCurrentGame (SK_GAME_ID::TaintedGrail_FallOfAvalon))
+        {
+          // Automatically disable Windows.Gaming.Input, because Unity's
+          //   implementation sucks
+          config.input.gamepad.windows_gaming_input.blackout_api = true;
+        }
       }
     }
   );

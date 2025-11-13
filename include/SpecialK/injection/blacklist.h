@@ -311,6 +311,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   // Genshin Impact's launcher
   L"hyp.exe",
+  L"hyphelper.exe",
 
   // Our image viewer
   L"skiv.exe",
