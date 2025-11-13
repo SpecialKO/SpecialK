@@ -2,6 +2,7 @@
 ========
  + Disable Hypnotoad Helper in Zenless Zone Zero and games of a similar
      persuasion.
+ + Removed broken "Maximum Lag Reduction" option from Unity engine games.
 
 25.11.8.2
 =========

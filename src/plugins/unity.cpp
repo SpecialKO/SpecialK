@@ -83,7 +83,6 @@ bool  SK_Unity_GlyphCacheDirty          = false;
 
 HANDLE SK_Unity_GetFrameStatsWaitEvent = 0;
 bool   SK_Unity_PaceGameThread         = true;
-bool   SK_Unity_OneFrameLag            = false;
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
@@ -228,12 +227,6 @@ SK_Unity_PlugInCfg (void)
         ImGui::Separator       ();
         ImGui::TextUnformatted ("Latency reduction is not reflected in Reflex timing diagram.");
         ImGui::EndTooltip ();
-      }
-
-      if (SK_Unity_PaceGameThread)
-      {
-        ImGui::SameLine ();
-        ImGui::Checkbox ("Maximum Lag Reduction", &SK_Unity_OneFrameLag);
       }
     }
 
