@@ -2362,15 +2362,15 @@ SK::ControlPanel::Input::Draw (void)
 
           if (bDualSense)
           {
-            if (config.input.gamepad.dualsense.improved_rumble)
+            if (ImGui::Checkbox ("Enhanced DualSense Rumble", &config.input.gamepad.dualsense.improved_rumble))
             {
-              if (ImGui::Checkbox ("Enhanced DualSense Rumble", &config.input.gamepad.dualsense.improved_rumble))
-              {
-                config.utility.save_async ();
-              }
-
-              ImGui::SameLine ();
+              config.utility.save_async ();
             }
+
+            ImGui::SetTooltip ("Increases the dynamic range of rumble, but many games that expect "
+                               "standard dynamic range rumble will feel weak.");
+
+            ImGui::SameLine ();
 
             if (! config.input.gamepad.dualsense.improved_rumble)
             {

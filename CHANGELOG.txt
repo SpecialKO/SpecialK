@@ -1,7 +1,12 @@
-﻿25.11.13
+﻿25.11.17
+========
+ + Allow Windows.Gaming.Input by default in Unity Engine 2022 and newer games.
+
+25.11.13
 ========
  + Disable Hypnotoad Helper in Zenless Zone Zero and games of a similar
      persuasion.
+ + Removed broken "Maximum Lag Reduction" option from Unity engine games.
 
 25.11.8.2
 =========

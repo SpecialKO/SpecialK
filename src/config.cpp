@@ -6227,18 +6227,50 @@ auto DeclKeybind =
   static bool do_win_verify_trust =
     (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run) || SK_IsAdmin ();
 
-  SK_RunOnce (
+  struct {
+    int          ver     = 0;
+    int          sub_ver = 0;
+    int          build   = 0;
+    int          rev     = 0;
+    std::wstring str     = L"";
+  } static unity_dll;
+
+  SK_RunOnce
+  (
+    if ( SK_GetModuleHandleW (L"UnityPlayer.dll") ||
+             PathFileExistsW (L"UnityPlayer.dll") )
+    {
+      unity_dll.str =
+        SK_GetDLLVersionShort (L"UnityPlayer.dll");
+    }
+
+    if (! unity_dll.str.empty () && unity_dll.ver == 0)
+    {
+      swscanf (unity_dll.str.c_str (), L"%x.%x.%x.%x", &unity_dll.ver, &unity_dll.sub_ver, &unity_dll.build, &unity_dll.rev);
+    }
+
     if (version->load (config.system.version)) {
                        config.system.first_run = false;
                        do_win_verify_trust     = false;
+
+      if (unity_dll.ver > 2022)
+      {
+        // Unity's WGI implementation is good now
+        if (! config.input.gamepad.xinput.blackout_api)
+        {
+          if (SK_GetCurrentGameID () != SK_GAME_ID::Tales_of_Graces)
+          {
+            config.input.gamepad.windows_gaming_input.blackout_api = false;
+          }
+        }
+      }
     }
 
     else
     {
-      if ( SK_GetModuleHandleW (L"UnityPlayer.dll") ||
-               PathFileExistsW (L"UnityPlayer.dll") )
+      if (! unity_ver.empty ())
       {
-        if (!SK_IsCurrentGame (SK_GAME_ID::TaintedGrail_FallOfAvalon))
+        if (unity_dll.ver < 2022)
         {
           // Automatically disable Windows.Gaming.Input, because Unity's
           //   implementation sucks
