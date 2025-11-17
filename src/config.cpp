@@ -6252,28 +6252,16 @@ auto DeclKeybind =
     if (version->load (config.system.version)) {
                        config.system.first_run = false;
                        do_win_verify_trust     = false;
-
-      if (unity_dll.ver > 2022)
-      {
-        // Unity's WGI implementation is good now
-        if (! config.input.gamepad.xinput.blackout_api)
-        {
-          if (SK_GetCurrentGameID () != SK_GAME_ID::Tales_of_Graces)
-          {
-            config.input.gamepad.windows_gaming_input.blackout_api = false;
-          }
-        }
-      }
     }
 
     else
     {
       if (! unity_dll.str.empty ())
       {
-        if (unity_dll.ver < 2022)
+        // Automatically disable Windows.Gaming.Input, because Unity's
+        //   implementation sucks
+        if (! GetModuleHandleW (L"Rewired_WindowsGamingInput.dll"))
         {
-          // Automatically disable Windows.Gaming.Input, because Unity's
-          //   implementation sucks
           config.input.gamepad.windows_gaming_input.blackout_api = true;
         }
       }

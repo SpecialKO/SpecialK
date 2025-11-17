@@ -1,4 +1,8 @@
-﻿25.11.17
+﻿25.11.17.1
+==========
+ + Apply 25.11.17 changes only to games using ReWired_WindowsGameInput.dll.
+
+25.11.17
 ========
  + Allow Windows.Gaming.Input by default in Unity Engine 2022 and newer games.
 
