@@ -6268,7 +6268,7 @@ auto DeclKeybind =
 
     else
     {
-      if (! unity_ver.empty ())
+      if (! unity_dll.str.empty ())
       {
         if (unity_dll.ver < 2022)
         {
