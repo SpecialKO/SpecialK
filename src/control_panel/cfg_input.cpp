@@ -2367,8 +2367,8 @@ SK::ControlPanel::Input::Draw (void)
               config.utility.save_async ();
             }
 
-            ImGui::SetTooltip ("Increases the dynamic range of rumble, but many games that expect "
-                               "standard dynamic range rumble will feel weak.");
+            ImGui::SetItemTooltip ("Increases the dynamic range of rumble, but many games that expect "
+                                   "standard dynamic range rumble will feel weak.");
 
             ImGui::SameLine ();
 
