@@ -157,50 +157,50 @@ void SK_HID_SetupPlayStationControllers (void)
     HDEVINFO hid_device_set = 
       SK_SetupDiGetClassDevsW (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
                                                                          DIGCF_PRESENT);
-    
+
     if (hid_device_set != INVALID_HANDLE_VALUE)
     {
       SP_DEVINFO_DATA devInfoData = {
         .cbSize = sizeof (SP_DEVINFO_DATA)
       };
-    
+
       SP_DEVICE_INTERFACE_DATA devInterfaceData = {
         .cbSize = sizeof (SP_DEVICE_INTERFACE_DATA)
       };
-    
+
       for (                                     DWORD dwDevIdx = 0            ;
             SK_SetupDiEnumDeviceInfo (hid_device_set, dwDevIdx, &devInfoData) ;
                                                     ++dwDevIdx )
       {
         devInfoData.cbSize      = sizeof (SP_DEVINFO_DATA);
         devInterfaceData.cbSize = sizeof (SP_DEVICE_INTERFACE_DATA);
-    
+
         if (! SK_SetupDiEnumDeviceInterfaces ( hid_device_set, nullptr, &GUID_DEVINTERFACE_HID,
                                                      dwDevIdx, &devInterfaceData) )
         {
           continue;
         }
-    
+
         static wchar_t devInterfaceDetailData [MAX_PATH + 2];
-    
+
         ULONG ulMinimumSize = 0;
-    
+
         SK_SetupDiGetDeviceInterfaceDetailW (
           hid_device_set, &devInterfaceData, nullptr,
             0, &ulMinimumSize, nullptr );
-    
+
         if (GetLastError () != ERROR_INSUFFICIENT_BUFFER)
           continue;
-    
+
         if (ulMinimumSize > sizeof (wchar_t) * (MAX_PATH + 2))
           continue;
-    
+
         SP_DEVICE_INTERFACE_DETAIL_DATA *pDevInterfaceDetailData =
           (SP_DEVICE_INTERFACE_DETAIL_DATA *)devInterfaceDetailData;
-    
+
         pDevInterfaceDetailData->cbSize =
           sizeof (SP_DEVICE_INTERFACE_DETAIL_DATA);
-    
+
         if ( SK_SetupDiGetDeviceInterfaceDetailW (
                hid_device_set, &devInterfaceData, pDevInterfaceDetailData,
                  ulMinimumSize, &ulMinimumSize, nullptr ) )
@@ -232,7 +232,7 @@ void SK_HID_SetupPlayStationControllers (void)
             CloseHandle (hDeviceFile);
             continue;
           }
-    
+
           const bool bSONY = 
             hidAttribs.VendorID == SK_HID_VID_SONY;
 
@@ -311,7 +311,7 @@ void SK_HID_SetupPlayStationControllers (void)
             SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
             continue;
           }
-    
+
           wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                 wszFileName,   _TRUNCATE);
 
@@ -416,7 +416,7 @@ void SK_HID_SetupPlayStationControllers (void)
 
           controller.bConnected         = true;
           controller.output.last_crc32c = 0;
-    
+
           const auto iter =
             SK_HID_PlayStationControllers.push_back (controller);
 
@@ -432,7 +432,7 @@ void SK_HID_SetupPlayStationControllers (void)
           controller.pPreparsedData = nullptr;
         }
       }
-    
+
       SK_SetupDiDestroyDeviceInfoList (hid_device_set);
     }
 
@@ -2830,11 +2830,16 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             WaitForMultipleObjects ( _countof (hEvents),
                                                hEvents, FALSE, INFINITE );
 
-          if (dwWaitState == WAIT_OBJECT_0)
+          if (! pDevice->bTerminating && WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0)
+                pDevice->bTerminating = true;
+          if (  pDevice->bTerminating || dwWaitState == WAIT_OBJECT_0)
           {
-            pDevice->setVibration (0, 0);
-            bQuit     = true;
+            pDevice->setVibration         (0, 0);
+            pDevice->reset_force_feedback (    ); // DualSense only
             bFinished = true;
+
+            if (ReadAcquire (&__SK_DLL_Ending))
+              bQuit = true;
           }
 
           if (dwWaitState == (WAIT_OBJECT_0 + 2))
@@ -2946,7 +2951,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    +
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
-            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
+            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0) || pDevice->bTerminating;
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
@@ -3125,7 +3130,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc)
+                                                            base_data_crc && !pDevice->bTerminating)
             {
               bFinished = true;
 
@@ -3176,7 +3181,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    +
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
-            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
+            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0) || pDevice->bTerminating;
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
@@ -3404,7 +3409,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc)
+                                                            base_data_crc && !pDevice->bTerminating)
             {
               bFinished = true;
 
@@ -3523,7 +3528,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       }, L"[SK] HID Output Report Producer", this);
     }
 
-    else
+    else if (ReadAcquire (&bNeedOutput))
       SetEvent (hOutputEnqueued);
 
     return true;
@@ -3616,11 +3621,15 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             WaitForMultipleObjects ( _countof (hEvents),
                                                hEvents, FALSE, INFINITE );
 
-          if (dwWaitState == WAIT_OBJECT_0)
+          if (! pDevice->bTerminating && WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0)
+                pDevice->bTerminating = true;
+          if (  pDevice->bTerminating || dwWaitState == WAIT_OBJECT_0)
           {
             pDevice->setVibration (0, 0);
-            bQuit     = true;
             bFinished = true;
+
+            if (ReadAcquire (&__SK_DLL_Ending))
+              bQuit = true;
           }
 
           if (dwWaitState == (WAIT_OBJECT_0 + 2))
@@ -3727,7 +3736,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc)
+                                                            base_data_crc && !pDevice->bTerminating)
             {
               bFinished = true;
 
@@ -3834,7 +3843,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               crc32c (0, output, sizeof (*output));
 
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
-                                                            base_data_crc)
+                                                            base_data_crc && !pDevice->bTerminating)
             {
               bFinished = true;
 
@@ -4048,9 +4057,32 @@ SK_DualSense_ApplyOutputReportFilter (SK_HID_DualSense_SetStateData* pSetState)
 
     if (pSetState->AllowMuteLight)
     {
-      // SK controls this!
+      // SK controls this!777
       pSetState->AllowMuteLight = false;
       data_changed              =  true;
+    }
+
+    if (pSetState->AllowMotorPowerLevel)
+    {
+      if (config.input.gamepad.dualsense.improved_rumble)
+      {
+        // Firmware reqs
+        pSetState->EnableImprovedRumbleEmulation = true;
+        pSetState->AllowMotorPowerLevel          = true;
+        pSetState->RumbleMotorPowerReduction     = 0;
+        pSetState->TriggerMotorPowerReduction    = 0;
+      }
+
+      else
+      {
+        pSetState->EnableImprovedRumbleEmulation = false;
+        pSetState->AllowMotorPowerLevel          = true;
+        pSetState->EnableRumbleEmulation         = true;
+        pSetState->RumbleMotorPowerReduction     = std::min (7ui8, (uint8_t)(std::clamp (100.0f - config.input.gamepad.dualsense.rumble_strength, 0.0f, 100.0f) / 12.5f));
+        pSetState->TriggerMotorPowerReduction    = std::min (7ui8, (uint8_t)(std::clamp (100.0f - config.input.gamepad.dualsense.rumble_strength, 0.0f, 100.0f) / 12.5f));
+      }
+
+      data_changed = true;
     }
   }
 
