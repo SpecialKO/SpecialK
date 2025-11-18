@@ -779,9 +779,15 @@ void SK_SEH_InitFinishCallback (void)
     }
 
     // Apply a powerscheme override if one is set
-    if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid))
+    if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid) &&
+        ! IsEqualGUID (config.cpu.power_scheme_guid_orig,
+                       config.cpu.power_scheme_guid))
     {
-      PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
+      if ( ERROR_SUCCESS !=
+             PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid) )
+      {
+        config.cpu.power_scheme_guid = nil_guid;
+      }
     }
   }__except(GetExceptionCode()==EXCEPTION_WINE_STUB      ?
                                 EXCEPTION_EXECUTE_HANDLER:
@@ -3265,10 +3271,18 @@ SK_ShutdownCore (const wchar_t* backend)
   ShutdownWMIThread (pagefile_stats.hShutdownSignal,
                      pagefile_stats.hThread,          L"Pagefile Monitor");
 
-  PowerSetActiveScheme (
-    nullptr,
-      &config.cpu.power_scheme_guid_orig
-  );
+  // Does power scheme need a reset? If not, skip this to avoid Windows Event Viewer spam
+  if (! IsEqualGUID (config.cpu.power_scheme_guid_orig,
+                     config.cpu.power_scheme_guid) &&
+      ! IsEqualGUID (config.cpu.power_scheme_guid, GUID {}))
+  {
+    if ( ERROR_SUCCESS != PowerSetActiveScheme (
+                            nullptr,
+                              &config.cpu.power_scheme_guid_orig ) )
+    {
+      config.cpu.power_scheme_guid = GUID {};
+    }
+  }
 
   if (! SK_Debug_IsCrashing ())
   {

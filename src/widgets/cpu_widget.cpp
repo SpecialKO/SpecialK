@@ -1633,6 +1633,35 @@ public:
                                              DEVICE_NOTIFY_CALLBACK,
                                                (HANDLE)&dnsp,
                                                  &active_scheme.notify );
+
+        static const GUID nil_guid = {     };
+              GUID* pGUID          = nullptr;
+
+        if (IsEqualGUID (config.cpu.power_scheme_guid_orig, nil_guid))
+        {
+          // Make note of the system's original power scheme
+          if ( ERROR_SUCCESS ==
+                 PowerGetActiveScheme ( nullptr,
+                                          &pGUID )
+             )
+          {
+            config.cpu.power_scheme_guid_orig = *pGUID;
+
+            SK_LocalFree ((HLOCAL)pGUID);
+          }
+        }
+
+        // Apply a powerscheme override if one is set
+        if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid) &&
+            ! IsEqualGUID (config.cpu.power_scheme_guid_orig,
+                           config.cpu.power_scheme_guid))
+        {
+          if ( ERROR_SUCCESS != PowerSetActiveScheme (
+                                  nullptr, &config.cpu.power_scheme_guid ) )
+          {
+            config.cpu.power_scheme_guid = nil_guid;
+          }
+        }
       }
     }
   };
@@ -1652,7 +1681,16 @@ public:
       }
     }
 
-    PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid_orig);
+    if (! IsEqualGUID (config.cpu.power_scheme_guid_orig,
+                       config.cpu.power_scheme_guid) )
+    {
+      if ( ERROR_SUCCESS != PowerSetActiveScheme (
+                              nullptr,
+                                &config.cpu.power_scheme_guid_orig ) )
+      {
+        config.cpu.power_scheme_guid = GUID {};
+      }
+    }
   }
 
   void run (void) override
@@ -2237,9 +2275,10 @@ public:
                   ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
                   if (ImGui::Selectable  (it.utf8_name, &selected))
                   {
-                    PowerSetActiveScheme (nullptr, &it.uid);
-
-                    config.cpu.power_scheme_guid =  it.uid;
+                    if (ERROR_SUCCESS == PowerSetActiveScheme (nullptr, &it.uid))
+                    {
+                      config.cpu.power_scheme_guid = it.uid;
+                    }
 
                     signalDeviceChange ();
 

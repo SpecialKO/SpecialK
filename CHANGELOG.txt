@@ -1,4 +1,9 @@
-﻿25.11.18
+﻿25.11.18.1
+==========
+ + Eliminate unnecessary Power Policy changes that would spam Windows Event Viewer
+     during game start/exit.
+
+25.11.18
 ========
  + Improved reliability of blocking gamepad input to DirectInput games.
  + Improved detection and auto-disable of SteamAPI hooks in Unity Engine games
