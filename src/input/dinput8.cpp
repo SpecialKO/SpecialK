@@ -1350,19 +1350,34 @@ IDirectInputDevice8A_Poll_Detour ( IDirectInputDevice8A* This)
 
   switch (devInst.dwDevType)
   {
+    default:
     case DI8DEVTYPE_GAMEPAD:
     case DI8DEVTYPE_JOYSTICK:
       if (SK_ImGui_WantGamepadCapture ())
       {
-        SK_LOGi0 (
-          L"Prevented DirectInput from polling a gamepad because "
-          L"gamepad input is currently blocked by SK."
-        );
+        // Block gamepads
+        if (devInst.wUsage == 0x5 && devInst.wUsagePage == 0x1)
+        {
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Prevented DirectInput from polling a gamepad because "
+              L"gamepad input is currently blocked by SK."
+            )
+          );
 
-        return DI_NOEFFECT;
+          return DI_NOEFFECT;
+        }
+
+        else
+          SK_RunOnce (
+            SK_LOGi0 (
+              "Unexpected Usage (%x) and/or UsagePage (%x) for %hs",
+                devInst.wUsage, devInst.wUsagePage, devInst.tszProductName)
+          );
       }
 
-    default:
+    case DI8DEVTYPE_MOUSE:
+    case DI8DEVTYPE_KEYBOARD:
       break;
   }
 
@@ -1381,19 +1396,34 @@ IDirectInputDevice8W_Poll_Detour ( IDirectInputDevice8W* This)
 
   switch (devInst.dwDevType)
   {
+    default:
     case DI8DEVTYPE_GAMEPAD:
     case DI8DEVTYPE_JOYSTICK:
       if (SK_ImGui_WantGamepadCapture ())
       {
-        SK_LOGi0 (
-          L"Prevented DirectInput from polling a gamepad because "
-          L"gamepad input is currently blocked by SK."
-        );
+        // Block gamepads
+        if (devInst.wUsage == 0x5 && devInst.wUsagePage == 0x1)
+        {
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Prevented DirectInput from polling a gamepad because "
+              L"gamepad input is currently blocked by SK."
+            )
+          );
 
-        return DI_NOEFFECT;
+          return DI_NOEFFECT;
+        }
+
+        else
+          SK_RunOnce (
+            SK_LOGi0 (
+              "Unexpected Usage (%x) and/or UsagePage (%x) for %ws",
+                devInst.wUsage, devInst.wUsagePage, devInst.tszProductName)
+          );
       }
 
-    default:
+    case DI8DEVTYPE_MOUSE:
+    case DI8DEVTYPE_KEYBOARD:
       break;
   }
 
