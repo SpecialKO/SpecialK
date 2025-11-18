@@ -4534,6 +4534,13 @@ using IDirectInputDevice8A_SetCooperativeLevel_pfn = HRESULT (WINAPI *)(
   DWORD                 dwFlags
 );
 
+using IDirectInputDevice8A_Poll_pfn = HRESULT (WINAPI *)(
+  IDirectInputDevice8A* This
+);
+using IDirectInputDevice8W_Poll_pfn = HRESULT (WINAPI *)(
+  IDirectInputDevice8W* This
+);
+
 #include <cstdint>
 
 struct SK_DI8_Keyboard {

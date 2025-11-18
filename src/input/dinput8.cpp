@@ -84,6 +84,12 @@ IDirectInputDevice8A_GetDeviceState_pfn
 IDirectInputDevice8A_SetCooperativeLevel_pfn
         IDirectInputDevice8A_SetCooperativeLevel_Original  = nullptr;
 
+IDirectInputDevice8A_Poll_pfn
+IDirectInputDevice8A_Poll_Original = nullptr;
+
+IDirectInputDevice8W_Poll_pfn
+IDirectInputDevice8W_Poll_Original = nullptr;
+
 HRESULT
 WINAPI
 IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
@@ -1335,6 +1341,54 @@ SK_DInput8_HasMouse (void)
 
 HRESULT
 WINAPI
+IDirectInputDevice8A_Poll_Detour ( IDirectInputDevice8A* This)
+{
+  SK_LOG_FIRST_CALL
+
+  DIDEVICEINSTANCEA     devInst = { .dwSize = sizeof (DIDEVICEINSTANCEA) };
+  This->GetDeviceInfo (&devInst);
+
+  switch (devInst.dwDevType)
+  {
+    case DI8DEVTYPE_GAMEPAD:
+    case DI8DEVTYPE_JOYSTICK:
+      if (SK_ImGui_WantGamepadCapture ())
+      return DI_NOEFFECT;
+
+    default:
+      break;
+  }
+
+  return
+    IDirectInputDevice8A_Poll_Original (This);
+}
+
+HRESULT
+WINAPI
+IDirectInputDevice8W_Poll_Detour ( IDirectInputDevice8W* This)
+{
+  SK_LOG_FIRST_CALL
+
+  DIDEVICEINSTANCEW     devInst = { .dwSize = sizeof (DIDEVICEINSTANCEW) };
+  This->GetDeviceInfo (&devInst);
+
+  switch (devInst.dwDevType)
+  {
+    case DI8DEVTYPE_GAMEPAD:
+    case DI8DEVTYPE_JOYSTICK:
+      if (SK_ImGui_WantGamepadCapture ())
+      return DI_NOEFFECT;
+
+    default:
+      break;
+  }
+
+  return
+    IDirectInputDevice8W_Poll_Original (This);
+}
+
+HRESULT
+WINAPI
 IDirectInputDevice8A_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8A This,
                                              DWORD                 cbData,
                                              LPVOID                lpvData )
@@ -1603,6 +1657,16 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
         SK_EnableHook (vftable [13]);
       }
 
+      if (! IDirectInputDevice8W_Poll_Original)
+      {
+        SK_CreateFuncHook (      L"IDirectInputDevice8W::Poll",
+                                   vftable [25],
+                                   IDirectInputDevice8W_Poll_Detour,
+          static_cast_p2p <void> (&IDirectInputDevice8W_Poll_Original) );
+
+        SK_EnableHook (vftable [25]);
+      }
+
       if (rguid == GUID_SysMouse)
       {
         _dim8->pDev = *lplpDirectInputDevice;
@@ -1719,6 +1783,16 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
           static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
 
         SK_EnableHook (vftable [13]);
+      }
+
+      if (! IDirectInputDevice8A_Poll_Original)
+      {
+        SK_CreateFuncHook (      L"IDirectInputDevice8A::Poll",
+                                   vftable [25],
+                                   IDirectInputDevice8A_Poll_Detour,
+          static_cast_p2p <void> (&IDirectInputDevice8A_Poll_Original) );
+
+        SK_EnableHook (vftable [25]);
       }
 
       if (rguid == GUID_SysMouse)
