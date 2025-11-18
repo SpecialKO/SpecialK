@@ -1,7 +1,9 @@
 ﻿25.11.18.1
 ==========
- + Eliminate unnecessary Power Policy changes that would spam Windows Event Viewer
+ + Eliminate redundant Power Policy changes that would spam Windows Event Viewer
      during game start/exit.
+ + Set DualSense Adaptive Trigger Force Feedback to "Off" instead of "Vibration",
+    when there is no emulated rumble input to process.
 
 25.11.18
 ========

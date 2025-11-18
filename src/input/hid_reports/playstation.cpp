@@ -3008,9 +3008,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             if (dwLeftTrigger != 0 || dwRightTrigger != 0 || last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
             {
-              auto effect =      (dwLeftTrigger != 0) ?
+              auto effect =     (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                playstation_trigger_effect::Feedback;
+                                        bResistChange ? playstation_trigger_effect::Feedback
+                                                      : playstation_trigger_effect::Off;
 
               if (dwLeftTrigger != 0)
               {
@@ -3028,7 +3029,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               effect =          (dwRightTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                playstation_trigger_effect::Feedback;
+                                        bResistChange ? playstation_trigger_effect::Feedback
+                                                      : playstation_trigger_effect::Off;
 
               if (dwRightTrigger != 0)
               {
@@ -3235,9 +3237,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             if (dwLeftTrigger != 0 || dwRightTrigger != 0 || last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
             {
-              auto effect =      (dwLeftTrigger != 0) ?
+              auto effect = (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                playstation_trigger_effect::Feedback;
+                                        bResistChange ? playstation_trigger_effect::Feedback
+                                                      : playstation_trigger_effect::Off;
 
               if (dwLeftTrigger != 0)
               {
@@ -3255,7 +3258,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               effect =          (dwRightTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                  playstation_trigger_effect::Feedback;
+                                        bResistChange ? playstation_trigger_effect::Feedback
+                                                      : playstation_trigger_effect::Off;
 
               if (dwRightTrigger != 0)
               {
