@@ -390,6 +390,11 @@ static inline auto
         SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); });
 #define SK_LOG_FIRST_EXTERNAL_CALL if (SK_GetCallingDLL () != __SK_hModSelf) SK_LOG_FIRST_CALL
 
+#define SK_LOG_FIRST_CALL_TO_LOG(log) SK_RunOnce ({                                           \
+        SK_LOG0_EXF (log, (L"[!] > First Call: %34s", __FUNCTIONW__),      __SK_SUBSYSTEM__); \
+        SK_LOG1_EXF (log, (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); });
+#define SK_LOG_FIRST_EXTERNAL_CALL_TO_LOG(log) if (SK_GetCallingDLL () != __SK_hModSelf) SK_LOG_FIRST_CALL_TO_LOG (log)
+
 
 void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,

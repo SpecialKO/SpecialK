@@ -1,4 +1,14 @@
-﻿25.11.17.1
+﻿25.11.18
+========
+ + Improved reliability of blocking gamepad input to DirectInput games.
+ + Improved detection and auto-disable of SteamAPI hooks in Unity Engine games
+     that use Manual Callback Dispatch (i.e. use Steamworks.NET).
+
+    * SK's Steam functionality can still be used, but certain game overrides do
+        not work because SK must maintain a separate instance of SteamAPI for its
+          use from the one the game is using to prevent SteamAPI callback failures.
+
+25.11.17.1
 ==========
  + Apply 25.11.17 changes only to games using ReWired_WindowsGameInput.dll.
 

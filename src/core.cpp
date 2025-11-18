@@ -4099,19 +4099,8 @@ SK_BackgroundRender_EndFrame (void)
         config.nvidia.reflex.enforcement_site = 0; // Reduce stutter
       }
 
-      // Disable SteamAPI integration in newer Unity engine games because of incompatibility
-      if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 && SK_GetModuleHandleW (L"UnityPlayer.dll"))
+      if (SK_GetModuleHandleW (L"UnityPlayer.dll"))
       {
-        if (! std::exchange (config.platform.silent, true))
-        {
-          SK_MessageBox (
-            L"Disabling SteamAPI Integration in D3D12 Unity Game...",
-            L"Special K Compatibility Layer", MB_OK
-          );
-
-          SK_RestartGame ();
-        }
-
         // Unity loads OpenGL but never uses it, disable OpenGL hooks to avoid
         //   unnecessary complications in GOG games.
         config.apis.OpenGL.hook = false;

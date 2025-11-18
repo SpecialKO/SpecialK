@@ -29,6 +29,10 @@
 #endif
 #define __SK_SUBSYSTEM__ L" SteamAPI "
 
+#define SK_ARGS(...)            __VA_ARGS__
+#define SK_STRIP_PARENTHESIS(X) X
+#define SK_VARIADIC(X)          SK_STRIP_PARENTHESIS( SK_ARGS X )
+
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
 #define STEAM_API_NODLL
@@ -189,6 +193,15 @@ extern "C" {
   SteamAPI_ManualDispatch_Init_pfn
   SteamAPI_ManualDispatch_Init         = nullptr,
   SteamAPI_ManualDispatch_Init_Original= nullptr;
+
+  SteamAPI_ManualDispatch_RunFrame_pfn
+  SteamAPI_ManualDispatch_RunFrame_Original         = nullptr;
+  SteamAPI_ManualDispatch_GetNextCallback_pfn
+  SteamAPI_ManualDispatch_GetNextCallback_Original  = nullptr;
+  SteamAPI_ManualDispatch_FreeLastCallback_pfn
+  SteamAPI_ManualDispatch_FreeLastCallback_Original = nullptr;
+  SteamAPI_ManualDispatch_GetAPICallResult_pfn
+  SteamAPI_ManualDispatch_GetAPICallResult_Original = nullptr;
 
   SteamAPI_RunCallbacks_pfn
   SteamAPI_RunCallbacks                = nullptr,
@@ -4075,64 +4088,152 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when, bool allow_sound, std::st
 
 
 
+void
+SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI (void)
+{
+  if (config.system.silent)
+    return;
+
+  static std::filesystem::path steam_path (
+    SK_GetInstallPath ()
+  );
+
+  SK_RunOnce (
+    steam_path /= LR"(PlugIns\ThirdParty\Steamworks)";
+    steam_path /= SK_RunLHIfBitness (32, L"steam_api_sk.dll",
+                                         L"steam_api_sk64.dll");
+  );
+
+  if (config.steam.dll_path != steam_path)
+  {
+    if (steam_log.getPtr () != nullptr && (! steam_log->silent))
+    {   steam_log->Log (
+        L"Disabling Direct SteamAPI Integration  [ Manual Callback Dispatch Req. ]" );
+    }
+
+    config.platform.silent =
+      !( PathFileExistsW ( steam_path.c_str () ));
+
+    if (! config.platform.silent) {
+          config.steam.auto_inject         = true;
+          config.steam.auto_pump_callbacks = true;
+          config.steam.force_load_steamapi = true;
+          config.steam.init_delay          = 2500;
+          config.steam.dll_path            =
+                            steam_path.wstring ();
+    }else
+    {
+      // Platform integration must be disabled,
+      //   Special K does not support this.
+      config.steam.dll_path            = L"";
+      config.steam.auto_inject         = false;
+      config.steam.force_load_steamapi = false;
+
+      SK_GetDLLConfig ()->get_section (L"Steam.Log").
+                            get_value (L"Silent").
+                               assign (L"true");
+    }
+
+    SK_SaveConfig   ();
+    SK_GetDLLConfig ()->write ();
+
+    InterlockedExchange (&__SK_DLL_Ending, 1);
+
+    MessageBoxW ( 0,
+      L"Special K Does not Support standard SteamAPI Integration in this Game",
+      L"Please Restart Game for Compatibility Mode", MB_ICONWARNING | MB_OK |
+                                    MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST );
+
+    SK_RestartGame ();
+
+    TerminateProcess (
+      GetCurrentProcess (), 0x0
+    );
+  }
+}
+
+void
+S_CALLTYPE
+SteamAPI_ManualDispatch_RunFrame_Detour (HSteamPipe hSteamPipe)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI ();
+
+  if (SteamAPI_ManualDispatch_RunFrame_Original != nullptr)
+      SteamAPI_ManualDispatch_RunFrame_Original (hSteamPipe);
+}
+
+bool
+S_CALLTYPE
+SteamAPI_ManualDispatch_GetNextCallback_Detour (HSteamPipe hSteamPipe, CallbackMsg_t *pCallbackMsg)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI ();
+
+  return (SteamAPI_ManualDispatch_GetNextCallback_Original != nullptr)                ?
+          SteamAPI_ManualDispatch_GetNextCallback_Original (hSteamPipe, pCallbackMsg) : false;
+}
+
+void
+S_CALLTYPE
+SteamAPI_ManualDispatch_FreeLastCallback_Detour (HSteamPipe hSteamPipe)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI ();
+
+  if (SteamAPI_ManualDispatch_FreeLastCallback_Original != nullptr)
+      SteamAPI_ManualDispatch_FreeLastCallback_Original (hSteamPipe);
+}
+
+bool
+S_CALLTYPE
+SteamAPI_ManualDispatch_GetAPICallResult_Detour ( HSteamPipe      hSteamPipe,
+                                                  SteamAPICall_t  hSteamAPICall,
+                                                  void           *pCallback,
+                                                  int           cubCallback,
+                                                  int             iCallbackExpected,
+                                                  bool          *pbFailed )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI ();
+
+  if (     SteamAPI_ManualDispatch_GetAPICallResult_Original != nullptr)
+    return SteamAPI_ManualDispatch_GetAPICallResult_Original (hSteamPipe, hSteamAPICall,
+                                        pCallback,
+                                      cubCallback,
+                                        iCallbackExpected,
+                                        pbFailed);
+
+  SK_RunOnce (
+    steam_log->Log (
+      L"SteamAPI Manual Dispatch GetAPICallResult Failed Because Hook is Broken...?!"
+    );
+  );
+
+  return false;
+}
 
 void
 S_CALLTYPE
 SteamAPI_ManualDispatch_Init_Detour (void)
 {
-  if (SteamAPI_ManualDispatch_Init_Original != nullptr)
-      SteamAPI_ManualDispatch_Init_Original ();
+  SK_LOG_FIRST_CALL
 
-  if (steam_log.getPtr () != nullptr && (! steam_log->silent))
-  {   steam_log->Log (
-      L"Disabling Direct SteamAPI Integration  [ Manual Callback Dispatch Req. ]" );
-  }
+  SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI ();
 
-  std::filesystem::path steam_path (
-    SK_GetInstallPath ()
-  );
+  if (     SteamAPI_ManualDispatch_Init_Original != nullptr)
+    return SteamAPI_ManualDispatch_Init_Original ();
 
-  steam_path /= LR"(PlugIns\ThirdParty\Steamworks)";
-  steam_path /= SK_RunLHIfBitness (32, L"steam_api_sk.dll",
-                                       L"steam_api_sk64.dll");
-
-  config.platform.silent =
-    !( PathFileExistsW ( steam_path.c_str () ));
-
-  if (! config.platform.silent) {
-        config.steam.auto_inject         = true;
-        config.steam.auto_pump_callbacks = true;
-        config.steam.force_load_steamapi = true;
-        config.steam.init_delay          =    1;
-        config.steam.dll_path            =
-                          steam_path.wstring ();
-  }else
-  {
-    // Platform integration must be disabled,
-    //   Special K does not support this.
-    config.steam.dll_path            = L"";
-    config.steam.auto_inject         = false;
-    config.steam.force_load_steamapi = false;
-
-    SK_GetDLLConfig ()->get_section (L"Steam.Log").
-                          get_value (L"Silent").
-                             assign (L"true");
-  }
-
-  SK_SaveConfig   ();
-  SK_GetDLLConfig ()->write ();
-
-  InterlockedExchange (&__SK_DLL_Ending, 1);
-
-  SK_RestartGame ();
-
-  MessageBoxW ( 0,
-    L"Special K Does not Support SteamAPI Integration in this game",
-    L"Please Restart Game", MB_ICONWARNING | MB_OK | MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST );
-
-  TerminateProcess (
-    GetCurrentProcess (), 0x0
-  );
+  else
+  SK_RunOnce ({
+    steam_log->Log (
+      L"SteamAPI Manual Dispatch Init Failed Because Hook is Broken...?!"
+    );
+  });
 }
 
 bool
@@ -4616,13 +4717,28 @@ SK_HookSteamAPI (void)
     );
 
     // New part of SteamAPI, don't try to hook unless the DLL exports it
-    if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ManualDispatch_Init"))
+    if (SK_GetProcAddress (wszSteamAPI,           "SteamAPI_ManualDispatch_Init"))
     {
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_ManualDispatch_Init",
-                          SteamAPI_ManualDispatch_Init_Detour,
+      SK_CreateDLLHook2 (  wszSteamAPI,           "SteamAPI_ManualDispatch_Init",
+                                                   SteamAPI_ManualDispatch_Init_Detour,
                           static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init_Original),
                           static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
+
+      SK_CreateDLLHook2 (  wszSteamAPI,           "SteamAPI_ManualDispatch_RunFrame",
+                                                   SteamAPI_ManualDispatch_RunFrame_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_RunFrame_Original) ); ++hooks;
+
+      SK_CreateDLLHook2 (  wszSteamAPI,           "SteamAPI_ManualDispatch_GetNextCallback",
+                                                   SteamAPI_ManualDispatch_GetNextCallback_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_GetNextCallback_Original) ); ++hooks;
+
+      SK_CreateDLLHook2 (  wszSteamAPI,           "SteamAPI_ManualDispatch_FreeLastCallback",
+                                                   SteamAPI_ManualDispatch_FreeLastCallback_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_FreeLastCallback_Original) ); ++hooks;
+
+      SK_CreateDLLHook2 (  wszSteamAPI,           "SteamAPI_ManualDispatch_GetAPICallResult",
+                                                   SteamAPI_ManualDispatch_GetAPICallResult_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_GetAPICallResult_Original) ); ++hooks;
     }
 
     // Newer SteamAPI DLLs may not export this symbol, in which case we fallback to InitSafe

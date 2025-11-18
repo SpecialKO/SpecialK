@@ -1353,7 +1353,14 @@ IDirectInputDevice8A_Poll_Detour ( IDirectInputDevice8A* This)
     case DI8DEVTYPE_GAMEPAD:
     case DI8DEVTYPE_JOYSTICK:
       if (SK_ImGui_WantGamepadCapture ())
-      return DI_NOEFFECT;
+      {
+        SK_LOGi0 (
+          L"Prevented DirectInput from polling a gamepad because "
+          L"gamepad input is currently blocked by SK."
+        );
+
+        return DI_NOEFFECT;
+      }
 
     default:
       break;
@@ -1377,7 +1384,14 @@ IDirectInputDevice8W_Poll_Detour ( IDirectInputDevice8W* This)
     case DI8DEVTYPE_GAMEPAD:
     case DI8DEVTYPE_JOYSTICK:
       if (SK_ImGui_WantGamepadCapture ())
-      return DI_NOEFFECT;
+      {
+        SK_LOGi0 (
+          L"Prevented DirectInput from polling a gamepad because "
+          L"gamepad input is currently blocked by SK."
+        );
+
+        return DI_NOEFFECT;
+      }
 
     default:
       break;
