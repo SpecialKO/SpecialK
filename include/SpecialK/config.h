@@ -838,6 +838,7 @@ struct sk_config_t
         int  allow_wait_for_vblank = -1;
       } engine_overrides;
       bool   max_timer_resolution  = true;
+      bool   force_high_res_timers = true;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;

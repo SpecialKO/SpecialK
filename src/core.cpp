@@ -257,6 +257,9 @@ SK_StartPerfMonThreads (void)
 void
 SK_LoadGPUVendorAPIs (void)
 {
+  sk::NVAPI::nvwgf2umx =
+    SK_GetModuleHandleW (L"nvwgf2umx.dll");
+
 #define THREADED_VENDOR_API_INIT
 
 #ifdef THREADED_VENDOR_API_INIT
@@ -1119,6 +1122,11 @@ void BasicInit (void)
              SK_ImGui_Toast::ShowTitle   |
              SK_ImGui_Toast::ShowOnce    |
              SK_ImGui_Toast::UseDuration );
+
+  // Prewarm the usermode driver so we can do other initialization that
+  //   depends on knowing whether nvgf2umx is active in the software or not.
+  sk::NVAPI::nvwgf2umx =
+    SK_GetModuleHandleW (L"nvwgf2umx.dll");
 
   // Setup unhooked function pointers
   SK_PreInitLoadLibrary ();
@@ -5380,7 +5388,7 @@ SK_Platform_EstablishStorefrontOnFirstLoad (void)
 
   bool is_microsoft_game = (! is_steamworks_game) && (! is_epic_game) &&
        ( SK_Path_wcsstr (wszProcessName, LR"(XboxGames\)") != nullptr ||
-         SK_IsModuleLoaded (L"AppXDeploymentClient.dll") );
+         SK_IsModuleLoaded (L"AppXDeploymentClient.dll"));
 
   bool is_ubisoft_game =
     (! is_steamworks_game) && (! is_epic_game) &&

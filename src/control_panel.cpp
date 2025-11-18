@@ -7277,13 +7277,27 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           static SYSTEM_INFO             si = { };
           SK_RunOnce (SK_GetSystemInfo (&si));
 
-          if ( ImGui::Checkbox ("Spoof CPU Core Count", &spoof) )
+          if ( ImGui::Checkbox ("Reduce CPUs", &spoof) )
           {
             config.render.framerate.override_num_cpus =
               ( spoof ? si.dwNumberOfProcessors : -1 );
           }
 
           ImGui::SetItemTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
+
+          ImGui::SameLine ();
+          ImGui::Checkbox ("Upgrade Low-Res Timers", &config.render.framerate.force_high_res_timers);
+
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::TextUnformatted ("All Waitable Timer game/driver code will be upgraded to use Windows 10's new High-Res variant.");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("Has potential to reduce stutter and latency, but may increase power consumption.");
+            ImGui::BulletText      ("Most games do not use Waitable Timers because they were developed by crazy people :P");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("D3D11 drivers make the heaviest use of Waitable Timers; you may want to check SK's logs for any WaitableTimer log spam and report it.");
+            ImGui::EndTooltip      ();
+          }
 
           ImGui::EndGroup ();
 

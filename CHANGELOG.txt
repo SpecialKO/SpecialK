@@ -1,4 +1,17 @@
-﻿25.11.18.1
+﻿25.11.19
+========
+ + Added experimental option to upgrade all Waitable Timers created in a game to
+     the new High-Res variant introduced in Windows 10. 99.9% of games do not use
+       Waitable Timers, and the ones that do tend to use the old low-res codepath.
+
+    @ Setting is in "Framerate Limiter | Advanced" next to 'Reduce CPUs'.
+
+    * Please look at SpecialK.log if turning this feature on, let us know about
+        any DLLs that are spamming CreateWaitableTimer* (...) calls.
+
+    - Results generally require a full game restart.
+
+25.11.18.1
 ==========
  + Eliminate redundant Power Policy changes that would spam Windows Event Viewer
      during game start/exit.

@@ -345,6 +345,228 @@ SK_LatentSync_AllowFrameSkip (void)
 }
 
 
+
+extern ZwQueryTimerResolution_pfn ZwQueryTimerResolution;
+extern ZwSetTimerResolution_pfn   ZwSetTimerResolution;
+extern ZwSetTimerResolution_pfn   ZwSetTimerResolution_Original;
+
+using CreateWaitableTimerW_pfn = _Ret_maybenull_ HANDLE (WINAPI *)
+  ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+    _In_     BOOL                   bManualReset,
+    _In_opt_ LPCWSTR               lpTimerName );
+
+using CreateWaitableTimerA_pfn = _Ret_maybenull_ HANDLE (WINAPI *)
+  ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+    _In_     BOOL                   bManualReset,
+    _In_opt_ LPCSTR                lpTimerName );
+
+using CreateWaitableTimerExW_pfn = _Ret_maybenull_ HANDLE (WINAPI *)
+  ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+    _In_opt_ LPCWSTR               lpTimerName,
+    _In_     DWORD                 dwFlags,
+    _In_     DWORD                 dwDesiredAccess );
+
+using CreateWaitableTimerExA_pfn = _Ret_maybenull_ HANDLE (WINAPI *)
+  ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+    _In_opt_ LPCSTR                lpTimerName,
+    _In_     DWORD                 dwFlags,
+    _In_     DWORD                 dwDesiredAccess );
+
+CreateWaitableTimerW_pfn   CreateWaitableTimerW_Original   = nullptr;
+CreateWaitableTimerA_pfn   CreateWaitableTimerA_Original   = nullptr;
+CreateWaitableTimerExW_pfn CreateWaitableTimerExW_Original = nullptr;
+CreateWaitableTimerExA_pfn CreateWaitableTimerExA_Original = nullptr;
+
+_Ret_maybenull_
+HANDLE
+WINAPI
+SK_CreateWaitableTimer ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                         _In_     BOOL                   bManualReset,
+                         _In_opt_ LPCWSTR               lpTimerName )
+{
+  return CreateWaitableTimerW_Original == nullptr ?
+         CreateWaitableTimerW          (lpTimerAttributes, bManualReset, lpTimerName):
+         CreateWaitableTimerW_Original (lpTimerAttributes, bManualReset, lpTimerName);
+}
+
+_Ret_maybenull_
+HANDLE
+WINAPI
+SK_CreateWaitableTimerEx ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                           _In_opt_ LPCWSTR               lpTimerName,
+                           _In_     DWORD                 dwFlags,
+                           _In_     DWORD                 dwDesiredAccess )
+{
+  return CreateWaitableTimerExW_Original == nullptr ?
+         CreateWaitableTimerExW          (lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess):
+         CreateWaitableTimerExW_Original (lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess);
+}
+
+_Ret_maybenull_
+HANDLE
+WINAPI
+CreateWaitableTimerW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                              _In_     BOOL                   bManualReset,
+                              _In_opt_ LPCWSTR               lpTimerName )
+{
+  SK_LOG_FIRST_EXTERNAL_CALL
+
+  static DWORD high_res_flag =
+    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
+
+  SK_RunOnce (sk::NVAPI::nvwgf2umx =
+   SK_GetModuleHandle (L"nvwgf2umx.dll"));
+
+  // The NVIDIA driver creates and destroys these like they are candy!
+  if (high_res_flag != 0 && (sk::NVAPI::nvwgf2umx == nullptr ||
+                             sk::NVAPI::nvwgf2umx != SK_GetCallingDLL ()))
+  {
+    SK_LOGi0 (
+      L"Promoting Waitable Timer%hs%ws%hsto a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
+        lpTimerName != nullptr ? "'"            :   "",
+        lpTimerName != nullptr ? lpTimerName    : L" ",
+        lpTimerName != nullptr ? "'"            :   "",
+                  bManualReset ? "Manual Reset" :   "",
+        SK_GetCallerName      ().c_str (),
+        SK_GetCurrentThreadId ()
+    );
+  }
+
+  const auto override_flags = high_res_flag |
+    (bManualReset ? CREATE_WAITABLE_TIMER_MANUAL_RESET : 0x0);
+
+  auto hRet =
+    CreateWaitableTimerExW_Original ( lpTimerAttributes,
+                                      lpTimerName, override_flags,
+                                        TIMER_ALL_ACCESS );
+
+  if (! SK_IsHandleValid (hRet))
+  {
+    high_res_flag = 0;
+
+    hRet =
+      CreateWaitableTimerW_Original ( lpTimerAttributes,
+                                        bManualReset,
+                                          lpTimerName );
+
+    SK_LOGi0 (L"Waitable Timer Upgrade Unsupported!");
+  }
+
+  return hRet;
+}
+
+_Ret_maybenull_
+HANDLE
+WINAPI
+CreateWaitableTimerA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                              _In_     BOOL                   bManualReset,
+                              _In_opt_ LPCSTR                lpTimerName )
+{
+  SK_LOG_FIRST_EXTERNAL_CALL
+
+  static DWORD high_res_flag =
+    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
+
+  SK_RunOnce (sk::NVAPI::nvwgf2umx =
+   SK_GetModuleHandle (L"nvwgf2umx.dll"));
+
+  if (high_res_flag != 0 && (sk::NVAPI::nvwgf2umx == nullptr ||
+                             sk::NVAPI::nvwgf2umx != SK_GetCallingDLL ()))
+  {
+    SK_LOGi0 (
+      L"Promoting Waitable Timer%hs%hs%hsto a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
+        lpTimerName != nullptr ? "'"            :  "",
+        lpTimerName != nullptr ? lpTimerName    : " ",
+        lpTimerName != nullptr ? "'"            :  "",
+                  bManualReset ? "Manual Reset" :  "",
+        SK_GetCallerName      ().c_str (),
+        SK_GetCurrentThreadId ()
+    );
+  }
+
+  const auto override_flags = high_res_flag |
+    (bManualReset ? CREATE_WAITABLE_TIMER_MANUAL_RESET : 0x0);
+
+  auto hRet =
+    CreateWaitableTimerExA_Original ( lpTimerAttributes,
+                                      lpTimerName, override_flags,
+                                        TIMER_ALL_ACCESS );
+
+  if (! SK_IsHandleValid (hRet))
+  {
+    high_res_flag = 0;
+
+    hRet =
+      CreateWaitableTimerA_Original ( lpTimerAttributes,
+                                        bManualReset,
+                                          lpTimerName );
+
+    SK_LOGi0 (L"Waitable Timer Upgrade Unsupported!");
+  }
+
+  return hRet;
+}
+
+_Ret_maybenull_
+HANDLE
+WINAPI
+CreateWaitableTimerExA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                                _In_opt_ LPCSTR                lpTimerName,
+                                _In_     DWORD                 dwFlags,
+                                _In_     DWORD                 dwDesiredAccess )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+
+    SK_LOGi0 (
+      L"%ws%wsWaitable Timer {%hs} Created by CreateWaitableTimerExA (...) -- [ %ws, tid=%04x ]",
+                     lpTimerName != nullptr ?
+                     lpTimerName : "Unnamed",
+        (dwFlags & CREATE_WAITABLE_TIMER_HIGH_RESOLUTION) != 0 ? L"High Resolution " : L"",
+        (dwFlags & CREATE_WAITABLE_TIMER_MANUAL_RESET)    != 0 ? L"Manual Reset "    : L"",
+        SK_GetCallerName      ().c_str (),
+        SK_GetCurrentThreadId ()
+    );
+  }
+
+  return
+    CreateWaitableTimerExA_Original (
+      lpTimerAttributes, lpTimerName,
+                dwFlags, dwDesiredAccess );
+}
+
+_Ret_maybenull_
+HANDLE
+WINAPI
+CreateWaitableTimerExW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                                _In_opt_ LPCWSTR               lpTimerName,
+                                _In_     DWORD                 dwFlags,
+                                _In_     DWORD                 dwDesiredAccess )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+
+    SK_LOGi0 (
+      L"%ws%wsWaitable Timer {%ws} Created by CreateWaitableTimerExW (...) -- [ %ws, tid=%04x ]",
+                     lpTimerName != nullptr ?
+                     lpTimerName : L"Unnamed",
+        (dwFlags & CREATE_WAITABLE_TIMER_HIGH_RESOLUTION) != 0 ? L"High Resolution " : L"",
+        (dwFlags & CREATE_WAITABLE_TIMER_MANUAL_RESET)    != 0 ? L"Manual Reset "    : L"",
+        SK_GetCallerName      ().c_str (),
+        SK_GetCurrentThreadId ()
+    );
+  }
+
+  return
+    CreateWaitableTimerExW_Original (
+      lpTimerAttributes, lpTimerName,
+                dwFlags, dwDesiredAccess );
+}
+
+
+
 void
 SK_ImGui_LatentSyncConfig (void)
 {
@@ -1231,13 +1453,14 @@ class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
   }
 } __ProdigalFramerateSon;
 
-extern ZwQueryTimerResolution_pfn ZwQueryTimerResolution;
-extern ZwSetTimerResolution_pfn   ZwSetTimerResolution;
-extern ZwSetTimerResolution_pfn   ZwSetTimerResolution_Original;
-
 void
 SK::Framerate::Init (void)
 {
+  static std::atomic_bool
+      once = false;
+  if (once == true)
+    return;
+
   SK_ICommandProcessor
     *pCommandProc = nullptr;
 
@@ -1357,6 +1580,30 @@ SK::Framerate::Init (void)
     SK_CreateEvent (nullptr, TRUE, TRUE, nullptr));
   __scanline.lock.signals.acquire.Attach (
     SK_CreateEvent (nullptr, TRUE, FALSE, nullptr));
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "CreateWaitableTimerA",
+                             CreateWaitableTimerA_Detour,
+    static_cast_p2p <void> (&CreateWaitableTimerA_Original) );
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "CreateWaitableTimerW",
+                             CreateWaitableTimerW_Detour,
+    static_cast_p2p <void> (&CreateWaitableTimerW_Original) );
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "CreateWaitableTimerExW",
+                             CreateWaitableTimerExW_Detour,
+    static_cast_p2p <void> (&CreateWaitableTimerExW_Original) );
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "CreateWaitableTimerExA",
+                             CreateWaitableTimerExA_Detour,
+    static_cast_p2p <void> (&CreateWaitableTimerExA_Original) );
+
+  SK_ApplyQueuedHooks ();
+
+  once = true;
 }
 
 void
@@ -2174,7 +2421,7 @@ SK::Framerate::Limiter::wait (void)
     {
       // Prefer high-resolution timer when available, but this won't be available in WINE or Windows 8.1
       timer_wait.Attach (
-        CreateWaitableTimerEx ( nullptr, nullptr,
+        SK_CreateWaitableTimerEx ( nullptr, nullptr,
            CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS )
                         );
     }
@@ -2185,7 +2432,7 @@ SK::Framerate::Limiter::wait (void)
     if (! SK_HasHighResWaitableTimer)
     {
        timer_wait.Attach (
-         CreateWaitableTimer (nullptr, FALSE, nullptr)
+         SK_CreateWaitableTimer (nullptr, FALSE, nullptr)
                          );
     }
 
@@ -4388,9 +4635,9 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
 
   if ((LONG_PTR)hTimer < 0)
   {             hTimer = SK_HasHighResWaitableTimer ?
-    CreateWaitableTimerEx ( nullptr, nullptr,
+    SK_CreateWaitableTimerEx ( nullptr, nullptr,
        CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS ) :
-    CreateWaitableTimer   ( nullptr, FALSE, nullptr );
+    SK_CreateWaitableTimer   ( nullptr, FALSE, nullptr );
   }
 
   double

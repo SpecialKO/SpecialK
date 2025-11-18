@@ -10276,7 +10276,7 @@ SK_ImGui_InitDragAndDrop (void)
   if (init && !SK_OLE_GameHasDropHandler && std::exchange (SK_OLE_DragDropChanged, false))
   {
     SK_AutoCOMInit _;
-
+     
     if (SUCCEEDED (OleInitialize (nullptr)))
     {
       static concurrency::concurrent_unordered_map <HWND, SK_DropTarget*> drop_targets;

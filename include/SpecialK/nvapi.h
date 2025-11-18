@@ -211,6 +211,7 @@ namespace NVAPI {
   extern std::wstring app_name;
   extern std::wstring friendly_name;
   extern std::wstring launcher_name;
+  extern HMODULE      nvwgf2umx;
 
   // Guilty until proven innocent
   extern bool nv_hardware;

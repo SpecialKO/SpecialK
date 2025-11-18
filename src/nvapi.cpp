@@ -4619,6 +4619,7 @@ bool         NVAPI::nv_hardware   = false;
 std::wstring NVAPI::friendly_name;
 std::wstring NVAPI::app_name;
 std::wstring NVAPI::launcher_name;
+HMODULE      NVAPI::nvwgf2umx     = nullptr;
 
 //std::wstring NVAPI::friendly_name; = L"Tales of Zestiria";
 //std::wstring NVAPI::app_name; = L"Tales Of Zestiria.exe";
