@@ -548,6 +548,7 @@ struct sk_config_t
     float       overlay_luminance     = 4.375F; // 350 nits
     bool        present               = false;  // Is the overlay detected?
     bool        allow_windowed_mode   = false;  // Allow Discord to draw a Win32 window on top of the game?
+    bool        disable_hooks         = false;
   } discord;
 
   struct rtss_s {

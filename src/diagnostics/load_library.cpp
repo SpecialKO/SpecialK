@@ -1118,6 +1118,20 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       }
     }
 
+    else if (StrStrIW (compliant_path, L"discord_hook-1\\discord_hook"))
+    {
+      if (config.discord.disable_hooks)
+      {
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling Discord Hook because it is unstable.")
+        );
+
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+        hMod = nullptr;
+      }
+    }
+
     else
     {
       hMod =
@@ -2438,6 +2452,7 @@ BlacklistLibrary (const _T* lpFileName)
                       (LoadLibrary_pfn) &SK_LoadLibraryW :
                       (LoadLibrary_pfn) &SK_LoadLibraryA );
 
+#if 0
   if (true/*config.compatibility.disable_streamline_incompatible_software*/)
   {
     static bool has_streamline =
@@ -2463,6 +2478,7 @@ BlacklistLibrary (const _T* lpFileName)
       }
     }
   }
+#endif
 
   if (config.compatibility.disable_nv_bloat)
   {
@@ -2532,6 +2548,7 @@ BlacklistLibrary (const _T* lpFileName)
 #pragma pop_macro ("StrStrI")
 #pragma pop_macro ("GetModuleHandleEx")
 #pragma pop_macro ("LoadLibrary")
+
 #endif
 
   return FALSE;

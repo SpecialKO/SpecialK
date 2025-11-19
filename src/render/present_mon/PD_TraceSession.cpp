@@ -258,21 +258,6 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
     ERROR_SUCCESS;
 }
 
-void
-DisableProviders (TRACEHANDLE sessionHandle)
-{
-  ULONG status = 0;
-
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DXGI::GUID,           EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_D3D9::GUID,           EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DxgKrnl::GUID,        EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Win32k::GUID,         EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Dwm_Core::GUID,       EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-
-  // :shrug:
-  std::ignore = status;
-}
-
 template<
     bool SAVE_FIRST_TIMESTAMP,
     bool TRACK_DISPLAY,
@@ -460,6 +445,24 @@ TraceSession::Start ( PMTraceConsumer *pmConsumer,
     ERROR_SUCCESS;
 }
 
+namespace SK_PresentMon
+{
+  void
+  DisableProviders (TRACEHANDLE sessionHandle)
+  {
+    ULONG status = 0;
+  
+    status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DXGI::GUID,           EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
+    status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_D3D9::GUID,           EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
+    status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DxgKrnl::GUID,        EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
+    status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Win32k::GUID,         EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
+    status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Dwm_Core::GUID,       EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
+  
+    // :shrug:
+    std::ignore = status;
+  }
+};
+
 void
 TraceSession::Stop (void)
 {
@@ -480,7 +483,7 @@ TraceSession::Stop (void)
 
   if (mSessionHandle != 0)
   {
-    DisableProviders (mSessionHandle);
+    SK_PresentMon::DisableProviders (mSessionHandle);
 
     TraceProperties
       sessionProps                  = {                              };
@@ -517,7 +520,6 @@ GetSessionForCurrentProcess (SK_SharedMemory_v1::EtwSessionList_s* pSessions)
   return nullptr;
 }
 
-
 void
 StopMultipleSessions (SK_SharedMemory_v1::EtwSessionList_s* sessions)
 {
@@ -536,7 +538,7 @@ StopMultipleSessions (SK_SharedMemory_v1::EtwSessionList_s* sessions)
 
     if (session.hSession != 0)
     {
-      DisableProviders (session.hSession);
+      SK_PresentMon::DisableProviders (session.hSession);
 
       SK_SharedMemory_v1::EtwSessionList_s::EtwSessionEx_s::TraceProps_s
         sessionProps                  = {                              };
