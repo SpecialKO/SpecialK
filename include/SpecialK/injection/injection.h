@@ -202,7 +202,7 @@ SK_Inject_WaitOnUnhook (void);
 
 typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
           HINSTANCE hMod,
-     const wchar_t* UnsafeModuleName,
+ PUNICODE_STRING_SK UnsafeModuleName,
               DWORD ThreadId,
                 int HookId,
            HOOKPROC HookProc,

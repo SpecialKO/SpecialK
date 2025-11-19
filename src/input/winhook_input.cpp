@@ -613,6 +613,8 @@ BOOL
 WINAPI
 UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
 {
+  SK_LOG_FIRST_CALL
+
   for ( auto& hook : __hooks.mouse )
   {
     if (hook.second.second == hhk)
@@ -695,6 +697,250 @@ SK_Input_ShouldIgnoreSetWindowsHook (int idHook, const wchar_t* wszCallingModule
   }
 
   return false;
+}
+
+static NtUserSetWindowsHookEx_pfn    NtUserSetWindowsHookEx_Original    = nullptr;
+static NtUserUnhookWindowsHookEx_pfn NtUserUnhookWindowsHookEx_Original = nullptr;
+
+HHOOK SK_hHookLowLevelKeyboard = 0;
+
+BOOL
+WINAPI
+NtUserUnhookWindowsHookEx_Detour (HHOOK hhk)
+{
+  // Passthrough for our own low-level keyboard hook
+  if (hhk != 0 && hhk == SK_hHookLowLevelKeyboard)
+  {
+    return
+      NtUserUnhookWindowsHookEx_Original (hhk);
+  }
+
+  SK_LOG_FIRST_CALL
+
+  for ( auto& hook : __hooks.mouse )
+  {
+    if (hook.second.second == hhk)
+    {
+      hook.second.first  = nullptr;
+      hook.second.second = (HHOOK)0;
+
+      return
+        NtUserUnhookWindowsHookEx_Original (hhk);
+    }
+  }
+
+  for ( auto& hook : __hooks.keyboard )
+  {
+    if (hook.second.second == hhk)
+    {
+      hook.second.first  = nullptr;
+      hook.second.second = (HHOOK)0;
+
+      return
+        NtUserUnhookWindowsHookEx_Original (hhk);
+    }
+  }
+
+  return
+    NtUserUnhookWindowsHookEx_Original (hhk);
+}
+
+HHOOK
+WINAPI
+NtUserSetWindowsHookEx_Detour ( HINSTANCE          Mod,
+                                PUNICODE_STRING_SK UnsafeModuleName,
+                                DWORD              ThreadId,
+                                int                HookId,
+                                HOOKPROC           HookProc,
+                                BOOL               Ansi )
+{
+  // Ignore our own hooks...
+  if ( HookProc == SK_Input_LowLevelKeyboardProc || HookProc == SK_Proxy_MouseProc    ||
+       HookProc == SK_Proxy_KeyboardProc         || HookProc == SK_Proxy_LLMouseProc  ||
+       HookProc == SK_Proxy_LLKeyboardProc       || HookProc == SK_ImGui_KeyboardProc ||
+       HookProc == SK_ImGui_MouseProc )
+  {
+    return
+      NtUserSetWindowsHookEx_Original (
+        Mod, UnsafeModuleName, ThreadId, HookId,
+          HookProc, Ansi );
+  }
+
+  SK_LOG_FIRST_CALL
+
+  std::wstring wszHookMod;
+
+  // This string is almost always invalid, which is probably why it's named this way.
+  if (UnsafeModuleName         != nullptr &&
+      UnsafeModuleName->Buffer != nullptr &&
+      UnsafeModuleName->Length > 0)
+  {
+    wszHookMod.assign ( UnsafeModuleName->Buffer,
+                        UnsafeModuleName->Length / sizeof (wchar_t) );
+  }
+
+  // Just get the DLL that owns the hook procedure address.
+  if (wszHookMod.empty ())
+      wszHookMod = SK_GetModuleNameFromAddr (HookProc);
+
+  if (SK_Input_ShouldIgnoreSetWindowsHook (HookId, wszHookMod.c_str ()))
+  {
+    return
+      NtUserSetWindowsHookEx_Original (
+        Mod, UnsafeModuleName, ThreadId, HookId,
+          HookProc, Ansi );
+  }
+
+  if (StrStrIW (wszHookMod.c_str (), L"dinput") != nullptr)
+  {
+    // In some weird games, this is the first time that SK will actually be
+    //   able to detect that this DLL has been loaded...
+    SK_Input_PreHookDI8 ();
+  }
+
+  if (HookId == WH_KEYBOARD_LL ||
+      HookId == WH_KEYBOARD    ||
+      HookId == WH_MOUSE_LL    ||
+      HookId == WH_MOUSE)
+  {
+    bool game_called =
+      SK_GetModuleFromAddr (HookProc) == SK_GetModuleHandleW (nullptr);
+
+    if (SK_IsCurrentGame (SK_GAME_ID::StellarBlade) && game_called)
+    {
+      return 0;
+    }
+
+    if (HookId == WH_KEYBOARD_LL && game_called)
+    {
+      if (PathFileExistsW (L"NoLLKeyboardHooks")) {
+        SK_LOGi0 (
+          L"Game tried to register a low-level keyboard hook, but "
+          L"we are ignoring it..."
+        );
+
+        return 0;
+      } else {
+        SK_LOGi0 (
+          L"Game has registered a low-level keyboard hook. "
+          L"Backup input GetKeyboardState optimization will be disabled."
+        );
+
+        SK_ImGui_BackupInput_DisableGetKeyboardStateOptimization = true;
+      }
+    }
+  }
+
+  HHOOK* hook = nullptr;
+
+  switch (HookId)
+  {
+    case WH_KEYBOARD:
+    case WH_KEYBOARD_LL:
+    {
+      SK_LOG0 ( ( L" <%ws>: Game module ( %ws ) uses a%wsKeyboard Hook...",
+                     Ansi ?
+                  L"ANSI" : L"Unicode",
+                       wszHookMod.c_str (),
+                        HookId == WH_KEYBOARD_LL ?
+                                  L" Low-Level " : L" " ),
+                                          L"Input Hook" );
+
+      bool install = false;
+
+      if (       !__hooks.keyboard.count ((DWORD64)ThreadId|((DWORD64)HookId<<32ULL)) ||
+                  __hooks.keyboard       [(DWORD64)ThreadId|((DWORD64)HookId<<32ULL)].first == nullptr)
+      {           __hooks.keyboard       [(DWORD64)ThreadId|((DWORD64)HookId<<32ULL)].first = HookProc;
+        hook    =&__hooks.keyboard       [(DWORD64)ThreadId|((DWORD64)HookId<<32ULL)].second;
+        install = true;
+      }
+
+      else
+      {
+        if (ThreadId != 0)
+        {
+          if (HookId == WH_KEYBOARD_LL)
+            SK_LOGi0 ( L" * A low-level keyboard hook already exists for thread %d",
+                         ThreadId );
+          else
+            SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
+                         ThreadId );
+        }
+
+        else
+        {
+          if (HookId == WH_KEYBOARD_LL)
+            SK_LOGi0 (L" * A global low-level keyboard hook already exists");
+          else
+            SK_LOGi0 (L" * A global keyboard hook already exists");
+        }
+      }
+
+      if (install)
+        HookProc = (HookId == WH_KEYBOARD ? SK_Proxy_KeyboardProc
+                                          : SK_Proxy_LLKeyboardProc);
+    } break;
+
+    case WH_MOUSE:
+    case WH_MOUSE_LL:
+    {
+      SK_LOG0 ( ( L" <%ws>: Game module ( %ws ) uses a%wsMouse Hook...",
+                     Ansi ?
+                  L"ANSI" : L"Unicode",
+                       wszHookMod.c_str (),
+                        HookId == WH_MOUSE_LL    ?
+                                  L" Low-Level " : L" " ),
+                                          L"Input Hook" );
+
+      bool install = false;
+
+      if (       !__hooks.mouse.count ((DWORD64)ThreadId|((DWORD64)HookId<<32ULL)) ||
+                  __hooks.mouse       [(DWORD64)ThreadId|((DWORD64)HookId<<32ULL)].first == nullptr)
+      {           __hooks.mouse       [(DWORD64)ThreadId|((DWORD64)HookId<<32ULL)].first = HookProc;
+        hook    =&__hooks.mouse       [(DWORD64)ThreadId|((DWORD64)HookId<<32ULL)].second;
+        install = true;
+      }
+
+      else
+      {
+        if (ThreadId != 0)
+        {
+          if (HookId == WH_MOUSE_LL)
+            SK_LOGi0 ( L" * A low-level mouse hook already exists for thread %d",
+                         ThreadId );
+          else
+            SK_LOGi0 ( L" * A mouse hook already exists for thread %d",
+                         ThreadId );
+        }
+
+        else
+        {
+          if (HookId == WH_MOUSE_LL)
+            SK_LOGi0 (L" * A global low-level mouse hook already exists");
+          else
+            SK_LOGi0 (L" * A global mouse hook already exists");
+        }
+      }
+
+      if (install)
+        HookProc = (HookId == WH_MOUSE ? SK_Proxy_MouseProc
+                                       : SK_Proxy_LLMouseProc);
+    } break;
+  }
+
+  auto ret =
+    NtUserSetWindowsHookEx_Original (
+      Mod, UnsafeModuleName, ThreadId,
+        HookId, HookProc, Ansi
+    );
+
+  if (hook != nullptr)
+     *hook = ret;
+
+  if (ret != 0 && HookId == WH_KEYBOARD_LL) __hooks.low_level_keyboard = true;
+  if (ret != 0 && HookId == WH_MOUSE_LL)    __hooks.low_level_mouse    = true;
+
+  return ret;
 }
 
 
@@ -1003,25 +1249,48 @@ SK_Input_PreHookWinHook (void)
 
   SK_RunOnce (
   {
-    SK_CreateDLLHook2 (      L"User32",
-                              "SetWindowsHookExA",
-                               SetWindowsHookExA_Detour,
-      static_cast_p2p <void> (&SetWindowsHookExA_Original) );
+    // First try the fun way that avoids dealing with games that call SetWindowsHookExAW directly...
+    //
+    if (SK_GetProcAddress (L"win32u", "NtUserSetWindowsHookEx"   ) != nullptr &&
+        SK_GetProcAddress (L"win32u", "NtUserUnhookWindowsHookEx") != nullptr)
+    {
+      SK_CreateDLLHook2 (      L"win32u",
+                                "NtUserSetWindowsHookEx",
+                                 NtUserSetWindowsHookEx_Detour,
+        static_cast_p2p <void> (&NtUserSetWindowsHookEx_Original) );
 
-    SK_CreateDLLHook2 (      L"User32",
-                              "SetWindowsHookExW",
-                               SetWindowsHookExW_Detour,
-      static_cast_p2p <void> (&SetWindowsHookExW_Original) );
+      SK_CreateDLLHook2 (      L"win32u",
+                                "NtUserUnhookWindowsHookEx",
+                                 NtUserUnhookWindowsHookEx_Detour,
+        static_cast_p2p <void> (&NtUserUnhookWindowsHookEx_Original) );
 
-    SK_CreateDLLHook2 (      L"User32",
-                              "SetWindowsHookExAW",
-                               SetWindowsHookExAW_Detour,
-      static_cast_p2p <void> (&SetWindowsHookExAW_Original) );
+      UnhookWindowsHookEx_Original = (UnhookWindowsHookEx_pfn)SK_GetProcAddress (L"User32", "UnhookWindowsHookEx");
+      SetWindowsHookExAW_Original  = (SetWindowsHookExAW_pfn )SK_GetProcAddress (L"User32", "SetWindowsHookExAW");
+    }
 
-    SK_CreateDLLHook2 (      L"User32",
-                              "UnhookWindowsHookEx",
-                               UnhookWindowsHookEx_Detour,
-      static_cast_p2p <void> (&UnhookWindowsHookEx_Original) );
+    // Fallback to standard User32 hooks if win32u is not available (i.e. Proton)
+    else
+    {
+      SK_CreateDLLHook2 (      L"User32",
+                                "SetWindowsHookExA",
+                                 SetWindowsHookExA_Detour,
+        static_cast_p2p <void> (&SetWindowsHookExA_Original) );
+
+      SK_CreateDLLHook2 (      L"User32",
+                                "SetWindowsHookExW",
+                                 SetWindowsHookExW_Detour,
+        static_cast_p2p <void> (&SetWindowsHookExW_Original) );
+
+      SK_CreateDLLHook2 (      L"User32",
+                                "SetWindowsHookExAW",
+                                 SetWindowsHookExAW_Detour,
+        static_cast_p2p <void> (&SetWindowsHookExAW_Original) );
+
+      SK_CreateDLLHook2 (      L"User32",
+                                "UnhookWindowsHookEx",
+                                 UnhookWindowsHookEx_Detour,
+        static_cast_p2p <void> (&UnhookWindowsHookEx_Original) );
+    }
   });
 }
 
@@ -1036,8 +1305,6 @@ SK_Input_IsGameUsingLowLevelKeyboardHooks (void)
 {
   return __hooks.low_level_keyboard;
 }
-
-HHOOK SK_hHookLowLevelKeyboard = 0;
 
 bool
 SK_Input_HasInstalledLowLevelKeyboardHook (void)
