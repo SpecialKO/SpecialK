@@ -1,5 +1,7 @@
 ﻿25.11.19.4
 ==========
+ + Change Ninja Gaiden 4 to use synchronous initialization to prevent DirectInput
+     initialization races (i.e. "Please connect controller screen").
  + Prevent input icon switching when keyboard is blocked to The Outer Worlds 2.
 
     Keyboard input had been blocked but the game still knew there was a keyboard

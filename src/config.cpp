@@ -4353,6 +4353,12 @@ auto DeclKeybind =
         // Force DirectInput 8 hooks off to avoid controller disconnect messages
         config.input.gamepad.hook_dinput8 = false;
         input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
+
+        // Go synchronous to avoid initialization races
+        config.compatibility.init_on_separate_thread = false;
+        config.compatibility.init_while_suspended    = true;
+
+        config.input.gamepad.xinput.placehold [0]    = true;
         break;
 
       case SK_GAME_ID::TaintedGrail_FallOfAvalon:
