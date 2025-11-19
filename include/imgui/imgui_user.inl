@@ -3763,11 +3763,6 @@ SK_ImGui_User_NewFrame (void)
 
   SK_ImGui_UpdateClassCursor ();
 
-  config.input.mouse.       disabled_to_game =
-  config.input.mouse.   org_disabled_to_game;
-  config.input.keyboard.    disabled_to_game =
-  config.input.keyboard.org_disabled_to_game;
-
   SK_RunOnce (
     SK_ImGui_SignalBackupInputThread =
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
@@ -4332,6 +4327,8 @@ SK_ImGui_User_NewFrame (void)
     }
   }
 
+  SK_IsGameWindowActive  (true, hWndForeground);
+
   SK_ImGui_ExemptOverlaysFromKeyboardCapture ();
 
   // Warn on low gamepad battery
@@ -4342,7 +4339,6 @@ SK_ImGui_User_NewFrame (void)
   SK_ImGui_WantKeyboardCapture (true);
   SK_ImGui_WantMouseCapture    (true, &cursor_pos);
   SK_ImGui_WantGamepadCapture  (true);
-  SK_IsGameWindowActive        (true, hWndForeground);
 
   SK_ImGui_Cursor.last_screen_pos = cursor_pos;
 

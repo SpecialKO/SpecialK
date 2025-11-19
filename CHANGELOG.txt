@@ -1,4 +1,10 @@
-﻿25.11.19.2
+﻿25.11.19.3
+==========
+ + Fixed temporary keyboard unblock after triggering a gamepad key binding
+     or opening ReShade's overlay; it was permanently allowing keyboard
+       input even when Disabled to Game was selected.
+
+25.11.19.2
 ==========
  + Correctly identify VK_CANCEL as a key rather than a mouse button :)
  + Allow polling the state of Virtual Key 0xFF, even though it's unmapped.

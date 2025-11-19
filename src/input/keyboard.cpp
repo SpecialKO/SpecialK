@@ -201,8 +201,9 @@ SK_ImGui_WantKeyboardCapture (bool update)
     return false;
   }
 
-  // Allow keyboard input while ReShade overlay is active
-  if (SK_ReShadeAddOn_IsOverlayActive ())
+  // Allow keyboard input while ReShade / Steam / EOS overlays are active
+  if (SK_ReShadeAddOn_IsOverlayActive () ||
+      SK_Platform_GetOverlayState (true))
   {
     config.input.mouse   .disabled_to_game = 2;
     config.input.keyboard.disabled_to_game = 2;
@@ -211,11 +212,12 @@ SK_ImGui_WantKeyboardCapture (bool update)
     return !SK_IsGameWindowActive ();
   }
 
-  // Allow keyboard input while Steam /EOS overlays are active
-  if (SK_Platform_GetOverlayState (true))
+  else
   {
-    capture.store (false);
-    return false;
+    config.input.mouse.       disabled_to_game =
+    config.input.mouse.   org_disabled_to_game;
+    config.input.keyboard.    disabled_to_game =
+    config.input.keyboard.org_disabled_to_game;
   }
 
   const auto framesDrawn =
@@ -259,7 +261,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
     else
     {
       // Poke through input for a special-case
-      if (temp_poke_frame > 0 && framesDrawn > temp_poke_frame + 40)
+      if (temp_poke_frame > 0 && framesDrawn < temp_poke_frame + 40)
       {
         imgui_capture = false;
       }
