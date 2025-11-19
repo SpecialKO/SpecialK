@@ -1956,8 +1956,8 @@ SK_AchievementManager::drawPopups (void)
 {
   int drawn = 0;
 
-  if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
-    return drawn;
+  //if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
+  //  return drawn;
 
   if (platform_popup_cs != nullptr)
       platform_popup_cs->lock ();
@@ -2107,7 +2107,7 @@ SK_AchievementManager::drawPopups (void)
       DWORD        window_flags = ImGuiWindowFlags_AlwaysAutoResize   | ImGuiWindowFlags_NoDecoration          |
                                   ImGuiWindowFlags_NoNav              | ImGuiWindowFlags_NoBringToFrontOnFocus |
                                   ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoInputs              |
-                                  ImGuiWindowFlags_NoCollapse;
+                                  ImGuiWindowFlags_NoCollapse         | ImGuiWindowFlags_NoNavFocus;
 
       ImGui::SetNextWindowPos (
         ImVec2 (x_loc + x_off + io.DisplaySize.x * 0.025f * x_dir,
@@ -2117,7 +2117,8 @@ SK_AchievementManager::drawPopups (void)
 
       if (ImGui::Begin (window_id, nullptr, window_flags))
       {
-        ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
+        if (ImGui::IsWindowAppearing ())
+            ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
 
         float fTopY = ImGui::GetCursorPosY ();
 

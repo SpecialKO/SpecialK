@@ -573,8 +573,8 @@ SK_ImGui_UnsilenceNotifications (void)
 void
 SK_ImGui_DrawNotifications (void)
 {
-  if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
-    return;
+  //if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
+  //  return;
 
   std::vector <SK_ImGui_Toast> notifications;
 
@@ -730,7 +730,9 @@ SK_ImGui_DrawNotifications (void)
     ImGui::Begin (window_id, nullptr, window_flags);
     {
       ImGui::BeginGroup ();
-      ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
+
+      if (ImGui::IsWindowAppearing ())
+          ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
 
       if (toast.stage != SK_ImGui_Toast::Config)
       {
