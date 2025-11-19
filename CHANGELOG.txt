@@ -2,8 +2,7 @@
 ========
  + Disabled NVIDIA Streamline debug log and added INI option to turn it back on.
  + Replaced XInput Latency Tester with simplified XInput Report Rate Tester.
- + Fixed "Failed to Install Hook for '5' in 'C:\WINDOWS\SYSTEM32\OPENGL32.dll'!"
-     warning introduced in 25.11.7
+ + Fixed "Failed to Install Hook for '5' in 'OPENGL32.dll'!" warning > 25.11.7.
  + Hook win32u!NtUserSetWindowsHookEx instead of user32!SetWindowsHookExA/W, to
      avoid the elephant in the room undocumented SetWindowsHookExAW function that
        some old games and weird DRM/anti-debug schemes call directly.

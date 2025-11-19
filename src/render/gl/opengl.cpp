@@ -3699,11 +3699,6 @@ SK_HookGL (LPVOID)
         (wglGetProcAddress_pfn)SK_GetProcAddress       (local_gl, "wglGetProcAddress");
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
-                                 "5",
-         static_cast_pfn <void*> (wglSwapBuffers),
-         static_cast_p2p <void> (&wgl_swap_buffers) );
-
-      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglMakeCurrent",
          static_cast_pfn <void*> (wglMakeCurrent),
          static_cast_p2p <void> (&wgl_make_current) );
