@@ -3588,7 +3588,7 @@ SK_ImGui_BackupInputThread (LPVOID)
           bool    last_keys              [256] = {};
           memcpy (last_keys, io.KeysDown, 256);
 
-          for (UINT i = VK_CANCEL ; i < 255 ; ++i)
+          for (UINT i = VK_CANCEL ; i <= 255 ; ++i)
           {
             bool last_state =
               last_keys [i];
