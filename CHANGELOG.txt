@@ -1,4 +1,11 @@
-﻿25.11.19.1
+﻿25.11.19.2
+==========
+ + Correctly identify VK_CANCEL as a key rather than a mouse button :)
+ + Allow polling the state of Virtual Key 0xFF, even though it's unmapped.
+ + Fixed not being able to block keyboard input in some games that call
+     GetKeyState (...).
+
+25.11.19.1
 ==========
  + Made AutoVRR mode configuration more intuitive when changing global policy.
  + Allow notifications and achievements while ImGui is drawing popups dialogs.

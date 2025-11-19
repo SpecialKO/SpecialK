@@ -418,13 +418,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
 
-            if (VKey & 0xF8) // Valid Keys:  8 - 255
+            if (VKey == VK_CANCEL || VKey >= VK_BACK) // Valid Keys:  3, 8 - 255
             {
               keyboard = true;
             }
 
             // That's actually a mouse button...
-            else if (VKey < 7)
+            else if ((VKey >= VK_LBUTTON && VKey <= VK_RBUTTON) ||
+                     (VKey >= VK_MBUTTON && VKey <= VK_XBUTTON2))
             {
               mouse = true;
 
@@ -794,7 +795,8 @@ MessageProc ( const HWND&   hWnd,
         BYTE  vkCode   = LOWORD (wParam) & 0xFF;
         BYTE  scanCode = HIWORD (lParam) & 0x7F;
 
-        if (vkCode & 0xF8) // Valid Keys:  8 - 255
+        if ( vkCode == VK_CANCEL ||
+             vkCode >= VK_BACK ) // Valid Keys:  3, 8 - 255
         {
           // Don't process Alt+Tab or Alt+Enter
           if ( msg == WM_SYSKEYDOWN &&
@@ -852,7 +854,7 @@ MessageProc ( const HWND&   hWnd,
 
         // Mouse event
         //
-        else if (vkCode < 7)
+        else if (vkCode <= VK_XBUTTON2)
         {
           int remap = -1;
 
@@ -902,7 +904,8 @@ MessageProc ( const HWND&   hWnd,
         InterlockedIncrement (&__SK_KeyMessageCount);
 
         BYTE vkCode = LOWORD (wParam) & 0xFF;
-        if ( vkCode & 0xF8 ) // Valid Keys:  8 - 255
+        if ( vkCode == VK_CANCEL ||
+             vkCode >= VK_BACK ) // Valid Keys:  3, 8 - 255
         {
           // Don't process Alt+Tab or Alt+Enter
           if ( msg == WM_SYSKEYUP &&
@@ -963,7 +966,7 @@ MessageProc ( const HWND&   hWnd,
         InterlockedIncrement (&__SK_KeyMessageCount);
 
         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-        if ((wParam & 0xff) > 7 && wParam < 0x10000)
+        if (((wParam & 0xff) == VK_CANCEL || (wParam & 0xff) >= VK_BACK) && wParam < 0x10000)
         {
           io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
         }
@@ -1421,9 +1424,12 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
           ( SK_ImGui_WantMouseCapture () )
       );
 
-    if ((wParam & 0xFF) < 7)
+    bool keyboard = false;
+
+    if (((wParam & 0xFF) >= VK_LBUTTON  && (wParam & 0xFF) <  VK_CANCEL) ||
+        ((wParam & 0xFF) >= VK_XBUTTON1 && (wParam & 0xFF) <= VK_XBUTTON2))
     {
-      // Some games use Virtual Key Codes 1-6 (mouse button 0-4)
+      // Some games use Virtual Key Codes 1-2,4-6 (mouse button 0-4)
       //   instead of WM_LBUTTONDOWN, etc.
       if ( ( uMsg == WM_KEYDOWN ||
              uMsg == WM_KEYUP ) && SK_ImGui_WantMouseCapture () ) 
@@ -1434,19 +1440,27 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
       }
     }
 
-
-    if ( uMsg == WM_KEYDOWN ||
-         uMsg == WM_SYSKEYDOWN )
+    else
     {
-      // Only handle key-down if the game window is active,
-      //   otherwise treat it as key release.
-      io.KeysDown [wParam & 0xFF] = SK_IsGameWindowActive ();
+      keyboard = true;
     }
 
-    else if ( uMsg == WM_KEYUP ||
-              uMsg == WM_SYSKEYUP )
+
+    if (keyboard)
     {
-      io.KeysDown [wParam & 0xFF] = false;
+      if ( uMsg == WM_KEYDOWN ||
+           uMsg == WM_SYSKEYDOWN )
+      {
+        // Only handle key-down if the game window is active,
+        //   otherwise treat it as key release.
+        io.KeysDown [wParam & 0xFF] = SK_IsGameWindowActive ();
+      }
+
+      else if ( uMsg == WM_KEYUP ||
+                uMsg == WM_SYSKEYUP )
+      {
+        io.KeysDown [wParam & 0xFF] = false;
+      }
     }
 
 
@@ -3574,7 +3588,7 @@ SK_ImGui_BackupInputThread (LPVOID)
           bool    last_keys              [256] = {};
           memcpy (last_keys, io.KeysDown, 256);
 
-          for (UINT i = 7 ; i < 255 ; ++i)
+          for (UINT i = VK_CANCEL ; i < 255 ; ++i)
           {
             bool last_state =
               last_keys [i];
@@ -3585,6 +3599,9 @@ SK_ImGui_BackupInputThread (LPVOID)
             { if (io.KeysDown [i]) SK_Console::getInstance ()->KeyDown ((BYTE)(i & 0xFF), MAXDWORD);
               else                 SK_Console::getInstance ()->KeyUp   ((BYTE)(i & 0xFF), MAXDWORD);
             }
+
+            if (i == VK_CANCEL)
+                i =  VK_BACK-1;
           }
         }
       }
@@ -4052,7 +4069,10 @@ SK_ImGui_User_NewFrame (void)
 #ifdef SK_DOES_NOT_TRUST_LOW_LEVEL_KEYBOARD_HOOK
   if (bActive && new_input)
   {                        // ^^^^ The last frame we saw any Keyboard input on the keyboard hook.
-    for (UINT i = 7 ; i < 255 ; ++i)
+    io.KeysDown [VK_CANCEL] =
+      ((SK_GetAsyncKeyState (VK_CANCEL) & 0x8000) != 0x0);
+
+    for (UINT i = 8 ; i <= 255 ; ++i)
     {
       io.KeysDown [i] =
         ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
@@ -4060,8 +4080,10 @@ SK_ImGui_User_NewFrame (void)
   }
 #endif
 
-  if (! bActive)
-    RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
+  if (! bActive) {
+                    io.KeysDown [VK_CANCEL] = 0;
+    RtlZeroMemory (&io.KeysDown [VK_BACK], sizeof (bool) * 247);
+  }
 
   const bool activatable =
     ( bActive || (io.MousePos.x != -FLT_MAX &&
