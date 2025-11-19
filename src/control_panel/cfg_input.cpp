@@ -2937,20 +2937,27 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (config.input.gamepad.hook_xinput && SK_ImGui_HasXboxController ())
       {
-        static bool started = false;
-
-        static bool   init       = false;
+        static bool   started    = false;
         static HANDLE hStartStop =
           SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
-        if (ImGui::Button (started ? "Stop XInput Latency Test" :
-                                     "Start XInput Latency Test"))
+        static double high_min = std::numeric_limits <double>::max (),
+                      high_max,
+                      avg;
+
+        static double high_min_f = std::numeric_limits <double>::max (),
+                      high_max_f,
+                      avg_f;
+
+        if (ImGui::Button (started ? "Stop XInput Polling Test" :
+                                     "Start XInput Polling Test"))
         {
-          if (! started) { started = true;  SetEvent   (hStartStop); }
+          if (! started) { avg     =  0.0; gamepad_stats->reset ();
+                           avg_f   =  0.0;
+                           started = true;  SetEvent   (hStartStop); }
           else           { started = false; ResetEvent (hStartStop); }
 
-          if (! init)
-          {     init = true;
+          SK_RunOnce (
             SK_Thread_CreateEx ([](LPVOID) -> DWORD
             {
               XINPUT_STATE states [2] = { };
@@ -2967,10 +2974,11 @@ extern float SK_ImGui_PulseNav_Strength;
                   XINPUT_STATE& old = states [(i + 1) % 2];
                   XINPUT_STATE& now = states [ i++    % 2];
 
-                  if (old.dwPacketNumber != now.dwPacketNumber)
+                  if (old.dwPacketNumber < now.dwPacketNumber)
                   {
                     LARGE_INTEGER nowTime = SK_QueryPerf ();
 
+                    // Validation:  Only counts samples where the gamepad state changed
                     if (0 != memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
                     {
                       ULONGLONG oldTime = times_ [0];
@@ -2984,6 +2992,7 @@ extern float SK_ImGui_PulseNav_Strength;
                       );
                     }
 
+                    // Raw Sample Times (whether valid or not)
                     ULONGLONG oldTime = times [0];
                                         times [0] = times [1];
                                         times [1] = nowTime.QuadPart;
@@ -3000,26 +3009,20 @@ extern float SK_ImGui_PulseNav_Strength;
               SK_Thread_CloseSelf ();
 
               return 0;
-            }, L"[SK] XInput Latency Tester", (LPVOID)hStartStop);
-          }
+            }, L"[SK] XInput Polling Tester", (LPVOID)hStartStop);
+          );
         }
 
         if (ImGui::BeginItemTooltip ())
         {
-          ImGui::TextUnformatted ("Tests the latency of DS4Windows, Steam Input or a native Xbox controller");
+          ImGui::TextUnformatted ("Test data report rate for XInput emulation (i.e. DSX or Steam Input) software and Xbox hardware.");
           ImGui::Separator       ();
-          ImGui::BulletText      ("If you have no Xbox controllers or third-party utilities emulating XInput, this does nothing");
-          ImGui::BulletText      ("SK cannot test its own XInput emulation latency; all readings would come back zero...");
+          ImGui::BulletText      ("Measures Device / Transport / Driver report rate consistency over a 2.5 second period.");
+          ImGui::BulletText      ("Validates that the XUSB driver only sequences packets when a sensor reading changes.");
+          ImGui::Separator       ();
+          ImGui::TextUnformatted ("If the validated values are not close, a HID filter is being dishonest (false overclocking).");
           ImGui::EndTooltip      ();
         }
-
-        static double high_min = std::numeric_limits <double>::max (),
-                      high_max,
-                      avg;
-
-        static double high_min_f = std::numeric_limits <double>::max (),
-                      high_max_f,
-                      avg_f;
 
         ImGui::SameLine    ( );
         ImGui::BeginGroup  ( );
@@ -3027,29 +3030,42 @@ extern float SK_ImGui_PulseNav_Strength;
         if (started)
         {
           ImGui::BeginGroup( );
-          ImGui::Text      ( "%i Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                               gamepad_stats->calcNumSamples (),
-                               gamepad_stats->calcMin        (),
-                               gamepad_stats->calcMax        (),
-                               gamepad_stats->calcMean       () );
-
-          ImGui::Text      ( "%i Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                               gamepad_stats_filtered->calcNumSamples (),
-                               gamepad_stats_filtered->calcMin        (),
-                               gamepad_stats_filtered->calcMax        (),
-                               gamepad_stats_filtered->calcMean       () );
+          ImGui::Text      ( "%i Raw Samples",                gamepad_stats->calcNumSamples (2.5) );
+          ImGui::Text      ( "%i Validated Samples", gamepad_stats_filtered->calcNumSamples (2.5) );
+          ImGui::EndGroup  ( );
+          ImGui::SameLine  ( );
+          ImGui::BeginGroup( );
+          ImGui::Text      ( "Min, Max:\t%3.1f Hz, %3.1f Hz", 1000.0 /          gamepad_stats->calcMax (2.5),
+                                                              1000.0 /          gamepad_stats->calcMin (2.5) );
+          ImGui::Text      ( "Min, Max:\t%3.1f Hz, %3.1f Hz", 1000.0 / gamepad_stats_filtered->calcMax (2.5),
+                                                              1000.0 / gamepad_stats_filtered->calcMin (2.5) );
+          ImGui::EndGroup  ( );
+          ImGui::SameLine  ( );
+          ImGui::BeginGroup( );
+          ImGui::Text      ( "   %4.2f Hz", 1000.0 / gamepad_stats->calcMean          (2.5) );
+          ImGui::Text      ( "   %4.2f Hz", 1000.0 / gamepad_stats_filtered->calcMean (2.5) );
           ImGui::EndGroup  ( );
 
-          high_min_f = std::min (gamepad_stats_filtered->calcMin (), high_min_f);
-          high_min   = std::min (gamepad_stats->calcMin          (), high_min  );
+          avg_f = (gamepad_stats_filtered->calcMean (2.5) + avg_f) / 2.0f;
+          avg   = (gamepad_stats->calcMean          (2.5) + avg  ) / 2.0f;
         }
 
-        ImGui::BeginGroup  ( );
-        if (high_min   < 250.0)
-          ImGui::Text      ( "Minimum Latency: %4.2f ms", high_min );
-        if (high_min_f < 250.0)
-          ImGui::Text      ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
-        ImGui::EndGroup    ( );
+        else if (avg > 0.0f && avg_f > 0.0f)
+        {
+          ImGui::BeginGroup( );
+          if (avg   < 250.0)
+            ImGui::Text    ( "Average Data Rate:");
+          if (avg_f < 250.0)
+            ImGui::Text    ( "Validated Data Rate:");
+          ImGui::EndGroup  ( );
+          ImGui::SameLine  ( );
+          ImGui::BeginGroup( );
+          if (avg   < 250.0)
+            ImGui::Text    ( "%4.2f Hz", 1000.0f / avg   );
+          if (avg_f < 250.0)
+            ImGui::Text    ( "%4.2f Hz", 1000.0f / avg_f );
+          ImGui::EndGroup  ( );
+        }
         ImGui::EndGroup    ( );
       }
       ImGui::TreePop       ( );

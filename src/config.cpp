@@ -4356,9 +4356,9 @@ auto DeclKeybind =
 
         // Go synchronous to avoid initialization races
         config.compatibility.init_on_separate_thread = false;
-        config.compatibility.init_while_suspended    = true;
-
         config.input.gamepad.xinput.placehold [0]    = true;
+        config.window.dont_hook_wndproc              = true;
+        config.compatibility.disable_debug_features  = true;
         break;
 
       case SK_GAME_ID::TaintedGrail_FallOfAvalon:
