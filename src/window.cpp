@@ -1159,10 +1159,18 @@ ActivateWindow ( HWND hWnd,
       // Release the AltKin
       for ( BYTE VKey = 0x8 ; VKey < 255 ; ++VKey )
       {
+        // Limit to just modifier keys that are the least intuitive
+        //   problem to deal with after alt-tabbing back into a game.
+        if (VKey != VK_TAB   && VKey != VK_MENU &&
+            VKey != VK_LMENU && VKey != VK_RMENU)
+        {
+          continue;
+        }
+
         if (std::exchange (__LastKeyState [VKey], (BYTE)FALSE) != (BYTE)FALSE)
         {
-          if ((SK_GetAsyncKeyState (VKey) & 0x8000) == 0x0/* &&
-               SK_GetKeyState      (VKey)           != 0x0*/)
+          // Always release Alt even if it's still technically down while Alt-Tabbing.
+          if (VKey == VK_TAB || (SK_GetAsyncKeyState (VKey) & 0x8000) == 0x0)
           {
             SK_keybd_event (BYTE (VKey), 0, KEYEVENTF_KEYUP, 0);
           }
@@ -1176,16 +1184,16 @@ ActivateWindow ( HWND hWnd,
     {
       for ( BYTE VKey = 0x8 ; VKey < 255 ; ++VKey )
       {
-        if ( SK_GetKeyState      (VKey)           != 0x0 ||
-            (SK_GetAsyncKeyState (VKey) & 0x8000) != 0x0)
+        if ((SK_GetAsyncKeyState (VKey) & 0x8000) != 0x0)
         {
           std::exchange (__LastKeyState [VKey], (BYTE)TRUE);
         }
       }
-    }
 
-    BYTE              newKeyboardState [256] = { };
-    SetKeyboardState (newKeyboardState);
+      // Invalidate keyboard state on focus loss to prevent stuck keys
+      BYTE              newKeyboardState [256] = { };
+      SetKeyboardState (newKeyboardState);
+    }
 
     if (         hWndFocus != 0                &&
                  hWndFocus != game_window.hWnd &&

@@ -1,4 +1,19 @@
-﻿25.11.19
+﻿25.11.19.1
+==========
+ + Improved recovery from stalled/dead real-time PresentMon ETW trace sessions.
+ + Increased maximum concurrent PresentMon ETW trace sessions to 3.
+ + Tweaked handling of Alt-Tab while Background Render mode is enabled;
+
+    - Tab will unconditionally generate a key release event when the game regains
+        keyboard focus, even if the key is technically still held down.
+
+     * Limit the rest of the generated key release events to modifiers
+         (i.e. Alt, Ctrl, Shift) rather than standard keys.
+
+      @ The game window thread's keyboard state is now cleared upon keyboard focus
+          loss when Background Render is enabled.
+
+25.11.19
 ========
  + Added experimental option to upgrade all Waitable Timers created in a game to
      the new High-Res variant introduced in Windows 10. 99.9% of games do not use
