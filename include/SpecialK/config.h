@@ -1116,7 +1116,7 @@ struct sk_config_t
       float   forced_sharpness    =   0.0f;
       int     forced_multiframe   = SK_NoPreference;
       bool    allow_flip_metering =  false;
-      bool    streamline_dbg_out  =   true;
+      bool    streamline_dbg_out  =  false;
       struct {
         float performance         =   0.0f;
         float balanced            =   0.0f;

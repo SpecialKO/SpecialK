@@ -882,6 +882,7 @@ struct {
     sk::ParameterBool*    allow_scrgb             = nullptr;
     sk::ParameterBool*    allow_flip_metering     = nullptr;
     sk::ParameterBool*    spoof_feature_support   = nullptr;
+    sk::ParameterBool*    streamline_dbg_out      = nullptr;
   } dlss;
 } nvidia;
 
@@ -2153,6 +2154,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.allow_scrgb,                L"Allow scRGB even if DLSS-G DLLs are detected",              dll_ini,         L"NVIDIA.DLSS",           L"AllowSCRGBinDLSSG"),
     ConfigEntry (nvidia.dlss.allow_flip_metering,        L"Allow fake frame pacing stats for fake frames?",            dll_ini,         L"NVIDIA.DLSS",           L"AllowFlipMetering"),
     ConfigEntry (nvidia.dlss.spoof_feature_support,      L"Report all NGX (D3D11/D3D12) features supported on all HW.",dll_ini,         L"NVIDIA.DLSS",           L"SpoofFeatureSupport"),
+    ConfigEntry (nvidia.dlss.streamline_dbg_out,         L"Output Streamline Framework's Debug to game_output.log.",   dll_ini,         L"NVIDIA.DLSS",           L"UseStreamlineDebugLog"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
     ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc+ RTs",dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
@@ -4902,6 +4904,7 @@ auto DeclKeybind =
   nvidia.dlss.allow_scrgb->load              (config.nvidia.dlss.allow_scrgb);
   nvidia.dlss.allow_flip_metering->load      (config.nvidia.dlss.allow_flip_metering);
   nvidia.dlss.spoof_feature_support->load    (config.nvidia.dlss.spoof_support);
+  nvidia.dlss.streamline_dbg_out->load       (config.nvidia.dlss.streamline_dbg_out);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
   render.hdr.remaster_8bpc_as_unorm->load    (config.render.hdr.remaster_8bpc_as_unorm);
@@ -7324,6 +7327,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.allow_scrgb->store              (config.nvidia.dlss.allow_scrgb);
       nvidia.dlss.allow_flip_metering->store      (config.nvidia.dlss.allow_flip_metering);
       nvidia.dlss.spoof_feature_support->store    (config.nvidia.dlss.spoof_support);
+      nvidia.dlss.streamline_dbg_out->store       (config.nvidia.dlss.streamline_dbg_out);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);
