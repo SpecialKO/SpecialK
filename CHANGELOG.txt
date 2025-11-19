@@ -1,4 +1,12 @@
-﻿25.11.19.3
+﻿25.11.19.4
+==========
+ + Prevent input icon switching when keyboard is blocked to The Outer Worlds 2.
+
+    Keyboard input had been blocked but the game still knew there was a keyboard
+      event (that didn't actually change keyboard state) and would switch icons
+        without analyzing the input state for actual changes.
+
+25.11.19.3
 ==========
  + Fixed temporary keyboard unblock after triggering a gamepad key binding
      or opening ReShade's overlay; it was permanently allowing keyboard

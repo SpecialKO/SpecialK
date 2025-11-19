@@ -397,8 +397,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
             mouse = true;
 
-            if ( (! already_processed)
-                           && uiCommand == RID_INPUT )
+            if ( (! already_processed) && uiCommand == RID_INPUT )
             {
               if (! filter)
               {
@@ -427,6 +426,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             else if ((VKey >= VK_LBUTTON && VKey <= VK_RBUTTON) ||
                      (VKey >= VK_MBUTTON && VKey <= VK_XBUTTON2))
             {
+              SK_ReleaseAssert (!"Mouse button reported as keyboard input");
+
               mouse = true;
 
               if (((! foreground) && config.input.mouse.disabled_to_game == 2) || SK_ImGui_WantMouseCapture ())
@@ -453,18 +454,35 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               else if ((! focus))
                 filter = true;
 
-              else if ( SK_ImGui_WantKeyboardCapture () ||
-                       (((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR ||
-                        ((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSCHAR) )
-                filter = true;
+              bool capture_raw_keys  = filter || ((! foreground) && config.input.keyboard.disabled_to_game == 2) || SK_ImGui_WantKeyboardCapture ();
+              bool capture_text_keys = filter || ((! foreground) && config.input.keyboard.disabled_to_game == 2) || SK_ImGui_WantTextCapture     ();
+
+              if ((! filter) && (capture_raw_keys || capture_text_keys))
+              {
+                switch (((RAWINPUT*)pData)->data.keyboard.Message)
+                {
+                  // Text Input
+                  case WM_CHAR:       filter |= capture_text_keys; break;
+                  case WM_UNICHAR:    filter |= capture_text_keys; break;
+                  case WM_SYSCHAR:    filter |= capture_text_keys; break;
+
+                  // Normal Virtual Key Codes
+                  case WM_KEYDOWN:    filter |= capture_raw_keys;  break;
+                  case WM_SYSKEYDOWN: filter |= capture_raw_keys;  break;
+                  case WM_KEYUP:      filter |= capture_raw_keys;  break;
+                  case WM_SYSKEYUP:   filter |= capture_raw_keys;  break;
+
+                  default:
+                    break;
+                }
+              }
             }
 
-
-            if ( (! already_processed)
-                           && uiCommand == RID_INPUT )
+            if ( (! already_processed) && uiCommand == RID_INPUT )
             {
               const auto type =
-                (keyboard ? sk_input_dev_type::Keyboard : sk_input_dev_type::Mouse);
+                (keyboard ? sk_input_dev_type::Keyboard :
+                            sk_input_dev_type::Mouse);
 
               if (! filter)
               {
@@ -481,11 +499,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             gamepad = true;
 
             // TODO: Determine which controller the input is from
-            if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_hid)
+            if (config.input.gamepad.disable_hid || SK_ImGui_WantGamepadCapture ())
               filter = true;
 
-            if ( (! already_processed)
-                           && uiCommand == RID_INPUT )
+            if ( (! already_processed) && uiCommand == RID_INPUT )
             {
               if (! filter)
               {
@@ -761,7 +778,7 @@ MessageProc ( const HWND&   hWnd,
 
 
     case WM_MOUSEWHEEL:
-      if (hWnd == game_window.hWnd || hWnd == game_window.child || IsChild (game_window.hWnd, hWnd))
+      //if (hWnd == game_window.hWnd || hWnd == game_window.child || IsChild (game_window.hWnd, hWnd))
       {
         io.MouseWheel +=
            static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
@@ -792,8 +809,8 @@ MessageProc ( const HWND&   hWnd,
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
-        BYTE  vkCode   = LOWORD (wParam) & 0xFF;
-        BYTE  scanCode = HIWORD (lParam) & 0x7F;
+        BYTE vkCode   = LOWORD (wParam) & 0xFF;
+        BYTE scanCode = HIWORD (lParam) & 0x7F;
 
         if ( vkCode == VK_CANCEL ||
              vkCode >= VK_BACK ) // Valid Keys:  3, 8 - 255
@@ -1415,7 +1432,12 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
          // *** Presumably, games do not use `WM_HOTKEY`... the Steam Overlay does
          //       => Generally we don't want to block keyboard input to Steam.
          ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam)  == FAPPCOMMAND_KEY   ) ) &&
-          SK_ImGui_WantKeyboardCapture () );
+       ((( uMsg == WM_CHAR       ||
+           uMsg == WM_DEADCHAR   ||
+           uMsg == WM_SYSCHAR    ||
+           uMsg == WM_SYSDEADCHAR||
+           uMsg == WM_UNICHAR )  && SK_ImGui_WantTextCapture     ()) ||
+                                    SK_ImGui_WantKeyboardCapture ()));
 
     bool mouse_capture =
       ( ( ( uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST ) ||

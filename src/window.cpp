@@ -5721,15 +5721,30 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   static bool bIgnoreKeyboardAndMouse =
     (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI);
 
-  if (bIgnoreKeyboardAndMouse)
+  // Eliminate late-stage keyboard and mouse messages,
+  //   SK has already neutralized the data.
+  //
+  //  But some games will see these messages and without checking
+  //    for an actual new button press, will switch to alternate glyphs.
+  //
+  if ((uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
+      (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST))
   {
-    if ((uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)   ||
-        (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST))
+    const bool bIgnoreKeyboard        = bIgnoreKeyboardAndMouse || SK_ImGui_WantKeyboardCapture ();
+    const bool bIgnoreMouse           = bIgnoreKeyboardAndMouse || SK_ImGui_WantMouseCapture    ();
+    const bool bIgnoreKeyboardOrMouse = bIgnoreKeyboard         || bIgnoreMouse;
+
+    if (bIgnoreKeyboardOrMouse)
     {
-      IsWindowUnicode (hWnd)                       ?
-       DefWindowProcW (hWnd, uMsg, wParam, lParam) :
-       DefWindowProcA (hWnd, uMsg, wParam, lParam);
-      return 0;
+      if ((uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && bIgnoreKeyboard) ||
+          (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && bIgnoreMouse))
+      {
+        IsWindowUnicode (hWnd)                       ?
+         DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+         DefWindowProcA (hWnd, uMsg, wParam, lParam);
+
+        return 0;
+      }
     }
   }
 
