@@ -7147,6 +7147,12 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             {
               bool vrr_changed = false;
 
+              const bool original_global_opt =
+                config.render.framerate.auto_low_latency.policy.global_opt;
+
+              const bool original_auto_reapply =
+                config.render.framerate.auto_low_latency.policy.auto_reapply;
+
               vrr_changed |=
                 ImGui::Checkbox ("Enable By Default", &config.render.framerate.auto_low_latency.policy.global_opt);
 
@@ -7165,8 +7171,22 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               // Turn on Auto-Low Latency after making any changes
               if (vrr_changed)
               {
-                config.render.framerate.auto_low_latency.waiting   = config.render.framerate.auto_low_latency.policy.global_opt;
-                config.render.framerate.auto_low_latency.triggered = false;
+                if (config.render.framerate.auto_low_latency.policy.global_opt != original_global_opt &&
+                    config.render.framerate.auto_low_latency.policy.global_opt                        &&
+                    config.render.framerate.auto_low_latency.triggered         == false)
+                {
+                  // Upon first enabling the global policy, if not triggered yet, prime for trigger.
+                  config.render.framerate.auto_low_latency.waiting =
+                    config.render.framerate.auto_low_latency.policy.global_opt;
+                }
+
+                if (config.render.framerate.auto_low_latency.policy.auto_reapply != original_auto_reapply &&
+                    config.render.framerate.auto_low_latency.policy.auto_reapply                          &&
+                    config.render.framerate.auto_low_latency.triggered)
+                {
+                    // After turning on auto-reapply, prime for re-trigger if triggering has happened once.
+                    config.render.framerate.auto_low_latency.waiting = true;
+                }
               }
 
               ImGui::EndPopup ();

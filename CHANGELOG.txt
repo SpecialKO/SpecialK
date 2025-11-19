@@ -1,7 +1,9 @@
 ﻿25.11.19.1
 ==========
+ + Made AutoVRR mode configuration more intuitive when changing global policy.
+ + Allow notifications and achievements while ImGui is drawing popups dialogs.
  + Improved recovery from stalled/dead real-time PresentMon ETW trace sessions.
- + Increased maximum concurrent PresentMon ETW trace sessions to 3.
+ + Decreased maximum concurrent PresentMon ETW trace sessions to 4.
  + Tweaked handling of Alt-Tab while Background Render mode is enabled;
 
     - Tab will unconditionally generate a key release event when the game regains
