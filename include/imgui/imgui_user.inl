@@ -3763,6 +3763,11 @@ SK_ImGui_User_NewFrame (void)
 
   SK_ImGui_UpdateClassCursor ();
 
+  config.input.mouse.       disabled_to_game =
+  config.input.mouse.   org_disabled_to_game;
+  config.input.keyboard.    disabled_to_game =
+  config.input.keyboard.org_disabled_to_game;
+
   SK_RunOnce (
     SK_ImGui_SignalBackupInputThread =
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
@@ -4082,7 +4087,7 @@ SK_ImGui_User_NewFrame (void)
 
   if (! bActive) {
                     io.KeysDown [VK_CANCEL] = 0;
-    RtlZeroMemory (&io.KeysDown [VK_BACK], sizeof (bool) * 247);
+    RtlZeroMemory (&io.KeysDown [VK_BACK], sizeof (bool) * 248);
   }
 
   const bool activatable =

@@ -210,13 +210,6 @@ SK_ImGui_WantKeyboardCapture (bool update)
 
     return !SK_IsGameWindowActive ();
   }
-  else
-  {
-    config.input.mouse.       disabled_to_game =
-    config.input.mouse.   org_disabled_to_game;
-    config.input.keyboard.    disabled_to_game =
-    config.input.keyboard.org_disabled_to_game;
-  }
 
   // Allow keyboard input while Steam /EOS overlays are active
   if (SK_Platform_GetOverlayState (true))
@@ -491,7 +484,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
   }
 
   // Valid Keys:  3, 8 - 255
-  if (vKey > 0x8 || vKey == VK_CANCEL)
+  if (vKey >= VK_BACK || vKey == VK_CANCEL)
   {
     if (SK_ImGui_WantKeyboardCapture ())
     {
@@ -501,7 +494,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
   }
 
   // 1,2 4,5,6 = Mouse
-  else if (vKey > VK_LBUTTON && vKey < VK_XBUTTON2)
+  else if (vKey >= VK_LBUTTON && vKey <= VK_XBUTTON2)
   {
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
@@ -525,7 +518,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
     //   not trying to emulate Windows 16 cooperative multitasking behavior.
     sKeyState &= ~0x1;
   }
-    
+
   return sKeyState;
 }
 
@@ -611,7 +604,7 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
       {
         lpKeyState [VK_LBUTTON ] = lpKeyState [VK_RBUTTON ] =
         lpKeyState [VK_MBUTTON ] = lpKeyState [VK_XBUTTON1] =
-        lpKeyState [VK_XBUTTON2];
+        lpKeyState [VK_XBUTTON2] = 0;
       }
     }
 
