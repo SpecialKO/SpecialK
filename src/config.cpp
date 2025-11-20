@@ -913,7 +913,6 @@ sk::ParameterBool*        crash_suppression       = nullptr;
 sk::ParameterBool*        prefer_fahrenheit       = nullptr;
 sk::ParameterInt*         log_level               = nullptr;
 sk::ParameterBool*        trace_libraries         = nullptr;
-sk::ParameterBool*        strict_compliance       = nullptr;
 sk::ParameterBool*        silent                  = nullptr;
 sk::ParameterFloat*       init_delay              = nullptr;
 sk::ParameterBool*        return_to_skif          = nullptr;
@@ -2040,7 +2039,6 @@ auto DeclKeybind =
     //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (silent,                                 L"Log Silence",                                               dll_ini,         L"SpecialK.System",       L"Silent"),
-    ConfigEntry (strict_compliance,                      L"Strict DLL Loader Compliance",                              dll_ini,         L"SpecialK.System",       L"StrictCompliant"),
     ConfigEntry (trace_libraries,                        L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini,         L"SpecialK.System",       L"TraceLoadLibrary"),
     ConfigEntry (log_level,                              L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini,         L"SpecialK.System",       L"LogLevel"),
     ConfigEntry (handle_crashes,                         L"Use Custom Crash Handler",                                  dll_ini,         L"SpecialK.System",       L"UseCrashHandler"),
@@ -2663,14 +2661,6 @@ auto DeclKeybind =
                                             //
                                             //  NEEDED for injector API detect
 
-
-  config.system.strict_compliance  = false; // Will deadlock in DLLs that call
-                                            //   LoadLibrary from DllMain
-                                            //
-                                            //  * NVIDIA Ansel, MSI Nahimic,
-                                            //      Razer *, RTSS (Sometimes)
-                                            //
-
   // Default = Don't Care
   config.render.dxgi.exception_mode = SK_NoPreference;
   config.render.dxgi.scaling_mode   = SK_NoPreference;
@@ -2712,8 +2702,6 @@ auto DeclKeybind =
         // Not a Steam game :(
         config.platform.silent                 = true;
 
-        config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
-
         config.apis.d3d9.hook                  = false;
         config.apis.d3d9ex.hook                = false;
         config.apis.OpenGL.hook                = false;
@@ -2732,7 +2720,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Dreamfall_Chapters:
         config.system.trace_load_library       = true;
-        config.system.strict_compliance        = false;
 
         // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
         //   auto-pump.
@@ -2750,7 +2737,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::TheWitness:
         config.system.trace_load_library    = true;
-        config.system.strict_compliance     = false; // Uses Ansel
 
         config.render.d3d11.track_map_and_unmap = false;
 
@@ -2762,13 +2748,10 @@ auto DeclKeybind =
       case SK_GAME_ID::ResidentEvil7:
       case SK_GAME_ID::Obduction:
         config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
-        config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
-                                                  //   (uses an incorrectly written DLL)
         break;
 
 
       case SK_GAME_ID::TheWitcher3:
-        config.system.strict_compliance   = false; // Uses NVIDIA Ansel, so this won't work!
         config.steam.filter_stat_callback = true;  // Will stop running SteamAPI when it receives
                                                    //   data it didn't ask for
 
@@ -2813,8 +2796,6 @@ auto DeclKeybind =
         config.compatibility.disable_nv_bloat = true;  // PREVENT DEADLOCK CAUSED BY NVIDIA!
 
         config.system.trace_load_library      = true;  // Need to catch NVIDIA Bloat DLLs
-        config.system.strict_compliance       = false; // Cannot block threads while loading DLLs
-                                                       //   (uses an incorrectly written DLL)
 
         config.steam.auto_pump_callbacks      = false;
         config.steam.preload_client           = true;
@@ -6207,7 +6188,6 @@ auto DeclKeybind =
 
   silent->load              (config.system.silent);
   trace_libraries->load     (config.system.trace_load_library);
-  strict_compliance->load   (config.system.strict_compliance);
   log_level->load           (config.system.log_level);
   sk::logs::base_log_lvl  =  config.system.log_level;
   prefer_fahrenheit->load   (config.system.prefer_fahrenheit);
@@ -7663,7 +7643,6 @@ SK_SaveConfig ( std::wstring name,
 
   debug_wait->store                            (config.system.wait_for_debugger);
   trace_libraries->store                       (config.system.trace_load_library);
-  strict_compliance->store                     (config.system.strict_compliance);
   init_delay->store                            (config.system.global_inject_delay);
   return_to_skif->store                        (config.system.return_to_skif);
   auto_load_asi_files->store                   (config.system.auto_load_asi_files);

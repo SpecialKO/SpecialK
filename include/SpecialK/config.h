@@ -1503,7 +1503,7 @@ struct sk_config_t
     bool    trace_create_thread = false;
 #endif
     bool    trace_load_library  =  true;
-    bool    strict_compliance   = false;
+    bool    strict_compliance   = false; // No longer configurable
     bool    silent              = false;
     bool    handle_crashes      =  true;
     bool    silent_crash        = false;

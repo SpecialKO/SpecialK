@@ -363,38 +363,14 @@ SK::ControlPanel::Compatibility::Draw (void)
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Spawns Debug Console at Startup for Debug Text from Third-Party Software");
 
-      ImGui::Checkbox  ("Trace LoadLibrary",              &config.system.trace_load_library);
+      ImGui::Checkbox  ("Trace LoadLibrary", &config.system.trace_load_library);
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
         ImGui::Text         ("Monitor DLL Load Activity");
         ImGui::Separator    ();
         ImGui::BulletText   ("Required for Render API Auto-Detection in Global Injector");
         ImGui::EndTooltip   ();
-      }
-
-      ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip    (  );
-        ImGui::TextUnformatted ("Prevent Loading DLLs Simultaneously Across Multiple Threads");
-        ImGui::Separator       (  );
-        ImGui::BulletText      ("Eliminates Race Conditions During DLL Startup");
-        ImGui::BulletText      ("Unsafe for a LOT of Improperly Designed Third-Party Software\n");
-        ImGui::TreePush        ("");
-        ImGui::TextUnformatted ("");
-        ImGui::BeginGroup      (  );
-        ImGui::TextUnformatted ("PROPER DLL DESIGN:  ");
-        ImGui::EndGroup        (  );
-        ImGui::SameLine        (  );
-        ImGui::BeginGroup      (  );
-        ImGui::TextUnformatted ("Never Call LoadLibrary (...) from DllMain (...)'s Thread !!!");
-        ImGui::TextUnformatted ("Never Wait on a Synchronization Object from DllMain (...) !!");
-        ImGui::EndGroup        (  );
-        ImGui::TreePop         (  );
-        ImGui::EndTooltip      (  );
       }
 
       ImGui::EndGroup    ( );
