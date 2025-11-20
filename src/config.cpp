@@ -696,7 +696,6 @@ struct {
 struct {
   struct
   {
-    sk::ParameterBool*    warned_online           = nullptr;
   } system;
 } eos;
 
@@ -1298,7 +1297,6 @@ struct {
   sk::ParameterBool*      async_init              = nullptr;
   sk::ParameterBool*      reshade_mode            = nullptr;
   sk::ParameterBool*      fsr3_mode               = nullptr;
-  sk::ParameterBool*      allow_fake_streamline   = nullptr;
   sk::ParameterInt*       sdl_sanity_level        = nullptr;
   struct {
     sk::ParameterInt*     allow_wgi               = nullptr;
@@ -1994,7 +1992,6 @@ auto DeclKeybind =
     ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
     ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
     ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
-    ConfigEntry (compatibility.allow_fake_streamline,    L"Allow invalid stuff, that might let fake DLSS3 mods work.", dll_ini,         L"Compatibility.General", L"AllowFakeStreamline"),
     ConfigEntry (compatibility.sdl_sanity_level,         L"Set Default (1) or Override (2) SDL input/window behavior.",dll_ini,         L"Compatibility.General", L"SDLSanityLevel"),
     // Refer to SDL_hints.h, only the most useful options are exposed here...
     ConfigEntry (compatibility.sdl.allow_wgi,            L"SDL_JOYSTICK_WGI",                                          dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_WGI"),
@@ -2361,8 +2358,6 @@ auto DeclKeybind =
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
     ConfigEntry (screenshots.include_osd_default,        L"Should a screenshot triggered BY Steam include SK's OSD?",  platform_ini,    L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
-
-    ConfigEntry (eos.system.warned_online,               L"Has user been told about EOS incompatibility?",             dll_ini,         L"Platform.System",       L"WarnedEOSIncompat"),
 
     ConfigEntry (galaxy.system.spawn_mini_client,        L"Start GalaxyCommunication.exe if Galaxy is not running.",   dll_ini,         L"Galaxy.System",         L"SpawnGalaxyCommunication"),
     ConfigEntry (galaxy.system.require_online_mode,      L"Enable if the current game is unsuitable for offline-only.",dll_ini,         L"Galaxy.System",         L"RequireOnlineGalaxyMode"),
@@ -3006,10 +3001,6 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::FinalFantasyXV:
-        // On many systems, people have third-party software that is behaving
-        //   incorrectly when the game issues DXGI_PRESENT_TEST; so disable
-        //     this feature to improve performance and compat.
-        config.render.dxgi.present_test_skip  = false;
         config.render.dxgi.deferred_isolation = false;
 
         // Replace sleep calls that would normally block the message queue with
@@ -4581,7 +4572,6 @@ auto DeclKeybind =
   // Load Parameters
   //
   compatibility.sdl_sanity_level->load      (config.compatibility.sdl_sanity_level);
-  compatibility.allow_fake_streamline->load (config.compatibility.allow_fake_streamline);
   compatibility.fsr3_mode->load             (config.compatibility.fsr3_mode);
   compatibility.reshade_mode->load          (config.compatibility.reshade_mode);
   compatibility.async_init->load            (config.compatibility.init_on_separate_thread);
@@ -5164,7 +5154,6 @@ auto DeclKeybind =
 
   render.dxgi.enhanced_depth->load       (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load   (config.render.dxgi.deferred_isolation);
-  render.dxgi.skip_present_test->load    (config.render.dxgi.present_test_skip);
   render.dxgi.msaa_samples->load         (config.render.dxgi.msaa_samples);
   render.dxgi.srgb_behavior->load        (config.render.dxgi.srgb_behavior);
   render.dxgi.low_spec_mode->load        (config.render.dxgi.low_spec_mode);
@@ -5955,7 +5944,6 @@ auto DeclKeybind =
 
   platform.log.silent->load                   (config.platform.silent);
   steam.drm.spoof_BLoggedOn->load             (config.steam.spoof_BLoggedOn);
-  eos.system.warned_online->load              (config.epic.warned_online);
 
   // We may already know the AppID before loading the game's config.
   if (config.steam.appid == 0)
@@ -6754,7 +6742,6 @@ SK_SaveConfig ( std::wstring name,
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->store             (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->store          (config.compatibility.allow_dxdiagn);
-  compatibility.allow_fake_streamline->store  (config.compatibility.allow_fake_streamline);
   compatibility.sdl_sanity_level->store       (config.compatibility.sdl_sanity_level);
 
   compatibility.sdl.allow_xinput->store       (config.compatibility.sdl.allow_xinput);
@@ -7065,7 +7052,6 @@ SK_SaveConfig ( std::wstring name,
   window.unconfine_cursor->store              (config.window.unconfine_cursor);
   window.persistent_drag->store               (config.window.persistent_drag);
   window.fullscreen->store                    (config.window.fullscreen);
-  window.fix_mouse_coords->store              (config.window.res.override.fix_mouse);
   window.always_on_top->store                 (config.window.always_on_top);
   window.disable_screensaver->store           (config.window.disable_screensaver);
   window.fullscreen_no_saver->store           (config.window.fullscreen_no_saver);
@@ -7076,6 +7062,18 @@ SK_SaveConfig ( std::wstring name,
   window.allow_file_drops->store              (config.window.allow_file_drops);
   window.treat_fg_as_active->store            (config.window.treat_fg_as_active);
   window.fix_stuck_alt_tab_keys->store        (config.window.fix_stuck_keys);
+
+  // Hide this setting if it is the default value, because it hasn't been maintained
+  //   and I want to remove it.
+  if (! config.window.res.override.fix_mouse)
+  {
+    dll_ini->get_section (L"Window.System").remove_key (L"FixMouseCoords");
+  }
+
+  else
+  {
+    window.fix_mouse_coords->store (config.window.res.override.fix_mouse);
+  }
 
 #ifdef _VALIDATE_MONITOR_IDX
   if (config.display.monitor_handle != 0)
@@ -7167,8 +7165,6 @@ SK_SaveConfig ( std::wstring name,
 
   render.framerate.apply_streamline_pacing->
                                        store (config.render.framerate.streamline.enable_native_limit);
-  render.framerate.streamline_limit_policy->
-                                       store (config.render.framerate.streamline.enforcement_policy);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->
@@ -7407,7 +7403,6 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.allow_d3d12_footguns->store (config.render.dxgi.allow_d3d12_footguns);
       render.dxgi.enhanced_depth->store       (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store   (config.render.dxgi.deferred_isolation);
-      render.dxgi.skip_present_test->store    (config.render.dxgi.present_test_skip);
       render.dxgi.msaa_samples->store         (config.render.dxgi.msaa_samples);
       render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
       render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
@@ -7571,7 +7566,6 @@ SK_SaveConfig ( std::wstring name,
   steam.social.online_status->store            (config.steam.online_status);
 
   steam.drm.spoof_BLoggedOn->store             (config.steam.spoof_BLoggedOn);
-  eos.system.warned_online->store              (config.epic.warned_online);
 
   platform.system.notify_corner->store         (
                     SK_Steam_PopupOriginToWStr (config.platform.notify_corner));

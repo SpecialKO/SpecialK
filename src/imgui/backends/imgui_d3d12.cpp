@@ -2360,12 +2360,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       SK_LOGi0 (L"WARNING: Attempting to Execute D3D12 Present (...) on wrong Command Queue (!!)");
       SK_LOGi0 (" >> Suspected cause is a third-party frame generation mod; if game crashes, it is probably the cause.");
     );
-
-    if (! config.compatibility.allow_fake_streamline)
-    {
-      _d3d12_rbk->release (pSwapChain);
-      return;
-    }
   }
 
   // Screenshot may have left this in a recording state

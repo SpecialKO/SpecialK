@@ -1236,11 +1236,11 @@ void BasicInit (void)
   if (SK_COMPAT_IsFrapsPresent ())
       SK_COMPAT_UnloadFraps ();
 
-  bool bEnable = SK_EnableApplyQueuedHooks  ();
-  {
-    SK_ApplyQueuedHooks ();
-  }
-  if (! bEnable) SK_DisableApplyQueuedHooks ();
+  //bool bEnable = SK_EnableApplyQueuedHooks  ();
+  //{
+  //  SK_ApplyQueuedHooks ();
+  //}
+  //if (! bEnable) SK_DisableApplyQueuedHooks ();
 }
 
 DWORD
@@ -1317,6 +1317,8 @@ DllThread (LPVOID user)
         SK::Diagnostics::CrashHandler::Reinstall ();
     }
   }
+
+  SK_Thread_CloseSelf ();
 
   return 0;
 }
@@ -1894,12 +1896,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   SK_Thread_ScopedPriority _(THREAD_PRIORITY_TIME_CRITICAL);
-
-  // Not a saved INI setting; use an alternate initialization
-  //   strategy when Streamline is detected...
-  config.compatibility.init_sync_for_streamline =
-    config.compatibility.allow_fake_streamline == false &&
-    (SK_GetModuleHandleW (L"sl.interposer.dll") != 0);
 
  try
  {
@@ -2539,19 +2535,21 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     void SK_Streamline_InitBypass (void);
          SK_Streamline_InitBypass ();
 
-    InterlockedExchangePointer (
-      const_cast <void **> (&hInitThread),
-      SK_Thread_CreateEx ( DllThread, nullptr,
-                               &init_ )
-    ); // Avoid the temptation to wait on this thread
-
-    WaitForSingleObject (hInitThread, 250UL);
-
     if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);
                 hooks_queued > 0)
     {
-      SK_ApplyQueuedHooks ();
+      bool bEnable = SK_EnableApplyQueuedHooks ();
+      {
+        SK_ApplyQueuedHooks ();
+      }
+      if (! bEnable) SK_DisableApplyQueuedHooks ();
     }
+
+    InterlockedExchangePointer (
+      const_cast <void **> (&hInitThread),
+        SK_Thread_CreateEx ( DllThread, nullptr,
+                               &init_ )
+      ); // Avoid the temptation to wait on this thread
   }
 
   return true;

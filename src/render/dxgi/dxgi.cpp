@@ -3059,14 +3059,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     }
 
-
-    // Third-party software doesn't always behave compliantly in games that
-    //   use presentation testing... so we may need to resort to this or
-    //     the game's performance derails itself.
-    if ( config.render.dxgi.present_test_skip && (Flags & DXGI_PRESENT_TEST)
-                                                       == DXGI_PRESENT_TEST )
-      return S_OK;
-
     return
       hrPresent;
   }
@@ -10459,8 +10451,6 @@ HookDXGI (LPVOID user)
     // Probably better named Nixxes mode, what a pain :(
     const bool bStreamlineMode =
       config.compatibility.init_sync_for_streamline;
-      //SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
-      //(SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.system.global_inject_delay == 0.0f);
 
     const bool bReShadeMode =
       (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
@@ -10478,86 +10468,45 @@ HookDXGI (LPVOID user)
       SK_ComPtr <ID3D12Device>       pDevice12, pNativeDevice12;
       SK_ComPtr <ID3D12CommandQueue> pCmdQueue, pNativeCmdQueue;
 
-      if (config.compatibility.allow_fake_streamline)
-      {
-        D3D11CoreCreateDevice_pfn
-        D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)SK_GetProcAddress (
-               LoadLibraryExW (L"d3d11.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
-                                "D3D11CoreCreateDevice" );
+      D3D11CoreCreateDevice_pfn
+      D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)SK_GetProcAddress (
+             LoadLibraryExW (L"d3d11.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+                              "D3D11CoreCreateDevice" );
 
-        //// Favor this codepath because it bypasses many things like ReShade, but
-        ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
-        if (D3D11CoreCreateDevice != nullptr && (! ( SK_IsModuleLoaded (L"vulkan-1.dll") ||
-                                                    (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded ((L"EOSOVH-Win64-Shipping.dll"))))))
-        {
-          hr =
-            D3D11CoreCreateDevice (
-              nullptr, pAdapter0,
-                D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+      //// Favor this codepath because it bypasses many things like ReShade, but
+      ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
+      if (D3D11CoreCreateDevice != nullptr && (! ( SK_IsModuleLoaded (L"vulkan-1.dll") ||
+                                                  (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded ((L"EOSOVH-Win64-Shipping.dll"))))))
+      {
+        hr =
+          D3D11CoreCreateDevice (
+            nullptr, pAdapter0,
+              D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+                config.render.dxgi.debug_layer ?
+                     D3D11_CREATE_DEVICE_DEBUG : 0x0,
+                                levels,
+                    _ARRAYSIZE (levels),
+                      D3D11_SDK_VERSION,
+                        &pDevice.p,
+                          &featureLevel );
+      }
+      
+      else
+      {
+        hr =
+          D3D11CreateDevice_Import (
+            pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
+              nullptr,
                   config.render.dxgi.debug_layer ?
                        D3D11_CREATE_DEVICE_DEBUG : 0x0,
                                   levels,
                       _ARRAYSIZE (levels),
                         D3D11_SDK_VERSION,
                           &pDevice.p,
-                            &featureLevel );
-        }
-        
-        else
-        {
-          hr =
-            D3D11CreateDevice_Import (
-              pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
-                nullptr,
-                    config.render.dxgi.debug_layer ?
-                         D3D11_CREATE_DEVICE_DEBUG : 0x0,
-                                    levels,
-                        _ARRAYSIZE (levels),
-                          D3D11_SDK_VERSION,
-                            &pDevice.p,
-                              &featureLevel,
-                                nullptr );
-        }
+                            &featureLevel,
+                              nullptr );
       }
       
-      if (! config.compatibility.allow_fake_streamline)
-      {
-        SK_slUpgradeInterface ((void **)&pFactory.p);
-
-        SK_LoadLibraryW (L"d3d12.dll");
-
-        // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
-        //   Therefore, just it may be better to leave Streamline unsupported.
-        if (SK_IsModuleLoaded (L"d3d12.dll"))
-        {
-          static D3D12CreateDevice_pfn
-            D3D12CreateDevice = (D3D12CreateDevice_pfn)
-              SK_GetProcAddress (L"d3d12.dll",
-                                "D3D12CreateDevice");
-
-          if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS (&pDevice12.p))))
-          {
-            if (SK_slGetNativeInterface (pDevice12.p, (void **)&pNativeDevice12.p) == sl::Result::eOk)
-            {   _ExchangeProxyForNative (pDevice12,             pNativeDevice12);
-              SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D12 Device...");
-            }
-
-            SK_D3D12_InstallDeviceHooks       (pDevice12.p);
-            SK_D3D12_InstallCommandQueueHooks (pDevice12.p);
-
-            if (sl::Result::eOk == SK_slUpgradeInterface ((void **)&pDevice12.p))
-              SK_LOGi0 (L"Upgraded D3D12 Device to Streamline Proxy...");
-
-            D3D12_COMMAND_QUEUE_DESC
-              queue_desc       = { };
-              queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-              queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-            pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
-          }
-        }
-      }
-
       if (SUCCEEDED (hr))
       {
         if (pDevice != nullptr)

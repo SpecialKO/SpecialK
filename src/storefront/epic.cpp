@@ -952,14 +952,9 @@ SK_EOS_Platform_Tick (EOS_HPlatform Handle)
   SK_RunOnce (config.platform.reuse_overlay_pause = false);
   SK_RunOnce (epic_log->Log (L"EOS_Platform_Tick"));
 
+  // This feature may not be used safely in EOS games
   if (config.threads.enable_dynamic_spinlocks)
-  {
-    if (! std::exchange (config.epic.warned_online, true))
-    {
-      SK_ImGui_Warning (L"Special K does not support online mode in EOS games "
-                        L"that have one.");
-    }
-  }
+      config.threads.enable_dynamic_spinlocks = false;
 
   static bool init_once = false;
 

@@ -1,4 +1,15 @@
-﻿25.11.20.1
+﻿25.11.20.2
+==========
+ + Removed no longer supported INI variables:
+
+    [Platform.System]       WarnedEOSIncompat
+    [SpecialK.System]       StrictCompliant
+    [Compatibility.General] AllowFakeStreamline
+    [Window.System]         FixMouseCoords
+    [Render.FrameRate]      StreamlineEnforcementPolicy
+    [Render.DXGI]           SkipSwapChainPresentTest
+
+25.11.20.1
 ==========
  + Added weak initialization synchronization for compatibility with ReShade AddOns
      like RenoDX; will increase launch time in most games by ~100 ms.

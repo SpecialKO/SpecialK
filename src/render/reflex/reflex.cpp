@@ -355,15 +355,8 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
         {
           pLimiter->wait ();
 
-          auto                                  tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, -1.0,   tNow, rb.swapchain.p);
-          //if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows) && __SK_DLSSGMultiFrameCount > 1)
-          //{
-          //  for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
-          //  {                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
-          //    SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
-          //  }
-          //}
+          auto                                tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
         }
 
         // Fallback to normal mode if the game has no latency markers
@@ -373,15 +366,8 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
         {
           pLimiter->wait ();
 
-          auto                                  tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, -1.0,   tNow, rb.swapchain.p);
-          //if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows) && __SK_DLSSGMultiFrameCount > 1)
-          //{
-          //  for ( UINT i = 0 ; i < __SK_DLSSGMultiFrameCount ; ++i )
-          //  {                                    tNow.QuadPart += (pLimiter->get_ticks_per_frame () / (__SK_DLSSGMultiFrameCount + 1));
-          //    SK::Framerate::TickEx (false, 0.0, tNow, rb.swapchain.p); 
-          //  }
-          //}
+          auto                                tNow = SK_QueryPerf ();
+          SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
         }
       }
     }
