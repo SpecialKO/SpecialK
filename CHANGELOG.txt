@@ -1,4 +1,9 @@
-﻿25.11.20
+﻿25.11.20.1
+==========
+ + Added weak initialization synchronization for compatibility with ReShade AddOns
+     like RenoDX; will increase launch time in most games by ~100 ms.
+
+25.11.20
 ========
  + Disabled NVIDIA Streamline debug log and added INI option to turn it back on.
  + Replaced XInput Latency Tester with simplified XInput Report Rate Tester.

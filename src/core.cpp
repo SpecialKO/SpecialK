@@ -1911,17 +1911,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   InstructionSet::deferredInit ();
 
-  // .NET Applications might be inside of managed code, so perform
-  //   initialization on a deferred native thread unless WaitForDebugger
-  //     is configured.
-  const static auto
-    _NeedImplicitDelay =
-     [&]()
-      { return (! config.system.wait_for_debugger) &&
-                SK_IsModuleLoaded (L"MSCOREE.dll"); };
-
   // If Global Injection Delay, block initialization thread until the delay period ends
-  if (SK_IsInjected () && (SK_Inject_GetInjectionDelayInSeconds () > 0.0f || _NeedImplicitDelay ()))
+  if (SK_IsInjected () && SK_Inject_GetInjectionDelayInSeconds () > 0.0f)
   {
     struct packaged_params_s {
       std::wstring backend  = L""; // Persistent copy
@@ -2090,6 +2081,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       game_debug->init (L"logs/game_output.log", L"w");
       game_debug->lockless = true;
 
+      SK_Display_HookModeChangeAPIs ();
 
       // Apply game netcode killswitch, intended to prevent stuttering in
       //   some games that do weird stuff with network (e.g. telemetry)
@@ -2195,12 +2187,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   SK_ReShadeAddOn_Init ();
-
-  SK_RunOnce (
-  {
-    SK_Display_HookModeChangeAPIs ();
-    SK_ApplyQueuedHooks           ();
-  });
 
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
@@ -2558,6 +2544,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_Thread_CreateEx ( DllThread, nullptr,
                                &init_ )
     ); // Avoid the temptation to wait on this thread
+
+    WaitForSingleObject (hInitThread, 250UL);
 
     if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);
                 hooks_queued > 0)
