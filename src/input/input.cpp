@@ -589,6 +589,7 @@ void SK_Input_PreInit (void)
     // Disable bad window management behavior so that SK can take full control
     SK_SDL_SetDefaultBehavior ("SDL_HINT_FORCE_RAISEWINDOW",       "0");
     SK_SDL_SetDefaultBehavior ("SDL_ALLOW_TOPMOST",                "0");
+    SK_SDL_SetDefaultBehavior ("SDL_WINDOW_ALLOW_TOPMOST",         "0");
     //SK_SDL_SetDefaultBehavior ("SDL_WINDOWS_ENABLE_MESSAGELOOP", "0");
   }
 
@@ -598,6 +599,12 @@ void SK_Input_PreInit (void)
     SK_SDL_SetDefaultBehavior ("SDL_DIRECTINPUT_ENABLED","0", true);
   else if (config.compatibility.sdl.allow_direct_input == 1)
     SK_SDL_SetDefaultBehavior ("SDL_DIRECTINPUT_ENABLED","1", true);
+
+  if (config.input.gamepad.dinput.blackout_gamepads ||
+      config.compatibility.sdl.allow_direct_input == 0)
+    SK_SDL_SetDefaultBehavior ("SDL_HINT_JOYSTICK_DIRECTINPUT","0", true);
+  else if (config.compatibility.sdl.allow_direct_input == 1)
+    SK_SDL_SetDefaultBehavior ("SDL_HINT_JOYSTICK_DIRECTINPUT","1", true);
 
   auto SK_SDL_SetOverride = [&](int cfg_var, const char* szName)
   {
