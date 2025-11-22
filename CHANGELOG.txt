@@ -1,4 +1,11 @@
-﻿25.11.20.2
+﻿25.11.22
+========
+ + Handle breaking change in SDL3 for the hint environment variables
+     controlling Alt+F4, "Topmost" and DirectInput.
+ + Disable Alt+F4 handling in SDL games if continue rendering is enabled,
+     because SDL is incapable of determining the correct state of the Alt key.
+
+25.11.20.2
 ==========
  + Removed no longer supported INI variables:
 

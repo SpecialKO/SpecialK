@@ -1093,6 +1093,62 @@ private:
 };
 
 void
+SK_Input_ClearKeyboardState (void)
+{
+  if (! IsWindow (game_window.hWnd))
+    return;
+
+  static DWORD
+      dwInputTid = 0;
+  if (dwInputTid == 0)
+  {
+    dwInputTid =
+      GetWindowThreadProcessId (game_window.hWnd, nullptr);
+  }
+
+  static SK_AutoHandle
+      hInputThread;
+  if (hInputThread == INVALID_HANDLE_VALUE)
+  {
+    hInputThread.m_h =
+      OpenThread (THREAD_ALL_ACCESS, FALSE, dwInputTid);
+  }
+
+  if (hInputThread != INVALID_HANDLE_VALUE)
+  {
+    static auto ClearKeyboardState_APC = [](ULONG_PTR)->void
+    {
+      SK_LOGi1 (L"Clearing keyboard state via alertable APC callback...");
+
+      BYTE              newKeyboardState [256] = { };
+      SetKeyboardState (newKeyboardState);
+
+      // Force SDL to reset its keyboard state
+      if (SK_GetCurrentRenderBackend ().windows.sdl)
+      {
+        // SDL is absolutely terrible at detecting the correct state of the Alt key,
+        //   so disable its ghetto non-standard Alt+F4 handler.
+        SK_RunOnce (
+          SetEnvironmentVariableW (L"SDL_HINT_WINDOWS_CLOSE_ON_ALT_F4", L"0"); // SDL3
+          SetEnvironmentVariableW (L"SDL_WINDOWS_NO_CLOSE_ON_ALT_F4",   L"1"); // SDL2
+        );
+
+        if (game_window.WndProc_Original != nullptr)
+        {
+          if (game_window.active)
+          {
+            game_window.WndProc_Original (game_window.hWnd, WM_KILLFOCUS, 0, 0);
+            game_window.WndProc_Original (game_window.hWnd, WM_SETFOCUS,  0, 0);
+          }
+        }
+      }
+    };
+
+    QueueUserAPC (ClearKeyboardState_APC, hInputThread, 0);
+  }
+}
+
+void
 ActivateWindow ( HWND hWnd,
                  bool active,
                  HWND hWndDeactivated )
@@ -1195,11 +1251,10 @@ ActivateWindow ( HWND hWnd,
         if (VKey == VK_CANCEL)
             VKey =  VK_BACK-1;
       }
-
-      // Invalidate keyboard state on focus loss to prevent stuck keys
-      BYTE              newKeyboardState [256] = { };
-      SetKeyboardState (newKeyboardState);
     }
+
+    if (config.window.background_render)
+      SK_Input_ClearKeyboardState ();
 
     if (         hWndFocus != 0                &&
                  hWndFocus != game_window.hWnd &&
@@ -1359,13 +1414,8 @@ ActivateWindow ( HWND hWnd,
         SK_LOG4 ( ( L"Confining Mouse Cursor" ),
                     L"Window Mgr" );
 
-      //if (! wm_dispatch->moving_windows.count (game_window.hWnd))
-        {
-          ////// XXX: Is this really necessary? State should be consistent unless we missed
-          //////        an event --- Write unit test?
-          SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
-          SK_ClipCursor    (&game_window.actual.window);
-        }
+        SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+        SK_ClipCursor    (&game_window.actual.window);
       }
 
       else
@@ -5715,6 +5765,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   {
     void SK_ImGui_InitDragAndDrop (void);
          SK_ImGui_InitDragAndDrop ();
+
+    if (config.window.background_render)
+    {
+      // Run queued APCs for things like clearing the keyboard state on the window thread.
+      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
+    }
   }
 
   // @TODO: Allow PlugIns to install callbacks for window proc
