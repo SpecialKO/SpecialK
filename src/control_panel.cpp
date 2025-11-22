@@ -6679,6 +6679,40 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                     ImGui::SetItemTooltip ("Adaptive V-Sync works better in Fake Fullscreen or Windowed Mode");
                   }
                 }
+
+                switch (config.render.framerate.tearing_mode)
+                {
+                  case SK_TearingMode::AdaptiveOff:
+                  {
+                    if (! rb.isTrueFullscreen ())
+                    {
+                      break;
+                    }
+                  }
+
+                  case SK_TearingMode::AlwaysOff_LowLatency:
+                  {
+                    ImGui::Combo (
+                      "Latency Mode",
+                      &config.render.framerate.latency_mode,
+                      "Smooth\0"
+                      "Aggressive\0\0"
+                    );
+
+                    if (ImGui::BeginItemTooltip ())
+                    {
+                      ImGui::Text       ("Controls latency reduction behavior");
+                      ImGui::Separator  ();
+                      ImGui::BulletText ("Smooth mode is slower, but uses a parabola curve to minimize judder");
+                      ImGui::BulletText ("Aggressive mode causes more judder, but reduces latency much faster");
+                      ImGui::EndTooltip ();
+                    }
+                  } break;
+
+                  default:
+                  {
+                  } break;
+                }
               }
 
               else
