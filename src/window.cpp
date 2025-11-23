@@ -1159,9 +1159,6 @@ SK_Input_ClearKeyboardState (void)
 
         if (game_window.WndProc_Original != nullptr)
         {
-          if (config.window.background_render)
-            game_window.WndProc_Original (game_window.hWnd, WM_KILLFOCUS, 0, 0);
-
           if (game_window.active || config.window.background_render)
             game_window.WndProc_Original (game_window.hWnd, WM_SETFOCUS,  0, 0);
         }
