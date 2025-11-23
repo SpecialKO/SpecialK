@@ -1,4 +1,14 @@
-﻿25.11.22
+﻿25.11.23
+========
+ + Improved SDL keyboard input blocking when background render is enabled.
+ + Improved Unity keyboard input blocking (RawInput) when background render
+     is enabled.
+ + Rogue keyboard glyphs should not appear in any games when alt-tabbing with
+     background render enabled now, but some games may still keep you moving
+       in the direction you were going after alt-tabbing until you release the
+         movement key or alt-tab back in.
+
+25.11.22
 ========
  + Handle breaking change in SDL3 for the hint environment variables
      controlling Alt+F4, "Topmost" and DirectInput.
