@@ -428,9 +428,6 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
   if (pfnGetFunc == nullptr)
     return 0;
 
-  const SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
-
   auto SK_ConsumeVKey = [&](int vKey) ->
   SHORT
   {
@@ -467,22 +464,12 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
       SK_ConsumeVKey (vKey);
   }
 
-  // Block keyboard input to the game while it's in the background
+  // Block keyboard input to the game while it's in the background, because it
+  //   has no idea that focus changed and will still try to read keyboard state.
   if (game_window.wantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
-    if (pfnGetFunc == GetAsyncKeyState_Original)
-    {
-      bool fullscreen =
-        ( SK_GetFramesDrawn () && (rb.d3d12.command_queue.p != nullptr ||
-                                   rb.d3d11.immediate_ctx   != nullptr)
-                               &&  rb.isTrueFullscreen () );
-
-      if (fullscreen)
-      {
-        return
-          SK_ConsumeVKey (vKey);
-      }
-    }
+    return
+      SK_ConsumeVKey (vKey);
   }
 
   // Valid Keys:  3, 8 - 255
