@@ -1,4 +1,9 @@
-﻿25.11.23
+﻿25.11.23.1
+==========
+ + Correctly re-implement Keyboard Disabled = Always option when
+     background rendering is enabled.
+
+25.11.23
 ========
  + Improved SDL keyboard input blocking when background render is enabled.
  + Improved Unity keyboard input blocking (RawInput) when background render
