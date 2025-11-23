@@ -3918,6 +3918,13 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
     SK_D3D12_BeginFrame ();
   }
 
+  // Disable Reflex Limiter when using Latent Sync
+  if ( config.render.framerate.present_interval == 0 &&
+       config.render.framerate.target_fps        > 0.0f )
+  {
+    config.nvidia.reflex.use_limiter = false;
+  }
+
   rb.driverSleepNV      (0);
   rb.setLatencyMarkerNV (RENDERSUBMIT_END);
 
