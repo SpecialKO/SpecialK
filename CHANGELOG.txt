@@ -1,4 +1,11 @@
-﻿25.11.23.1
+﻿25.11.24
+========
+ + Optimized DirectInput 8 hook initialization to queue multiple hooks
+     instead of installing them one at a time.
+ + Fixed rumble emulation on PlayStation controllers not stopping in
+     some Unity engine games.
+
+25.11.23.1
 ==========
  + Correctly re-implement Keyboard Disabled = Always option when
      background rendering is enabled.

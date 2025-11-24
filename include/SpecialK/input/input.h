@@ -1116,6 +1116,10 @@ struct SK_HID_PlayStationDevice
     volatile ULONG left = 0, right = 0;
     volatile ULONG last_set        = 0;
 
+    // Last value actually written to the device
+    ULONG last_left  = 0;
+    ULONG last_right = 0;
+
     struct {
       volatile ULONG left           =     0UL;
       volatile ULONG right          =     0UL;
