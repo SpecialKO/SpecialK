@@ -702,7 +702,7 @@ WaitForSingleObject_Detour (
                                 L"GameOverlayRenderer.dll" )
       );
 
-      if (SK_GetCallingDLL () == hModSteam)
+      if (hModSteam != 0 && SK_GetCallingDLL () == hModSteam)
       {
         SK_RunOnce (return 0);
         return WAIT_TIMEOUT;
@@ -1770,8 +1770,10 @@ SK_Steam_PopupOriginWStrToEnum (const wchar_t* str)
     return 2;
   if (name == L"DontCare")
     return 4;
-  /*if (name == L"TopLeft")*/
+  if (name == L"BottomRight")
     return 3;
+
+  return 3;
 
   // TODO: TopCenter, BottomCenter, CenterLeft, CenterRight
 }
@@ -1789,8 +1791,10 @@ SK_Steam_PopupOriginStrToEnum (const char* str)
     return 2;
   if (name == "DontCare")
     return 4;
-  /*if (name == L"TopLeft")*/
+  if (name == "BottomRight")
     return 3;
+
+  return 3;
 }
 
 void SK_Steam_SetNotifyCorner (void);

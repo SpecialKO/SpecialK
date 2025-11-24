@@ -1,4 +1,9 @@
-﻿25.11.24
+﻿25.11.24.1
+==========
+ + Prevent turning off native DualSense haptics in games using haptics without
+     ever using DualSense HID output (i.e. Prince of Persia: The Lost Crown).
+
+25.11.24
 ========
  + Optimized DirectInput 8 hook initialization to queue multiple hooks
      instead of installing them one at a time.
