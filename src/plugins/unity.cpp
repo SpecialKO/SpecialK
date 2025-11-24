@@ -1970,8 +1970,10 @@ static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, floa
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  if (SK_Unity_Cfg.gamepad_fix_playstation && !SK_ImGui_WantGamepadCapture () && !config.input.gamepad.disable_rumble)
   {
+    //SK_LOGi0 (L"Vibrate (%f, %f)", leftSpeed, rightSpeed);
+
     if (SK_ImGui_HasPlayStationController ())
         SK_HID_GetActivePlayStationDevice ()->setVibration (
           static_cast <USHORT> (std::clamp (leftSpeed  * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f)),
@@ -1980,6 +1982,11 @@ static void InControl_NativeInputDevice_Vibrate_Detour (MonoObject* __this, floa
   }
 
   InControl_NativeInputDevice_Vibrate_Original (__this, leftSpeed, rightSpeed);
+
+  // This should be per-device, but is global; OnAttached (...) will be necessary
+  //   to change glyphs on a system with more than one input device active.
+  if (std::exchange (SK_Unity_GlyphCacheDirty, false))
+    SK_Unity_InControl_SetDeviceStyle (__this);
 }
 
 using InControl_InputDevice_OnAttached_il2cpp_pfn    = void (__fastcall *)(void*);
@@ -2068,8 +2075,10 @@ static void __fastcall InControl_NativeInputDevice_Vibrate_il2cpp_Detour (void* 
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_Unity_Cfg.gamepad_fix_playstation)
+  if (SK_Unity_Cfg.gamepad_fix_playstation && !SK_ImGui_WantGamepadCapture () && !config.input.gamepad.disable_rumble)
   {
+    //SK_LOGi0 (L"Vibrate (%f, %f)", leftSpeed, rightSpeed);
+
     if (SK_ImGui_HasPlayStationController ())
         SK_HID_GetActivePlayStationDevice ()->setVibration (
           static_cast <USHORT> (std::clamp (leftSpeed  * static_cast <float> (USHORT_MAX), 0.0f, 65535.0f)),
@@ -2078,6 +2087,11 @@ static void __fastcall InControl_NativeInputDevice_Vibrate_il2cpp_Detour (void* 
   }
 
   InControl_NativeInputDevice_Vibrate_il2cpp_Original (__this, leftSpeed, rightSpeed);
+
+  // This should be per-device, but is global; OnAttached (...) will be necessary
+  //   to change glyphs on a system with more than one input device active.
+  if (std::exchange (SK_Unity_GlyphCacheDirty, false))
+    SK_Unity_InControl_SetDeviceStyle_il2cpp (__this);
 }
 
 
@@ -2122,6 +2136,9 @@ void Rewired_Joystick_SetVibration_Impl (float leftMotorLevel, float rightMotorL
       while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5) != WAIT_OBJECT_0)
       {
         if (! SK_Unity_Cfg.gamepad_fix_playstation)
+          continue;
+
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_rumble)
           continue;
 
         auto controller = SK_HID_GetActivePlayStationDevice (false);
