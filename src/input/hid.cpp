@@ -362,10 +362,6 @@ SK_HID_DeviceFile::isInputAllowed (void) const
   if (bDisableDevice)
     return false;
 
-  // Blocking the HID file read/writes is unnecessary because
-  //   we have Unity's InControl code hooked.
-  extern bool SK_Unity_FixablePlayStationRumble;
-
   switch (device_type)
   {
     case sk_input_dev_type::Mouse:
@@ -373,7 +369,7 @@ SK_HID_DeviceFile::isInputAllowed (void) const
     case sk_input_dev_type::Keyboard:
       return (! SK_ImGui_WantKeyboardCapture ());
     case sk_input_dev_type::Gamepad:
-      return (! SK_ImGui_WantGamepadCapture ()) || (SK_Unity_FixablePlayStationRumble);
+      return (! SK_ImGui_WantGamepadCapture ());
     default: // No idea what this is, ignore it...
       break;
   }
