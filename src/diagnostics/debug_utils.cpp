@@ -1419,11 +1419,28 @@ ExitProcess_Detour (UINT uExitCode)
   SK_LOG0 ( ( L"Software Is Ending With Exit Code (%x)",
                     uExitCode ), __SK_SUBSYSTEM__ );
 
-  // Since many, many games don't shutdown cleanly, let's unload ourself.
-  SK_SelfDestruct ();
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
+  {
+    // Since many, many games don't shutdown cleanly, let's unload ourself.
+    SK_SelfDestruct ();
+
+    return 0;
+  });
+
+  DWORD dwWaitStart =
+    SK_timeGetTime ();
 
   while (ReadAcquire (&__SK_Init) != -2)
+  {
     SK_SleepEx (25UL, FALSE);
+
+    if (SK_timeGetTime () - dwWaitStart > 5000UL)
+    {
+      SK_LOGi0 ( L"ExitProcess_Detour (...) timed out, aborting!" );
+      SK_TerminateProcess (GetCurrentProcess (), uExitCode);
+      break;
+    }
+  }
 
 #if 0
   auto jmpTerminateProcess =

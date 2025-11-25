@@ -701,7 +701,7 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
   PROCESSENTRY32W pe32 = { };
 
   SK_AutoHandle hProcSnap (
-    CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32,
+    CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS,
                                  0 )
   );
 
