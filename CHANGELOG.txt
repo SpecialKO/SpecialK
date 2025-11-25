@@ -1,4 +1,11 @@
-﻿25.11.24.1
+﻿25.11.25
+========
+ + Ensure that wglSwapBuffers hooks always call wglSwapBuffers rather than
+     SwapBuffers.
+ + Address potential deadlock in idTech2 games during shutdown by adding a
+     5 second timeout on ExitProcess (...).
+
+25.11.24.1
 ==========
  + Prevent turning off native DualSense haptics in games using haptics without
      ever using DualSense HID output (i.e. Prince of Persia: The Lost Crown).

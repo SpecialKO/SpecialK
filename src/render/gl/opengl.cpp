@@ -1982,7 +1982,10 @@ SK_IndirectX_PresentManager::Reset (SK_IndirectX_InteropCtx* pCtx)
   if (hThread == INVALID_HANDLE_VALUE)
     Start (pCtx);
 
-  SignalObjectAndWait (hNotifyReset, hAckReset, INFINITE, FALSE);
+  SetEvent (hNotifyReset);
+
+  HANDLE                       hWaitEvents [] = { hAckReset, __SK_DLL_TeardownEvent };
+  WaitForMultipleObjectsEx (2, hWaitEvents, FALSE, INFINITE, FALSE);
 }
 
 void
@@ -1993,8 +1996,10 @@ SK_IndirectX_PresentManager::Present (SK_IndirectX_InteropCtx *pCtx, int Interva
 
   this->interval = Interval;
 
-  //SetEvent (hNotifyPresent);
-  SignalObjectAndWait (hNotifyPresent, hAckPresent, INFINITE, FALSE);
+  SetEvent (hNotifyPresent);
+
+  HANDLE                       hWaitEvents [] = { hAckPresent, __SK_DLL_TeardownEvent };
+  WaitForMultipleObjectsEx (2, hWaitEvents, FALSE, INFINITE, FALSE);
 }
 
 static HWND hwndLast;
@@ -2509,7 +2514,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     if (llFrames > 0)
     {
       while (ReadAcquire64 (    &dx_gl_interop.present_man.frames_complete) < llFrames)
-           WaitForSingleObject ( dx_gl_interop.present_man.hAckPresent, 1);
+      {    WaitForSingleObject ( dx_gl_interop.present_man.hAckPresent, 1);
+
+        if (ReadAcquire (&__SK_DLL_Ending))
+          return TRUE;
+      }
     }
 
 
@@ -3085,11 +3094,11 @@ wglSwapBuffers (HDC hDC)
   if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
-  if (config.render.osd.draw_in_vidcap)
-    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (gdi_swap_buffers));
+  if (config.render.osd.draw_in_vidcap || config.apis.dxgi.d3d11.hook)
+    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (wgl_swap_buffers));
 
   else
-    bRet = gdi_swap_buffers (hDC);
+    bRet = wgl_swap_buffers (hDC);
 
 #ifdef SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
   bRet = TRUE;
@@ -3125,7 +3134,7 @@ SwapBuffers (HDC hDC)
   if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
-  if (config.render.osd.draw_in_vidcap)
+  if (config.render.osd.draw_in_vidcap || config.apis.dxgi.d3d11.hook)
     bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (gdi_swap_buffers));
 
   else
