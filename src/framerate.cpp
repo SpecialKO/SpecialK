@@ -414,14 +414,15 @@ CreateWaitableTimerW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
   static DWORD high_res_flag =
     CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
 
-  SK_RunOnce (sk::NVAPI::nvwgf2umx =
-   SK_GetModuleHandle (L"nvwgf2umx.dll"));
+  SK_RunOnce (sk::NVAPI::nvwgf2umx = // 32-bit and 64-bit versions
+   (HMODULE)((uintptr_t)SK_GetModuleHandle (L"nvwgf2umx.dll") |
+             (uintptr_t)SK_GetModuleHandle (L"nvwgf2um.dll")));
 
   // The NVIDIA driver creates and destroys these like they are candy!
   if (high_res_flag != 0 && (sk::NVAPI::nvwgf2umx == nullptr ||
                              sk::NVAPI::nvwgf2umx != SK_GetCallingDLL ()))
   {
-    SK_LOGi0 (
+    SK_LOGi1 (
       L"Promoting Waitable Timer%hs%ws%hsto a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
         lpTimerName != nullptr ? "'"            :   "",
         lpTimerName != nullptr ? lpTimerName    : L" ",
@@ -467,13 +468,14 @@ CreateWaitableTimerA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
   static DWORD high_res_flag =
     CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
 
-  SK_RunOnce (sk::NVAPI::nvwgf2umx =
-   SK_GetModuleHandle (L"nvwgf2umx.dll"));
+  SK_RunOnce (sk::NVAPI::nvwgf2umx = // 32-bit and 64-bit versions
+   (HMODULE)((uintptr_t)SK_GetModuleHandle (L"nvwgf2umx.dll") |
+             (uintptr_t)SK_GetModuleHandle (L"nvwgf2um.dll")));
 
   if (high_res_flag != 0 && (sk::NVAPI::nvwgf2umx == nullptr ||
                              sk::NVAPI::nvwgf2umx != SK_GetCallingDLL ()))
   {
-    SK_LOGi0 (
+    SK_LOGi1 (
       L"Promoting Waitable Timer%hs%hs%hsto a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
         lpTimerName != nullptr ? "'"            :  "",
         lpTimerName != nullptr ? lpTimerName    : " ",
