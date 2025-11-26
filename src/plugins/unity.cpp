@@ -856,9 +856,10 @@ void SK_Unity_OnInitMono (MonoDomain* domain)
 }
 
 struct {
-  MonoImage* assemblyCSharp    = nullptr;
-  MonoImage* assemblyInControl = nullptr;
-  MonoImage* assemblyRewired   = nullptr;
+  MonoImage* assemblyCSharp           = nullptr;
+  MonoImage* assemblyCSharp_firstpass = nullptr;
+  MonoImage* assemblyInControl        = nullptr;
+  MonoImage* assemblyRewired          = nullptr;
 } SK_Unity_MonoAssemblies;
 
 struct {
@@ -966,9 +967,10 @@ SK_Unity_Hookil2cppInit (void)
 il2cpp::Wrapper* SK_il2cpp_Wrapper = nullptr;
 
 struct {  
-  Image* assemblyCSharp    = nullptr;
-  Image* assemblyInControl = nullptr;
-  Image* assemblyRewired   = nullptr;
+  Image* assemblyCSharp           = nullptr;
+  Image* assemblyCSharp_firstpass = nullptr;
+  Image* assemblyInControl        = nullptr;
+  Image* assemblyRewired          = nullptr;
 } SK_Unity_il2cppAssemblies;
 
 struct {
@@ -1782,10 +1784,7 @@ SK_Unity_UpdateGlyphOverride (void)
     {
       AttachThread ();
 
-      static auto assemblyInControl =
-        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-        SK_Unity_MonoAssemblies.assemblyInControl            :
-        SK_Unity_MonoAssemblies.assemblyCSharp;
+      static auto assemblyInControl = SK_Unity_MonoAssemblies.assemblyInControl;
 
       static MonoClass* DeviceStyle =
         SK_mono_class_from_name (assemblyInControl, "InControl", "InputDeviceStyle");
@@ -1839,10 +1838,7 @@ SK_Unity_UpdateGlyphOverride (void)
     {
       Il2cpp::thread_attach (Il2cpp::get_domain ());
 
-      static auto assemblyInControl =
-        SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
-        SK_Unity_il2cppAssemblies.assemblyInControl            :
-        SK_Unity_il2cppAssemblies.assemblyCSharp;
+      static auto assemblyInControl = SK_Unity_il2cppAssemblies.assemblyInControl;
 
       static Class* DeviceStyle =
         assemblyInControl->get_class ("InputDeviceStyle", "InControl");
@@ -1900,10 +1896,7 @@ static void SK_Unity_InControl_SetDeviceStyle (MonoObject* device)
   if (SK_Unity_GlyphEnumVal == -1)
     return;
 
-  static auto image =
-    (SK_Unity_MonoAssemblies.assemblyInControl != nullptr) ?
-                                    GetImage ("InControl") :
-                              GetImage ("Assembly-CSharp");
+  static auto image = SK_Unity_MonoAssemblies.assemblyInControl;
 
   if (image == nullptr)
     return;
@@ -2006,9 +1999,7 @@ static void SK_Unity_InControl_SetDeviceStyle_il2cpp (void* device)
     return;
 
   static auto image =
-    SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
-    SK_Unity_il2cppAssemblies.assemblyInControl            :
-    SK_Unity_il2cppAssemblies.assemblyCSharp;
+    SK_Unity_il2cppAssemblies.assemblyInControl;
 
   if (image == nullptr)
     return;
@@ -2017,6 +2008,8 @@ static void SK_Unity_InControl_SetDeviceStyle_il2cpp (void* device)
         method = image->get_class ("InputDevice", "InControl")->get_method ("set_DeviceStyle", 1);
   if (! method)
     return;
+
+  SK_LOG_FIRST_CALL
 
   void* params [1] = { &SK_Unity_GlyphEnumVal };
 
@@ -2048,18 +2041,6 @@ static void __fastcall InControl_NativeInputDevice_Update_il2cpp_Detour (void* _
     {
       Il2cpp::method_call ((Method *)ClearInputState, __this, nullptr, nullptr);
     }
-
-#if 0
-    if (! config.input.gamepad.disable_rumble)
-    {
-      InvokeMethod ( "InControl",
-                     "NativeInputDevice",
-                     "SendStatusUpdates", 0, __this,
-        SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
-                                                 "InControl" :
-                                           "Assembly-CSharp" );
-    }
-#endif
     return;
   }
 
@@ -2310,14 +2291,31 @@ SK_Unity_SetupInputHooks_il2cpp (void)
     {
       Il2cpp::thread_attach (Il2cpp::get_domain ());
 
-      SK_Unity_il2cppAssemblies.assemblyCSharp    = Aetherim.get_image ("Assembly-CSharp.dll");
-      SK_Unity_il2cppAssemblies.assemblyInControl = Aetherim.get_image ("InControl.dll");
-      SK_Unity_il2cppAssemblies.assemblyRewired   = Aetherim.get_image ("Rewired_Core.dll");
+      SK_Unity_il2cppAssemblies.assemblyCSharp           = Aetherim.get_image ("Assembly-CSharp.dll");
+      SK_Unity_il2cppAssemblies.assemblyCSharp_firstpass = Aetherim.get_image ("Assembly-CSharp-firstpass.dll");
+      SK_Unity_il2cppAssemblies.assemblyInControl        = Aetherim.get_image ("InControl.dll");
+      SK_Unity_il2cppAssemblies.assemblyRewired          = Aetherim.get_image ("Rewired_Core.dll");
 
       auto assemblyInControl =
         SK_Unity_il2cppAssemblies.assemblyInControl != nullptr ?
         SK_Unity_il2cppAssemblies.assemblyInControl            :
         SK_Unity_il2cppAssemblies.assemblyCSharp;
+
+      if (assemblyInControl == SK_Unity_il2cppAssemblies.assemblyCSharp &&
+          assemblyInControl->get_class ("InputDevice", "InControl") == nullptr)
+      {
+        
+        assemblyInControl = SK_Unity_il2cppAssemblies.assemblyCSharp_firstpass;
+
+        if (assemblyInControl->get_class("InputDevice", "InControl") != nullptr)
+        {
+          SK_LOGi0 (
+            L"InControl not found in Assembly-CSharp, but was found in Assembly-CSharp-firstpass!"
+          );
+        }
+      }
+
+      SK_Unity_il2cppAssemblies.assemblyInControl = assemblyInControl;
 
       SK_Unity_il2cppClasses.InControl.InputDevice =
                                  assemblyInControl == nullptr ?
@@ -2429,8 +2427,8 @@ SK_Unity_SetupInputHooks_il2cpp (void)
             pfnRewired_Joystick_SetVibration4           != nullptr &&
             pfnRewired_Joystick_SetVibration2           != nullptr)))
         {
-          if (*(void**)pfnRewired_Joystick_get_supportsVibration   != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_supportsVibration);
-          if (*(void**)pfnRewired_Joystick_StopVibration           != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_StopVibration);
+          if (*(void**)pfnRewired_Joystick_get_supportsVibration     != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_supportsVibration);
+          if (*(void**)pfnRewired_Joystick_StopVibration             != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_StopVibration);
 
           if (pfnVibrationController_Rumble)
           {
@@ -2623,18 +2621,40 @@ SK_Unity_SetupInputHooks (void)
       AttachThread ();
 
       // Optional, may not exist.
+      LoadMonoAssembly ("Assembly-CSharp-firstpass");
       LoadMonoAssembly ("InControl");
       LoadMonoAssembly ("Rewired_Core");
       LoadMonoAssembly ("UnityEngine.CoreModule");
 
-      SK_Unity_MonoAssemblies.assemblyCSharp    = SK_mono_image_loaded ("Assembly-CSharp");
-      SK_Unity_MonoAssemblies.assemblyInControl = SK_mono_image_loaded ("InControl");
-      SK_Unity_MonoAssemblies.assemblyRewired   = SK_mono_image_loaded ("Rewired_Core");
+      SK_Unity_MonoAssemblies.assemblyCSharp           = SK_mono_image_loaded ("Assembly-CSharp");
+      SK_Unity_MonoAssemblies.assemblyCSharp_firstpass = SK_mono_image_loaded ("Assembly-CSharp-firstpass");
+      SK_Unity_MonoAssemblies.assemblyInControl        = SK_mono_image_loaded ("InControl");
+      SK_Unity_MonoAssemblies.assemblyRewired          = SK_mono_image_loaded ("Rewired_Core");
 
       auto assemblyInControl =
         SK_Unity_MonoAssemblies.assemblyInControl != nullptr ?
         SK_Unity_MonoAssemblies.assemblyInControl            :
         SK_Unity_MonoAssemblies.assemblyCSharp;
+
+      if (assemblyInControl == SK_Unity_MonoAssemblies.assemblyCSharp &&
+          SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice") == nullptr)
+      {
+        assemblyInControl = SK_Unity_MonoAssemblies.assemblyCSharp_firstpass;
+
+        if (SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice"))
+        {
+          SK_LOGi0 (
+            L"InControl not found in Assembly-CSharp, but was found in Assembly-CSharp-firstpass!"
+          );
+        }
+      }
+
+      const char* assemblyInControl_filename =
+        assemblyInControl == SK_Unity_MonoAssemblies.assemblyCSharp           ? "Assembly-CSharp" :
+        assemblyInControl == SK_Unity_MonoAssemblies.assemblyCSharp_firstpass ? "Assembly-CSharp-firstpass"
+                                                                              : "InControl";
+
+      SK_Unity_MonoAssemblies.assemblyInControl = assemblyInControl;
 
       SK_Unity_MonoClasses.InControl.InputDevice =
                                  assemblyInControl == nullptr ?
@@ -2648,22 +2668,11 @@ SK_Unity_SetupInputHooks (void)
       if (SK_Unity_MonoClasses.InControl.InputDevice != nullptr)
       {
         pfnInControl_NativeInputDevice_Vibrate =
-          CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2);
+          CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, assemblyInControl_filename);
         pfnInControl_NativeInputDevice_Update =
-          CompileMethod ("InControl", "NativeInputDevice", "Update",     2);
+          CompileMethod ("InControl", "NativeInputDevice", "Update",     2, assemblyInControl_filename);
         pfnInControl_InputDevice_OnAttached =
-          CompileMethod ("InControl",       "InputDevice", "OnAttached", 0);
-
-        // Sometimes this ships as a separate DLL (InControl.dll)
-        if (pfnInControl_NativeInputDevice_Vibrate == nullptr)
-        {
-          pfnInControl_NativeInputDevice_Vibrate =
-            CompileMethod ("InControl", "NativeInputDevice", "Vibrate",    2, "InControl");
-          pfnInControl_NativeInputDevice_Update =
-            CompileMethod ("InControl", "NativeInputDevice", "Update",     2, "InControl");
-          pfnInControl_InputDevice_OnAttached =
-            CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, "InControl");
-        }
+          CompileMethod ("InControl",       "InputDevice", "OnAttached", 0, assemblyInControl_filename);
 
         if (pfnInControl_NativeInputDevice_Vibrate != nullptr)
         {
