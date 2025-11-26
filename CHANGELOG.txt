@@ -1,4 +1,19 @@
-﻿25.11.25
+﻿25.11.26
+========
+ + Remove log spam for Win32 High Resolution Timer Upgrades unless the log
+     level is >= 1.
+ + Add support for hooking Unity's InControl input backend if it is located
+     in AssemblyCSharp-firstpass instead of Assembly-CSharp for Mono/il2cpp.
+ + Use SK_ApplyQueuedHooks (...) for DirectInput 8 hooks.
+ + Forcefully block Pheonex Wright Ace Attorney Trilogy from accessing HID
+     or DirectInput, because the version of InControl that it uses breaks
+       when newer PlayStation controllers are connected and is incapable
+         of getting any input (i.e. DualSense breaks the game!).
+
+    * XInput emulation will be enabled in its place, and the option to
+        change button icons in Unity is provided.
+
+25.11.25
 ========
  + Ensure that wglSwapBuffers hooks always call wglSwapBuffers rather than
      SwapBuffers.

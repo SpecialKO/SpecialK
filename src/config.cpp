@@ -320,6 +320,7 @@ SK_GetCurrentGameID (void)
           { L"FEARXP.exe",                             SK_GAME_ID::FEAR_Perseus_Mandate         },
           { L"FEAR.exe",                               SK_GAME_ID::FEAR_Perseus_Mandate         },
           { L"FEARMP.exe",                             SK_GAME_ID::FEAR_Perseus_Mandate         },
+          { L"PWAAT.exe",                              SK_GAME_ID::PheonixWright_Trilogy        },
         };
 
     first_check  = false;
@@ -4343,6 +4344,16 @@ auto DeclKeybind =
         config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
+        break;
+
+      // Game has an older version of InControl that does not understand DualSense (at all),
+      //   game will not recognize input at all if a DualSense controller is connected and
+      //     HID is not blocked.   So just emulate XInput and forcefully block DirectInput.
+      case SK_GAME_ID::PheonixWright_Trilogy:
+        config.input.gamepad.xinput.emulate          = true;
+        config.input.gamepad.hook_dinput8            = false;
+        config.input.gamepad.disable_hid             = true;
+        input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
         break;
 
       case SK_GAME_ID::SilentHill_f:
