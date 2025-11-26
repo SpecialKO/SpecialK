@@ -166,6 +166,11 @@ DirectInput8Create ( HINSTANCE hinst,
   HRESULT hr =
     E_NOINTERFACE;
 
+  static std::mutex hookMutex;
+
+  std::scoped_lock <std::mutex>
+         hook_lock (hookMutex);
+
   std::vector <void *> fns_to_hook;
 
   if (DirectInput8Create_Import != nullptr)
@@ -245,14 +250,12 @@ DirectInput8Create ( HINSTANCE hinst,
 
   if (! fns_to_hook.empty ())
   {
-    auto suspend_ctx = SK_SuspendAllOtherThreads ();
-
     for (auto fn : fns_to_hook)
     {
-      SK_EnableHook (fn);
+      SK_QueueEnableHook (fn);
     }
 
-    SK_ResumeThreads (suspend_ctx);
+    SK_ApplyQueuedHooks ();
   }
 
   return hr;
@@ -435,6 +438,11 @@ CoCreateInstance_DI8 (
   HRESULT hr =
     E_NOINTERFACE;
 
+  static std::mutex hookMutex;
+
+  std::scoped_lock <std::mutex>
+         hook_lock (hookMutex);
+
   std::vector <void *> fns_to_hook;
 
   if (riid == IID_IDirectInput8A)
@@ -511,14 +519,12 @@ CoCreateInstance_DI8 (
 
   if (! fns_to_hook.empty ())
   {
-    auto suspend_ctx = SK_SuspendAllOtherThreads ();
-
     for (auto fn : fns_to_hook)
     {
-      SK_EnableHook (fn);
+      SK_QueueEnableHook (fn);
     }
 
-    SK_ResumeThreads (suspend_ctx);
+    SK_ApplyQueuedHooks ();
   }
 
   return hr;
@@ -549,6 +555,11 @@ CoCreateInstanceEx_DI8 (
                      0, 0x800,
                      (uintptr_t)pResults->pItf,
                        SK_SummarizeCaller (pCallerAddr).c_str () );
+
+  static std::mutex hookMutex;
+
+  std::scoped_lock <std::mutex>
+         hook_lock (hookMutex);
 
   std::vector <void *> fns_to_hook;
 
@@ -626,14 +637,12 @@ CoCreateInstanceEx_DI8 (
 
   if (! fns_to_hook.empty ())
   {
-    auto suspend_ctx = SK_SuspendAllOtherThreads ();
-
     for (auto fn : fns_to_hook)
     {
-      SK_EnableHook (fn);
+      SK_QueueEnableHook (fn);
     }
 
-    SK_ResumeThreads (suspend_ctx);
+    SK_ApplyQueuedHooks ();
   }
 
   return hr;
@@ -1662,8 +1671,6 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
     return DIERR_DEVICENOTREG;
 #endif
 
-  std::vector <void *> fns_to_hook;
-
   hookable = true;
 
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
@@ -1707,6 +1714,13 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                                           rguid,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
+
+  static std::mutex hookMutex;
+
+  std::scoped_lock <std::mutex>
+         hook_lock (hookMutex);
+
+  std::vector <void *> fns_to_hook;
 
   if (SUCCEEDED (hr) &&  lplpDirectInputDevice != nullptr &&
                         *lplpDirectInputDevice != nullptr)
@@ -1772,14 +1786,12 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
   if (! fns_to_hook.empty ())
   {
-    auto suspend_ctx = SK_SuspendAllOtherThreads ();
-
     for (auto fn : fns_to_hook)
     {
-      SK_EnableHook (fn);
+      SK_QueueEnableHook (fn);
     }
 
-    SK_ResumeThreads (suspend_ctx);
+    SK_ApplyQueuedHooks ();
   }
 
   return hr;
@@ -1806,8 +1818,6 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 #endif
 
   hookable = true;
-
-  std::vector <void *> fns_to_hook;
 
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
@@ -1849,6 +1859,13 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                                           rguid,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
+
+  static std::mutex hookMutex;
+
+  std::scoped_lock <std::mutex>
+         hook_lock (hookMutex);
+
+  std::vector <void *> fns_to_hook;
 
   if (SUCCEEDED (hr) &&  lplpDirectInputDevice != nullptr &&
                         *lplpDirectInputDevice != nullptr)
@@ -1916,14 +1933,12 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
   if (! fns_to_hook.empty ())
   {
-    auto suspend_ctx = SK_SuspendAllOtherThreads ();
-
     for (auto fn : fns_to_hook)
     {
-      SK_EnableHook (fn);
+      SK_QueueEnableHook (fn);
     }
 
-    SK_ResumeThreads (suspend_ctx);
+    SK_ApplyQueuedHooks ();
   }
 
   return hr;
