@@ -320,7 +320,7 @@ SK_GetCurrentGameID (void)
           { L"FEARXP.exe",                             SK_GAME_ID::FEAR_Perseus_Mandate         },
           { L"FEAR.exe",                               SK_GAME_ID::FEAR_Perseus_Mandate         },
           { L"FEARMP.exe",                             SK_GAME_ID::FEAR_Perseus_Mandate         },
-          { L"PWAAT.exe",                              SK_GAME_ID::PheonixWright_Trilogy        },
+          { L"PWAAT.exe",                              SK_GAME_ID::PhoenixWright_Trilogy        },
         };
 
     first_check  = false;
@@ -4349,11 +4349,18 @@ auto DeclKeybind =
       // Game has an older version of InControl that does not understand DualSense (at all),
       //   game will not recognize input at all if a DualSense controller is connected and
       //     HID is not blocked.   So just emulate XInput and forcefully block DirectInput.
-      case SK_GAME_ID::PheonixWright_Trilogy:
-        config.input.gamepad.xinput.emulate          = true;
+      case SK_GAME_ID::PhoenixWright_Trilogy:
+        config.input.gamepad.xinput.emulate          =  true;
         config.input.gamepad.hook_dinput8            = false;
-        config.input.gamepad.disable_hid             = true;
+        config.input.gamepad.disable_hid             =  true;
         input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
+        // Game behaves this way with or without this setting, and background_render
+        //   only creates the potential for stuck arrow keys.
+        config.window.background_render              = false;
+        config.render.dxgi.fake_fullscreen_mode      = false;
+        //     * Fake Fullscreen implicitly enables the above
+        window.background_render->store         (config.window.background_render);
+        render.dxgi.fake_fullscreen_mode->store (config.render.dxgi.fake_fullscreen_mode);
         break;
 
       case SK_GAME_ID::SilentHill_f:

@@ -5,7 +5,7 @@
  + Add support for hooking Unity's InControl input backend if it is located
      in AssemblyCSharp-firstpass instead of Assembly-CSharp for Mono/il2cpp.
  + Use SK_ApplyQueuedHooks (...) for DirectInput 8 hooks.
- + Forcefully block Pheonex Wright Ace Attorney Trilogy from accessing HID
+ + Forcefully block Phoenix Wright: Ace Attorney Trilogy from accessing HID
      or DirectInput, because the version of InControl that it uses breaks
        when newer PlayStation controllers are connected and is incapable
          of getting any input (i.e. DualSense breaks the game!).
