@@ -44,11 +44,10 @@ SK::ControlPanel::Platform::Draw (void)
 
   if (SK::SteamAPI::AppID () != 0 || SK::EOS::GetTicksRetired () > 0 || SK::Galaxy::GetTicksRetired () > 0)
   {
-    // Steam AppID never changes, but EOS tick count might...
-    //   also some Steam games use EOS but aren't themselves an Epic game
-    static bool bSteam =  (SK::SteamAPI::AppID         () != 0);
-           bool bEpic  = ((SK::EOS::GetTicksRetired    () >  0) && (! bSteam));
-           bool bGOG   = ((SK::Galaxy::GetTicksRetired () >  0) && (! bSteam) && (! bEpic));
+    // Some Steam games use EOS but aren't themselves an Epic game
+    bool bSteam =  (SK::SteamAPI::AppID         () != 0);
+    bool bEpic  = ((SK::EOS::GetTicksRetired    () >  0) && (! bSteam));
+    bool bGOG   =  (SK::Galaxy::GetTicksRetired () >  0);
 
     static const std::string header_label =
       SK_FormatString ( "%s Enhancements###Platform_Enhancements",
@@ -73,16 +72,15 @@ SK::ControlPanel::Platform::Draw (void)
         //   we need to not make these API calls if it does or NVIDIA
         //     Streamline will cause games to crash!
         SK_SteamAPI_GetNumPlayers ();
-
-        bool bSteamWorks =
-          (! config.platform.steam_is_b0rked);
-
-        bHasAchievements =
-            ( bSteamWorks && SK_SteamAPI_GetNumPossibleAchievements () > 0 ) ||
-            ( bEpic       &&      SK_EOS_GetNumPossibleAchievements () > 0 ) ||
-            ( bGOG        &&   SK_Galaxy_GetNumPossibleAchievements () > 0 );
       });
 
+      const bool bSteamWorks =
+        bSteam && (! config.platform.steam_is_b0rked);
+
+      bHasAchievements =
+        ( bSteamWorks && SK_SteamAPI_GetNumPossibleAchievements () > 0 ) ||
+        ( bEpic       &&      SK_EOS_GetNumPossibleAchievements () > 0 ) ||
+        ( bGOG        &&   SK_Galaxy_GetNumPossibleAchievements () > 0 );
 
       if (bHasAchievements)
       {

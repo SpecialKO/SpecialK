@@ -57,6 +57,36 @@
   }                                                                           \
 }
 
+galaxy::api::ListenerType
+SK_Galaxy_RemapListenerType (galaxy::api::ListenerType type)
+{
+  if (gog->version < SK_GalaxyContext::Version_1_148_1)
+  {
+    // 0-9 are unchanged
+
+    // 10 (SERVER_NETWORKING)       is deprecated, but not removed from this version
+    // 22 (OVERLAY_STATE_CHANGE)    is deprecated, but not removed from this version
+    // 35 (STORAGE_SYNCHRONIZATION) is deprecated, but not removed from this version
+
+    if ((int)type <= 9)
+      return type;
+
+    type = (galaxy::api::ListenerType)((int)type + 1);
+
+    if ((int)type <= (22 + 1))
+      return type;
+
+    type = (galaxy::api::ListenerType)((int)type + 1);
+
+    if ((int)type <= (35 + 2))
+      return type;
+
+    type = (galaxy::api::ListenerType)((int)type + 1);
+  }
+
+  return type;
+}
+
 class SK_Galaxy_OverlayManager : public galaxy::api::IOverlayStateChangeListener
 {
 public:
@@ -558,8 +588,8 @@ public:
       loadSound (config.platform.achievements.sound_file.c_str ());
 
       gog->Registrar ()->Register (
-         galaxy::api::ACHIEVEMENT_CHANGE,
-        (galaxy::api::IAchievementChangeListener *)this
+        SK_Galaxy_RemapListenerType (galaxy::api::ACHIEVEMENT_CHANGE),
+                                    (galaxy::api::IAchievementChangeListener *)this
       );
     }
 
@@ -921,9 +951,10 @@ namespace galaxy
         gog->Registrar ();
 
       SK_RunOnce (
-        //registrar->Register (            USER_TIME_PLAYED_RETRIEVE,
+        //registrar->Register ( SK_Galaxy_RemapListenerType (USER_TIME_PLAYED_RETRIEVE),
         //  (galaxy::api::IUserTimePlayedRetrieveListener           *)galaxy_achievements.getPtr () );
-        registrar->Register ( USER_STATS_AND_ACHIEVEMENTS_RETRIEVE, dynamic_cast <
+        registrar->Register ( SK_Galaxy_RemapListenerType (USER_STATS_AND_ACHIEVEMENTS_RETRIEVE),
+                                                                    dynamic_cast <
                          galaxy::api::IUserStatsAndAchievementsRetrieveListener *> (
                          galaxy_achievements.getPtr ()                             )
         );
@@ -1454,6 +1485,8 @@ SK::Galaxy::Init (void)
       gog->version = SK_GalaxyContext::Version_1_152_1;
     else if ((major == 1 && (minor > 151 || (minor == 151 && build >= 0))))
       gog->version = SK_GalaxyContext::Version_1_151_0;
+    else if ((major == 1 && (minor > 148 || (minor == 148 && build >= 1))))
+      gog->version = SK_GalaxyContext::Version_1_148_1;
     else if ((major == 1 && (minor > 121 || (minor == 121 && build >= 2))))
       gog->version = SK_GalaxyContext::Version_1_121_2;
 
@@ -1600,10 +1633,12 @@ SK_GalaxyContext::Init ( galaxy::api::IStats*             stats,
 
   if (registrar_ != nullptr)
   {
-    registrar_->Register ( persona_data_change.GetListenerType (),
-                          &persona_data_change );
-    registrar_->Register ( galaxy_overlay->GetListenerType (),
-                           galaxy_overlay.getPtr           () );
+    registrar_->Register (
+      SK_Galaxy_RemapListenerType (persona_data_change.GetListenerType ()),
+                                  &persona_data_change );
+    registrar_->Register (
+      SK_Galaxy_RemapListenerType (galaxy_overlay->GetListenerType ()),
+                                   galaxy_overlay.getPtr           () );
   }
 
   static bool logged_on = false;
@@ -1713,10 +1748,12 @@ SK_GalaxyContext::Shutdown (bool bGameRequested)
   std::ignore = bGameRequested;
 
   if (registrar_ != nullptr) {
-      registrar_->Unregister ( persona_data_change.GetListenerType (),
-                              &persona_data_change );
-      registrar_->Unregister ( galaxy_overlay->GetListenerType (),
-                               galaxy_overlay.getPtr           () );
+      registrar_->Unregister (
+        SK_Galaxy_RemapListenerType (persona_data_change.GetListenerType ()),
+                                    &persona_data_change );
+      registrar_->Unregister (
+        SK_Galaxy_RemapListenerType (galaxy_overlay->GetListenerType ()),
+                                     galaxy_overlay.getPtr           () );
   }
 
   stats_     = nullptr;

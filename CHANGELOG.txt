@@ -1,4 +1,21 @@
-﻿25.11.26.2
+﻿25.11.27
+========
+ + Handle the great IListenerRegistrar schism of GOG Galaxy API 1.148.1...
+
+    * Three types of Galaxy API events went from deprecated to removed:
+
+        10 (SERVER_NETWORKING)
+        22 (OVERLAY_STATE_CHANGE)
+        35 (STORAGE_SYNCHRONIZATION)
+
+    Various registered listener types need to be re-numbered in versions of
+      Galaxy API older than 1.148.1 in order to correctly fetch achievements.
+
+  => This is bad API design from CD Projekt yet again, ids should never be
+       removed from enum values for production APIs... it shuffles the order
+         of existing constants. Discontinuities are fine, re-ordering is NOT!
+
+25.11.26.2
 ==========
  + Automatically remove errant steam_appid.txt files in GOG games, if they
      are not supposed to be there.
