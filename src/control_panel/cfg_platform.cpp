@@ -49,6 +49,34 @@ SK::ControlPanel::Platform::Draw (void)
     bool bEpic  = ((SK::EOS::GetTicksRetired    () >  0) && (! bSteam));
     bool bGOG   =  (SK::Galaxy::GetTicksRetired () >  0);
 
+    // Some games falsely report themselves as Steam, if SteamAPI callbacks are not running,
+    //   but one of the other storefronts APIs are, we can assume the game is not actually a Steam game.
+    if (SK::SteamAPI::AppID () != 0 && SK::SteamAPI::GetCallbacksRun () == 0)
+    {
+      if (SK::Galaxy::GetTicksRetired () > 0 ||
+             SK::EOS::GetTicksRetired () > 0)
+      {
+        bSteam = false;
+
+        // Clear any bad Steam config from the INI, which may happen if the game
+        //   is owned on multiple storefronts by the user and the user has switched versions.
+        if (config.steam.appid != 0)
+        {
+          config.steam.force_load_steamapi = false;
+          config.steam.auto_inject         = false;
+          config.steam.dll_path.clear ();
+
+          wchar_t      wszPathToAppIdFile [MAX_PATH] = L"";
+          wcsncpy_s   (wszPathToAppIdFile, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+          PathAppendW (wszPathToAppIdFile, L"steam_appid.txt");
+                                      config.steam.appid = 0;
+                                      config.utility.save_async ();
+          DeleteFileW (wszPathToAppIdFile);
+          DeleteFileW (L"steam_appid.txt");
+        }
+      }
+    }
+
     static const std::string header_label =
       SK_FormatString ( "%s Enhancements###Platform_Enhancements",
                         bSteam ? "Steam" :

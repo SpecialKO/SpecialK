@@ -1051,6 +1051,7 @@ namespace galaxy
                                         config.steam.appid = 0;
                                         config.utility.save_async ();
             DeleteFileW (wszPathToAppIdFile);
+            DeleteFileW (L"steam_appid.txt");
           }
         );
       }
@@ -1106,6 +1107,7 @@ namespace galaxy
                                         config.steam.appid = 0;
                                         config.utility.save_async ();
             DeleteFileW (wszPathToAppIdFile);
+            DeleteFileW (L"steam_appid.txt");
           }
         );
       }

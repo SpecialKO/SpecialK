@@ -3587,6 +3587,14 @@ SK::SteamAPI::GetCallbacksRun (void)
 AppId64_t
 SK::SteamAPI::AppID (void)
 {
+  static bool
+      has_appid = false;
+  if (has_appid)
+  {
+    // This allows changing the AppID at runtime if it is determined incorrect
+    return config.steam.appid;
+  }
+
   ISteamUtils* utils =
     steam_ctx.Utils ();
 
@@ -3639,6 +3647,9 @@ SK::SteamAPI::AppID (void)
     {
       config.steam.appid = id;
     }
+
+    if (config.steam.appid != 0)
+      has_appid = true;
 
     return id;
   }

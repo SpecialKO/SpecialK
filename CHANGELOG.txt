@@ -1,5 +1,8 @@
 ﻿25.11.27.2
 ==========
+ + Remove cosmetic glitch from games that use SteamAPI and Galaxy API together,
+     where SK's overlay would report the game to be Steam even if SteamAPI
+       callbacks are not actually running.
  + Remove recently added debug log spam for RawInput window registration,
      unless log level is >= 1.
  + Added the code to spoof SwapChain backbuffer format back to KCD2 because
