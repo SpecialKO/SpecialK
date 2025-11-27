@@ -2763,9 +2763,6 @@ auto DeclKeybind =
         config.textures.d3d11.cache            = false; // Fix grass artifacts
         // Hacks for HDR in KCD2 due to messed up window management
         config.window.background_render        = true;
-        // Fake it, otherwise once per-frame the game's going to try to
-        //   ReSizeBuffers (...)
-        config.render.dxgi.fake_swapchain_desc = DXGI_FORMAT_R8G8B8A8_UNORM;
 
         config.render.d3d12.force_anisotropic  = false;
         config.input.ui.use_hw_cursor          =  true;

@@ -1,4 +1,9 @@
-﻿25.11.27
+﻿25.11.27.1
+==========
+ + Remove Kingdom Come: Deliverance 2's code to spoof the SwapChain backbuffer
+     format to R8G8B8A8_UNORM, since the game now natively supports HDR.
+
+25.11.27
 ========
  + Handle the great IListenerRegistrar schism of GOG Galaxy API 1.148.1...
 
