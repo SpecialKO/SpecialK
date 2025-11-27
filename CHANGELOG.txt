@@ -1,5 +1,7 @@
 ﻿25.11.27.2
 ==========
+ + Remove recently added debug log spam for RawInput window registration,
+     unless log level is >= 1.
  + Added the code to spoof SwapChain backbuffer format back to KCD2 because
      it is necessary in SDR to prevent constant SwapChain resizes by the game.
 

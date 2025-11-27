@@ -641,7 +641,7 @@ RegisterRawInputDevices_Detour (
         RealGetWindowClassW   (pDevices [i].hwndTarget, wszWindowClass, 127);
         InternalGetWindowText (pDevices [i].hwndTarget, wszWindowTitle, 127);
 
-        SK_LOG0 (
+        SK_LOG1 (
                   ( L"RawInput is being tracked on hWnd=%p - { (%s), '%s' }",
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
                         __SK_SUBSYSTEM__ );
