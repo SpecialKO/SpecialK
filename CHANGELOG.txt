@@ -1,4 +1,9 @@
-﻿25.11.26.1
+﻿25.11.26.2
+==========
+ + Automatically remove errant steam_appid.txt files in GOG games, if they
+     are not supposed to be there.
+
+25.11.26.1
 ==========
  + Added GOG Galaxy enhancement support for 32-bit GOG games; support is
      limited to modern versions of GOG Galaxy API (~1.120+), same as 64-bit.

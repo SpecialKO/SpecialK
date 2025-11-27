@@ -974,7 +974,8 @@ namespace galaxy
     __cdecl
     ProcessData_Detour (void)
     {
-      InterlockedIncrement64 (&ticks);
+      const auto successful_ticks =
+        InterlockedIncrement64 (&ticks);
 
       static bool
             crashed = false;
@@ -1006,13 +1007,30 @@ namespace galaxy
           L"Structured Exception encountered during ProcessData (...)"
         );
       }
+
+      if (successful_ticks > 5 && config.steam.appid != 0)
+      {
+        // This is a true blue GOG game, so remove any steam_appid.txt
+        SK_RunOnce (
+          if (SK::SteamAPI::GetCallbacksRun () == 0)
+          {
+            wchar_t      wszPathToAppIdFile [MAX_PATH] = L"";
+            wcsncpy_s   (wszPathToAppIdFile, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+            PathAppendW (wszPathToAppIdFile, L"steam_appid.txt");
+                                        config.steam.appid = 0;
+                                        config.utility.save_async ();
+            DeleteFileW (wszPathToAppIdFile);
+          }
+        );
+      }
     }
 
     void
     __cdecl
     ProcessData_IGalaxy_Detour (IGalaxy* This)
     {
-      InterlockedIncrement64 (&ticks);
+      const auto successful_ticks =
+        InterlockedIncrement64 (&ticks);
 
       static bool
             crashed = false;
@@ -1042,6 +1060,22 @@ namespace galaxy
       {
         gog_log->Log (
           L"Structured Exception encountered during ProcessData (...)"
+        );
+      }
+
+      if (successful_ticks > 5 && config.steam.appid != 0)
+      {
+        // This is a true blue GOG game, so remove any steam_appid.txt
+        SK_RunOnce (
+          if (SK::SteamAPI::GetCallbacksRun () == 0)
+          {
+            wchar_t      wszPathToAppIdFile [MAX_PATH] = L"";
+            wcsncpy_s   (wszPathToAppIdFile, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+            PathAppendW (wszPathToAppIdFile, L"steam_appid.txt");
+                                        config.steam.appid = 0;
+                                        config.utility.save_async ();
+            DeleteFileW (wszPathToAppIdFile);
+          }
         );
       }
     }
