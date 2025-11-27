@@ -1,4 +1,12 @@
-﻿25.11.27.1
+﻿25.11.27.2
+==========
+ + Added the code to spoof SwapChain backbuffer format back to KCD2 because
+     it is necessary in SDR to prevent constant SwapChain resizes by the game.
+
+    * The spoofed format will match the last game-requested format instead of
+        being hardcoded to R8G8B8A8_UNORM like before, allowing SDR and HDR.
+
+25.11.27.1
 ==========
  + Remove Kingdom Come: Deliverance 2's code to spoof the SwapChain backbuffer
      format to R8G8B8A8_UNORM, since the game now natively supports HDR.

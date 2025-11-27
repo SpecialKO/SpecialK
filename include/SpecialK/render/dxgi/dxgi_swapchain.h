@@ -469,6 +469,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
     }
   } _backbuffer_views;
 
+  DXGI_FORMAT _last_requested_format = DXGI_FORMAT_UNKNOWN;
+
   D3D11_FEATURE_DATA_D3D11_OPTIONS
                         _d3d11_feature_opts = { };
 
