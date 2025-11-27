@@ -1,4 +1,9 @@
-﻿25.11.26
+﻿25.11.26.1
+==========
+ + Added GOG Galaxy enhancement support for 32-bit GOG games; support is
+     limited to modern versions of GOG Galaxy API (~1.120+), same as 64-bit.
+
+25.11.26
 ========
  + Remove log spam for Win32 High Resolution Timer Upgrades unless the log
      level is >= 1.
