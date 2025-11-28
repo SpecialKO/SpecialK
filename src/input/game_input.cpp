@@ -66,6 +66,9 @@ using GameInputCreate_pfn = HRESULT (WINAPI *)(IGameInput**);
       GameInputCreate_pfn
       GameInputCreate_Original = nullptr;
 
+      GameInputCreate_pfn
+      GameInputCreate_Redist_Original = nullptr;
+
 static IGameInputDevice *s_virtual_gameinput_device = nullptr;
 
 HRESULT
@@ -211,6 +214,8 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
     *reading =       (IGameInputReading *)&virtual_current_reading;
     return S_OK;
   }
+
+  SK_LOGi0 (L"GetCurrentReading (inputKind=%x, device=%p)", inputKind, device);
 
   switch (inputKind)
   {
@@ -358,7 +363,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
                            IGameInputDevice_SetHapticMotorState_Original,
                            IGameInputDevice_SetHapticMotorState_pfn );
       GI_VIRTUAL_HOOK ( &device, 10,
-                          "IGameInputDevice::SetRunbleState",
+                          "IGameInputDevice::SetRumbleState",
                            IGameInputDevice_SetRumbleState_Override,
                            IGameInputDevice_SetRumbleState_Original,
                            IGameInputDevice_SetRumbleState_pfn );
@@ -635,6 +640,9 @@ SK_IWrapGameInput::RegisterDeviceCallback (_In_opt_                        IGame
 {
   SK_LOG_FIRST_CALL
 
+  SK_LOGi1 ( L"RegisterDeviceCallback: inputKind=%d, statusFilter=%x, enumerationKind=%d",
+                                       inputKind,    statusFilter,    enumerationKind );
+
   HRESULT hr =
     pReal == nullptr ? S_OK : pReal->RegisterDeviceCallback (device, inputKind, statusFilter, enumerationKind, context, callbackFunc, callbackToken);
 
@@ -844,6 +852,53 @@ GameInputCreate_Detour (IGameInput** gameInput)
   return hr;
 }
 
+HRESULT
+WINAPI
+GameInputCreate_Redist_Detour (IGameInput** gameInput)
+{
+  SK_LOG_FIRST_CALL
+
+  IGameInput* pReal = nullptr;
+
+  HRESULT hr =
+    GameInputCreate_Redist_Original (&pReal);
+
+  if (SUCCEEDED (hr) || config.input.gamepad.xinput.emulate)
+  {
+    // Turn on XInput emulation by default on first-run for Unreal Engine.
+    //
+    //   -> Their GameInput integration is extremely simple and SK is fully compatible.
+    //
+    if (config.system.first_run && (! SK_XInput_PollController (0)))
+    {
+      SK_RunOnce (if (! SK_ImGui_HasPlayStationController  ())
+                        SK_HID_SetupPlayStationControllers ());
+
+      if (SK_ImGui_HasPlayStationController () && StrStrIW (SK_GetFullyQualifiedApp (), L"Binaries\\Win"))
+      {
+        SK_LOGi0 (L"Enabling Xbox Mode because Unreal Engine is using GameInput...");
+
+        config.input.gamepad.xinput.emulate = true;
+      }
+    }
+
+    if (config.input.gamepad.xinput.emulate)
+    {
+      if (gameInput != nullptr)
+         *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
+      else                          new SK_IWrapGameInput (pReal);
+
+      return S_OK;
+    }
+  }
+
+  if (gameInput != nullptr && 
+        nullptr != pReal)
+     *gameInput  = pReal;
+
+  return hr;
+}
+
 
 #pragma warning (disable: 4100)
 
@@ -905,6 +960,12 @@ __stdcall
 SK_IGameInputDevice::GetDeviceInfo (void) noexcept
 {
   SK_LOG_FIRST_CALL
+
+  if (this != s_virtual_gameinput_device)
+  {
+    return
+      pReal->GetDeviceInfo ();
+  }
 
   static GameInputDeviceInfo dev_info = {};
 
@@ -1527,28 +1588,57 @@ SK_Input_HookGameInput (void)
   if (! config.input.gamepad.hook_game_input)
     return;
 
-  if (GetModuleHandleW (L"GameInput.dll") != nullptr || config.input.gamepad.xinput.emulate)
+  if ( GetModuleHandleW (L"GameInput.dll")       != nullptr ||
+       GetModuleHandleW (L"GameInputRedist.dll") != nullptr ||
+       config.input.gamepad.xinput.emulate )
   {
-    static HANDLE hGameInputInitThread =
-    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    if (config.input.gamepad.xinput.emulate || GetModuleHandleW (L"GameInput.dll"))
     {
-      SK_PROFILE_FIRST_CALL
-
-      static volatile LONG               hooked = FALSE;
-      if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+      static HANDLE hGameInputInitThread =
+      SK_Thread_CreateEx ([](LPVOID)->DWORD
       {
-        if (config.input.gamepad.xinput.emulate)
-          SK_LoadLibraryW (      L"GameInput.dll");
-        SK_CreateDLLHook2 (      L"GameInput.dll",
-                                  "GameInputCreate",
-                                   GameInputCreate_Detour,
-          static_cast_p2p <void> (&GameInputCreate_Original) );
-        SK_ApplyQueuedHooks ();
-      }
+        SK_PROFILE_FIRST_CALL
 
-      SK_Thread_CloseSelf ();
-      return 0;
-    });
+        static volatile LONG               hooked = FALSE;
+        if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+        {
+          if (config.input.gamepad.xinput.emulate)
+            SK_LoadLibraryW (      L"GameInput.dll");
+          SK_CreateDLLHook2 (      L"GameInput.dll",
+                                    "GameInputCreate",
+                                     GameInputCreate_Detour,
+            static_cast_p2p <void> (&GameInputCreate_Original) );
+          SK_ApplyQueuedHooks ();
+        }
+
+        SK_Thread_CloseSelf ();
+        return 0;
+      }, L"[SK] GameInput.dll Init Thread");
+    }
+
+    if (config.input.gamepad.xinput.emulate || GetModuleHandleW (L"GameInputRedist.dll"))
+    {
+      static HANDLE hGameInputRedistInitThread =
+      SK_Thread_CreateEx ([](LPVOID)->DWORD
+      {
+        SK_PROFILE_FIRST_CALL
+
+        static volatile LONG               hooked = FALSE;
+        if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+        {
+          if (config.input.gamepad.xinput.emulate)
+            SK_LoadLibraryW (      L"GameInputRedist.dll");
+          SK_CreateDLLHook2 (      L"GameInputRedist.dll",
+                                    "GameInputCreate",
+                                     GameInputCreate_Redist_Detour,
+            static_cast_p2p <void> (&GameInputCreate_Redist_Original) );
+          SK_ApplyQueuedHooks ();
+        }
+
+        SK_Thread_CloseSelf ();
+        return 0;
+      }, L"[SK] GameInputRedist.dll Init Thread");
+    }
   }
 }
 
