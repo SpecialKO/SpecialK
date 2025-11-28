@@ -208,17 +208,42 @@ struct SK_TVFix_ModContext {
   //
   DWORD __SK_TVFix_MagicSteamThread     = 0;
 
-  tv_mem_addr_s instn__model_animation  = { };
-  tv_mem_addr_s instn__particle_effects = { };
   tv_mem_addr_s instn__blur             = { };
-  tv_mem_addr_s instn__depth_of_field   = { };
   tv_mem_addr_s instn__bloom            = { };
-  tv_mem_addr_s instn__draw_HUD         = { };
+  tv_mem_addr_s instn__particle_effects = { };
+  tv_mem_addr_s instn__model_animation = { };
 
-  // TOV_DE.exe+72AE99 - E8 92C0FCFF           - call TOV_DE.exe+6F6F30 { Depth of Field }
-  // TOV_DE.exe+6F632A - E8 C15C0300           - call TOV_DE.exe+72BFF0 { Bloom Lighting }
-  // TOV_DE.exe+6F6375 - E8 A69E0300           - call TOV_DE.exe+730220 { Bloom Lighting 2 }
+  /*
+   * Blur
+   * 74 ?? F3 0F 10 05 ?? ?? ?? ?? 45 33 C9 F3 0F 10 51 04 33 D2 F3 0F 11 44 24 38 48 8B C8 F3 0F 11 44 24 30 F3 0F 11 44 24 28 F3 0F 11 44 24 20 E8 ?? ?? ?? ??
+   * v1.0: TOV_DE.exe+72AE99 - E8 92C0FCFF - call TOV_DE.exe+6F6F30
+   * v1.2: TOV_DE.exe+730819 - E8 92BEFCFF - call TOV_DE.exe+6FC6B0
+  */
+  uintptr_t addr__blur = 0x6FC6B0;
 
+  /*
+   * Bloom
+   * 4C 89 74 24 28 F3 0F 11 44 24 20 E8 ?? ?? ?? ?? 48 8B 5F 38 BD 05 00 00 00 48 81 C3 1C 02 00 00 8B F5 0F 1F 84 00 00 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ??
+   * v1.0: TOV_DE.exe+6F632A - E8 C15C0300 - call TOV_DE.exe+72BFF0
+   * v1.2: TOV_DE.exe+6FBAAA - E8 C15E0300 - call TOV_DE.exe+731970
+  */
+  uintptr_t addr__bloom = 0x731970;
+
+  /*
+   * Particle Effects
+   * 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 85 C0 74 ?? 48 8D 8E A0 00 00 00 E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ??
+   * v1.0: TOV_DE.exe+6F7EF5 - E8 A6D3FFFF - call TOV_DE.exe+6F52A0
+   * v1.2: TOV_DE.exe+6FD675 - E8 A6D3FFFF - call TOV_DE.exe+6FAA20
+  */
+  uintptr_t addr__particle_effects = 0x6FAA20;
+
+  /*
+   * Model Animation
+   * 48 8B C8 E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 85 C0 74 ?? 48 8D 8E A0 00 00 00 E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ??
+   * v1.0: TOV_DE.exe+6F7EED - E8 CE1C0000 - call TOV_DE.exe+6F9BC0
+   * v1.2: TOV_DE.exe+6FD66D - E8 CE1C0000 - call TOV_DE.exe+6FF340
+  */
+  uintptr_t addr__model_animation = 0x6FF340;
 
   bool __SK_TVFix_AspectRatioCorrection = false;
 
@@ -360,24 +385,6 @@ SK_TVFix_InitPlugin (void)
                                L"Store the last known height" );
 
 
-  plugin_ctx.instn__model_animation =
-  { "\xE8\xCE\x1C\x00\x00",
-    //----------------------------------------------//
-    "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Model Animation", (void *)0x6F7EED };
-
-  plugin_ctx.instn__particle_effects =
-  { "\xE8\xA6\xD3\xFF\xFF",
-    //----------------------------------------------//
-    "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Particle Effects", (void *) 0x6F7EF5 };
-
-  //"\xE8\xC6\xE2\xFF\xFF", -- All Post-Processing
-
   plugin_ctx.instn__blur =
   {
     "\xE8\x92\xC0\xFC\xFF",
@@ -386,16 +393,7 @@ SK_TVFix_InitPlugin (void)
     "\xFF\xFF\xFF\xFF\xFF",
     5, 5, 0,    true, nullptr,
 
-    { }, L"Enable Blur", (void *)0x72AE99 };
-
-  plugin_ctx.instn__depth_of_field =
-  {
-    "\xE8\xA6\x9E\x03\x00",
-    //----------------------------------------------//
-    "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Depth of Field", (void *)0x6F6375 };
+    { }, L"Enable Blur", &plugin_ctx.addr__blur };
 
   plugin_ctx.instn__bloom =
   {
@@ -405,7 +403,23 @@ SK_TVFix_InitPlugin (void)
     "\xFF\xFF\xFF\xFF\xFF",
     5, 5, 0,    true, nullptr,
 
-    { }, L"Enable Bloom Lighting", (void *)0x6f632a };
+    { }, L"Enable Bloom Lighting", &plugin_ctx.addr__bloom };
+
+  plugin_ctx.instn__particle_effects =
+  { "\xE8\xA6\xD3\xFF\xFF",
+    //----------------------------------------------//
+    "\xFF\xFF\xFF\xFF\xFF",
+    5, 5, 0,    true, nullptr,
+
+    { }, L"Enable Particle Effects", &plugin_ctx.addr__particle_effects };
+
+  plugin_ctx.instn__model_animation =
+  { "\xE8\xCE\x1C\x00\x00",
+    //----------------------------------------------//
+    "\xFF\xFF\xFF\xFF\xFF",
+    5, 5, 0,    true, nullptr,
+
+    { }, L"Enable Model Animation", &plugin_ctx.addr__model_animation };
 }
 
 bool
@@ -517,10 +531,6 @@ SK_TVFix_PlugInCfg (void)
 
       if ( ImGui::Checkbox ("Enable Depth of Field", &enable) )
       {
-        //instn__depth_of_field.enabled = !instn__depth_of_field.enabled;
-        //instn__depth_of_field.toggle ();
-        //_SK_TVFix_DisableDepthOfField->store (! instn__depth_of_field.enabled);
-
         if (enable)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
@@ -818,11 +828,10 @@ SK_TVFix_BeginFrame (void)
       SK_D3D11_DeclHUDShader_Vtx (0xf4dac9d5);
     //SK_D3D11_DeclHUDShader_Pix (0x6d243285);
 
-      plugin_ctx.instn__model_animation.scan  ();
+      plugin_ctx.instn__blur.scan();
+      plugin_ctx.instn__bloom.scan();
       plugin_ctx.instn__particle_effects.scan ();
-      plugin_ctx.instn__depth_of_field.scan   ();
-      plugin_ctx.instn__blur.scan             ();
-      plugin_ctx.instn__bloom.scan            ();
+      plugin_ctx.instn__model_animation.scan  ();
 
       plugin_ctx._SK_TVFix_DisableDepthOfField =
         _CreateConfigParameterBool ( L"TVFix.Render",
@@ -851,7 +860,6 @@ SK_TVFix_BeginFrame (void)
 
       if (plugin_ctx.__SK_TVFix_DisableDepthOfField)
       {
-        ////instn__depth_of_field.disable ();
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
         InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
