@@ -292,40 +292,6 @@ SK_LazyGlobal <SK_TVFix_ModContext> tvfix_ctx;
 
 #define PS_CRC32_SHADOWFILTER 0x84da24a5
 
-extern bool
-__stdcall
-SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-extern HRESULT
-__stdcall
-SK_UpdateSoftware (const wchar_t* wszProduct);
-
-unsigned int
-__stdcall
-SK_TVFix_CheckVersion (LPVOID user)
-{
-  UNREFERENCED_PARAMETER (user);
-
-  SK_Thread_Create ([](LPVOID)->
-    DWORD
-    {
-      while (SK_GetFramesDrawn () < 5)
-        ;
-
-      // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
-      //
-      ////if (SK_FetchVersionInfo (L"TVF"))
-      ////    SK_UpdateSoftware   (L"TVF");
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }
-  );
-
-  return 0;
-}
-
 
 HRESULT
 STDMETHODCALLTYPE
@@ -341,8 +307,6 @@ SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   if (! InterlockedCompareExchange (&plugin_ctx.__TVFIX_init, 1, 0))
   {
     plugin_ctx.__SK_TVFix_MagicSteamThread = SK_Thread_GetCurrentId ();
-
-    SK_TVFix_CheckVersion (nullptr);
   }
 
   return S_OK;
@@ -602,11 +566,6 @@ SK_TVFix_PlugInCfg (void)
 
       if (ImGui::Checkbox ("Sharpen Shadows", &plugin_ctx.__SK_TVFix_SharpenShadows))
       {
-        //if (__SK_TVFix_SharpenShadows)
-        //  SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist,     PS_CRC32_SHADOWFILTER);
-        //else
-        //  SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, PS_CRC32_SHADOWFILTER);
-
         plugin_ctx._SK_TVFix_SharpenShadows->store (plugin_ctx.__SK_TVFix_SharpenShadows);
       }
 
@@ -620,13 +579,11 @@ SK_TVFix_PlugInCfg (void)
     const bool tex_manage =
       ImGui::CollapsingHeader ("Texture Management##ToV", ImGuiTreeNodeFlags_DefaultOpen);
 
-    //bool changed = false;
-
     if (tex_manage)
     {
       ImGui::TreePush    ("");
       ImGui::BeginGroup  (  );
-    /*changed |=*/ ImGui::Checkbox ("Generate Mipmaps", &config.textures.d3d11.generate_mips);
+      ImGui::Checkbox ("Generate Mipmaps", &config.textures.d3d11.generate_mips);
 
       if (ImGui::IsItemHovered ())
       {
@@ -775,8 +732,6 @@ SK_TVFix_PlugInCfg (void)
         plugin_ctx.instn__model_animation.toggle ();
       }
 
-    //ImGui::SameLine ();
-
       if ( plugin_ctx.instn__particle_effects.scanned_addr != nullptr &&
            ImGui::Checkbox ("Enable Particle Effects", &plugin_ctx.instn__particle_effects.enabled) )
       {
@@ -905,11 +860,6 @@ SK_TVFix_BeginFrame (void)
       if (plugin_ctx.__SK_TVFix_DisableBlur)
       {
         plugin_ctx.instn__blur.disable ();
-      }
-
-      if (plugin_ctx.__SK_TVFix_SharpenShadows)
-      {
-        //SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, PS_CRC32_SHADOWFILTER);
       }
     }
   }
