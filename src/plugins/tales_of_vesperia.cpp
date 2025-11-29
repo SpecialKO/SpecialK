@@ -26,7 +26,7 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 
-#define TVFIX_VERSION_NUM L"0.5.2.5 "
+#define TVFIX_VERSION_NUM L"0.5.2.6 "
 #define TVFIX_VERSION_STR LR"(Tales of Vesperia "Fix" v )" TVFIX_VERSION_NUM
 
 #pragma warning(push)
