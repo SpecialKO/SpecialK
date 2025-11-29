@@ -214,36 +214,48 @@ struct SK_TVFix_ModContext {
   tv_mem_addr_s instn__model_animation = { };
 
   /*
-   * Blur
-   * 74 ?? F3 0F 10 05 ?? ?? ?? ?? 45 33 C9 F3 0F 10 51 04 33 D2 F3 0F 11 44 24 38 48 8B C8 F3 0F 11 44 24 30 F3 0F 11 44 24 28 F3 0F 11 44 24 20 E8 ?? ?? ?? ??
-   * v1.0: TOV_DE.exe+72AE99 - E8 92C0FCFF - call TOV_DE.exe+6F6F30
-   * v1.2: TOV_DE.exe+730819 - E8 92BEFCFF - call TOV_DE.exe+6FC6B0
+    Blur
+    E8 ?? ?? ?? ?? 48 83 C4 ?? C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 48 83 EC ?? 33 C9
+
+    v1.0
+      TOV_DE.exe+72AE99 - E8 92 C0 FC FF - call TOV_DE.exe+6F6F30
+    v1.2
+      TOV_DE.exe+730819 - E8 92 BE FC FF - call TOV_DE.exe+6FC6B0
   */
-  uintptr_t addr__blur = 0x6FC6B0;
+  void* addr__blur = (void*)0x730819;
 
   /*
-   * Bloom
-   * 4C 89 74 24 28 F3 0F 11 44 24 20 E8 ?? ?? ?? ?? 48 8B 5F 38 BD 05 00 00 00 48 81 C3 1C 02 00 00 8B F5 0F 1F 84 00 00 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ??
-   * v1.0: TOV_DE.exe+6F632A - E8 C15C0300 - call TOV_DE.exe+72BFF0
-   * v1.2: TOV_DE.exe+6FBAAA - E8 C15E0300 - call TOV_DE.exe+731970
+    Bloom Lightning
+    E8 ?? ?? ?? ?? 48 83 C3 ?? 48 83 EE ?? 75 ?? 48 8B CF
+
+    v1.0
+      TOV_DE.exe+6F632A - E8 C1 5C 03 00 - call TOV_DE.exe+72BFF0
+    v1.2
+      TOV_DE.exe+6FBAAA - E8 C1 5E 03 00 - call TOV_DE.exe+731970
   */
-  uintptr_t addr__bloom = 0x731970;
+  void* addr__bloom = (void*)0x6FBAAA;
 
   /*
-   * Particle Effects
-   * 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 85 C0 74 ?? 48 8D 8E A0 00 00 00 E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ??
-   * v1.0: TOV_DE.exe+6F7EF5 - E8 A6D3FFFF - call TOV_DE.exe+6F52A0
-   * v1.2: TOV_DE.exe+6FD675 - E8 A6D3FFFF - call TOV_DE.exe+6FAA20
+    Particle Effects
+    E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? E8
+
+    v1.0
+      TOV_DE.exe+6F7EF5 - E8 A6 D3 FF FF - call TOV_DE.exe+6F52A0
+    v1.2
+      TOV_DE.exe+6FD675 - E8 A6 D3 FF FF - call TOV_DE.exe+6FAA20
   */
-  uintptr_t addr__particle_effects = 0x6FAA20;
+  void* addr__particle_effects = (void*)0x6FD675;
 
   /*
-   * Model Animation
-   * 48 8B C8 E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 85 C0 74 ?? 48 8D 8E A0 00 00 00 E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ??
-   * v1.0: TOV_DE.exe+6F7EED - E8 CE1C0000 - call TOV_DE.exe+6F9BC0
-   * v1.2: TOV_DE.exe+6FD66D - E8 CE1C0000 - call TOV_DE.exe+6FF340
+    Model Animation
+    E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? E8
+
+    v1.0
+      TOV_DE.exe+6F7EED - E8 CE 1C 00 00 - call TOV_DE.exe+6F9BC0
+    v1.2
+      TOV_DE.exe+6FD66D - E8 CE 1C 00 00 - call TOV_DE.exe+6FF340
   */
-  uintptr_t addr__model_animation = 0x6FF340;
+  void* addr__model_animation = (void*)0x6FD66D;
 
   bool __SK_TVFix_AspectRatioCorrection = false;
 
@@ -387,39 +399,59 @@ SK_TVFix_InitPlugin (void)
 
   plugin_ctx.instn__blur =
   {
-    "\xE8\x92\xC0\xFC\xFF",
-
-    //----------------------------------------------//
+    "\xE8\x92\xBE\xFC\xFF",
     "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Blur", &plugin_ctx.addr__blur };
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Blur",
+    plugin_ctx.addr__blur
+  };
 
   plugin_ctx.instn__bloom =
   {
-    "\xE8\xC1\x5C\x03\x00",
-
-    //----------------------------------------------//
+    "\xE8\xC1\x5E\x03\x00",
     "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Bloom Lighting", &plugin_ctx.addr__bloom };
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Bloom Lighting",
+    plugin_ctx.addr__bloom
+  };
 
   plugin_ctx.instn__particle_effects =
-  { "\xE8\xA6\xD3\xFF\xFF",
-    //----------------------------------------------//
+  {
+    "\xE8\xA6\xD3\xFF\xFF",
     "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Particle Effects", &plugin_ctx.addr__particle_effects };
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Particle Effects",
+    plugin_ctx.addr__particle_effects
+  };
 
   plugin_ctx.instn__model_animation =
-  { "\xE8\xCE\x1C\x00\x00",
-    //----------------------------------------------//
+  {
+    "\xE8\xCE\x1C\x00\x00",
     "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Model Animation", &plugin_ctx.addr__model_animation };
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Model Animation",
+    plugin_ctx.addr__model_animation
+  };
 }
 
 bool
