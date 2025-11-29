@@ -360,7 +360,8 @@ SK_TVFix_InitPlugin (void)
                                L"LastRenderHeight", plugin_ctx.__SK_TVFix_LastKnown_YRes,
                                L"Store the last known height" );
 
-
+  // 1.0: E8 92 C0 FC FF
+  // 1.2: E8 92 BE FC FF
   plugin_ctx.instn__blur =
   {
     "\xE8\x92\xBE\xFC\xFF",
@@ -375,6 +376,8 @@ SK_TVFix_InitPlugin (void)
     plugin_ctx.addr__blur
   };
 
+  // 1.0: E8 C1 5C 03 00
+  // 1.2: E8 C1 5E 03 00
   plugin_ctx.instn__bloom =
   {
     "\xE8\xC1\x5E\x03\x00",
@@ -389,6 +392,8 @@ SK_TVFix_InitPlugin (void)
     plugin_ctx.addr__bloom
   };
 
+  // 1.0: E8 A6 D3 FF FF
+  // 1.2: E8 A6 D3 FF FF
   plugin_ctx.instn__particle_effects =
   {
     "\xE8\xA6\xD3\xFF\xFF",
@@ -403,6 +408,8 @@ SK_TVFix_InitPlugin (void)
     plugin_ctx.addr__particle_effects
   };
 
+  // 1.0: E8 CE 1C 00 00
+  // 1.2: E8 CE 1C 00 00
   plugin_ctx.instn__model_animation =
   {
     "\xE8\xCE\x1C\x00\x00",
@@ -702,6 +709,13 @@ SK_TVFix_PlugInCfg (void)
 
       ImGui::Checkbox ("Reduce Microstutter", &plugin_ctx.__SK_TVFix_NoRenderSleep);
 
+      if ( plugin_ctx.instn__particle_effects.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Particle Effects", &plugin_ctx.instn__particle_effects.enabled) )
+      {
+        plugin_ctx.instn__particle_effects.enabled = (! plugin_ctx.instn__particle_effects.enabled);
+        plugin_ctx.instn__particle_effects.toggle ();
+      }
+
       if ( plugin_ctx.instn__model_animation.scanned_addr != nullptr &&
            ImGui::Checkbox ("Enable Model Animation", &plugin_ctx.instn__model_animation.enabled) )
       {
@@ -709,11 +723,9 @@ SK_TVFix_PlugInCfg (void)
         plugin_ctx.instn__model_animation.toggle ();
       }
 
-      if ( plugin_ctx.instn__particle_effects.scanned_addr != nullptr &&
-           ImGui::Checkbox ("Enable Particle Effects", &plugin_ctx.instn__particle_effects.enabled) )
+      if (ImGui::IsItemHovered())
       {
-        plugin_ctx.instn__particle_effects.enabled = (! plugin_ctx.instn__particle_effects.enabled);
-        plugin_ctx.instn__particle_effects.toggle ();
+        ImGui::SetTooltip("Disables model animations and may cause crashes, use with caution!");
       }
 
       ImGui::Checkbox ("Aspect Ratio Correction", &plugin_ctx.__SK_TVFix_AspectRatioCorrection);
