@@ -517,9 +517,7 @@ SK_TVFix_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
-    ImGui::BeginGroup ();
-    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
-                                                    ImGuiTreeNodeFlags_AllowOverlap))
+    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush ("");
 
@@ -571,10 +569,6 @@ SK_TVFix_PlugInCfg (void)
 
       ImGui::TreePop ();
     }
-
-    ImGui::EndGroup   ();
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
 
     const bool tex_manage =
       ImGui::CollapsingHeader ("Texture Management##ToV", ImGuiTreeNodeFlags_DefaultOpen);
@@ -696,23 +690,6 @@ SK_TVFix_PlugInCfg (void)
       ImGui::EndGroup  ();
       ImGui::TreePop   ();
     }
-
-    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
-
-    if (ImGui::CollapsingHeader ("Gameplay", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      ImGui::TreePush ("");
-      ImGui::Checkbox ("Continue Running in Background###TVFIX_BackgroundRender", &config.window.background_render);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip (R"(Only works correctly if the game is set to "Borderless")");
-
-      ImGui::TreePop  (  );
-    }
-
-    ImGui::EndGroup (  );
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
