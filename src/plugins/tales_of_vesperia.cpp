@@ -743,7 +743,7 @@ SK_TVFix_PlugInCfg (void)
 
       if (ImGui::IsItemHovered())
       {
-        ImGui::SetTooltip("Disables model animations and may cause crashes, use with caution!");
+        ImGui::SetTooltip("Disabling model animations may cause crashes. Use with caution!");
       }
 
       ImGui::Checkbox ("Aspect Ratio Correction", &plugin_ctx.__SK_TVFix_AspectRatioCorrection);
