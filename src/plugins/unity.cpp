@@ -2302,12 +2302,13 @@ SK_Unity_SetupInputHooks_il2cpp (void)
         SK_Unity_il2cppAssemblies.assemblyCSharp;
 
       if (assemblyInControl == SK_Unity_il2cppAssemblies.assemblyCSharp &&
+          assemblyInControl != nullptr                                  &&
           assemblyInControl->get_class ("InputDevice", "InControl") == nullptr)
       {
-        
         assemblyInControl = SK_Unity_il2cppAssemblies.assemblyCSharp_firstpass;
 
-        if (assemblyInControl->get_class("InputDevice", "InControl") != nullptr)
+        if (assemblyInControl != nullptr &&
+            assemblyInControl->get_class ("InputDevice", "InControl") != nullptr)
         {
           SK_LOGi0 (
             L"InControl not found in Assembly-CSharp, but was found in Assembly-CSharp-firstpass!"
@@ -2434,13 +2435,13 @@ SK_Unity_SetupInputHooks_il2cpp (void)
           {
             if (*(void**)pfnVibrationController_Rumble               != nullptr) SK_QueueEnableHook (*(void**)pfnVibrationController_Rumble);
           }
+
           else
           {
             if (*(void**)pfnRewired_Joystick_get_vibrationMotorCount != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_get_vibrationMotorCount);
             if (*(void**)pfnRewired_Joystick_SetVibration4           != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration4);
             if (*(void**)pfnRewired_Joystick_SetVibration2           != nullptr) SK_QueueEnableHook (*(void**)pfnRewired_Joystick_SetVibration2);
           }
-          
 
           SK_ApplyQueuedHooks ();
 
