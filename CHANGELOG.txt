@@ -1,4 +1,9 @@
-﻿25.11.27.2
+﻿25.11.29
+========
+ + Fixed potential crash in Unity engine games that do not use Assembly-CSharp,
+     while checking to see if InControl is present.
+
+25.11.27.2
 ==========
  + Remove cosmetic glitch from games that use SteamAPI and Galaxy API together,
      where SK's overlay would report the game to be Steam even if SteamAPI

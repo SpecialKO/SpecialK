@@ -2637,11 +2637,13 @@ SK_Unity_SetupInputHooks (void)
         SK_Unity_MonoAssemblies.assemblyCSharp;
 
       if (assemblyInControl == SK_Unity_MonoAssemblies.assemblyCSharp &&
+          assemblyInControl != nullptr                                &&
           SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice") == nullptr)
       {
         assemblyInControl = SK_Unity_MonoAssemblies.assemblyCSharp_firstpass;
 
-        if (SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice"))
+        if (                         assemblyInControl != nullptr &&
+            SK_mono_class_from_name (assemblyInControl, "InControl", "InputDevice"))
         {
           SK_LOGi0 (
             L"InControl not found in Assembly-CSharp, but was found in Assembly-CSharp-firstpass!"
