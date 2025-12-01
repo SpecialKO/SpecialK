@@ -2205,7 +2205,7 @@ SK_Galaxy_ResetAchievements (void)
   SK_Achievement**     achievements =
     galaxy_achievements->getAchievements (&num_achievements);
 
-  for (int i = 0; i < num_achievements; ++i)
+  for (size_t i = 0; i < num_achievements; ++i)
   {
     SK_Galaxy_ClearAchievement (achievements [i]->name_.c_str ());
                                 achievements [i]->unlocked_ = false;
