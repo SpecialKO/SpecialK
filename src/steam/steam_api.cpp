@@ -2990,6 +2990,25 @@ SK_Steam_ClearAchievement (const char* szName)
 }
 
 void
+SK_Steam_ResetAchievements (void)
+{
+  ISteamUserStats* stats =
+    config.platform.steam_is_b0rked ? nullptr
+                                    : steam_ctx.UserStats ();
+
+  if (stats != nullptr)
+  {
+    if (stats->ResetAllStats (true))
+    {
+      steam_achievements->percent_unlocked = 0.0f;
+      steam_achievements->total_unlocked   = 0;
+
+      stats->StoreStats ();
+    }
+  }
+}
+
+void
 SK_Steam_UnlockAchievement (const char* szName)
 {
   ISteamUserStats* stats =

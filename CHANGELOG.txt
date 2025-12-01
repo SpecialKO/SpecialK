@@ -1,4 +1,11 @@
-﻿25.11.30
+﻿25.12.1
+=======
+ + Added "Reset Achievements" button to the Achievements control panel
+     to allow resetting all achievements for the current game.
+
+   * This is only supported for Steam and GOG; EGS lacks the needed APIs :-\
+
+25.11.30
 ========
  + Enable D3D11 Deferred Context Isolation mode for eFootball PES 2021, because
      of a change made in 24.12.26.1.

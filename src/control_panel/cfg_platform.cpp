@@ -304,6 +304,49 @@ SK::ControlPanel::Platform::Draw (void)
 
           ImGui::Checkbox (ICON_FA_CAMERA " Take Screenshot", &config.platform.achievements.take_screenshot);
 
+          if ((  SK::Galaxy::GetTicksRetired () > 0 ||
+               SK::SteamAPI::GetCallbacksRun () > 0) && SK_Platform_GetAchievementManager ()->total_unlocked > 0)
+          {
+            ImGui::SameLine    ();
+            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine    ();
+
+            if (ImGui::Button (ICON_FA_BOMB " Reset Achievements "))
+            {
+              ImGui::OpenPopup ("###ResetAllAchievements");
+            }
+
+            if (ImGui::BeginPopup ("###ResetAllAchievements"))
+            {
+              static const char* szConfirm    = " Confirm Reset? ";
+              static const char* szDisclaimer =
+                "\n This will reset ALL achievements and cause permanent loss of original unlock time. \n\n";
+
+              ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
+              ImGui::Separator   ();
+              ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs", szConfirm);
+              ImGui::SameLine    ();
+              ImGui::Spacing     ();
+              ImGui::SameLine    ();
+
+              if (ImGui::Button  ("Okay"))
+              {
+                ImGui::CloseCurrentPopup ();
+
+                SK_Platform_ResetAchievements ();
+              }
+
+              ImGui::SameLine    ();
+
+              if (ImGui::Button  ("Cancel"))
+              {
+                ImGui::CloseCurrentPopup ();
+              }
+
+              ImGui::EndPopup ();
+            }
+          }
+
           ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
           ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
           ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));

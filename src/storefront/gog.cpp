@@ -2199,6 +2199,23 @@ SK_Galaxy_UnlockAchievement (const char* szName)
 }
 
 void
+SK_Galaxy_ResetAchievements (void)
+{
+  size_t           num_achievements = 0;
+  SK_Achievement**     achievements =
+    galaxy_achievements->getAchievements (&num_achievements);
+
+  for (int i = 0; i < num_achievements; ++i)
+  {
+    SK_Galaxy_ClearAchievement (achievements [i]->name_.c_str ());
+                                achievements [i]->unlocked_ = false;
+  }
+
+  galaxy_achievements->percent_unlocked = 0.0f;
+  galaxy_achievements->total_unlocked   = 0;
+}
+
+void
 SK_Galaxy_Stats_ClearAchievement ( galaxy::api::IStats* This,
                                             const char* name )
 {

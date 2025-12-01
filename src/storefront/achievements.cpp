@@ -1642,6 +1642,20 @@ SK_AchievementManager::Achievement::Achievement ( int                           
   }
 }
 
+
+extern void SK_Steam_ResetAchievements  (void);
+extern void SK_Galaxy_ResetAchievements (void);
+
+void
+SK_Platform_ResetAchievements (void)
+{
+  if (SK::SteamAPI::GetCallbacksRun () > 0)
+      SK_Steam_ResetAchievements ();
+
+  if (SK::Galaxy::GetTicksRetired () > 0)
+      SK_Galaxy_ResetAchievements ();
+}
+
 #include <galaxy/IStats.h>
 #include <galaxy/1_152_10/IStats.h>
 #include <galaxy/1_152_1/IStats.h>

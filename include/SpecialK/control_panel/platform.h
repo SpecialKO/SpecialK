@@ -45,6 +45,7 @@ void SK_Platform_SetNotifyCorner (void);
 int32_t SK_Platform_GetNumPlayers (void);
 
 SK_AchievementManager* SK_Platform_GetAchievementManager (void);
+void                   SK_Platform_ResetAchievements     (void);
 
 bool SK_PlatformOverlay_GoToURL (const char* szURL, bool bUseWindowsShellIfOverlayFails = false);
 
