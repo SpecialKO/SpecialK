@@ -1,4 +1,9 @@
-﻿25.11.29.1
+﻿25.11.30
+========
+ + Enable D3D11 Deferred Context Isolation mode for eFootball PES 2021, because
+     of a change made in 24.12.26.1.
+
+25.11.29.1
 ==========
  + Fixed same problem as 25.11.29, for games that use il2cpp instead of Mono :)
 

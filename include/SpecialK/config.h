@@ -1921,6 +1921,7 @@ enum class SK_GAME_ID
   TaintedGrail_FallOfAvalon,    // Fall of Avalon.exe
   FEAR_Perseus_Mandate,         // ??
   PhoenixWright_Trilogy,        // PWAAT.exe
+  eFootball_PES_2021,           // PES2021.exe
 
   UNKNOWN_GAME               = 0xffff
 };
