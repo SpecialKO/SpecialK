@@ -215,8 +215,6 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
     return S_OK;
   }
 
-  SK_LOGi0 (L"GetCurrentReading (inputKind=%x, device=%p)", inputKind, device);
-
   switch (inputKind)
   {
     case GameInputKindKeyboard:
