@@ -44,6 +44,9 @@ size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
 LPVOID
 SK_Inject_GetViewOf32BitRecords (void);
 
+LPVOID
+SK_Inject_GetViewOf64BitRecords (void);
+
 bool
 SK_Inject_SwitchToGlobalInjector (void);
 

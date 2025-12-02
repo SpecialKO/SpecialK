@@ -3816,22 +3816,15 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
       return windowsAbove;
     };
 
-    auto IsRectInside = [&](const RECT& rect1, const RECT& rect2)
-    {
-      return ( rect1.left   <= rect2.left  &&
-               rect1.top    <= rect2.top   &&
-               rect1.right  >= rect2.right &&
-               rect1.bottom >= rect2.bottom );
-    };
-
-    auto IsWindowContained = [&](HWND hWndContainer, const RECT& rectContained)
+    auto IsWindowOverlapping = [&](HWND hWndContainer, const RECT& rectContained)
     {
       RECT                                 rectContainer = {};
       if (! GetWindowRect (hWndContainer, &rectContainer))
         return false;
 
+      RECT              rcIntersect = {};
       return
-        IsRectInside (rectContainer, rectContained);
+        IntersectRect (&rcIntersect, &rectContainer, &rectContained) != FALSE;
     };
 
     auto windows_above =
@@ -3839,28 +3832,60 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
 
     if (process_input)
     {
-      HMONITOR hMonGame =
-        MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+      static std::unordered_map <HWND, BOOL> injected_pid_cache;
 
-      MONITORINFO minfo        = {                  };
-                  minfo.cbSize = sizeof (MONITORINFO);
+      bool any_injected = false;
 
-      if (GetMonitorInfoW (hMonGame, &minfo))
+      for ( auto& window : windows_above )
       {
-        RECT rcVisibleWindow = {};
-
-        // Use the work area to avoid the region occupied by the taskbar when testing occlusion
-        rcVisibleWindow.left   = std::max (minfo.rcWork.left,   game_window.actual.window.left);
-        rcVisibleWindow.right  = std::min (minfo.rcWork.right,  game_window.actual.window.right);
-        rcVisibleWindow.top    = std::max (minfo.rcWork.top,    game_window.actual.window.top);
-        rcVisibleWindow.bottom = std::min (minfo.rcWork.bottom, game_window.actual.window.bottom);
-
-        for ( auto& window : windows_above )
+        if (injected_pid_cache.find (window) == injected_pid_cache.end ())
         {
-          if (IsWindowContained (window, rcVisibleWindow))
+          DWORD                                 dwPid = 0x0;
+          SK_GetWindowThreadProcessId (window, &dwPid);
+
+          wchar_t     wszInjectionSignature [33] = {};
+          _snwprintf (wszInjectionSignature, 32, LR"(Local\SK_InjectedPid_%d)", dwPid);
+
+          SK_AutoHandle hInjectionSignature (
+            OpenEventW (EVENT_ALL_ACCESS, FALSE, wszInjectionSignature)
+          );
+
+          injected_pid_cache [window] =
+            hInjectionSignature.isValid ();
+        }
+
+        if (! any_injected)
+              any_injected = injected_pid_cache [window];
+      }
+
+      if (any_injected)
+      {
+        HMONITOR hMonGame =
+          MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+
+        MONITORINFO minfo        = {                  };
+                    minfo.cbSize = sizeof (MONITORINFO);
+
+        if (GetMonitorInfoW (hMonGame, &minfo))
+        {
+          RECT rcVisibleWindow = {};
+
+          // Use the work area to avoid the region occupied by the taskbar when testing occlusion
+          rcVisibleWindow.left   = std::max (minfo.rcWork.left,   game_window.actual.window.left);
+          rcVisibleWindow.right  = std::min (minfo.rcWork.right,  game_window.actual.window.right);
+          rcVisibleWindow.top    = std::max (minfo.rcWork.top,    game_window.actual.window.top);
+          rcVisibleWindow.bottom = std::min (minfo.rcWork.bottom, game_window.actual.window.bottom);
+
+          for ( auto& window : windows_above )
           {
-            process_input = false;
-            break;
+            if (IsWindowOverlapping (window, rcVisibleWindow))
+            {
+              if (injected_pid_cache [window])
+              {
+                process_input = false;
+                break;
+              }
+            }
           }
         }
       }

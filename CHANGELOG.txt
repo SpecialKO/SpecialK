@@ -1,4 +1,15 @@
-﻿25.12.2
+﻿25.12.2.1
+=========
+ + Change opaque window coverage test introduced in 25.12.2 to only test
+     against other processes with Special K injected.
+ + Added Local\SK_InjectedPid_<pid> named event to indicate which pids have
+     Special K injected.
+
+   * This is necessary for 32-bit/64-bit mixed injection scenarios where one
+       process architecture cannot read the other's memory space to determine
+         if SK is injected; named object is used instead of DLL shared memory.
+
+25.12.2
 =======
  + Blacklist UnityCrashHandler{32|64}.exe from injection
  + Do not attempt to manage already-open HID device files when HID is being

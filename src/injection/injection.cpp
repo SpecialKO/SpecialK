@@ -461,9 +461,14 @@ SK_Inject_ValidateProcesses (void)
   }
 }
 
+HANDLE SK_Inject_PidSignature = INVALID_HANDLE_VALUE;
+
 void
 SK_Inject_ReleaseProcess (void)
 {
+  if (SK_Inject_PidSignature != INVALID_HANDLE_VALUE)
+    CloseHandle (SK_Inject_PidSignature);
+
   if (! SK_IsInjected ())
     return;
 
@@ -552,6 +557,13 @@ SetPermissions (wchar_t* wszFilePath)
 void
 SK_Inject_AcquireProcess (void)
 {
+  wchar_t     wszInjectionSignature [33] = {};
+  _snwprintf (wszInjectionSignature, 32, LR"(Local\SK_InjectedPid_%d)", GetCurrentProcessId ());
+
+  SK_Inject_PidSignature =
+    SK_CreateEvent ( nullptr,
+      TRUE, FALSE, wszInjectionSignature );
+
   if (! SK_IsInjected ())
     return;
 
