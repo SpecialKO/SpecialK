@@ -173,7 +173,11 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   // OBS Stuff
   L"get-graphics-offsets32.exe",
   L"obs32.exe",
+  L"unitycrashhandler32.exe",
 #endif
+
+  // Presumably there's a unitycrashhandler64.exe as well
+  L"unitycrashhandler64.exe",
 
   L"crash_handler.exe", // Metaphor ReFantazio
   L"postcrashdump.exe",
