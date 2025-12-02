@@ -445,6 +445,9 @@ volatile ULONG64 hid_to_xi_time = 0;
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 {
+  if (SK_HidP_GetCaps == nullptr)
+    return false;
+
   bool filter = false;
 
         HIDP_CAPS caps;
@@ -2765,6 +2768,11 @@ USHORT GetTypeIndexByName (std::wstring TypeName)
 void
 SK_Input_EnumOpenHIDFiles (void)
 {
+  // If HID input is disabled, it is not safe to attempt to enumerate and manage
+  //   HID device files that we did not have hooks installed to witness being opened.
+  if (config.input.gamepad.disable_hid)
+    return;
+
   static HANDLE hDeviceEnumThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {

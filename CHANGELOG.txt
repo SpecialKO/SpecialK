@@ -1,4 +1,10 @@
-﻿25.12.1
+﻿25.12.2
+=======
+ + Blacklist UnityCrashHandler{32|64}.exe from injection
+ + Do not attempt to manage already-open HID device files when HID is being
+     blocked to games or it may cause some Unity plug-ins to fail.
+
+25.12.1
 =======
  + Added "Reset Achievements" button to the Achievements control panel
      to allow resetting all achievements for the current game.
