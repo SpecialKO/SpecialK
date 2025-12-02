@@ -762,7 +762,7 @@ public:
   SK_WASAPI_SessionManager (void) noexcept
   {
     reset_event_.m_h =
-      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
   };
 
   virtual
@@ -788,7 +788,9 @@ public:
       Deactivate ();
     }
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (sessions_lock_);
+
+    ResetEvent (reset_event_);
 
     if (std::exchange (needs_reset_, false))
     {
@@ -906,6 +908,8 @@ public:
 
   SK_WASAPI_AudioSession** getActive   (int* pCount = nullptr) noexcept
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (sessions_lock_);
+
     if (pCount)
       *pCount = static_cast <int> (active_sessions_.view.size ());
 
@@ -914,6 +918,8 @@ public:
 
   SK_WASAPI_AudioSession** getInactive (int* pCount = nullptr) noexcept
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (sessions_lock_);
+
     if (pCount)
       *pCount = sk::narrow_cast <int> (inactive_sessions_.view.size ());
 
@@ -921,12 +927,16 @@ public:
       inactive_sessions_.view.data ();
   }
 
+  SK_Thread_HybridSpinlock& getSessionsLock (void) { return sessions_lock_; };
+
 protected:
   friend class SK_WASAPI_AudioSession;
   friend class SK_MMDev_Endpoint;
 
   void SetSessionState (SK_WASAPI_AudioSession* pSession, AudioSessionState state)
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (sessions_lock_);
+
     switch (state)
     {
       case AudioSessionStateExpired:
@@ -973,8 +983,7 @@ protected:
 
 private:
   std::set <SK_WASAPI_AudioSession*> sessions_;
-
-  SK_Thread_HybridSpinlock           activation_lock_;
+  SK_Thread_HybridSpinlock           sessions_lock_;
 
   SK_AutoHandle                      reset_event_;
   bool                               needs_reset_ = true;

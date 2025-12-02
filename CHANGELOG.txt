@@ -1,7 +1,12 @@
-﻿25.12.2.2
+﻿25.12.2.3
+=========
+ + Allow audio device selection in the control panel using a gamepad.
+ + Update the audio widget in real-time if the active audio device changes.
+
+25.12.2.2
 =========
  + Added proper keyboard scancode and extended flags to lParam for synthesized
-     WM_KEYUP and WM_SYSKEUP messages when background rendering is enabled.
+     WM_KEYUP and WM_SYSKEYUP messages when background rendering is enabled.
 
 25.12.2.1
 =========
@@ -264,7 +269,7 @@
 
 25.11.8.1
 =========
- + Fixed SecuROM issues in F.E.A.R. games.
+ + Fixed SecxuROM issues in F.E.A.R. games.
 
 25.11.8
 =======

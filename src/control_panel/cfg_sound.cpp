@@ -62,6 +62,9 @@ using namespace SK::ControlPanel;
 bool
 SK_ImGui_SelectAudioSessionDlg (void)
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+     sessions_lock (sessions.getSessionsLock ());
+
   const ImGuiIO&
     io (ImGui::GetIO ());
 
@@ -253,7 +256,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
         ImGui::GetWindowPos () + ImGui::GetWindowSize () );
 
     const bool bEscape   = ImGui::IsKeyDown           ( ImGuiKey_Escape );
-    const bool bClicked  = ImGui::IsAnyMouseDown      (                 ) && !ImGui::IsMouseDragging (ImGuiMouseButton_Left);
+    const bool bClicked  = ImGui::IsMouseClicked      ( ImGuiMouseButton_Left ) && !ImGui::IsMouseDragging (ImGuiMouseButton_Left);
     const bool bHovering = ImGui::IsMouseHoveringRect ( window_rect.Min,
                                                         window_rect.Max );
 
@@ -272,6 +275,9 @@ SK_ImGui_SelectAudioSessionDlg (void)
 bool
 SK_ImGui_SelectAudioDeviceDlg (void)
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+     sessions_lock (sessions.getSessionsLock ());
+
   const ImGuiIO&
     io (ImGui::GetIO ());
 
@@ -336,7 +342,7 @@ SK_ImGui_SelectAudioDeviceDlg (void)
         ImGui::GetWindowPos () + ImGui::GetWindowSize () );
 
     const bool bEscape   = ImGui::IsKeyDown           ( ImGuiKey_Escape );
-    const bool bClicked  = ImGui::IsAnyMouseDown      (                 ) && !ImGui::IsMouseDragging (ImGuiMouseButton_Left);
+    const bool bClicked  = ImGui::IsMouseClicked      ( ImGuiMouseButton_Left ) && !ImGui::IsMouseDragging (ImGuiMouseButton_Left);
     const bool bHovering = ImGui::IsMouseHoveringRect ( window_rect.Min,
                                                         window_rect.Max );
 
@@ -435,6 +441,9 @@ SK_ImGui_VolumeManager (void)
 #endif
 
   std::string app_name;
+
+  std::scoped_lock <SK_Thread_HybridSpinlock>
+     sessions_lock (sessions.getSessionsLock ());
 
   sessions.Activate ();
 
@@ -694,7 +703,7 @@ SK_ImGui_VolumeManager (void)
     if (pMeterInfo == nullptr)
         pMeterInfo = sessions.getMeterInfo ();
 
-    if ( ( (dwLastTest + 45000)  <
+    if ( ( (dwLastTest + 750)  <
               SK::ControlPanel::current_time  ) )
     {
       if ( FAILED  (
@@ -710,8 +719,30 @@ SK_ImGui_VolumeManager (void)
       }
     }
 
+    bool no_audio = true;
+
+    struct volume_s
+    {
+      float volume           =  1.0f; // Current Volume (0.0 when muted)
+      float normalized       =  1.0f; // Unmuted Volume (stores volume before muting)
+
+      bool  muted            = false;
+
+      // Will fill-in with unique names for ImGui
+      //   (all buttons say the same thing =P)
+      //
+      char mute_button  [14] = { };
+      char slider_label [8 ] = { };
+    };
+
+    static
+      std::map <int, volume_s>
+        channel_volumes;
+
     if (channels != 0)
     {
+      no_audio = false;
+
       SK_ComPtr <IChannelAudioVolume> pChannelVolume =
         audio_session->getChannelAudioVolume      ( );
 
@@ -738,24 +769,6 @@ SK_ImGui_VolumeManager (void)
 
       static float master_vol  = -1.0f; // Master Volume
       static BOOL  master_mute =  FALSE;
-
-      struct volume_s
-      {
-        float volume           =  1.0f; // Current Volume (0.0 when muted)
-        float normalized       =  1.0f; // Unmuted Volume (stores volume before muting)
-
-        bool  muted            = false;
-
-        // Will fill-in with unique names for ImGui
-        //   (all buttons say the same thing =P)
-        //
-        char mute_button  [14] = { };
-        char slider_label [8 ] = { };
-      };
-
-      static
-        std::map <int, volume_s>
-          channel_volumes;
 
       SK_ComPtr <ISimpleAudioVolume>  pVolume  =
         audio_session->getSimpleAudioVolume ( );
@@ -932,6 +945,8 @@ SK_ImGui_VolumeManager (void)
       ImGui::Separator     ( );
       ImGui::Columns       (2);
 
+      no_audio = true;
+
       for (UINT i = 0 ; i < channels; i++)
       {
         // Throttle meter updates at extremely high frame rates
@@ -1001,6 +1016,8 @@ SK_ImGui_VolumeManager (void)
                          )
              )
           {
+            no_audio = false;
+
             volume_s& ch_vol =
               channel_volumes [i];
 
@@ -1130,8 +1147,9 @@ SK_ImGui_VolumeManager (void)
 
     // Upon failure, deactivate and try to get a new session manager on the next
     //   frame.
-    else
+    if (no_audio)
     {
+      channel_volumes.clear ();
       audio_session = nullptr;
       sessions.Deactivate ();
     }

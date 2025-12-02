@@ -4357,13 +4357,6 @@ auto DeclKeybind =
         config.input.gamepad.hook_dinput8            = false;
         config.input.gamepad.disable_hid             =  true;
         input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
-        // Game behaves this way with or without this setting, and background_render
-        //   only creates the potential for stuck arrow keys.
-        config.window.background_render              = false;
-        config.render.dxgi.fake_fullscreen_mode      = false;
-        //     * Fake Fullscreen implicitly enables the above
-        window.background_render->store         (config.window.background_render);
-        render.dxgi.fake_fullscreen_mode->store (config.render.dxgi.fake_fullscreen_mode);
         break;
 
       case SK_GAME_ID::SilentHill_f:
