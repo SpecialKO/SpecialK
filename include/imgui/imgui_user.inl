@@ -1755,12 +1755,6 @@ XINPUT_STATE SK_ImGui_XInputState = {};
 
 bool SK_ImGui_ProcessGamepadInput = true;
 
-#include <SpecialK/injection/injection.h>
-
-extern "C" {
-  extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
-}
-
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 {

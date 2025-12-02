@@ -184,7 +184,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   L"launcher.exe",
   L"launchpad.exe",
-  L"launcher_epic.exe", // Genshin Impact
+  L"launcher_epic.exe",     // Genshin Impact
+  L"epicgameslauncher.exe", // Literally, the EGS client
   L"fallout4launcher.exe",
   L"skyrimselauncher.exe",
   L"modlauncher.exe",
