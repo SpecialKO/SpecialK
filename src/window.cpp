@@ -1197,8 +1197,22 @@ SK_Input_ClearKeyboardState (void)
         {
           if (currentKeyboardState [i])
           {
-            game_window.WndProc_Original (game_window.hWnd, WM_KEYUP,    i, 0);
-            game_window.WndProc_Original (game_window.hWnd, WM_SYSKEYUP, i, 0);
+            const UINT bScancode =
+              MapVirtualKey (i, MAPVK_VK_TO_VSC);
+            const bool bExtended =
+              ( bScancode & 0xE100 ) != 0;
+            const bool bContextCode = true;
+
+            const auto lParam =
+              sk::narrow_cast <LPARAM> (
+                (long long)0 | ((long long)bScancode    << 16) |
+                               ((long long)bExtended    << 24) |
+                               ((long long)bContextCode << 29) |
+                                                   (1LL << 30) |
+                                                   (1LL << 31));
+
+            game_window.WndProc_Original (game_window.hWnd, WM_KEYUP,    i, lParam);
+            game_window.WndProc_Original (game_window.hWnd, WM_SYSKEYUP, i, lParam);
           }
 
           if (i == VK_CANCEL)

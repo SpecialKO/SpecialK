@@ -1,4 +1,9 @@
-﻿25.12.2.1
+﻿25.12.2.2
+=========
+ + Added proper keyboard scancode and extended flags to lParam for synthesized
+     WM_KEYUP and WM_SYSKEUP messages when background rendering is enabled.
+
+25.12.2.1
 =========
  + Change opaque window coverage test introduced in 25.12.2 to only test
      against other processes with Special K injected.
@@ -7,7 +12,7 @@
 
    * This is necessary for 32-bit/64-bit mixed injection scenarios where one
        process architecture cannot read the other's memory space to determine
-         if SK is injected; named object is used instead of DLL shared memory.
+         SK is injected; a named object is used instead of DLL shared memory.
 
 25.12.2
 =======
