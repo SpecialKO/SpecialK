@@ -1871,6 +1871,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->bSimpleMode = false;
                 }
 
+                //auto time = SK_timeGetTime ();
+                //pDevice->analog_samples.left.add  (pData->LeftStickX,  pData->LeftStickY,  pData->TriggerLeft,  time);
+                //pDevice->analog_samples.right.add (pData->RightStickX, pData->RightStickY, pData->TriggerRight, time);
+
                 pDevice->xinput.report.Gamepad.sThumbLX =
                   static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pData-> LeftStickX) / 127));
                 pDevice->xinput.report.Gamepad.sThumbLY =
@@ -2654,7 +2658,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #endif
 
-            const bool bAllowSpecialButtons =
+            extern bool                       SK_ImGui_ProcessGamepadInput;
+            const bool bAllowSpecialButtons = SK_ImGui_ProcessGamepadInput &&
               ( config.input.gamepad.disabled_to_game == 0 ||
                 SK_IsGameWindowActive () ) &&
                        bIsDeviceMostRecentlyActive;

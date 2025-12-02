@@ -1753,6 +1753,14 @@ SK_XInput_ValidateStatePointer (XINPUT_STATE *pState)
 
 XINPUT_STATE SK_ImGui_XInputState = {};
 
+bool SK_ImGui_ProcessGamepadInput = true;
+
+#include <SpecialK/injection/injection.h>
+
+extern "C" {
+  extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
+}
+
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 {
@@ -2002,10 +2010,11 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     //extern void SK_ScePad_PaceMaker (void);
     //            SK_ScePad_PaceMaker ();
 
+
     SK_ImGui_XInputState = state;
 
-    if ( bHasPlayStation ||
-         bHasRealXInputOnUISlot )
+    if ( SK_ImGui_ProcessGamepadInput && ( bHasPlayStation ||
+                                           bHasRealXInputOnUISlot ) )
     {
       //
       // Do not do in the background unless bg input is enabled
@@ -3776,6 +3785,102 @@ SK_ImGui_Util_TrackFgProcessChange (void)
 }
 
 void
+SK_ImGui_UpdateGamepadProcessingEligibility (void)
+{
+  SK_PROFILE_SCOPED_TASK (SK_ImGui_UpdateGamepadProcessingEligibility)
+
+  if (SK_IsGameWindowActive ())
+  {
+    SK_ImGui_ProcessGamepadInput = true;
+  }
+
+  //
+  // Check for another window covering the game window, if the user cannot
+  //   see the game then allowing background gamepad input would be very dangerous...
+  //
+  else if (config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled && config.window.background_render)
+  {
+    bool process_input = true;
+
+    auto GetWindowsAbove = [&](HWND targetHwnd) -> std::vector <HWND>
+    {
+      std::vector <HWND> windowsAbove;
+                         windowsAbove.reserve (32);
+
+      HWND hwnd =
+        GetTopWindow (nullptr);
+
+      while (hwnd && hwnd != targetHwnd)
+      {
+        if (IsWindowVisible (hwnd))
+          windowsAbove.push_back (hwnd);
+
+        hwnd = GetNextWindow
+          (hwnd, GW_HWNDNEXT);
+      }
+
+      return windowsAbove;
+    };
+
+    auto IsRectInside = [&](const RECT& rect1, const RECT& rect2)
+    {
+      return ( rect1.left   <= rect2.left  &&
+               rect1.top    <= rect2.top   &&
+               rect1.right  >= rect2.right &&
+               rect1.bottom >= rect2.bottom );
+    };
+
+    auto IsWindowContained = [&](HWND hWndContainer, const RECT& rectContained)
+    {
+      RECT                                 rectContainer = {};
+      if (! GetWindowRect (hWndContainer, &rectContainer))
+        return false;
+
+      return
+        IsRectInside (rectContainer, rectContained);
+    };
+
+    auto windows_above =
+      GetWindowsAbove (game_window.hWnd);
+
+    if (process_input)
+    {
+      HMONITOR hMonGame =
+        MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+
+      MONITORINFO minfo        = {                  };
+                  minfo.cbSize = sizeof (MONITORINFO);
+
+      if (GetMonitorInfoW (hMonGame, &minfo))
+      {
+        RECT rcVisibleWindow = {};
+
+        // Use the work area to avoid the region occupied by the taskbar when testing occlusion
+        rcVisibleWindow.left   = std::max (minfo.rcWork.left,   game_window.actual.window.left);
+        rcVisibleWindow.right  = std::min (minfo.rcWork.right,  game_window.actual.window.right);
+        rcVisibleWindow.top    = std::max (minfo.rcWork.top,    game_window.actual.window.top);
+        rcVisibleWindow.bottom = std::min (minfo.rcWork.bottom, game_window.actual.window.bottom);
+
+        for ( auto& window : windows_above )
+        {
+          if (IsWindowContained (window, rcVisibleWindow))
+          {
+            process_input = false;
+            break;
+          }
+        }
+      }
+    }
+
+    SK_ImGui_ProcessGamepadInput = process_input;
+  }
+
+  else
+    SK_ImGui_ProcessGamepadInput = false;
+}
+
+
+void
 SK_ImGui_User_NewFrame (void)
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_User_NewFrame)
@@ -4355,6 +4460,7 @@ SK_ImGui_User_NewFrame (void)
 
   // Warn on low gamepad battery
   SK_Battery_UpdateRemainingPowerForAllDevices ();
+  SK_ImGui_UpdateGamepadProcessingEligibility  ();
 
   // Update blocking status before proceeding to draw the next frame
   SK_ImGui_IsMouseRelevant     (true);

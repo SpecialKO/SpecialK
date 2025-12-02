@@ -133,26 +133,12 @@ SK_ImGui_WantGamepadCapture (bool update)
 
     if (! bCapture)
     {
-      // Implicitly block input to this game if SK is currently injected
-      //   into two games at once, and the other game is currently foreground.
-      if (! SK_IsGameWindowActive ())
-      {
-        HWND hWndForeground =
-          SK_GetForegroundWindow ();
-
-        DWORD                                         dwForegroundPid = 0x0;
-        SK_GetWindowThreadProcessId (hWndForeground, &dwForegroundPid);
-
-        for ( const auto pid : g_sHookedPIDs )
-        {
-          if (pid == static_cast <LONG>(dwForegroundPid))
-          {
-            bCapture = true;
-          }
-        }
-      }
+      // If we are blocking input to SK's UI itself, then also block input to
+      //   the underlying game.
+      extern bool  SK_ImGui_ProcessGamepadInput;
+      bCapture |= !SK_ImGui_ProcessGamepadInput;
     }
-    
+
     if    (bCapture) lastFrameCaptured = SK_GetFramesDrawn ();
     capture.store
           (bCapture);

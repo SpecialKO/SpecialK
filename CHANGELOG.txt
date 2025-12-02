@@ -3,6 +3,8 @@
  + Blacklist UnityCrashHandler{32|64}.exe from injection
  + Do not attempt to manage already-open HID device files when HID is being
      blocked to games or it may cause some Unity plug-ins to fail.
+ + Ignore gamepad input when background render mode is enabled and an opaque
+     window covers the game window while the game is out of focus.
 
 25.12.1
 =======
