@@ -815,7 +815,7 @@ SK_Unity_HookMonoInit (void)
                              mono_jit_init_version_Detour,
     static_cast_p2p <void> (&mono_jit_init_version_Original),
                            &pfnMonoJitInitVersion );
-  SK_EnableHook    (        pfnMonoJitInitVersion );
+  SK_QueueEnableHook (      pfnMonoJitInitVersion );
 
   void*                   pfnMonoJitExec = nullptr;
   SK_CreateDLLHook (  loaded_mono_dll,
@@ -823,7 +823,8 @@ SK_Unity_HookMonoInit (void)
                              mono_jit_exec_Detour,
     static_cast_p2p <void> (&mono_jit_exec_Original),
                            &pfnMonoJitExec );
-  SK_EnableHook    (        pfnMonoJitExec );
+  SK_QueueEnableHook (      pfnMonoJitExec );
+  SK_ApplyQueuedHooks();
 
   // If this was pre-loaded, then the above hooks never run and we should initialize everything immediately...
   if (SK_GetModuleHandleW (L"BepInEx.Core.dll"))
@@ -892,7 +893,6 @@ il2cpp_init_Detour (const char* domain_name)
 
   auto ret =
     il2cpp_init_Original (domain_name);
-
   SK_Unity_SetupInputHooks_il2cpp ();
 
   return ret;
@@ -925,6 +925,12 @@ il2cpp_shutdown_Detour (void)
 bool
 SK_Unity_Hookil2cppInit (void)
 {
+  // Calling convention for some 32-bit games is incompatible; do not bother
+  //   trying to support il2cpp if it's 32-bit.
+#ifndef _M_AMD64
+  return false;
+#endif
+
   static bool
       once = false;
   if (once)
@@ -2277,8 +2283,8 @@ SK_Unity_SetupInputHooks_il2cpp (void)
   static auto Aetherim = il2cpp::Wrapper ();
               Aetherim = il2cpp::Wrapper ();
 
-  if (! Aetherim.get_image ("Assembly-CSharp.dll"))
-  {
+  if (! (Aetherim.get_image ("Assembly-CSharp.dll") || Aetherim.get_image ("Assembly-CSharp-firstpass.dll")))
+  {  
     return false;
   }
 
@@ -2327,7 +2333,8 @@ SK_Unity_SetupInputHooks_il2cpp (void)
       void* pfnInControl_NativeInputDevice_Update  = nullptr;
       void* pfnInControl_InputDevice_OnAttached    = nullptr;
 
-      if (SK_Unity_il2cppClasses.InControl.InputDevice != nullptr)
+      if (SK_Unity_il2cppClasses.InControl.InputDevice != nullptr &&
+                                                 assemblyInControl->get_class ("NativeInputDevice", "InControl") != nullptr)
       {
         pfnInControl_NativeInputDevice_Vibrate = assemblyInControl->get_class ("NativeInputDevice", "InControl")->get_method ("Vibrate",    2);
         pfnInControl_NativeInputDevice_Update  = assemblyInControl->get_class ("NativeInputDevice", "InControl")->get_method ("Update",     2);
@@ -2358,7 +2365,8 @@ SK_Unity_SetupInputHooks_il2cpp (void)
         }
       }
 
-      if (SK_Unity_il2cppAssemblies.assemblyRewired != nullptr)
+      if (SK_Unity_il2cppAssemblies.assemblyRewired != nullptr &&
+                                                            SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired") != nullptr)
       {
         void* pfnRewired_Joystick_get_supportsVibration   = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("get_supportsVibration",   0);
         void* pfnRewired_Joystick_get_vibrationMotorCount = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("get_vibrationMotorCount", 0);
@@ -2367,7 +2375,8 @@ SK_Unity_SetupInputHooks_il2cpp (void)
         void* pfnRewired_Joystick_StopVibration           = SK_Unity_il2cppAssemblies.assemblyRewired->get_class ("Joystick", "Rewired")->get_method ("StopVibration",           0);
         void* pfnVibrationController_Rumble               = nullptr;
 
-        if (                              SK_Unity_il2cppAssemblies.assemblyCSharp->get_class ("VibrationController", "") != nullptr)
+        if (                              SK_Unity_il2cppAssemblies.assemblyCSharp != nullptr &&
+                                          SK_Unity_il2cppAssemblies.assemblyCSharp->get_class ("VibrationController", "") != nullptr)
           pfnVibrationController_Rumble = SK_Unity_il2cppAssemblies.assemblyCSharp->get_class ("VibrationController", "")->get_method ("Rumble", 3);
 
         if (pfnRewired_Joystick_get_supportsVibration != nullptr && *(void**)pfnRewired_Joystick_get_supportsVibration != nullptr)

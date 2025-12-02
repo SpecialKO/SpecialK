@@ -1,4 +1,9 @@
-﻿25.12.2.3
+﻿25.12.2.4
+=========
+ + Disable il2cpp support in 32-bit Unity games because not all of them use
+     fastcall calling convention for il2cpp exports, which causes crashes.
+
+25.12.2.3
 =========
  + Allow audio device selection in the control panel using a gamepad.
  + Update the audio widget in real-time if the active audio device changes.
