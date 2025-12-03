@@ -3095,8 +3095,8 @@ SK_D3D11_PopulateResourceList (bool refresh)
               {
                 swscanf ( fd.cFileName,
                             typeless
-                            ? LR"(%s\Uncompressed_%08X_%08X_TYPELESS.dds)"
-                            : LR"(%s\Uncompressed_%08X_%08X.dds)",
+                            ? LR"(Uncompressed_%08X_%08X_TYPELESS.dds)"
+                            : LR"(Uncompressed_%08X_%08X.dds)",
                               &top_crc32,
                                 &checksum );
               }
