@@ -847,7 +847,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
       default:
         SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
-        if (filter || SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_hid)
+        if (filter || SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_hid || config.input.gamepad.raw_input.blackout_api)
         {
           SK_RAWINPUT_HIDE (sk_input_dev_type::Gamepad);
           remove = true;

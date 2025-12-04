@@ -1,4 +1,12 @@
-﻿25.12.2.5
+﻿25.12.3
+=======
+ + Added new INI setting to prevent software from seeing input on gamepads
+     using the RawInput API.
+
+    [Input.Gamepad]
+    HideRawInput={true|false}  Default: false
+
+25.12.2.5
 =========
  + Fixed errant %s in scanf format string during dumped texture enumeration
      that could cause stack overflows when used with DumpOnFirstLoad.

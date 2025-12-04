@@ -1212,6 +1212,10 @@ struct sk_config_t
         bool  blackout_api        = false;
       } windows_gaming_input;
 
+      struct {
+        bool  blackout_api        = false;
+      } raw_input;
+
       struct dinput_s {
         bool  blackout_gamepads   = false;
         bool  blackout_keyboards  = false;

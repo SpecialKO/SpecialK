@@ -1479,8 +1479,13 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
       {
         if (GetModuleHandleW (L"Rewired_WindowsGamingInput.dll"))
         {
-          config.input.gamepad.windows_gaming_input.blackout_api = false;
-          config.utility.save_async ();
+          // However, this API still cannot get input in the background, so if this setting
+          //   is necessary then do not do this.
+          if (! (config.window.background_render && config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled))
+          {
+            config.input.gamepad.windows_gaming_input.blackout_api = false;
+            config.utility.save_async ();
+          }
         }
       }
 
