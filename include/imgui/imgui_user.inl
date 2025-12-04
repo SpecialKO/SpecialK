@@ -499,7 +499,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             gamepad = true;
 
             // TODO: Determine which controller the input is from
-            if (config.input.gamepad.disable_hid || SK_ImGui_WantGamepadCapture ())
+            if (config.input.gamepad.disable_hid || SK_ImGui_WantGamepadCapture () || config.input.gamepad.raw_input.blackout_api)
               filter = true;
 
             if ( (! already_processed) && uiCommand == RID_INPUT )
