@@ -1146,6 +1146,10 @@ SK::ControlPanel::D3D11::Draw (void)
         {
           iLeftGroupCount++;
 
+          bool bReflexLimiter =
+            __SK_ForceDLSSGPacing ||
+            (rb.isReflexSupported () && config.nvidia.reflex.use_limiter);
+
           bool bIsAdaptiveLatentSync =
             ( config.render.framerate.present_interval == 0 ) &&
             ( config.render.framerate.target_fps > 0.0f     ) &&
@@ -1160,7 +1164,7 @@ SK::ControlPanel::D3D11::Draw (void)
             ( config.render.framerate.tearing_mode ==
                 SK_TearingMode::AdaptiveOff                 );
 
-          if (bIsAdaptiveVSync || bIsAdaptiveLatentSync)
+          if ((bIsAdaptiveVSync || bIsAdaptiveLatentSync) && (! bReflexLimiter))
           {
             ImGui::PushItemFlag (
               ImGuiItemFlags_Disabled,
@@ -1169,10 +1173,10 @@ SK::ControlPanel::D3D11::Draw (void)
           }
 
           if  ( ImGui::Checkbox (
-                  bIsAdaptiveVSync || bIsAdaptiveLatentSync
+                  (! bReflexLimiter) && (bIsAdaptiveVSync || bIsAdaptiveLatentSync)
                     ? "Enable Tearing (Adaptive)"
                     : "Enable Tearing",
-                  bIsAdaptiveVSync
+                  (! bReflexLimiter) && (bIsAdaptiveVSync)
                     ? &config.render.framerate.turn_vsync_off
                     : &config.render.dxgi.allow_tearing
                 )
@@ -1180,7 +1184,8 @@ SK::ControlPanel::D3D11::Draw (void)
           {
             // Latent Sync
             if ( config.render.framerate.present_interval == 0 &&
-                 config.render.framerate.target_fps > 0.0f     )
+                 config.render.framerate.target_fps > 0.0f     &&
+                 (! bReflexLimiter)                            )
             {
               static int iLastAlwaysOffTearingMode =
                 SK_TearingMode::AlwaysOff;
@@ -1204,7 +1209,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if ( ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled) &&
                ImGui::BeginTooltip  ()                                    )
           {
-            if (! (bIsAdaptiveVSync || bIsAdaptiveLatentSync))
+            if (! (bIsAdaptiveVSync || bIsAdaptiveLatentSync) || bReflexLimiter)
             {
               ImGui::Text       ("Enables True VSYNC -OFF- in Windowed Mode");
               ImGui::Separator  ();
@@ -1233,7 +1238,7 @@ SK::ControlPanel::D3D11::Draw (void)
             ImGui::EndTooltip   ();
           }
 
-          if (bIsAdaptiveVSync  ||  bIsAdaptiveLatentSync)
+          if ((bIsAdaptiveVSync || bIsAdaptiveLatentSync) && (! bReflexLimiter))
           {
             ImGui::PopItemFlag  ();
           }
