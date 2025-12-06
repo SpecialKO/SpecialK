@@ -7006,9 +7006,12 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   break;
 
                 case limiter_mode_e::LatentSync:
-                  original_vsync_settings.present_interval   = config.render.framerate.present_interval;
-                  config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
                   config.render.framerate.enforcement_policy = 4;
+
+                  if (config.render.framerate.present_interval != 0) // Ignore Reflex Limiter with Present Interval 0
+                      original_vsync_settings.present_interval  = config.render.framerate.present_interval;
+
+                  config.render.framerate.present_interval = 0;      // Turn VSYNC -off-
 
                   // Trigger a re-sync
                   SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync - 1);
