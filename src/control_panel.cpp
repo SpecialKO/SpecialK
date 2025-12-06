@@ -7031,6 +7031,9 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   config.nvidia.reflex.override    = true;
                   config.nvidia.reflex.enable      = true;
 
+                  if (config.render.framerate.present_interval != 0)
+                      original_vsync_settings.present_interval  = config.render.framerate.present_interval;
+
                   config.render.framerate.present_interval = original_vsync_settings.present_interval;
                   break;
               }
