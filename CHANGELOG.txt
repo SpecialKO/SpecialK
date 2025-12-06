@@ -1,4 +1,8 @@
-﻿25.12.3
+﻿25.12.6
+=======
+ + Disable features that anger Age of Empire 4's anti-cheat system.
+
+25.12.3
 =======
  + Added new INI setting to prevent software from seeing input on gamepads
      using the RawInput API.

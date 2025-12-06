@@ -321,7 +321,8 @@ SK_GetCurrentGameID (void)
           { L"FEAR.exe",                               SK_GAME_ID::FEAR_Perseus_Mandate         },
           { L"FEARMP.exe",                             SK_GAME_ID::FEAR_Perseus_Mandate         },
           { L"PWAAT.exe",                              SK_GAME_ID::PhoenixWright_Trilogy        },
-          { L"PES2021.exe",                            SK_GAME_ID::eFootball_PES_2021           }
+          { L"PES2021.exe",                            SK_GAME_ID::eFootball_PES_2021           },
+          { L"RelicCardinal.exe",                      SK_GAME_ID::AgeOfEmpires4                },
         };
 
     first_check  = false;
@@ -4345,6 +4346,12 @@ auto DeclKeybind =
         config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
+        break;
+
+      case SK_GAME_ID::AgeOfEmpires4:
+        // Needs this to avoid anti-debug issues
+        config.window.dont_hook_wndproc             = true;
+        config.compatibility.disable_debug_features = true;
         break;
 
       case SK_GAME_ID::eFootball_PES_2021:

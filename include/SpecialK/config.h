@@ -1926,6 +1926,7 @@ enum class SK_GAME_ID
   FEAR_Perseus_Mandate,         // ??
   PhoenixWright_Trilogy,        // PWAAT.exe
   eFootball_PES_2021,           // PES2021.exe
+  AgeOfEmpires4,                // RelicCardinal.exe
 
   UNKNOWN_GAME               = 0xffff
 };
