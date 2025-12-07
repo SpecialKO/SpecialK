@@ -6077,6 +6077,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         ImGui::SameLine   (0.0f, ImGui::GetStyle ().ItemSpacing.x * 2.0f);
         ImGui::BeginGroup ();
 
+        struct vsync_prefs_s {
+          int present_interval = config.render.framerate.present_interval == 0 ? -1 :
+                                 config.render.framerate.present_interval;
+        } static original_vsync_settings;
+
         auto _LimitSlider =
           [&](       float& target,
                 const char*  label,
@@ -6490,6 +6495,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 }
               }
 
+              if (iLastNormalPresentInterval != original_vsync_settings.present_interval)
+              {
+                iLastNormalPresentInterval = original_vsync_settings.present_interval;
+              }
+
               if (iLastLatentSyncTearingMode != config.render.framerate.tearing_mode)
               {
                 iLastLatentSyncTearingMode = config.render.framerate.tearing_mode;
@@ -6500,11 +6510,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             if (bReflexLimiter || config.render.framerate.present_interval != 0)
             {
-              bool bIsVSync = ! (
-                ( config.render.framerate.present_interval == SK_NoPreference ) &&
-                ( !bIsD3D9      ?      rb.present_interval == 0
-                                :      bIsTearingD3D9                         )
-              );
+              bool bIsVSync =
+                      config.render.framerate.present_interval != 0                 &&
+                ! ( ( config.render.framerate.present_interval == SK_NoPreference ) &&
+                    ( !bIsD3D9      ?      rb.present_interval == 0
+                                    :      bIsTearingD3D9                         ) );
 
               if ((! bReflexLimiter) && bIsVSync)
               {
@@ -6776,7 +6786,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
                 if (iLastNormalPresentInterval != config.render.framerate.present_interval)
                 {
-                  iLastNormalPresentInterval = config.render.framerate.present_interval;
+                  iLastNormalPresentInterval = original_vsync_settings.present_interval
+                                             = config.render.framerate.present_interval;
                 }
 
                 if (iLastNormalSyncTearingMode != config.render.framerate.tearing_mode)
@@ -6966,11 +6977,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             if (ImGui::Combo ("Mode", &mode, szModeList))
             {
-              struct vsync_prefs_s {
-                int present_interval = config.render.framerate.present_interval == 0 ? -1 :
-                                       config.render.framerate.present_interval;
-              } static original_vsync_settings;
-
               struct reflex_prefs_s {
                 bool use_limiter = config.nvidia.reflex.use_limiter;
                 bool low_latency = config.nvidia.reflex.low_latency;
