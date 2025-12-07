@@ -6077,10 +6077,16 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         ImGui::SameLine   (0.0f, ImGui::GetStyle ().ItemSpacing.x * 2.0f);
         ImGui::BeginGroup ();
 
-        struct vsync_prefs_s {
-          int present_interval = config.render.framerate.present_interval == 0 ? -1 :
-                                 config.render.framerate.present_interval;
-        } static original_vsync_settings;
+        static int iLastNormalPresentInterval =
+          config.render.framerate.present_interval != 0
+            ? config.render.framerate.present_interval
+            : SK_NoPreference;
+
+        if ( config.render.framerate.present_interval != 0 &&
+             config.render.framerate.present_interval !=
+             iLastNormalPresentInterval                    )
+             iLastNormalPresentInterval =
+             config.render.framerate.present_interval;
 
         auto _LimitSlider =
           [&](       float& target,
@@ -6247,11 +6253,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               config.render.framerate.present_interval == 0 &&
              (config.render.framerate.target_fps        > 0.0f ||
                                            __target_fps > 0.0f);
-
-            static int iLastNormalPresentInterval =
-              config.render.framerate.present_interval != 0
-                ? config.render.framerate.present_interval
-                : SK_NoPreference;
 
             static int iLastNormalSyncTearingMode =
               ! bLatentSync
@@ -6493,11 +6494,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                     config.compatibility.init_on_separate_thread = bAsyncInitOrig;
                   }
                 }
-              }
-
-              if (iLastNormalPresentInterval != original_vsync_settings.present_interval)
-              {
-                iLastNormalPresentInterval = original_vsync_settings.present_interval;
               }
 
               if (iLastLatentSyncTearingMode != config.render.framerate.tearing_mode)
@@ -6784,12 +6780,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   }
                 }
 
-                if (iLastNormalPresentInterval != config.render.framerate.present_interval)
-                {
-                  iLastNormalPresentInterval = original_vsync_settings.present_interval
-                                             = config.render.framerate.present_interval;
-                }
-
                 if (iLastNormalSyncTearingMode != config.render.framerate.tearing_mode)
                 {
                   iLastNormalSyncTearingMode = config.render.framerate.tearing_mode;
@@ -6992,36 +6982,33 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   config.render.framerate.enforcement_policy = 4;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                      config.render.framerate.present_interval  = original_vsync_settings.present_interval;
+                      config.render.framerate.present_interval =
+                        iLastNormalPresentInterval;
 
-                  original_vsync_settings.present_interval = config.render.framerate.present_interval;
                   break;
 
                 case limiter_mode_e::LowLatency:
                   config.render.framerate.enforcement_policy = 2;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                      config.render.framerate.present_interval  = original_vsync_settings.present_interval;
-
-                  original_vsync_settings.present_interval = config.render.framerate.present_interval;
+                      config.render.framerate.present_interval =
+                        iLastNormalPresentInterval;
 
                   if (config.render.framerate.present_interval > 1)
                   {
                     SK_ImGui_Warning (L"VRR Does Not Work When Using 1/2, 1/3 or 1/4 rate VSYNC!");
                   }
+
                   break;
 
                 case limiter_mode_e::LatentSync:
                   config.render.framerate.enforcement_policy = 4;
-
-                  if (config.render.framerate.present_interval != 0) // Ignore Reflex Limiter with Present Interval 0
-                      original_vsync_settings.present_interval  = config.render.framerate.present_interval;
-
-                  config.render.framerate.present_interval = 0;      // Turn VSYNC -off-
+                  config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
 
                   // Trigger a re-sync
                   SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync - 1);
                   SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync + 1);
+
                   break;
 
                 case limiter_mode_e::Reflex:
@@ -7037,10 +7024,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   config.nvidia.reflex.override    = true;
                   config.nvidia.reflex.enable      = true;
 
-                  if (config.render.framerate.present_interval != 0)
-                      original_vsync_settings.present_interval  = config.render.framerate.present_interval;
+                  if (config.render.framerate.present_interval == 0)
+                      config.render.framerate.present_interval =
+                        iLastNormalPresentInterval;
 
-                  config.render.framerate.present_interval = original_vsync_settings.present_interval;
                   break;
               }
 
