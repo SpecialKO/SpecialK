@@ -139,7 +139,7 @@ SK_Unity_PlugInCfg (void)
 
         if (! SK_Unity_FullIl2cppEngineTime)
         {
-          ImGui::TextColored    (ImVec4 (0.666f, 0.333f, 0.0f, 1.f), ICON_FA_EXCLAMATION);
+          ImGui::TextColored    (ImVec4 (0.666f, 0.333f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
           ImGui::SameLine       ();
           ImGui::SetItemTooltip ("Game uses il2cpp and does not include UnityEngine.Time.set_fixedDeltaTime (...), this setting may have no effect.");
           ImGui::SameLine       ();
