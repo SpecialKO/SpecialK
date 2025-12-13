@@ -1,4 +1,12 @@
-﻿25.12.6
+﻿25.12.13
+========
+ + Added support for UnityEngine.Time.fixedDeltaTime management in Unity games
+     that use il2cpp.
+
+   * This will not work in all games, but will at least indicate
+       the game's hard-coded fixed timestep in the control panel's slider.
+
+25.12.6
 =======
  + Disable features that anger Age of Empire 4's anti-cheat system.
 

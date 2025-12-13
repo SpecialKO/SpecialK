@@ -83,6 +83,7 @@ bool  SK_Unity_GlyphCacheDirty          = false;
 
 HANDLE SK_Unity_GetFrameStatsWaitEvent = 0;
 bool   SK_Unity_PaceGameThread         = true;
+bool   SK_Unity_FullIl2cppEngineTime   = true; // Il2cpp may strip out setter functions from UnityEngine.Time
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
@@ -133,6 +134,14 @@ SK_Unity_PlugInCfg (void)
           ImGui::TextColored    (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
           ImGui::SameLine       ();
           ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
+          ImGui::SameLine       ();
+        }
+
+        if (! SK_Unity_FullIl2cppEngineTime)
+        {
+          ImGui::TextColored    (ImVec4 (0.666f, 0.333f, 0.0f, 1.f), ICON_FA_EXCLAMATION);
+          ImGui::SameLine       ();
+          ImGui::SetItemTooltip ("Game uses il2cpp and does not include UnityEngine.Time.set_fixedDeltaTime (...), this setting may have no effect.");
           ImGui::SameLine       ();
         }
 
@@ -954,7 +963,7 @@ SK_Unity_Hookil2cppInit (void)
                                il2cpp_init_Detour,
       static_cast_p2p <void> (&il2cpp_init_Original),
                            &pfnil2cpp_init );
-    SK_EnableHook    (      pfnil2cpp_init );
+    SK_QueueEnableHook (    pfnil2cpp_init );
 
     void*                   pfnil2cpp_init_utf16 = nullptr;
     SK_CreateDLLHook (       L"GameAssembly.dll",
@@ -962,7 +971,9 @@ SK_Unity_Hookil2cppInit (void)
                                il2cpp_init_utf16_Detour,
       static_cast_p2p <void> (&il2cpp_init_utf16_Original),
                            &pfnil2cpp_init_utf16 );
-    SK_EnableHook    (      pfnil2cpp_init_utf16 );
+    SK_QueueEnableHook (    pfnil2cpp_init_utf16 );
+
+    SK_ApplyQueuedHooks ();
 
     return true;
   }
@@ -1657,6 +1668,58 @@ SK_Unity_SetInputPollingFreq (float PollingHz)
   DetachCurrentThreadIfNotNative ();
 }
 
+using UnityEngine_Time_set_fixedDeltaTime_pfn = void (*)(MonoObject*, float deltaTime);
+using UnityEngine_Time_set_timeScale_pfn      = void (*)(MonoObject*, float timeScale);
+
+static UnityEngine_Time_set_fixedDeltaTime_pfn UnityEngine_Time_set_fixedDeltaTime_Original = nullptr;
+static UnityEngine_Time_set_timeScale_pfn      UnityEngine_Time_set_timeScale_Original      = nullptr;
+
+void
+UnityEngine_Time_set_fixedDeltaTime_Detour (MonoObject* __this, float fixedDeltaTime)
+{
+  SK_LOG_FIRST_CALL
+
+  UnityEngine_Time_set_fixedDeltaTime_Original (__this, fixedDeltaTime);
+}
+
+void
+UnityEngine_Time_set_timeScale_Detour (MonoObject* __this, float timeScale)
+{
+  SK_LOG_FIRST_CALL
+
+  if (timeScale != 1.0f && timeScale != 0.0f)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"Non-standard time scale set: %f", timeScale)
+    );
+  }
+
+  UnityEngine_Time_set_timeScale_Original (__this, timeScale);
+}
+
+using  UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn = float (__fastcall *)(void*);
+static UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn
+       UnityEngine_Time_get_fixedDeltaTime_il2cpp_Original = nullptr;
+
+float
+UnityEngine_Time_get_fixedDeltaTime_il2cpp_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  float original_fixed_delta_time =
+    UnityEngine_Time_get_fixedDeltaTime_il2cpp_Original (__this);
+
+  if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
+      SK_Unity_Cfg.time_fixed_delta_time != original_fixed_delta_time)
+  {
+    return
+      SK_Unity_Cfg.time_fixed_delta_time;
+  }
+
+  return
+    original_fixed_delta_time;
+}
+
 void
 SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 {
@@ -1672,14 +1735,56 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       SK_RunOnce (LoadMonoAssembly ("UnityEngine.CoreModule"));
       SK_RunOnce (LoadMonoAssembly ("UnityEngine"));
 
-      auto core_module = SK_mono_image_loaded ("UnityEngine.CoreModule");
-      if (!core_module)
-           core_module = SK_mono_image_loaded ("UnityEngine");
+      auto                                     core_module_file = "UnityEngine.CoreModule";
+      auto core_module = SK_mono_image_loaded (core_module_file);
+      if (!core_module) {                      core_module_file = "UnityEngine";
+           core_module = SK_mono_image_loaded (core_module_file);
+      }
 
       static auto klass = SK_mono_class_from_name (core_module, "UnityEngine", "Time");
 
       static MonoMethod* set_fixedDeltaTime = klass != nullptr ? SK_mono_class_get_method_from_name (klass, "set_fixedDeltaTime", 1) : nullptr;
       static MonoMethod* get_fixedDeltaTime = klass != nullptr ? SK_mono_class_get_method_from_name (klass, "get_fixedDeltaTime", 0) : nullptr;
+
+      static MonoMethod* set_timeScale = klass != nullptr ? SK_mono_class_get_method_from_name (klass, "set_timeScale", 1) : nullptr;
+      static MonoMethod* get_timeScale = klass != nullptr ? SK_mono_class_get_method_from_name (klass, "get_timeScale", 0) : nullptr;
+
+      if (set_fixedDeltaTime != nullptr &&
+          set_timeScale      != nullptr)
+      {
+        SK_RunOnce (
+          void* pfnUnityEngine_Time_set_fixedDeltaTime = nullptr;
+          void* pfnUnityEngine_Time_set_timeScale      = nullptr;
+
+          pfnUnityEngine_Time_set_fixedDeltaTime =
+            CompileMethod ("UnityEngine", "Time", "set_fixedDeltaTime", 1, core_module_file);
+          pfnUnityEngine_Time_set_timeScale =
+            CompileMethod ("UnityEngine", "Time", "set_timeScale",      1, core_module_file);
+
+          if (pfnUnityEngine_Time_set_fixedDeltaTime != nullptr)
+          {
+            SK_CreateFuncHook (      L"UnityEngine.Time.set_fixedDeltaTime",
+                                    pfnUnityEngine_Time_set_fixedDeltaTime,
+                                       UnityEngine_Time_set_fixedDeltaTime_Detour,
+              static_cast_p2p <void> (&UnityEngine_Time_set_fixedDeltaTime_Original) );
+          }
+
+          if (pfnUnityEngine_Time_set_timeScale != nullptr)
+          {
+            SK_CreateFuncHook (      L"UnityEngine.Time.set_timeScale",
+                                    pfnUnityEngine_Time_set_timeScale,
+                                       UnityEngine_Time_set_timeScale_Detour,
+              static_cast_p2p <void> (&UnityEngine_Time_set_timeScale_Original) );
+          }
+
+          if (         pfnUnityEngine_Time_set_fixedDeltaTime != nullptr &&
+              *(void**)pfnUnityEngine_Time_set_fixedDeltaTime != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Time_set_fixedDeltaTime);
+          if (         pfnUnityEngine_Time_set_timeScale      != nullptr &&
+              *(void**)pfnUnityEngine_Time_set_timeScale      != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Time_set_timeScale);
+
+          SK_ApplyQueuedHooks ();
+        );
+      }
 
       if (set_fixedDeltaTime != nullptr &&
           get_fixedDeltaTime != nullptr)
@@ -1698,6 +1803,27 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
         if (fixed_delta_time_static != 0.0f)
         {
+          // If this is not 0.0f or 1.0f, then set_fixedDeltaTime (...) potentially
+          //   introduces game-breaking behavior!
+          float fTimeScale = 1.0f;
+
+          if (get_timeScale != nullptr)
+          {
+            MonoObject* exc = nullptr;
+            MonoObject* timeScale =
+              SK_mono_runtime_invoke (get_timeScale, nullptr, nullptr, &exc);
+
+            if (timeScale != nullptr)
+            {
+              fTimeScale = *(float *)SK_mono_object_unbox (timeScale);
+
+              if (fTimeScale != 1.0f && fTimeScale != 0.0f)
+                SK_LOGi0 (L"Non-standard timeScale detected: %f", fTimeScale);
+            }
+          }
+
+          SK_ReleaseAssert (fTimeScale == 0.0f || fTimeScale == 1.0f);
+
           void* params [1] = { &fixed_delta_time_static };
 
           SK_mono_runtime_invoke (set_fixedDeltaTime, nullptr, params, nullptr);
@@ -1735,9 +1861,31 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       static Method* set_fixedDeltaTime = klass != nullptr ? klass->get_method ("set_fixedDeltaTime", 1) : nullptr;
       static Method* get_fixedDeltaTime = klass != nullptr ? klass->get_method ("get_fixedDeltaTime", 0) : nullptr;
 
-      if (set_fixedDeltaTime != nullptr &&
-          get_fixedDeltaTime != nullptr)
+      SK_RunOnce (
+        void* pfnUnityEngine_Time_get_fixedDeltaTime = nullptr;
+              pfnUnityEngine_Time_get_fixedDeltaTime = get_fixedDeltaTime;
+
+        if (pfnUnityEngine_Time_get_fixedDeltaTime != nullptr && *(void**)pfnUnityEngine_Time_get_fixedDeltaTime != nullptr)
+        {
+          SK_CreateFuncHook (      L"UnityEngine.Time.get_fixedDeltaTime",
+                         *(void**)pfnUnityEngine_Time_get_fixedDeltaTime,
+                                     UnityEngine_Time_get_fixedDeltaTime_il2cpp_Detour,
+            static_cast_p2p <void> (&UnityEngine_Time_get_fixedDeltaTime_il2cpp_Original) );
+
+          if (*(void**)pfnUnityEngine_Time_get_fixedDeltaTime != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Time_get_fixedDeltaTime);
+
+          SK_ApplyQueuedHooks ();
+        }
+      );
+
+
+      if (get_fixedDeltaTime != nullptr)
       {
+        if (set_fixedDeltaTime == nullptr)
+        {
+          SK_Unity_FullIl2cppEngineTime = false;
+        }
+
         if (SK_Unity_OriginalFixedDeltaTime == 0.0f)
         {
           void* exc = nullptr;
@@ -1749,14 +1897,14 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           }
         }
 
-        if (fixed_delta_time_static != 0.0f)
+        if (fixed_delta_time_static != 0.0f && set_fixedDeltaTime != nullptr)
         {
           void* params [1] = { &fixed_delta_time_static };
 
           Il2cpp::method_call (set_fixedDeltaTime, nullptr, params, nullptr);
         }
 
-        else
+        else if (set_fixedDeltaTime != nullptr)
         {
           void* params [1] = { &SK_Unity_OriginalFixedDeltaTime };
 
