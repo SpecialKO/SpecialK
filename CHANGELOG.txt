@@ -1,4 +1,14 @@
-﻿25.12.13
+﻿25.12.23
+========
+ + Disable DualSense Edge -> DualSense PID spoofing for Unity Engine games from
+     Hoyoverse (Genshin Impact, Honkai Star Rail, etc) because those games use
+       libScePad for haptics and the PID spoofing breaks haptics in libScePad.
+
+  * Default policy is still to downcast DualSense Edge to DualSense for all
+      other Unity games since Unity native as well as InControl and ReWired
+        input plug-ins do not recognize the DSE as a PlayStation controller.
+
+25.12.13
 ========
  + Added support for UnityEngine.Time.fixedDeltaTime management in Unity games
      that use il2cpp.

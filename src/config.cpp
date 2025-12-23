@@ -3252,8 +3252,11 @@ auto DeclKeybind =
         config.apis.d3d9.hook            = false;
         config.apis.d3d9ex.hook          = false;
 
-        // Game now has native PlayStation support
-        config.input.gamepad.xinput.emulate = false;
+        // Game has native PlayStation support through libScePad and
+        //   haptics will not work if the PID is spoofed.
+        config.input.gamepad.scepad.hide_ds_edge_pid = SK_Disabled;
+        config.input.gamepad.xinput.emulate          = false;
+        input.gamepad.scepad.hide_ds_edge_pid->store (config.input.gamepad.scepad.hide_ds_edge_pid);
       } break;
 
       case SK_GAME_ID::PathOfExile:
@@ -4052,18 +4055,26 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ZenlessZoneZero:
         // Work-around anti-cheat
-        config.window.dont_hook_wndproc             =  true;
-        config.compatibility.disable_debug_features =  true;
-        config.system.handle_crashes                = false;
+        config.window.dont_hook_wndproc              =  true;
+        config.compatibility.disable_debug_features  =  true;
+        config.system.handle_crashes                 = false;
+        // Game has native PlayStation support through libScePad and
+        //   haptics will not work if the PID is spoofed.
+        config.input.gamepad.scepad.hide_ds_edge_pid = SK_Disabled;
+        config.input.gamepad.xinput.emulate          = false;
+        input.gamepad.scepad.hide_ds_edge_pid->store (config.input.gamepad.scepad.hide_ds_edge_pid);
         break;
 
       case SK_GAME_ID::HonkaiStarRail:
         // Work-around anti-cheat
-        config.window.dont_hook_wndproc             =  true;
-        config.compatibility.disable_debug_features =  true;
-        config.system.handle_crashes                = false;
-        // Game has native PlayStation support
-        config.input.gamepad.xinput.emulate         = false;
+        config.window.dont_hook_wndproc              =  true;
+        config.compatibility.disable_debug_features  =  true;
+        config.system.handle_crashes                 = false;
+        // Game has native PlayStation support through libScePad and
+        //   haptics will not work if the PID is spoofed.
+        config.input.gamepad.scepad.hide_ds_edge_pid = SK_Disabled;
+        config.input.gamepad.xinput.emulate          = false;
+        input.gamepad.scepad.hide_ds_edge_pid->store (config.input.gamepad.scepad.hide_ds_edge_pid);
         break;
 
       case SK_GAME_ID::FinalFantasyXIV:
