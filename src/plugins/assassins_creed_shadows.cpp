@@ -830,6 +830,12 @@ SK_ACS_InitPlugin (void)
 
               // Supplemental addresses for 1.1.3
               0x0000000003E27F2D, 0x0000000003E28C3A, 0x0000000003E2EC05, 0x0000000003E2EC0C,
+
+              // 1.1.7
+              0x0000000003E8EE6D, 0x0000000003E8FB7A, 0x000000000067674A, 0x0000000000676750,
+              0x0000000000676767, 0x000000000067670B, 0x000000000067670F, 0x0000000000676713,
+              0x0000000003E95B45, 0x0000000003E95B4C
+
               } )
     {
       ContinuableCallSites.insert (callsite);

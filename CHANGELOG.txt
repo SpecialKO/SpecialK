@@ -1,4 +1,11 @@
-﻿25.12.23
+﻿25.12.24
+========
+ + Added updated Assassin's Creed: Shadows 1.1.7 exception memory addresses.
+ + Disable Haptic Lowpass Filter and Set Speaker Volume on DualSense controllers
+     to maximum on controller initialization, to fix missing or weak haptics in
+       DualSense-enhanced games.
+
+25.12.23
 ========
  + Disable DualSense Edge -> DualSense PID spoofing for Unity Engine games from
      Hoyoverse (Genshin Impact, Honkai Star Rail, etc) because those games use
