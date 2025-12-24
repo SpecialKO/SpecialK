@@ -3048,10 +3048,16 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                                         : On
                                         : Off;
 
-            output->TouchPowerSave      = config.input.gamepad.scepad.power_save_mode;
-            output->MotionPowerSave     = config.input.gamepad.scepad.power_save_mode;
-            output->AudioPowerSave      = config.input.gamepad.scepad.power_save_mode;
-            output->HapticPowerSave     = false;
+            output->TouchPowerSave           = config.input.gamepad.scepad.power_save_mode;
+            output->MotionPowerSave          = config.input.gamepad.scepad.power_save_mode;
+            output->HapticPowerSave          = false;
+            output->AudioPowerSave           = false;
+
+            output->HapticLowPassFilter      = 0;
+            output->AllowHapticLowPassFilter = 1;
+
+            output->AllowSpeakerVolume       = 1;
+            output->VolumeSpeaker            = 0x64;
 
               //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
               //                                                         :
@@ -3287,10 +3293,16 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                                         : On
                                         : Off;
 
-            output->TouchPowerSave    = config.input.gamepad.scepad.power_save_mode;
-            output->MotionPowerSave   = config.input.gamepad.scepad.power_save_mode;
-            output->AudioPowerSave    = config.input.gamepad.scepad.power_save_mode;
-            output->HapticPowerSave   = false;
+            output->TouchPowerSave           = config.input.gamepad.scepad.power_save_mode;
+            output->MotionPowerSave          = config.input.gamepad.scepad.power_save_mode;
+            output->HapticPowerSave          = false;
+            output->AudioPowerSave           = false;
+
+            output->HapticLowPassFilter      = 0;
+            output->AllowHapticLowPassFilter = 1;
+
+            output->AllowSpeakerVolume       = 1;
+            output->VolumeSpeaker            = 0x64;
 
             if (config.input.gamepad.xinput.debug)
             {
