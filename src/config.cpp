@@ -8184,7 +8184,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
         std::filesystem::path (wszExe).lexically_normal ();
 
       while (! std::filesystem::equivalent ( path.parent_path    (),
-                                             path.root_directory () ) )
+                                             path.root_name() / path.root_directory () ) )
       {
         if (found_manifest)
           break;
@@ -8356,7 +8356,7 @@ SK_AppCache_Manager::getAppNameFromPath (const wchar_t* wszPath) const
       wchar_t wszProfileName [MAX_PATH + 2] = { };
 
       while (! std::filesystem::equivalent ( path.parent_path    (),
-                                             path.root_directory () ) )
+                                             path.root_name() / path.root_directory () ) )
       {
         *wszProfileName = L'\0';
 
@@ -8530,7 +8530,7 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
   try
   {
     while (! std::filesystem::equivalent ( path.parent_path    (),
-                                           path.root_directory () ) )
+                                           path.root_name() / path.root_directory () ) )
     {
       if (std::filesystem::is_directory (path / L".egstore"))
       {
@@ -8591,7 +8591,7 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
       wchar_t wszProfileName [MAX_PATH + 2] = { };
 
       while (! std::filesystem::equivalent ( path.parent_path    (),
-                                             path.root_directory () ) )
+                                             path.root_name() / path.root_directory () ) )
       {
         *wszProfileName = L'\0';
 
