@@ -4078,6 +4078,11 @@ double SK_Framerate_GetLimitEnvVar (double target)
       dEnvVarFPS = _wtof (wszEnvVarFPS);
     }
 
+    else if (GetEnvironmentVariableW (L"APOLLO_CLIENT_FPS", wszEnvVarFPS, 31))
+    {
+      dEnvVarFPS = _wtof (wszEnvVarFPS);
+    }
+
     else if (GetEnvironmentVariableW (L"SK_FPS_LIMIT", wszEnvVarFPS, 31))
     {
       dEnvVarFPS = _wtof (wszEnvVarFPS);

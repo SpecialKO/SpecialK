@@ -1,4 +1,10 @@
-﻿25.12.24
+﻿25.12.30
+========
+ + Added support for APOLLO_CLIENT_FPS as a substitute for Sunshine's original
+     SUNSHINE_CLIENT_FPS environment variable. Silly forked projects are going
+       to define a million different environment variables if this continues :)
+
+25.12.24
 ========
  + Added updated Assassin's Creed: Shadows 1.1.7 exception memory addresses.
  + Disable Haptic Lowpass Filter and Set Speaker Volume on DualSense controllers
