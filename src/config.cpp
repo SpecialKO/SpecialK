@@ -235,6 +235,8 @@ SK_GetCurrentGameID (void)
           { L"Diablo IV.exe",                          SK_GAME_ID::DiabloIV                     },
           { L"CoDSP.exe",                              SK_GAME_ID::CallOfDuty                   },
           { L"CoDMP.exe",                              SK_GAME_ID::CallOfDuty                   },
+          { L"CoDUOSP.exe",                            SK_GAME_ID::CallOfDuty                   },
+          { L"CoDUOMP.exe",                            SK_GAME_ID::CallOfDuty                   },
           { L"RiftApart.exe",                          SK_GAME_ID::RatchetAndClank_RiftApart    },
           { L"Sam2017.exe",                            SK_GAME_ID::SeriousSamFusion2017         },
           { L"Sam2017_Unrestricted.exe",               SK_GAME_ID::SeriousSamFusion2017         },
