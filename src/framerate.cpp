@@ -572,7 +572,14 @@ CreateWaitableTimerExW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
 void
 SK_ImGui_LatentSyncConfig (void)
 {
-  if (config.render.framerate.present_interval == 0)
+  const SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  bool bReflexLimiter =
+    __SK_ForceDLSSGPacing ||
+    (rb.isReflexSupported () && config.nvidia.reflex.use_limiter);
+
+  if ((! bReflexLimiter) && config.render.framerate.present_interval == 0)
   {
     // Show Advanced Options and Stats
     static bool
@@ -585,9 +592,6 @@ SK_ImGui_LatentSyncConfig (void)
         &config.render.framerate.latent_sync.timing_resync_keybind,
         &config.render.framerate.latent_sync.toggle_fcat_bars_keybind
       };
-
-    const SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
 
     const auto pDisplay =
       &rb.displays [rb.active_display];
