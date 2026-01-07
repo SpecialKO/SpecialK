@@ -7836,7 +7836,6 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 {
   if (SK_Win32_IsDummyWindowClass (hWnd))
   {
-    SK_LOGi0 (
     return;
   }
 
