@@ -410,10 +410,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetPrivateData (REFGUID Name, UINT DataSize, const void *pData)
 {
-  if (Name == SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11)
-  {
-  }
-
   return
     pReal->SetPrivateData (Name, DataSize, pData);
 }

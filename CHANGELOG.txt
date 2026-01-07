@@ -1,4 +1,8 @@
-﻿25.12.30
+﻿26.1.7
+=======
+ + Add workaround for a product called Smart Game Booster's overlay.
+
+25.12.30
 ========
  + Added support for APOLLO_CLIENT_FPS as a substitute for Sunshine's original
      SUNSHINE_CLIENT_FPS environment variable. Silly forked projects are going

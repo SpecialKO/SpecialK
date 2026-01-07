@@ -7353,6 +7353,7 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     (!_wcsicmp (pWindowClass->lpszClassName, L"SKIV_NotificationIcon"))                 || // SKIV's thingy...
     (!_wcsicmp (pWindowClass->lpszClassName, L"InvisibleWindowClassNvPresent"))         || // NVIDIA SmoothMotion
     (!_wcsicmp (pWindowClass->lpszClassName, L"TempDirect3D11OverlayWindow"))           || // Steam version of Titan Quest
+    (!_wcsicmp (pWindowClass->lpszClassName, L"TempWindowClass"))                       || // Some kind of snake oil app called smart game booster
 
     // F' it, there's a pattern here, just ignore all dummies.
     ((*pWindowClass->lpszClassName == L'D'||
@@ -7833,6 +7834,12 @@ SK_CRAPCOM_SurrogateWindowProc ( _In_  HWND   hWnd,
 void
 SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 {
+  if (SK_Win32_IsDummyWindowClass (hWnd))
+  {
+    SK_LOGi0 (
+    return;
+  }
+
   hWnd = GetAncestor (hWnd, GA_ROOTOWNER);
 
   wchar_t wszClassName [128] = { };
