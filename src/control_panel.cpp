@@ -6077,6 +6077,17 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         ImGui::SameLine   (0.0f, ImGui::GetStyle ().ItemSpacing.x * 2.0f);
         ImGui::BeginGroup ();
 
+        static int iLastNormalPresentInterval =
+          config.render.framerate.present_interval != 0
+            ? config.render.framerate.present_interval
+            : SK_NoPreference;
+
+        if ( config.render.framerate.present_interval != 0 &&
+             config.render.framerate.present_interval !=
+             iLastNormalPresentInterval                    )
+             iLastNormalPresentInterval =
+             config.render.framerate.present_interval;
+
         auto _LimitSlider =
           [&](       float& target,
                 const char*  label,
@@ -6243,11 +6254,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
              (config.render.framerate.target_fps        > 0.0f ||
                                            __target_fps > 0.0f);
 
-            static int iLastNormalPresentInterval =
-              config.render.framerate.present_interval != 0
-                ? config.render.framerate.present_interval
-                : SK_NoPreference;
-
             static int iLastNormalSyncTearingMode =
               ! bLatentSync
                 ? config.render.framerate.tearing_mode
@@ -6292,7 +6298,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             static bool bAsyncInitOrig =
               config.compatibility.init_on_separate_thread;
 
-            if (ImGui::Checkbox ("Latent Sync", &bLatentSync))
+            bool bReflexLimiter =
+              __SK_ForceDLSSGPacing ||
+              (rb.isReflexSupported () && config.nvidia.reflex.use_limiter);
+
+            if ((! bReflexLimiter) && ImGui::Checkbox ("Latent Sync", &bLatentSync))
             {
               double dRefresh =
                 rb.getActiveRefreshRate ();
@@ -6358,7 +6368,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               }
             }
 
-            if (bLatentSync)
+            if ((! bReflexLimiter) && bLatentSync)
             {
               ImGui::TreePush ("###LatentSync");
 
@@ -6494,15 +6504,15 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               ImGui::TreePop  (  );
             }
 
-            if (config.render.framerate.present_interval != 0)
+            if (bReflexLimiter || config.render.framerate.present_interval != 0)
             {
-              bool bIsVSync = ! (
-                ( config.render.framerate.present_interval == SK_NoPreference ) &&
-                ( !bIsD3D9      ?      rb.present_interval == 0
-                                :      bIsTearingD3D9                         )
-              );
+              bool bIsVSync =
+                      config.render.framerate.present_interval != 0                 &&
+                ! ( ( config.render.framerate.present_interval == SK_NoPreference ) &&
+                    ( !bIsD3D9      ?      rb.present_interval == 0
+                                    :      bIsTearingD3D9                         ) );
 
-              if (bIsVSync)
+              if ((! bReflexLimiter) && bIsVSync)
               {
                 itemWidth = std::max (
                   ImGui::CalcTextSize (
@@ -6522,142 +6532,246 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 );
               }
 
-              if (bIsVSync)
+              if (! bReflexLimiter)
               {
-                if (config.render.framerate.target_fps <= 0.0f)
+                if (bIsVSync)
                 {
-                  config.render.framerate.tearing_mode =
-                    config.render.framerate.present_interval > 0
-                      ? SK_TearingMode::AlwaysOff
-                      : SK_TearingMode::AppControlled;
-                }
-
-                int iTearingMode = 0; // "Always Off"
-
-                switch (config.render.framerate.tearing_mode)
-                {
-                  case SK_TearingMode::AlwaysOff_LowLatency:
-                    iTearingMode = 1;
-                    break;
-                  case SK_TearingMode::AdaptiveOff:
-                    iTearingMode = 2;
-                    break;
-                  default:
-                    break;
-                }
-
-                if  ( ImGui::Combo (
-                        "Tearing Mode",
-                        &iTearingMode,
-                        bIsD3D9 ? (
-                          "Always Off\0"
-                          "Always Off (Low Latency)\0\0"
-                        ) : (
-                          "Always Off\0"
-                          "Always Off (Low Latency)\0"
-                          "Adaptive V-Sync\0\0"
-                        )
-                      )
-                    )
-                {
-                  static bool bWasNoPreferenceVSync = false;
-
-                  if ( config.render.framerate.tearing_mode == SK_TearingMode::AppControlled ||
-                       config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff     )
+                  if (config.render.framerate.target_fps <= 0.0f)
                   {
-                    bWasNoPreferenceVSync =
-                      config.render.framerate.present_interval ==
-                        SK_NoPreference;
+                    config.render.framerate.tearing_mode =
+                      config.render.framerate.present_interval > 0
+                        ? SK_TearingMode::AlwaysOff
+                        : SK_TearingMode::AppControlled;
                   }
 
-                  switch (iTearingMode)
+                  int iTearingMode = 0; // "Always Off"
+
+                  switch (config.render.framerate.tearing_mode)
                   {
-                    case 1:
-                      config.render.framerate.tearing_mode =
-                        SK_TearingMode::AlwaysOff_LowLatency;
+                    case SK_TearingMode::AlwaysOff_LowLatency:
+                      iTearingMode = 1;
                       break;
-                    case 2:
-                      config.render.framerate.tearing_mode =
-                        SK_TearingMode::AdaptiveOff;
+                    case SK_TearingMode::AdaptiveOff:
+                      iTearingMode = 2;
                       break;
                     default:
-                      config.render.framerate.tearing_mode =
-                        SK_TearingMode::AlwaysOff;
                       break;
                   }
 
-                  if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
-                       config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff          )
-                  {
-                    if (config.render.framerate.present_interval == SK_NoPreference)
-                    {
-                      config.render.framerate.present_interval = 1;
-                    }
-
-                    if (__target_fps == 0.0f)
-                    {
-                      lastRefresh = 0.0f;
-
-                      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                        "TargetFPS %f", static_cast <float> (
-                          rb.getActiveRefreshRate () /
-                          config.render.framerate.present_interval
+                  if  ( ImGui::Combo (
+                          "Tearing Mode",
+                          &iTearingMode,
+                          bIsD3D9 ? (
+                            "Always Off\0"
+                            "Always Off (Low Latency)\0\0"
+                          ) : (
+                            "Always Off\0"
+                            "Always Off (Low Latency)\0"
+                            "Adaptive V-Sync\0\0"
+                          )
                         )
-                      );
+                      )
+                  {
+                    static bool bWasNoPreferenceVSync = false;
+
+                    if ( config.render.framerate.tearing_mode == SK_TearingMode::AppControlled ||
+                         config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff     )
+                    {
+                      bWasNoPreferenceVSync =
+                        config.render.framerate.present_interval ==
+                          SK_NoPreference;
                     }
 
-                    else if (__target_fps < 0.0f)
+                    switch (iTearingMode)
                     {
-                      lastRefresh = 0.0f;
+                      case 1:
+                        config.render.framerate.tearing_mode =
+                          SK_TearingMode::AlwaysOff_LowLatency;
+                        break;
+                      case 2:
+                        config.render.framerate.tearing_mode =
+                          SK_TearingMode::AdaptiveOff;
+                        break;
+                      default:
+                        config.render.framerate.tearing_mode =
+                          SK_TearingMode::AlwaysOff;
+                        break;
+                    }
 
-                      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                        "TargetFPS %f", -__target_fps
-                      );
+                    if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
+                         config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff          )
+                    {
+                      if (config.render.framerate.present_interval == SK_NoPreference)
+                      {
+                        config.render.framerate.present_interval = 1;
+                      }
+
+                      if (__target_fps == 0.0f)
+                      {
+                        lastRefresh = 0.0f;
+
+                        SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                          "TargetFPS %f", static_cast <float> (
+                            rb.getActiveRefreshRate () /
+                            config.render.framerate.present_interval
+                          )
+                        );
+                      }
+
+                      else if (__target_fps < 0.0f)
+                      {
+                        lastRefresh = 0.0f;
+
+                        SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                          "TargetFPS %f", -__target_fps
+                        );
+                      }
+                    }
+
+                    else if (bWasNoPreferenceVSync)
+                    {
+                      if (bIsD3D9 ? !bIsTearingD3D9 : rb.present_interval_orig > 0)
+                      {
+                        config.render.framerate.present_interval = SK_NoPreference;
+                      }
                     }
                   }
 
-                  else if (bWasNoPreferenceVSync)
+                  if (ImGui::BeginItemTooltip ())
                   {
-                    if (bIsD3D9 ? !bIsTearingD3D9 : rb.present_interval_orig > 0)
+                    ImGui::Text         ("Controls tearing behavior of V-Sync");
+                    ImGui::Separator    ();
+                    ImGui::BulletText   ("Low Latency mode temporarily decreases FPS limit if Render Latency exceeds 1 frame");
+                    if (! bIsD3D9)
                     {
-                      config.render.framerate.present_interval = SK_NoPreference;
+                      ImGui::BulletText ("Adaptive V-Sync enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
+                    }
+                    ImGui::Separator    ();
+                    ImGui::Text         ("NOTE: Use the default \"Always Off\" mode for VRR");
+                    ImGui::EndTooltip   ();
+                  }
+
+                  if (bIsD3D9)
+                  {
+                    if (bIsTearingD3D9)
+                    {
+                      if (SK_IsInjected () && config.compatibility.init_on_separate_thread)
+                      {
+                        config.compatibility.init_on_separate_thread = false;
+                      }
+
+                      ImGui::SameLine    ();
+                      ImGui::TextColored (
+                        ImColor (1.0f, 1.0f, 0.0f),
+                        ICON_FA_EXCLAMATION_TRIANGLE
+                      );
+
+                      ImGui::SetItemTooltip ("Game Restart Required");
+                    }
+
+                    else if (SK_IsInjected ())
+                    {
+                      if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
+                      {
+                        config.compatibility.init_on_separate_thread = bAsyncInitOrig;
+                      }
+                    }
+                  }
+
+                  else if (rb.isTrueFullscreen ())
+                  {
+                    if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff)
+                    {
+                      ImGui::SameLine    ();
+                      ImGui::TextColored (
+                        ImColor (0.0f, 1.0f, 1.0f),
+                        ICON_FA_EXCLAMATION_TRIANGLE
+                      );
+
+                      ImGui::SetItemTooltip ("Adaptive V-Sync works better in Fake Fullscreen or Windowed Mode");
                     }
                   }
                 }
 
-                if (ImGui::BeginItemTooltip ())
+                else
                 {
-                  ImGui::Text         ("Controls tearing behavior of V-Sync");
-                  ImGui::Separator    ();
-                  ImGui::BulletText   ("Low Latency mode temporarily decreases FPS limit if Render Latency exceeds 1 frame");
-                  if (! bIsD3D9)
-                  {
-                    ImGui::BulletText ("Adaptive V-Sync enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
-                  }
-                  ImGui::Separator    ();
-                  ImGui::Text         ("NOTE: Use the default \"Always Off\" mode for VRR");
-                  ImGui::EndTooltip   ();
-                }
+                  bool bIsTrueFullscreen =
+                     rb.isTrueFullscreen ();
 
-                if (bIsD3D9)
-                {
-                  if (bIsTearingD3D9)
+                  if (config.render.framerate.target_fps <= 0.0f)
                   {
-                    if (SK_IsInjected () && config.compatibility.init_on_separate_thread)
+                    if (! (bIsD3D9 || bIsTrueFullscreen))
                     {
-                      config.compatibility.init_on_separate_thread = false;
+                      config.render.framerate.tearing_mode =
+                        config.render.dxgi.allow_tearing
+                          ? SK_TearingMode::AlwaysOn
+                          : SK_TearingMode::AlwaysOff;
                     }
 
-                    ImGui::SameLine    ();
-                    ImGui::TextColored (
-                      ImColor (1.0f, 1.0f, 0.0f),
-                      ICON_FA_EXCLAMATION_TRIANGLE
+                    else
+                    {
+                      config.render.framerate.tearing_mode =
+                        SK_TearingMode::AppControlled;
+                    }
+                  }
+
+                  int iTearingMode = 0; // "Always On"
+
+                  switch (config.render.framerate.tearing_mode)
+                  {
+                    case SK_TearingMode::AlwaysOff:
+                      iTearingMode = 1;
+                      break;
+                    default:
+                      break;
+                  }
+
+                  if (bIsD3D9 || bIsTrueFullscreen)
+                  {
+                    ImGui::PushItemFlag (
+                      ImGuiItemFlags_Disabled,
+                      true
                     );
-
-                    ImGui::SetItemTooltip ("Game Restart Required");
                   }
 
-                  else if (SK_IsInjected ())
+                  if  ( ImGui::Combo (
+                          "Tearing Mode",
+                          &iTearingMode,
+                          bIsD3D9 || bIsTrueFullscreen ? (
+                            "Always On\0\0"
+                          ) : (
+                            "Always On\0"
+                            "Always Off\0\0"
+                          )
+                        )
+                      )
+                  {
+                    config.render.dxgi.allow_tearing =
+                      iTearingMode == 0;
+                  }
+
+                  if ( ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled) &&
+                       ImGui::BeginTooltip  ()                                    )
+                  {
+                    if (bIsD3D9 || bIsTrueFullscreen)
+                    {
+                      ImGui::Text     ("Tearing is currently App-Controlled (V-Sync Off)");
+                    }
+                    else
+                    {
+                      ImGui::Text     ("Controls tearing in Windowed Mode");
+                    }
+                    ImGui::Separator  ();
+                    ImGui::BulletText ("Enable V-Sync or Latent Sync for more Tearing Modes");
+                    ImGui::EndTooltip ();
+                  }
+
+                  if (bIsD3D9 || bIsTrueFullscreen)
+                  {
+                    ImGui::PopItemFlag  ();
+                  }
+
+                  if (bIsD3D9 && SK_IsInjected ())
                   {
                     if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
                     {
@@ -6666,116 +6780,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   }
                 }
 
-                else if (rb.isTrueFullscreen ())
+                if (iLastNormalSyncTearingMode != config.render.framerate.tearing_mode)
                 {
-                  if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff)
-                  {
-                    ImGui::SameLine    ();
-                    ImGui::TextColored (
-                      ImColor (0.0f, 1.0f, 1.0f),
-                      ICON_FA_EXCLAMATION_TRIANGLE
-                    );
-
-                    ImGui::SetItemTooltip ("Adaptive V-Sync works better in Fake Fullscreen or Windowed Mode");
-                  }
+                  iLastNormalSyncTearingMode = config.render.framerate.tearing_mode;
                 }
-              }
-
-              else
-              {
-                bool bIsTrueFullscreen =
-                   rb.isTrueFullscreen ();
-
-                if (config.render.framerate.target_fps <= 0.0f)
-                {
-                  if (! (bIsD3D9 || bIsTrueFullscreen))
-                  {
-                    config.render.framerate.tearing_mode =
-                      config.render.dxgi.allow_tearing
-                        ? SK_TearingMode::AlwaysOn
-                        : SK_TearingMode::AlwaysOff;
-                  }
-
-                  else
-                  {
-                    config.render.framerate.tearing_mode =
-                      SK_TearingMode::AppControlled;
-                  }
-                }
-
-                int iTearingMode = 0; // "Always On"
-
-                switch (config.render.framerate.tearing_mode)
-                {
-                  case SK_TearingMode::AlwaysOff:
-                    iTearingMode = 1;
-                    break;
-                  default:
-                    break;
-                }
-
-                if (bIsD3D9 || bIsTrueFullscreen)
-                {
-                  ImGui::PushItemFlag (
-                    ImGuiItemFlags_Disabled,
-                    true
-                  );
-                }
-
-                if  ( ImGui::Combo (
-                        "Tearing Mode",
-                        &iTearingMode,
-                        bIsD3D9 || bIsTrueFullscreen ? (
-                          "Always On\0\0"
-                        ) : (
-                          "Always On\0"
-                          "Always Off\0\0"
-                        )
-                      )
-                    )
-                {
-                  config.render.dxgi.allow_tearing =
-                    iTearingMode == 0;
-                }
-
-                if ( ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled) &&
-                     ImGui::BeginTooltip  ()                                    )
-                {
-                  if (bIsD3D9 || bIsTrueFullscreen)
-                  {
-                    ImGui::Text     ("Tearing is currently App-Controlled (V-Sync Off)");
-                  }
-                  else
-                  {
-                    ImGui::Text     ("Controls tearing in Windowed Mode");
-                  }
-                  ImGui::Separator  ();
-                  ImGui::BulletText ("Enable V-Sync or Latent Sync for more Tearing Modes");
-                  ImGui::EndTooltip ();
-                }
-
-                if (bIsD3D9 || bIsTrueFullscreen)
-                {
-                  ImGui::PopItemFlag  ();
-                }
-
-                if (bIsD3D9 && SK_IsInjected ())
-                {
-                  if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
-                  {
-                    config.compatibility.init_on_separate_thread = bAsyncInitOrig;
-                  }
-                }
-              }
-
-              if (iLastNormalPresentInterval != config.render.framerate.present_interval)
-              {
-                iLastNormalPresentInterval = config.render.framerate.present_interval;
-              }
-
-              if (iLastNormalSyncTearingMode != config.render.framerate.tearing_mode)
-              {
-                iLastNormalSyncTearingMode = config.render.framerate.tearing_mode;
               }
 
               ImGui::PopItemWidth ();
@@ -6959,11 +6967,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             if (ImGui::Combo ("Mode", &mode, szModeList))
             {
-              struct vsync_prefs_s {
-                int present_interval = config.render.framerate.present_interval == 0 ? -1 :
-                                       config.render.framerate.present_interval;
-              } static original_vsync_settings;
-
               struct reflex_prefs_s {
                 bool use_limiter = config.nvidia.reflex.use_limiter;
                 bool low_latency = config.nvidia.reflex.low_latency;
@@ -6979,33 +6982,33 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   config.render.framerate.enforcement_policy = 4;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                      config.render.framerate.present_interval  = original_vsync_settings.present_interval;
+                      config.render.framerate.present_interval =
+                        iLastNormalPresentInterval;
 
-                  original_vsync_settings.present_interval = config.render.framerate.present_interval;
                   break;
 
                 case limiter_mode_e::LowLatency:
                   config.render.framerate.enforcement_policy = 2;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                      config.render.framerate.present_interval  = original_vsync_settings.present_interval;
-
-                  original_vsync_settings.present_interval = config.render.framerate.present_interval;
+                      config.render.framerate.present_interval =
+                        iLastNormalPresentInterval;
 
                   if (config.render.framerate.present_interval > 1)
                   {
                     SK_ImGui_Warning (L"VRR Does Not Work When Using 1/2, 1/3 or 1/4 rate VSYNC!");
                   }
+
                   break;
 
                 case limiter_mode_e::LatentSync:
-                  original_vsync_settings.present_interval   = config.render.framerate.present_interval;
-                  config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
                   config.render.framerate.enforcement_policy = 4;
+                  config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
 
                   // Trigger a re-sync
                   SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync - 1);
                   SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync + 1);
+
                   break;
 
                 case limiter_mode_e::Reflex:
@@ -7021,7 +7024,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   config.nvidia.reflex.override    = true;
                   config.nvidia.reflex.enable      = true;
 
-                  config.render.framerate.present_interval = original_vsync_settings.present_interval;
+                  if (config.render.framerate.present_interval == 0)
+                      config.render.framerate.present_interval =
+                        iLastNormalPresentInterval;
+
                   break;
               }
 
