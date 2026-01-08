@@ -935,8 +935,11 @@ SK_ImGui_LatentSyncConfig (void)
           config.render.framerate.tearing_mode ==
             SK_TearingMode::AdaptiveOff;
 
-        bool bAllowFrameSkip  =
+        bool bAllowFrameSkip       =
           SK_LatentSync_AllowFrameSkip ();
+
+        bool bAllowFrameSkipByUser =
+          config.render.framerate.latent_sync.skip_frames;
 
         int iBufferCount      =
           config.render.framerate.buffer_count;
@@ -957,6 +960,7 @@ SK_ImGui_LatentSyncConfig (void)
         bool bIsInvalidMaxDeviceLatency = ! (
           ( bIsTearingModeAdaptiveOff &&
             bAllowFrameSkip           &&
+            bAllowFrameSkipByUser     &&
             iMaxDeviceLatency == 1     ) ||
           ( iMaxDeviceLatency >=
             iRequiredMaxDeviceLatency  )
@@ -1032,9 +1036,12 @@ SK_ImGui_LatentSyncConfig (void)
               ) -> void {
                 ImGui::Text       (
                   std::format     (
-                    "  :  Buffer Count = {}\tMax Device Latency = {}",
+                    "  :  Buffer Count = {}\tMax Device Latency = {}{}",
                     requiredBufferCount,
-                    requiredMaxDeviceLatency
+                    requiredMaxDeviceLatency,
+                    requiredMaxDeviceLatency == 1
+                      ? " (Skip Frames)"
+                      : ""
                   ).c_str         ()
                 );
               };
@@ -2579,7 +2586,7 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    bool bStopFrameSkip = false;
+    bool bStopFrameSkip = (! config.render.framerate.latent_sync.skip_frames);
 
     auto _ManageTearing = [&]() -> void
     {
@@ -2658,8 +2665,7 @@ SK::Framerate::Limiter::wait (void)
 
       auto _EnableTearing = [&](bool bEnableTearing = true) -> void
       {
-        if ( bEnableTearing ||
-             bIsUnstableFPS )
+        if (bIsUnstableFPS)
         {
           bStopFrameSkip = true;
         }

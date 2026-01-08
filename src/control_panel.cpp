@@ -6305,6 +6305,15 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 config.render.framerate.tearing_mode     =
                   iLastNormalSyncTearingMode;
 
+                if (config.render.framerate.present_interval == SK_NoPreference)
+                {
+                  if (config.render.framerate.tearing_mode != SK_TearingMode::AppControlled)
+                  {
+                    config.render.dxgi.allow_tearing =
+                      config.render.framerate.tearing_mode != SK_TearingMode::AlwaysOff;
+                  }
+                }
+
                 if (__target_fps > dRefresh)
                 {
                   lastRefresh = 0.0f;
@@ -6360,10 +6369,25 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             if (bLatentSync)
             {
-              ImGui::TreePush ("###LatentSync");
-
               double dRefresh =
                 rb.getActiveRefreshRate ();
+
+              int iMultiplier = static_cast <int> (
+                std::round (
+                  static_cast <double> (__target_fps) / dRefresh
+                )
+              );
+
+              if (SK_LatentSync_AllowFrameSkip () && iMultiplier >= 2)
+              {
+                ImGui::SameLine ();
+                ImGui::Checkbox (
+                  "Skip Frames",
+                  &config.render.framerate.latent_sync.skip_frames
+                );
+              }
+
+              ImGui::TreePush ("###LatentSync");
 
               int iMaxAboveRefreshMode = 4;
 
@@ -6371,12 +6395,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               int              iMode     = std::max ( // 1:1
                 iMaxAboveRefreshMode - 1,
                 0
-              );
-
-              int iMultiplier = static_cast <int> (
-                std::round (
-                  static_cast <double> (__target_fps) / dRefresh
-                )
               );
 
               // 2x..
