@@ -26,7 +26,7 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 
-#define TVFIX_VERSION_NUM L"0.5.2.5"
+#define TVFIX_VERSION_NUM L"0.5.2.6 "
 #define TVFIX_VERSION_STR LR"(Tales of Vesperia "Fix" v )" TVFIX_VERSION_NUM
 
 #pragma warning(push)
@@ -196,8 +196,6 @@ struct tv_mem_addr_s
 
 
 struct SK_TVFix_ModContext {
-  bool  __SK_TVFix_NoRenderSleep        = true;
-
   //
   // Callbacks are running on the wrong thread
   //
@@ -208,86 +206,92 @@ struct SK_TVFix_ModContext {
   //
   DWORD __SK_TVFix_MagicSteamThread     = 0;
 
-  tv_mem_addr_s instn__model_animation  = { };
-  tv_mem_addr_s instn__particle_effects = { };
   tv_mem_addr_s instn__blur             = { };
-  tv_mem_addr_s instn__depth_of_field   = { };
   tv_mem_addr_s instn__bloom            = { };
-  tv_mem_addr_s instn__draw_HUD         = { };
+  tv_mem_addr_s instn__particle_effects = { };
+  tv_mem_addr_s instn__model_animation = { };
 
-  // TOV_DE.exe+72AE99 - E8 92C0FCFF           - call TOV_DE.exe+6F6F30 { Depth of Field }
-  // TOV_DE.exe+6F632A - E8 C15C0300           - call TOV_DE.exe+72BFF0 { Bloom Lighting }
-  // TOV_DE.exe+6F6375 - E8 A69E0300           - call TOV_DE.exe+730220 { Bloom Lighting 2 }
+  /*
+    Blur
+    E8 ?? ?? ?? ?? 48 83 C4 ?? C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 48 83 EC ?? 33 C9
 
+    v1.0
+      TOV_DE.exe+72AE99 - E8 92 C0 FC FF - call TOV_DE.exe+6F6F30
+    v1.2
+      TOV_DE.exe+730819 - E8 92 BE FC FF - call TOV_DE.exe+6FC6B0
+  */
+  void* addr__blur = (void*)0x730819;
+
+  /*
+    Bloom Lightning
+    E8 ?? ?? ?? ?? 48 83 C3 ?? 48 83 EE ?? 75 ?? 48 8B CF
+
+    v1.0
+      TOV_DE.exe+6F632A - E8 C1 5C 03 00 - call TOV_DE.exe+72BFF0
+    v1.2
+      TOV_DE.exe+6FBAAA - E8 C1 5E 03 00 - call TOV_DE.exe+731970
+  */
+  void* addr__bloom = (void*)0x6FBAAA;
+
+  /*
+    Particle Effects
+    E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? E8
+
+    v1.0
+      TOV_DE.exe+6F7EF5 - E8 A6 D3 FF FF - call TOV_DE.exe+6F52A0
+    v1.2
+      TOV_DE.exe+6FD675 - E8 A6 D3 FF FF - call TOV_DE.exe+6FAA20
+  */
+  void* addr__particle_effects = (void*)0x6FD675;
+
+  /*
+    Model Animation
+    E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? E8
+
+    v1.0
+      TOV_DE.exe+6F7EED - E8 CE 1C 00 00 - call TOV_DE.exe+6F9BC0
+    v1.2
+      TOV_DE.exe+6FD66D - E8 CE 1C 00 00 - call TOV_DE.exe+6FF340
+  */
+  void* addr__model_animation = (void*)0x6FD66D;
 
   bool __SK_TVFix_AspectRatioCorrection = false;
 
+  sk::ParameterBool* _SK_TVFix_ActiveAntiStutter;
+  bool               __SK_TVFix_ActiveAntiStutter = true;
+
+  sk::ParameterBool* _SK_TVFix_NoRenderSleep;
+  bool               __SK_TVFix_NoRenderSleep = true;
+
   sk::ParameterBool* _SK_TVFix_DisableDepthOfField;
-  bool              __SK_TVFix_DisableDepthOfField = false;
+  bool               __SK_TVFix_DisableDepthOfField = false;
 
   sk::ParameterBool* _SK_TVFix_DisableBlur;
-  bool              __SK_TVFix_DisableBlur = false;
+  bool               __SK_TVFix_DisableBlur = false;
 
   sk::ParameterBool* _SK_TVFix_DisableBloom;
-  bool              __SK_TVFix_DisableBloom = false;
-
-  sk::ParameterBool* _SK_TVFix_ActiveAntiStutter;
-  bool              __SK_TVFix_ActiveAntiStutter = true;
+  bool               __SK_TVFix_DisableBloom = false;
 
   sk::ParameterBool* _SK_TVFix_SharpenShadows;
-  bool              __SK_TVFix_SharpenShadows = true;
+  bool               __SK_TVFix_SharpenShadows = true;
 
   sk::ParameterBool* _SK_TVFix_FixMSAA;
-  bool              __SK_TVFix_FixMSAA = true;
+  bool               __SK_TVFix_FixMSAA = true;
 
   sk::ParameterInt* _SK_TVFix_MultisampleCount;
-  int              __SK_TVFix_MultisampleCount = 4;
+  int               __SK_TVFix_MultisampleCount = 4;
 
   sk::ParameterInt* _SK_TVFix_LastKnown_XRes;
-  int              __SK_TVFix_LastKnown_XRes = 3840;
+  int               __SK_TVFix_LastKnown_XRes = 3840;
 
   sk::ParameterInt* _SK_TVFix_LastKnown_YRes;
-  int              __SK_TVFix_LastKnown_YRes = 2160;
+  int               __SK_TVFix_LastKnown_YRes = 2160;
 
-  volatile LONG    __TVFIX_init = 0;
+  volatile LONG     __TVFIX_init = 0;
 };
 SK_LazyGlobal <SK_TVFix_ModContext> tvfix_ctx;
 
 #define PS_CRC32_SHADOWFILTER 0x84da24a5
-
-extern bool
-__stdcall
-SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-extern HRESULT
-__stdcall
-SK_UpdateSoftware (const wchar_t* wszProduct);
-
-unsigned int
-__stdcall
-SK_TVFix_CheckVersion (LPVOID user)
-{
-  UNREFERENCED_PARAMETER (user);
-
-  SK_Thread_Create ([](LPVOID)->
-    DWORD
-    {
-      while (SK_GetFramesDrawn () < 5)
-        ;
-
-      // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
-      //
-      ////if (SK_FetchVersionInfo (L"TVF"))
-      ////    SK_UpdateSoftware   (L"TVF");
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }
-  );
-
-  return 0;
-}
 
 
 HRESULT
@@ -304,8 +308,6 @@ SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   if (! InterlockedCompareExchange (&plugin_ctx.__TVFIX_init, 1, 0))
   {
     plugin_ctx.__SK_TVFix_MagicSteamThread = SK_Thread_GetCurrentId ();
-
-    SK_TVFix_CheckVersion (nullptr);
   }
 
   return S_OK;
@@ -359,53 +361,69 @@ SK_TVFix_InitPlugin (void)
                                L"LastRenderHeight", plugin_ctx.__SK_TVFix_LastKnown_YRes,
                                L"Store the last known height" );
 
-
-  plugin_ctx.instn__model_animation =
-  { "\xE8\xCE\x1C\x00\x00",
-    //----------------------------------------------//
-    "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Model Animation", (void *)0x6F7EED };
-
-  plugin_ctx.instn__particle_effects =
-  { "\xE8\xA6\xD3\xFF\xFF",
-    //----------------------------------------------//
-    "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Particle Effects", (void *) 0x6F7EF5 };
-
-  //"\xE8\xC6\xE2\xFF\xFF", -- All Post-Processing
-
+  // 1.0: E8 92 C0 FC FF
+  // 1.2: E8 92 BE FC FF
   plugin_ctx.instn__blur =
   {
-    "\xE8\x92\xC0\xFC\xFF",
-
-    //----------------------------------------------//
+    "\xE8\x92\xBE\xFC\xFF",
     "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Blur",
+    plugin_ctx.addr__blur
+  };
 
-    { }, L"Enable Blur", (void *)0x72AE99 };
-
-  plugin_ctx.instn__depth_of_field =
-  {
-    "\xE8\xA6\x9E\x03\x00",
-    //----------------------------------------------//
-    "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
-
-    { }, L"Enable Depth of Field", (void *)0x6F6375 };
-
+  // 1.0: E8 C1 5C 03 00
+  // 1.2: E8 C1 5E 03 00
   plugin_ctx.instn__bloom =
   {
-    "\xE8\xC1\x5C\x03\x00",
-
-    //----------------------------------------------//
+    "\xE8\xC1\x5E\x03\x00",
     "\xFF\xFF\xFF\xFF\xFF",
-    5, 5, 0,    true, nullptr,
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Bloom Lighting",
+    plugin_ctx.addr__bloom
+  };
 
-    { }, L"Enable Bloom Lighting", (void *)0x6f632a };
+  // 1.0: E8 A6 D3 FF FF
+  // 1.2: E8 A6 D3 FF FF
+  plugin_ctx.instn__particle_effects =
+  {
+    "\xE8\xA6\xD3\xFF\xFF",
+    "\xFF\xFF\xFF\xFF\xFF",
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Particle Effects",
+    plugin_ctx.addr__particle_effects
+  };
+
+  // 1.0: E8 CE 1C 00 00
+  // 1.2: E8 CE 1C 00 00
+  plugin_ctx.instn__model_animation =
+  {
+    "\xE8\xCE\x1C\x00\x00",
+    "\xFF\xFF\xFF\xFF\xFF",
+    5,
+    5,
+    0,
+    true,
+    nullptr,
+    { },
+    L"Enable Model Animation",
+    plugin_ctx.addr__model_animation
+  };
 }
 
 bool
@@ -414,22 +432,11 @@ SK_TVFix_PlugInCfg (void)
   auto& plugin_ctx =
     tvfix_ctx.get ();
 
-  if (ImGui::CollapsingHeader ("Tales of Vesperia Definitive Edition", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ("Tales of Vesperia: Definitive Edition", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
-
-    if (ImGui::Checkbox ("Aggressive Anti-Stutter", &plugin_ctx.__SK_TVFix_ActiveAntiStutter))
-    {
-      plugin_ctx._SK_TVFix_ActiveAntiStutter->store (plugin_ctx.__SK_TVFix_ActiveAntiStutter);
-    }
-
-    if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Eliminate Microstutter, but will raise CPU usage %%");
-
-    ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine (); ImGui::Spacing ();
-    ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
-
     ImGui::BeginGroup ();
+
     ImGui::Checkbox   ("Fix MSAA###SK_TVFIX_MSAA", &plugin_ctx.__SK_TVFix_FixMSAA);
 
     if (ImGui::IsItemHovered ())
@@ -490,7 +497,9 @@ SK_TVFix_PlugInCfg (void)
         ImGui::PopStyleColor  ();
       }
     }
+
     ImGui::EndGroup ();
+
 #if 0
     ImGui::SameLine        (             );
     ImGui::TextUnformatted ("Gamepad:   ");
@@ -507,20 +516,44 @@ SK_TVFix_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
-    ImGui::BeginGroup ();
-    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
-                                                    ImGuiTreeNodeFlags_AllowOverlap))
+    if (ImGui::CollapsingHeader("Anti-Stutter", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+      ImGui::TreePush("");
+      ImGui::BeginGroup();
+
+      if (ImGui::Checkbox("Aggressive Anti-Stutter", &plugin_ctx.__SK_TVFix_ActiveAntiStutter))
+      {
+        plugin_ctx._SK_TVFix_ActiveAntiStutter->store(plugin_ctx.__SK_TVFix_ActiveAntiStutter);
+      }
+
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip("Eliminate micro-stutter, but will raise CPU usage %%");
+      }
+
+      if (ImGui::Checkbox("Reduce Micro-Stutter", &plugin_ctx.__SK_TVFix_NoRenderSleep))
+      {
+        plugin_ctx._SK_TVFix_NoRenderSleep->store(plugin_ctx.__SK_TVFix_NoRenderSleep);
+      }
+
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip("Sleepless render.");
+      }
+
+      ImGui::EndGroup();
+      ImGui::TreePop();
+    }
+
+    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush ("");
+      ImGui::BeginGroup();
 
       bool enable = (! plugin_ctx.__SK_TVFix_DisableDepthOfField);
 
       if ( ImGui::Checkbox ("Enable Depth of Field", &enable) )
       {
-        //instn__depth_of_field.enabled = !instn__depth_of_field.enabled;
-        //instn__depth_of_field.toggle ();
-        //_SK_TVFix_DisableDepthOfField->store (! instn__depth_of_field.enabled);
-
         if (enable)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
@@ -560,31 +593,18 @@ SK_TVFix_PlugInCfg (void)
 
       if (ImGui::Checkbox ("Sharpen Shadows", &plugin_ctx.__SK_TVFix_SharpenShadows))
       {
-        //if (__SK_TVFix_SharpenShadows)
-        //  SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist,     PS_CRC32_SHADOWFILTER);
-        //else
-        //  SK_D3D11_Shaders.pixel.releaseTrackingRef (SK_D3D11_Shaders.pixel.blacklist, PS_CRC32_SHADOWFILTER);
-
         plugin_ctx._SK_TVFix_SharpenShadows->store (plugin_ctx.__SK_TVFix_SharpenShadows);
       }
 
+      ImGui::EndGroup();
       ImGui::TreePop ();
     }
 
-    ImGui::EndGroup   ();
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
-
-    const bool tex_manage =
-      ImGui::CollapsingHeader ("Texture Management##ToV", ImGuiTreeNodeFlags_DefaultOpen);
-
-    //bool changed = false;
-
-    if (tex_manage)
+    if (ImGui::CollapsingHeader("Texture Management##ToV", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush    ("");
       ImGui::BeginGroup  (  );
-    /*changed |=*/ ImGui::Checkbox ("Generate Mipmaps", &config.textures.d3d11.generate_mips);
+      ImGui::Checkbox ("Generate Mipmaps", &config.textures.d3d11.generate_mips);
 
       if (ImGui::IsItemHovered ())
       {
@@ -698,23 +718,6 @@ SK_TVFix_PlugInCfg (void)
       ImGui::TreePop   ();
     }
 
-    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
-
-    if (ImGui::CollapsingHeader ("Gameplay", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      ImGui::TreePush ("");
-      ImGui::Checkbox ("Continue Running in Background###TVFIX_BackgroundRender", &config.window.background_render);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip (R"(Only works correctly if the game is set to "Borderless")");
-
-      ImGui::TreePop  (  );
-    }
-
-    ImGui::EndGroup (  );
-
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
@@ -724,7 +727,12 @@ SK_TVFix_PlugInCfg (void)
       ImGui::TreePush   ("");
       ImGui::BeginGroup (  );
 
-      ImGui::Checkbox ("Reduce Microstutter", &plugin_ctx.__SK_TVFix_NoRenderSleep);
+      if ( plugin_ctx.instn__particle_effects.scanned_addr != nullptr &&
+           ImGui::Checkbox ("Enable Particle Effects", &plugin_ctx.instn__particle_effects.enabled) )
+      {
+        plugin_ctx.instn__particle_effects.enabled = (! plugin_ctx.instn__particle_effects.enabled);
+        plugin_ctx.instn__particle_effects.toggle ();
+      }
 
       if ( plugin_ctx.instn__model_animation.scanned_addr != nullptr &&
            ImGui::Checkbox ("Enable Model Animation", &plugin_ctx.instn__model_animation.enabled) )
@@ -733,13 +741,9 @@ SK_TVFix_PlugInCfg (void)
         plugin_ctx.instn__model_animation.toggle ();
       }
 
-    //ImGui::SameLine ();
-
-      if ( plugin_ctx.instn__particle_effects.scanned_addr != nullptr &&
-           ImGui::Checkbox ("Enable Particle Effects", &plugin_ctx.instn__particle_effects.enabled) )
+      if (ImGui::IsItemHovered())
       {
-        plugin_ctx.instn__particle_effects.enabled = (! plugin_ctx.instn__particle_effects.enabled);
-        plugin_ctx.instn__particle_effects.toggle ();
+        ImGui::SetTooltip("Disabling model animations may cause crashes. Use with caution!");
       }
 
       ImGui::Checkbox ("Aspect Ratio Correction", &plugin_ctx.__SK_TVFix_AspectRatioCorrection);
@@ -818,11 +822,20 @@ SK_TVFix_BeginFrame (void)
       SK_D3D11_DeclHUDShader_Vtx (0xf4dac9d5);
     //SK_D3D11_DeclHUDShader_Pix (0x6d243285);
 
-      plugin_ctx.instn__model_animation.scan  ();
+      plugin_ctx.instn__blur.scan();
+      plugin_ctx.instn__bloom.scan();
       plugin_ctx.instn__particle_effects.scan ();
-      plugin_ctx.instn__depth_of_field.scan   ();
-      plugin_ctx.instn__blur.scan             ();
-      plugin_ctx.instn__bloom.scan            ();
+      plugin_ctx.instn__model_animation.scan  ();
+
+      plugin_ctx._SK_TVFix_ActiveAntiStutter =
+        _CreateConfigParameterBool ( L"TVFix.FrameRate",
+                                     L"EliminateMicroStutter", plugin_ctx.__SK_TVFix_ActiveAntiStutter,
+                                     L"Enable Anti-Stutter" );
+
+      plugin_ctx._SK_TVFix_NoRenderSleep =
+        _CreateConfigParameterBool ( L"TVFix.FrameRate",
+                                     L"ReduceMicroStutter", plugin_ctx.__SK_TVFix_NoRenderSleep,
+                                     L"Enable Sleepless Render" );
 
       plugin_ctx._SK_TVFix_DisableDepthOfField =
         _CreateConfigParameterBool ( L"TVFix.Render",
@@ -844,14 +857,8 @@ SK_TVFix_BeginFrame (void)
                                     L"SharpenShadows",  plugin_ctx.__SK_TVFix_SharpenShadows,
                                     L"Sharpen Shadows" );
 
-      plugin_ctx._SK_TVFix_ActiveAntiStutter =
-        _CreateConfigParameterBool ( L"TVFix.FrameRate",
-                                     L"EliminateMicroStutter", plugin_ctx.__SK_TVFix_ActiveAntiStutter,
-                                     L"Active Anti-Stutter" );
-
       if (plugin_ctx.__SK_TVFix_DisableDepthOfField)
       {
-        ////instn__depth_of_field.disable ();
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
         InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
@@ -865,11 +872,6 @@ SK_TVFix_BeginFrame (void)
       if (plugin_ctx.__SK_TVFix_DisableBlur)
       {
         plugin_ctx.instn__blur.disable ();
-      }
-
-      if (plugin_ctx.__SK_TVFix_SharpenShadows)
-      {
-        //SK_D3D11_Shaders.pixel.addTrackingRef (SK_D3D11_Shaders.pixel.blacklist, PS_CRC32_SHADOWFILTER);
       }
     }
   }
