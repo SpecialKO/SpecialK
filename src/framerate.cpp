@@ -910,10 +910,14 @@ SK_ImGui_LatentSyncConfig (void)
         }
       }
 
+      bool bIsLatencyReducingTearingMode = false;
+
       switch (config.render.framerate.tearing_mode)
       {
         case SK_TearingMode::AdaptiveOff:
         {
+          bIsLatencyReducingTearingMode = true;
+
           if (! rb.isTrueFullscreen ())
           {
             break;
@@ -922,6 +926,8 @@ SK_ImGui_LatentSyncConfig (void)
 
         case SK_TearingMode::AlwaysOff_LowLatency:
         {
+          bIsLatencyReducingTearingMode = true;
+
           ImGui::Combo (
             "Latency Mode",
             &config.render.framerate.latency_mode,
@@ -942,6 +948,32 @@ SK_ImGui_LatentSyncConfig (void)
         default:
         {
         } break;
+      }
+
+      if (bIsLatencyReducingTearingMode && iMultiplier <= 1)
+      {
+        ImGui::SliderInt (
+          "Render Queue",
+          &config.render.framerate.render_queue,
+          1,
+          16,
+          "%d Frame(s)"
+        );
+
+        ImGui::SetItemTooltip ("Maximum limit of queued frames before Render Latency is allowed to decrease");
+
+        if ( config.render.framerate.enforcement_policy != 2 &&
+             config.render.framerate.render_queue       == 0 &&
+             ! SK_RenderBackend_V2::latency.stale            )
+        {
+          ImGui::SameLine    ();
+          ImGui::TextColored (
+            ImColor (0.0f, 1.0f, 1.0f),
+            ICON_FA_EXCLAMATION_TRIANGLE
+          );
+
+          ImGui::SetItemTooltip ("Render Queue of 0 is intended to be used with Low-Latency Limiter Mode");
+        }
       }
 
       ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
@@ -2824,7 +2856,13 @@ SK::Framerate::Limiter::wait (void)
 
                 if (! (bIsAboveRefresh && !bIsPreRenderLimit1))
                 {
-                  return iRenderLatency > 1;
+                  if (config.render.framerate.render_queue < 0)
+                      config.render.framerate.render_queue = 1;
+
+                  UINT iRenderQueue = (! bIsAboveRefresh)  ?
+                      config.render.framerate.render_queue : 1;
+
+                  return iRenderLatency > iRenderQueue;
                 }
 
                 else
@@ -2906,18 +2944,24 @@ SK::Framerate::Limiter::wait (void)
 
               if (rb.presentation.avg_stats.display != 0.0)
               {
+                if (config.render.framerate.render_queue < 1)
+                    config.render.framerate.render_queue = 1;
+
+                int iRenderQueue = (! bIsAboveRefresh)   ?
+                    config.render.framerate.render_queue : 1;
+
                 if ( __target_fps_temp > 0.0f &&
                        SK_LatencyMode::Smooth ==
                        config.render.framerate.latency_mode )
                 {
                   return
                     rb.presentation.avg_stats.latency /
-                    rb.presentation.avg_stats.display > 1.55;
+                    rb.presentation.avg_stats.display > 1.55 * iRenderQueue;
                 }
 
                 return
                   rb.presentation.avg_stats.latency /
-                  rb.presentation.avg_stats.display > 1.64;
+                  rb.presentation.avg_stats.display > 1.64 * iRenderQueue;
               }
 
               return false;

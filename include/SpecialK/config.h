@@ -764,6 +764,7 @@ struct sk_config_t
       int     pin_render_thread   = SK_NoPreference;
       int     tearing_mode        = SK_TearingMode::AppControlled;
       int     latency_mode        = SK_LatencyMode::Smooth;
+      int     render_queue        =     1; // Max Render Latency for SK_TearingMode::AlwaysOff_LowLatency/AdaptiveOff
       bool    turn_vsync_off      = false; // Turns VSync Off in Adaptive VSync mode
       bool    flip_discard        =  true; // Enabled by default (7/6/21)
       bool    flip_sequential     = false;
