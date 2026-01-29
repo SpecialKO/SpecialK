@@ -23,6 +23,10 @@
 
 #include <SpecialK/stdafx.h>
 
+static constexpr uint32_t AudioObjectType_StereoLeft = 0x00000001;
+static constexpr uint32_t AudioObjectType_StereoRight = 0x00000002;
+
+
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif

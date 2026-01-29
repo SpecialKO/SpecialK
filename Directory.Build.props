@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <!-- Force the toolset family -->
+    <PlatformToolset>v143</PlatformToolset>
+
+    <!-- Restore default include inheritance (Windows SDK + UCRT + MSVC) -->
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(UniversalCRT_IncludePath)</IncludePath>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(UniversalCRT_IncludePath)</ExternalIncludePath>
+  </PropertyGroup>
+</Project>

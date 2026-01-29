@@ -33,6 +33,9 @@
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/storefront/xbox.h>
 
+#include "SpecialK/input/game_input_stub.h"
+
+
 extern "C" {
   extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
 }

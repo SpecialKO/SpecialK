@@ -18,7 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-
+#if 0
 #ifndef __SK__GAME_INPUT_H__
 #define __SK__GAME_INPUT_H__
 
@@ -277,3 +277,5 @@ private:
 void SK_Input_HookGameInput (void);
 
 #endif /* __SK__GAME_INPUT_H__ */
+
+#endif

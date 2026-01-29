@@ -27,6 +27,9 @@
 
 #include <concurrent_unordered_set.h>
 
+#include "SpecialK/input/game_input_stub.h"
+
+
 __declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
 SK_DbgHlp_Callers (void)
