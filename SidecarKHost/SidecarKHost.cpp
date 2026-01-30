@@ -33,14 +33,21 @@ static BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType)
 struct OverlayFrameHeader
 {
   uint32_t magic;        // 'SKOF'
-  uint32_t version;      // 1
+  uint32_t version;      // 2
   uint32_t width;
   uint32_t height;
   uint32_t stride;
+  uint32_t pixel_format_fourcc; // 'BGRA' (BGRA8_UNORM)
+  uint32_t alpha_mode;          // 1 = premultiplied
   uint64_t frame_id;
   uint32_t active_buffer; // 0 or 1
 };
 #pragma pack(pop)
+
+static constexpr uint32_t OVERLAY_MAGIC_SKOF = 0x464F4B53u; // 'SKOF'
+static constexpr uint32_t OVERLAY_HEADER_VERSION = 2u;
+static constexpr uint32_t OVERLAY_PIXEL_FORMAT_BGRA = 0x41524742u; // 'BGRA'
+static constexpr uint32_t OVERLAY_ALPHA_MODE_PREMULTIPLIED = 1u;
 
 static HANDLE g_frame_map = nullptr;
 static OverlayFrameHeader g_frame_header{};
@@ -54,6 +61,132 @@ static size_t g_frame_total_bytes = 0;
 static size_t g_frame_buffer_bytes = 0;
 static bool g_frames_streaming = false;
 static std::vector<uint8_t> g_staging;
+
+static void AppendLog(const std::wstring& logPath, const wchar_t* msg);
+
+static bool ReadBGRAAt(const uint8_t* base_ptr,
+  uint32_t width, uint32_t height, uint32_t stride,
+  uint32_t x, uint32_t y,
+  uint8_t& outB, uint8_t& outG, uint8_t& outR, uint8_t& outA)
+{
+  if (!base_ptr) return false;
+  if (width == 0 || height == 0 || stride < width * 4u) return false;
+  if (x >= width || y >= height) return false;
+
+  const size_t off = (size_t)y * (size_t)stride + (size_t)x * 4u;
+  outB = base_ptr[off + 0];
+  outG = base_ptr[off + 1];
+  outR = base_ptr[off + 2];
+  outA = base_ptr[off + 3];
+  return true;
+}
+
+static void LogPremultipliedInvariantOncePerSecond(const std::wstring& logPath,
+  const OverlayFrameHeader& h,
+  const uint8_t* activeBuf)
+{
+  static ULONGLONG s_lastLogMs = 0;
+  static bool s_loggedSkipReason = false;
+
+  const ULONGLONG now = GetTickCount64();
+  if (s_lastLogMs != 0 && (now - s_lastLogMs) < 1000ull)
+    return;
+
+  if (h.pixel_format_fourcc != OVERLAY_PIXEL_FORMAT_BGRA)
+  {
+    if (!s_loggedSkipReason)
+    {
+      AppendLog(logPath, L"premult_skip=fmt_not_bgra");
+      s_loggedSkipReason = true;
+    }
+    return;
+  }
+
+  if (h.alpha_mode != OVERLAY_ALPHA_MODE_PREMULTIPLIED)
+  {
+    if (!s_loggedSkipReason)
+    {
+      AppendLog(logPath, L"premult_skip=alpha_not_premultiplied");
+      s_loggedSkipReason = true;
+    }
+    return;
+  }
+
+  if (h.width == 0 || h.height == 0 || h.stride == 0 || h.stride < h.width * 4u)
+  {
+    if (!s_loggedSkipReason)
+    {
+      AppendLog(logPath, L"premult_skip=invalid_dims");
+      s_loggedSkipReason = true;
+    }
+    return;
+  }
+
+  s_loggedSkipReason = false;
+  s_lastLogMs = now;
+
+  const uint32_t w = h.width;
+  const uint32_t hh = h.height;
+  const uint32_t w_1 = (w > 0) ? (w - 1u) : 0u;
+  const uint32_t h_1 = (hh > 0) ? (hh - 1u) : 0u;
+
+  const std::pair<uint32_t, uint32_t> samples[] = {
+    {0u, 0u}, {w_1, 0u}, {0u, h_1}, {w_1, h_1},
+    {w / 2u, hh / 2u},
+    {w / 4u, hh / 4u}, {(3u * w) / 4u, hh / 4u}, {w / 4u, (3u * hh) / 4u}, {(3u * w) / 4u, (3u * hh) / 4u},
+    {w / 2u, hh / 4u}, {w / 2u, (3u * hh) / 4u}, {w / 4u, hh / 2u}, {(3u * w) / 4u, hh / 2u},
+    {w / 2u, hh / 3u}, {w / 3u, hh / 2u},
+  };
+
+  const int N = (int)_countof(samples);
+  int ok = 0;
+
+  bool haveFail = false;
+  uint32_t failX = 0, failY = 0;
+  uint8_t fb = 0, fg = 0, fr = 0, fa = 0;
+  int bOk = 0, gOk = 0, rOk = 0;
+
+  for (int i = 0; i < N; ++i)
+  {
+    uint32_t x = samples[i].first;
+    uint32_t y = samples[i].second;
+    if (x >= w) x = w_1;
+    if (y >= hh) y = h_1;
+
+    uint8_t b = 0, g = 0, r = 0, a = 0;
+    const bool readOk = ReadBGRAAt(activeBuf, w, hh, h.stride, x, y, b, g, r, a);
+    const bool pass = readOk && (b <= a) && (g <= a) && (r <= a);
+    if (pass)
+    {
+      ++ok;
+    }
+    else if (!haveFail)
+    {
+      haveFail = true;
+      failX = x; failY = y;
+      fb = b; fg = g; fr = r; fa = a;
+      bOk = readOk ? (b <= a ? 1 : 0) : 0;
+      gOk = readOk ? (g <= a ? 1 : 0) : 0;
+      rOk = readOk ? (r <= a ? 1 : 0) : 0;
+    }
+  }
+
+  wchar_t msg[256]{};
+  if (!haveFail)
+  {
+    swprintf(msg, _countof(msg), L"premult_ok=%d/%d fail=none", ok, N);
+  }
+  else
+  {
+    swprintf(msg, _countof(msg),
+      L"premult_ok=%d/%d fail=(x=%u,y=%u) BGRA=%02X %02X %02X %02X (B<=A?%d G<=A?%d R<=A?%d)",
+      ok, N,
+      (unsigned)failX, (unsigned)failY,
+      (unsigned)fb, (unsigned)fg, (unsigned)fr, (unsigned)fa,
+      bOk, gOk, rOk);
+  }
+  AppendLog(logPath, msg);
+}
 
 static void ReleaseFrameMapping()
 {
@@ -82,10 +215,12 @@ static void ReleaseFrameMapping()
 
 static bool ValidateOverlayHeader(const OverlayFrameHeader& h, size_t& outBufferBytes, size_t& outTotalBytes)
 {
-  if (h.magic != 0x464F4B53u) return false; // 'SKOF'
-  if (h.version != 1u) return false;
+  if (h.magic != OVERLAY_MAGIC_SKOF) return false;
+  if (h.version != OVERLAY_HEADER_VERSION) return false;
   if (h.width == 0 || h.height == 0 || h.stride == 0) return false;
   if (h.stride < h.width * 4u) return false;
+  if (h.pixel_format_fourcc != OVERLAY_PIXEL_FORMAT_BGRA) return false;
+  if (h.alpha_mode != OVERLAY_ALPHA_MODE_PREMULTIPLIED) return false;
   if (h.active_buffer > 1u) return false;
 
   const uint64_t bufferBytes64 = (uint64_t)h.height * (uint64_t)h.stride;
@@ -96,6 +231,7 @@ static bool ValidateOverlayHeader(const OverlayFrameHeader& h, size_t& outBuffer
   outTotalBytes = (size_t)totalBytes64;
   return true;
 }
+
 
 
 
@@ -138,6 +274,23 @@ static void AppendLog(const std::wstring& logPath, const wchar_t* msg)
     msg);
 
   fclose(f);
+}
+
+static void LogOverlayHeaderDetails(const std::wstring& logPath, DWORD pid, const std::wstring& shmName, const OverlayFrameHeader& h)
+{
+  wchar_t msg[512]{};
+  swprintf(msg, _countof(msg),
+    L"overlay shm attach pid=%lu name=%s ver=%u w=%u h=%u stride=%u fmt=0x%08X alpha=%u last_frame=%llu",
+    (unsigned long)pid,
+    shmName.c_str(),
+    (unsigned)h.version,
+    (unsigned)h.width,
+    (unsigned)h.height,
+    (unsigned)h.stride,
+    (unsigned)h.pixel_format_fourcc,
+    (unsigned)h.alpha_mode,
+    (unsigned long long)h.frame_id);
+  AppendLog(logPath, msg);
 }
 
 static void WriteStatusAtomic(const std::wstring& statusPath, const wchar_t* state, DWORD pid, const wchar_t* lastError)
@@ -432,6 +585,8 @@ int wmain(int argc, wchar_t** argv)
       OverlayFrameHeader tmp{};
       memcpy(&tmp, headerView, sizeof(tmp));
 
+      LogOverlayHeaderDetails(logPath, targetPid, shmName, tmp);
+
       size_t bufferBytes = 0;
       size_t totalBytes = 0;
       const bool ok = ValidateOverlayHeader(tmp, bufferBytes, totalBytes);
@@ -439,7 +594,13 @@ int wmain(int argc, wchar_t** argv)
 
       if (!ok)
       {
-        AppendLog(logPath, L"shared memory header invalid");
+        wchar_t msg[256]{};
+        swprintf(msg, _countof(msg),
+          L"shared memory header invalid/unsupported (expected ver=%u fmt=0x%08X alpha=%u)",
+          (unsigned)OVERLAY_HEADER_VERSION,
+          (unsigned)OVERLAY_PIXEL_FORMAT_BGRA,
+          (unsigned)OVERLAY_ALPHA_MODE_PREMULTIPLIED);
+        AppendLog(logPath, msg);
         CloseHandle(g_frame_map);
         g_frame_map = nullptr;
         Sleep(50);
@@ -501,6 +662,8 @@ int wmain(int argc, wchar_t** argv)
           g_last_frame_id = g_frame_header.frame_id;
           g_frames_streaming = true;
           AppendLog(logPath, L"frame advanced");
+
+          LogPremultipliedInvariantOncePerSecond(logPath, g_frame_header, src);
 
           if ((g_last_frame_id % 60ull) == 0ull)
           {
