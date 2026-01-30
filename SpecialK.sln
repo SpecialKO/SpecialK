@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.2.32210.308
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpecialK", "SpecialK.vcxproj", "{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -17,6 +17,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libzma", "depends\src\lzma\libzma\libzma.vcxproj", "{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F47C123E-ECB9-40BA-A7F7-37DA33F55283}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SidecarKHost", "SidecarKHost\SidecarKHost.vcxproj", "{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +70,18 @@ Global
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|Win32.Build.0 = Release|Win32
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x64.ActiveCfg = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x64.Build.0 = Release|x64
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Debug|Win32.Build.0 = Debug|Win32
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Debug|x64.ActiveCfg = Debug|x64
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Debug|x64.Build.0 = Debug|x64
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release (clang)|Win32.ActiveCfg = Release|Win32
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release (clang)|Win32.Build.0 = Release|Win32
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release (clang)|x64.ActiveCfg = Release|x64
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release (clang)|x64.Build.0 = Release|x64
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release|Win32.ActiveCfg = Release|Win32
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release|Win32.Build.0 = Release|Win32
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release|x64.ActiveCfg = Release|x64
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,6 +91,7 @@ Global
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE} = {F47C123E-ECB9-40BA-A7F7-37DA33F55283}
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {F47C123E-ECB9-40BA-A7F7-37DA33F55283}
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037} = {F47C123E-ECB9-40BA-A7F7-37DA33F55283}
+		{F61FEF91-A1BB-45AA-98EF-B9787C6FE93D} = {F47C123E-ECB9-40BA-A7F7-37DA33F55283}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {21CF21BF-49F5-4F39-8B07-B3F55895F534}

@@ -3348,6 +3348,9 @@
     <ClInclude Include="include\SpecialK\input\game_input_stub.h">
       <Filter>Header Files\Backends\Input\GameInput</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\product_mode.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">

@@ -1754,6 +1754,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\console.h" />
     <ClInclude Include="include\SpecialK\core.h" />
     <ClInclude Include="include\SpecialK\popups\popup.h" />
+    <ClInclude Include="include\SpecialK\product_mode.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_core.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_screenshot.h" />
