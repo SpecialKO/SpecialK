@@ -517,6 +517,43 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
+      {
+        const DWORD pid = GetCurrentProcessId ();
+
+        wchar_t wszTempPath [MAX_PATH] = { };
+        wchar_t wszFilePath [MAX_PATH] = { };
+        wchar_t wszLine     [64]       = { };
+
+        const DWORD cchTemp =
+          GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+        if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+        {
+          wsprintfW ( wszFilePath, L"%ssk_overlay_attach_%lu.txt", wszTempPath, (unsigned long)pid );
+          wsprintfW ( wszLine,     L"attach ok %lu\r\n",          (unsigned long)pid );
+
+          HANDLE hFile =
+            CreateFileW ( wszFilePath, FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                          nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            DWORD  cbWritten = 0;
+            const DWORD  cch = (DWORD)lstrlenW (wszLine);
+            WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
+            CloseHandle (hFile);
+          }
+        }
+      }
+
+      {
+        char __overlay_buf[96] = {};
+        sprintf_s (__overlay_buf, "overlay: SpecialK dll process attach pid=%lu\n",
+                   (unsigned long)GetCurrentProcessId ());
+        OutputDebugStringA (__overlay_buf);
+      }
+
       if (SK_IsServiceHost ())
         return FALSE;
 
@@ -592,6 +629,24 @@ DllMain ( HMODULE hModule,
       SK_TLS_Acquire         ();
       SK_EstablishRootPath   ();
       SK_CreateTeardownEvent ();
+
+      {
+        static bool __overlay_logged = false;
+        if (! __overlay_logged)
+        {
+          __overlay_logged = true;
+          const int dxgi  = GetModuleHandleW (L"dxgi.dll")       ? 1 : 0;
+          const int d3d11 = GetModuleHandleW (L"d3d11.dll")      ? 1 : 0;
+          const int d3d9  = GetModuleHandleW (L"d3d9.dll")       ? 1 : 0;
+          const int d3d12 = GetModuleHandleW (L"d3d12.dll")      ? 1 : 0;
+          const int gl    = GetModuleHandleW (L"opengl32.dll")   ? 1 : 0;
+          const int vk    = GetModuleHandleW (L"vulkan-1.dll")   ? 1 : 0;
+          char buf[128] = {};
+          sprintf_s (buf, "overlay: modules dxgi=%d d3d11=%d d3d9=%d d3d12=%d gl=%d vk=%d\n",
+                     dxgi, d3d11, d3d9, d3d12, gl, vk);
+          OutputDebugStringA (buf);
+        }
+      }
 
       SK_TLS_Bottom ()->debug.in_DllMain = true;
 
