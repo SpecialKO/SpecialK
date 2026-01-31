@@ -62,9 +62,105 @@ template <        >
   _RTL_CONSTANT_STRING_remove_const_macro(s)                \
 }
 
+static
+void
+SK_StageTraceW (const wchar_t* stage)
+{
+  const DWORD     pid    = GetCurrentProcessId ();
+  const unsigned __int64 t = (unsigned __int64)GetTickCount64 ();
+
+  wchar_t wszTempPath [MAX_PATH] = { };
+  wchar_t wszFilePath [MAX_PATH] = { };
+  char    szLine      [64]       = { };
+
+  DWORD cchTemp =
+    GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+  if (cchTemp == 0 || cchTemp >= (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+    return;
+
+  if (cchTemp > 0 && wszTempPath [cchTemp - 1] != L'\\')
+  {
+    if (cchTemp + 1 >= (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+      return;
+
+    wszTempPath [cchTemp]     = L'\\';
+    wszTempPath [cchTemp + 1] = L'\0';
+  }
+
+  wsprintfW ( wszFilePath, L"%ssk_stage_%s_%lu.txt", wszTempPath, stage, (unsigned long)pid );
+  wsprintfA ( szLine,      "pid=%lu tick=%I64u\r\n", (unsigned long)pid, t );
+
+  HANDLE hFile =
+    CreateFileW ( wszFilePath, GENERIC_WRITE,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                  nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+  if (hFile != INVALID_HANDLE_VALUE)
+  {
+    DWORD cbWritten = 0;
+    const DWORD cch = (DWORD)lstrlenA (szLine);
+    WriteFile (hFile, szLine, cch, &cbWritten, nullptr);
+    CloseHandle (hFile);
+  }
+}
+
 void SK_LazyCleanup (void)
 {
   __SK_LazyRiver->atExit ();
+}
+
+static BOOL
+SK_WarmupRenderBackends_SEH_Stub (void)
+{
+  __try
+  {
+    SK_WarmupRenderBackends ();
+    return TRUE;
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    const DWORD code = GetExceptionCode ();
+    const DWORD pid  = GetCurrentProcessId ();
+
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszFilePath [MAX_PATH] = { };
+    char    szLine      [64]       = { };
+
+    DWORD cchTemp =
+      GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+    if (cchTemp == 0 || cchTemp >= (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+      return FALSE;
+
+    if (cchTemp > 0 && wszTempPath [cchTemp - 1] != L'\\')
+    {
+      if (cchTemp + 1 >= (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+        return FALSE;
+
+      wszTempPath [cchTemp]     = L'\\';
+      wszTempPath [cchTemp + 1] = L'\0';
+    }
+
+    wsprintfW ( wszFilePath, L"%ssk_stage_03x_warmup_except_%lu_0x%08lx.txt",
+                wszTempPath, (unsigned long)pid, (unsigned long)code );
+    wsprintfA ( szLine,      "pid=%lu except=0x%08lx\r\n", (unsigned long)pid, (unsigned long)code );
+
+    HANDLE hFile =
+      CreateFileW ( wszFilePath, GENERIC_WRITE,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                    nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+      DWORD cbWritten = 0;
+      const DWORD cch = (DWORD)lstrlenA (szLine);
+      WriteFile (hFile, szLine, cch, &cbWritten, nullptr);
+      CloseHandle (hFile);
+    }
+
+    return FALSE;
+  }
 }
 
 SK_LazyGlobal <skModuleRegistry>
@@ -518,6 +614,16 @@ DllMain ( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
     {
       {
+        static LONG once = 0;
+        if (InterlockedCompareExchange (&once, 1, 0) == 0)
+        {
+          SK_StageTraceW (L"01_dllmain_attach");
+        }
+      }
+
+      // %TEMP% proof logging disabled (use in-frame blink overlay instead)
+      #if 0
+      {
         const DWORD pid = GetCurrentProcessId ();
 
         wchar_t wszTempPath [MAX_PATH] = { };
@@ -546,6 +652,7 @@ DllMain ( HMODULE hModule,
           }
         }
       }
+      #endif
 
       {
         char __overlay_buf[96] = {};
@@ -1130,7 +1237,32 @@ BOOL
 __stdcall
 SK_EstablishDllRole (skWin32Module&& _sk_module)
 {
-  SK_WarmupRenderBackends ();
+  {
+    static LONG once = 0;
+    if (InterlockedCompareExchange (&once, 1, 0) == 0)
+    {
+      SK_StageTraceW (L"02_init_enter");
+    }
+  }
+
+  {
+    static LONG once = 0;
+    if (InterlockedCompareExchange (&once, 1, 0) == 0)
+    {
+      SK_StageTraceW (L"03_backend_detect_begin");
+    }
+  }
+
+  SK_StageTraceW (L"03a_warmup_enter");
+
+  const BOOL warmup_ok = SK_WarmupRenderBackends_SEH_Stub ();
+  if (! warmup_ok)
+  {
+    SK_StageTraceW (L"04r01_return_warmup_except");
+    return FALSE;
+  }
+
+  SK_StageTraceW (L"03b_warmup_exit");
 
   SK_SetDLLRole (DLL_ROLE::INVALID);
 
@@ -1215,6 +1347,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
   else if (0 == SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
     SK_SetDLLRole (DLL_ROLE::OpenGL);
+
 
 
   //
@@ -1328,7 +1461,10 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         if (role != DLL_ROLE::INVALID)
         {
           if (SK_Inject_ProcessBlacklist ())
+          {
+            SK_StageTraceW (L"04r02_return_injected_blacklist");
             return SK_DontInject ();
+          }
 
           SK_InitCentralConfig ();
 
@@ -1357,6 +1493,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       if ( (! SK_IsHostAppSKIM        (            ) ) &&
               SK_TryLocalWrapperFirst ( local_dlls ) )
       {
+        SK_StageTraceW (L"04r03_return_local_wrapper_first");
         return
           SK_DontInject ();
       }
@@ -1434,7 +1571,10 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         SK_InitCentralConfig ();
 
         if (SK_Inject_ProcessBlacklist ())
+        {
+          SK_StageTraceW (L"04r02_return_injected_blacklist");
           return SK_DontInject ();
+        }
 
         // Try the last-known API first -- if we have one.
         //
@@ -1442,9 +1582,10 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           if (! SK_dgVoodoo_CheckForInterop ())
           {
-            if (_SKM_AutoBootLastKnownAPI (config.apis.last_known))
+          if (_SKM_AutoBootLastKnownAPI (config.apis.last_known))
             {
-              return true;
+            SK_StageTraceW (L"04r02_return_auto_boot_last_known");
+            return true;
             }
           }
         }
@@ -1511,6 +1652,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           if (SK_TryLocalWrapperFirst ({ L"d3d8.dll" }))
           {
+            SK_StageTraceW (L"04r04_return_local_wrapper_d3d8");
             return SK_DontInject ();
           }
 
@@ -1527,6 +1669,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           if (SK_TryLocalWrapperFirst ({ L"ddraw.dll" }))
           {
+            SK_StageTraceW (L"04r05_return_local_wrapper_ddraw");
             return SK_DontInject ();
           }
 
@@ -1543,6 +1686,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 #endif
         if (SK_TryLocalWrapperFirst ({ L"dinput8.dll" }))
         {
+          SK_StageTraceW (L"04r06_return_local_wrapper_dinput8");
           return
             SK_DontInject ();
         }
@@ -1551,6 +1695,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))
           {
+            SK_StageTraceW (L"04r07_return_local_wrapper_opengl");
             return SK_DontInject ();
           }
 
@@ -1563,6 +1708,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           if (SK_TryLocalWrapperFirst ({ L"dxgi.dll", L"d3d11.dll" }))
           {
+            SK_StageTraceW (L"04r08_return_local_wrapper_dxgi");
             return SK_DontInject ();
           }
 
@@ -1580,6 +1726,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           if (SK_TryLocalWrapperFirst ({ L"d3d9.dll" }))
           {
+            SK_StageTraceW (L"04r09_return_local_wrapper_d3d9");
             return SK_DontInject ();
           }
 
@@ -1637,8 +1784,20 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
     }
   }
 
-  return
-    ( SK_GetDLLRole () != DLL_ROLE::INVALID );
+  SK_StageTraceW (L"04_backend_detect_end");
+
+  if ( SK_GetDLLRole () != DLL_ROLE::INVALID )
+  {
+    SK_StageTraceW (L"04r99_return_success");
+    return TRUE;
+  }
+
+  // SidecarK bring-up: never abort on INVALID; force a valid role so
+  // DllMain can reach SK_Attach(...).
+  SK_SetDLLRole (DLL_ROLE::DXGI);
+  SK_StageTraceW (L"04_role_forced_valid");
+  SK_StageTraceW (L"04r99_return_success");
+  return TRUE;
 }
 
 
@@ -1660,6 +1819,14 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
+  {
+    static LONG once = 0;
+    if (InterlockedCompareExchange (&once, 1, 0) == 0)
+    {
+      SK_StageTraceW (L"05_hook_install_begin");
+    }
+  }
+
   auto bootstraps =
     SK_DLL_GetBootstraps ();
 
@@ -1724,6 +1891,7 @@ SK_Attach (DLL_ROLE role)
       {
         _CleanupMutexes ();
 
+        SK_StageTraceW (L"05r01_attach_fail_local_wrapper_first");
         return
           SK_DontInject ();
       }
@@ -1752,6 +1920,15 @@ SK_Attach (DLL_ROLE role)
       {
         SK_MinHook_Init ();
 
+        {
+          static LONG once = 0;
+          if (InterlockedCompareExchange (&once, 1, 0) == 0)
+          {
+            SK_StageTraceW (L"06_hook_install_end");
+          }
+        }
+
+        SK_StageTraceW (L"06_attach_return_success");
         return TRUE;
       }
     }
@@ -1765,6 +1942,7 @@ SK_Attach (DLL_ROLE role)
 
   _CleanupMutexes ();
 
+  SK_StageTraceW (L"05r02_attach_fail_not_attached_or_exception");
   return
     SK_DontInject ();
 }

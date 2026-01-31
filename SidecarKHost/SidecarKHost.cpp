@@ -13,6 +13,8 @@
 static std::atomic_bool g_shutdown{ false };
 static bool g_frame_source_seen = false;
 
+static DWORD g_host_pid = 0;
+
 
 static BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType)
 {
@@ -63,6 +65,53 @@ static bool g_frames_streaming = false;
 static std::vector<uint8_t> g_staging;
 
 static void AppendLog(const std::wstring& logPath, const wchar_t* msg);
+
+static void HostLogAppend(const wchar_t* line)
+{
+  if (!line || !*line) return;
+
+  if (g_host_pid == 0)
+    g_host_pid = GetCurrentProcessId();
+
+  wchar_t wszTempPath[MAX_PATH]{};
+  DWORD cchTemp = GetTempPathW((DWORD)_countof(wszTempPath), wszTempPath);
+  if (cchTemp == 0 || cchTemp >= (DWORD)_countof(wszTempPath))
+    return;
+
+  if (cchTemp > 0 && wszTempPath[cchTemp - 1] != L'\\')
+  {
+    if (cchTemp + 1 >= (DWORD)_countof(wszTempPath))
+      return;
+    wszTempPath[cchTemp] = L'\\';
+    wszTempPath[cchTemp + 1] = L'\0';
+  }
+
+  wchar_t wszPath[MAX_PATH]{};
+  wsprintfW(wszPath, L"%ssidecarkhost_log_%lu.txt", wszTempPath, (unsigned long)g_host_pid);
+
+  HANDLE hFile = CreateFileW(
+    wszPath,
+    FILE_APPEND_DATA,
+    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+    nullptr,
+    OPEN_ALWAYS,
+    FILE_ATTRIBUTE_NORMAL,
+    nullptr);
+
+  if (hFile == INVALID_HANDLE_VALUE)
+    return;
+
+  const DWORD cch = (DWORD)lstrlenW(line);
+  DWORD cbWritten = 0;
+  WriteFile(hFile, line, cch * sizeof(wchar_t), &cbWritten, nullptr);
+  WriteFile(hFile, L"\r\n", 2 * sizeof(wchar_t), &cbWritten, nullptr);
+  CloseHandle(hFile);
+}
+
+static void HostLogAppendMilestone(const wchar_t* line)
+{
+  HostLogAppend(line);
+}
 
 static bool ReadBGRAAt(const uint8_t* base_ptr,
   uint32_t width, uint32_t height, uint32_t stride,
@@ -320,6 +369,227 @@ static std::wstring Basename(const std::wstring& path)
   return (slash == std::wstring::npos) ? path : path.substr(slash + 1);
 }
 
+static std::wstring GetProcessImagePath(DWORD pid)
+{
+  std::wstring out;
+
+  HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+  if (!h) return out;
+
+  wchar_t buf[MAX_PATH]{};
+  DWORD cch = (DWORD)_countof(buf);
+  if (QueryFullProcessImageNameW(h, 0, buf, &cch))
+    out.assign(buf, cch);
+
+  CloseHandle(h);
+  return out;
+}
+
+static void LogTargetSelected(const std::wstring& logPath, DWORD pid, const std::wstring& fallbackExeName)
+{
+  std::wstring exe = GetProcessImagePath(pid);
+  if (exe.empty()) exe = fallbackExeName;
+
+  wchar_t msg[1024]{};
+  swprintf(msg, _countof(msg), L"target_selected pid=%lu exe=%s",
+    (unsigned long)pid,
+    exe.c_str());
+  AppendLog(logPath, msg);
+  HostLogAppend(msg);
+}
+
+static bool GetMatchingModuleInfo(DWORD pid, const wchar_t* moduleBasenameLower, MODULEENTRY32W& outMe)
+{
+  HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid);
+  if (snap == INVALID_HANDLE_VALUE) return false;
+
+  MODULEENTRY32W me{};
+  me.dwSize = sizeof(me);
+
+  bool found = false;
+  if (Module32FirstW(snap, &me))
+  {
+    do {
+      if (_wcsicmp(me.szModule, moduleBasenameLower) == 0)
+      {
+        outMe = me;
+        found = true;
+        break;
+      }
+    } while (Module32NextW(snap, &me));
+  }
+
+  CloseHandle(snap);
+  return found;
+}
+
+enum class InjectResult
+{
+  Success,
+  AlreadyLoaded,
+  Fail
+};
+
+static const wchar_t* InjectResultToString(InjectResult r)
+{
+  switch (r)
+  {
+  case InjectResult::Success:       return L"success";
+  case InjectResult::AlreadyLoaded: return L"already_loaded";
+  default:                          return L"fail";
+  }
+}
+
+static InjectResult InjectDllByCreateRemoteThread(DWORD pid, const std::wstring& dllPath)
+{
+  if (pid == 0 || dllPath.empty())
+  {
+    SetLastError(ERROR_INVALID_PARAMETER);
+    return InjectResult::Fail;
+  }
+
+  // Already loaded check (deterministic already_loaded result)
+  MODULEENTRY32W me{};
+  if (GetMatchingModuleInfo(pid, L"SpecialK32.dll", me))
+  {
+    SetLastError(ERROR_ALREADY_EXISTS);
+    return InjectResult::AlreadyLoaded;
+  }
+
+  HANDLE hProcess = OpenProcess(
+    PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
+    PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
+    FALSE,
+    pid);
+
+  if (!hProcess)
+    return InjectResult::Fail;
+
+  const size_t cb = (dllPath.size() + 1) * sizeof(wchar_t);
+  void* remoteMem = VirtualAllocEx(hProcess, nullptr, cb, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+  if (!remoteMem)
+  {
+    CloseHandle(hProcess);
+    return InjectResult::Fail;
+  }
+
+  if (!WriteProcessMemory(hProcess, remoteMem, dllPath.c_str(), cb, nullptr))
+  {
+    DWORD le = GetLastError();
+    VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+    CloseHandle(hProcess);
+    SetLastError(le);
+    return InjectResult::Fail;
+  }
+
+  HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
+  FARPROC pLoadLibraryW = hKernel32 ? GetProcAddress(hKernel32, "LoadLibraryW") : nullptr;
+  if (!pLoadLibraryW)
+  {
+    DWORD le = GetLastError();
+    VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+    CloseHandle(hProcess);
+    SetLastError(le ? le : ERROR_PROC_NOT_FOUND);
+    return InjectResult::Fail;
+  }
+
+  HANDLE hThread = CreateRemoteThread(
+    hProcess,
+    nullptr,
+    0,
+    reinterpret_cast<LPTHREAD_START_ROUTINE>(pLoadLibraryW),
+    remoteMem,
+    0,
+    nullptr);
+
+  if (!hThread)
+  {
+    DWORD le = GetLastError();
+    VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+    CloseHandle(hProcess);
+    SetLastError(le);
+    return InjectResult::Fail;
+  }
+
+  WaitForSingleObject(hThread, INFINITE);
+
+  DWORD remoteExit = 0;
+  const BOOL haveExit = GetExitCodeThread(hThread, &remoteExit);
+
+  CloseHandle(hThread);
+  VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+  CloseHandle(hProcess);
+
+  if (!haveExit)
+    return InjectResult::Fail;
+
+  if (remoteExit == 0)
+  {
+    SetLastError(ERROR_DLL_INIT_FAILED);
+    return InjectResult::Fail;
+  }
+
+  SetLastError(ERROR_SUCCESS);
+  return InjectResult::Success;
+}
+
+static bool TryGetFileMTime(const wchar_t* path, FILETIME& outFt)
+{
+  WIN32_FILE_ATTRIBUTE_DATA fad{};
+  if (!GetFileAttributesExW(path, GetFileExInfoStandard, &fad))
+    return false;
+
+  outFt = fad.ftLastWriteTime;
+  return true;
+}
+
+static void LogModuleCheckSpecialK32(const std::wstring& logPath, DWORD pid)
+{
+  MODULEENTRY32W me{};
+  const bool found = GetMatchingModuleInfo(pid, L"SpecialK32.dll", me);
+
+  {
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"module_check pid=%lu found_specialk32=%d",
+      (unsigned long)pid,
+      found ? 1 : 0);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+  }
+
+  if (!found)
+  {
+    AppendLog(logPath, L"ERROR: injected but SpecialK32.dll not present in module list");
+    HostLogAppend(L"ERROR: injected but SpecialK32.dll not present in module list");
+    return;
+  }
+
+  {
+    wchar_t msg[1024]{};
+    swprintf(msg, _countof(msg), L"specialk32_loaded path=%s base=0x%p",
+      me.szExePath,
+      me.modBaseAddr);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+  }
+
+  FILETIME ft{};
+  if (TryGetFileMTime(me.szExePath, ft))
+  {
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"specialk32_disk_mtime ft=0x%08lX%08lX",
+      (unsigned long)ft.dwHighDateTime,
+      (unsigned long)ft.dwLowDateTime);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+  }
+  else
+  {
+    AppendLog(logPath, L"specialk32_disk_mtime ft=unavailable");
+    HostLogAppend(L"specialk32_disk_mtime ft=unavailable");
+  }
+}
+
 static DWORD FindPidByExeName(const std::wstring& exeName) // case-insensitive
 {
   HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -452,6 +722,51 @@ enum ExitCode : int
 
 int wmain(int argc, wchar_t** argv)
 {
+  // Unavoidable proof-of-execution artifact (must run before any attach/inject logic)
+  g_host_pid = GetCurrentProcessId();
+  {
+    wchar_t wszTempPath[MAX_PATH]{};
+    DWORD cchTemp = GetTempPathW((DWORD)_countof(wszTempPath), wszTempPath);
+    if (cchTemp != 0 && cchTemp < (DWORD)_countof(wszTempPath))
+    {
+      if (cchTemp > 0 && wszTempPath[cchTemp - 1] != L'\\')
+      {
+        if (cchTemp + 1 < (DWORD)_countof(wszTempPath))
+        {
+          wszTempPath[cchTemp] = L'\\';
+          wszTempPath[cchTemp + 1] = L'\0';
+        }
+      }
+
+      wchar_t wszStartedPath[MAX_PATH]{};
+      wsprintfW(wszStartedPath, L"%ssidecarkhost_started_%lu.txt", wszTempPath, (unsigned long)g_host_pid);
+
+      HANDLE hFile = CreateFileW(
+        wszStartedPath,
+        GENERIC_WRITE,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr);
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        const ULONGLONG t = GetTickCount64();
+        wchar_t line[128]{};
+        wsprintfW(line, L"started hostpid=%lu tick=%llu\r\n",
+          (unsigned long)g_host_pid,
+          (unsigned long long)t);
+
+        DWORD cbWritten = 0;
+        WriteFile(hFile, line, (DWORD)lstrlenW(line) * sizeof(wchar_t), &cbWritten, nullptr);
+        CloseHandle(hFile);
+      }
+    }
+  }
+
+  HostLogAppendMilestone(L"parsed_args_ok");
+
   const std::wstring exeDir = GetExeDir();
 
   std::wstring statusPath = ArgValue(argc, argv, L"--status");
@@ -480,6 +795,7 @@ int wmain(int argc, wchar_t** argv)
   if (modeCount != 1)
   {
     AppendLog(logPath, L"error: specify exactly one of --attach-pid, --attach-exe, --wait-for-exe");
+    HostLogAppend(L"error: specify exactly one of --attach-pid, --attach-exe, --wait-for-exe");
     WriteStatusAtomic(statusPath, L"error", 0, L"attach_failed");
     return ATTACH_FAILED;
   }
@@ -489,6 +805,7 @@ int wmain(int argc, wchar_t** argv)
     if (!TryParseU32(attachPidStr, targetPid) || targetPid == 0)
     {
       AppendLog(logPath, L"error: invalid --attach-pid");
+      HostLogAppend(L"error: invalid --attach-pid");
       WriteStatusAtomic(statusPath, L"error", 0, L"attach_failed");
       return ATTACH_FAILED;
     }
@@ -499,9 +816,13 @@ int wmain(int argc, wchar_t** argv)
     if (targetPid == 0)
     {
       AppendLog(logPath, L"error: --attach-exe not found running");
+      HostLogAppend(L"error: --attach-exe not found running");
       WriteStatusAtomic(statusPath, L"error", 0, L"attach_failed");
       return ATTACH_FAILED;
     }
+
+    // Deterministic selection log (after PID choice)
+    LogTargetSelected(logPath, targetPid, Basename(attachExe));
   }
   else // wait-for-exe
   {
@@ -520,16 +841,79 @@ int wmain(int argc, wchar_t** argv)
       if (GetTickCount64() - start >= timeoutMs)
       {
         AppendLog(logPath, L"error: wait-for-exe timeout");
+        HostLogAppend(L"error: wait-for-exe timeout");
         WriteStatusAtomic(statusPath, L"error", 0, L"timeout");
         return TIMEOUT;
       }
 
       Sleep(200);
     }
+
+    // Deterministic selection log (after PID choice)
+    LogTargetSelected(logPath, targetPid, Basename(waitExe));
+  }
+
+  if (!attachPidStr.empty())
+  {
+    // Deterministic selection log (after PID choice)
+    LogTargetSelected(logPath, targetPid, L"");
   }
 
   AppendLog(logPath, L"attached");
+  HostLogAppendMilestone(L"begin_attach");
   WriteStatusAtomic(statusPath, L"attached", targetPid, L"none");
+
+  // Deterministic injection + module verification logging (host-side)
+  {
+    const std::wstring dllToInject = exeDir + L"\\SpecialK32.dll";
+    wchar_t msg[1024]{};
+    swprintf(msg, _countof(msg), L"inject_attempt pid=%lu dll=%s",
+      (unsigned long)targetPid,
+      dllToInject.c_str());
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+  }
+
+  HostLogAppendMilestone(L"begin_inject");
+
+  const std::wstring dllToInject = exeDir + L"\\SpecialK32.dll";
+  const InjectResult injectResult = InjectDllByCreateRemoteThread(targetPid, dllToInject);
+  const DWORD injectLastError = GetLastError();
+
+  {
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"inject_result=%s last_error=%lu",
+      InjectResultToString(injectResult),
+      (unsigned long)injectLastError);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+  }
+
+  // Probe the target process module list now (acts as ground-truth for what is actually loaded).
+  LogModuleCheckSpecialK32(logPath, targetPid);
+
+  // Post-inject explicit verification log (module_check is required to flip on success)
+  {
+    MODULEENTRY32W me{};
+    const bool found = GetMatchingModuleInfo(targetPid, L"SpecialK32.dll", me);
+
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"module_check pid=%lu found_specialk32=%d",
+      (unsigned long)targetPid,
+      found ? 1 : 0);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+
+    if (found)
+    {
+      wchar_t msg2[1024]{};
+      swprintf(msg2, _countof(msg2), L"specialk32_loaded path=%s base=0x%p",
+        me.szExePath,
+        me.modBaseAddr);
+      AppendLog(logPath, msg2);
+      HostLogAppend(msg2);
+    }
+  }
 
   const std::wstring pipeName = PipeNameForTarget(targetPid);
   AppendLog(logPath, (L"pipe: " + pipeName).c_str());
@@ -730,6 +1114,7 @@ int wmain(int argc, wchar_t** argv)
 
   // Placeholder: next step adds named-pipe control + visible/hidden state.
   AppendLog(logPath, L"exiting");
+  HostLogAppendMilestone(L"end");
   WriteStatusAtomic(statusPath, L"exiting", targetPid, L"none");
   return OK;
 }

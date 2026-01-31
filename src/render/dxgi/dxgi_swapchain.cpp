@@ -675,6 +675,203 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
   SK_GetCurrentRenderBackend ().in_present_call = true;
 
+  // SidecarK proof-of-life: copy an existing overlay pixel buffer from shared
+  // memory into the game backbuffer every Present (top-left 256x256).
+  #pragma pack(push, 1)
+  struct SK_OverlayFrameHeader
+  {
+    uint32_t magic;        // 'SKOF'
+    uint32_t version;      // 2
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t pixel_format_fourcc; // 'BGRA'
+    uint32_t alpha_mode;          // 1 = premultiplied
+    uint64_t frame_id;
+    uint32_t active_buffer; // 0 or 1
+  };
+  #pragma pack(pop)
+
+  static constexpr uint32_t SK_OVERLAY_MAGIC_SKOF          = 0x464F4B53u; // 'SKOF'
+  static constexpr uint32_t SK_OVERLAY_HEADER_VERSION      = 2u;
+  static constexpr uint32_t SK_OVERLAY_PIXEL_FORMAT_BGRA   = 0x41524742u; // 'BGRA'
+
+  static HANDLE   s_hMap       = nullptr;
+  static uint8_t* s_base       = nullptr;
+  static DWORD    s_pidCached  = 0;
+  static int      s_w          = 0;
+  static int      s_h          = 0;
+  static int      s_stride     = 0;
+  static uint32_t s_fmt        = 0;
+  static uint32_t s_alpha      = 0;
+  static size_t   s_dataOffset = 0;
+  static ID3D11Texture2D* s_tex     = nullptr;
+  static DXGI_FORMAT      s_texFmt  = DXGI_FORMAT_UNKNOWN;
+
+  auto _ReleaseMappedOverlay = [&]()
+  {
+    if (s_base != nullptr)
+    {
+      UnmapViewOfFile (s_base);
+      s_base = nullptr;
+    }
+
+    if (s_hMap != nullptr)
+    {
+      CloseHandle (s_hMap);
+      s_hMap = nullptr;
+    }
+
+    s_pidCached  = 0;
+    s_w          = 0;
+    s_h          = 0;
+    s_stride     = 0;
+    s_fmt        = 0;
+    s_alpha      = 0;
+    s_dataOffset = 0;
+  };
+
+  const DWORD pidNow = GetCurrentProcessId ();
+  if (s_pidCached != pidNow)
+  {
+    _ReleaseMappedOverlay ();
+    s_pidCached = pidNow;
+  }
+
+  if (s_hMap == nullptr || s_base == nullptr)
+  {
+    wchar_t wszName [64] = { };
+    wsprintfW (wszName, L"SK_OverlayFrame_%lu", (unsigned long)pidNow);
+
+    s_hMap =
+      OpenFileMappingW (FILE_MAP_READ, FALSE, wszName);
+
+    if (s_hMap != nullptr)
+    {
+      s_base =
+        (uint8_t *)MapViewOfFile (s_hMap, FILE_MAP_READ, 0, 0, 0);
+    }
+
+    if (s_base != nullptr)
+    {
+      const auto *h =
+        reinterpret_cast <const SK_OverlayFrameHeader *> (s_base);
+
+      if (h->magic   != SK_OVERLAY_MAGIC_SKOF ||
+          h->version != SK_OVERLAY_HEADER_VERSION)
+      {
+        _ReleaseMappedOverlay ();
+      }
+      else
+      {
+        s_w      = (int)h->width;
+        s_h      = (int)h->height;
+        s_stride = (int)h->stride;
+        s_fmt    =      h->pixel_format_fourcc;
+        s_alpha  =      h->alpha_mode;
+
+        const size_t bufferBytes = (size_t)h->height * (size_t)h->stride;
+        s_dataOffset = sizeof (SK_OverlayFrameHeader) + (size_t)h->active_buffer * bufferBytes;
+      }
+    }
+  }
+
+  if (s_base != nullptr && s_w > 0 && s_h > 0 && s_stride > 0 && s_fmt == SK_OVERLAY_PIXEL_FORMAT_BGRA)
+  {
+    ID3D11Device*        dev = nullptr;
+    ID3D11DeviceContext* ctx = nullptr;
+
+    HRESULT hr =
+      pReal->GetDevice (__uuidof (ID3D11Device), (void **)&dev);
+
+    if (SUCCEEDED (hr) && dev != nullptr)
+    {
+      dev->GetImmediateContext (&ctx);
+
+      ID3D11Texture2D* bb = nullptr;
+
+      hr =
+        pReal->GetBuffer (0, __uuidof (ID3D11Texture2D), (void **)&bb);
+
+      if (SUCCEEDED (hr) && bb != nullptr && ctx != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC bbDesc = { };
+        bb->GetDesc (&bbDesc);
+
+        if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+            bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+        {
+          const UINT copyW = 256;
+          const UINT copyH = 256;
+
+          if (s_tex == nullptr || s_texFmt != bbDesc.Format)
+          {
+            if (s_tex != nullptr)
+            {
+              s_tex->Release ();
+              s_tex = nullptr;
+            }
+
+            D3D11_TEXTURE2D_DESC tdesc = { };
+            tdesc.Width              = copyW;
+            tdesc.Height             = copyH;
+            tdesc.MipLevels          = 1;
+            tdesc.ArraySize          = 1;
+            tdesc.Format             = bbDesc.Format;
+            tdesc.SampleDesc.Count   = 1;
+            tdesc.SampleDesc.Quality = 0;
+            tdesc.Usage              = D3D11_USAGE_DYNAMIC;
+            tdesc.BindFlags          = 0;
+            tdesc.CPUAccessFlags     = D3D11_CPU_ACCESS_WRITE;
+            tdesc.MiscFlags          = 0;
+
+            if (SUCCEEDED (dev->CreateTexture2D (&tdesc, nullptr, &s_tex)) && s_tex != nullptr)
+            {
+              s_texFmt = bbDesc.Format;
+            }
+          }
+
+          if (s_tex != nullptr)
+          {
+            D3D11_MAPPED_SUBRESOURCE mapped = { };
+
+            if (SUCCEEDED (ctx->Map (s_tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+            {
+              const uint8_t* srcBase = s_base + s_dataOffset;
+              uint8_t*       dstBase = (uint8_t *)mapped.pData;
+
+              const UINT srcRowBytes = copyW * 4;
+              const UINT dstPitch    = mapped.RowPitch;
+
+              const UINT maxH = (UINT)std::min (s_h, (int)copyH);
+              const UINT maxW = (UINT)std::min (s_w, (int)copyW);
+              const UINT rowBytes = maxW * 4;
+
+              for (UINT y = 0; y < maxH; ++y)
+              {
+                memcpy (dstBase + y * dstPitch,
+                        srcBase + (size_t)y * (size_t)s_stride,
+                        rowBytes);
+              }
+
+              (void)srcRowBytes;
+
+              ctx->Unmap (s_tex, 0);
+
+              D3D11_BOX srcBox = { 0, 0, 0, maxW, maxH, 1 };
+              ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
+            }
+          }
+        }
+
+        bb->Release ();
+      }
+    }
+
+    if (ctx != nullptr) ctx->Release ();
+    if (dev != nullptr) dev->Release ();
+  }
+
   if (0 == PresentBase ())
   {
     SyncInterval = 0;
