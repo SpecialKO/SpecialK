@@ -362,7 +362,7 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         }
       }
 
-      if (! SK_DLSS_Context::dlss_s::hasPresetL ())
+      if (! SK_DLSS_Context::dlss_s::hasPresetM ())
       {
         if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_L &&
             config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_M)
@@ -463,7 +463,7 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
         }
       }
 
-      if (! SK_DLSS_Context::dlss_s::hasPresetL ())
+      if (! SK_DLSS_Context::dlss_s::hasPresetM ())
       {
         if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_L &&
             config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_M)
@@ -564,7 +564,7 @@ NVSDK_NGX_Parameter_SetULL_Detour (NVSDK_NGX_Parameter* InParameter, const char*
         }
       }
 
-      if (! SK_DLSS_Context::dlss_s::hasPresetL ())
+      if (! SK_DLSS_Context::dlss_s::hasPresetM ())
       {
         if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_L &&
             config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_M)
@@ -1653,9 +1653,6 @@ SK_NGX_DLSS_ControlPanel (void)
 
         static const bool bHasPresetK =
           SK_DLSS_Context::dlss_s::hasPresetK ();
-
-        static const bool bHasPresetL =
-          SK_DLSS_Context::dlss_s::hasPresetL ();
 
         static const bool bHasPresetM =
           SK_DLSS_Context::dlss_s::hasPresetM ();
