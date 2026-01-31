@@ -88,6 +88,7 @@ struct SK_DLSS_Context
                                                      (Version.major  < 310 || ( Version.minor  < 4 )                                                                            ) ); };
     static bool hasPresetJ          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >= 1                                                  ) ) ); };
     static bool hasPresetK          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >  2 || ( Version.minor == 2 && Version.build >=  1 ) ) ) ); };
+    static bool hasPresetM          (void) { return ( Version.major  > 310 || ( Version.major == 310 && ( Version.minor >  5 || ( Version.minor == 5 && Version.build >=  0 ) ) ) ); };
 
     static void showIndicator    (bool show);
     static bool isIndicatorShown (void);

@@ -362,6 +362,15 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         }
       }
 
+      if (! SK_DLSS_Context::dlss_s::hasPresetM ())
+      {
+        if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_L &&
+            config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_M)
+        {
+          config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_K;
+        }
+      }
+
       InValue = config.nvidia.dlss.forced_preset;
     }
 
@@ -454,6 +463,15 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
         }
       }
 
+      if (! SK_DLSS_Context::dlss_s::hasPresetM ())
+      {
+        if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_L &&
+            config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_M)
+        {
+          config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_K;
+        }
+      }
+
       InValue = config.nvidia.dlss.forced_preset;
     }
 
@@ -543,6 +561,15 @@ NVSDK_NGX_Parameter_SetULL_Detour (NVSDK_NGX_Parameter* InParameter, const char*
             config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_D)
         {
           config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_E;
+        }
+      }
+
+      if (! SK_DLSS_Context::dlss_s::hasPresetM ())
+      {
+        if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_L &&
+            config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_M)
+        {
+          config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_K;
         }
       }
 
@@ -1472,6 +1499,8 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
     case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       return "G";            break;
     case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       return "J";            break;
     case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       return "K";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_L:       return "L";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_M:       return "M";            break;
     default:                                        return "DLSS Default"; break;
   }
 }
@@ -1624,6 +1653,9 @@ SK_NGX_DLSS_ControlPanel (void)
 
         static const bool bHasPresetK =
           SK_DLSS_Context::dlss_s::hasPresetK ();
+
+        static const bool bHasPresetM =
+          SK_DLSS_Context::dlss_s::hasPresetM ();
 
         static const bool bHasAlphaUpscaling =
           SK_DLSS_Context::dlss_s::hasAlphaUpscaling () &&
@@ -1836,6 +1868,8 @@ SK_NGX_DLSS_ControlPanel (void)
           case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
           case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       szPreset = "J";       break;
           case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       szPreset = "K";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_L:       szPreset = "L";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_M:       szPreset = "M";       break;
           default:
             break;
         }
@@ -1863,6 +1897,33 @@ SK_NGX_DLSS_ControlPanel (void)
 
 
         static const char* combo_str =
+          bHasPresetM ? bHasPresetA ? "Game Default\0"
+                                      "DLSS Default\0"
+                                      "Override: A\0"
+                                      "Override: B\0"
+                                      "Override: C\0"
+                                      "Override: D\0"
+                                      "Override: E (DLSS 3.7+)\0"
+                                      "Override: F\0"
+                                      "Override: G (Invalid)\0"
+                                      "Override: J\0"
+                                      "Override: K\0"
+                                      "Override: L\0"
+                                      "Override: M\0\0"
+                                    : "Game Default\0"
+                                      "DLSS Default\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: F\0"
+                                      "Override: G (Invalid)\0"
+                                      "Override: J\0"
+                                      "Override: K\0"
+                                      "Override: L\0"
+                                      "Override: M\0\0"
+                      :
           bHasPresetK ? bHasPresetA ? "Game Default\0"
                                       "DLSS Default\0"
                                       "Override: A\0"
@@ -1918,6 +1979,7 @@ SK_NGX_DLSS_ControlPanel (void)
                         "Override: G (Invalid)\0\0";
 
         static const int selections =
+                        bHasPresetM ? 13 :
                         bHasPresetK ? 11 :
                         bHasPresetJ ? 10 : 9;
 
