@@ -708,8 +708,51 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static ID3D11Texture2D* s_tex     = nullptr;
   static DXGI_FORMAT      s_texFmt  = DXGI_FORMAT_UNKNOWN;
 
+  static std::atomic_bool s_logged_swapchain_once  = false;
+  static std::atomic_bool s_logged_mapping_failure = false;
+  static std::atomic_bool s_logged_header_failure  = false;
+
+  auto _SidecarLog = [&](const wchar_t* fmt, ...)
+  {
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+    if (cch == 0 || cch >= MAX_PATH)
+      return;
+
+    wcscat_s (path, L"SidecarK_Overlay.log");
+
+    FILE* f = nullptr;
+    _wfopen_s (&f, path, L"a+, ccs=UTF-8");
+    if (f == nullptr)
+      return;
+
+    SYSTEMTIME st = { };
+    GetLocalTime (&st);
+
+    fwprintf (f, L"%04u-%02u-%02u %02u:%02u:%02u.%03u pid=%lu ",
+              st.wYear, st.wMonth, st.wDay,
+              st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
+              (unsigned long)GetCurrentProcessId ());
+
+    va_list args;
+    va_start (args, fmt);
+    vfwprintf (f, fmt, args);
+    va_end (args);
+
+    fwprintf (f, L"\n");
+    fclose (f);
+  };
+
   auto _ReleaseMappedOverlay = [&]()
   {
+    if (s_tex != nullptr)
+    {
+      s_tex->Release ();
+      s_tex = nullptr;
+    }
+
+    s_texFmt = DXGI_FORMAT_UNKNOWN;
+
     if (s_base != nullptr)
     {
       UnmapViewOfFile (s_base);
@@ -736,6 +779,40 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   {
     _ReleaseMappedOverlay ();
     s_pidCached = pidNow;
+
+    s_logged_mapping_failure.store (false);
+    s_logged_header_failure .store (false);
+
+    _SidecarLog (L"pid-change: reset overlay mapping state");
+  }
+
+  if (! s_logged_swapchain_once.exchange (true))
+  {
+    DXGI_SWAP_CHAIN_DESC scd = { };
+    if (SUCCEEDED (pReal->GetDesc (&scd)))
+    {
+      SK_LOGi0 (L"SidecarK: swapchain=%p hwnd=%p fmt=%d bufCount=%u windowed=%d", pReal, scd.OutputWindow, (int)scd.BufferDesc.Format, scd.BufferCount, scd.Windowed);
+      _SidecarLog (L"swapchain=%p hwnd=%p fmt=%d bufCount=%u windowed=%d", pReal, scd.OutputWindow, (int)scd.BufferDesc.Format, scd.BufferCount, scd.Windowed);
+    }
+
+    IUnknown* devUnk = nullptr;
+    if (SUCCEEDED (pReal->GetDevice (__uuidof (ID3D11Device), (void **)&devUnk)) && devUnk != nullptr)
+    {
+      devUnk->Release ();
+      SK_LOGi0 (L"SidecarK: Present is running on a D3D11 swapchain");
+      _SidecarLog (L"device=D3D11");
+    }
+    else if (SUCCEEDED (pReal->GetDevice (__uuidof (ID3D12Device), (void **)&devUnk)) && devUnk != nullptr)
+    {
+      devUnk->Release ();
+      SK_LOGi0 (L"SidecarK: Present is running on a D3D12 swapchain (D3D11-only overlay path will not run)");
+      _SidecarLog (L"device=D3D12 (D3D11-only overlay path will not run)");
+    }
+    else
+    {
+      SK_LOGi0 (L"SidecarK: Present swapchain device is not D3D11 or D3D12");
+      _SidecarLog (L"device=unknown (not D3D11/D3D12)");
+    }
   }
 
   if (s_hMap == nullptr || s_base == nullptr)
@@ -745,6 +822,15 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
     s_hMap =
       OpenFileMappingW (FILE_MAP_READ, FALSE, wszName);
+
+    if (s_hMap == nullptr)
+    {
+      if (! s_logged_mapping_failure.exchange (true))
+      {
+        SK_LOGi0 (L"SidecarK: OpenFileMappingW failed for '%ws' (GLE=%lu)", wszName, (unsigned long)GetLastError ());
+        _SidecarLog (L"OpenFileMappingW failed name=%s gle=%lu", wszName, (unsigned long)GetLastError ());
+      }
+    }
 
     if (s_hMap != nullptr)
     {
@@ -760,6 +846,15 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       if (h->magic   != SK_OVERLAY_MAGIC_SKOF ||
           h->version != SK_OVERLAY_HEADER_VERSION)
       {
+        if (! s_logged_header_failure.exchange (true))
+        {
+          SK_LOGi0 (L"SidecarK: overlay header mismatch magic=0x%08x ver=%u (expected magic=0x%08x ver=%u)",
+                      (unsigned)h->magic, (unsigned)h->version,
+                      (unsigned)SK_OVERLAY_MAGIC_SKOF, (unsigned)SK_OVERLAY_HEADER_VERSION);
+          _SidecarLog (L"overlay header mismatch magic=0x%08x ver=%u expected_magic=0x%08x expected_ver=%u",
+                         (unsigned)h->magic, (unsigned)h->version,
+                         (unsigned)SK_OVERLAY_MAGIC_SKOF, (unsigned)SK_OVERLAY_HEADER_VERSION);
+        }
         _ReleaseMappedOverlay ();
       }
       else
@@ -772,12 +867,24 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
         const size_t bufferBytes = (size_t)h->height * (size_t)h->stride;
         s_dataOffset = sizeof (SK_OverlayFrameHeader) + (size_t)h->active_buffer * bufferBytes;
+
+        _SidecarLog (L"overlay attached: w=%d h=%d stride=%d fmt=0x%08x alpha=%u frame=%llu active=%u", s_w, s_h, s_stride, (unsigned)s_fmt, (unsigned)s_alpha, (unsigned long long)h->frame_id, (unsigned)h->active_buffer);
       }
     }
   }
 
+  if (0 == PresentBase ())
+  {
+    SyncInterval = 0;
+  }
+
+  // Draw the SidecarK overlay *after* PresentBase so it does not get overwritten
+  // by any internal backbuffer copy/resolve paths.
   if (s_base != nullptr && s_w > 0 && s_h > 0 && s_stride > 0 && s_fmt == SK_OVERLAY_PIXEL_FORMAT_BGRA)
   {
+    static std::atomic<ULONG64> s_last_overlay_log_frame = 0;
+    const  ULONG64              frame                    = SK_GetFramesDrawn ();
+
     ID3D11Device*        dev = nullptr;
     ID3D11DeviceContext* ctx = nullptr;
 
@@ -840,8 +947,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               const uint8_t* srcBase = s_base + s_dataOffset;
               uint8_t*       dstBase = (uint8_t *)mapped.pData;
 
-              const UINT srcRowBytes = copyW * 4;
-              const UINT dstPitch    = mapped.RowPitch;
+              const UINT dstPitch = mapped.RowPitch;
 
               const UINT maxH = (UINT)std::min (s_h, (int)copyH);
               const UINT maxW = (UINT)std::min (s_w, (int)copyW);
@@ -854,12 +960,16 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                         rowBytes);
               }
 
-              (void)srcRowBytes;
-
               ctx->Unmap (s_tex, 0);
 
               D3D11_BOX srcBox = { 0, 0, 0, maxW, maxH, 1 };
               ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
+
+              if (s_last_overlay_log_frame.load () + 120 < frame)
+              {
+                s_last_overlay_log_frame.store (frame);
+                _SidecarLog (L"overlay blit: swapchain=%p bbfmt=%d maxW=%u maxH=%u", pReal, (int)bbDesc.Format, maxW, maxH);
+              }
             }
           }
         }
@@ -870,11 +980,6 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
     if (ctx != nullptr) ctx->Release ();
     if (dev != nullptr) dev->Release ();
-  }
-
-  if (0 == PresentBase ())
-  {
-    SyncInterval = 0;
   }
 
   return
