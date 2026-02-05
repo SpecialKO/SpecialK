@@ -30,6 +30,73 @@
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
+static void SK_DXGI_WriteHitFile (const char* entry, void* this_ptr, void* func_addr)
+{
+  wchar_t temp_path [MAX_PATH] = { };
+  const DWORD cch = GetTempPathW (MAX_PATH, temp_path);
+
+  if (cch == 0 || cch >= MAX_PATH)
+    return;
+
+  wchar_t file_path [MAX_PATH] = { };
+  swprintf ( file_path, MAX_PATH,
+             L"%ssk_dxgi_hit_%lu_%hs.txt",
+             temp_path,
+             (unsigned long)GetCurrentProcessId (),
+             entry != nullptr ? entry : "null" );
+
+  wchar_t mod_path [MAX_PATH] = { };
+  HMODULE hMod                = nullptr;
+  DWORD gle                   = 0;
+
+  if (func_addr != nullptr)
+  {
+    if (GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                             (LPCWSTR)func_addr, &hMod ))
+    {
+      if (GetModuleFileNameW (hMod, mod_path, MAX_PATH) == 0)
+        gle = GetLastError ();
+    }
+    else
+    {
+      gle = GetLastError ();
+    }
+  }
+  else
+  {
+    gle = ERROR_INVALID_PARAMETER;
+  }
+
+  FILE* f = nullptr;
+  _wfopen_s (&f, file_path, L"wb");
+
+  if (f == nullptr)
+    return;
+
+  fprintf (f, "entry=%s\n", entry != nullptr ? entry : "null");
+  fprintf (f, "pid=%lu\n", (unsigned long)GetCurrentProcessId ());
+  fprintf (f, "tid=%lu\n", (unsigned long)GetCurrentThreadId  ());
+  fprintf (f, "this=%p\n", this_ptr);
+  fprintf (f, "func=%p\n", func_addr);
+
+  if (mod_path [0] != L'\0')
+  {
+    char mod_path_utf8 [MAX_PATH * 4] = { };
+    WideCharToMultiByte (CP_UTF8, 0, mod_path, -1, mod_path_utf8,
+                         (int)sizeof (mod_path_utf8), nullptr, nullptr);
+    fprintf (f, "module_path=%s\n", mod_path_utf8);
+    fprintf (f, "gle=0\n");
+  }
+  else
+  {
+    fprintf (f, "module_path=<failed>\n");
+    fprintf (f, "gle=%lu\n", (unsigned long)gle);
+  }
+
+  fclose (f);
+}
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGISwap3_SetColorSpace1_Impl (
@@ -673,20 +740,97 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
-  auto append_tick = [](const wchar_t* name, const char* line) {
-    wchar_t path[MAX_PATH] = {};
-    GetTempPathW(MAX_PATH, path);
-    wcscat_s(path, name);
-    HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (h != INVALID_HANDLE_VALUE) {
-      DWORD n = 0;
-      WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
-      CloseHandle(h);
-    }
-  };
+  static LONG s_once_wrap_present = 0;
+  if (InterlockedCompareExchange (&s_once_wrap_present, 1, 0) == 0)
+    SK_DXGI_WriteHitFile ("wrap_present", (void *)this, (void *)&SK_DXGI_DispatchPresent);
 
-  static DWORD last = 0;
-  if (GetTickCount() - last >= 1000) { last = GetTickCount(); append_tick(L"sk_tick_dxgi_present.txt", "tick dxgi present\n"); }
+  static volatile LONG s_probe_once = 0;
+  if (InterlockedCompareExchange (&s_probe_once, 1, 0) == 0)
+  {
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wcscat_s (path, L"sk_dxgi_probe.txt");
+
+      FILE* f = nullptr;
+      _wfopen_s (&f, path, L"wb");
+
+      if (f != nullptr)
+      {
+        const DWORD pid = GetCurrentProcessId ();
+        void* this_ptr = (void *)this;
+
+        void** vtbl = nullptr;
+        __try
+        {
+          if (this_ptr != nullptr)
+            vtbl = *(void ***)this_ptr;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          vtbl = nullptr;
+        }
+
+        fprintf (f, "pid=%lu\n", (unsigned long)pid);
+        fprintf (f, "first_entry=Present\n");
+        fprintf (f, "swapchain=%p\n", this_ptr);
+        fprintf (f, "vtbl=%p\n", (void *)vtbl);
+
+        if (vtbl != nullptr)
+        {
+          for (int i = 0; i < 25; ++i)
+          {
+            void* fn = nullptr;
+            __try { fn = vtbl[i]; }
+            __except (EXCEPTION_EXECUTE_HANDLER) { fn = nullptr; }
+
+            fprintf (f, "vtbl[%02d]=%p\n", i, fn);
+          }
+        }
+        else
+        {
+          fprintf (f, "vtbl[00..24]=<unavailable>\n");
+        }
+
+        fprintf (f, "addr_dispatch_present=%p\n",  (void *)&SK_DXGI_DispatchPresent);
+        fprintf (f, "addr_dispatch_present1=%p\n", (void *)&SK_DXGI_DispatchPresent1);
+
+        fclose (f);
+      }
+    }
+  }
+
+  static ULONGLONG s_last = 0;
+  static LONG      s_hits = 0;
+  const LONG hits = InterlockedIncrement (&s_hits);
+
+  const ULONGLONG now = GetTickCount64 ();
+  if (now - s_last >= 1000)
+  {
+    s_last = now;
+
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wchar_t fname [64] = { };
+      wsprintfW (fname, L"sk_dxgi_present_tick_%lu.txt", (unsigned long)GetCurrentProcessId ());
+      wcscat_s  (path, fname);
+
+      FILE* f = nullptr;
+      _wfopen_s (&f, path, L"wb");
+      if (f != nullptr)
+      {
+        fprintf (f, "entry=Present\n");
+        fprintf (f, "hits=%ld\n", hits);
+        fprintf (f, "last_swapchain=%p\n", (void *)this);
+        fclose  (f);
+      }
+    }
+  }
 
   SK_GetCurrentRenderBackend ().in_present_call = true;
 
@@ -1577,7 +1721,95 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
                                UINT                     PresentFlags,
                          const DXGI_PRESENT_PARAMETERS *pPresentParameters )
 {
+  static LONG s_once_wrap_present1 = 0;
+  if (InterlockedCompareExchange (&s_once_wrap_present1, 1, 0) == 0)
+    SK_DXGI_WriteHitFile ("wrap_present1", (void *)this, (void *)&SK_DXGI_DispatchPresent1);
+
   assert (ver_ >= 1);
+
+  static volatile LONG __sk_dxgi_probe_once = 0;
+  if (InterlockedCompareExchange (&__sk_dxgi_probe_once, 1, 0) == 0)
+  {
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wcscat_s (path, L"sk_dxgi_probe.txt");
+
+      FILE* f = nullptr;
+      _wfopen_s (&f, path, L"w+, ccs=UTF-8");
+
+      if (f != nullptr)
+      {
+        void* this_ptr = (void*)this;
+
+        void** vtbl = nullptr;
+        __try
+        {
+          if (this_ptr != nullptr)
+            vtbl = *(void***)this_ptr;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          vtbl = nullptr;
+        }
+
+        fwprintf (f, L"This=%p\n", this_ptr);
+        fwprintf (f, L"Vtbl=%p\n", vtbl);
+
+        bool present_detour_found  = false;
+        bool present1_detour_found = false;
+
+        auto __sk_present_probe =
+          +[](IDXGISwapChain* pSwapChain, UINT si, UINT fl) -> HRESULT
+        {
+          return ((IWrapDXGISwapChain*)pSwapChain)->Present (si, fl);
+        };
+
+        auto __sk_present1_probe =
+          +[](IDXGISwapChain1* pSwapChain, UINT si, UINT fl, const DXGI_PRESENT_PARAMETERS* p) -> HRESULT
+        {
+          return ((IWrapDXGISwapChain*)pSwapChain)->Present1 (si, fl, p);
+        };
+
+        void* present_probe  = (void*)(__sk_present_probe);
+        void* present1_probe = (void*)(__sk_present1_probe);
+
+        if (vtbl != nullptr)
+        {
+          for (int i = 0; i < 25; ++i)
+          {
+            void* fn = nullptr;
+            __try
+            {
+              fn = vtbl[i];
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+              fn = nullptr;
+            }
+
+            fwprintf (f, L"vtbl[%02d]=%p\n", i, fn);
+
+            if (fn == present_probe)
+              present_detour_found = true;
+            if (fn == present1_probe)
+              present1_detour_found = true;
+          }
+        }
+        else
+        {
+          fwprintf (f, L"vtbl[00..24]=<unavailable>\n");
+        }
+
+        fwprintf (f, L"PresentPatched=%s\n",  present_detour_found  ? L"YES" : L"NO");
+        fwprintf (f, L"Present1Patched=%s\n", present1_detour_found ? L"YES" : L"NO");
+
+        fclose (f);
+      }
+    }
+  }
 
   auto append_tick = [](const wchar_t* name, const char* line) {
     wchar_t path[MAX_PATH] = {};

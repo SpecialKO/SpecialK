@@ -838,6 +838,38 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_DETACH:
     {
+      {
+        const DWORD pid = GetCurrentProcessId ();
+
+        wchar_t wszTempPath [MAX_PATH] = { };
+        wchar_t wszFilePath [MAX_PATH] = { };
+
+        const DWORD cchTemp =
+          GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+        if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+        {
+          wsprintfW (wszFilePath, L"%ssk_detach.txt", wszTempPath);
+
+          HANDLE hFile =
+            CreateFileW ( wszFilePath, FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                          nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            wchar_t wszLine [128] = { };
+            wsprintfW ( wszLine, L"detach pid=%lu reserved=%d\n",
+                        (unsigned long)pid, lpReserved != nullptr ? 1 : 0 );
+
+            DWORD cbWritten = 0;
+            const DWORD cch = (DWORD)lstrlenW (wszLine);
+            WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
+            CloseHandle (hFile);
+          }
+        }
+      }
+
       bool bAttached =
         SK_DLL_IsAttached ();
 

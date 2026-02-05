@@ -62,6 +62,70 @@ BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC  = { };
 DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1 = { };
 
+static void SK_DXGI_WriteDetourHitMarker (const wchar_t* wszEventName, void* pSwapChainThis, void* pDetourFn)
+{
+  if (wszEventName == nullptr || *wszEventName == L'\0')
+    return;
+
+  wchar_t wszTempPath [MAX_PATH] = { };
+  const DWORD cchTemp = GetTempPathW ((DWORD)_countof (wszTempPath), wszTempPath);
+  if (cchTemp == 0 || cchTemp >= (DWORD)_countof (wszTempPath))
+    return;
+
+  wchar_t wszPath [MAX_PATH] = { };
+  wsprintfW ( wszPath,
+                L"%ssk_dxgi_detour_hit_%lu_%s.txt",
+                  wszTempPath,
+                    (unsigned long)GetCurrentProcessId (),
+                      wszEventName );
+
+  HANDLE hFile =
+    CreateFileW ( wszPath,
+                    GENERIC_WRITE,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                        nullptr,
+                          CREATE_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                              nullptr );
+
+  if (hFile == INVALID_HANDLE_VALUE)
+    return;
+
+  const DWORD pid = GetCurrentProcessId ();
+  const DWORD tid = GetCurrentThreadId  ();
+
+  DWORD mod_gle = 0;
+  wchar_t wszModPath [MAX_PATH] = { };
+  HMODULE hMod = nullptr;
+  if (!GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                              (LPCWSTR)pDetourFn, &hMod))
+  {
+    mod_gle = GetLastError ();
+  }
+  else
+  {
+    if (0 == GetModuleFileNameW (hMod, wszModPath, (DWORD)_countof (wszModPath)))
+      mod_gle = GetLastError ();
+  }
+
+  wchar_t wszLine [2048] = { };
+  wsprintfW (
+    wszLine,
+    L"pid=%lu tid=%lu swapchain_this=0x%p detour_fn=0x%p module_path=%s module_gle=%lu\r\n",
+    (unsigned long)pid,
+    (unsigned long)tid,
+    pSwapChainThis,
+    pDetourFn,
+    (wszModPath [0] != L'\0') ? wszModPath : L"<unresolved>",
+    (unsigned long)mod_gle
+  );
+
+  DWORD cbWritten = 0;
+  WriteFile (hFile, wszLine, (DWORD)(lstrlenW (wszLine) * sizeof (wchar_t)), &cbWritten, nullptr);
+  CloseHandle (hFile);
+}
+
 int SK_DXGI_HighestFactorySupported = -1;
 
 #include <../depends/include/DirectXTex/d3dx12.h>
@@ -3679,6 +3743,12 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                                     UINT            SyncInterval,
                                     UINT            Flags )
 {
+  static bool _sk_dxgi_present_detour_hit = false;
+  if (! std::exchange (_sk_dxgi_present_detour_hit, true))
+  {
+    SK_DXGI_WriteDetourHitMarker (L"Present", This, (void*)&PresentCallback);
+  }
+
   SK_GetCurrentRenderBackend ().in_present_call = true;
 
   return

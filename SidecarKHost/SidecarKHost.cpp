@@ -211,6 +211,75 @@ static HWND FindTopLevelWindowForPid(DWORD pid)
   return ctx.best;
 }
 
+static void WriteWindowProofOnceForPid(DWORD pid, HWND hwnd)
+{
+  static std::atomic<DWORD> s_logged_pid{ 0 };
+  const DWORD expected = 0;
+  if (!s_logged_pid.compare_exchange_strong(const_cast<DWORD&>(expected), pid))
+  {
+    if (s_logged_pid.load() == pid)
+      return;
+  }
+
+  wchar_t wszTempPath[MAX_PATH]{};
+  DWORD cchTemp = GetTempPathW((DWORD)_countof(wszTempPath), wszTempPath);
+  if (cchTemp == 0 || cchTemp >= (DWORD)_countof(wszTempPath))
+    return;
+
+  if (cchTemp > 0 && wszTempPath[cchTemp - 1] != L'\\')
+  {
+    if (cchTemp + 1 >= (DWORD)_countof(wszTempPath))
+      return;
+    wszTempPath[cchTemp] = L'\\';
+    wszTempPath[cchTemp + 1] = L'\0';
+  }
+
+  wchar_t wszPath[MAX_PATH]{};
+  wsprintfW(wszPath, L"%ssidecark_host_window_%lu.txt", wszTempPath, (unsigned long)pid);
+
+  HANDLE hFile = CreateFileW(
+    wszPath,
+    GENERIC_WRITE,
+    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+    nullptr,
+    CREATE_ALWAYS,
+    FILE_ATTRIBUTE_NORMAL,
+    nullptr);
+
+  if (hFile == INVALID_HANDLE_VALUE)
+    return;
+
+  wchar_t title[512]{};
+  RECT rc{ 0,0,0,0 };
+
+  if (hwnd != nullptr)
+  {
+    GetWindowTextW(hwnd, title, (int)_countof(title));
+    GetWindowRect(hwnd, &rc);
+  }
+
+  wchar_t line[2048]{};
+  if (hwnd != nullptr)
+  {
+    swprintf(line, _countof(line),
+      L"pid=%lu hwnd=0x%p title=%ls rect=%ld,%ld,%ld,%ld\r\n",
+      (unsigned long)pid,
+      hwnd,
+      title,
+      (long)rc.left, (long)rc.top, (long)rc.right, (long)rc.bottom);
+  }
+  else
+  {
+    swprintf(line, _countof(line),
+      L"pid=%lu no_top_level_window=1\r\n",
+      (unsigned long)pid);
+  }
+
+  DWORD cbWritten = 0;
+  WriteFile(hFile, line, (DWORD)wcslen(line) * sizeof(wchar_t), &cbWritten, nullptr);
+  CloseHandle(hFile);
+}
+
 static bool GetCloakedState(HWND hwnd, BOOL& outCloaked)
 {
   outCloaked = FALSE;
@@ -963,7 +1032,9 @@ static void LogModuleCheckSpecialK32Delayed(const std::wstring& logPath, DWORD p
   {
     const DWORD gle = GetLastError();
     wchar_t msg[256]{};
-    swprintf(msg, _countof(msg), L"module_check_delayed snapshot_fail gle=%lu", (unsigned long)gle);
+    swprintf(msg, _countof(msg), L"module_check_delayed snapshot_fail pid=%lu gle=%lu",
+      (unsigned long)pid,
+      (unsigned long)gle);
     AppendLog(logPath, msg);
     HostLogAppend(msg);
     return;
@@ -983,12 +1054,26 @@ static void LogModuleCheckSpecialK32Delayed(const std::wstring& logPath, DWORD p
       }
     } while (Module32NextW(snap, &me));
   }
+  else
+  {
+    const DWORD gle = GetLastError();
+    CloseHandle(snap);
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"module_check_delayed enum_fail pid=%lu gle=%lu",
+      (unsigned long)pid,
+      (unsigned long)gle);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+    return;
+  }
 
   CloseHandle(snap);
 
   {
     wchar_t msg[256]{};
-    swprintf(msg, _countof(msg), L"module_check_delayed found_specialk32=%d", found ? 1 : 0);
+    swprintf(msg, _countof(msg), L"module_check_delayed pid=%lu found_specialk32=%d",
+      (unsigned long)pid,
+      found ? 1 : 0);
     AppendLog(logPath, msg);
     HostLogAppend(msg);
   }
@@ -1446,6 +1531,8 @@ int wmain(int argc, wchar_t** argv)
       gateSeenD3d11 ? 1 : 0,
       gateSeenOpenGL ? 1 : 0,
       gateFallbackUsed ? 1 : 0);
+
+    WriteWindowProofOnceForPid(targetPid, gateHwnd);
 
     // Deterministic selection log (after PID choice)
     LogTargetSelected(logPath, targetPid, Basename(waitExe));
