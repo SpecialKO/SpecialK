@@ -270,6 +270,21 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS *pPr
 
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion)
 {
+  auto append_tick = [](const wchar_t* name, const char* line) {
+    wchar_t path[MAX_PATH] = {};
+    GetTempPathW(MAX_PATH, path);
+    wcscat_s(path, name);
+    HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h != INVALID_HANDLE_VALUE) {
+      DWORD n = 0;
+      WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
+      CloseHandle(h);
+    }
+  };
+
+  static DWORD last = 0;
+  if (GetTickCount() - last >= 1000) { last = GetTickCount(); append_tick(L"sk_tick_d3d9_present.txt", "tick d3d9 present\n"); }
+
   SK_ComPtr <IDirect3DSwapChain9> pSwapChain;
   pReal->GetSwapChain (0,        &pSwapChain.p);
 

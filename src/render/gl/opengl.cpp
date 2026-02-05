@@ -3066,6 +3066,34 @@ wglSwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
 
+  static DWORD last = 0;
+  if (GetTickCount () - last >= 1000)
+  {
+    last = GetTickCount ();
+    wchar_t wszPath [MAX_PATH] = { };
+    if (GetTempPathW (MAX_PATH, wszPath) > 0)
+    {
+      lstrcatW (wszPath, L"sk_tick_gl_swap.txt");
+
+      HANDLE hFile =
+        CreateFileW ( wszPath,
+                        FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr,
+                        OPEN_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL,
+                        nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        static const char szLine [] = "tick gl swap\n";
+        DWORD             dwWritten = 0;
+        WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
+        CloseHandle (hFile);
+      }
+    }
+  }
+
   SK_LOG1 ( ( L"[%x (tid=%04x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
               L" OpenGL32 " );
 
@@ -3117,6 +3145,21 @@ WINAPI
 SwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
+
+  auto append_tick = [](const wchar_t* name, const char* line) {
+    wchar_t path[MAX_PATH] = {};
+    GetTempPathW(MAX_PATH, path);
+    wcscat_s(path, name);
+    HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h != INVALID_HANDLE_VALUE) {
+      DWORD n = 0;
+      WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
+      CloseHandle(h);
+    }
+  };
+
+  static DWORD last = 0;
+  if (GetTickCount() - last >= 1000) { last = GetTickCount(); append_tick(L"sk_tick_gl_swap.txt", "tick gl swap\n"); }
 
   SK_LOG1 ( ( L"[%x (tid=%04x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
               L" OpenGL32 " );

@@ -600,7 +600,9 @@ DllMain ( HMODULE hModule,
           DWORD   ul_reason_for_call,
           LPVOID  lpReserved )
 {
-  UNREFERENCED_PARAMETER (lpReserved);
+  static wchar_t __sk_attach_module_path[MAX_PATH] = { };
+
+  (void)lpReserved;
 
   switch (ul_reason_for_call)
   {
@@ -613,6 +615,49 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
+      GetModuleFileNameW (hModule, __sk_attach_module_path, MAX_PATH);
+
+      CreateThread (
+        nullptr, 0,
+        [](LPVOID) -> DWORD
+        {
+          Sleep (5000);
+
+          const DWORD pid = GetCurrentProcessId ();
+
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFilePath [MAX_PATH] = { };
+
+          const DWORD cchTemp =
+            GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+          if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+          {
+            wsprintfW (wszFilePath, L"%ssk_alive.txt", wszTempPath);
+
+            HANDLE hFile =
+              CreateFileW ( wszFilePath, FILE_APPEND_DATA,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                            nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+            if (hFile != INVALID_HANDLE_VALUE)
+            {
+              wchar_t wszLine [MAX_PATH * 2] = { };
+              wsprintfW ( wszLine, L"alive pid=%lu module=%s\n",
+                          (unsigned long)pid, __sk_attach_module_path );
+
+              DWORD cbWritten = 0;
+              const DWORD cch = (DWORD)lstrlenW (wszLine);
+              WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
+              CloseHandle (hFile);
+            }
+          }
+
+          return 0;
+        },
+        nullptr, 0, nullptr
+      );
+
       {
         static LONG once = 0;
         if (InterlockedCompareExchange (&once, 1, 0) == 0)
@@ -1496,6 +1541,30 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         SK_StageTraceW (L"04r03_return_local_wrapper_first");
         return
           SK_DontInject ();
+      }
+
+      {
+        auto append_tick = [](const wchar_t* name, const char* line) {
+          wchar_t path[MAX_PATH] = {};
+          GetTempPathW(MAX_PATH, path);
+          wcscat_s(path, name);
+          HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+          if (h != INVALID_HANDLE_VALUE) {
+            DWORD n = 0;
+            WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
+            CloseHandle(h);
+          }
+        };
+
+        char line[400] = {};
+        _snprintf_s(
+          line, _countof(line), _TRUNCATE,
+          "self=%ls short=%ls role=0x%X injected=%d\n",
+          wszSelfTitledDLL ? wszSelfTitledDLL : L"(null)",
+          wszShort ? wszShort : L"(null)",
+          (unsigned)SK_GetDLLRole(),
+          SK_IsInjected() ? 1 : 0);
+        append_tick(L"sk_identity.txt", line);
       }
 
 

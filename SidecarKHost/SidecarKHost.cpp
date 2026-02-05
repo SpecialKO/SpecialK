@@ -9,6 +9,331 @@
 #include <tuple>
 #include <vector>
 
+#include <dwmapi.h>
+
+static bool HasModule(DWORD pid, const wchar_t* basename)
+{
+  if (pid == 0 || basename == nullptr || *basename == L'\0')
+    return false;
+
+  HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid);
+  if (snap == INVALID_HANDLE_VALUE)
+    return false;
+
+  MODULEENTRY32W me{};
+  me.dwSize = sizeof(me);
+
+  bool found = false;
+  if (Module32FirstW(snap, &me))
+  {
+    do {
+      const wchar_t* mod = me.szModule;
+      if (mod == nullptr) mod = L"";
+
+      const wchar_t* b = mod;
+      for (const wchar_t* p = mod; *p; ++p)
+      {
+        if (*p == L'\\' || *p == L'/')
+          b = p + 1;
+      }
+
+      if (_wcsicmp(b, basename) == 0)
+      {
+        found = true;
+        break;
+      }
+    } while (Module32NextW(snap, &me));
+  }
+
+  CloseHandle(snap);
+  return found;
+}
+
+static std::wstring DirnameOfPath(const std::wstring& path)
+{
+  auto slash = path.find_last_of(L"\\/");
+  return (slash == std::wstring::npos) ? L"." : path.substr(0, slash);
+}
+
+static void LogTargetGraphicsSnapshot(DWORD pid, const std::wstring& targetExeFullPath)
+{
+  const int dxgi   = HasModule(pid, L"dxgi.dll")        ? 1 : 0;
+  const int d3d11  = HasModule(pid, L"d3d11.dll")       ? 1 : 0;
+  const int d3d9   = HasModule(pid, L"d3d9.dll")        ? 1 : 0;
+  const int d3d12  = HasModule(pid, L"d3d12.dll")       ? 1 : 0;
+  const int opengl = HasModule(pid, L"opengl32.dll")    ? 1 : 0;
+  const int vulkan = HasModule(pid, L"vulkan-1.dll")    ? 1 : 0;
+
+  const std::wstring dir = DirnameOfPath(targetExeFullPath);
+
+  auto _ExistsInDir = [&](const wchar_t* base) -> int
+  {
+    std::wstring p = dir;
+    if (!p.empty() && p.back() != L'\\') p += L"\\";
+    p += base;
+    return (GetFileAttributesW(p.c_str()) != INVALID_FILE_ATTRIBUTES) ? 1 : 0;
+  };
+
+  const int local_opengl32 = _ExistsInDir(L"opengl32.dll");
+  const int local_dxgi     = _ExistsInDir(L"dxgi.dll");
+  const int local_d3d11    = _ExistsInDir(L"d3d11.dll");
+  const int local_d3d9     = _ExistsInDir(L"d3d9.dll");
+  const int local_dinput8  = _ExistsInDir(L"dinput8.dll");
+
+  wchar_t msg[512]{};
+  swprintf(msg, _countof(msg),
+    L"target_gfx pid=%lu dxgi=%d d3d11=%d d3d9=%d d3d12=%d opengl32=%d vulkan=%d local_opengl32=%d local_dxgi=%d local_d3d11=%d local_d3d9=%d local_dinput8=%d",
+    (unsigned long)pid,
+    dxgi, d3d11, d3d9, d3d12, opengl, vulkan,
+    local_opengl32, local_dxgi, local_d3d11, local_d3d9, local_dinput8);
+
+  if (*msg)
+  {
+    const DWORD hostPid = GetCurrentProcessId();
+
+    wchar_t wszTempPath[MAX_PATH]{};
+    DWORD cchTemp = GetTempPathW((DWORD)_countof(wszTempPath), wszTempPath);
+    if (cchTemp != 0 && cchTemp < (DWORD)_countof(wszTempPath))
+    {
+      if (cchTemp > 0 && wszTempPath[cchTemp - 1] != L'\\')
+      {
+        if (cchTemp + 1 < (DWORD)_countof(wszTempPath))
+        {
+          wszTempPath[cchTemp] = L'\\';
+          wszTempPath[cchTemp + 1] = L'\0';
+        }
+      }
+
+      wchar_t wszPath[MAX_PATH]{};
+      wsprintfW(wszPath, L"%ssidecarkhost_log_%lu.txt", wszTempPath, (unsigned long)hostPid);
+
+      HANDLE hFile = CreateFileW(
+        wszPath,
+        FILE_APPEND_DATA,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        nullptr,
+        OPEN_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr);
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        const DWORD cch = (DWORD)lstrlenW(msg);
+        DWORD cbWritten = 0;
+        WriteFile(hFile, msg, cch * sizeof(wchar_t), &cbWritten, nullptr);
+        WriteFile(hFile, L"\r\n", 2 * sizeof(wchar_t), &cbWritten, nullptr);
+        CloseHandle(hFile);
+      }
+    }
+  }
+}
+
+
+static std::wstring GetDirname(const std::wstring& path)
+{
+  auto slash = path.find_last_of(L"\\/");
+  return (slash == std::wstring::npos) ? L"." : path.substr(0, slash);
+}
+
+static HRESULT (WINAPI* pDwmGetWindowAttribute)(HWND, DWORD, PVOID, DWORD) = nullptr;
+
+static void EnsureDwmGetWindowAttribute()
+{
+  if (pDwmGetWindowAttribute != nullptr)
+    return;
+
+  HMODULE h = LoadLibraryW(L"dwmapi.dll");
+  if (h == nullptr)
+    return;
+
+  pDwmGetWindowAttribute = reinterpret_cast<HRESULT(WINAPI*)(HWND, DWORD, PVOID, DWORD)>(
+    GetProcAddress(h, "DwmGetWindowAttribute"));
+}
+
+struct WaitGateEnumCtx
+{
+  DWORD pid = 0;
+  HWND best = nullptr;
+};
+
+static BOOL CALLBACK EnumWindowsFindTopLevelForPid(HWND hwnd, LPARAM lParam)
+{
+  auto* ctx = reinterpret_cast<WaitGateEnumCtx*>(lParam);
+  if (!ctx || ctx->pid == 0)
+    return TRUE;
+
+  DWORD wpid = 0;
+  GetWindowThreadProcessId(hwnd, &wpid);
+  if (wpid != ctx->pid)
+    return TRUE;
+
+  if (GetWindow(hwnd, GW_OWNER) != nullptr)
+    return TRUE;
+
+  const LONG_PTR style = GetWindowLongPtrW(hwnd, GWL_STYLE);
+  if (style & WS_CHILD)
+    return TRUE;
+
+  auto IsUncloakedVisible = [&](HWND w) -> bool
+  {
+    if (!IsWindowVisible(w))
+      return false;
+
+    BOOL cloaked = FALSE;
+    EnsureDwmGetWindowAttribute();
+    if (pDwmGetWindowAttribute != nullptr)
+    {
+      HRESULT hr = pDwmGetWindowAttribute(w, DWMWA_CLOAKED, &cloaked, sizeof(cloaked));
+      if (FAILED(hr))
+        cloaked = FALSE;
+    }
+
+    return cloaked == FALSE;
+  };
+
+  if (ctx->best == nullptr)
+  {
+    ctx->best = hwnd;
+    return TRUE;
+  }
+
+  if (IsUncloakedVisible(hwnd) && !IsUncloakedVisible(ctx->best))
+    ctx->best = hwnd;
+
+  return TRUE;
+}
+
+static HWND FindTopLevelWindowForPid(DWORD pid)
+{
+  WaitGateEnumCtx ctx{};
+  ctx.pid = pid;
+  EnumWindows(EnumWindowsFindTopLevelForPid, (LPARAM)&ctx);
+  return ctx.best;
+}
+
+static bool GetCloakedState(HWND hwnd, BOOL& outCloaked)
+{
+  outCloaked = FALSE;
+  if (!hwnd)
+    return false;
+
+  EnsureDwmGetWindowAttribute();
+  if (pDwmGetWindowAttribute == nullptr)
+    return false;
+
+  HRESULT hr = pDwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &outCloaked, sizeof(outCloaked));
+  if (FAILED(hr))
+  {
+    outCloaked = FALSE;
+    return false;
+  }
+
+  return true;
+}
+
+static std::wstring GetRundllPath(bool is64)
+{
+  wchar_t wszRoot[MAX_PATH]{};
+  const UINT cch = GetWindowsDirectoryW(wszRoot, (UINT)_countof(wszRoot));
+  if (cch == 0 || cch >= (UINT)_countof(wszRoot))
+    return L"";
+
+  std::wstring p(wszRoot);
+  if (!p.empty() && p.back() != L'\\')
+    p += L"\\";
+
+  if (is64)
+    p += L"System32\\rundll32.exe";
+  else
+    p += L"SysWOW64\\rundll32.exe";
+
+  return p;
+}
+
+static bool RunRundll(bool is64, const std::wstring& specialkDllFullPath, const wchar_t* verb, bool wait)
+{
+  const std::wstring rundll = GetRundllPath(is64);
+  if (rundll.empty() || specialkDllFullPath.empty() || verb == nullptr || *verb == L'\0')
+    return false;
+
+  std::wstring cmd;
+  cmd.reserve(rundll.size() + specialkDllFullPath.size() + 64);
+  cmd += L"\"";
+  cmd += rundll;
+  cmd += L"\" \"";
+  cmd += specialkDllFullPath;
+  cmd += L"\",RunDLL_InjectionManager ";
+  cmd += verb;
+
+  std::wstring cwd = GetDirname(specialkDllFullPath);
+
+  STARTUPINFOW si{};
+  si.cb = sizeof(si);
+
+  PROCESS_INFORMATION pi{};
+
+  std::vector<wchar_t> cmdline(cmd.begin(), cmd.end());
+  cmdline.push_back(L'\0');
+
+  const BOOL ok = CreateProcessW(
+    nullptr,
+    cmdline.data(),
+    nullptr,
+    nullptr,
+    FALSE,
+    0,
+    nullptr,
+    cwd.c_str(),
+    &si,
+    &pi);
+
+  if (!ok)
+    return false;
+
+  if (wait)
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+  CloseHandle(pi.hThread);
+  CloseHandle(pi.hProcess);
+  return true;
+}
+
+static bool WaitForModuleLoaded(DWORD pid, const wchar_t* moduleBasename, DWORD timeoutMs)
+{
+  if (pid == 0 || moduleBasename == nullptr || *moduleBasename == L'\0')
+    return false;
+
+  const ULONGLONG start = GetTickCount64();
+
+  while (true)
+  {
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid);
+    if (snap != INVALID_HANDLE_VALUE)
+    {
+      MODULEENTRY32W me{};
+      me.dwSize = sizeof(me);
+
+      if (Module32FirstW(snap, &me))
+      {
+        do {
+          if (_wcsicmp(me.szModule, moduleBasename) == 0)
+          {
+            CloseHandle(snap);
+            return true;
+          }
+        } while (Module32NextW(snap, &me));
+      }
+
+      CloseHandle(snap);
+    }
+
+    if (GetTickCount64() - start >= timeoutMs)
+      return false;
+
+    Sleep(50);
+  }
+}
+
 
 static std::atomic_bool g_shutdown{ false };
 static bool g_frame_source_seen = false;
@@ -66,6 +391,19 @@ static std::vector<uint8_t> g_staging;
 
 static void AppendLog(const std::wstring& logPath, const wchar_t* msg);
 
+static void AppendLogf(const std::wstring& logPath, const wchar_t* fmt, ...)
+{
+  if (fmt == nullptr)
+    return;
+
+  wchar_t buf[2048]{};
+  va_list args;
+  va_start(args, fmt);
+  _vsnwprintf_s(buf, _countof(buf), _TRUNCATE, fmt, args);
+  va_end(args);
+  AppendLog(logPath, buf);
+}
+
 static void HostLogAppend(const wchar_t* line)
 {
   if (!line || !*line) return;
@@ -111,6 +449,19 @@ static void HostLogAppend(const wchar_t* line)
 static void HostLogAppendMilestone(const wchar_t* line)
 {
   HostLogAppend(line);
+}
+
+static void HostLogAppendf(const wchar_t* fmt, ...)
+{
+  if (fmt == nullptr)
+    return;
+
+  wchar_t buf[2048]{};
+  va_list args;
+  va_start(args, fmt);
+  _vsnwprintf_s(buf, _countof(buf), _TRUNCATE, fmt, args);
+  va_end(args);
+  HostLogAppend(buf);
 }
 
 static bool ReadBGRAAt(const uint8_t* base_ptr,
@@ -463,12 +814,18 @@ static InjectResult InjectDllByCreateRemoteThread(DWORD pid, const std::wstring&
     pid);
 
   if (!hProcess)
+  {
+    const DWORD gle = GetLastError();
+    HostLogAppendf(L"inject fail: OpenProcess gle=%lu (0x%08lX)", (unsigned long)gle, (unsigned long)gle);
     return InjectResult::Fail;
+  }
 
   const size_t cb = (dllPath.size() + 1) * sizeof(wchar_t);
   void* remoteMem = VirtualAllocEx(hProcess, nullptr, cb, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
   if (!remoteMem)
   {
+    const DWORD gle = GetLastError();
+    HostLogAppendf(L"inject fail: VirtualAllocEx gle=%lu (0x%08lX)", (unsigned long)gle, (unsigned long)gle);
     CloseHandle(hProcess);
     return InjectResult::Fail;
   }
@@ -476,6 +833,7 @@ static InjectResult InjectDllByCreateRemoteThread(DWORD pid, const std::wstring&
   if (!WriteProcessMemory(hProcess, remoteMem, dllPath.c_str(), cb, nullptr))
   {
     DWORD le = GetLastError();
+    HostLogAppendf(L"inject fail: WriteProcessMemory gle=%lu (0x%08lX)", (unsigned long)le, (unsigned long)le);
     VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
     CloseHandle(hProcess);
     SetLastError(le);
@@ -487,6 +845,7 @@ static InjectResult InjectDllByCreateRemoteThread(DWORD pid, const std::wstring&
   if (!pLoadLibraryW)
   {
     DWORD le = GetLastError();
+    HostLogAppendf(L"inject fail: GetProcAddress(LoadLibraryW) gle=%lu (0x%08lX)", (unsigned long)le, (unsigned long)le);
     VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
     CloseHandle(hProcess);
     SetLastError(le ? le : ERROR_PROC_NOT_FOUND);
@@ -505,6 +864,7 @@ static InjectResult InjectDllByCreateRemoteThread(DWORD pid, const std::wstring&
   if (!hThread)
   {
     DWORD le = GetLastError();
+    HostLogAppendf(L"inject fail: CreateRemoteThread gle=%lu (0x%08lX)", (unsigned long)le, (unsigned long)le);
     VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
     CloseHandle(hProcess);
     SetLastError(le);
@@ -521,7 +881,11 @@ static InjectResult InjectDllByCreateRemoteThread(DWORD pid, const std::wstring&
   CloseHandle(hProcess);
 
   if (!haveExit)
+  {
+    const DWORD gle = GetLastError();
+    HostLogAppendf(L"inject fail: GetExitCodeThread gle=%lu (0x%08lX)", (unsigned long)gle, (unsigned long)gle);
     return InjectResult::Fail;
+  }
 
   if (remoteExit == 0)
   {
@@ -587,6 +951,46 @@ static void LogModuleCheckSpecialK32(const std::wstring& logPath, DWORD pid)
   {
     AppendLog(logPath, L"specialk32_disk_mtime ft=unavailable");
     HostLogAppend(L"specialk32_disk_mtime ft=unavailable");
+  }
+}
+
+static void LogModuleCheckSpecialK32Delayed(const std::wstring& logPath, DWORD pid)
+{
+  Sleep(3000);
+
+  HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid);
+  if (snap == INVALID_HANDLE_VALUE)
+  {
+    const DWORD gle = GetLastError();
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"module_check_delayed snapshot_fail gle=%lu", (unsigned long)gle);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
+    return;
+  }
+
+  MODULEENTRY32W me{};
+  me.dwSize = sizeof(me);
+
+  bool found = false;
+  if (Module32FirstW(snap, &me))
+  {
+    do {
+      if (_wcsicmp(me.szModule, L"SpecialK32.dll") == 0)
+      {
+        found = true;
+        break;
+      }
+    } while (Module32NextW(snap, &me));
+  }
+
+  CloseHandle(snap);
+
+  {
+    wchar_t msg[256]{};
+    swprintf(msg, _countof(msg), L"module_check_delayed found_specialk32=%d", found ? 1 : 0);
+    AppendLog(logPath, msg);
+    HostLogAppend(msg);
   }
 }
 
@@ -778,6 +1182,15 @@ int wmain(int argc, wchar_t** argv)
   WriteStatusAtomic(statusPath, L"starting", 0, L"none");
   SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
 
+  {
+    wchar_t exePath[MAX_PATH]{};
+    GetModuleFileNameW(nullptr, exePath, (DWORD)_countof(exePath));
+    AppendLogf(logPath, L"build_stamp exe_path=%ls pid=%lu compiled=%hs %hs",
+      exePath,
+      (unsigned long)GetCurrentProcessId(),
+      __DATE__, __TIME__);
+  }
+
 
   // ---- Determine target PID (no injection here) ----
   DWORD targetPid = 0;
@@ -786,6 +1199,81 @@ int wmain(int argc, wchar_t** argv)
   const std::wstring attachExe = ArgValue(argc, argv, L"--attach-exe");
   const std::wstring waitExe = ArgValue(argc, argv, L"--wait-for-exe");
   const std::wstring timeoutStr = ArgValue(argc, argv, L"--timeout-ms");
+  const bool forceLate = HasFlag(argc, argv, L"--force-late");
+  std::wstring injectRequested = ArgValue(argc, argv, L"--inject");
+  const wchar_t* injectSource = L"argv";
+  if (injectRequested.empty())
+  {
+    injectRequested = L"remote";
+    injectSource = L"default";
+  }
+
+  const bool waitForExeMode = (!waitExe.empty());
+
+  std::wstring injectMode = injectRequested;
+  if (waitForExeMode)
+  {
+    if (_wcsicmp(injectRequested.c_str(), L"rundll") == 0)
+    {
+      AppendLog(logPath, L"WARN wait_for_exe_forces_remote: rundll hookchain is experimental/incompatible for this title; using remote injection with window gate.");
+      HostLogAppend(L"WARN wait_for_exe_forces_remote: rundll hookchain is experimental/incompatible for this title; using remote injection with window gate.");
+    }
+
+    injectMode = L"remote";
+  }
+
+  const bool injectRemote = (_wcsicmp(injectMode.c_str(), L"remote") == 0);
+  const bool injectRundll = (_wcsicmp(injectMode.c_str(), L"rundll") == 0);
+  if (!injectRemote && !injectRundll)
+  {
+    AppendLog(logPath, L"error: invalid --inject (expected remote|rundll)");
+    HostLogAppend(L"error: invalid --inject (expected remote|rundll)");
+    WriteStatusAtomic(statusPath, L"error", 0, L"attach_failed");
+    return ATTACH_FAILED;
+  }
+
+  const wchar_t* attachMode = attachPidStr.empty() ? (attachExe.empty() ? L"wait-for-exe" : L"attach-exe") : L"attach-pid";
+  const std::wstring attachExeForLog = attachPidStr.empty() ? (attachExe.empty() ? Basename(waitExe) : Basename(attachExe)) : L"";
+  const std::wstring specialkForLog = exeDir + L"\\SpecialK32.dll";
+  const bool is64ForLog = (_wcsicmp(Basename(specialkForLog).c_str(), L"SpecialK64.dll") == 0);
+
+  AppendLogf(logPath,
+    L"startup inject_requested=%ls inject_mode=%ls inject_source=%ls attach_mode=%ls pid=%lu exe=%ls specialk=%ls is64=%d",
+    injectRequested.c_str(),
+    injectMode.c_str(),
+    injectSource,
+    attachMode,
+    (unsigned long)0,
+    attachExeForLog.c_str(),
+    specialkForLog.c_str(),
+    is64ForLog ? 1 : 0);
+  HostLogAppendf(
+    L"startup inject_requested=%ls inject_mode=%ls inject_source=%ls attach_mode=%ls pid=%lu exe=%ls specialk=%ls is64=%d",
+    injectRequested.c_str(),
+    injectMode.c_str(),
+    injectSource,
+    attachMode,
+    (unsigned long)0,
+    attachExeForLog.c_str(),
+    specialkForLog.c_str(),
+    is64ForLog ? 1 : 0);
+
+  if (injectRundll)
+  {
+    if (_wcsicmp(attachMode, L"wait-for-exe") != 0)
+    {
+      if (!forceLate)
+      {
+        AppendLog(logPath, L"ERROR rundll_requires_prelaunch_workflow: use --wait-for-exe and start the host BEFORE launching the game.");
+        HostLogAppend(L"ERROR rundll_requires_prelaunch_workflow: use --wait-for-exe and start the host BEFORE launching the game.");
+        WriteStatusAtomic(statusPath, L"error", 0, L"attach_failed");
+        return ATTACH_FAILED;
+      }
+
+      AppendLog(logPath, L"WARN rundll_late_attach_best_effort: nondeterministic for already-running processes; may never inject.");
+      HostLogAppend(L"WARN rundll_late_attach_best_effort: nondeterministic for already-running processes; may never inject.");
+    }
+  }
 
   int modeCount = 0;
   if (!attachPidStr.empty()) modeCount++;
@@ -849,6 +1337,116 @@ int wmain(int argc, wchar_t** argv)
       Sleep(200);
     }
 
+    AppendLogf(logPath, L"wait_gate_pid pid=%lu exe=%ls", (unsigned long)targetPid, name.c_str());
+    HostLogAppendf(L"wait_gate_pid pid=%lu exe=%ls", (unsigned long)targetPid, name.c_str());
+
+    static constexpr DWORD POLL_MS = 100;
+    static constexpr DWORD LOG_RATE_MS = 200;
+
+    const ULONGLONG gateStartMs = GetTickCount64();
+    ULONGLONG visibleSinceMs = 0;
+    HWND lastHwnd = nullptr;
+    int lastVis = 0;
+    ULONGLONG lastLogMs = 0;
+
+    HWND gateHwnd = nullptr;
+    DWORD gateVisibleMs = 0;
+    bool gateSeenDxgi = false;
+    bool gateSeenD3d11 = false;
+    bool gateSeenOpenGL = false;
+    bool gateFallbackUsed = false;
+
+    while (true)
+    {
+      HWND hwnd = FindTopLevelWindowForPid(targetPid);
+
+      int vis = 0;
+      if (hwnd != nullptr)
+      {
+        RECT rc{ 0,0,0,0 };
+        if (GetWindowRect(hwnd, &rc))
+        {
+          const LONG ww = rc.right - rc.left;
+          const LONG hh = rc.bottom - rc.top;
+          if (ww >= 100 && hh >= 100 && IsWindowVisible(hwnd))
+            vis = 1;
+        }
+      }
+
+      const bool seenDxgi = HasModule(targetPid, L"dxgi.dll");
+      const bool seenD3d11 = HasModule(targetPid, L"d3d11.dll");
+      const bool seenOpenGL = HasModule(targetPid, L"opengl32.dll");
+
+      gateSeenDxgi |= seenDxgi;
+      gateSeenD3d11 |= seenD3d11;
+      gateSeenOpenGL |= seenOpenGL;
+
+      const bool strongReady = seenDxgi || seenD3d11;
+      const bool weakReadyOnly = (!strongReady) && seenOpenGL;
+
+      const ULONGLONG now = GetTickCount64();
+
+      if (hwnd != lastHwnd || vis != lastVis)
+      {
+        if (now - lastLogMs >= LOG_RATE_MS)
+        {
+          lastLogMs = now;
+          AppendLogf(logPath, L"wait_gate_hwnd pid=%lu hwnd=0x%p vis=%d", (unsigned long)targetPid, hwnd, vis);
+          HostLogAppendf(L"wait_gate_hwnd pid=%lu hwnd=0x%p vis=%d", (unsigned long)targetPid, hwnd, vis);
+        }
+      }
+
+      if (vis == 1)
+      {
+        if (hwnd != lastHwnd)
+          visibleSinceMs = now;
+        else if (visibleSinceMs == 0)
+          visibleSinceMs = now;
+
+        const DWORD visibleMs = (visibleSinceMs != 0) ? (DWORD)(now - visibleSinceMs) : 0u;
+
+        const DWORD requiredMs = strongReady ? 400u : (weakReadyOnly ? 1500u : 0u);
+
+        const bool gfxReady = strongReady || weakReadyOnly;
+        const bool gateReady = (hwnd != nullptr) && (vis == 1) && gfxReady && (requiredMs > 0u) && (visibleMs >= requiredMs);
+
+        if (gateReady)
+        {
+          gateHwnd = hwnd;
+          gateVisibleMs = visibleMs;
+          break;
+        }
+      }
+      else
+      {
+        visibleSinceMs = 0;
+      }
+
+      const ULONGLONG elapsed = now - gateStartMs;
+      if (elapsed >= timeoutMs)
+      {
+        gateFallbackUsed = true;
+        gateHwnd = hwnd;
+        gateVisibleMs = (visibleSinceMs != 0) ? (DWORD)(now - visibleSinceMs) : 0u;
+        AppendLogf(logPath, L"wait_gate_timeout pid=%lu ms=%lu proceeding_best_effort=1", (unsigned long)targetPid, (unsigned long)elapsed);
+        HostLogAppendf(L"wait_gate_timeout pid=%lu ms=%lu proceeding_best_effort=1", (unsigned long)targetPid, (unsigned long)elapsed);
+        break;
+      }
+
+      lastHwnd = hwnd;
+      lastVis = vis;
+      Sleep(POLL_MS);
+    }
+
+    HostLogAppendf(L"wait_gate_preinject pid=%lu hwnd=0x%p window_visible_ms=%lu gfx_modules_seen:dxgi=%d d3d11=%d opengl32=%d fallback=%d",
+      (unsigned long)targetPid,
+      gateHwnd,
+      (unsigned long)gateVisibleMs,
+      gateSeenDxgi ? 1 : 0,
+      gateSeenD3d11 ? 1 : 0,
+      gateSeenOpenGL ? 1 : 0,
+      gateFallbackUsed ? 1 : 0);
+
     // Deterministic selection log (after PID choice)
     LogTargetSelected(logPath, targetPid, Basename(waitExe));
   }
@@ -863,9 +1461,73 @@ int wmain(int argc, wchar_t** argv)
   HostLogAppendMilestone(L"begin_attach");
   WriteStatusAtomic(statusPath, L"attached", targetPid, L"none");
 
+  bool target_is64 = false;
+  {
+    HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, targetPid);
+    if (hProc != nullptr)
+    {
+      typedef BOOL(WINAPI* IsWow64Process2_t)(HANDLE, USHORT*, USHORT*);
+      const auto pIsWow64Process2 = reinterpret_cast<IsWow64Process2_t>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "IsWow64Process2"));
+
+      if (pIsWow64Process2 != nullptr)
+      {
+        USHORT processMachine = IMAGE_FILE_MACHINE_UNKNOWN;
+        USHORT nativeMachine = IMAGE_FILE_MACHINE_UNKNOWN;
+        if (pIsWow64Process2(hProc, &processMachine, &nativeMachine))
+          target_is64 = (processMachine == IMAGE_FILE_MACHINE_UNKNOWN) && (nativeMachine != IMAGE_FILE_MACHINE_UNKNOWN);
+      }
+      else
+      {
+        BOOL wow64 = FALSE;
+        if (IsWow64Process(hProc, &wow64))
+          target_is64 = (wow64 == FALSE) && (sizeof(void*) == 8);
+      }
+
+      CloseHandle(hProc);
+    }
+  }
+
+  const std::wstring dllToInject =
+    exeDir + (target_is64 ? L"\\SpecialK64.dll" : L"\\SpecialK32.dll");
+
+  AppendLogf(logPath, L"inject_select pid=%lu host_ptr_bits=%d target_is64=%d dll=%ls",
+    (unsigned long)targetPid,
+    (int)(sizeof(void*) * 8),
+    target_is64 ? 1 : 0,
+    dllToInject.c_str());
+  HostLogAppendf(L"inject_select pid=%lu host_ptr_bits=%d target_is64=%d dll=%ls",
+    (unsigned long)targetPid,
+    (int)(sizeof(void*) * 8),
+    target_is64 ? 1 : 0,
+    dllToInject.c_str());
+
+  if ((sizeof(void*) == 4) && target_is64)
+  {
+    AppendLog(logPath, L"error: 32-bit host cannot inject into 64-bit target");
+    HostLogAppend(L"error: 32-bit host cannot inject into 64-bit target");
+    WriteStatusAtomic(statusPath, L"error", targetPid, L"attach_failed");
+    return ATTACH_FAILED;
+  }
+
+  const bool is64 = (_wcsicmp(Basename(dllToInject).c_str(), L"SpecialK64.dll") == 0);
+  const wchar_t* moduleBasename = is64 ? L"SpecialK64.dll" : L"SpecialK32.dll";
+  const std::wstring specialkDllFullPath = dllToInject;
+
+  bool rundllInstallAttempted = false;
+  auto RundllRemoveGuard = [&]() {
+    if (rundllInstallAttempted)
+    {
+      AppendLogf(logPath, L"rundll_remove_start pid=%lu", (unsigned long)targetPid);
+      HostLogAppend(L"rundll_remove_start");
+      RunRundll(is64, specialkDllFullPath, L"Remove", true);
+      AppendLogf(logPath, L"rundll_remove_ok pid=%lu", (unsigned long)targetPid);
+      HostLogAppend(L"rundll_remove_ok");
+    }
+  };
+
   // Deterministic injection + module verification logging (host-side)
   {
-    const std::wstring dllToInject = exeDir + L"\\SpecialK32.dll";
     wchar_t msg[1024]{};
     swprintf(msg, _countof(msg), L"inject_attempt pid=%lu dll=%s",
       (unsigned long)targetPid,
@@ -876,42 +1538,101 @@ int wmain(int argc, wchar_t** argv)
 
   HostLogAppendMilestone(L"begin_inject");
 
-  const std::wstring dllToInject = exeDir + L"\\SpecialK32.dll";
-  const InjectResult injectResult = InjectDllByCreateRemoteThread(targetPid, dllToInject);
-  const DWORD injectLastError = GetLastError();
-
+  if (injectRundll)
   {
-    wchar_t msg[256]{};
-    swprintf(msg, _countof(msg), L"inject_result=%s last_error=%lu",
-      InjectResultToString(injectResult),
-      (unsigned long)injectLastError);
-    AppendLog(logPath, msg);
-    HostLogAppend(msg);
-  }
+    rundllInstallAttempted = true;
 
-  // Probe the target process module list now (acts as ground-truth for what is actually loaded).
-  LogModuleCheckSpecialK32(logPath, targetPid);
+    const std::wstring rundllPath = GetRundllPath(is64);
+    AppendLogf(logPath, L"rundll_install_start pid=%lu rundll=%ls dll=%ls", (unsigned long)targetPid, rundllPath.c_str(), specialkDllFullPath.c_str());
+    HostLogAppendf(L"rundll_install_start pid=%lu rundll=%ls dll=%ls", (unsigned long)targetPid, rundllPath.c_str(), specialkDllFullPath.c_str());
 
-  // Post-inject explicit verification log (module_check is required to flip on success)
-  {
-    MODULEENTRY32W me{};
-    const bool found = GetMatchingModuleInfo(targetPid, L"SpecialK32.dll", me);
-
-    wchar_t msg[256]{};
-    swprintf(msg, _countof(msg), L"module_check pid=%lu found_specialk32=%d",
-      (unsigned long)targetPid,
-      found ? 1 : 0);
-    AppendLog(logPath, msg);
-    HostLogAppend(msg);
-
-    if (found)
+    if (!RunRundll(is64, specialkDllFullPath, L"Install", false))
     {
-      wchar_t msg2[1024]{};
-      swprintf(msg2, _countof(msg2), L"specialk32_loaded path=%s base=0x%p",
-        me.szExePath,
-        me.modBaseAddr);
-      AppendLog(logPath, msg2);
-      HostLogAppend(msg2);
+      RundllRemoveGuard();
+      return ATTACH_FAILED;
+    }
+
+    AppendLogf(logPath, L"rundll_install_spawned pid=%lu", (unsigned long)targetPid);
+    HostLogAppendf(L"rundll_install_spawned pid=%lu", (unsigned long)targetPid);
+
+    if (!WaitForModuleLoaded(targetPid, moduleBasename, 5000))
+    {
+      AppendLogf(logPath, L"rundll_module_timeout pid=%lu module=%ls", (unsigned long)targetPid, moduleBasename);
+      HostLogAppendf(L"rundll_module_timeout pid=%lu module=%ls", (unsigned long)targetPid, moduleBasename);
+      RunRundll(is64, specialkDllFullPath, L"Remove", true);
+      return ATTACH_FAILED;
+    }
+
+    AppendLogf(logPath, L"rundll_module_seen pid=%lu module=%ls", (unsigned long)targetPid, moduleBasename);
+    HostLogAppendf(L"rundll_module_seen pid=%lu module=%ls", (unsigned long)targetPid, moduleBasename);
+  }
+  else
+  {
+    if (waitForExeMode)
+    {
+      const std::wstring targetExeFullPath = GetProcessImagePath(targetPid);
+      LogTargetGraphicsSnapshot(targetPid, targetExeFullPath);
+    }
+
+    AppendLogf(logPath, L"remote_inject_start pid=%lu dll=%ls", (unsigned long)targetPid, dllToInject.c_str());
+    HostLogAppendf(L"remote_inject_start pid=%lu dll=%ls", (unsigned long)targetPid, dllToInject.c_str());
+
+    const InjectResult injectResult = InjectDllByCreateRemoteThread(targetPid, dllToInject);
+    const DWORD injectLastError = GetLastError();
+
+    const int remoteOk = (injectResult == InjectResult::Success || injectResult == InjectResult::AlreadyLoaded) ? 1 : 0;
+    AppendLogf(logPath, L"remote_inject_result pid=%lu ok=%d last_error=%lu", (unsigned long)targetPid, remoteOk, (unsigned long)injectLastError);
+    HostLogAppendf(L"remote_inject_result pid=%lu ok=%d last_error=%lu", (unsigned long)targetPid, remoteOk, (unsigned long)injectLastError);
+
+    {
+      wchar_t msg[256]{};
+      swprintf(msg, _countof(msg), L"inject_result=%s last_error=%lu",
+        InjectResultToString(injectResult),
+        (unsigned long)injectLastError);
+      AppendLog(logPath, msg);
+      HostLogAppend(msg);
+    }
+
+    LogModuleCheckSpecialK32(logPath, targetPid);
+
+    {
+      MODULEENTRY32W me{};
+      const bool found = GetMatchingModuleInfo(targetPid, L"SpecialK32.dll", me);
+      if (found)
+      {
+        const std::wstring targetExeFullPath = GetProcessImagePath(targetPid);
+        LogTargetGraphicsSnapshot(targetPid, targetExeFullPath);
+      }
+    }
+
+    {
+      MODULEENTRY32W me{};
+      const bool found = GetMatchingModuleInfo(targetPid, L"SpecialK32.dll", me);
+
+      wchar_t msg[256]{};
+      swprintf(msg, _countof(msg), L"module_check pid=%lu found_specialk32=%d",
+        (unsigned long)targetPid,
+        found ? 1 : 0);
+      AppendLog(logPath, msg);
+      HostLogAppend(msg);
+
+      if (found)
+      {
+        wchar_t msg2[1024]{};
+        swprintf(msg2, _countof(msg2), L"specialk32_loaded path=%s base=0x%p",
+          me.szExePath,
+          me.modBaseAddr);
+        AppendLog(logPath, msg2);
+        HostLogAppend(msg2);
+      }
+    }
+
+    if (remoteOk == 1)
+    {
+      MODULEENTRY32W me{};
+      const bool found = GetMatchingModuleInfo(targetPid, L"SpecialK32.dll", me);
+      if (found)
+        LogModuleCheckSpecialK32Delayed(logPath, targetPid);
     }
   }
 
@@ -1026,6 +1747,8 @@ int wmain(int argc, wchar_t** argv)
       {
         AppendLog(logPath, L"shared memory header invalid/resize; remapping");
         ReleaseFrameMapping();
+
+  RundllRemoveGuard();
         Sleep(50);
         continue;
       }
