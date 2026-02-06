@@ -124,6 +124,56 @@ using wglChoosePixelFormatARB_pfn = BOOL (WINAPI *)(HDC     hdc,
 
 static ULONG GL_HOOKS  = 0UL;
 
+static volatile LONG s_terminal_marker_written = 0;
+
+static void TryWriteTerminalMarker (const char* marker)
+{
+  if (marker == nullptr || marker [0] == '\0')
+    return;
+
+  if (InterlockedExchange (&s_terminal_marker_written, 1) != 0)
+    return;
+
+  const DWORD pid = GetCurrentProcessId ();
+
+  wchar_t wszTempPath [MAX_PATH] = { };
+  wchar_t wszFullPath [MAX_PATH] = { };
+
+  if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+  {
+    wchar_t wszFile [64] = { };
+    wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+    lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+    lstrcatW  (wszFullPath, wszFile);
+  }
+  else
+  {
+    wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+  }
+
+  HANDLE hFile =
+    CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE,
+                  nullptr, OPEN_ALWAYS,
+                  FILE_ATTRIBUTE_NORMAL, nullptr );
+
+  if (hFile != INVALID_HANDLE_VALUE)
+  {
+    char  szLine [128] = { };
+    const int len = _snprintf_s (szLine, _TRUNCATE, "%s\r\n", marker);
+
+    if (len > 0)
+    {
+      DWORD dwWritten = 0;
+      SetFilePointer (hFile, 0, nullptr, FILE_END);
+      WriteFile (hFile, szLine, (DWORD)len, &dwWritten, nullptr);
+    }
+
+    CloseHandle (hFile);
+  }
+}
+
 __declspec (noinline)
 int
 WINAPI
@@ -3203,21 +3253,32 @@ wglSwapBuffers (HDC hDC)
       }
     }
 
-    char szOut [2048] = { };
-    _snprintf_s (
-      szOut, _TRUNCATE,
-      "pid=%lu\r\n"
-      "tid=%lu\r\n"
-      "hdc=0x%p\r\n"
-      "detour_func=0x%p\r\n"
-      "module_path=%ws%s%lu\r\n",
+    // Write the file in UTF-16 (wide) to avoid mixing wide buffers with narrow byte counts.
+    wchar_t wszOut [2048] = { };
+    _snwprintf_s (
+      wszOut, _TRUNCATE,
+      L"pid=%lu\r\n"
+      L"tid=%lu\r\n"
+      L"hdc=0x%p\r\n"
+      L"detour_func=0x%p\r\n"
+      L"module_path=%ls",
       (unsigned long)pid,
       (unsigned long)tid,
       (void *)hDC,
       (void *)&wglSwapBuffers,
-      wszModulePath,
-      mod_err != 0 ? " gle=" : "",
-      (unsigned long)mod_err );
+      wszModulePath );
+
+    if (mod_err != 0)
+    {
+      wchar_t wszTmp [64] = { };
+      _snwprintf_s (wszTmp, _TRUNCATE, L" gle=%lu", (unsigned long)mod_err);
+      wcscat_s (wszOut, wszTmp);
+    }
+
+    wcscat_s (wszOut, L"\r\n");
+
+    const size_t module_path_len_chars = wcslen (wszModulePath);
+    const DWORD  dwBytesToWrite        = (DWORD)(wcslen (wszOut) * sizeof (wchar_t));
 
     HANDLE hFile =
       CreateFileW ( wszFullPath, GENERIC_WRITE,
@@ -3228,7 +3289,32 @@ wglSwapBuffers (HDC hDC)
     if (hFile != INVALID_HANDLE_VALUE)
     {
       DWORD dwWritten = 0;
-      WriteFile (hFile, szOut, (DWORD)strlen (szOut), &dwWritten, nullptr);
+      WriteFile (hFile, wszOut, dwBytesToWrite, &dwWritten, nullptr);
+
+      static volatile LONG s_lenproof_written = 0;
+      if (InterlockedExchange (&s_lenproof_written, 1) == 0)
+      {
+        wchar_t wszProof [256] = { };
+        const DWORD bytes_written = dwBytesToWrite;
+        _snwprintf_s (
+          wszProof, _TRUNCATE,
+          L"module_path_units=chars\r\n"
+          L"module_path_len=%llu\r\n"
+          L"bytes_written=%lu\r\n",
+          (unsigned long long)module_path_len_chars,
+          (unsigned long)bytes_written );
+
+        wchar_t wszProof2 [128] = { };
+        _snwprintf_s (
+          wszProof2, _TRUNCATE,
+          L"bytes_actually_written=%lu\r\n",
+          (unsigned long)dwWritten );
+
+        DWORD dwWritten2 = 0;
+        WriteFile (hFile, wszProof, (DWORD)(wcslen (wszProof) * sizeof (wchar_t)), &dwWritten2, nullptr);
+        WriteFile (hFile, wszProof2, (DWORD)(wcslen (wszProof2) * sizeof (wchar_t)), &dwWritten2, nullptr);
+      }
+
       CloseHandle (hFile);
     }
   }
@@ -3484,21 +3570,32 @@ SwapBuffers (HDC hDC)
       }
     }
 
-    char szOut [2048] = { };
-    _snprintf_s (
-      szOut, _TRUNCATE,
-      "pid=%lu\r\n"
-      "tid=%lu\r\n"
-      "hdc=0x%p\r\n"
-      "detour_func=0x%p\r\n"
-      "module_path=%ws%s%lu\r\n",
+    // Write the file in UTF-16 (wide) to avoid mixing wide buffers with narrow byte counts.
+    wchar_t wszOut [2048] = { };
+    _snwprintf_s (
+      wszOut, _TRUNCATE,
+      L"pid=%lu\r\n"
+      L"tid=%lu\r\n"
+      L"hdc=0x%p\r\n"
+      L"detour_func=0x%p\r\n"
+      L"module_path=%ls",
       (unsigned long)pid,
       (unsigned long)tid,
       (void *)hDC,
       (void *)&SwapBuffers,
-      wszModulePath,
-      mod_err != 0 ? " gle=" : "",
-      (unsigned long)mod_err );
+      wszModulePath );
+
+    if (mod_err != 0)
+    {
+      wchar_t wszTmp [64] = { };
+      _snwprintf_s (wszTmp, _TRUNCATE, L" gle=%lu", (unsigned long)mod_err);
+      wcscat_s (wszOut, wszTmp);
+    }
+
+    wcscat_s (wszOut, L"\r\n");
+
+    const size_t module_path_len_chars = wcslen (wszModulePath);
+    const DWORD  dwBytesToWrite        = (DWORD)(wcslen (wszOut) * sizeof (wchar_t));
 
     HANDLE hFile =
       CreateFileW ( wszFullPath, GENERIC_WRITE,
@@ -3509,7 +3606,32 @@ SwapBuffers (HDC hDC)
     if (hFile != INVALID_HANDLE_VALUE)
     {
       DWORD dwWritten = 0;
-      WriteFile (hFile, szOut, (DWORD)strlen (szOut), &dwWritten, nullptr);
+      WriteFile (hFile, wszOut, dwBytesToWrite, &dwWritten, nullptr);
+
+      static volatile LONG s_lenproof_written = 0;
+      if (InterlockedExchange (&s_lenproof_written, 1) == 0)
+      {
+        wchar_t wszProof [256] = { };
+        const DWORD bytes_written = dwBytesToWrite;
+        _snwprintf_s (
+          wszProof, _TRUNCATE,
+          L"module_path_units=chars\r\n"
+          L"module_path_len=%llu\r\n"
+          L"bytes_written=%lu\r\n",
+          (unsigned long long)module_path_len_chars,
+          (unsigned long)bytes_written );
+
+        wchar_t wszProof2 [128] = { };
+        _snwprintf_s (
+          wszProof2, _TRUNCATE,
+          L"bytes_actually_written=%lu\r\n",
+          (unsigned long)dwWritten );
+
+        DWORD dwWritten2 = 0;
+        WriteFile (hFile, wszProof, (DWORD)(wcslen (wszProof) * sizeof (wchar_t)), &dwWritten2, nullptr);
+        WriteFile (hFile, wszProof2, (DWORD)(wcslen (wszProof2) * sizeof (wchar_t)), &dwWritten2, nullptr);
+      }
+
       CloseHandle (hFile);
     }
   }
@@ -4218,14 +4340,12 @@ SK_HookGL (LPVOID)
                         nullptr, OPEN_ALWAYS,
                         FILE_ATTRIBUTE_NORMAL, nullptr );
 
-        if (hFile != INVALID_HANDLE_VALUE)
-        {
-          static const char szLine [] = "retry_exhausted\r\n";
-          DWORD             dwWritten = 0;
-          SetFilePointer (hFile, 0, nullptr, FILE_END);
-          WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
-          CloseHandle (hFile);
-        }
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            CloseHandle (hFile);
+          }
+
+          TryWriteTerminalMarker ("retry_exhausted");
       }
     }
 
@@ -4278,6 +4398,16 @@ SK_HookGL (LPVOID)
 
       auto _AppendRetryOutcome = [&](const char* outcome, const char* extra)
       {
+        const bool terminal = (outcome != nullptr) &&
+                              (_stricmp (outcome, "retry_success")   == 0 ||
+                               _stricmp (outcome, "retry_exhausted") == 0);
+
+        if (terminal)
+        {
+          TryWriteTerminalMarker (outcome);
+          return;
+        }
+
         const DWORD pid = GetCurrentProcessId ();
 
         wchar_t wszTempPath [MAX_PATH] = { };
@@ -4409,6 +4539,7 @@ SK_HookGL (LPVOID)
       {
         s_loggedExhaust = true;
         s_retryActive   = false;
+        TryWriteTerminalMarker ("retry_exhausted");
         _AppendRetryOutcome ("retry_exhausted", s_permfail_wglSwapBuffers ? "symbol=opengl32.dll!wglSwapBuffers" : "symbol=gdi32.dll!SwapBuffers");
       }
 
@@ -4419,6 +4550,7 @@ SK_HookGL (LPVOID)
         if (! s_loggedDone)
         {
           s_loggedDone = true;
+          TryWriteTerminalMarker ("retry_success");
           _AppendRetryOutcome ("retry_success", "");
         }
       }
@@ -4598,6 +4730,11 @@ SK_HookGL (LPVOID)
 
       stEnable_SwapBuffers =
         ( (pfn_SwapBuffers != nullptr) ? MH_EnableHook ((LPVOID)pfn_SwapBuffers) : MH_ERROR_FUNCTION_NOT_FOUND );
+
+      if ( stEnable_wglSwapBuffers == MH_OK && stEnable_SwapBuffers == MH_OK )
+      {
+        TryWriteTerminalMarker ("initial_success");
+      }
 
       SK_GL_WriteHookInstallMarker (
         L"wglSwapBuffers",
