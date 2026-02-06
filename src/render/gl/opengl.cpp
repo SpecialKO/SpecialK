@@ -4152,6 +4152,279 @@ DWORD
 WINAPI
 SK_HookGL (LPVOID)
 {
+  static uint64_t s_firstAttempt  = 0;
+  static uint64_t s_lastAttempt   = 0;
+  static bool     s_retryActive   = false;
+  static bool     s_loggedStart   = false;
+  static bool     s_loggedDone    = false;
+  static bool     s_loggedExhaust = false;
+
+  static HMODULE   s_mod_gl                 = nullptr;
+  static FARPROC   s_proc_wglSwapBuffers    = nullptr;
+  static bool      s_created_wglSwapBuffers = false;
+  static bool      s_enabled_wglSwapBuffers = false;
+  static MH_STATUS s_create_wglSwapBuffers  = (MH_STATUS)0;
+  static MH_STATUS s_enable_wglSwapBuffers  = (MH_STATUS)0;
+  static bool      s_permfail_wglSwapBuffers= false;
+
+  static HMODULE   s_mod_gdi                = nullptr;
+  static FARPROC   s_proc_SwapBuffers       = nullptr;
+  static bool      s_created_SwapBuffers    = false;
+  static bool      s_enabled_SwapBuffers    = false;
+  static MH_STATUS s_create_SwapBuffers     = (MH_STATUS)0;
+  static MH_STATUS s_enable_SwapBuffers     = (MH_STATUS)0;
+  static bool      s_permfail_SwapBuffers   = false;
+
+  const uint64_t now = GetTickCount64 ();
+
+  if (! s_retryActive)
+  {
+    s_firstAttempt = now;
+    s_lastAttempt  = 0;
+    s_retryActive  = true;
+  }
+
+  if (s_retryActive)
+  {
+    if (now - s_firstAttempt > 10000ULL)
+    {
+      s_retryActive = false;
+
+      if (! s_loggedExhaust)
+      {
+        s_loggedExhaust = true;
+
+        const DWORD pid = GetCurrentProcessId ();
+
+        wchar_t wszTempPath [MAX_PATH] = { };
+        wchar_t wszFullPath [MAX_PATH] = { };
+
+        if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+        {
+          wchar_t wszFile [64] = { };
+          wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+          lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+          lstrcatW  (wszFullPath, wszFile);
+        }
+        else
+        {
+          wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+        }
+
+        HANDLE hFile =
+          CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr, OPEN_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL, nullptr );
+
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+          static const char szLine [] = "retry_exhausted\r\n";
+          DWORD             dwWritten = 0;
+          SetFilePointer (hFile, 0, nullptr, FILE_END);
+          WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
+          CloseHandle (hFile);
+        }
+      }
+    }
+
+    else
+    {
+      if (! s_loggedStart)
+      {
+        s_loggedStart = true;
+
+        const DWORD pid = GetCurrentProcessId ();
+
+        wchar_t wszTempPath [MAX_PATH] = { };
+        wchar_t wszFullPath [MAX_PATH] = { };
+
+        if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+        {
+          wchar_t wszFile [64] = { };
+          wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+          lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+          lstrcatW  (wszFullPath, wszFile);
+        }
+        else
+        {
+          wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+        }
+
+        HANDLE hFile =
+          CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr, OPEN_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL, nullptr );
+
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+          static const char szLine [] = "retry_start\r\n";
+          DWORD             dwWritten = 0;
+          SetFilePointer (hFile, 0, nullptr, FILE_END);
+          WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
+          CloseHandle (hFile);
+        }
+      }
+
+      if (now - s_lastAttempt < 250ULL)
+      {
+        return 0;
+      }
+
+      s_lastAttempt = now;
+
+      auto _AppendRetryOutcome = [&](const char* outcome, const char* extra)
+      {
+        const DWORD pid = GetCurrentProcessId ();
+
+        wchar_t wszTempPath [MAX_PATH] = { };
+        wchar_t wszFullPath [MAX_PATH] = { };
+
+        if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+        {
+          wchar_t wszFile [64] = { };
+          wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+          lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+          lstrcatW  (wszFullPath, wszFile);
+        }
+        else
+        {
+          wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+        }
+
+        HANDLE hFile =
+          CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr, OPEN_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL, nullptr );
+
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+          char szLine [1536] = { };
+          const int len =
+            _snprintf_s (
+              szLine, _TRUNCATE,
+              "%s%s%s\r\n"
+              "symbol=opengl32.dll!wglSwapBuffers mod=0x%p target=0x%p st_create=%ld st_enable=%ld permanent=%d\r\n"
+              "symbol=gdi32.dll!SwapBuffers      mod=0x%p target=0x%p st_create=%ld st_enable=%ld permanent=%d\r\n",
+              outcome,
+              (extra != nullptr && extra[0] != '\0') ? " " : "",
+              (extra != nullptr) ? extra : "",
+              (void *)s_mod_gl,  (void *)s_proc_wglSwapBuffers, (long)s_create_wglSwapBuffers, (long)s_enable_wglSwapBuffers, s_permfail_wglSwapBuffers ? 1 : 0,
+              (void *)s_mod_gdi, (void *)s_proc_SwapBuffers,    (long)s_create_SwapBuffers,    (long)s_enable_SwapBuffers,    s_permfail_SwapBuffers    ? 1 : 0);
+
+          if (len > 0)
+          {
+            DWORD dwWritten = 0;
+            SetFilePointer (hFile, 0, nullptr, FILE_END);
+            WriteFile (hFile, szLine, (DWORD)len, &dwWritten, nullptr);
+          }
+
+          CloseHandle (hFile);
+        }
+      };
+
+      auto _IsCreatePermanentFail = [](MH_STATUS st) {
+        return st == MH_ERROR_ALREADY_CREATED ||
+               st == MH_ERROR_NOT_EXECUTABLE ||
+               st == MH_ERROR_UNSUPPORTED_FUNCTION ||
+               st == MH_ERROR_MEMORY_ALLOC;
+      };
+
+      auto _IsEnablePermanentFail = [](MH_STATUS st) {
+        return st == MH_ERROR_NOT_CREATED ||
+               st == MH_ERROR_NOT_EXECUTABLE ||
+               st == MH_ERROR_UNSUPPORTED_FUNCTION;
+      };
+
+      if ((! s_enabled_wglSwapBuffers) && (! s_permfail_wglSwapBuffers))
+      {
+        if (s_mod_gl == nullptr)
+          s_mod_gl = GetModuleHandleW (L"opengl32.dll");
+
+        if (s_mod_gl != nullptr && s_proc_wglSwapBuffers == nullptr)
+          s_proc_wglSwapBuffers = GetProcAddress (s_mod_gl, "wglSwapBuffers");
+
+        if (s_proc_wglSwapBuffers != nullptr && (! s_created_wglSwapBuffers))
+        {
+          s_create_wglSwapBuffers =
+            MH_CreateHook ( (LPVOID)s_proc_wglSwapBuffers,
+                            (LPVOID)wglSwapBuffers,
+                            (LPVOID *)&wgl_swap_buffers );
+
+          if (s_create_wglSwapBuffers == MH_OK)
+            s_created_wglSwapBuffers = true;
+          else if (_IsCreatePermanentFail (s_create_wglSwapBuffers))
+            s_permfail_wglSwapBuffers = true;
+        }
+
+        if (s_created_wglSwapBuffers && (! s_enabled_wglSwapBuffers) && (! s_permfail_wglSwapBuffers))
+        {
+          s_enable_wglSwapBuffers = MH_EnableHook ((LPVOID)s_proc_wglSwapBuffers);
+
+          if (s_enable_wglSwapBuffers == MH_OK)
+            s_enabled_wglSwapBuffers = true;
+          else if (_IsEnablePermanentFail (s_enable_wglSwapBuffers))
+            s_permfail_wglSwapBuffers = true;
+        }
+      }
+
+      if ((! s_enabled_SwapBuffers) && (! s_permfail_SwapBuffers))
+      {
+        if (s_mod_gdi == nullptr)
+          s_mod_gdi = GetModuleHandleW (L"gdi32.dll");
+
+        if (s_mod_gdi != nullptr && s_proc_SwapBuffers == nullptr)
+          s_proc_SwapBuffers = GetProcAddress (s_mod_gdi, "SwapBuffers");
+
+        if (s_proc_SwapBuffers != nullptr && (! s_created_SwapBuffers))
+        {
+          s_create_SwapBuffers =
+            MH_CreateHook ( (LPVOID)s_proc_SwapBuffers,
+                            (LPVOID)SwapBuffers,
+                            (LPVOID *)&gdi_swap_buffers );
+
+          if (s_create_SwapBuffers == MH_OK)
+            s_created_SwapBuffers = true;
+          else if (_IsCreatePermanentFail (s_create_SwapBuffers))
+            s_permfail_SwapBuffers = true;
+        }
+
+        if (s_created_SwapBuffers && (! s_enabled_SwapBuffers) && (! s_permfail_SwapBuffers))
+        {
+          s_enable_SwapBuffers = MH_EnableHook ((LPVOID)s_proc_SwapBuffers);
+
+          if (s_enable_SwapBuffers == MH_OK)
+            s_enabled_SwapBuffers = true;
+          else if (_IsEnablePermanentFail (s_enable_SwapBuffers))
+            s_permfail_SwapBuffers = true;
+        }
+      }
+
+      if ((s_permfail_wglSwapBuffers || s_permfail_SwapBuffers) && (! s_loggedExhaust))
+      {
+        s_loggedExhaust = true;
+        s_retryActive   = false;
+        _AppendRetryOutcome ("retry_exhausted", s_permfail_wglSwapBuffers ? "symbol=opengl32.dll!wglSwapBuffers" : "symbol=gdi32.dll!SwapBuffers");
+      }
+
+      if (s_enabled_wglSwapBuffers && s_enabled_SwapBuffers)
+      {
+        s_retryActive = false;
+
+        if (! s_loggedDone)
+        {
+          s_loggedDone = true;
+          _AppendRetryOutcome ("retry_success", "");
+        }
+      }
+    }
+  }
+
   if (! config.apis.OpenGL.hook)
   {
     SK_Thread_CloseSelf ();
