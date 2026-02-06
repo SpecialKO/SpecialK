@@ -66,6 +66,8 @@ HGLRC          __gl_primary_context = nullptr;
 SK_LazyGlobal <std::unordered_map <HGLRC, HGLRC>> __gl_shared_contexts;
 SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
 
+extern std::atomic_bool g_dxgi_present_seen;
+
 struct SK_GL_Context {
 };
 
@@ -125,6 +127,9 @@ using wglChoosePixelFormatARB_pfn = BOOL (WINAPI *)(HDC     hdc,
 static ULONG GL_HOOKS  = 0UL;
 
 static volatile LONG s_terminal_marker_written = 0;
+static volatile LONG g_gl_overlay_gate_open = 0;
+static volatile LONG s_gl_gate_present_not_ready_hits = 0;
+static volatile LONG s_gl_gate_ready_logged = 0;
 
 static bool TryWriteTerminalMarker (const char* token)
 {
@@ -188,6 +193,53 @@ static bool TryWriteTerminalMarker (const char* token)
     if (success)
     {
       InterlockedExchange (&s_terminal_marker_written, 1);
+
+      if (InterlockedExchange (&g_gl_overlay_gate_open, 1) == 0)
+      {
+        const DWORD tid = GetCurrentThreadId  ();
+
+        if (InterlockedExchange (&s_gl_gate_ready_logged, 1) == 0)
+        {
+          if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+          {
+            wchar_t wszFile2 [64] = { };
+            wsprintfW (wszFile2, L"sk_gl_present_%lu.txt", (unsigned long)pid);
+
+            lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+            lstrcatW  (wszFullPath, wszFile2);
+
+            HANDLE hPresentFile =
+              CreateFileW ( wszFullPath,
+                            FILE_APPEND_DATA,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                            nullptr,
+                            OPEN_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr );
+
+            if (hPresentFile != INVALID_HANDLE_VALUE)
+            {
+              SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+              char szLine [256] = { };
+              const int len2 =
+                _snprintf_s ( szLine, _TRUNCATE,
+                              "present_ready_set pid=%lu tid=%lu\r\n",
+                              (unsigned long)pid,
+                              (unsigned long)tid );
+
+              if (len2 > 0)
+              {
+                DWORD dwWritten2 = 0;
+                WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr);
+              }
+
+              CloseHandle (hPresentFile);
+            }
+          }
+        }
+      }
+
       return true;
     }
 
@@ -1868,9 +1920,11 @@ SK_Overlay_DrawGL (void)
 
 
   // Queue-up Pre-SK OSD Screenshots
-  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
+  if (! g_dxgi_present_seen.load (std::memory_order_relaxed))
+  {
+    SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
 
-  SK_ImGui_DrawFrame (0x00, nullptr);
+    SK_ImGui_DrawFrame (0x00, nullptr);
 
   SK_GL_GhettoStateBlock_Apply ();
 
@@ -1878,7 +1932,8 @@ SK_Overlay_DrawGL (void)
 
 
   // Queue-up Post-SK OSD Screenshots (Does not include ReShade)
-  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
+    SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
+  }
 }
 
 
@@ -3004,7 +3059,56 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       SK_GL_UpdateRenderStats ();
       reached_draw = true;
       reason       = 100;
-      SK_Overlay_DrawGL       ();
+      if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+        SK_Overlay_DrawGL       ();
+      else
+      {
+        const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
+        if (hit <= 50)
+        {
+          const DWORD pid = GetCurrentProcessId ();
+          const DWORD tid = GetCurrentThreadId  ();
+
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFullPath [MAX_PATH] = { };
+
+          DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+          if (cch > 0 && cch < MAX_PATH)
+          {
+            wsprintfW (wszFullPath, L"%ssk_gl_present_%lu.txt", wszTempPath, (unsigned long)pid);
+
+            HANDLE hPresentFile =
+              CreateFileW ( wszFullPath,
+                            FILE_APPEND_DATA,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                            nullptr,
+                            OPEN_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr );
+
+            if (hPresentFile != INVALID_HANDLE_VALUE)
+            {
+              SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+              char szLine [256] = { };
+              const int len2 =
+                _snprintf_s ( szLine, _TRUNCATE,
+                              "gate_present_not_ready func=%s pid=%lu tid=%lu\r\n",
+                              (pfnSwapFunc == (LPVOID)wgl_swap_buffers) ? "wglSwapBuffers" : "SwapBuffers",
+                              (unsigned long)pid,
+                              (unsigned long)tid );
+
+              if (len2 > 0)
+              {
+                DWORD dwWritten2 = 0;
+                WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr);
+              }
+
+              CloseHandle (hPresentFile);
+            }
+          }
+        }
+      }
 
       // Do this before framerate limiting
       glFlush                 ();
@@ -3193,7 +3297,56 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_GL_UpdateRenderStats ();
           reached_draw = true;
           reason       = 100;
-          SK_Overlay_DrawGL       ();
+          if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+            SK_Overlay_DrawGL       ();
+          else
+          {
+            const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
+            if (hit <= 50)
+            {
+              const DWORD pid = GetCurrentProcessId ();
+              const DWORD tid = GetCurrentThreadId  ();
+
+              wchar_t wszTempPath [MAX_PATH] = { };
+              wchar_t wszFullPath [MAX_PATH] = { };
+
+              DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+              if (cch > 0 && cch < MAX_PATH)
+              {
+                wsprintfW (wszFullPath, L"%ssk_gl_present_%lu.txt", wszTempPath, (unsigned long)pid);
+
+                HANDLE hPresentFile =
+                  CreateFileW ( wszFullPath,
+                                FILE_APPEND_DATA,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                nullptr,
+                                OPEN_ALWAYS,
+                                FILE_ATTRIBUTE_NORMAL,
+                                nullptr );
+
+                if (hPresentFile != INVALID_HANDLE_VALUE)
+                {
+                  SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+                  char szLine [256] = { };
+                  const int len2 =
+                    _snprintf_s ( szLine, _TRUNCATE,
+                                  "gate_present_not_ready func=%s pid=%lu tid=%lu\r\n",
+                                  (pfnSwapFunc == (LPVOID)wgl_swap_buffers) ? "wglSwapBuffers" : "SwapBuffers",
+                                  (unsigned long)pid,
+                                  (unsigned long)tid );
+
+                  if (len2 > 0)
+                  {
+                    DWORD dwWritten2 = 0;
+                    WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr);
+                  }
+
+                  CloseHandle (hPresentFile);
+                }
+              }
+            }
+          }
 
           // Do this before framerate limiting
           glFlush                 ();
