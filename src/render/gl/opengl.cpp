@@ -126,13 +126,13 @@ static ULONG GL_HOOKS  = 0UL;
 
 static volatile LONG s_terminal_marker_written = 0;
 
-static void TryWriteTerminalMarker (const char* marker)
+static bool TryWriteTerminalMarker (const char* token)
 {
-  if (marker == nullptr || marker [0] == '\0')
-    return;
+  if (token == nullptr || token [0] == '\0')
+    return false;
 
-  if (InterlockedExchange (&s_terminal_marker_written, 1) != 0)
-    return;
+  if (InterlockedCompareExchange (&s_terminal_marker_written, 1, 1) != 0)
+    return true;
 
   const DWORD pid = GetCurrentProcessId ();
 
@@ -160,17 +160,62 @@ static void TryWriteTerminalMarker (const char* marker)
 
   if (hFile != INVALID_HANDLE_VALUE)
   {
-    char  szLine [128] = { };
-    const int len = _snprintf_s (szLine, _TRUNCATE, "%s\r\n", marker);
+    SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+    char  szBuf [1024] = { };
+    const int len =
+      _snprintf_s ( szBuf, _TRUNCATE,
+                    "marker_attempt token=%s pid=%lu open_ok=1 gle_open=0 write_ok=0 gle_write=0 bytes=0\r\n"
+                    "%s\r\n",
+                    token,
+                    (unsigned long)pid,
+                    token );
+
+    DWORD dwWritten = 0;
+    BOOL  okWrite   = FALSE;
+    DWORD gle_write = 0;
 
     if (len > 0)
     {
-      DWORD dwWritten = 0;
-      SetFilePointer (hFile, 0, nullptr, FILE_END);
-      WriteFile (hFile, szLine, (DWORD)len, &dwWritten, nullptr);
+      okWrite = WriteFile (hFile, szBuf, (DWORD)len, &dwWritten, nullptr);
+      if (! okWrite)
+        gle_write = GetLastError ();
     }
 
     CloseHandle (hFile);
+
+    const bool success = (okWrite == TRUE) && (dwWritten == (DWORD)len);
+    if (success)
+    {
+      InterlockedExchange (&s_terminal_marker_written, 1);
+      return true;
+    }
+
+    {
+      char szDbg [256] = { };
+      _snprintf_s ( szDbg, _TRUNCATE,
+                    "marker_attempt token=%s pid=%lu open_ok=1 gle_open=0 write_ok=%lu gle_write=%lu bytes=%lu\r\n",
+                    token,
+                    (unsigned long)pid,
+                    (unsigned long)(okWrite ? 1 : 0),
+                    (unsigned long)gle_write,
+                    (unsigned long)dwWritten );
+      OutputDebugStringA (szDbg);
+    }
+
+    return false;
+  }
+  else
+  {
+    const DWORD gle_open = GetLastError ();
+    char szDbg [256] = { };
+    _snprintf_s ( szDbg, _TRUNCATE,
+                  "marker_attempt token=%s pid=%lu open_ok=0 gle_open=%lu write_ok=0 gle_write=0 bytes=0\r\n",
+                  token,
+                  (unsigned long)pid,
+                  (unsigned long)gle_open );
+    OutputDebugStringA (szDbg);
+    return false;
   }
 }
 
@@ -3281,10 +3326,10 @@ wglSwapBuffers (HDC hDC)
     const DWORD  dwBytesToWrite        = (DWORD)(wcslen (wszOut) * sizeof (wchar_t));
 
     HANDLE hFile =
-      CreateFileW ( wszFullPath, GENERIC_WRITE,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE,
-                    nullptr, CREATE_ALWAYS,
-                    FILE_ATTRIBUTE_NORMAL, nullptr );
+    CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE,
+                  nullptr, OPEN_ALWAYS,
+                  FILE_ATTRIBUTE_NORMAL, nullptr );
 
     if (hFile != INVALID_HANDLE_VALUE)
     {
@@ -3598,9 +3643,9 @@ SwapBuffers (HDC hDC)
     const DWORD  dwBytesToWrite        = (DWORD)(wcslen (wszOut) * sizeof (wchar_t));
 
     HANDLE hFile =
-      CreateFileW ( wszFullPath, GENERIC_WRITE,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE,
-                    nullptr, CREATE_ALWAYS,
+    CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE,
+                  nullptr, OPEN_ALWAYS,
                     FILE_ATTRIBUTE_NORMAL, nullptr );
 
     if (hFile != INVALID_HANDLE_VALUE)
@@ -4261,6 +4306,7 @@ SK_GL_WriteHookInstallMarker (
   if (hFile != INVALID_HANDLE_VALUE)
   {
     DWORD dwWritten = 0;
+    SetFilePointer (hFile, 0, nullptr, FILE_END);
     WriteFile (hFile, szOut, (DWORD)strlen (szOut), &dwWritten, nullptr);
     CloseHandle (hFile);
   }
@@ -4280,6 +4326,8 @@ SK_HookGL (LPVOID)
   static bool     s_loggedStart   = false;
   static bool     s_loggedDone    = false;
   static bool     s_loggedExhaust = false;
+
+  static int      s_attempt_index = 0;
 
   static HMODULE   s_mod_gl                 = nullptr;
   static FARPROC   s_proc_wglSwapBuffers    = nullptr;
@@ -4304,6 +4352,7 @@ SK_HookGL (LPVOID)
     s_firstAttempt = now;
     s_lastAttempt  = 0;
     s_retryActive  = true;
+    s_attempt_index = 0;
   }
 
   if (s_retryActive)
@@ -4345,7 +4394,7 @@ SK_HookGL (LPVOID)
             CloseHandle (hFile);
           }
 
-          TryWriteTerminalMarker ("retry_exhausted");
+          ;
       }
     }
 
@@ -4396,18 +4445,10 @@ SK_HookGL (LPVOID)
 
       s_lastAttempt = now;
 
+      ++s_attempt_index;
+
       auto _AppendRetryOutcome = [&](const char* outcome, const char* extra)
       {
-        const bool terminal = (outcome != nullptr) &&
-                              (_stricmp (outcome, "retry_success")   == 0 ||
-                               _stricmp (outcome, "retry_exhausted") == 0);
-
-        if (terminal)
-        {
-          TryWriteTerminalMarker (outcome);
-          return;
-        }
-
         const DWORD pid = GetCurrentProcessId ();
 
         wchar_t wszTempPath [MAX_PATH] = { };
@@ -4539,7 +4580,6 @@ SK_HookGL (LPVOID)
       {
         s_loggedExhaust = true;
         s_retryActive   = false;
-        TryWriteTerminalMarker ("retry_exhausted");
         _AppendRetryOutcome ("retry_exhausted", s_permfail_wglSwapBuffers ? "symbol=opengl32.dll!wglSwapBuffers" : "symbol=gdi32.dll!SwapBuffers");
       }
 
@@ -4550,11 +4590,24 @@ SK_HookGL (LPVOID)
         if (! s_loggedDone)
         {
           s_loggedDone = true;
-          TryWriteTerminalMarker ("retry_success");
           _AppendRetryOutcome ("retry_success", "");
         }
       }
     }
+  }
+
+  if (! s_retryActive)
+  {
+    const bool okBoth = (s_enable_wglSwapBuffers == MH_OK) && (s_enable_SwapBuffers == MH_OK);
+    const char* outcome = nullptr;
+    if (okBoth && s_attempt_index == 1)
+      outcome = "initial_success";
+    else if (okBoth && s_attempt_index > 1)
+      outcome = "retry_success";
+    else
+      outcome = "retry_exhausted";
+
+    TryWriteTerminalMarker (outcome);
   }
 
   if (! config.apis.OpenGL.hook)
@@ -4731,11 +4784,6 @@ SK_HookGL (LPVOID)
       stEnable_SwapBuffers =
         ( (pfn_SwapBuffers != nullptr) ? MH_EnableHook ((LPVOID)pfn_SwapBuffers) : MH_ERROR_FUNCTION_NOT_FOUND );
 
-      if ( stEnable_wglSwapBuffers == MH_OK && stEnable_SwapBuffers == MH_OK )
-      {
-        TryWriteTerminalMarker ("initial_success");
-      }
-
       SK_GL_WriteHookInstallMarker (
         L"wglSwapBuffers",
         L"opengl32.dll",
@@ -4753,6 +4801,11 @@ SK_HookGL (LPVOID)
         pfn_SwapBuffers == nullptr ? gle_pfn_SwapBuffers : gle_hModGdi32,
         stCreate_SwapBuffers,
         stEnable_SwapBuffers );
+
+      if ( stEnable_wglSwapBuffers == MH_OK && stEnable_SwapBuffers == MH_OK )
+      {
+        TryWriteTerminalMarker ("initial_success");
+      }
 
       ++GL_HOOKS;
       ++GL_HOOKS;
