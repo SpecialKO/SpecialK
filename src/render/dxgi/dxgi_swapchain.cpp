@@ -29,6 +29,8 @@
 
 std::atomic_bool g_dxgi_present_seen{ false };
 
+std::atomic_bool g_dxgi_overlay_owner{ false };
+
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
@@ -891,6 +893,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   SK_GetCurrentRenderBackend ().in_present_call = true;
 
   g_dxgi_present_seen.store (true, std::memory_order_relaxed);
+
+  g_dxgi_overlay_owner.exchange (true, std::memory_order_relaxed);
 
   // SidecarK proof-of-life: copy an existing overlay pixel buffer from shared
   // memory into the game backbuffer every Present (top-left 256x256).

@@ -67,6 +67,7 @@ SK_LazyGlobal <std::unordered_map <HGLRC, HGLRC>> __gl_shared_contexts;
 SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
 
 extern std::atomic_bool g_dxgi_present_seen;
+extern std::atomic_bool g_dxgi_overlay_owner;
 
 struct SK_GL_Context {
 };
@@ -3060,7 +3061,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       reached_draw = true;
       reason       = 100;
       if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
-        SK_Overlay_DrawGL       ();
+      {
+        if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
+          SK_Overlay_DrawGL       ();
+      }
       else
       {
         const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
@@ -3298,7 +3302,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           reached_draw = true;
           reason       = 100;
           if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
-            SK_Overlay_DrawGL       ();
+          {
+            if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
+              SK_Overlay_DrawGL       ();
+          }
           else
           {
             const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
