@@ -740,6 +740,60 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
+  static volatile LONG s_hits_dxgi_Present = 0;
+  if (InterlockedIncrement (&s_hits_dxgi_Present) <= 50)
+  {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszPath     [MAX_PATH] = { };
+
+    DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wsprintfW (wszPath, L"%ssk_backend_route_%lu.txt", wszTempPath, (unsigned long)pid);
+
+      HANDLE hFile =
+        CreateFileW ( wszPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        wchar_t wszLine [256] = { };
+        const int lenChars =
+          _snwprintf_s ( wszLine, _TRUNCATE,
+                         L"route backend=dxgi_present func=Present pid=%lu tid=%lu\r\n",
+                         (unsigned long)pid,
+                         (unsigned long)tid );
+
+        DWORD dwWritten = 0;
+        BOOL  okWrite   = FALSE;
+
+        if (lenChars > 0)
+        {
+          const DWORD cbToWrite = (DWORD)lenChars * sizeof (wchar_t);
+          okWrite = WriteFile (hFile, wszLine, cbToWrite, &dwWritten, nullptr);
+          if (! (okWrite == TRUE && dwWritten == cbToWrite))
+            OutputDebugStringA ("sk_backend_route: WriteFile failed (DXGI Present)\n");
+        }
+
+        CloseHandle (hFile);
+      }
+      else
+      {
+        OutputDebugStringA ("sk_backend_route: CreateFileW failed (DXGI Present)\n");
+      }
+    }
+  }
+
   static LONG s_once_wrap_present = 0;
   if (InterlockedCompareExchange (&s_once_wrap_present, 1, 0) == 0)
     SK_DXGI_WriteHitFile ("wrap_present", (void *)this, (void *)&SK_DXGI_DispatchPresent);
@@ -1721,6 +1775,60 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
                                UINT                     PresentFlags,
                          const DXGI_PRESENT_PARAMETERS *pPresentParameters )
 {
+  static volatile LONG s_hits_dxgi_Present1 = 0;
+  if (InterlockedIncrement (&s_hits_dxgi_Present1) <= 50)
+  {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszPath     [MAX_PATH] = { };
+
+    DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wsprintfW (wszPath, L"%ssk_backend_route_%lu.txt", wszTempPath, (unsigned long)pid);
+
+      HANDLE hFile =
+        CreateFileW ( wszPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        wchar_t wszLine [256] = { };
+        const int lenChars =
+          _snwprintf_s ( wszLine, _TRUNCATE,
+                         L"route backend=dxgi_present func=Present1 pid=%lu tid=%lu\r\n",
+                         (unsigned long)pid,
+                         (unsigned long)tid );
+
+        DWORD dwWritten = 0;
+        BOOL  okWrite   = FALSE;
+
+        if (lenChars > 0)
+        {
+          const DWORD cbToWrite = (DWORD)lenChars * sizeof (wchar_t);
+          okWrite = WriteFile (hFile, wszLine, cbToWrite, &dwWritten, nullptr);
+          if (! (okWrite == TRUE && dwWritten == cbToWrite))
+            OutputDebugStringA ("sk_backend_route: WriteFile failed (DXGI Present1)\n");
+        }
+
+        CloseHandle (hFile);
+      }
+      else
+      {
+        OutputDebugStringA ("sk_backend_route: CreateFileW failed (DXGI Present1)\n");
+      }
+    }
+  }
+
   static LONG s_once_wrap_present1 = 0;
   if (InterlockedCompareExchange (&s_once_wrap_present1, 1, 0) == 0)
     SK_DXGI_WriteHitFile ("wrap_present1", (void *)this, (void *)&SK_DXGI_DispatchPresent1);
