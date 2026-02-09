@@ -645,14 +645,21 @@ SK_NGX_InitVULKAN (void)
                 (void **)&NVSDK_NGX_VULKAN_CreateFeature_Original );
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
-                         "NVSDK_NGX_VULKAN_CreateFeature1",
-                          NVSDK_NGX_VULKAN_CreateFeature1_Detour,
+        "NVSDK_NGX_VULKAN_CreateFeature1",
+        NVSDK_NGX_VULKAN_CreateFeature1_Detour,
                 (void **)&NVSDK_NGX_VULKAN_CreateFeature1_Original );
 
-    SK_CreateDLLHook2 ( L"_nvngx.dll",
-                           "NVSDK_NGX_VULKAN_ReleaseFeature",
-                            NVSDK_NGX_VULKAN_ReleaseFeature_Detour,
-                  (void **)&NVSDK_NGX_VULKAN_ReleaseFeature_Original );
+    if (SK_GetCurrentGameID () == SK_GAME_ID::ArknightsEndfield)
+    {
+      SK_LOGi0 (L"Skipping NVSDK_NGX_VULKAN_ReleaseFeature_Detour to avoid crash when opening settings");
+    }
+    else
+    {
+      SK_CreateDLLHook2 ( L"_nvngx.dll",
+                          "NVSDK_NGX_VULKAN_ReleaseFeature",
+                           NVSDK_NGX_VULKAN_ReleaseFeature_Detour,
+                  (void **)&NVSDK_NGX_VULKAN_ReleaseFeature_Original);
+    }
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                            "NVSDK_NGX_VULKAN_EvaluateFeature",

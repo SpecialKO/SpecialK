@@ -1074,6 +1074,9 @@ SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t valu
     return;
   }
 
+  if (!SK_IsGameWindowActive (false) && !game_window.wantBackgroundRender ())
+    return;
+
   if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
     return;
 

@@ -1421,6 +1421,10 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
     NvLL_VK_SetSleepMode_Detour (device, &SK_NVLL_LastSleepParams);
   }
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::ArknightsEndfield &&
+        (!SK_IsGameWindowActive (false) && !game_window.wantBackgroundRender ()))
+    return NVLL_VK_OK;
+
   auto ret =
     NvLL_VK_Sleep_Original (device, signalValue);
 

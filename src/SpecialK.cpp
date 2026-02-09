@@ -719,6 +719,11 @@ DllMain ( HMODULE hModule,
 
       SK_Inject_CleanupSharedMemory ();
 
+#ifdef _M_AMD64
+      extern void AKEF_Shared_cleanupSharedMemory ();
+      AKEF_Shared_cleanupSharedMemory ();
+#endif
+
       // Give time for any threads waiting on something such as a message pump
       //   to wake up before we unload the DLL, because our hook procedures are
       //     about to be unloaded from the process.

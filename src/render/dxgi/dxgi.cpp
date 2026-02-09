@@ -490,6 +490,11 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   if (fmt_new == fmt_orig)
     return fmt_orig;
 
+  // Prevent changing format for Arknight Endfield's swapchain
+  if (!SK_CanModifySwapchain ()) {
+    return fmt_orig;
+  }
+
   //if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
   {
     SK_ComQIPtr <IDXGISwapChain3>
@@ -543,7 +548,7 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   {
     SK_LOGi0 ( L" >> HDR: Overriding Original Format: '%hs' with '%hs'",
                          SK_DXGI_FormatToStr (fmt_orig).data (),
-                         SK_DXGI_FormatToStr (fmt_new ).data () );
+                       SK_DXGI_FormatToStr (fmt_new ).data () );
   }
 
   return
@@ -2683,7 +2688,7 @@ SK_Streamline_SetupNativeLimiter (void)
 
       D3D12_COMMAND_QUEUE_DESC
         queue_desc       = { };
-        queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+      queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
         queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
       pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
@@ -2703,7 +2708,7 @@ SK_Streamline_SetupNativeLimiter (void)
       SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeChain.p);
 
       if (pNativeChain.p != pSwapChain.p)
-      {
+    {
         //SK_ImGui_Warning (L"Hooking Streamline Proxy Present...");
 
         DXGI_VIRTUAL_HOOK ( &pSwapChain.p, 8,
@@ -5590,7 +5595,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         }
       }
 
-      if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
+      if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap) && SK_CanModifySwapchain ())
       {
         if ( DirectX::MakeTypeless (pDesc->BufferDesc.Format) ==
              DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) || 

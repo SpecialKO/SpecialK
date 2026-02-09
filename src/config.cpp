@@ -323,6 +323,8 @@ SK_GetCurrentGameID (void)
           { L"PWAAT.exe",                              SK_GAME_ID::PhoenixWright_Trilogy        },
           { L"PES2021.exe",                            SK_GAME_ID::eFootball_PES_2021           },
           { L"RelicCardinal.exe",                      SK_GAME_ID::AgeOfEmpires4                },
+          { L"Endfield.exe",                           SK_GAME_ID::ArknightsEndfield             },
+          { L"PlatformProcess.exe",                    SK_GAME_ID::ArknightsEndfield             },
         };
 
     first_check  = false;
@@ -382,6 +384,11 @@ SK_GetCurrentGameID (void)
       else if ( StrStrIW ( SK_GetHostApp (), L"Yakuza" ) )
       {
         current_game = SK_GAME_ID::YakuzaUnderflow;
+      }
+      else if ( _wcsicmp ( SK_GetHostApp (), L"Games.exe" ) == 0 &&
+        StrStrIW ( SK_VerifyTrust_GetCodeSignature ( SK_GetHostApp () ).subject.c_str (), L"GRYPH FRONTIER"))
+      {
+        current_game = SK_GAME_ID::ArknightsEndfield;
       }
 
       else if ( StrStrIW ( SK_GetHostApp  (), L"game"           ) )
@@ -4547,6 +4554,90 @@ auto DeclKeybind =
       {
         SK_EnderLilies_InitPlugIn ();
       } break;
+      case SK_GAME_ID::ArknightsEndfield:
+      {
+        if (_wcsicmp (SK_GetHostApp (), L"Games.exe") == 0) {
+          SK_AKEF_InitFromLauncher ();
+          break;
+        }
+        // Work-around anti-cheat
+        config.window.dont_hook_wndproc = true;
+        window.dont_hook_wndproc->store (config.window.dont_hook_wndproc);
+        config.compatibility.disable_debug_features = true;
+
+        config.textures.d3d11.cache = false;        // cause UI or 2D texture issues
+        config.textures.cache.ignore_nonmipped = true;
+        config.apis.dxgi.d3d12.hook = false;
+        config.apis.d3d9.hook = false;
+        config.apis.d3d9ex.hook = false;
+
+        config.apis.Vulkan.translate = 1;
+        config.apis.NvAPI.vulkan_bridge = 1;
+
+        // Game has native PlayStation support through libScePad and
+         //   haptics will not work if the PID is spoofed.
+        config.input.gamepad.scepad.hide_ds_edge_pid = SK_Disabled;
+        config.input.gamepad.xinput.emulate = false;
+        input.gamepad.scepad.hide_ds_edge_pid->store (config.input.gamepad.scepad.hide_ds_edge_pid);
+
+        extern bool AKEF_Shared_tryGetPid (DWORD * outPid);
+        extern void AKEF_Shared_resetPid ();
+        extern std::vector<DWORD> SK_AKEF_GetExistingEndfieldPids (void);
+
+        // By default, endfield somehow create a window too late for SpecialK to hook properly.
+        //  The result is WindowsHookEx/CbtHook is being applied too late
+        //   So we manually re-create endfield process and inject specialK early
+        const bool isPlatformProcess = wcscmp (SK_GetHostApp(), L"PlatformProcess.exe") == 0;
+        const bool isGlobalInjector = SK_GetModuleHandleW (L"SpecialK64.dll") != nullptr;
+        wchar_t wszDllFullName[MAX_PATH + 2] = { };
+        GetModuleFileName (skModuleRegistry::Self(), wszDllFullName, MAX_PATH);
+
+        std::vector<DWORD> existingPids = SK_AKEF_GetExistingEndfieldPids ();
+
+        DWORD injectedPid = 0;
+        bool injectedTargetExist = false;
+        if (AKEF_Shared_tryGetPid (&injectedPid))
+          injectedTargetExist =
+            std::find (existingPids.begin (), existingPids.end (), injectedPid) != existingPids.end ();
+
+        if (!injectedTargetExist)
+        {
+          AKEF_Shared_resetPid ();
+          if (isPlatformProcess && (isGlobalInjector || (StrStrIW(wszDllFullName, L"SpecialK64.dll") != nullptr)))
+          {
+            if (existingPids.size () <= 2) {
+              SK_LaunchArknightEndfield (L"Endfield.exe");
+            }
+          }
+          else
+          {
+            if (_wcsicmp (SK_GetHostApp (), L"Endfield.exe") == 0)
+              SK_RunOnce (plugin_mgr->init_fns.insert (SK_AKEF_InitPlugin));
+          }
+        }
+        else
+        {
+          SK_LOGi1 ("Existing Endfield.exe process found with PID %u\n", injectedPid);
+          for (DWORD pid : existingPids)
+          {
+            if (pid == injectedPid || pid == GetCurrentProcessId ())
+              continue;
+
+            HANDLE hProcess = OpenProcess (PROCESS_TERMINATE, FALSE, pid);
+            if (hProcess)
+            {
+              SK_LOGi1 (L"Terminating extra Endfield.exe process with PID %u\n", pid);
+              TerminateProcess (hProcess, 0);
+              CloseHandle (hProcess);
+            }
+          }
+
+          if (_wcsicmp (SK_GetHostApp (), L"Endfield.exe") == 0)
+            SK_RunOnce (plugin_mgr->init_fns.insert (SK_AKEF_InitPlugin));
+          else
+            SK_TerminateProcess (0);
+        }
+      } break;
 #endif
     }
   }
@@ -6390,7 +6481,8 @@ auto DeclKeybind =
       SK_VerifyTrust_GetCodeSignature (SK_GetFullyQualifiedApp ());
 
     if (StrStrIW (code_sig.subject.c_str (), L"COGNOSPHERE") ||
-        StrStrIW (code_sig.subject.c_str (), L"KURO TECHNOLOGY"))
+        StrStrIW (code_sig.subject.c_str (), L"KURO TECHNOLOGY") ||
+        StrStrIW (code_sig.subject.c_str (), L"GRYPH FRONTIER"))
     {
       config.compatibility.disable_debug_features = true;
     }

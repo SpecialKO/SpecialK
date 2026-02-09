@@ -2714,6 +2714,75 @@ SK_ScanAligned (const void* pattern, size_t len, const void* mask, int align)
   return SK_ScanAlignedEx (pattern, len, mask, nullptr, align);
 }
 
+void*
+__stdcall SK_ScanIdaStyle (void* module, const char* pattern)
+{
+  if (!module || !pattern)
+    return nullptr;
+
+  auto pattern_to_bytes = [](const char* pat) -> std::vector<int> {
+    std::vector<int> bytes;
+    const char* current = pat;
+
+    while ( *current ) {
+      if ( *current == ' ' ) {
+        ++current;
+        continue;
+      }
+      if ( *current == '?' ) {
+        ++current;
+        if ( *current == '?' )
+          ++current;
+        bytes.push_back (-1);
+      }
+      else {
+        char* end = nullptr;
+        int value = static_cast<int> ( strtoul (current, &end, 16) );
+        if ( current == end )
+          break;
+        bytes.push_back ( value );
+        current = end;
+      }
+    }
+    return bytes;
+    };
+
+  auto dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER> ( module );
+  if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
+    return nullptr;
+
+  auto ntHeaders = reinterpret_cast<PIMAGE_NT_HEADERS> (
+    reinterpret_cast<std::uint8_t*> ( module ) + dosHeader->e_lfanew
+    );
+  if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
+    return nullptr;
+
+  std::size_t sizeOfImage = ntHeaders->OptionalHeader.SizeOfImage;
+  auto patternBytes = pattern_to_bytes ( pattern );
+  std::size_t patternSize = patternBytes.size ();
+
+  if (patternSize == 0 || patternSize > sizeOfImage)
+    return nullptr; 
+
+  auto scanBytes = reinterpret_cast<std::uint8_t*> ( module );
+
+  for (std::size_t i = 0; i <= sizeOfImage - patternSize; ++i) {
+    bool found = true;
+    for (std::size_t j = 0; j < patternSize; ++j) {
+      if (patternBytes[j] != -1 && scanBytes[i + j] != patternBytes[j]) {
+        found = false;
+        break;
+      }
+    }
+    if (found) {
+      return static_cast<void*> ( scanBytes + i );
+    }
+  }
+
+  return nullptr;
+}
+
+
 BOOL
 __stdcall
 SK_InjectMemory ( LPVOID  base_addr,
