@@ -27,6 +27,8 @@
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+extern bool SidecarK_DiagnosticsEnabled ();
+
 std::atomic_bool g_dxgi_present_seen{ false };
 
 std::atomic_bool g_dxgi_overlay_owner{ false };
@@ -36,19 +38,6 @@ std::atomic_bool g_dxgi_overlay_owner{ false };
 
 static void SK_DXGI_WriteHitFile (const char* entry, void* this_ptr, void* func_addr)
 {
-  wchar_t temp_path [MAX_PATH] = { };
-  const DWORD cch = GetTempPathW (MAX_PATH, temp_path);
-
-  if (cch == 0 || cch >= MAX_PATH)
-    return;
-
-  wchar_t file_path [MAX_PATH] = { };
-  swprintf ( file_path, MAX_PATH,
-             L"%ssk_dxgi_hit_%lu_%hs.txt",
-             temp_path,
-             (unsigned long)GetCurrentProcessId (),
-             entry != nullptr ? entry : "null" );
-
   wchar_t mod_path [MAX_PATH] = { };
   HMODULE hMod                = nullptr;
   DWORD gle                   = 0;
@@ -71,6 +60,22 @@ static void SK_DXGI_WriteHitFile (const char* entry, void* this_ptr, void* func_
   {
     gle = ERROR_INVALID_PARAMETER;
   }
+
+  if (! SidecarK_DiagnosticsEnabled ())
+    return;
+
+  wchar_t temp_path [MAX_PATH] = { };
+  const DWORD cch = GetTempPathW (MAX_PATH, temp_path);
+
+  if (cch == 0 || cch >= MAX_PATH)
+    return;
+
+  wchar_t file_path [MAX_PATH] = { };
+  swprintf ( file_path, MAX_PATH,
+             L"%ssk_dxgi_hit_%lu_%hs.txt",
+             temp_path,
+             (unsigned long)GetCurrentProcessId (),
+             entry != nullptr ? entry : "null" );
 
   FILE* f = nullptr;
   _wfopen_s (&f, file_path, L"wb");
@@ -747,6 +752,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static volatile LONG s_hits_dxgi_Present = 0;
   if (InterlockedIncrement (&s_hits_dxgi_Present) <= 50)
   {
+    if (SidecarK_DiagnosticsEnabled ())
+    {
     const DWORD pid = GetCurrentProcessId ();
     const DWORD tid = GetCurrentThreadId  ();
 
@@ -796,6 +803,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         OutputDebugStringA ("sk_backend_route: CreateFileW failed (DXGI Present)\n");
       }
     }
+    }
   }
 
   static LONG s_once_wrap_present = 0;
@@ -805,6 +813,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static volatile LONG s_probe_once = 0;
   if (InterlockedCompareExchange (&s_probe_once, 1, 0) == 0)
   {
+    if (SidecarK_DiagnosticsEnabled ())
+    {
     wchar_t path [MAX_PATH] = { };
     DWORD cch = GetTempPathW (MAX_PATH, path);
 
@@ -846,6 +856,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
             fprintf (f, "vtbl[%02d]=%p\n", i, fn);
           }
+    }
         }
         else
         {
@@ -869,6 +880,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   {
     s_last = now;
 
+    if (SidecarK_DiagnosticsEnabled ())
+    {
     wchar_t path [MAX_PATH] = { };
     DWORD cch = GetTempPathW (MAX_PATH, path);
 
@@ -887,6 +900,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         fprintf (f, "last_swapchain=%p\n", (void *)this);
         fclose  (f);
       }
+    }
     }
   }
 
@@ -935,6 +949,9 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   auto _SidecarLog = [&](const wchar_t* fmt, ...)
   {
+    if (! SidecarK_DiagnosticsEnabled ())
+      return;
+
     wchar_t path [MAX_PATH] = { };
     DWORD cch = GetTempPathW (MAX_PATH, path);
     if (cch == 0 || cch >= MAX_PATH)

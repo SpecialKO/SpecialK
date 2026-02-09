@@ -37,6 +37,39 @@
 const  char*   SK_VersionStrA =    SK_VERSION_STR_A;
 const wchar_t* SK_VersionStrW = _L(SK_VERSION_STR_A);
 
+extern bool SidecarK_DiagnosticsEnabled ();
+
+bool SidecarK_DiagnosticsEnabled ()
+{
+  static std::atomic_bool s_enabled { false };
+  if (s_enabled.load ())
+    return true;
+
+  const DWORD pid = GetCurrentProcessId ();
+  char  name [128] = { };
+  wsprintfA (name, "Local\\SidecarK_Diagnostics_Enable_%lu", (unsigned long)pid);
+
+  HANDLE hMap = OpenFileMappingA (FILE_MAP_READ, FALSE, name);
+  if (! hMap)
+    return false;
+
+  void* view = MapViewOfFile (hMap, FILE_MAP_READ, 0, 0, 4);
+  if (! view)
+  {
+    CloseHandle (hMap);
+    return false;
+  }
+
+  const bool ok = (memcmp (view, "SKD1", 4) == 0);
+  UnmapViewOfFile (view);
+  CloseHandle (hMap);
+
+  if (ok)
+    s_enabled.store (true);
+
+  return ok;
+}
+
 #pragma comment (lib, "Aux_ulib.lib")
 
 char _RTL_CONSTANT_STRING_type_check (const char    *s);
@@ -66,6 +99,9 @@ static
 void
 SK_StageTraceW (const wchar_t* stage)
 {
+  if (! SidecarK_DiagnosticsEnabled ())
+    return;
+
   const DWORD     pid    = GetCurrentProcessId ();
   const unsigned __int64 t = (unsigned __int64)GetTickCount64 ();
 
@@ -120,6 +156,9 @@ SK_WarmupRenderBackends_SEH_Stub (void)
   }
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
+    if (! SidecarK_DiagnosticsEnabled ())
+      return FALSE;
+
     const DWORD code = GetExceptionCode ();
     const DWORD pid  = GetCurrentProcessId ();
 
@@ -625,33 +664,36 @@ DllMain ( HMODULE hModule,
 
           const DWORD pid = GetCurrentProcessId ();
 
-          wchar_t wszTempPath [MAX_PATH] = { };
-          wchar_t wszFilePath [MAX_PATH] = { };
+           if (SidecarK_DiagnosticsEnabled ())
+           {
+             wchar_t wszTempPath [MAX_PATH] = { };
+             wchar_t wszFilePath [MAX_PATH] = { };
 
-          const DWORD cchTemp =
-            GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+             const DWORD cchTemp =
+               GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
 
-          if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
-          {
-            wsprintfW (wszFilePath, L"%ssk_alive.txt", wszTempPath);
+             if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+             {
+               wsprintfW (wszFilePath, L"%ssk_alive.txt", wszTempPath);
 
-            HANDLE hFile =
-              CreateFileW ( wszFilePath, FILE_APPEND_DATA,
-                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                            nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+               HANDLE hFile =
+                 CreateFileW ( wszFilePath, FILE_APPEND_DATA,
+                               FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                               nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
 
-            if (hFile != INVALID_HANDLE_VALUE)
-            {
-              wchar_t wszLine [MAX_PATH * 2] = { };
-              wsprintfW ( wszLine, L"alive pid=%lu module=%s\n",
-                          (unsigned long)pid, __sk_attach_module_path );
+               if (hFile != INVALID_HANDLE_VALUE)
+               {
+                 wchar_t wszLine [MAX_PATH * 2] = { };
+                 wsprintfW ( wszLine, L"alive pid=%lu module=%s\n",
+                             (unsigned long)pid, __sk_attach_module_path );
 
-              DWORD cbWritten = 0;
-              const DWORD cch = (DWORD)lstrlenW (wszLine);
-              WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
-              CloseHandle (hFile);
-            }
-          }
+                 DWORD cbWritten = 0;
+                 const DWORD cch = (DWORD)lstrlenW (wszLine);
+                 WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
+                 CloseHandle (hFile);
+               }
+             }
+           }
 
           return 0;
         },
@@ -838,6 +880,7 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_DETACH:
     {
+      if (SidecarK_DiagnosticsEnabled ())
       {
         const DWORD pid = GetCurrentProcessId ();
 
@@ -1576,27 +1619,30 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       }
 
       {
-        auto append_tick = [](const wchar_t* name, const char* line) {
-          wchar_t path[MAX_PATH] = {};
-          GetTempPathW(MAX_PATH, path);
-          wcscat_s(path, name);
-          HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-          if (h != INVALID_HANDLE_VALUE) {
-            DWORD n = 0;
-            WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
-            CloseHandle(h);
-          }
-        };
+        if (SidecarK_DiagnosticsEnabled ())
+        {
+          auto append_tick = [](const wchar_t* name, const char* line) {
+            wchar_t path[MAX_PATH] = {};
+            GetTempPathW(MAX_PATH, path);
+            wcscat_s(path, name);
+            HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (h != INVALID_HANDLE_VALUE) {
+              DWORD n = 0;
+              WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
+              CloseHandle(h);
+            }
+          };
 
-        char line[400] = {};
-        _snprintf_s(
-          line, _countof(line), _TRUNCATE,
-          "self=%ls short=%ls role=0x%X injected=%d\n",
-          wszSelfTitledDLL ? wszSelfTitledDLL : L"(null)",
-          wszShort ? wszShort : L"(null)",
-          (unsigned)SK_GetDLLRole(),
-          SK_IsInjected() ? 1 : 0);
-        append_tick(L"sk_identity.txt", line);
+          char line[400] = {};
+          _snprintf_s(
+            line, _countof(line), _TRUNCATE,
+            "self=%ls short=%ls role=0x%X injected=%d\n",
+            wszSelfTitledDLL ? wszSelfTitledDLL : L"(null)",
+            wszShort ? wszShort : L"(null)",
+            (unsigned)SK_GetDLLRole(),
+            SK_IsInjected() ? 1 : 0);
+          append_tick(L"sk_identity.txt", line);
+        }
       }
 
 

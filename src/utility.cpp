@@ -23,6 +23,8 @@
 
 #include <SpecialK/stdafx.h>
 
+extern bool SidecarK_DiagnosticsEnabled ();
+
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif

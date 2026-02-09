@@ -62,10 +62,15 @@ BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC  = { };
 DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1 = { };
 
+extern bool SidecarK_DiagnosticsEnabled();
+
 static void SK_DXGI_WriteDetourHitMarker (const wchar_t* wszEventName, void* pSwapChainThis, void* pDetourFn)
 {
   if (wszEventName == nullptr || *wszEventName == L'\0')
     return;
+
+  if (SidecarK_DiagnosticsEnabled ())
+  {
 
   wchar_t wszTempPath [MAX_PATH] = { };
   const DWORD cchTemp = GetTempPathW ((DWORD)_countof (wszTempPath), wszTempPath);
@@ -124,6 +129,8 @@ static void SK_DXGI_WriteDetourHitMarker (const wchar_t* wszEventName, void* pSw
   DWORD cbWritten = 0;
   WriteFile (hFile, wszLine, (DWORD)(lstrlenW (wszLine) * sizeof (wchar_t)), &cbWritten, nullptr);
   CloseHandle (hFile);
+
+  }
 }
 
 int SK_DXGI_HighestFactorySupported = -1;

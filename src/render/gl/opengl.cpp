@@ -21,6 +21,11 @@
  *
 **/
 
+#if !defined(SIDECARK_DIAGNOSTICS_ENABLED_EXTERN)
+#define SIDECARK_DIAGNOSTICS_ENABLED_EXTERN
+extern bool SidecarK_DiagnosticsEnabled ();
+#endif
+
 #pragma warning ( disable : 4273 )
 
 #define __SK_SUBSYSTEM__ L"  OpenGL  "
@@ -63,11 +68,18 @@
 SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
 HGLRC          __gl_primary_context = nullptr;
 
+static volatile LONG g_overlay_disabled                 = 0;
+static volatile LONG g_gl_precond_failures              = 0;
+static volatile LONG g_overlay_recursion_in_submit_hits = 0;
+
 SK_LazyGlobal <std::unordered_map <HGLRC, HGLRC>> __gl_shared_contexts;
 SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
 
 extern std::atomic_bool g_dxgi_present_seen;
 extern std::atomic_bool g_dxgi_overlay_owner;
+
+thread_local int  tls_gl_present_depth      = 0;
+thread_local bool tls_gl_in_overlay_submit  = false;
 
 struct SK_GL_Context {
 };
@@ -135,6 +147,9 @@ static volatile LONG s_gl_suppressed_by_dxgi_owner_hits = 0;
 
 static bool TryWriteTerminalMarker (const char* token)
 {
+  if (! SidecarK_DiagnosticsEnabled ())
+    return true;
+
   if (token == nullptr || token [0] == '\0')
     return false;
 
@@ -202,7 +217,7 @@ static bool TryWriteTerminalMarker (const char* token)
 
         if (InterlockedExchange (&s_gl_gate_ready_logged, 1) == 0)
         {
-          if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+          if (SidecarK_DiagnosticsEnabled () && GetTempPathW (MAX_PATH, wszTempPath) > 0)
           {
             wchar_t wszFile2 [64] = { };
             wsprintfW (wszFile2, L"sk_gl_present_%lu.txt", (unsigned long)pid);
@@ -1504,6 +1519,8 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
   static volatile LONG s_hits_SwapBuffers = 0;
   if (InterlockedIncrement (&s_hits_SwapBuffers) <= 50)
   {
+    if (SidecarK_DiagnosticsEnabled ())
+    {
     const DWORD pid = GetCurrentProcessId ();
     const DWORD tid = GetCurrentThreadId  ();
 
@@ -1552,6 +1569,7 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
       {
         OutputDebugStringA ("sk_backend_route: CreateFileW failed (SwapBuffers)\n");
       }
+    }
     }
   }
 
@@ -2365,39 +2383,42 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     const DWORD pid = GetCurrentProcessId ();
     const DWORD tid = GetCurrentThreadId  ();
 
-    wchar_t wszPath [MAX_PATH] = { };
-    if (GetTempPathW (MAX_PATH, wszPath) > 0)
+    if (SidecarK_DiagnosticsEnabled ())
     {
-      wchar_t wszFile [MAX_PATH] = { };
-      wsprintfW (wszFile, L"sk_gl_swapbuffers_reason_%lu.txt", pid);
-
-      wchar_t wszFull [MAX_PATH] = { };
-      lstrcpynW (wszFull, wszPath, MAX_PATH);
-      lstrcatW  (wszFull, wszFile);
-
-      const ULONGLONG now = GetTickCount64 ();
-      if (now - s_last_tick >= 1000ULL)
+      wchar_t wszPath [MAX_PATH] = { };
+      if (GetTempPathW (MAX_PATH, wszPath) > 0)
       {
-        s_last_tick = now;
+        wchar_t wszFile [MAX_PATH] = { };
+        wsprintfW (wszFile, L"sk_gl_swapbuffers_reason_%lu.txt", pid);
 
-        char szLine [512] = { };
-        _snprintf_s (
-          szLine, _TRUNCATE,
-          "pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=0x%p tid=%lu\r\n",
-          (unsigned long)pid, (long)s_calls, r,
-          drew_path ? 1 : 0, ret ? 1 : 0, (void *)hDC, (unsigned long)tid);
+        wchar_t wszFull [MAX_PATH] = { };
+        lstrcpynW (wszFull, wszPath, MAX_PATH);
+        lstrcatW  (wszFull, wszFile);
 
-        HANDLE hFile =
-          CreateFileW ( wszFull, GENERIC_WRITE,
-                        FILE_SHARE_READ | FILE_SHARE_WRITE,
-                        nullptr, CREATE_ALWAYS,
-                        FILE_ATTRIBUTE_NORMAL, nullptr );
-
-        if (hFile != INVALID_HANDLE_VALUE)
+        const ULONGLONG now = GetTickCount64 ();
+        if (now - s_last_tick >= 1000ULL)
         {
-          DWORD dwWritten = 0;
-          WriteFile (hFile, szLine, (DWORD)strlen (szLine), &dwWritten, nullptr);
-          CloseHandle (hFile);
+          s_last_tick = now;
+
+          char szLine [512] = { };
+          _snprintf_s (
+            szLine, _TRUNCATE,
+            "pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=0x%p tid=%lu\r\n",
+            (unsigned long)pid, (long)s_calls, r,
+            drew_path ? 1 : 0, ret ? 1 : 0, (void *)hDC, (unsigned long)tid);
+
+          HANDLE hFile =
+            CreateFileW ( wszFull, GENERIC_WRITE,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr, CREATE_ALWAYS,
+                          FILE_ATTRIBUTE_NORMAL, nullptr );
+
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            DWORD dwWritten = 0;
+            WriteFile (hFile, szLine, (DWORD)strlen (szLine), &dwWritten, nullptr);
+            CloseHandle (hFile);
+          }
         }
       }
     }
@@ -2405,33 +2426,36 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     static LONG s_first_bad_once = 0;
     if (! drew_path && InterlockedCompareExchange (&s_first_bad_once, 1, 0) == 0)
     {
-      wchar_t wszPath2 [MAX_PATH] = { };
-      if (GetTempPathW (MAX_PATH, wszPath2) > 0)
+      if (SidecarK_DiagnosticsEnabled ())
       {
-        wchar_t wszFile2 [MAX_PATH] = { };
-        wsprintfW (wszFile2, L"sk_gl_swapbuffers_first_bad_%lu.txt", pid);
-        lstrcatW  (wszPath2, wszFile2);
-
-        char szLine2 [512] = { };
-        _snprintf_s (
-          szLine2, _TRUNCATE,
-          "pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=0x%p tid=%lu\r\n",
-          (unsigned long)pid, (long)s_calls, r,
-          drew_path ? 1 : 0, ret ? 1 : 0, (void *)hDC, (unsigned long)tid);
-
-        HANDLE hFile2 =
-          CreateFileW ( wszPath2,
-                        FILE_APPEND_DATA,
-                        FILE_SHARE_READ | FILE_SHARE_WRITE,
-                        nullptr, OPEN_ALWAYS,
-                        FILE_ATTRIBUTE_NORMAL, nullptr );
-
-        if (hFile2 != INVALID_HANDLE_VALUE)
+        wchar_t wszPath2 [MAX_PATH] = { };
+        if (GetTempPathW (MAX_PATH, wszPath2) > 0)
         {
-          SetFilePointer (hFile2, 0, nullptr, FILE_END);
-          DWORD dwWritten2 = 0;
-          WriteFile (hFile2, szLine2, (DWORD)strlen (szLine2), &dwWritten2, nullptr);
-          CloseHandle (hFile2);
+          wchar_t wszFile2 [MAX_PATH] = { };
+          wsprintfW (wszFile2, L"sk_gl_swapbuffers_first_bad_%lu.txt", pid);
+          lstrcatW  (wszPath2, wszFile2);
+
+          char szLine2 [512] = { };
+          _snprintf_s (
+            szLine2, _TRUNCATE,
+            "pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=0x%p tid=%lu\r\n",
+            (unsigned long)pid, (long)s_calls, r,
+            drew_path ? 1 : 0, ret ? 1 : 0, (void *)hDC, (unsigned long)tid);
+
+          HANDLE hFile2 =
+            CreateFileW ( wszPath2,
+                          FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr, OPEN_ALWAYS,
+                          FILE_ATTRIBUTE_NORMAL, nullptr );
+
+          if (hFile2 != INVALID_HANDLE_VALUE)
+          {
+            SetFilePointer (hFile2, 0, nullptr, FILE_END);
+            DWORD dwWritten2 = 0;
+            WriteFile (hFile2, szLine2, (DWORD)strlen (szLine2), &dwWritten2, nullptr);
+            CloseHandle (hFile2);
+          }
         }
       }
     }
@@ -3066,17 +3090,32 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       SK_GL_UpdateRenderStats ();
       reached_draw = true;
       reason       = 100;
-      if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+      if (! tls_gl_in_overlay_submit)
       {
-        if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
-          SK_Overlay_DrawGL       ();
-        else
+        if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
         {
-          const LONG supHit = InterlockedIncrement (&s_gl_suppressed_by_dxgi_owner_hits);
-          if (supHit <= 20)
+          if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
           {
-            const DWORD pid = GetCurrentProcessId ();
-            const DWORD tid = GetCurrentThreadId  ();
+            if (InterlockedCompareExchange (&g_overlay_disabled, 0, 0) == 0)
+            {
+              tls_gl_in_overlay_submit = true;
+              SK_Overlay_DrawGL       ();
+              tls_gl_in_overlay_submit = false;
+            }
+            else
+            {
+              LONG n = InterlockedIncrement (&g_gl_precond_failures);
+              if (n > 10000)
+                InterlockedExchange (&g_overlay_disabled, 1);
+            }
+          }
+          else
+          {
+            const LONG supHit = InterlockedIncrement (&s_gl_suppressed_by_dxgi_owner_hits);
+            if (supHit <= 20)
+            {
+              const DWORD pid = GetCurrentProcessId ();
+              const DWORD tid = GetCurrentThreadId  ();
 
             wchar_t wszTempPath [MAX_PATH] = { };
             wchar_t wszFullPath [MAX_PATH] = { };
@@ -3121,6 +3160,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
             {
               OutputDebugStringA ("sk_gl_present: CreateFileW failed (gl_overlay_suppressed_by_dxgi_owner)\n");
             }
+            }
           }
         }
       }
@@ -3129,6 +3169,13 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
         if (hit <= 50)
         {
+          if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+          {
+            LONG n = InterlockedIncrement (&g_gl_precond_failures);
+            if (n > 10000)
+              InterlockedExchange (&g_overlay_disabled, 1);
+          }
+
           const DWORD pid = GetCurrentProcessId ();
           const DWORD tid = GetCurrentThreadId  ();
 
@@ -3365,25 +3412,34 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_GL_UpdateRenderStats ();
           reached_draw = true;
           reason       = 100;
-          if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+           if (! tls_gl_in_overlay_submit)
           {
-            if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
-              SK_Overlay_DrawGL       ();
-          }
-          else
-          {
-            const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
-            if (hit <= 50)
+            if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
             {
-              const DWORD pid = GetCurrentProcessId ();
-              const DWORD tid = GetCurrentThreadId  ();
-
-              wchar_t wszTempPath [MAX_PATH] = { };
-              wchar_t wszFullPath [MAX_PATH] = { };
-
-              DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
-              if (cch > 0 && cch < MAX_PATH)
+              if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
               {
+                if (InterlockedCompareExchange (&g_overlay_disabled, 0, 0) == 0)
+                {
+                  tls_gl_in_overlay_submit = true;
+                  SK_Overlay_DrawGL       ();
+                  tls_gl_in_overlay_submit = false;
+                }
+              }
+            }
+            else
+            {
+              const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
+              if (hit <= 50)
+              {
+                const DWORD pid = GetCurrentProcessId ();
+                const DWORD tid = GetCurrentThreadId  ();
+
+                wchar_t wszTempPath [MAX_PATH] = { };
+                wchar_t wszFullPath [MAX_PATH] = { };
+
+                DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+                if (cch > 0 && cch < MAX_PATH)
+                {
                 wsprintfW (wszFullPath, L"%ssk_gl_present_%lu.txt", wszTempPath, (unsigned long)pid);
 
                 HANDLE hPresentFile =
@@ -3421,6 +3477,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                   OutputDebugStringA ("sk_gl_present: CreateFileW failed (enter_gl_present)\n");
                 }
               }
+                }
             }
           }
 
@@ -3538,6 +3595,15 @@ BOOL
 WINAPI
 wglSwapBuffers (HDC hDC)
 {
+  tls_gl_present_depth++;
+  bool reentered = (tls_gl_present_depth > 1);
+  if (reentered && tls_gl_in_overlay_submit)
+  {
+    LONG n = InterlockedIncrement (&g_overlay_recursion_in_submit_hits);
+    if (n > 10)
+      InterlockedExchange (&g_overlay_disabled, 1);
+  }
+
   WaitForInit_GL ();
 
   SK_LOG1 ( ( L"[%x (tid=%04x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
@@ -3581,6 +3647,7 @@ wglSwapBuffers (HDC hDC)
   SK_GL_SwapInterval (orig_swap_interval);
 
 
+  tls_gl_present_depth--;
   return bRet;
 }
 
@@ -3589,6 +3656,15 @@ BOOL
 WINAPI
 SwapBuffers (HDC hDC)
 {
+  tls_gl_present_depth++;
+  bool reentered = (tls_gl_present_depth > 1);
+  if (reentered && tls_gl_in_overlay_submit)
+  {
+    LONG n = InterlockedIncrement (&g_overlay_recursion_in_submit_hits);
+    if (n > 10)
+      InterlockedExchange (&g_overlay_disabled, 1);
+  }
+
   WaitForInit_GL ();
 
   SK_LOG1 ( ( L"[%x (tid=%04x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
@@ -3621,6 +3697,7 @@ SwapBuffers (HDC hDC)
 #endif
 
 
+  tls_gl_present_depth--;
   return bRet;
 }
 
@@ -4105,6 +4182,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
+extern bool SidecarK_DiagnosticsEnabled ();
+
 static void
 SK_GL_WriteHookInstallMarker (
   const wchar_t *wszSymbol,
@@ -4122,72 +4201,8 @@ SK_GL_WriteHookInstallMarker (
   const DWORD pid = GetCurrentProcessId ();
   const DWORD tid = GetCurrentThreadId  ();
 
-  wchar_t wszTempPath [MAX_PATH] = { };
-  wchar_t wszFullPath [MAX_PATH] = { };
-
-  if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+  if (SidecarK_DiagnosticsEnabled ())
   {
-    wchar_t wszFile [64] = { };
-    wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
-
-    lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
-    lstrcatW  (wszFullPath, wszFile);
-  }
-  else
-  {
-    wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
-  }
-
-  char szOut [2048] = { };
-
-  _snprintf_s (
-    szOut, _TRUNCATE,
-    "pid=%lu\r\n"
-    "tid=%lu\r\n"
-    "symbol=%ws\r\n"
-    "module=%ws\r\n"
-    "module_handle=0x%p\r\n"
-    "target_addr=0x%p\r\n"
-    "gle=%lu\r\n"
-    "create_status=%ld\r\n"
-    "enable_status=%ld\r\n",
-    (unsigned long)pid,
-    (unsigned long)tid,
-    wszSymbol != nullptr ? wszSymbol : L"<null>",
-    wszModule != nullptr ? wszModule : L"<null>",
-    (void *)hMod,
-    (void *)pAddr,
-    (unsigned long)gle,
-    (long)stCreate,
-    (long)stEnable );
-
-  HANDLE hFile =
-    CreateFileW ( wszFullPath, GENERIC_WRITE,
-                  FILE_SHARE_READ | FILE_SHARE_WRITE,
-                  nullptr, CREATE_ALWAYS,
-                  FILE_ATTRIBUTE_NORMAL, nullptr );
-
-  if (hFile != INVALID_HANDLE_VALUE)
-  {
-    DWORD dwWritten = 0;
-    SetFilePointer (hFile, 0, nullptr, FILE_END);
-    WriteFile (hFile, szOut, (DWORD)strlen (szOut), &dwWritten, nullptr);
-    CloseHandle (hFile);
-  }
-}
-
-
-static volatile LONG
- __SK_GL_initialized = FALSE;
-
-DWORD
-WINAPI
-SK_HookGL (LPVOID)
-{
-  {
-    const DWORD pid = GetCurrentProcessId ();
-    const DWORD tid = GetCurrentThreadId  ();
-
     wchar_t wszTempPath [MAX_PATH] = { };
     wchar_t wszFullPath [MAX_PATH] = { };
 
@@ -4204,66 +4219,138 @@ SK_HookGL (LPVOID)
       wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
     }
 
-    DWORD gle_open  = 0;
-    DWORD gle_write = 0;
-    DWORD dwWritten = 0;
-    BOOL  okWrite   = FALSE;
-    int   len       = 0;
+    char szOut [2048] = { };
+
+    _snprintf_s (
+      szOut, _TRUNCATE,
+      "pid=%lu\r\n"
+      "tid=%lu\r\n"
+      "symbol=%ws\r\n"
+      "module=%ws\r\n"
+      "module_handle=0x%p\r\n"
+      "target_addr=0x%p\r\n"
+      "gle=%lu\r\n"
+      "create_status=%ld\r\n"
+      "enable_status=%ld\r\n",
+      (unsigned long)pid,
+      (unsigned long)tid,
+      wszSymbol != nullptr ? wszSymbol : L"<null>",
+      wszModule != nullptr ? wszModule : L"<null>",
+      (void *)hMod,
+      (void *)pAddr,
+      (unsigned long)gle,
+      (long)stCreate,
+      (long)stEnable );
 
     HANDLE hFile =
-      CreateFileW ( wszFullPath,
-                    FILE_APPEND_DATA,
+      CreateFileW ( wszFullPath, GENERIC_WRITE,
                     FILE_SHARE_READ | FILE_SHARE_WRITE,
-                    nullptr,
-                    OPEN_ALWAYS,
-                    FILE_ATTRIBUTE_NORMAL,
-                    nullptr );
+                    nullptr, CREATE_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL, nullptr );
 
     if (hFile != INVALID_HANDLE_VALUE)
     {
+      DWORD dwWritten = 0;
       SetFilePointer (hFile, 0, nullptr, FILE_END);
+      WriteFile (hFile, szOut, (DWORD)strlen (szOut), &dwWritten, nullptr);
+      CloseHandle (hFile);
+    }
+  }
+}
 
-      char szBuf [512] = { };
-      len =
-        _snprintf_s ( szBuf, _TRUNCATE,
-                      "enter_gl_install pid=%lu tid=%lu open_ok=1 gle_open=0 write_ok=0 gle_write=0 bytes=0\r\n",
-                      (unsigned long)pid,
-                      (unsigned long)tid );
 
-      if (len > 0)
+static volatile LONG
+ __SK_GL_initialized = FALSE;
+
+extern bool SidecarK_DiagnosticsEnabled ();
+
+DWORD
+WINAPI
+SK_HookGL (LPVOID)
+{
+  {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+      wchar_t wszTempPath [MAX_PATH] = { };
+      wchar_t wszFullPath [MAX_PATH] = { };
+
+      if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
       {
-        okWrite = WriteFile (hFile, szBuf, (DWORD)len, &dwWritten, nullptr);
-        if (! okWrite)
-          gle_write = GetLastError ();
+        wchar_t wszFile [64] = { };
+        wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+        lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+        lstrcatW  (wszFullPath, wszFile);
+      }
+      else
+      {
+        wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
       }
 
-      CloseHandle (hFile);
+      DWORD gle_open  = 0;
+      DWORD gle_write = 0;
+      DWORD dwWritten = 0;
+      BOOL  okWrite   = FALSE;
+      int   len       = 0;
 
-      const bool success = (okWrite == TRUE) && (dwWritten == (DWORD)len);
-      if (! success)
+      HANDLE hFile =
+        CreateFileW ( wszFullPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
       {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        char szBuf [512] = { };
+        len =
+          _snprintf_s ( szBuf, _TRUNCATE,
+                        "enter_gl_install pid=%lu tid=%lu open_ok=1 gle_open=0 write_ok=0 gle_write=0 bytes=0\r\n",
+                        (unsigned long)pid,
+                        (unsigned long)tid );
+
+        if (len > 0)
+        {
+          okWrite = WriteFile (hFile, szBuf, (DWORD)len, &dwWritten, nullptr);
+          if (! okWrite)
+            gle_write = GetLastError ();
+        }
+
+        CloseHandle (hFile);
+
+        const bool success = (okWrite == TRUE) && (dwWritten == (DWORD)len);
+        if (! success)
+        {
+          char szDbg [256] = { };
+          _snprintf_s ( szDbg, _TRUNCATE,
+                        "enter_gl_install pid=%lu tid=%lu open_ok=1 gle_open=0 write_ok=%lu gle_write=%lu bytes=%lu\r\n",
+                        (unsigned long)pid,
+                        (unsigned long)tid,
+                        (unsigned long)(okWrite ? 1 : 0),
+                        (unsigned long)gle_write,
+                        (unsigned long)dwWritten );
+          OutputDebugStringA (szDbg);
+        }
+      }
+      else
+      {
+        gle_open = GetLastError ();
+
         char szDbg [256] = { };
         _snprintf_s ( szDbg, _TRUNCATE,
-                      "enter_gl_install pid=%lu tid=%lu open_ok=1 gle_open=0 write_ok=%lu gle_write=%lu bytes=%lu\r\n",
+                      "enter_gl_install pid=%lu tid=%lu open_ok=0 gle_open=%lu write_ok=0 gle_write=0 bytes=0\r\n",
                       (unsigned long)pid,
                       (unsigned long)tid,
-                      (unsigned long)(okWrite ? 1 : 0),
-                      (unsigned long)gle_write,
-                      (unsigned long)dwWritten );
+                      (unsigned long)gle_open );
         OutputDebugStringA (szDbg);
       }
-    }
-    else
-    {
-      gle_open = GetLastError ();
-
-      char szDbg [256] = { };
-      _snprintf_s ( szDbg, _TRUNCATE,
-                    "enter_gl_install pid=%lu tid=%lu open_ok=0 gle_open=%lu write_ok=0 gle_write=0 bytes=0\r\n",
-                    (unsigned long)pid,
-                    (unsigned long)tid,
-                    (unsigned long)gle_open );
-      OutputDebugStringA (szDbg);
     }
   }
 
@@ -4312,36 +4399,39 @@ SK_HookGL (LPVOID)
       {
         s_loggedExhaust = true;
 
-        const DWORD pid = GetCurrentProcessId ();
-
-        wchar_t wszTempPath [MAX_PATH] = { };
-        wchar_t wszFullPath [MAX_PATH] = { };
-
-        if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+        if (SidecarK_DiagnosticsEnabled ())
         {
-          wchar_t wszFile [64] = { };
-          wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+          const DWORD pid = GetCurrentProcessId ();
 
-          lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
-          lstrcatW  (wszFullPath, wszFile);
-        }
-        else
-        {
-          wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
-        }
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFullPath [MAX_PATH] = { };
 
-        HANDLE hFile =
-          CreateFileW ( wszFullPath, FILE_APPEND_DATA,
-                        FILE_SHARE_READ | FILE_SHARE_WRITE,
-                        nullptr, OPEN_ALWAYS,
-                        FILE_ATTRIBUTE_NORMAL, nullptr );
-
-          if (hFile != INVALID_HANDLE_VALUE)
+          if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
           {
-            CloseHandle (hFile);
+            wchar_t wszFile [64] = { };
+            wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+            lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+            lstrcatW  (wszFullPath, wszFile);
+          }
+          else
+          {
+            wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
           }
 
-          ;
+          HANDLE hFile =
+            CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr, OPEN_ALWAYS,
+                          FILE_ATTRIBUTE_NORMAL, nullptr );
+
+            if (hFile != INVALID_HANDLE_VALUE)
+            {
+              CloseHandle (hFile);
+            }
+
+            ;
+        }
       }
     }
 
@@ -4351,38 +4441,41 @@ SK_HookGL (LPVOID)
       {
         s_loggedStart = true;
 
-        const DWORD pid = GetCurrentProcessId ();
-
-        wchar_t wszTempPath [MAX_PATH] = { };
-        wchar_t wszFullPath [MAX_PATH] = { };
-
-        if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+        if (SidecarK_DiagnosticsEnabled ())
         {
-          wchar_t wszFile [64] = { };
-          wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+          const DWORD pid = GetCurrentProcessId ();
 
-          lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
-          lstrcatW  (wszFullPath, wszFile);
-        }
-        else
-        {
-          wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
-        }
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFullPath [MAX_PATH] = { };
 
-        HANDLE hFile =
-          CreateFileW ( wszFullPath, FILE_APPEND_DATA,
-                        FILE_SHARE_READ | FILE_SHARE_WRITE,
-                        nullptr, OPEN_ALWAYS,
-                        FILE_ATTRIBUTE_NORMAL, nullptr );
+          if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+          {
+            wchar_t wszFile [64] = { };
+            wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
 
-        if (hFile != INVALID_HANDLE_VALUE)
-        {
-          static const char szLine [] = "retry_start\r\n";
-          DWORD             dwWritten = 0;
-          SetFilePointer (hFile, 0, nullptr, FILE_END);
-          WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
-          CloseHandle (hFile);
-        }
+            lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+            lstrcatW  (wszFullPath, wszFile);
+          }
+          else
+          {
+            wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+          }
+
+          HANDLE hFile =
+            CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr, OPEN_ALWAYS,
+                          FILE_ATTRIBUTE_NORMAL, nullptr );
+
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            static const char szLine [] = "retry_start\r\n";
+            DWORD             dwWritten = 0;
+            SetFilePointer (hFile, 0, nullptr, FILE_END);
+            WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
+      CloseHandle (hFile);
+    }
+    }
       }
 
       if (now - s_lastAttempt < 250ULL)
@@ -4396,6 +4489,9 @@ SK_HookGL (LPVOID)
 
       auto _AppendRetryOutcome = [&](const char* outcome, const char* extra)
       {
+        if (! SidecarK_DiagnosticsEnabled ())
+          return;
+
         const DWORD pid = GetCurrentProcessId ();
 
         wchar_t wszTempPath [MAX_PATH] = { };

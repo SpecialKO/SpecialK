@@ -11,6 +11,34 @@
 
 #include <dwmapi.h>
 
+static HANDLE g_diag_enable_map = nullptr;
+
+static void CreateDiagnosticsEnableTokenForPid(DWORD targetPid)
+{
+  if (targetPid == 0)
+    return;
+
+  return;
+
+  char name[128]{};
+  wsprintfA(name, "Local\\SidecarK_Diagnostics_Enable_%lu", (unsigned long)targetPid);
+
+  g_diag_enable_map = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, 4, name);
+  if (!g_diag_enable_map)
+    return;
+
+  void* view = MapViewOfFile(g_diag_enable_map, FILE_MAP_WRITE, 0, 0, 4);
+  if (!view)
+  {
+    CloseHandle(g_diag_enable_map);
+    g_diag_enable_map = nullptr;
+    return;
+  }
+
+  memcpy(view, "SKD1", 4);
+  UnmapViewOfFile(view);
+}
+
 static bool HasModule(DWORD pid, const wchar_t* basename)
 {
   if (pid == 0 || basename == nullptr || *basename == L'\0')
@@ -57,6 +85,8 @@ static std::wstring DirnameOfPath(const std::wstring& path)
 
 static void LogTargetGraphicsSnapshot(DWORD pid, const std::wstring& targetExeFullPath)
 {
+  return;
+
   const int dxgi   = HasModule(pid, L"dxgi.dll")        ? 1 : 0;
   const int d3d11  = HasModule(pid, L"d3d11.dll")       ? 1 : 0;
   const int d3d9   = HasModule(pid, L"d3d9.dll")        ? 1 : 0;
@@ -213,6 +243,8 @@ static HWND FindTopLevelWindowForPid(DWORD pid)
 
 static void WriteWindowProofOnceForPid(DWORD pid, HWND hwnd)
 {
+  return;
+
   static std::atomic<DWORD> s_logged_pid{ 0 };
   const DWORD expected = 0;
   if (!s_logged_pid.compare_exchange_strong(const_cast<DWORD&>(expected), pid))
@@ -344,6 +376,8 @@ static bool RunRundll(bool is64, const std::wstring& specialkDllFullPath, const 
   std::vector<wchar_t> cmdline(cmd.begin(), cmd.end());
   cmdline.push_back(L'\0');
 
+  SetEnvironmentVariableA("SIDECARK_DIAGNOSTICS", nullptr);
+
   const BOOL ok = CreateProcessW(
     nullptr,
     cmdline.data(),
@@ -473,12 +507,39 @@ static void AppendLogf(const std::wstring& logPath, const wchar_t* fmt, ...)
   AppendLog(logPath, buf);
 }
 
+static bool SidecarKHost_DiagnosticsEnabledForPid(DWORD pid)
+{
+  if (pid == 0)
+    return false;
+
+  wchar_t name[128]{};
+  wsprintfW(name, L"Local\\SidecarK_Diagnostics_Enable_%lu", (unsigned long)pid);
+
+  HANDLE hMap = OpenFileMappingW(FILE_MAP_READ, FALSE, name);
+  if (!hMap)
+    return false;
+
+  bool ok = false;
+  void* view = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 4);
+  if (view)
+  {
+    ok = (memcmp(view, "SKD1", 4) == 0);
+    UnmapViewOfFile(view);
+  }
+
+  CloseHandle(hMap);
+  return ok;
+}
+
 static void HostLogAppend(const wchar_t* line)
 {
   if (!line || !*line) return;
 
   if (g_host_pid == 0)
     g_host_pid = GetCurrentProcessId();
+
+  if (!SidecarKHost_DiagnosticsEnabledForPid(g_host_pid))
+    return;
 
   wchar_t wszTempPath[MAX_PATH]{};
   DWORD cchTemp = GetTempPathW((DWORD)_countof(wszTempPath), wszTempPath);
@@ -1213,46 +1274,6 @@ int wmain(int argc, wchar_t** argv)
 {
   // Unavoidable proof-of-execution artifact (must run before any attach/inject logic)
   g_host_pid = GetCurrentProcessId();
-  {
-    wchar_t wszTempPath[MAX_PATH]{};
-    DWORD cchTemp = GetTempPathW((DWORD)_countof(wszTempPath), wszTempPath);
-    if (cchTemp != 0 && cchTemp < (DWORD)_countof(wszTempPath))
-    {
-      if (cchTemp > 0 && wszTempPath[cchTemp - 1] != L'\\')
-      {
-        if (cchTemp + 1 < (DWORD)_countof(wszTempPath))
-        {
-          wszTempPath[cchTemp] = L'\\';
-          wszTempPath[cchTemp + 1] = L'\0';
-        }
-      }
-
-      wchar_t wszStartedPath[MAX_PATH]{};
-      wsprintfW(wszStartedPath, L"%ssidecarkhost_started_%lu.txt", wszTempPath, (unsigned long)g_host_pid);
-
-      HANDLE hFile = CreateFileW(
-        wszStartedPath,
-        GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        nullptr,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr);
-
-      if (hFile != INVALID_HANDLE_VALUE)
-      {
-        const ULONGLONG t = GetTickCount64();
-        wchar_t line[128]{};
-        wsprintfW(line, L"started hostpid=%lu tick=%llu\r\n",
-          (unsigned long)g_host_pid,
-          (unsigned long long)t);
-
-        DWORD cbWritten = 0;
-        WriteFile(hFile, line, (DWORD)lstrlenW(line) * sizeof(wchar_t), &cbWritten, nullptr);
-        CloseHandle(hFile);
-      }
-    }
-  }
 
   HostLogAppendMilestone(L"parsed_args_ok");
 
@@ -1543,6 +1564,8 @@ int wmain(int argc, wchar_t** argv)
     // Deterministic selection log (after PID choice)
     LogTargetSelected(logPath, targetPid, L"");
   }
+
+  CreateDiagnosticsEnableTokenForPid(targetPid);
 
   AppendLog(logPath, L"attached");
   HostLogAppendMilestone(L"begin_attach");
