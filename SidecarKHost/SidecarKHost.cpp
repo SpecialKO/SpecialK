@@ -443,6 +443,11 @@ static bool g_frame_source_seen = false;
 
 static DWORD g_host_pid = 0;
 
+static HANDLE g_control_map = nullptr;
+static void* g_control_view = nullptr;
+static volatile uint32_t* g_control_overlay_enabled = nullptr;
+static HANDLE g_control_pipe_thread = nullptr;
+
 
 static BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType)
 {
@@ -1181,6 +1186,168 @@ static std::wstring PipeNameForTarget(DWORD pid)
   return buf;
 }
 
+static std::wstring ControlPipeNameForTarget(DWORD pid)
+{
+  wchar_t buf[128]{};
+  swprintf(buf, _countof(buf), L"\\\\.\\pipe\\SidecarK_Control_%lu", (unsigned long)pid);
+  return buf;
+}
+
+static bool InitSidecarKControlPlaneForPid(DWORD pid)
+{
+  if (pid == 0)
+    return false;
+
+  if (g_control_map != nullptr && g_control_view != nullptr && g_control_overlay_enabled != nullptr)
+    return true;
+
+  wchar_t name[128]{};
+  wsprintfW(name, L"Local\\SidecarK_Control_%lu", (unsigned long)pid);
+
+  g_control_map = CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, 4096, name);
+  if (!g_control_map)
+    return false;
+
+  g_control_view = MapViewOfFile(g_control_map, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 4096);
+  if (!g_control_view)
+  {
+    CloseHandle(g_control_map);
+    g_control_map = nullptr;
+    return false;
+  }
+
+  BYTE* base = reinterpret_cast<BYTE*>(g_control_view);
+  uint32_t* ver = reinterpret_cast<uint32_t*>(base + 0x04);
+  uint32_t* overlay_enabled = reinterpret_cast<uint32_t*>(base + 0x08);
+
+  if (memcmp(base + 0x00, "SKC1", 4) != 0 || *ver != 1u)
+  {
+    memcpy(base + 0x00, "SKC1", 4);
+    *ver = 1u;
+    *overlay_enabled = 1u;
+  }
+
+  g_control_overlay_enabled = reinterpret_cast<volatile uint32_t*>(overlay_enabled);
+  return true;
+}
+
+static void ShutdownSidecarKControlPlane()
+{
+  if (g_control_pipe_thread)
+  {
+    WaitForSingleObject(g_control_pipe_thread, 2000);
+    CloseHandle(g_control_pipe_thread);
+    g_control_pipe_thread = nullptr;
+  }
+
+  g_control_overlay_enabled = nullptr;
+
+  if (g_control_view)
+  {
+    UnmapViewOfFile(g_control_view);
+    g_control_view = nullptr;
+  }
+
+  if (g_control_map)
+  {
+    CloseHandle(g_control_map);
+    g_control_map = nullptr;
+  }
+}
+
+static void RunControlPipeServer(const std::wstring& pipeName, volatile uint32_t* overlayEnabled)
+{
+  while (!g_shutdown.load())
+  {
+    HANDLE hPipe = CreateNamedPipeW(
+      pipeName.c_str(),
+      PIPE_ACCESS_DUPLEX,
+      PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+      1,
+      0,
+      0,
+      0,
+      nullptr
+    );
+
+    if (hPipe == INVALID_HANDLE_VALUE)
+      return;
+
+    BOOL connected = ConnectNamedPipe(hPipe, nullptr) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
+    if (!connected)
+    {
+      CloseHandle(hPipe);
+      continue;
+    }
+
+    char line[65]{};
+    DWORD lineLen = 0;
+    bool done = false;
+
+    while (!g_shutdown.load())
+    {
+      char tmp[32]{};
+      DWORD br = 0;
+      if (!ReadFile(hPipe, tmp, (DWORD)sizeof(tmp), &br, nullptr) || br == 0)
+        break;
+
+      for (DWORD i = 0; i < br; ++i)
+      {
+        const char ch = tmp[i];
+        if (ch == '\n')
+        {
+          line[lineLen] = '\0';
+          done = true;
+          break;
+        }
+
+        if (lineLen >= 64)
+        {
+          const char* resp = "err\n";
+          DWORD bw = 0;
+          WriteFile(hPipe, resp, 4, &bw, nullptr);
+          FlushFileBuffers(hPipe);
+          lineLen = 0;
+          continue;
+        }
+
+        line[lineLen++] = ch;
+      }
+
+      if (done)
+        break;
+    }
+
+    const char* resp = "err\n";
+    DWORD respLen = 4;
+
+    if (done)
+    {
+      if (strcmp(line, "overlay on") == 0)
+      {
+        if (overlayEnabled) *overlayEnabled = 1u;
+        resp = "ok\n"; respLen = 3;
+      }
+      else if (strcmp(line, "overlay off") == 0)
+      {
+        if (overlayEnabled) *overlayEnabled = 0u;
+        resp = "ok\n"; respLen = 3;
+      }
+      else if (strcmp(line, "ping") == 0)
+      {
+        resp = "pong\n"; respLen = 5;
+      }
+    }
+
+    DWORD bw = 0;
+    WriteFile(hPipe, resp, respLen, &bw, nullptr);
+    FlushFileBuffers(hPipe);
+
+    DisconnectNamedPipe(hPipe);
+    CloseHandle(hPipe);
+  }
+}
+
 static bool ReadOnePipeMessage(HANDLE hPipe, std::wstring& out)
 {
   wchar_t wbuf[8192]{};
@@ -1567,6 +1734,8 @@ int wmain(int argc, wchar_t** argv)
 
   CreateDiagnosticsEnableTokenForPid(targetPid);
 
+  InitSidecarKControlPlaneForPid(targetPid);
+
   AppendLog(logPath, L"attached");
   HostLogAppendMilestone(L"begin_attach");
   WriteStatusAtomic(statusPath, L"attached", targetPid, L"none");
@@ -1618,6 +1787,22 @@ int wmain(int argc, wchar_t** argv)
     HostLogAppend(L"error: 32-bit host cannot inject into 64-bit target");
     WriteStatusAtomic(statusPath, L"error", targetPid, L"attach_failed");
     return ATTACH_FAILED;
+  }
+
+  if (g_control_overlay_enabled != nullptr)
+  {
+    const std::wstring controlPipeName = ControlPipeNameForTarget(targetPid);
+    g_control_pipe_thread = CreateThread(
+      nullptr, 0,
+      [](LPVOID p) -> DWORD {
+        auto* ctx = reinterpret_cast<std::tuple<std::wstring, volatile uint32_t*>*>(p);
+        RunControlPipeServer(std::get<0>(*ctx), std::get<1>(*ctx));
+        delete ctx;
+        return 0;
+      },
+      new std::tuple<std::wstring, volatile uint32_t*>(controlPipeName, g_control_overlay_enabled),
+      0, nullptr
+    );
   }
 
   const bool is64 = (_wcsicmp(Basename(dllToInject).c_str(), L"SpecialK64.dll") == 0);
@@ -1941,6 +2126,8 @@ int wmain(int argc, wchar_t** argv)
 
   WaitForSingleObject(hPipeThread, 2000);
   CloseHandle(hPipeThread);
+
+  ShutdownSidecarKControlPlane();
 
   ReleaseFrameMapping();
 
