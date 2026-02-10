@@ -1,5 +1,5 @@
-﻿#ifndef __SK__Plugin__Arknight_Endfield__
-#define __SK__Plugin__Arknight_Endfield__
+﻿#ifndef __SK__Plugin__Arknights_Endfield__
+#define __SK__Plugin__Arknights_Endfield__
 
 /*
   ---------------- SHARED MEMORY STRUCTURE FOR AKEF INJECTION ----------------
@@ -41,4 +41,4 @@ struct AKEF_WindowData
 };
 
 void SK_AKEF_ApplyUnityTargetFrameRate (float targetFrameRate);
-#endif /* __SK__Plugin__Arknight_Endfield__ */
+#endif /* __SK__Plugin__Arknights_Endfield__ */

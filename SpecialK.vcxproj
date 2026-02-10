@@ -1731,7 +1731,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\input\sce_pad.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
     <ClInclude Include="include\SpecialK\input\windows.gaming.input.h" />
-    <ClInclude Include="include\SpecialK\plugin\arknight_endfield.h">
+    <ClInclude Include="include\SpecialK\plugin\arknights_endfield.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="include\SpecialK\plugin\nier.h" />
@@ -1983,7 +1983,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\plugins\arknight_endfield.cpp">
+    <ClCompile Include="src\plugins\arknights_endfield.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\armoredcore6.cpp" />

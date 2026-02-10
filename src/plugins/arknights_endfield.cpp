@@ -1,6 +1,6 @@
 ﻿#include <SpecialK/stdafx.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/plugin/arknight_endfield.h>
+#include <SpecialK/plugin/arknights_endfield.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/plugin/plugin_mgr.h>
 #include <imgui/imgui.h>
@@ -17,7 +17,7 @@
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
-#define __SK_SUBSYSTEM__ L"Arknight Endfield"
+#define __SK_SUBSYSTEM__ L"Arknights Endfield"
 
 namespace AKEF_Shared
 {
@@ -1083,7 +1083,7 @@ SK_AKEF_ApplyUnityTargetFrameRate (float targetFrameRate)
 bool
 SK_AKEF_PlugInCfg (void)
 {
-  if (ImGui::CollapsingHeader ("Arknight: Endfield", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ("Arknights: Endfield", ImGuiTreeNodeFlags_DefaultOpen))
   {
     static bool restartRequired = false;
     static bool unityFpsSeeded = false;

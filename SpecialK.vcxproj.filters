@@ -3345,7 +3345,7 @@
     <ClInclude Include="depends\include\aetherim\wrapper.hpp">
       <Filter>Header Files\External Libraries\Aetherim</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\plugin\arknight_endfield.h">
+    <ClInclude Include="include\SpecialK\plugin\arknights_endfield.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -3995,7 +3995,7 @@
     <ClCompile Include="src\storefront\xbox.cpp">
       <Filter>Source Files\Storefronts\Xbox Live</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\arknight_endfield.cpp">
+    <ClCompile Include="src\plugins\arknights_endfield.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
