@@ -25,7 +25,7 @@
 
 #include <SpecialK/control_panel.h>
  
-static bool SKC_IsOverlayEnabled()
+bool SKC_IsOverlayEnabled()
 {
   const DWORD pid = GetCurrentProcessId();
 
@@ -9365,6 +9365,12 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   UNREFERENCED_PARAMETER (dwFlags);
   UNREFERENCED_PARAMETER (lpUser);
 
+  if (! SKC_IsOverlayEnabled ())
+  {
+    lock.unlock ();
+    return 0;
+  }
+
   // Optionally:  Disable SK's OSD while the Steam overlay is active
   //
   if ( config.platform.overlay_hides_sk_osd &&
@@ -9479,12 +9485,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       WriteULong64Release (&queued_snipped_shot, SK_GetFramesDrawn ()+backbuffers);
     }
   }
-
-
-
-  if (! SKC_IsOverlayEnabled ())
-    return 0;
-
   if (rb.api == SK_RenderAPI::OpenGL)
   {
     ImGui::Render ();
