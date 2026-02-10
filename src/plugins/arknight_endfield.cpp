@@ -719,6 +719,9 @@ SK_AKEF_CreateProcessW_Detour (
       lpProcessInformation
     );
 
+  if (lpProcessInformation == nullptr)
+    return false;
+
   auto CleanupProcess = [&](DWORD exitCode)
   {
     if (lpProcessInformation->hProcess)

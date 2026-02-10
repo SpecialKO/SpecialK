@@ -4587,7 +4587,7 @@ auto DeclKeybind =
         // By default, endfield somehow create a window too late for SpecialK to hook properly.
         //  The result is WindowsHookEx/CbtHook is being applied too late
         //   So we manually re-create endfield process and inject specialK early
-        const bool isPlatformProcess = wcscmp (SK_GetHostApp(), L"PlatformProcess.exe") == 0;
+        const bool isPlatformProcess = _wcsicmp (SK_GetHostApp (), L"PlatformProcess.exe") == 0;
         const bool isGlobalInjector = SK_GetModuleHandleW (L"SpecialK64.dll") != nullptr;
         wchar_t wszDllFullName[MAX_PATH + 2] = { };
         GetModuleFileName (skModuleRegistry::Self(), wszDllFullName, MAX_PATH);

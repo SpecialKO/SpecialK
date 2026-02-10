@@ -45,28 +45,28 @@ SK_NGX_IsUsingDLSS (void)
   auto isSuperSamplingValid = [](const SK_DLSS_Context::dlss_s& dlss_context) -> bool
     {
       if (const auto* inst = dlss_context.LastInstance; inst && inst->Handle)
-        return ReadULong64Acquire(&dlss_context.LastFrame) >= SK_GetFramesDrawn () - 8;
+        return ReadULong64Acquire (&dlss_context.LastFrame) >= SK_GetFramesDrawn () - 8;
       return false;
     };
 
-  return isSuperSamplingValid (SK_NGX_DLSS12.super_sampling) ||
-         isSuperSamplingValid (SK_NGX_VULKAN.super_sampling) ||
-         isSuperSamplingValid (SK_NGX_DLSS11.super_sampling);
+  return (SK_NGX_DLSS12.apis_called && isSuperSamplingValid (SK_NGX_DLSS12.super_sampling)) ||
+         (SK_NGX_VULKAN.apis_called && isSuperSamplingValid (SK_NGX_VULKAN.super_sampling)) ||
+         (SK_NGX_DLSS11.apis_called && isSuperSamplingValid (SK_NGX_DLSS11.super_sampling));
 }
 
 bool
 SK_NGX_IsUsingDLSS_D (void)
 {
-  auto isRayReconstructionValid = [](const SK_DLSS_Context::dlss_s& dlssContext) -> bool
+  auto isRayReconstructionValid = [](const SK_DLSS_Context::dlss_s& dlssd_context) -> bool
     {
-      if (const auto* inst = dlssContext.LastInstance; inst && inst->Handle
+      if (const auto* inst = dlssd_context.LastInstance; inst && inst->Handle
            && inst->DLSS_Type == NVSDK_NGX_Feature_RayReconstruction)
-        return ReadULong64Acquire (&dlssContext.LastFrame) >= SK_GetFramesDrawn () - 8;
+        return ReadULong64Acquire (&dlssd_context.LastFrame) >= SK_GetFramesDrawn () - 8;
       return false;
     };
 
-  return isRayReconstructionValid (SK_NGX_DLSS12.super_sampling) ||
-         isRayReconstructionValid (SK_NGX_VULKAN.super_sampling);
+  return (SK_NGX_DLSS12.apis_called && isRayReconstructionValid (SK_NGX_DLSS12.super_sampling)) ||
+         (SK_NGX_VULKAN.apis_called && isRayReconstructionValid (SK_NGX_VULKAN.super_sampling));
 }
 
 bool
@@ -906,20 +906,23 @@ NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_DLSS_GetStatsCallback           (NVSDK_NGX
 NVSDK_NGX_Parameter*
 SK_NGX_GetDLSSParameters(void)
 {
-  auto getDLSSParameters = [](const SK_DLSS_Context::dlss_s& dlssContext) -> NVSDK_NGX_Parameter*
+  auto getDLSSParameters = [](const SK_DLSS_Context& dlssContext) -> NVSDK_NGX_Parameter*
     {
-      if (const auto* inst = dlssContext.LastInstance; inst && inst->Handle)
+      if (dlssContext.apis_called == false)
+        return nullptr;
+
+      if (const auto* inst = dlssContext.super_sampling.LastInstance; inst && inst->Handle)
         return inst->Parameters;
       return nullptr;
     };
 
-  if (auto* p = getDLSSParameters (SK_NGX_DLSS12.super_sampling))
+  if (auto* p = getDLSSParameters (SK_NGX_DLSS12))
     return p;
 
-  if (auto* p = getDLSSParameters (SK_NGX_VULKAN.super_sampling))
+  if (auto* p = getDLSSParameters (SK_NGX_VULKAN))
     return p;
 
-  return getDLSSParameters (SK_NGX_DLSS11.super_sampling);
+  return getDLSSParameters (SK_NGX_DLSS11);
 }
   
 
@@ -1033,38 +1036,51 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
   }
 }
 
-SK_DLSS_Context::version_s
+const SK_DLSS_Context::version_s&
 SK_NGX_GetDLSSVersion (void) noexcept
 {
-  auto getVersion = [](const SK_DLSS_Context::dlss_s& dlssContext) -> SK_DLSS_Context::version_s*
+  static const SK_DLSS_Context::version_s s_fallback { };
+
+  auto getVersion = [](const SK_DLSS_Context& dlssContext) -> const SK_DLSS_Context::version_s*
     {
-      return &dlssContext.Version;
+      if (!dlssContext.apis_called)
+        return nullptr;
+
+      return &dlssContext.super_sampling.Version;
     };
 
-  if (const auto* v = getVersion (SK_NGX_DLSS12.super_sampling); v->major != 0)
+  if (auto* v = getVersion (SK_NGX_DLSS12); v->major != 0)
     return *v;
 
-  if (const auto* v = getVersion (SK_NGX_VULKAN.super_sampling); v->major != 0)
+  if (auto* v = getVersion (SK_NGX_VULKAN); v->major != 0)
     return *v;
 
-  return *getVersion (SK_NGX_DLSS11.super_sampling);
+  if (auto* v = getVersion (SK_NGX_DLSS11); v->major != 0)
+    return *v;
+
+  return s_fallback;
 }
 
-SK_DLSS_Context::version_s
+const SK_DLSS_Context::version_s&
 SK_NGX_GetDLSSGVersion (void) noexcept
 {
-  auto getVersion = [](const SK_DLSS_Context::dlssg_s& dlssContext) -> SK_DLSS_Context::version_s*
+  static const SK_DLSS_Context::version_s s_fallback { };
+
+  auto getDlssgVersion = [](const SK_DLSS_Context& dlssContext) -> const SK_DLSS_Context::version_s*
     {
-      return &dlssContext.Version;
+      if (!dlssContext.apis_called)
+        return nullptr;
+
+      return &dlssContext.frame_gen.Version;
     };
 
-  if (const auto* v = getVersion (SK_NGX_DLSS12.frame_gen); v->major != 0)
+  if (auto* v = getDlssgVersion (SK_NGX_DLSS12); v->major != 0)
     return *v;
 
-  if (const auto* v = getVersion (SK_NGX_VULKAN.frame_gen); v->major != 0)
+  if (auto* v = getDlssgVersion (SK_NGX_VULKAN); v->major != 0)
     return *v;
 
-  return *getVersion (SK_NGX_DLSS11.frame_gen);
+  return s_fallback;
 }
 
 bool
@@ -1608,10 +1624,10 @@ SK_NGX_DLSS_ControlPanel (void)
       static std::filesystem::path dlss_directory =
              std::filesystem::path (path_to_dlss).remove_filename ();
 
-      static auto dlss_version =
+      static auto& dlss_version =
         SK_NGX_GetDLSSVersion ();
 
-      static auto dlssg_version =
+      static auto& dlssg_version =
         SK_NGX_GetDLSSGVersion ();
 
       static bool restart_required = false;

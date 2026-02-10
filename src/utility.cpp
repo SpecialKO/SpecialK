@@ -2715,68 +2715,104 @@ SK_ScanAligned (const void* pattern, size_t len, const void* mask, int align)
 }
 
 void*
-__stdcall SK_ScanIdaStyle (void* module, const char* pattern)
+__stdcall SK_ScanIdaStyle(void* module, const char* pattern)
 {
   if (!module || !pattern)
     return nullptr;
 
-  auto pattern_to_bytes = [](const char* pat) -> std::vector<int> {
-    std::vector<int> bytes;
-    const char* current = pat;
+  // Convert pattern string to bytes with optional wildcards
+  auto pattern_to_bytes = [](const char* pat)
+    -> std::vector<std::optional<std::uint8_t>>
+    {
+      std::vector<std::optional<std::uint8_t>> bytes;
+      const char* current = pat;
 
-    while ( *current ) {
-      if ( *current == ' ' ) {
-        ++current;
-        continue;
-      }
-      if ( *current == '?' ) {
-        ++current;
-        if ( *current == '?' )
+      while (*current)
+      {
+        if (*current == ' ')
+        {
           ++current;
-        bytes.push_back (-1);
+          continue;
+        }
+
+        if (*current == '?')
+        {
+          ++current;
+          if (*current == '?') ++current;
+          bytes.emplace_back (std::nullopt);
+        }
+        else
+        {
+          char* end = nullptr;
+          unsigned long value = std::strtoul (current, &end, 16);
+          if (current == end)
+            break;
+
+          bytes.emplace_back(static_cast<std::uint8_t> (value));
+          current = end;
+        }
       }
-      else {
-        char* end = nullptr;
-        int value = static_cast<int> ( strtoul (current, &end, 16) );
-        if ( current == end )
-          break;
-        bytes.push_back ( value );
-        current = end;
-      }
-    }
-    return bytes;
+
+      return bytes;
     };
 
-  auto dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER> ( module );
-  if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
+  auto dos = reinterpret_cast<PIMAGE_DOS_HEADER> (module);
+  if (dos->e_magic != IMAGE_DOS_SIGNATURE)
     return nullptr;
 
-  auto ntHeaders = reinterpret_cast<PIMAGE_NT_HEADERS> (
-    reinterpret_cast<std::uint8_t*> ( module ) + dosHeader->e_lfanew
+  auto nt = reinterpret_cast<PIMAGE_NT_HEADERS> (
+    reinterpret_cast<std::uint8_t*> (module) + dos->e_lfanew
     );
-  if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
+  if (nt->Signature != IMAGE_NT_SIGNATURE)
     return nullptr;
 
-  std::size_t sizeOfImage = ntHeaders->OptionalHeader.SizeOfImage;
-  auto patternBytes = pattern_to_bytes ( pattern );
-  std::size_t patternSize = patternBytes.size ();
+  const auto* base = reinterpret_cast<std::uint8_t*>(module);
+  const std::size_t sizeOfImage = nt->OptionalHeader.SizeOfImage;
+
+  auto patternBytes = pattern_to_bytes (pattern);
+  const std::size_t patternSize = patternBytes.size ();
 
   if (patternSize == 0 || patternSize > sizeOfImage)
-    return nullptr; 
+    return nullptr;
 
-  auto scanBytes = reinterpret_cast<std::uint8_t*> ( module );
+  MEMORY_BASIC_INFORMATION mbi { };
+  std::uint8_t* it = const_cast<std::uint8_t*> (base);
+  std::uint8_t* end = const_cast<std::uint8_t*> (base + sizeOfImage);
 
-  for (std::size_t i = 0; i <= sizeOfImage - patternSize; ++i) {
-    bool found = true;
-    for (std::size_t j = 0; j < patternSize; ++j) {
-      if (patternBytes[j] != -1 && scanBytes[i + j] != patternBytes[j]) {
-        found = false;
-        break;
+  while (it < end && VirtualQuery (it, &mbi, sizeof (mbi)))
+  {
+    // Skip unreadable / non-image memory
+    if (!(mbi.Type & MEM_IMAGE) || (mbi.Protect & PAGE_NOACCESS) ||  mbi.Protect == 0)
+    {
+      it = static_cast<std::uint8_t*> (mbi.BaseAddress) + mbi.RegionSize;
+      continue;
+    }
+
+    auto regionStart = static_cast<std::uint8_t*> (mbi.BaseAddress);
+    auto regionEnd = regionStart + mbi.RegionSize;
+
+    // Clamp to module bounds
+    regionStart = std::max (regionStart, const_cast<std::uint8_t*> (base));
+    regionEnd = std::min (regionEnd, end);
+
+    for (auto* cur = regionStart; cur + patternSize <= regionEnd; ++cur)
+    {
+      bool found = true;
+
+      for (std::size_t j = 0; j < patternSize; ++j)
+      {
+        if (patternBytes[j].has_value () && cur[j] != patternBytes[j].value ())
+        {
+          found = false;
+          break;
+        }
       }
+
+      if (found)
+        return cur;
     }
-    if (found) {
-      return static_cast<void*> ( scanBytes + i );
-    }
+
+    it = static_cast<std::uint8_t*> (mbi.BaseAddress) + mbi.RegionSize;
   }
 
   return nullptr;
