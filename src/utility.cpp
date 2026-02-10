@@ -2720,9 +2720,7 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
   if (!module || !pattern)
     return nullptr;
 
-  // Convert pattern string to bytes with optional wildcards
-  auto pattern_to_bytes = [](const char* pat)
-    -> std::vector<std::optional<std::uint8_t>>
+  auto pattern_to_bytes = [](const char* pat) -> std::vector<std::optional<std::uint8_t>>
     {
       std::vector<std::optional<std::uint8_t>> bytes;
       const char* current = pat;
@@ -2738,7 +2736,8 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
         if (*current == '?')
         {
           ++current;
-          if (*current == '?') ++current;
+          if (*current == '?')
+            ++current;
           bytes.emplace_back (std::nullopt);
         }
         else
@@ -2756,28 +2755,28 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
       return bytes;
     };
 
-  auto dos = reinterpret_cast<PIMAGE_DOS_HEADER> (module);
+  auto dos = static_cast<PIMAGE_DOS_HEADER> (module);
   if (dos->e_magic != IMAGE_DOS_SIGNATURE)
     return nullptr;
 
   auto nt = reinterpret_cast<PIMAGE_NT_HEADERS> (
-    reinterpret_cast<std::uint8_t*> (module) + dos->e_lfanew
+    static_cast<std::uint8_t*> (module) + dos->e_lfanew
     );
   if (nt->Signature != IMAGE_NT_SIGNATURE)
     return nullptr;
 
-  const auto* base = reinterpret_cast<std::uint8_t*>(module);
+  auto* base = reinterpret_cast<std::uint8_t*> (module);
   const std::size_t sizeOfImage = nt->OptionalHeader.SizeOfImage;
 
-  auto patternBytes = pattern_to_bytes (pattern);
+  const auto patternBytes = pattern_to_bytes (pattern);
   const std::size_t patternSize = patternBytes.size ();
 
   if (patternSize == 0 || patternSize > sizeOfImage)
     return nullptr;
 
   MEMORY_BASIC_INFORMATION mbi { };
-  std::uint8_t* it = const_cast<std::uint8_t*> (base);
-  std::uint8_t* end = const_cast<std::uint8_t*> (base + sizeOfImage);
+  std::uint8_t* it  = reinterpret_cast<std::uint8_t*> (base);
+  std::uint8_t* end = reinterpret_cast<std::uint8_t*> (base + sizeOfImage);
 
   while (it < end && VirtualQuery (it, &mbi, sizeof (mbi)))
   {
@@ -2791,7 +2790,6 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
     auto regionStart = static_cast<std::uint8_t*> (mbi.BaseAddress);
     auto regionEnd = regionStart + mbi.RegionSize;
 
-    // Clamp to module bounds
     regionStart = std::max (regionStart, const_cast<std::uint8_t*> (base));
     regionEnd = std::min (regionEnd, end);
 
@@ -2799,10 +2797,8 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
     {
       bool found = true;
 
-      for (std::size_t j = 0; j < patternSize; ++j)
-      {
-        if (patternBytes[j].has_value () && cur[j] != patternBytes[j].value ())
-        {
+      for (std::size_t j = 0; j < patternSize; ++j) {
+        if (patternBytes[j].has_value() && cur[j] != gsl::at(patternBytes, j).value_or(0)) {
           found = false;
           break;
         }
