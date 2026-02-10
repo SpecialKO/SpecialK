@@ -720,8 +720,8 @@ DllMain ( HMODULE hModule,
       SK_Inject_CleanupSharedMemory ();
 
 #ifdef _M_AMD64
-      extern void AKEF_Shared_cleanupSharedMemory ();
-      AKEF_Shared_cleanupSharedMemory ();
+      extern void SK_AKEF_CleanupSharedMemory ();
+      SK_AKEF_CleanupSharedMemory ();
 #endif
 
       // Give time for any threads waiting on something such as a message pump

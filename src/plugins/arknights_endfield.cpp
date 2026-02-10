@@ -1,11 +1,34 @@
-﻿#include <SpecialK/stdafx.h>
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
+#include <SpecialK/stdafx.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/plugin/arknights_endfield.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/plugin/plugin_mgr.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/imgui.h>
 #include <winternl.h>
-#include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/font_awesome.h>
 #include <aetherim/image.hpp>
 #include <aetherim/field.hpp>
@@ -19,7 +42,7 @@
 #endif
 #define __SK_SUBSYSTEM__ L"Arknights Endfield"
 
-namespace AKEF_Shared
+namespace AKEF_SHM
 {
   static volatile HANDLE g_hMap     = INVALID_HANDLE_VALUE;
   static volatile LPVOID g_pView    = nullptr;
@@ -74,14 +97,14 @@ namespace AKEF_Shared
   }
 }
 
-AKEF_Shared::SharedMemory*
-AKEF_Shared::GetView (void)
+AKEF_SHM::SharedMemory*
+AKEF_SHM::GetView (void)
 {
   auto* local_view = reinterpret_cast <SharedMemory *> (ReadPointerAcquire (&g_pView));
   if (local_view != nullptr)
     return local_view;
 
-  HANDLE hMap = AKEF_Shared::GetSharedMemory ();
+  HANDLE hMap = AKEF_SHM::GetSharedMemory ();
   if (hMap != nullptr)
   {
     local_view = reinterpret_cast <SharedMemory *> (
@@ -112,9 +135,9 @@ AKEF_Shared::GetView (void)
 }
 
 void
-AKEF_Shared::PublishPid (DWORD pid)
+AKEF_SHM::PublishPid (DWORD pid)
 {
-  if (auto* shm = AKEF_Shared::GetView ())
+  if (auto* shm = AKEF_SHM::GetView ())
   {
     shm->akef_launch_pid = pid;
     WriteRelease (&shm->has_pid, 1);
@@ -122,9 +145,9 @@ AKEF_Shared::PublishPid (DWORD pid)
 }
 
 void
-AKEF_Shared::ResetPid (void)
+AKEF_SHM::ResetPid (void)
 {
-  if (auto* shm = AKEF_Shared::GetView ())
+  if (auto* shm = AKEF_SHM::GetView ())
   {
     WriteRelease (&shm->has_pid, 0);
     shm->akef_launch_pid = 0;
@@ -132,12 +155,12 @@ AKEF_Shared::ResetPid (void)
 }
 
 bool
-AKEF_Shared::TryGetPid (DWORD* out_pid)
+AKEF_SHM::TryGetPid (DWORD* out_pid)
 {
   if (out_pid == nullptr)
     return false;
 
-  if (auto* shm = AKEF_Shared::GetView ())
+  if (auto* shm = AKEF_SHM::GetView ())
   {
     if (ReadAcquire (&shm->has_pid) == 1)
     {
@@ -150,7 +173,7 @@ AKEF_Shared::TryGetPid (DWORD* out_pid)
 }
 
 void
-AKEF_Shared::CleanupSharedMemory (void)
+AKEF_SHM::CleanupSharedMemory (void)
 {
   auto* view = reinterpret_cast <SharedMemory *> (ReadPointerAcquire (&g_pView));
   if (view != nullptr &&
@@ -169,10 +192,10 @@ AKEF_Shared::CleanupSharedMemory (void)
   }
 }
 
-void AKEF_Shared_publishPid (DWORD pid) { AKEF_Shared::PublishPid (pid); }
-bool AKEF_Shared_tryGetPid (DWORD* out_pid) { return AKEF_Shared::TryGetPid (out_pid); }
-void AKEF_Shared_resetPid (void) { AKEF_Shared::ResetPid (); }
-void AKEF_Shared_cleanupSharedMemory (void) { AKEF_Shared::CleanupSharedMemory (); }
+void SK_AKEF_PublishPid          (DWORD pid) { AKEF_SHM::PublishPid (pid); }
+bool SK_AKEF_TryGetPid           (DWORD* out_pid) { return AKEF_SHM::TryGetPid (out_pid); }
+void SK_AKEF_ResetPid            (void) { AKEF_SHM::ResetPid (); }
+void SK_AKEF_CleanupSharedMemory (void) { AKEF_SHM::CleanupSharedMemory (); }
 
 static constexpr float kDefaultFirstFramerateLimit = -99.0f;
 
@@ -259,7 +282,7 @@ AKEF_ShowTimedTaskDialog (
 }
 
 static BOOL CALLBACK
-SK_AKEF_EnumWindowsProc (HWND hwnd, LPARAM lParam)
+AKEF_EnumWindowsProc (HWND hwnd, LPARAM lParam)
 {
   auto* pData = reinterpret_cast <AKEF_WindowData *> (lParam);
   if (pData == nullptr)
@@ -341,7 +364,7 @@ AKEF_GetProcessCommandLine (HANDLE hProcess)
 }
 
 static bool
-IsRemoteLdrInitialized (HANDLE hProcess, FARPROC ntQueryAddr)
+AKEF_IsRemoteLdrInitialized (HANDLE hProcess, FARPROC ntQueryAddr)
 {
   static NtQueryInformationProcess_t NtQueryInformationProcess = nullptr;
   if (!NtQueryInformationProcess)
@@ -427,7 +450,7 @@ AKEF_GetRemoteModule (HANDLE hProcess, FARPROC ntQueryAddr, const std::wstring& 
  }
 
 static bool
-SK_AKEF_InjectDLL (HANDLE hTargetProc, const std::wstring& dllPath)
+AKEF_InjectDLL (HANDLE hTargetProc, const std::wstring& dllPath)
 {
   void* loadLibraryAddr = SK_GetProcAddress (L"kernel32.dll", "LoadLibraryW");
   if (loadLibraryAddr == nullptr)
@@ -488,7 +511,7 @@ SK_LaunchArknightEndfield_Impl (const wchar_t* wszExecutableName)
 
   AKEF_WindowData data = { origEndfieldPID, { } };
   SK_LOGi1 (L"Found original Arknight: Endfield PID: %d\n", origEndfieldPID);
-  EnumWindows (SK_AKEF_EnumWindowsProc, reinterpret_cast <LPARAM> (&data));
+  EnumWindows (AKEF_EnumWindowsProc, reinterpret_cast <LPARAM> (&data));
 
   STARTUPINFOW        sinfo = { };
   PROCESS_INFORMATION pinfo = { };
@@ -500,7 +523,7 @@ SK_LaunchArknightEndfield_Impl (const wchar_t* wszExecutableName)
 
   auto CleanupProcess = [&](DWORD exitCode)
   {
-    AKEF_Shared::ResetPid ();
+    AKEF_SHM::ResetPid ();
     if (pinfo.hProcess)
     {
       TerminateProcess (pinfo.hProcess, exitCode);
@@ -554,7 +577,7 @@ SK_LaunchArknightEndfield_Impl (const wchar_t* wszExecutableName)
   }
 
   SK_LOGi1 (L"Launching Arknight: Endfield with PID: %d\n", pinfo.dwProcessId);
-  AKEF_Shared::PublishPid (pinfo.dwProcessId);
+  AKEF_SHM::PublishPid (pinfo.dwProcessId);
 
   SK_SelfDestruct ();
   SK_ResumeThreads (ctx);
@@ -567,7 +590,7 @@ SK_LaunchArknightEndfield_Impl (const wchar_t* wszExecutableName)
     FARPROC ntQueryAddr = SK_GetProcAddress (L"ntdll.dll", "NtQueryInformationProcess");
     ResumeThread (pinfo.hThread);
 
-    while (!IsRemoteLdrInitialized (pinfo.hProcess, ntQueryAddr))
+    while (!AKEF_IsRemoteLdrInitialized (pinfo.hProcess, ntQueryAddr))
     {
       DWORD exitCode = 0;
       if (WaitForSingleObject (pinfo.hProcess, 0) == WAIT_OBJECT_0 ||
@@ -604,7 +627,7 @@ SK_LaunchArknightEndfield_Impl (const wchar_t* wszExecutableName)
     }
 
     UINT exitCode = 0;
-    if (SK_AKEF_InjectDLL (pinfo.hProcess, skDllPath))
+    if (AKEF_InjectDLL (pinfo.hProcess, skDllPath))
     {
       SK_LOGi1 (L"SpecialK has been injected successfully.");
     }
@@ -686,8 +709,8 @@ using CreateProcess_pfn = BOOL (WINAPI*)(
 
 static CreateProcess_pfn CreateProcessW_Original = nullptr;
 
-BOOL WINAPI
-SK_AKEF_CreateProcessW_Detour (
+static BOOL WINAPI
+AKEF_CreateProcessW_Detour (
   _In_opt_ LPCWSTR lpApplicationName,
   _Inout_opt_ LPWSTR lpCommandLine,
   _In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
@@ -769,7 +792,7 @@ SK_AKEF_CreateProcessW_Detour (
 
   ResumeThread (lpProcessInformation->hThread);
 
-  while (!IsRemoteLdrInitialized (lpProcessInformation->hProcess, ntQueryAddr))
+  while (!AKEF_IsRemoteLdrInitialized (lpProcessInformation->hProcess, ntQueryAddr))
   {
     DWORD exitCode = 0;
     if (WaitForSingleObject (lpProcessInformation->hProcess, 0) == WAIT_OBJECT_0 ||
@@ -811,7 +834,7 @@ SK_AKEF_CreateProcessW_Detour (
   );
 
   UINT exitCode = 0;
-  if (SK_AKEF_InjectDLL (lpProcessInformation->hProcess, skDllPath))
+  if (AKEF_InjectDLL (lpProcessInformation->hProcess, skDllPath))
   {
     SK_LOGi1 (L"SpecialK has been injected successfully.");
     AKEF_ShowTimedTaskDialog (
@@ -851,7 +874,7 @@ SK_AKEF_InitFromLauncher (void)
         LPVOID CreateProcessW_target = nullptr;
         if (SK_CreateDLLHook2 (L"kernel32",
               "CreateProcessW",
-              SK_AKEF_CreateProcessW_Detour,
+              AKEF_CreateProcessW_Detour,
               static_cast_p2p <void> (&CreateProcessW_Original),
               &CreateProcessW_target) == MH_OK)
         {
@@ -995,7 +1018,7 @@ AKEF_UnityEngine_Application_get_targetFrameRate_Detour (void* __this)
 }
 
 static sl::Result
-SK_AKEF_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, sl::DLSSGOptions& options)
+AKEF_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, sl::DLSSGOptions& options)
 {
   SK_LOG_FIRST_CALL
 
@@ -1017,7 +1040,7 @@ SK_AKEF_slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, sl::DLSSGO
 }
 
 void
-SK_AKEF_ApplyUnityTargetFrameRate (float targetFrameRate)
+AKEF_ApplyUnityTargetFrameRate (float targetFrameRate)
 {
   static float s_targetFrameRate = kDefaultFirstFramerateLimit;
   s_targetFrameRate = targetFrameRate;
@@ -1105,7 +1128,7 @@ SK_AKEF_PlugInCfg (void)
 
         _SK_AKEF_UnityFramerateLimit->store (__SK_AKEF_UnityFramerateLimit);
 
-        SK_AKEF_ApplyUnityTargetFrameRate (__SK_AKEF_UnityFramerateLimit);
+        AKEF_ApplyUnityTargetFrameRate (__SK_AKEF_UnityFramerateLimit);
         unityFpsSeeded = true;
         changed = true;
       }
@@ -1113,7 +1136,7 @@ SK_AKEF_PlugInCfg (void)
       if (ImGui::SliderFloat ("Unity Framerate Limit", &__SK_AKEF_UnityFramerateLimit, -1.0f, 480.0f, "%.0f"))
       {
         _SK_AKEF_UnityFramerateLimit->store (__SK_AKEF_UnityFramerateLimit);
-        SK_AKEF_ApplyUnityTargetFrameRate (__SK_AKEF_UnityFramerateLimit);
+        AKEF_ApplyUnityTargetFrameRate (__SK_AKEF_UnityFramerateLimit);
         changed = true;
       }
 
@@ -1175,7 +1198,7 @@ SK_AKEF_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
         while (SK_GetFramesDrawn () < 20)
           SK_Sleep (250);
 
-        SK_AKEF_ApplyUnityTargetFrameRate (
+        AKEF_ApplyUnityTargetFrameRate (
           __SK_AKEF_UnityFramerateLimit == kDefaultFirstFramerateLimit ?
           CalcLimit (__target_fps) : __SK_AKEF_UnityFramerateLimit
         );
@@ -1218,7 +1241,7 @@ SK_AKEF_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
           if (SK_CreateFuncHook (L"AKEF_slDLSSGSetOptions",
             slDLSSGSetOptions,
-            SK_AKEF_slDLSSGSetOptions_Detour,
+            AKEF_slDLSSGSetOptions_Detour,
             static_cast_p2p<void> (&slDLSSGSetOptions_Original)) != MH_OK)
           {
             SK_LOGi1 (L"Failed to create hook for slDLSSGSetOptions.\n");

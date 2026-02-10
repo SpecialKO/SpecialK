@@ -1046,16 +1046,17 @@ SK_NGX_GetDLSSVersion (void) noexcept
       if (!dlssContext.apis_called)
         return nullptr;
 
-      return &dlssContext.super_sampling.Version;
+      const auto& v = dlssContext.super_sampling.Version;
+      return (v.major != 0) ? &v : nullptr;
     };
 
-  if (auto* v = getVersion (SK_NGX_DLSS12); v->major != 0)
+  if (auto* v = getVersion (SK_NGX_DLSS12))
     return *v;
 
-  if (auto* v = getVersion (SK_NGX_VULKAN); v->major != 0)
+  if (auto* v = getVersion (SK_NGX_VULKAN))
     return *v;
 
-  if (auto* v = getVersion (SK_NGX_DLSS11); v->major != 0)
+  if (auto* v = getVersion (SK_NGX_DLSS11))
     return *v;
 
   return s_fallback;
@@ -1071,13 +1072,14 @@ SK_NGX_GetDLSSGVersion (void) noexcept
       if (!dlssContext.apis_called)
         return nullptr;
 
-      return &dlssContext.frame_gen.Version;
+      const auto& v = dlssContext.frame_gen.Version;
+      return (v.major != 0) ? &v : nullptr;
     };
 
-  if (auto* v = getDlssgVersion (SK_NGX_DLSS12); v->major != 0)
+  if (auto* v = getDlssgVersion (SK_NGX_DLSS12))
     return *v;
 
-  if (auto* v = getDlssgVersion (SK_NGX_VULKAN); v->major != 0)
+  if (auto* v = getDlssgVersion (SK_NGX_VULKAN))
     return *v;
 
   return s_fallback;
