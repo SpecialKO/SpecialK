@@ -1069,14 +1069,10 @@ void
 SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t value)
 {
   // Reflex implementation is no longer broken, we should not be waiting on the game's semaphore.
-  if (SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges))
+  if (SK_IsCurrentGame (SK_GAME_ID::DOOMTheDarkAges) || SK_IsCurrentGame (SK_GAME_ID::ArknightsEndfield))
   {
     return;
   }
-
-  if (SK_IsCurrentGame (SK_GAME_ID::ArknightsEndfield) &&
-      (! SK_IsGameWindowActive (false) && !game_window.wantBackgroundRender ()))
-    return;
 
   if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
     return;
