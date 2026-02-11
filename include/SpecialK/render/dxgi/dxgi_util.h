@@ -137,3 +137,15 @@ extern volatile LONG lResetD3D11;
 extern          bool bAlwaysAllowFullscreen;
 
 extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
+
+#if defined (_M_AMD64)
+extern bool __g_SK_AKEF_KeepOriginalSwapchain;
+#endif
+
+inline bool SK_CanModifySwapchain () {
+#if defined (_M_AMD64)
+  return !__g_SK_AKEF_KeepOriginalSwapchain;
+#else
+  return true;
+#endif
+}

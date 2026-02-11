@@ -636,6 +636,10 @@ void*
 __stdcall
 SK_ScanAlignedExec (const void* pattern, size_t len, const void* mask, void* after = nullptr, int align = 1);
 
+void*
+__stdcall
+SK_ScanIdaStyle    (void* module, const char* pattern);
+
 BOOL
 __stdcall
 SK_InjectMemory ( LPVOID  base_addr,

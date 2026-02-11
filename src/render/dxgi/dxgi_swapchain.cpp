@@ -2257,8 +2257,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
         NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
       else if (__SK_HDR_10BitSwap && __SK_HDR_UserForced)
         NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+      }
     }
-  }
 
   SK_ComQIPtr <IDXGISwapChain1>
                    pSwapChain1 (pSwapChain);
@@ -2345,7 +2345,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     SK_DXGI_PickHDRFormat ( NewFormat, swap_desc.Windowed,
         SK_DXGI_IsFlipModelSwapEffect (swap_desc.SwapEffect) );
 
-  if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
+  if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap) && SK_CanModifySwapchain ())
   {
     if ( DirectX::MakeTypeless (NewFormat) ==
          DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) || 
