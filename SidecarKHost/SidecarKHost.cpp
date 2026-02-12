@@ -538,15 +538,34 @@ static void CreateHostFrameMappingForPid(DWORD pid)
   auto* hdr = reinterpret_cast<SidecarKFrameHeaderV1*>(g_frame_host_view);
   if (memcmp(hdr->magic, "SKF1", 4) != 0 || hdr->version != 1u)
   {
+    // Initialize SKF1 v1 header
     memcpy(hdr->magic, "SKF1", 4);
     hdr->version = 1u;
     hdr->header_bytes = 0x20u;
-    hdr->data_offset = 0x20u;
-    hdr->pixel_format = 1u;
-    hdr->width = 0u;
-    hdr->height = 0u;
-    hdr->stride = 0u;
-    hdr->frame_counter = 0u;
+    hdr->data_offset = 0x24u;  // Header (0x20) + frame_counter (4 bytes)
+    hdr->pixel_format = 1u;    // BGRA8
+    hdr->width = 256u;
+    hdr->height = 256u;
+    hdr->stride = 256u * 4u;   // 1024 bytes per row
+    hdr->frame_counter = 0u;   // Will be set after pixel data
+
+    // Seed deterministic 256×256 magenta test frame (BGRA8: B=0xFF, G=0x00, R=0xFF, A=0xFF)
+    uint8_t* pixelData = (uint8_t*)g_frame_host_view + hdr->data_offset;
+    const uint32_t magentaBGRA = 0xFF00FFFF;  // Little-endian: B, G, R, A
+    
+    for (uint32_t y = 0; y < hdr->height; ++y)
+    {
+      uint32_t* row = (uint32_t*)(pixelData + y * hdr->stride);
+      for (uint32_t x = 0; x < hdr->width; ++x)
+      {
+        row[x] = magentaBGRA;
+      }
+    }
+
+    // Set frame_counter after writing pixel data (producer protocol)
+    hdr->frame_counter = 1u;
+    
+    wprintf(L"SidecarKHost: Test frame seeded - 256x256 magenta, frame_counter=%u\n", hdr->frame_counter);
   }
 }
 
