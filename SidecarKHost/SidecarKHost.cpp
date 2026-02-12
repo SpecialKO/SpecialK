@@ -483,6 +483,7 @@ static void CreateHostFrameMappingForPid(DWORD pid)
   wchar_t name[128]{};
   wsprintfW(name, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)pid);
 
+  SetLastError(ERROR_SUCCESS);
   g_frame_host_map = CreateFileMappingW(
     INVALID_HANDLE_VALUE,
     NULL,
@@ -490,15 +491,42 @@ static void CreateHostFrameMappingForPid(DWORD pid)
     0,
     g_frame_host_size,
     name);
+  DWORD createError = GetLastError();
+  
   if (!g_frame_host_map)
+  {
+    wprintf(L"SidecarKHost: CreateFileMappingW failed for %ls, error=%lu\n", name, createError);
     return;
+  }
 
   g_frame_host_view = MapViewOfFile(g_frame_host_map, FILE_MAP_ALL_ACCESS, 0, 0, g_frame_host_size);
   if (!g_frame_host_view)
   {
+    DWORD mapError = GetLastError();
+    wprintf(L"SidecarKHost: MapViewOfFile failed for %ls, error=%lu\n", name, mapError);
     CloseHandle(g_frame_host_map);
     g_frame_host_map = nullptr;
     return;
+  }
+
+  // Verify mapping is openable by consumers (proof of existence)
+  SetLastError(ERROR_SUCCESS);
+  HANDLE testHandle = OpenFileMappingW(FILE_MAP_READ, FALSE, name);
+  DWORD openError = GetLastError();
+  
+  if (testHandle == nullptr)
+  {
+    wprintf(L"SidecarKHost: Verification FAILED - mapping not openable: %ls, error=%lu\n", name, openError);
+    UnmapViewOfFile(g_frame_host_view);
+    CloseHandle(g_frame_host_map);
+    g_frame_host_view = nullptr;
+    g_frame_host_map = nullptr;
+    return;
+  }
+  else
+  {
+    CloseHandle(testHandle);
+    wprintf(L"SidecarKHost: Mapping created and verified openable: %ls\n", name);
   }
 
   auto* hdr = reinterpret_cast<SidecarKFrameHeaderV1*>(g_frame_host_view);
