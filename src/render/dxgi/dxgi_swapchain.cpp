@@ -964,6 +964,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   static std::atomic_bool s_logged_swapchain_once  = false;
   static std::atomic_bool s_logged_mapping_failure = false;
+  static std::atomic_bool s_logged_mapping_success = false;
   static std::atomic_bool s_logged_header_failure  = false;
 
   auto _SidecarLog = [&](const wchar_t* fmt, ...)
@@ -1040,6 +1041,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     s_pidCached = pidNow;
 
     s_logged_mapping_failure.store (false);
+    s_logged_mapping_success.store (false);
     s_logged_header_failure .store (false);
 
     _SidecarLog (L"pid-change: reset overlay mapping state");
@@ -1085,7 +1087,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     }
 
     wchar_t wszName [64] = { };
-    wsprintfW (wszName, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)GetCurrentProcessId ());
+    DWORD currentPid = GetCurrentProcessId ();
+    wsprintfW (wszName, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)currentPid);
 
     SetLastError (ERROR_SUCCESS);
     s_hMap =
@@ -1097,13 +1100,23 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       // Phase 1: Consumer must never create mapping, only open
       if (! s_logged_mapping_failure.exchange (true))
       {
-        _SidecarLog (L"OpenFileMapping failed: name=%ls gle=%lu", wszName, (unsigned long)dwOpenError);
+        _SidecarLog (L"OpenFileMapping failed: name=%ls pid_source=GetCurrentProcessId(%lu) gle=%lu", 
+                     wszName, (unsigned long)currentPid, (unsigned long)dwOpenError);
       }
       if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
       _ReleaseMappedOverlay ();
       return
         SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
                                     nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
+    else
+    {
+      // Log successful open to prove mapping name and PID source
+      if (! s_logged_mapping_success.exchange (true))
+      {
+        _SidecarLog (L"OpenFileMapping succeeded: name=%ls pid_source=GetCurrentProcessId(%lu) gle=%lu", 
+                     wszName, (unsigned long)currentPid, (unsigned long)dwOpenError);
+      }
     }
 
     s_base =
