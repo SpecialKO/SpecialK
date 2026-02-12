@@ -2225,6 +2225,21 @@ int wmain(int argc, wchar_t** argv)
       }
     }
 
+    // Periodic keepalive verification
+    {
+      static ULONGLONG lastKeepaliveLog = 0;
+      const ULONGLONG now = GetTickCount64();
+      if (now - lastKeepaliveLog >= 5000) // Log every 5 seconds
+      {
+        lastKeepaliveLog = now;
+        if (g_frame_host_map != nullptr)
+        {
+          wprintf(L"SidecarKHost: Mapping keepalive active - targetPid=%lu keepalive_handle=%p\n",
+            (unsigned long)targetPid, (void*)g_frame_host_map);
+        }
+      }
+    }
+
     bool nowVisible = g_frames_streaming;
     if (nowVisible != lastVisible)
     {
