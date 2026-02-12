@@ -951,7 +951,6 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   static HANDLE   s_hMap       = nullptr;
   static uint8_t* s_base       = nullptr;
-  static bool     s_test_initialized = false;
   static DWORD    s_pidCached  = 0;
   static int      s_w          = 0;
   static int      s_h          = 0;
@@ -1030,8 +1029,6 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     s_fmt        = 0;
     s_alpha      = 0;
     s_dataOffset = 0;
-
-    s_test_initialized = false;
   };
 
   const DWORD pidNow = GetCurrentProcessId ();
@@ -1131,28 +1128,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                                     nullptr, SK_DXGI_PresentSource::Wrapper );
     }
 
-    if (! s_test_initialized)
-    {
-      uint8_t* p = (uint8_t *)s_base;
-
-      *(uint32_t *)(p + 0x00) = '1FKS';
-      *(uint32_t *)(p + 0x04) = 1u;
-      *(uint32_t *)(p + 0x08) = 0x20u;
-      *(uint32_t *)(p + 0x0C) = 0x20u;
-      *(uint32_t *)(p + 0x10) = 1u;
-      *(uint32_t *)(p + 0x14) = 256u;
-      *(uint32_t *)(p + 0x18) = 256u;
-      *(uint32_t *)(p + 0x1C) = 256u * 4u;
-
-      *(volatile LONG *)(p + 0x20) = 1;
-
-      uint32_t* pixels = (uint32_t *)(p + 0x24);
-      for (uint32_t i = 0; i < 256u * 256u; ++i)
-        pixels [i] = 0xFFFF00FFu;
-
-      s_test_initialized = true;
-    }
-
+    // Consumer NEVER writes to mapping - Host seeds all test data
+    // Validate SKF1 v1 header
     {
       const uint8_t* p = (const uint8_t *)s_base;
       const uint32_t magic = *(const uint32_t *)(p + 0);
@@ -1174,16 +1151,17 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       const uint32_t h            = *(const uint32_t *)(p + 0x18);
       const uint32_t stride       = *(const uint32_t *)(p + 0x1C);
 
-      const uint64_t counter_off    = (uint64_t)data_offset;
-      const uint64_t pixel_base_off = counter_off + 4ull;
+      // Frame counter is 4 bytes BEFORE pixel data (at offset 0x20, data at 0x24)
+      const uint64_t counter_off    = (uint64_t)data_offset - 4ull;
+      const uint64_t pixel_base_off = (uint64_t)data_offset;
 
       const uint64_t kMappingSize   = 64ull * 1024ull * 1024ull;
       const uint64_t payload_bytes  = (uint64_t)stride * (uint64_t)h;
 
       if (header_bytes < 0x20u ||
-          data_offset  < 0x20u ||
+          data_offset  < 0x24u ||  // Must be at least 0x24 (after header + counter)
           pixfmt != 1 ||
-          pixel_base_off != (uint64_t)data_offset + 4ull ||
+          counter_off + 4ull != (uint64_t)data_offset ||  // Counter must be 4 bytes before data
           w == 0 || h == 0 || stride == 0 ||
           (uint64_t)stride < (uint64_t)w * 4ull ||
           (uint64_t)stride > (uint64_t)w * 16ull ||
@@ -1316,10 +1294,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
               ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
 
+              // Health signal: log successful composite
               if (s_last_overlay_log_frame.load () + 120 < frame)
               {
                 s_last_overlay_log_frame.store (frame);
-                _SidecarLog (L"overlay blit: swapchain=%p bbfmt=%d maxW=%u maxH=%u", pReal, (int)bbDesc.Format, maxW, maxH);
+                _SidecarLog (L"overlay blit SUCCESS: swapchain=%p bbfmt=%d maxW=%u maxH=%u counter=%ld", 
+                            pReal, (int)bbDesc.Format, maxW, maxH, (long)v0);
               }
             }
             else
