@@ -2451,7 +2451,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
               _snwprintf_s (
                 line2, _countof (line2), _TRUNCATE,
                 L" map=%ls gle=%lu\n",
-                map_name,
+                (const wchar_t*)map_name,
                 (unsigned long)open_gle
               );
               fputws (line2, fp);
@@ -2489,12 +2489,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
               (int)(ret ? 1 : 0),
               (void *)hDC,
               (unsigned long)tid,
-              map_name,
+              (const wchar_t*)map_name,
               (unsigned long)open_gle,
               (void *)hmap_dbg,
               (unsigned long)gle_open,
               (int)created_mapping,
-              L""
+              (const wchar_t*)L""
             );
             fputws (line, fp2);
             fclose (fp2);

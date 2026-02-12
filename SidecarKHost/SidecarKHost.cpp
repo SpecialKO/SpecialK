@@ -499,6 +499,10 @@ static void CreateHostFrameMappingForPid(DWORD pid)
     return;
   }
 
+  // Log keepalive handle that will persist until shutdown
+  wprintf(L"SidecarKHost: Mapping created - name=%ls keepalive_handle=%p create_error=%lu\n", 
+    name, (void*)g_frame_host_map, createError);
+
   g_frame_host_view = MapViewOfFile(g_frame_host_map, FILE_MAP_ALL_ACCESS, 0, 0, g_frame_host_size);
   if (!g_frame_host_view)
   {
@@ -510,11 +514,12 @@ static void CreateHostFrameMappingForPid(DWORD pid)
   }
 
   // Verify mapping is openable by consumers (proof of existence)
+  // This is a PROBE handle - opened and immediately closed
   SetLastError(ERROR_SUCCESS);
-  HANDLE testHandle = OpenFileMappingW(FILE_MAP_READ, FALSE, name);
+  HANDLE probeHandle = OpenFileMappingW(FILE_MAP_READ, FALSE, name);
   DWORD openError = GetLastError();
   
-  if (testHandle == nullptr)
+  if (probeHandle == nullptr)
   {
     wprintf(L"SidecarKHost: Verification FAILED - mapping not openable: %ls, error=%lu\n", name, openError);
     UnmapViewOfFile(g_frame_host_view);
@@ -525,8 +530,9 @@ static void CreateHostFrameMappingForPid(DWORD pid)
   }
   else
   {
-    CloseHandle(testHandle);
-    wprintf(L"SidecarKHost: Mapping created and verified openable: %ls\n", name);
+    // Close probe handle immediately - keepalive handle (g_frame_host_map) remains open
+    CloseHandle(probeHandle);
+    wprintf(L"SidecarKHost: Mapping verified openable (probe closed, keepalive persists): %ls\n", name);
   }
 
   auto* hdr = reinterpret_cast<SidecarKFrameHeaderV1*>(g_frame_host_view);
@@ -541,6 +547,24 @@ static void CreateHostFrameMappingForPid(DWORD pid)
     hdr->height = 0u;
     hdr->stride = 0u;
     hdr->frame_counter = 0u;
+  }
+}
+
+static void ReleaseHostFrameMapping()
+{
+  if (g_frame_host_view)
+  {
+    UnmapViewOfFile(g_frame_host_view);
+    g_frame_host_view = nullptr;
+    wprintf(L"SidecarKHost: Host frame view unmapped\n");
+  }
+
+  if (g_frame_host_map)
+  {
+    wprintf(L"SidecarKHost: Closing keepalive handle=%p\n", (void*)g_frame_host_map);
+    CloseHandle(g_frame_host_map);
+    g_frame_host_map = nullptr;
+    wprintf(L"SidecarKHost: Host frame mapping closed\n");
   }
 }
 
@@ -2232,6 +2256,8 @@ int wmain(int argc, wchar_t** argv)
   ShutdownSidecarKControlPlane();
 
   ReleaseFrameMapping();
+
+  ReleaseHostFrameMapping();
 
 
   // Placeholder: next step adds named-pipe control + visible/hidden state.
