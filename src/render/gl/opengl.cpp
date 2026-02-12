@@ -3535,9 +3535,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LatentSync_BeginSwap ();
 
           SK_GL_SwapInterval (1);
-
-          // Phase 1: GL path disabled, D3D11/DXGI only
-#if 0
            static HANDLE   s_hMap         = nullptr;
            static uint8_t* s_base         = nullptr;
            static uint32_t s_w            = 0;
@@ -3555,27 +3552,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
              gle_open = GetLastError ();
              if (hmap_dbg == NULL)
              {
-               constexpr uint64_t kMapSize = 64ull * 1024ull * 1024ull;
-               hmap_dbg = CreateFileMappingW ( INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                                              (DWORD)(kMapSize >> 32), (DWORD)(kMapSize & 0xFFFFFFFFu),
-                                              map_name );
-
-               if (hmap_dbg != NULL)
-               {
-                 created_mapping = 1;
-                 gle_open = 0;
-                 open_gle = 0;
-               }
-               else
-               {
-                 open_gle = GetLastError ();
-                 reason   = 301;
-                 goto skf1_epilogue;
-               }
-             }
-             else
-             {
-               created_mapping = 0;
+               // Consumer must never create mapping, only open
+               open_gle = GetLastError ();
+               reason   = R_OPEN_FAIL;
+               goto skf1_epilogue;
              }
 
              if (hmap_dbg != NULL && s_hMap != nullptr && s_hMap != hmap_dbg)
@@ -3866,7 +3846,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                }
              }
            }
-#endif // Phase 1: GL path disabled
           status =
             static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
           SK_GL_SwapInterval (0);
