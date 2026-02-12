@@ -3553,7 +3553,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
              if (hmap_dbg == NULL)
              {
                // Consumer must never create mapping, only open
-               open_gle = GetLastError ();
+               open_gle = gle_open;
                reason   = R_OPEN_FAIL;
                goto skf1_epilogue;
              }

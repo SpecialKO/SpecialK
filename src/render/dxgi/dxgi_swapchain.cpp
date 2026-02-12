@@ -1087,12 +1087,18 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     wchar_t wszName [64] = { };
     wsprintfW (wszName, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)GetCurrentProcessId ());
 
+    SetLastError (ERROR_SUCCESS);
     s_hMap =
       OpenFileMappingW (FILE_MAP_READ, FALSE, wszName);
+    DWORD dwOpenError = GetLastError ();
 
     if (s_hMap == nullptr)
     {
       // Phase 1: Consumer must never create mapping, only open
+      if (! s_logged_mapping_failure.exchange (true))
+      {
+        _SidecarLog (L"OpenFileMapping failed: name=%ls gle=%lu", wszName, (unsigned long)dwOpenError);
+      }
       if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
       _ReleaseMappedOverlay ();
       return
