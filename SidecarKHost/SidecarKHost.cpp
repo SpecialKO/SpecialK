@@ -481,7 +481,7 @@ static void CreateHostFrameMappingForPid(DWORD pid)
     return;
 
   wchar_t name[128]{};
-  wsprintfW(name, L"Local\\SidecarK_Frame_%lu", (unsigned long)pid);
+  wsprintfW(name, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)pid);
 
   g_frame_host_map = CreateFileMappingW(
     INVALID_HANDLE_VALUE,

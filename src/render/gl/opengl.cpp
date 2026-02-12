@@ -2386,7 +2386,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   HANDLE  hmap_dbg       = NULL;
   DWORD   gle_open       = 0;
 
-  wsprintfW (map_name, L"Local\\SidecarK_Frame_%lu", (unsigned long)GetCurrentProcessId ());
+  wsprintfW (map_name, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)GetCurrentProcessId ());
 
   const int R_ENTER         = 301;
   const int R_OPEN_FAIL     = 310;
@@ -3535,6 +3535,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LatentSync_BeginSwap ();
 
           SK_GL_SwapInterval (1);
+
+          // Phase 1: GL path disabled, D3D11/DXGI only
+#if 0
            static HANDLE   s_hMap         = nullptr;
            static uint8_t* s_base         = nullptr;
            static uint32_t s_w            = 0;
@@ -3863,6 +3866,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                }
              }
            }
+#endif // Phase 1: GL path disabled
           status =
             static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
           SK_GL_SwapInterval (0);

@@ -1085,28 +1085,19 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     }
 
     wchar_t wszName [64] = { };
-    wsprintfW (wszName, L"Local\\SidecarK_Frame_%lu", (unsigned long)GetCurrentProcessId ());
+    wsprintfW (wszName, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)GetCurrentProcessId ());
 
     s_hMap =
       OpenFileMappingW (FILE_MAP_READ, FALSE, wszName);
 
     if (s_hMap == nullptr)
     {
-      // Create mapping locally as a test source (same name, same size)
-      constexpr uint64_t kMappingSize = 64ull * 1024ull * 1024ull;
-      s_hMap =
-        CreateFileMappingW ( INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                             (DWORD)(kMappingSize >> 32), (DWORD)(kMappingSize & 0xFFFFFFFFu),
-                             wszName );
-
-      if (s_hMap == nullptr)
-      {
-        if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
-        _ReleaseMappedOverlay ();
-        return
-          SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
-                                      nullptr, SK_DXGI_PresentSource::Wrapper );
-      }
+      // Phase 1: Consumer must never create mapping, only open
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
+      _ReleaseMappedOverlay ();
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
     }
 
     s_base =
