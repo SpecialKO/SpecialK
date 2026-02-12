@@ -11,6 +11,8 @@
 
 #include <dwmapi.h>
 
+static constexpr bool kEnableLegacySKOF_DebugOnly = false;
+
 static HANDLE g_diag_enable_map = nullptr;
 
 static void CreateDiagnosticsEnableTokenForPid(DWORD targetPid)
@@ -18,7 +20,8 @@ static void CreateDiagnosticsEnableTokenForPid(DWORD targetPid)
   if (targetPid == 0)
     return;
 
-  return;
+  if (g_diag_enable_map != nullptr)
+    return;
 
   char name[128]{};
   wsprintfA(name, "Local\\SidecarK_Diagnostics_Enable_%lu", (unsigned long)targetPid);
@@ -447,6 +450,71 @@ static HANDLE g_control_map = nullptr;
 static void* g_control_view = nullptr;
 static volatile uint32_t* g_control_overlay_enabled = nullptr;
 static HANDLE g_control_pipe_thread = nullptr;
+
+static HANDLE g_frame_host_map = nullptr;
+static void* g_frame_host_view = nullptr;
+static constexpr DWORD g_frame_host_size = 64u * 1024u * 1024u;
+
+#pragma pack(push, 1)
+struct SidecarKFrameHeaderV1
+{
+  char magic[4];
+  uint32_t version;
+  uint32_t header_bytes;
+  uint32_t data_offset;
+  uint32_t pixel_format;
+  uint32_t width;
+  uint32_t height;
+  uint32_t stride;
+  uint32_t frame_counter;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(SidecarKFrameHeaderV1) == 0x24, "SidecarKFrameHeaderV1 size mismatch");
+
+static void CreateHostFrameMappingForPid(DWORD pid)
+{
+  if (pid == 0)
+    return;
+
+  if (g_frame_host_map != nullptr && g_frame_host_view != nullptr)
+    return;
+
+  wchar_t name[128]{};
+  wsprintfW(name, L"Local\\SidecarK_Frame_%lu", (unsigned long)pid);
+
+  g_frame_host_map = CreateFileMappingW(
+    INVALID_HANDLE_VALUE,
+    NULL,
+    PAGE_READWRITE,
+    0,
+    g_frame_host_size,
+    name);
+  if (!g_frame_host_map)
+    return;
+
+  g_frame_host_view = MapViewOfFile(g_frame_host_map, FILE_MAP_ALL_ACCESS, 0, 0, g_frame_host_size);
+  if (!g_frame_host_view)
+  {
+    CloseHandle(g_frame_host_map);
+    g_frame_host_map = nullptr;
+    return;
+  }
+
+  auto* hdr = reinterpret_cast<SidecarKFrameHeaderV1*>(g_frame_host_view);
+  if (memcmp(hdr->magic, "SKF1", 4) != 0 || hdr->version != 1u)
+  {
+    memcpy(hdr->magic, "SKF1", 4);
+    hdr->version = 1u;
+    hdr->header_bytes = 0x20u;
+    hdr->data_offset = 0x20u;
+    hdr->pixel_format = 1u;
+    hdr->width = 0u;
+    hdr->height = 0u;
+    hdr->stride = 0u;
+    hdr->frame_counter = 0u;
+  }
+}
 
 
 static BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType)
@@ -1732,6 +1800,7 @@ int wmain(int argc, wchar_t** argv)
     LogTargetSelected(logPath, targetPid, L"");
   }
 
+  CreateHostFrameMappingForPid(targetPid);
   CreateDiagnosticsEnableTokenForPid(targetPid);
 
   InitSidecarKControlPlaneForPid(targetPid);
@@ -1935,6 +2004,8 @@ int wmain(int argc, wchar_t** argv)
   AppendLog(logPath, (L"pipe: " + pipeName).c_str());
   WriteStatusAtomic(statusPath, L"attached", targetPid, L"none");
 
+  CreateHostFrameMappingForPid(targetPid);
+
 
 
 
@@ -1965,70 +2036,73 @@ int wmain(int argc, wchar_t** argv)
   {
     if (!g_frame_source_seen)
     {
-      const std::wstring shmName = SharedMemoryNameForTarget(targetPid);
-      g_frame_map = OpenFileMappingW(FILE_MAP_READ, FALSE, shmName.c_str());
-      if (!g_frame_map)
+      if (kEnableLegacySKOF_DebugOnly)
       {
-        Sleep(50);
-        continue;
+        const std::wstring shmName = SharedMemoryNameForTarget(targetPid);
+        g_frame_map = OpenFileMappingW(FILE_MAP_READ, FALSE, shmName.c_str());
+        if (!g_frame_map)
+        {
+          Sleep(50);
+          continue;
+        }
+
+        void* headerView = MapViewOfFile(g_frame_map, FILE_MAP_READ, 0, 0, sizeof(OverlayFrameHeader));
+        if (!headerView)
+        {
+          CloseHandle(g_frame_map);
+          g_frame_map = nullptr;
+          Sleep(50);
+          continue;
+        }
+
+        OverlayFrameHeader tmp{};
+        memcpy(&tmp, headerView, sizeof(tmp));
+
+        LogOverlayHeaderDetails(logPath, targetPid, shmName, tmp);
+
+        size_t bufferBytes = 0;
+        size_t totalBytes = 0;
+        const bool ok = ValidateOverlayHeader(tmp, bufferBytes, totalBytes);
+        UnmapViewOfFile(headerView);
+
+        if (!ok)
+        {
+          wchar_t msg[256]{};
+          swprintf(msg, _countof(msg),
+            L"shared memory header invalid/unsupported (expected ver=%u fmt=0x%08X alpha=%u)",
+            (unsigned)OVERLAY_HEADER_VERSION,
+            (unsigned)OVERLAY_PIXEL_FORMAT_BGRA,
+            (unsigned)OVERLAY_ALPHA_MODE_PREMULTIPLIED);
+          AppendLog(logPath, msg);
+          CloseHandle(g_frame_map);
+          g_frame_map = nullptr;
+          Sleep(50);
+          continue;
+        }
+
+        g_frame_view = MapViewOfFile(g_frame_map, FILE_MAP_READ, 0, 0, totalBytes);
+        if (!g_frame_view)
+        {
+          CloseHandle(g_frame_map);
+          g_frame_map = nullptr;
+          Sleep(50);
+          continue;
+        }
+
+        g_frame_base = reinterpret_cast<BYTE*>(g_frame_view);
+        g_frame_total_bytes = totalBytes;
+        g_frame_buffer_bytes = bufferBytes;
+        g_frame_buf0 = g_frame_base + sizeof(OverlayFrameHeader);
+        g_frame_buf1 = g_frame_buf0 + g_frame_buffer_bytes;
+
+        g_staging.resize(g_frame_buffer_bytes);
+
+        memcpy(&g_frame_header, g_frame_base, sizeof(OverlayFrameHeader));
+        g_last_frame_id = g_frame_header.frame_id;
+
+        AppendLog(logPath, L"shared memory mapped (full)");
+        g_frame_source_seen = true;
       }
-
-      void* headerView = MapViewOfFile(g_frame_map, FILE_MAP_READ, 0, 0, sizeof(OverlayFrameHeader));
-      if (!headerView)
-      {
-        CloseHandle(g_frame_map);
-        g_frame_map = nullptr;
-        Sleep(50);
-        continue;
-      }
-
-      OverlayFrameHeader tmp{};
-      memcpy(&tmp, headerView, sizeof(tmp));
-
-      LogOverlayHeaderDetails(logPath, targetPid, shmName, tmp);
-
-      size_t bufferBytes = 0;
-      size_t totalBytes = 0;
-      const bool ok = ValidateOverlayHeader(tmp, bufferBytes, totalBytes);
-      UnmapViewOfFile(headerView);
-
-      if (!ok)
-      {
-        wchar_t msg[256]{};
-        swprintf(msg, _countof(msg),
-          L"shared memory header invalid/unsupported (expected ver=%u fmt=0x%08X alpha=%u)",
-          (unsigned)OVERLAY_HEADER_VERSION,
-          (unsigned)OVERLAY_PIXEL_FORMAT_BGRA,
-          (unsigned)OVERLAY_ALPHA_MODE_PREMULTIPLIED);
-        AppendLog(logPath, msg);
-        CloseHandle(g_frame_map);
-        g_frame_map = nullptr;
-        Sleep(50);
-        continue;
-      }
-
-      g_frame_view = MapViewOfFile(g_frame_map, FILE_MAP_READ, 0, 0, totalBytes);
-      if (!g_frame_view)
-      {
-        CloseHandle(g_frame_map);
-        g_frame_map = nullptr;
-        Sleep(50);
-        continue;
-      }
-
-      g_frame_base = reinterpret_cast<BYTE*>(g_frame_view);
-      g_frame_total_bytes = totalBytes;
-      g_frame_buffer_bytes = bufferBytes;
-      g_frame_buf0 = g_frame_base + sizeof(OverlayFrameHeader);
-      g_frame_buf1 = g_frame_buf0 + g_frame_buffer_bytes;
-
-      g_staging.resize(g_frame_buffer_bytes);
-
-      memcpy(&g_frame_header, g_frame_base, sizeof(OverlayFrameHeader));
-      g_last_frame_id = g_frame_header.frame_id;
-
-      AppendLog(logPath, L"shared memory mapped (full)");
-      g_frame_source_seen = true;
     }
     else
     {

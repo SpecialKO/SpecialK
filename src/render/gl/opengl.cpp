@@ -2376,7 +2376,26 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   InterlockedIncrement (&s_calls);
   static ULONGLONG s_last_tick = 0;
   bool reached_draw = false;
-  int  reason       = 0;
+  const int kReasonEnter = -1;
+  int  reason       = kReasonEnter;
+
+  int  created_mapping = 0;
+
+  wchar_t map_name [128] = { };
+  DWORD   open_gle       = 0;
+  HANDLE  hmap_dbg       = NULL;
+  DWORD   gle_open       = 0;
+
+  wsprintfW (map_name, L"Local\\SidecarK_Frame_%lu", (unsigned long)GetCurrentProcessId ());
+
+  const int R_ENTER         = 301;
+  const int R_OPEN_FAIL     = 310;
+  const int R_HEADER_FAIL   = 330;
+  const int R_NO_FRAME_YET  = 340;
+  const int R_UPLOAD_OK     = 350;
+  const int R_COMPOSITE_HIT = 360;
+
+  reason = R_ENTER;
 
   auto Emit = [&](int r, bool drew_path, BOOL ret)
   {
@@ -2400,24 +2419,45 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         {
           s_last_tick = now;
 
-          char szLine [512] = { };
-          _snprintf_s (
-            szLine, _TRUNCATE,
-            "pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=0x%p tid=%lu\r\n",
-            (unsigned long)pid, (long)s_calls, r,
-            drew_path ? 1 : 0, ret ? 1 : 0, (void *)hDC, (unsigned long)tid);
+          const wchar_t* const suffix_wide =
+            (r == R_OPEN_FAIL || open_gle != 0) ? L" map=... gle=..." : L"";
 
-          HANDLE hFile =
-            CreateFileW ( wszFull, GENERIC_WRITE,
-                          FILE_SHARE_READ | FILE_SHARE_WRITE,
-                          nullptr, CREATE_ALWAYS,
-                          FILE_ATTRIBUTE_NORMAL, nullptr );
-
-          if (hFile != INVALID_HANDLE_VALUE)
+          FILE* fp = nullptr;
+          if (0 == _wfopen_s (&fp, wszFull, L"w, ccs=UTF-8"))
           {
-            DWORD dwWritten = 0;
-            WriteFile (hFile, szLine, (DWORD)strlen (szLine), &dwWritten, nullptr);
-            CloseHandle (hFile);
+            wchar_t line [512] = { };
+            _snwprintf_s(
+              line, _countof(line), _TRUNCATE,
+              L"pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=%p tid=%lu map=%ls gle=%lu hmap=%p gle_open=%lu created=%d%ls\n",
+              (unsigned long)pid,
+              (long)s_calls,
+              (int)r,
+              (int)(drew_path ? 1 : 0),
+              (int)(ret ? 1 : 0),
+              (void*)hDC,
+              (unsigned long)tid,
+              (const wchar_t*)map_name,
+              (unsigned long)open_gle,
+              (void*)hmap_dbg,
+              (unsigned long)gle_open,
+              (int)created_mapping,
+              (const wchar_t*)suffix_wide
+            );
+            fputws (line, fp);
+
+            if (r == R_OPEN_FAIL || open_gle != 0)
+            {
+              wchar_t line2 [512] = { };
+              _snwprintf_s (
+                line2, _countof (line2), _TRUNCATE,
+                L" map=%ls gle=%lu\n",
+                map_name,
+                (unsigned long)open_gle
+              );
+              fputws (line2, fp);
+            }
+
+            fclose (fp);
           }
         }
       }
@@ -2435,26 +2475,29 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           wsprintfW (wszFile2, L"sk_gl_swapbuffers_first_bad_%lu.txt", pid);
           lstrcatW  (wszPath2, wszFile2);
 
-          char szLine2 [512] = { };
-          _snprintf_s (
-            szLine2, _TRUNCATE,
-            "pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=0x%p tid=%lu\r\n",
-            (unsigned long)pid, (long)s_calls, r,
-            drew_path ? 1 : 0, ret ? 1 : 0, (void *)hDC, (unsigned long)tid);
-
-          HANDLE hFile2 =
-            CreateFileW ( wszPath2,
-                          FILE_APPEND_DATA,
-                          FILE_SHARE_READ | FILE_SHARE_WRITE,
-                          nullptr, OPEN_ALWAYS,
-                          FILE_ATTRIBUTE_NORMAL, nullptr );
-
-          if (hFile2 != INVALID_HANDLE_VALUE)
+          FILE* fp2 = nullptr;
+          if (0 == _wfopen_s (&fp2, wszPath2, L"a, ccs=UTF-8"))
           {
-            SetFilePointer (hFile2, 0, nullptr, FILE_END);
-            DWORD dwWritten2 = 0;
-            WriteFile (hFile2, szLine2, (DWORD)strlen (szLine2), &dwWritten2, nullptr);
-            CloseHandle (hFile2);
+            wchar_t line [512] = { };
+            _snwprintf_s (
+              line, _countof (line), _TRUNCATE,
+              L"pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=%p tid=%lu map=%ls gle=%lu hmap=%p gle_open=%lu created=%d%ls\n",
+              (unsigned long)pid,
+              (long)s_calls,
+              (int)r,
+              (int)(drew_path ? 1 : 0),
+              (int)(ret ? 1 : 0),
+              (void *)hDC,
+              (unsigned long)tid,
+              map_name,
+              (unsigned long)open_gle,
+              (void *)hmap_dbg,
+              (unsigned long)gle_open,
+              (int)created_mapping,
+              L""
+            );
+            fputws (line, fp2);
+            fclose (fp2);
           }
         }
       }
@@ -3492,6 +3535,334 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LatentSync_BeginSwap ();
 
           SK_GL_SwapInterval (1);
+           static HANDLE   s_hMap         = nullptr;
+           static uint8_t* s_base         = nullptr;
+           static uint32_t s_w            = 0;
+           static uint32_t s_h            = 0;
+           static uint32_t s_stride       = 0;
+           static uint32_t s_last_counter = 0;
+           static bool     s_has_frame    = false;
+           static GLuint   s_tex          = 0;
+           static bool     s_test_initialized = false;
+
+           if (s_base == nullptr)
+           {
+             SetLastError (ERROR_SUCCESS);
+             hmap_dbg = OpenFileMappingW (FILE_MAP_READ, FALSE, map_name);
+             gle_open = GetLastError ();
+             if (hmap_dbg == NULL)
+             {
+               constexpr uint64_t kMapSize = 64ull * 1024ull * 1024ull;
+               hmap_dbg = CreateFileMappingW ( INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                                              (DWORD)(kMapSize >> 32), (DWORD)(kMapSize & 0xFFFFFFFFu),
+                                              map_name );
+
+               if (hmap_dbg != NULL)
+               {
+                 created_mapping = 1;
+                 gle_open = 0;
+                 open_gle = 0;
+               }
+               else
+               {
+                 open_gle = GetLastError ();
+                 reason   = 301;
+                 goto skf1_epilogue;
+               }
+             }
+             else
+             {
+               created_mapping = 0;
+             }
+
+             if (hmap_dbg != NULL && s_hMap != nullptr && s_hMap != hmap_dbg)
+             {
+               CloseHandle (s_hMap);
+               s_hMap = nullptr;
+             }
+
+             s_hMap = hmap_dbg;
+
+             s_base = (uint8_t *)MapViewOfFile (s_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+             if (s_base == nullptr)
+             {
+               open_gle = GetLastError ();
+               reason   = 320;
+               goto skf1_epilogue;
+             }
+
+             if (s_base != nullptr && (! s_test_initialized))
+             {
+               uint8_t* p = (uint8_t *)s_base;
+
+               *(uint32_t *)(p + 0x00) = 0x31464B53u; // 'SKF1'
+               *(uint32_t *)(p + 0x04) = 1u;
+               *(uint32_t *)(p + 0x08) = 0x20u;
+               *(uint32_t *)(p + 0x0C) = 0x20u;
+               *(uint32_t *)(p + 0x10) = 1u;
+               *(uint32_t *)(p + 0x14) = 256u;
+               *(uint32_t *)(p + 0x18) = 256u;
+               *(uint32_t *)(p + 0x1C) = 256u * 4u;
+
+               *(volatile LONG *)(p + 0x20) = 1;
+
+               uint32_t* pixels = (uint32_t *)(p + 0x24);
+               for (uint32_t i = 0; i < 256u * 256u; ++i)
+                 pixels [i] = 0xFFFF00FFu;
+
+               s_test_initialized = true;
+             }
+           }
+
+           if (s_base != nullptr)
+           {
+             constexpr uint64_t kMapSize = 64ull * 1024ull * 1024ull;
+
+             const uint8_t* const base = s_base;
+             const uint32_t magic = *(const uint32_t *)(base + 0x00);
+             const uint32_t ver   = *(const uint32_t *)(base + 0x04);
+
+             if (magic == 0x31464B53u && ver == 1u)
+             {
+               const uint32_t header_bytes = *(const uint32_t *)(base + 0x08);
+               const uint32_t data_offset  = *(const uint32_t *)(base + 0x0C);
+               const uint32_t pixel_format = *(const uint32_t *)(base + 0x10);
+               const uint32_t width        = *(const uint32_t *)(base + 0x14);
+               const uint32_t height       = *(const uint32_t *)(base + 0x18);
+               const uint32_t stride       = *(const uint32_t *)(base + 0x1C);
+
+               const uint64_t counter_off  = (uint64_t)data_offset;
+               const uint64_t pixel_off    = counter_off + 4ull;
+               const uint64_t bytes        = (uint64_t)stride * (uint64_t)height;
+               const uint64_t end_off      = pixel_off + bytes;
+
+               if (header_bytes >= 0x20u && data_offset >= 0x20u && pixel_format == 1u &&
+                   width > 0u && height > 0u && stride >= width * 4u && end_off <= kMapSize)
+               {
+                 const uint32_t current_counter = *(const uint32_t *)(base + (size_t)counter_off);
+                 const uint8_t* pixels          =  base + (size_t)pixel_off;
+
+                 GLint prev_unpack = 0;
+                 if (current_counter != s_last_counter)
+                 {
+                   if (s_tex == 0)
+                     glGenTextures (1, &s_tex);
+
+                   if (s_tex != 0)
+                   {
+                     GLint prev_tex = 0;
+                     glGetIntegerv (GL_TEXTURE_BINDING_2D, &prev_tex);
+                     glBindTexture (GL_TEXTURE_2D, s_tex);
+
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+
+                     glGetIntegerv (GL_UNPACK_ALIGNMENT, &prev_unpack);
+                     glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+
+                     if (s_w != width || s_h != height || s_stride != stride)
+                     {
+                       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+                       s_w      = width;
+                       s_h      = height;
+                       s_stride = stride;
+                     }
+                     else
+                     {
+                       glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, (GLsizei)width, (GLsizei)height, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+                     }
+
+                     glPixelStorei (GL_UNPACK_ALIGNMENT, prev_unpack);
+                     glBindTexture (GL_TEXTURE_2D, (GLuint)prev_tex);
+
+                     s_last_counter = current_counter;
+                     s_has_frame    = true;
+                      if (reason == R_ENTER)
+                        reason = R_UPLOAD_OK;
+                   }
+                 }
+                  else if (! s_has_frame)
+                  {
+                    reason = R_NO_FRAME_YET;
+                    reached_draw = false;
+                    status =
+                      static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+                    SK_GL_SwapInterval (0);
+                    SK_LatentSync_EndSwap ();
+                    if (status)
+                      SK_EndBufferSwap (S_OK);
+                    else
+                      SK_EndBufferSwap (E_UNEXPECTED);
+                    Emit (reason, reached_draw, status);
+                    return status;
+                  }
+
+                 if (s_has_frame && s_tex != 0)
+                 {
+                   GLint prev_program = 0;
+                   GLint prev_active_tex = 0;
+                   GLint prev_tex2d = 0;
+                   GLint prev_vao = 0;
+                   GLint prev_array = 0;
+                   GLint prev_elem = 0;
+                   GLint prev_fbo = 0;
+                   GLint prev_viewport [4] = { };
+                   GLint prev_scissor_box [4] = { };
+                   GLboolean prev_scissor = glIsEnabled (GL_SCISSOR_TEST);
+                   GLboolean prev_blend   = glIsEnabled (GL_BLEND);
+                   GLint prev_blend_src = 0, prev_blend_dst = 0;
+                   GLboolean prev_color_mask [4] = { GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE };
+                   GLint prev_unpack2 = 0;
+
+                   glGetIntegerv (GL_CURRENT_PROGRAM, &prev_program);
+                   glGetIntegerv (GL_ACTIVE_TEXTURE,  &prev_active_tex);
+                   glGetIntegerv (GL_TEXTURE_BINDING_2D, &prev_tex2d);
+                   glGetIntegerv (GL_VERTEX_ARRAY_BINDING, &prev_vao);
+                   glGetIntegerv (GL_ARRAY_BUFFER_BINDING, &prev_array);
+                   glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &prev_elem);
+                   glGetIntegerv (GL_FRAMEBUFFER_BINDING, &prev_fbo);
+                   glGetIntegerv (GL_VIEWPORT, prev_viewport);
+                   glGetIntegerv (GL_SCISSOR_BOX, prev_scissor_box);
+                   glGetIntegerv (GL_BLEND_SRC_RGB, &prev_blend_src);
+                   glGetIntegerv (GL_BLEND_DST_RGB, &prev_blend_dst);
+                   glGetBooleanv (GL_COLOR_WRITEMASK, prev_color_mask);
+                   glGetIntegerv (GL_UNPACK_ALIGNMENT, &prev_unpack2);
+
+                   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+
+                   if (prev_scissor)
+                     glDisable (GL_SCISSOR_TEST);
+
+                   glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+                   glEnable (GL_BLEND);
+                   glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+                   static GLuint s_prog = 0;
+                   static GLuint s_vs   = 0;
+                   static GLuint s_fs   = 0;
+                   static GLint  s_uTex = -1;
+                   static GLuint s_vbo  = 0;
+                   static GLuint s_ibo  = 0;
+                   static GLuint s_vao2 = 0;
+
+                   if (s_prog == 0)
+                   {
+                     const char* vs_src =
+                       "#version 130\n"
+                       "in vec2 aPos;\n"
+                       "in vec2 aUV;\n"
+                       "out vec2 vUV;\n"
+                       "void main(){ vUV=aUV; gl_Position=vec4(aPos,0.0,1.0); }\n";
+
+                     const char* fs_src =
+                       "#version 130\n"
+                       "uniform sampler2D uTex;\n"
+                       "in vec2 vUV;\n"
+                       "out vec4 oColor;\n"
+                       "void main(){ oColor = texture(uTex, vUV); }\n";
+
+                     s_vs = glCreateShader (GL_VERTEX_SHADER);
+                     glShaderSource (s_vs, 1, &vs_src, nullptr);
+                     glCompileShader (s_vs);
+
+                     s_fs = glCreateShader (GL_FRAGMENT_SHADER);
+                     glShaderSource (s_fs, 1, &fs_src, nullptr);
+                     glCompileShader (s_fs);
+
+                     s_prog = glCreateProgram ();
+                     glAttachShader (s_prog, s_vs);
+                     glAttachShader (s_prog, s_fs);
+                     glBindAttribLocation (s_prog, 0, "aPos");
+                     glBindAttribLocation (s_prog, 1, "aUV");
+                     glLinkProgram (s_prog);
+                     s_uTex = glGetUniformLocation (s_prog, "uTex");
+
+                     const float verts [16] = {
+                       -1.0f, -1.0f,  0.0f, 0.0f,
+                        1.0f, -1.0f,  1.0f, 0.0f,
+                        1.0f,  1.0f,  1.0f, 1.0f,
+                       -1.0f,  1.0f,  0.0f, 1.0f
+                     };
+                     const uint16_t idx [6] = { 0, 1, 2, 0, 2, 3 };
+
+                     glGenBuffers (1, &s_vbo);
+                     glBindBuffer (GL_ARRAY_BUFFER, s_vbo);
+                     glBufferData (GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+                     glGenBuffers (1, &s_ibo);
+                     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, s_ibo);
+                     glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
+
+                     glGenVertexArrays (1, &s_vao2);
+                     glBindVertexArray (s_vao2);
+                     glBindBuffer (GL_ARRAY_BUFFER, s_vbo);
+                     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, s_ibo);
+                     glEnableVertexAttribArray (0);
+                     glEnableVertexAttribArray (1);
+                     glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+                     glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+
+                     glBindVertexArray (0);
+                     glBindBuffer (GL_ARRAY_BUFFER, 0);
+                     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+                   }
+
+                   if (s_prog != 0)
+                   {
+                     glUseProgram (s_prog);
+                     glActiveTexture (GL_TEXTURE0);
+                     glBindTexture (GL_TEXTURE_2D, s_tex);
+                     if (s_uTex >= 0)
+                       glUniform1i (s_uTex, 0);
+                     glBindVertexArray (s_vao2);
+                     glDrawElements (GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void *)0);
+                      reason = R_COMPOSITE_HIT;
+                      reached_draw = true;
+                   }
+
+                   glPixelStorei (GL_UNPACK_ALIGNMENT, prev_unpack2);
+
+                   glBindVertexArray (prev_vao);
+                   glBindBuffer (GL_ARRAY_BUFFER, prev_array);
+                   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, prev_elem);
+                   glUseProgram (prev_program);
+                   glActiveTexture (prev_active_tex);
+                   glBindTexture (GL_TEXTURE_2D, prev_tex2d);
+                   glBindFramebuffer (GL_FRAMEBUFFER, prev_fbo);
+                   glViewport (prev_viewport [0], prev_viewport [1], prev_viewport [2], prev_viewport [3]);
+                   if (prev_scissor)
+                   {
+                     glEnable (GL_SCISSOR_TEST);
+                     glScissor (prev_scissor_box [0], prev_scissor_box [1], prev_scissor_box [2], prev_scissor_box [3]);
+                   }
+                   else
+                   {
+                     glDisable (GL_SCISSOR_TEST);
+                   }
+                   if (prev_blend)
+                     glEnable (GL_BLEND);
+                   else
+                     glDisable (GL_BLEND);
+                   glBlendFunc ((GLenum)prev_blend_src, (GLenum)prev_blend_dst);
+                   glColorMask (prev_color_mask [0], prev_color_mask [1], prev_color_mask [2], prev_color_mask [3]);
+                 }
+               }
+             }
+              else
+             {
+                reason = R_HEADER_FAIL;
+                reached_draw = false;
+               UnmapViewOfFile (s_base);
+               s_base = nullptr;
+               if (s_hMap != nullptr)
+               {
+                 CloseHandle (s_hMap);
+                 s_hMap = nullptr;
+               }
+             }
+           }
           status =
             static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
           SK_GL_SwapInterval (0);
@@ -3525,7 +3896,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
   }
 
-  reason = 200;
+skf1_epilogue:
+  if (reason == kReasonEnter)
+    reason = 200;
+
   Emit (reason, reached_draw, status);
   return status;
 }

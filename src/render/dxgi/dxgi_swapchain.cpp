@@ -29,6 +29,17 @@
 
 extern bool SidecarK_DiagnosticsEnabled ();
 
+static constexpr bool kEnableSKF1_PresentHitCounter = true;
+static constexpr bool kEnableSKF1_SkipCounters      = true;
+static volatile LONG g_SKF1_PresentHits = 0;
+
+static volatile LONG g_SKF1_GateSkip      = 0;
+static volatile LONG g_SKF1_OpenFail     = 0;
+static volatile LONG g_SKF1_MapFail      = 0;
+static volatile LONG g_SKF1_HeaderReject = 0;
+static volatile LONG g_SKF1_SeqMismatch  = 0;
+static volatile LONG g_SKF1_CompositeHit = 0;
+
 std::atomic_bool g_dxgi_present_seen{ false };
 
 std::atomic_bool g_dxgi_overlay_owner{ false };
@@ -749,6 +760,11 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
+  if (kEnableSKF1_PresentHitCounter)
+  {
+    InterlockedIncrement (&g_SKF1_PresentHits);
+  }
+
   static volatile LONG s_hits_dxgi_Present = 0;
   if (InterlockedIncrement (&s_hits_dxgi_Present) <= 50)
   {
@@ -875,6 +891,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static LONG      s_hits = 0;
   const LONG hits = InterlockedIncrement (&s_hits);
 
+  if (kEnableSKF1_PresentHitCounter) InterlockedIncrement (&g_SKF1_PresentHits);
+
   const ULONGLONG now = GetTickCount64 ();
   if (now - s_last >= 1000)
   {
@@ -933,6 +951,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   static HANDLE   s_hMap       = nullptr;
   static uint8_t* s_base       = nullptr;
+  static bool     s_test_initialized = false;
   static DWORD    s_pidCached  = 0;
   static int      s_w          = 0;
   static int      s_h          = 0;
@@ -1010,6 +1029,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     s_fmt        = 0;
     s_alpha      = 0;
     s_dataOffset = 0;
+
+    s_test_initialized = false;
   };
 
   const DWORD pidNow = GetCurrentProcessId ();
@@ -1055,59 +1076,123 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   if (s_hMap == nullptr || s_base == nullptr)
   {
+    if (false && ! SK_ImGui_Visible)
+    {
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_GateSkip);
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
+
     wchar_t wszName [64] = { };
-    wsprintfW (wszName, L"SK_OverlayFrame_%lu", (unsigned long)pidNow);
+    wsprintfW (wszName, L"Local\\SidecarK_Frame_%lu", (unsigned long)GetCurrentProcessId ());
 
     s_hMap =
       OpenFileMappingW (FILE_MAP_READ, FALSE, wszName);
 
     if (s_hMap == nullptr)
     {
-      if (! s_logged_mapping_failure.exchange (true))
+      // Create mapping locally as a test source (same name, same size)
+      constexpr uint64_t kMappingSize = 64ull * 1024ull * 1024ull;
+      s_hMap =
+        CreateFileMappingW ( INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                             (DWORD)(kMappingSize >> 32), (DWORD)(kMappingSize & 0xFFFFFFFFu),
+                             wszName );
+
+      if (s_hMap == nullptr)
       {
-        SK_LOGi0 (L"SidecarK: OpenFileMappingW failed for '%ws' (GLE=%lu)", wszName, (unsigned long)GetLastError ());
-        _SidecarLog (L"OpenFileMappingW failed name=%s gle=%lu", wszName, (unsigned long)GetLastError ());
-      }
-    }
-
-    if (s_hMap != nullptr)
-    {
-      s_base =
-        (uint8_t *)MapViewOfFile (s_hMap, FILE_MAP_READ, 0, 0, 0);
-    }
-
-    if (s_base != nullptr)
-    {
-      const auto *h =
-        reinterpret_cast <const SK_OverlayFrameHeader *> (s_base);
-
-      if (h->magic   != SK_OVERLAY_MAGIC_SKOF ||
-          h->version != SK_OVERLAY_HEADER_VERSION)
-      {
-        if (! s_logged_header_failure.exchange (true))
-        {
-          SK_LOGi0 (L"SidecarK: overlay header mismatch magic=0x%08x ver=%u (expected magic=0x%08x ver=%u)",
-                      (unsigned)h->magic, (unsigned)h->version,
-                      (unsigned)SK_OVERLAY_MAGIC_SKOF, (unsigned)SK_OVERLAY_HEADER_VERSION);
-          _SidecarLog (L"overlay header mismatch magic=0x%08x ver=%u expected_magic=0x%08x expected_ver=%u",
-                         (unsigned)h->magic, (unsigned)h->version,
-                         (unsigned)SK_OVERLAY_MAGIC_SKOF, (unsigned)SK_OVERLAY_HEADER_VERSION);
-        }
+        if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
         _ReleaseMappedOverlay ();
+        return
+          SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                      nullptr, SK_DXGI_PresentSource::Wrapper );
       }
-      else
+    }
+
+    s_base =
+      (uint8_t *)MapViewOfFile (s_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+
+    if (s_base == nullptr)
+    {
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_MapFail);
+      _ReleaseMappedOverlay ();
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
+
+    if (! s_test_initialized)
+    {
+      uint8_t* p = (uint8_t *)s_base;
+
+      *(uint32_t *)(p + 0x00) = '1FKS';
+      *(uint32_t *)(p + 0x04) = 1u;
+      *(uint32_t *)(p + 0x08) = 0x20u;
+      *(uint32_t *)(p + 0x0C) = 0x20u;
+      *(uint32_t *)(p + 0x10) = 1u;
+      *(uint32_t *)(p + 0x14) = 256u;
+      *(uint32_t *)(p + 0x18) = 256u;
+      *(uint32_t *)(p + 0x1C) = 256u * 4u;
+
+      *(volatile LONG *)(p + 0x20) = 1;
+
+      uint32_t* pixels = (uint32_t *)(p + 0x24);
+      for (uint32_t i = 0; i < 256u * 256u; ++i)
+        pixels [i] = 0xFFFF00FFu;
+
+      s_test_initialized = true;
+    }
+
+    {
+      const uint8_t* p = (const uint8_t *)s_base;
+      const uint32_t magic = *(const uint32_t *)(p + 0);
+      const uint32_t ver   = *(const uint32_t *)(p + 4);
+
+      if (magic != '1FKS' || ver != 1)
       {
-        s_w      = (int)h->width;
-        s_h      = (int)h->height;
-        s_stride = (int)h->stride;
-        s_fmt    =      h->pixel_format_fourcc;
-        s_alpha  =      h->alpha_mode;
-
-        const size_t bufferBytes = (size_t)h->height * (size_t)h->stride;
-        s_dataOffset = sizeof (SK_OverlayFrameHeader) + (size_t)h->active_buffer * bufferBytes;
-
-        _SidecarLog (L"overlay attached: w=%d h=%d stride=%d fmt=0x%08x alpha=%u frame=%llu active=%u", s_w, s_h, s_stride, (unsigned)s_fmt, (unsigned)s_alpha, (unsigned long long)h->frame_id, (unsigned)h->active_buffer);
+        if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_HeaderReject);
+        _ReleaseMappedOverlay ();
+        return
+          SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                      nullptr, SK_DXGI_PresentSource::Wrapper );
       }
+
+      const uint32_t header_bytes = *(const uint32_t *)(p + 0x08);
+      const uint32_t data_offset  = *(const uint32_t *)(p + 0x0C);
+      const uint32_t pixfmt       = *(const uint32_t *)(p + 0x10);
+      const uint32_t w            = *(const uint32_t *)(p + 0x14);
+      const uint32_t h            = *(const uint32_t *)(p + 0x18);
+      const uint32_t stride       = *(const uint32_t *)(p + 0x1C);
+
+      const uint64_t counter_off    = (uint64_t)data_offset;
+      const uint64_t pixel_base_off = counter_off + 4ull;
+
+      const uint64_t kMappingSize   = 64ull * 1024ull * 1024ull;
+      const uint64_t payload_bytes  = (uint64_t)stride * (uint64_t)h;
+
+      if (header_bytes < 0x20u ||
+          data_offset  < 0x20u ||
+          pixfmt != 1 ||
+          pixel_base_off != (uint64_t)data_offset + 4ull ||
+          w == 0 || h == 0 || stride == 0 ||
+          (uint64_t)stride < (uint64_t)w * 4ull ||
+          (uint64_t)stride > (uint64_t)w * 16ull ||
+          payload_bytes == 0 ||
+          pixel_base_off + payload_bytes > kMappingSize)
+      {
+        if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_HeaderReject);
+        _ReleaseMappedOverlay ();
+        return
+          SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                      nullptr, SK_DXGI_PresentSource::Wrapper );
+      }
+
+      s_w          = (int)w;
+      s_h          = (int)h;
+      s_stride     = (int)stride;
+      s_fmt        = 1;
+      s_alpha      = 1;
+      s_dataOffset = (size_t)pixel_base_off;
     }
   }
 
@@ -1118,8 +1203,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   // Draw the SidecarK overlay *after* PresentBase so it does not get overwritten
   // by any internal backbuffer copy/resolve paths.
-  if (s_base != nullptr && s_w > 0 && s_h > 0 && s_stride > 0 && s_fmt == SK_OVERLAY_PIXEL_FORMAT_BGRA)
+  if (s_base != nullptr && s_w > 0 && s_h > 0 && s_stride > 0 && s_fmt == 1)
   {
+    const uint64_t counter_off = (uint64_t)s_dataOffset - 4ull;
+    volatile LONG* counter_ptr = (volatile LONG*)((uint8_t*)s_base + (size_t)counter_off);
+    const LONG v0 = *counter_ptr;
+
     static std::atomic<ULONG64> s_last_overlay_log_frame = 0;
     const  ULONG64              frame                    = SK_GetFramesDrawn ();
 
@@ -1146,8 +1235,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
             bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
         {
-          const UINT copyW = 256;
-          const UINT copyH = 256;
+          const UINT copyW = (UINT)s_w;
+          const UINT copyH = (UINT)s_h;
 
           if (s_tex == nullptr || s_texFmt != bbDesc.Format)
           {
@@ -1162,7 +1251,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             tdesc.Height             = copyH;
             tdesc.MipLevels          = 1;
             tdesc.ArraySize          = 1;
-            tdesc.Format             = bbDesc.Format;
+            tdesc.Format             = DXGI_FORMAT_B8G8R8A8_UNORM;
             tdesc.SampleDesc.Count   = 1;
             tdesc.SampleDesc.Quality = 0;
             tdesc.Usage              = D3D11_USAGE_DYNAMIC;
@@ -1182,6 +1271,19 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
             if (SUCCEEDED (ctx->Map (s_tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
             {
+              const LONG v1 = *counter_ptr;
+              if (v0 != v1)
+              {
+                if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_SeqMismatch);
+                ctx->Unmap (s_tex, 0);
+                bb->Release ();
+                if (ctx != nullptr) ctx->Release ();
+                if (dev != nullptr) dev->Release ();
+                return
+                  SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                              nullptr, SK_DXGI_PresentSource::Wrapper );
+              }
+
               const uint8_t* srcBase = s_base + s_dataOffset;
               uint8_t*       dstBase = (uint8_t *)mapped.pData;
 
@@ -1201,6 +1303,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               ctx->Unmap (s_tex, 0);
 
               D3D11_BOX srcBox = { 0, 0, 0, maxW, maxH, 1 };
+              if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
               ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
 
               if (s_last_overlay_log_frame.load () + 120 < frame)
@@ -1208,6 +1311,10 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                 s_last_overlay_log_frame.store (frame);
                 _SidecarLog (L"overlay blit: swapchain=%p bbfmt=%d maxW=%u maxH=%u", pReal, (int)bbDesc.Format, maxW, maxH);
               }
+            }
+            else
+            {
+              if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_MapFail);
             }
           }
         }
