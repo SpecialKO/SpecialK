@@ -969,6 +969,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static std::atomic_bool s_logged_header_failure  = false;
   
   // Phase markers - log each stage once per session
+  static std::atomic_bool s_logged_enabled_on    = false;
   static std::atomic_bool s_logged_phase_open    = false;
   static std::atomic_bool s_logged_phase_view    = false;
   static std::atomic_bool s_logged_phase_header  = false;
@@ -1110,6 +1111,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   if (s_hMap == nullptr || s_base == nullptr)
   {
+    // Log once that SKF1 is enabled by default (gate disabled)
+    if (!s_logged_enabled_on.exchange(true))
+    {
+      _SidecarLog(L"SKF1 enabled default ON");
+    }
+
     if (false && ! SK_ImGui_Visible)
     {
       if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_GateSkip);
@@ -1243,7 +1250,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     const uint64_t counter_off = (uint64_t)s_dataOffset - 4ull;
     volatile LONG* counter_ptr = (volatile LONG*)((uint8_t*)s_base + (size_t)counter_off);
     
-    // Stable read protocol: read c1, copy pixels, read c2, accept only if c1==c2 and c1!=0
+    // Stable read protocol: read c1, validate/upload, read c2, accept only if c1==c2 and c1!=0
     const LONG c1 = *counter_ptr;
 
     static std::atomic<ULONG64> s_last_overlay_log_frame = 0;
@@ -1302,6 +1309,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             }
           }
 
+          // Try to upload new frame if we have texture
           if (s_tex != nullptr)
           {
             D3D11_MAPPED_SUBRESOURCE mapped = { };
@@ -1319,78 +1327,73 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                 _SidecarLog(L"SKF1: counter read c1=%ld c2=%ld stable=%d", (long)c1, (long)c2, stable ? 1 : 0);
               }
               
-              if (!stable || !valid)
+              // Only upload if stable AND valid AND counter changed
+              if (stable && valid)
               {
-                // Unstable or invalid counter - skip this frame
-                if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_SeqMismatch);
-                ctx->Unmap (s_tex, 0);
-                bb->Release ();
-                if (ctx != nullptr) ctx->Release ();
-                if (dev != nullptr) dev->Release ();
-                return
-                  SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
-                                              nullptr, SK_DXGI_PresentSource::Wrapper );
-              }
-
-              // Accept frame only if counter changed since last time
-              const bool counter_changed = (c1 != s_last_counter);
-              
-              if (counter_changed || !s_has_frame)
-              {
-                // Upload pixel data
-                const uint8_t* srcBase = s_base + s_dataOffset;
-                uint8_t*       dstBase = (uint8_t *)mapped.pData;
-
-                const UINT dstPitch = mapped.RowPitch;
-
-                const UINT maxH = (UINT)std::min (s_h, (int)copyH);
-                const UINT maxW = (UINT)std::min (s_w, (int)copyW);
-                const UINT rowBytes = maxW * 4;
-
-                for (UINT y = 0; y < maxH; ++y)
-                {
-                  memcpy (dstBase + y * dstPitch,
-                          srcBase + (size_t)y * (size_t)s_stride,
-                          rowBytes);
-                }
-
-                s_last_counter = c1;
-                s_has_frame = true;
+                const bool counter_changed = (c1 != s_last_counter);
                 
-                // Phase marker: upload succeeded
-                if (!s_logged_phase_upload.exchange(true))
+                if (counter_changed || !s_has_frame)
                 {
-                  _SidecarLog(L"SKF1: upload ok counter=%ld has_frame=1", (long)c1);
+                  // Upload pixel data
+                  const uint8_t* srcBase = s_base + s_dataOffset;
+                  uint8_t*       dstBase = (uint8_t *)mapped.pData;
+
+                  const UINT dstPitch = mapped.RowPitch;
+
+                  const UINT maxH = (UINT)std::min (s_h, (int)copyH);
+                  const UINT maxW = (UINT)std::min (s_w, (int)copyW);
+                  const UINT rowBytes = maxW * 4;
+
+                  for (UINT y = 0; y < maxH; ++y)
+                  {
+                    memcpy (dstBase + y * dstPitch,
+                            srcBase + (size_t)y * (size_t)s_stride,
+                            rowBytes);
+                  }
+
+                  s_last_counter = c1;
+                  s_has_frame = true;
+                  
+                  // Phase marker: upload succeeded
+                  if (!s_logged_phase_upload.exchange(true))
+                  {
+                    _SidecarLog(L"SKF1: upload ok counter=%ld has_frame=1", (long)c1);
+                  }
                 }
+              }
+              else
+              {
+                // Unstable or invalid - skip upload but DON'T clear has_frame
+                if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_SeqMismatch);
               }
 
               ctx->Unmap (s_tex, 0);
-
-              // Blit to backbuffer if we have a frame
-              if (s_has_frame)
-              {
-                D3D11_BOX srcBox = { 0, 0, 0, (UINT)s_w, (UINT)s_h, 1 };
-                if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
-                ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
-
-                // Phase marker: blit succeeded
-                if (!s_logged_phase_blit.exchange(true))
-                {
-                  _SidecarLog(L"SKF1: blit ok");
-                }
-
-                // Health signal: log successful composite periodically
-                if (s_last_overlay_log_frame.load () + 120 < frame)
-                {
-                  s_last_overlay_log_frame.store (frame);
-                  _SidecarLog (L"overlay blit SUCCESS: swapchain=%p bbfmt=%d maxW=%u maxH=%u counter=%ld", 
-                              pReal, (int)bbDesc.Format, (UINT)s_w, (UINT)s_h, (long)c1);
-                }
-              }
             }
             else
             {
               if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_MapFail);
+            }
+          }
+
+          // EPILOGUE: Always blit if we have a valid frame (last-good draw)
+          if (s_has_frame && s_tex != nullptr)
+          {
+            D3D11_BOX srcBox = { 0, 0, 0, (UINT)s_w, (UINT)s_h, 1 };
+            if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
+            ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
+
+            // Phase marker: blit succeeded
+            if (!s_logged_phase_blit.exchange(true))
+            {
+              _SidecarLog(L"SKF1: blit ok");
+            }
+
+            // Health signal: log successful composite periodically
+            if (s_last_overlay_log_frame.load () + 120 < frame)
+            {
+              s_last_overlay_log_frame.store (frame);
+              _SidecarLog (L"overlay blit SUCCESS: swapchain=%p bbfmt=%d maxW=%u maxH=%u counter=%ld", 
+                          pReal, (int)bbDesc.Format, (UINT)s_w, (UINT)s_h, (long)c1);
             }
           }
         }
