@@ -949,33 +949,57 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static constexpr uint32_t SK_OVERLAY_HEADER_VERSION      = 2u;
   static constexpr uint32_t SK_OVERLAY_PIXEL_FORMAT_BGRA   = 0x41524742u; // 'BGRA'
 
-  static HANDLE   s_hMap       = nullptr;
-  static uint8_t* s_base       = nullptr;
-  static DWORD    s_pidCached  = 0;
-  static int      s_w          = 0;
-  static int      s_h          = 0;
-  static int      s_stride     = 0;
-  static uint32_t s_fmt        = 0;
-  static uint32_t s_alpha      = 0;
-  static size_t   s_dataOffset = 0;
-  static LONG     s_last_counter = 0;  // Track last accepted counter value
-  static bool     s_has_frame    = false;  // Track if we have uploaded a frame
-  static ID3D11Texture2D* s_tex     = nullptr;
-  static DXGI_FORMAT      s_texFmt  = DXGI_FORMAT_UNKNOWN;
+  // SKF1 Runtime Status Struct - Single source of truth for entire pipeline state
+  struct SKF1_RuntimeStatus
+  {
+    // Stage A: PID + name
+    DWORD    last_pid = 0;
+    wchar_t  mapping_name[64] = { };
 
-  static std::atomic_bool s_logged_swapchain_once  = false;
-  static std::atomic_bool s_logged_mapping_failure = false;
-  static std::atomic_bool s_logged_mapping_success = false;
-  static std::atomic_bool s_logged_header_failure  = false;
-  
-  // Phase markers - log each stage once per session
-  static std::atomic_bool s_logged_enabled_on    = false;
-  static std::atomic_bool s_logged_phase_open    = false;
-  static std::atomic_bool s_logged_phase_view    = false;
-  static std::atomic_bool s_logged_phase_header  = false;
-  static std::atomic_bool s_logged_phase_counter = false;
-  static std::atomic_bool s_logged_phase_upload  = false;
-  static std::atomic_bool s_logged_phase_blit    = false;
+    // Stage B: OpenFileMappingW
+    HANDLE   hMap = nullptr;
+    DWORD    last_open_gle = 0;
+
+    // Stage C: MapViewOfFile
+    uint8_t* view_ptr = nullptr;
+    SIZE_T   view_bytes = 0;
+    DWORD    last_view_gle = 0;
+
+    // Stage D: Header snapshot
+    char     magic[4] = { };
+    uint32_t version = 0;
+    uint32_t header_bytes = 0;
+    uint32_t data_offset = 0;
+    uint32_t pixel_format = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t stride = 0;
+    DWORD    last_header_gle = 0;
+
+    // Stage E/F: Upload and blit state
+    LONG     last_counter = 0;
+    bool     has_frame = false;
+
+    // D3D11 resources
+    ID3D11Texture2D* tex = nullptr;
+    DXGI_FORMAT      texFmt = DXGI_FORMAT_UNKNOWN;
+
+    // One-time transition markers
+    std::atomic_bool logged_enabled_on = false;
+    std::atomic_bool logged_stage_a_ok = false;
+    std::atomic_bool logged_stage_b_ok = false;
+    std::atomic_bool logged_stage_b_fail = false;
+    std::atomic_bool logged_stage_c_ok = false;
+    std::atomic_bool logged_stage_c_fail = false;
+    std::atomic_bool logged_stage_d_ok = false;
+    std::atomic_bool logged_stage_d_fail = false;
+    std::atomic_bool logged_stage_e_ok = false;
+    std::atomic_bool logged_stage_f_ok = false;
+  };
+
+  static SKF1_RuntimeStatus s_skf1;
+  static DWORD s_pidCached = 0;  // For reset detection only
+  static std::atomic_bool s_logged_swapchain_once = false;
 
   auto _SidecarLog = [&](const wchar_t* fmt, ...)
   {
@@ -1013,38 +1037,41 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
   auto _ReleaseMappedOverlay = [&]()
   {
-    if (s_tex != nullptr)
+    if (s_skf1.tex != nullptr)
     {
-      s_tex->Release ();
-      s_tex = nullptr;
+      s_skf1.tex->Release ();
+      s_skf1.tex = nullptr;
     }
 
-    s_texFmt = DXGI_FORMAT_UNKNOWN;
+    s_skf1.texFmt = DXGI_FORMAT_UNKNOWN;
 
-    if (s_base != nullptr)
+    if (s_skf1.view_ptr != nullptr)
     {
-      UnmapViewOfFile (s_base);
-      s_base = nullptr;
+      UnmapViewOfFile (s_skf1.view_ptr);
+      s_skf1.view_ptr = nullptr;
+      s_skf1.view_bytes = 0;
     }
 
-    if (s_hMap != nullptr)
+    if (s_skf1.hMap != nullptr)
     {
-      CloseHandle (s_hMap);
-      s_hMap = nullptr;
+      CloseHandle (s_skf1.hMap);
+      s_skf1.hMap = nullptr;
     }
 
-    // DO NOT reset s_pidCached here - it causes reset churn!
-    s_w          = 0;
-    s_h          = 0;
-    s_stride     = 0;
-    s_fmt        = 0;
-    s_alpha      = 0;
-    s_dataOffset = 0;
-    s_last_counter = 0;
-    s_has_frame    = false;
+    // Reset header and state
+    memset(s_skf1.magic, 0, sizeof(s_skf1.magic));
+    s_skf1.version = 0;
+    s_skf1.header_bytes = 0;
+    s_skf1.data_offset = 0;
+    s_skf1.pixel_format = 0;
+    s_skf1.width = 0;
+    s_skf1.height = 0;
+    s_skf1.stride = 0;
+    s_skf1.last_counter = 0;
+    s_skf1.has_frame = false;
   };
 
-  // FIX: Use separate static for PID tracking to avoid reset churn
+  // STAGE A: PID + Name Selection (no churn)
   static DWORD s_pid = 0;
   const DWORD pidNow = GetCurrentProcessId();
   
@@ -1053,6 +1080,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   {
     s_pid = pidNow;
     s_pidCached = pidNow;
+    s_skf1.last_pid = pidNow;
   }
   // Real PID change: reset and update
   else if (pidNow != s_pid)
@@ -1060,24 +1088,27 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     _ReleaseMappedOverlay();
     s_pidCached = 0;  // Force remap on next iteration
     s_pid = pidNow;
+    s_skf1.last_pid = pidNow;
 
-    s_logged_mapping_failure.store(false);
-    s_logged_mapping_success.store(false);
-    s_logged_header_failure.store(false);
-    s_logged_phase_open.store(false);
-    s_logged_phase_view.store(false);
-    s_logged_phase_header.store(false);
-    s_logged_phase_counter.store(false);
-    s_logged_phase_upload.store(false);
-    s_logged_phase_blit.store(false);
+    // Reset all transition markers
+    s_skf1.logged_enabled_on.store(false);
+    s_skf1.logged_stage_a_ok.store(false);
+    s_skf1.logged_stage_b_ok.store(false);
+    s_skf1.logged_stage_b_fail.store(false);
+    s_skf1.logged_stage_c_ok.store(false);
+    s_skf1.logged_stage_c_fail.store(false);
+    s_skf1.logged_stage_d_ok.store(false);
+    s_skf1.logged_stage_d_fail.store(false);
+    s_skf1.logged_stage_e_ok.store(false);
+    s_skf1.logged_stage_f_ok.store(false);
 
     _SidecarLog(L"pid-change: reset overlay mapping state (old=%lu new=%lu)", (unsigned long)s_pidCached, (unsigned long)pidNow);
   }
-  // BUG detection: reset called without PID change
+  // After reset: remap
   else if (s_pidCached == 0 && pidNow == s_pid)
   {
-    // This is OK - we're about to remap after reset
     s_pidCached = pidNow;
+    s_skf1.last_pid = pidNow;
   }
 
   if (! s_logged_swapchain_once.exchange (true))
@@ -1109,38 +1140,52 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     }
   }
 
-  if (s_hMap == nullptr || s_base == nullptr)
+  // ============================================================================
+  // SKF1 SELF-AUDITING PIPELINE
+  // Every stage has explicit OK/FAIL markers with GetLastError() capture
+  // ============================================================================
+
+  // Log enabled status once
+  if (!s_skf1.logged_enabled_on.exchange(true))
   {
-    // Log once that SKF1 is enabled by default (gate disabled)
-    if (!s_logged_enabled_on.exchange(true))
+    _SidecarLog(L"SKF1 enabled default ON");
+  }
+
+  // Check gate (disabled for Phase-1)
+  if (false && ! SK_ImGui_Visible)
+  {
+    if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_GateSkip);
+    return
+      SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                  nullptr, SK_DXGI_PresentSource::Wrapper );
+  }
+
+  // --------------------------------------------------------------------------
+  // STAGE A: PID + Name Selection
+  // --------------------------------------------------------------------------
+  if (s_skf1.hMap == nullptr || s_skf1.view_ptr == nullptr)
+  {
+    wsprintfW (s_skf1.mapping_name, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)s_skf1.last_pid);
+
+    if (!s_skf1.logged_stage_a_ok.exchange(true))
     {
-      _SidecarLog(L"SKF1 enabled default ON");
+      _SidecarLog(L"SKF1 Stage A: name=%ls pid=%lu", s_skf1.mapping_name, (unsigned long)s_skf1.last_pid);
     }
 
-    if (false && ! SK_ImGui_Visible)
-    {
-      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_GateSkip);
-      return
-        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
-                                    nullptr, SK_DXGI_PresentSource::Wrapper );
-    }
-
-    wchar_t wszName [64] = { };
-    DWORD currentPid = GetCurrentProcessId ();
-    wsprintfW (wszName, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)currentPid);
-
+    // ------------------------------------------------------------------------
+    // STAGE B: OpenFileMappingW
+    // ------------------------------------------------------------------------
     SetLastError (ERROR_SUCCESS);
-    s_hMap =
-      OpenFileMappingW (FILE_MAP_READ, FALSE, wszName);
-    DWORD dwOpenError = GetLastError ();
+    s_skf1.hMap = OpenFileMappingW (FILE_MAP_READ, FALSE, s_skf1.mapping_name);
+    s_skf1.last_open_gle = GetLastError ();
 
-    if (s_hMap == nullptr)
+    if (s_skf1.hMap == nullptr)
     {
-      // Phase 1: Consumer must never create mapping, only open
-      if (! s_logged_mapping_failure.exchange (true))
+      // STAGE B FAIL
+      if (!s_skf1.logged_stage_b_fail.exchange(true))
       {
-        _SidecarLog (L"OpenFileMapping failed: name=%ls pid_source=GetCurrentProcessId(%lu) gle=%lu", 
-                     wszName, (unsigned long)currentPid, (unsigned long)dwOpenError);
+        _SidecarLog(L"SKF1 Stage B FAIL: OpenFileMappingW name=%ls gle=%lu", 
+                    s_skf1.mapping_name, (unsigned long)s_skf1.last_open_gle);
       }
       if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
       _ReleaseMappedOverlay ();
@@ -1148,20 +1193,29 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
                                     nullptr, SK_DXGI_PresentSource::Wrapper );
     }
-    else
+
+    // STAGE B OK
+    if (!s_skf1.logged_stage_b_ok.exchange(true))
     {
-      // Phase marker: open succeeded
-      if (!s_logged_phase_open.exchange(true))
-      {
-        _SidecarLog(L"SKF1: open ok name=%ls pid=%lu", wszName, (unsigned long)currentPid);
-      }
+      _SidecarLog(L"SKF1 Stage B OK: OpenFileMappingW name=%ls hMap=%p", 
+                  s_skf1.mapping_name, (void*)s_skf1.hMap);
     }
 
-    s_base =
-      (uint8_t *)MapViewOfFile (s_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    // ------------------------------------------------------------------------
+    // STAGE C: MapViewOfFile (map whole object, no size dependence)
+    // ------------------------------------------------------------------------
+    SetLastError (ERROR_SUCCESS);
+    s_skf1.view_ptr = (uint8_t *)MapViewOfFile (s_skf1.hMap, FILE_MAP_READ, 0, 0, 0);
+    s_skf1.last_view_gle = GetLastError ();
 
-    if (s_base == nullptr)
+    if (s_skf1.view_ptr == nullptr)
     {
+      // STAGE C FAIL
+      if (!s_skf1.logged_stage_c_fail.exchange(true))
+      {
+        _SidecarLog(L"SKF1 Stage C FAIL: MapViewOfFile name=%ls hMap=%p gle=%lu", 
+                    s_skf1.mapping_name, (void*)s_skf1.hMap, (unsigned long)s_skf1.last_view_gle);
+      }
       if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_MapFail);
       _ReleaseMappedOverlay ();
       return
@@ -1169,72 +1223,79 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                                     nullptr, SK_DXGI_PresentSource::Wrapper );
     }
 
-    // Phase marker: view succeeded
-    if (!s_logged_phase_view.exchange(true))
+    // Query actual mapped size (optional, for diagnostics)
+    MEMORY_BASIC_INFORMATION mbi = { };
+    if (VirtualQuery(s_skf1.view_ptr, &mbi, sizeof(mbi)))
     {
-      _SidecarLog(L"SKF1: view ok base=%p", (void*)s_base);
+      s_skf1.view_bytes = mbi.RegionSize;
     }
 
-    // Consumer NEVER writes to mapping - Host seeds all test data
-    // Validate SKF1 v1 header
+    // STAGE C OK
+    if (!s_skf1.logged_stage_c_ok.exchange(true))
     {
-      const uint8_t* p = (const uint8_t *)s_base;
-      const uint32_t magic = *(const uint32_t *)(p + 0);
-      const uint32_t ver   = *(const uint32_t *)(p + 4);
+      _SidecarLog(L"SKF1 Stage C OK: MapViewOfFile base=%p bytes=%llu", 
+                  (void*)s_skf1.view_ptr, (unsigned long long)s_skf1.view_bytes);
+    }
 
-      if (magic != '1FKS' || ver != 1)
+    // ------------------------------------------------------------------------
+    // STAGE D: Header Read/Validate
+    // ------------------------------------------------------------------------
+    const uint8_t* p = s_skf1.view_ptr;
+    
+    // Read header fields into struct
+    memcpy(s_skf1.magic, p + 0, 4);
+    s_skf1.version       = *(const uint32_t *)(p + 0x04);
+    s_skf1.header_bytes  = *(const uint32_t *)(p + 0x08);
+    s_skf1.data_offset   = *(const uint32_t *)(p + 0x0C);
+    s_skf1.pixel_format  = *(const uint32_t *)(p + 0x10);
+    s_skf1.width         = *(const uint32_t *)(p + 0x14);
+    s_skf1.height        = *(const uint32_t *)(p + 0x18);
+    s_skf1.stride        = *(const uint32_t *)(p + 0x1C);
+
+    // Validate header
+    const uint32_t expected_magic = '1FKS';
+    const bool magic_ok   = (memcmp(s_skf1.magic, &expected_magic, 4) == 0);
+    const bool version_ok = (s_skf1.version == 1);
+    const bool header_ok  = (s_skf1.header_bytes >= 0x20u);
+    const bool offset_ok  = (s_skf1.data_offset >= 0x24u);
+    const bool format_ok  = (s_skf1.pixel_format == 1);
+    const bool dims_ok    = (s_skf1.width > 0 && s_skf1.height > 0 && s_skf1.stride > 0);
+    const bool stride_ok  = (s_skf1.stride >= s_skf1.width * 4 && s_skf1.stride <= s_skf1.width * 16);
+    
+    const uint64_t counter_off = (uint64_t)s_skf1.data_offset - 4ull;
+    const bool counter_pos_ok = (counter_off + 4ull == (uint64_t)s_skf1.data_offset);
+    
+    const uint64_t payload_bytes = (uint64_t)s_skf1.stride * (uint64_t)s_skf1.height;
+    const uint64_t pixel_end = (uint64_t)s_skf1.data_offset + payload_bytes;
+    const uint64_t kMaxMappingSize = 64ull * 1024ull * 1024ull;
+    const bool size_ok = (payload_bytes > 0 && pixel_end <= kMaxMappingSize);
+
+    if (!magic_ok || !version_ok || !header_ok || !offset_ok || !format_ok || 
+        !dims_ok || !stride_ok || !counter_pos_ok || !size_ok)
+    {
+      // STAGE D FAIL - dump all header fields for diagnosis
+      if (!s_skf1.logged_stage_d_fail.exchange(true))
       {
-        if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_HeaderReject);
-        _ReleaseMappedOverlay ();
-        return
-          SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
-                                      nullptr, SK_DXGI_PresentSource::Wrapper );
+        _SidecarLog(L"SKF1 Stage D FAIL: Header validation - "
+                    L"magic=%c%c%c%c ver=%u hdr_bytes=%u data_off=%u fmt=%u w=%u h=%u stride=%u "
+                    L"[magic_ok=%d ver_ok=%d hdr_ok=%d off_ok=%d fmt_ok=%d dims_ok=%d stride_ok=%d counter_ok=%d size_ok=%d]",
+                    s_skf1.magic[0], s_skf1.magic[1], s_skf1.magic[2], s_skf1.magic[3],
+                    s_skf1.version, s_skf1.header_bytes, s_skf1.data_offset, s_skf1.pixel_format,
+                    s_skf1.width, s_skf1.height, s_skf1.stride,
+                    magic_ok, version_ok, header_ok, offset_ok, format_ok, dims_ok, stride_ok, counter_pos_ok, size_ok);
       }
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_HeaderReject);
+      _ReleaseMappedOverlay ();
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
 
-      const uint32_t header_bytes = *(const uint32_t *)(p + 0x08);
-      const uint32_t data_offset  = *(const uint32_t *)(p + 0x0C);
-      const uint32_t pixfmt       = *(const uint32_t *)(p + 0x10);
-      const uint32_t w            = *(const uint32_t *)(p + 0x14);
-      const uint32_t h            = *(const uint32_t *)(p + 0x18);
-      const uint32_t stride       = *(const uint32_t *)(p + 0x1C);
-
-      // Frame counter is 4 bytes BEFORE pixel data (at offset 0x20, data at 0x24)
-      const uint64_t counter_off    = (uint64_t)data_offset - 4ull;
-      const uint64_t pixel_base_off = (uint64_t)data_offset;
-
-      const uint64_t kMappingSize   = 64ull * 1024ull * 1024ull;
-      const uint64_t payload_bytes  = (uint64_t)stride * (uint64_t)h;
-
-      if (header_bytes < 0x20u ||
-          data_offset  < 0x24u ||  // Must be at least 0x24 (after header + counter)
-          pixfmt != 1 ||
-          counter_off + 4ull != (uint64_t)data_offset ||  // Counter must be 4 bytes before data
-          w == 0 || h == 0 || stride == 0 ||
-          (uint64_t)stride < (uint64_t)w * 4ull ||
-          (uint64_t)stride > (uint64_t)w * 16ull ||
-          payload_bytes == 0 ||
-          pixel_base_off + payload_bytes > kMappingSize)
-      {
-        if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_HeaderReject);
-        _ReleaseMappedOverlay ();
-        return
-          SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
-                                      nullptr, SK_DXGI_PresentSource::Wrapper );
-      }
-
-      s_w          = (int)w;
-      s_h          = (int)h;
-      s_stride     = (int)stride;
-      s_fmt        = 1;
-      s_alpha      = 1;
-      s_dataOffset = (size_t)pixel_base_off;
-
-      // Phase marker: header validated
-      if (!s_logged_phase_header.exchange(true))
-      {
-        _SidecarLog(L"SKF1: header ok w=%d h=%d stride=%d fmt=%d data_off=0x%X", 
-                   (int)w, (int)h, (int)stride, (int)pixfmt, (unsigned int)data_offset);
-      }
+    // STAGE D OK
+    if (!s_skf1.logged_stage_d_ok.exchange(true))
+    {
+      _SidecarLog(L"SKF1 Stage D OK: Header validated - w=%u h=%u stride=%u fmt=%u data_off=0x%X",
+                  s_skf1.width, s_skf1.height, s_skf1.stride, s_skf1.pixel_format, s_skf1.data_offset);
     }
   }
 
@@ -1243,14 +1304,16 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     SyncInterval = 0;
   }
 
-  // Draw the SidecarK overlay *after* PresentBase so it does not get overwritten
-  // by any internal backbuffer copy/resolve paths.
-  if (s_base != nullptr && s_w > 0 && s_h > 0 && s_stride > 0 && s_fmt == 1)
+  // --------------------------------------------------------------------------
+  // STAGE E/F: Upload (if stable) + Always Blit (last-good frame)
+  // --------------------------------------------------------------------------
+  if (s_skf1.view_ptr != nullptr && s_skf1.width > 0 && s_skf1.height > 0 && 
+      s_skf1.stride > 0 && s_skf1.pixel_format == 1)
   {
-    const uint64_t counter_off = (uint64_t)s_dataOffset - 4ull;
-    volatile LONG* counter_ptr = (volatile LONG*)((uint8_t*)s_base + (size_t)counter_off);
+    const uint64_t counter_off = (uint64_t)s_skf1.data_offset - 4ull;
+    volatile LONG* counter_ptr = (volatile LONG*)(s_skf1.view_ptr + (size_t)counter_off);
     
-    // Stable read protocol: read c1, validate/upload, read c2, accept only if c1==c2 and c1!=0
+    // STAGE E: Stable read protocol - read c1, validate/upload, read c2
     const LONG c1 = *counter_ptr;
 
     static std::atomic<ULONG64> s_last_overlay_log_frame = 0;
@@ -1279,15 +1342,15 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
             bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
         {
-          const UINT copyW = (UINT)s_w;
-          const UINT copyH = (UINT)s_h;
+          const UINT copyW = (UINT)s_skf1.width;
+          const UINT copyH = (UINT)s_skf1.height;
 
-          if (s_tex == nullptr || s_texFmt != bbDesc.Format)
+          if (s_skf1.tex == nullptr || s_skf1.texFmt != bbDesc.Format)
           {
-            if (s_tex != nullptr)
+            if (s_skf1.tex != nullptr)
             {
-              s_tex->Release ();
-              s_tex = nullptr;
+              s_skf1.tex->Release ();
+              s_skf1.tex = nullptr;
             }
 
             D3D11_TEXTURE2D_DESC tdesc = { };
@@ -1303,61 +1366,55 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             tdesc.CPUAccessFlags     = D3D11_CPU_ACCESS_WRITE;
             tdesc.MiscFlags          = 0;
 
-            if (SUCCEEDED (dev->CreateTexture2D (&tdesc, nullptr, &s_tex)) && s_tex != nullptr)
+            if (SUCCEEDED (dev->CreateTexture2D (&tdesc, nullptr, &s_skf1.tex)) && s_skf1.tex != nullptr)
             {
-              s_texFmt = bbDesc.Format;
+              s_skf1.texFmt = bbDesc.Format;
             }
           }
 
-          // Try to upload new frame if we have texture
-          if (s_tex != nullptr)
+          // STAGE E: Try to upload new frame if we have texture
+          if (s_skf1.tex != nullptr)
           {
             D3D11_MAPPED_SUBRESOURCE mapped = { };
 
-            if (SUCCEEDED (ctx->Map (s_tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+            if (SUCCEEDED (ctx->Map (s_skf1.tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
             {
               // Complete stable read: check c2
               const LONG c2 = *counter_ptr;
               const bool stable = (c1 == c2);
               const bool valid = (c1 != 0);
               
-              // Phase marker: counter read
-              if (!s_logged_phase_counter.exchange(true))
-              {
-                _SidecarLog(L"SKF1: counter read c1=%ld c2=%ld stable=%d", (long)c1, (long)c2, stable ? 1 : 0);
-              }
-              
               // Only upload if stable AND valid AND counter changed
               if (stable && valid)
               {
-                const bool counter_changed = (c1 != s_last_counter);
+                const bool counter_changed = (c1 != s_skf1.last_counter);
                 
-                if (counter_changed || !s_has_frame)
+                if (counter_changed || !s_skf1.has_frame)
                 {
                   // Upload pixel data
-                  const uint8_t* srcBase = s_base + s_dataOffset;
+                  const uint8_t* srcBase = s_skf1.view_ptr + s_skf1.data_offset;
                   uint8_t*       dstBase = (uint8_t *)mapped.pData;
 
                   const UINT dstPitch = mapped.RowPitch;
 
-                  const UINT maxH = (UINT)std::min (s_h, (int)copyH);
-                  const UINT maxW = (UINT)std::min (s_w, (int)copyW);
+                  const UINT maxH = (UINT)std::min ((int)s_skf1.height, (int)copyH);
+                  const UINT maxW = (UINT)std::min ((int)s_skf1.width, (int)copyW);
                   const UINT rowBytes = maxW * 4;
 
                   for (UINT y = 0; y < maxH; ++y)
                   {
                     memcpy (dstBase + y * dstPitch,
-                            srcBase + (size_t)y * (size_t)s_stride,
+                            srcBase + (size_t)y * (size_t)s_skf1.stride,
                             rowBytes);
                   }
 
-                  s_last_counter = c1;
-                  s_has_frame = true;
+                  s_skf1.last_counter = c1;
+                  s_skf1.has_frame = true;
                   
-                  // Phase marker: upload succeeded
-                  if (!s_logged_phase_upload.exchange(true))
+                  // STAGE E OK
+                  if (!s_skf1.logged_stage_e_ok.exchange(true))
                   {
-                    _SidecarLog(L"SKF1: upload ok counter=%ld has_frame=1", (long)c1);
+                    _SidecarLog(L"SKF1 Stage E OK: Upload accepted counter=%ld has_frame=1", (long)c1);
                   }
                 }
               }
@@ -1367,7 +1424,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                 if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_SeqMismatch);
               }
 
-              ctx->Unmap (s_tex, 0);
+              ctx->Unmap (s_skf1.tex, 0);
             }
             else
             {
@@ -1375,25 +1432,25 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             }
           }
 
-          // EPILOGUE: Always blit if we have a valid frame (last-good draw)
-          if (s_has_frame && s_tex != nullptr)
+          // STAGE F: EPILOGUE - Always blit if we have a valid frame (last-good draw)
+          if (s_skf1.has_frame && s_skf1.tex != nullptr)
           {
-            D3D11_BOX srcBox = { 0, 0, 0, (UINT)s_w, (UINT)s_h, 1 };
+            D3D11_BOX srcBox = { 0, 0, 0, (UINT)s_skf1.width, (UINT)s_skf1.height, 1 };
             if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
-            ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_tex, 0, &srcBox);
+            ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
 
-            // Phase marker: blit succeeded
-            if (!s_logged_phase_blit.exchange(true))
+            // STAGE F OK
+            if (!s_skf1.logged_stage_f_ok.exchange(true))
             {
-              _SidecarLog(L"SKF1: blit ok");
+              _SidecarLog(L"SKF1 Stage F OK: Blit executed");
             }
 
             // Health signal: log successful composite periodically
             if (s_last_overlay_log_frame.load () + 120 < frame)
             {
               s_last_overlay_log_frame.store (frame);
-              _SidecarLog (L"overlay blit SUCCESS: swapchain=%p bbfmt=%d maxW=%u maxH=%u counter=%ld", 
-                          pReal, (int)bbDesc.Format, (UINT)s_w, (UINT)s_h, (long)c1);
+              _SidecarLog (L"SKF1 composite: swapchain=%p bbfmt=%d w=%u h=%u counter=%ld", 
+                          pReal, (int)bbDesc.Format, (UINT)s_skf1.width, (UINT)s_skf1.height, (long)c1);
             }
           }
         }
