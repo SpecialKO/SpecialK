@@ -2808,8 +2808,10 @@ auto DeclKeybind =
 
 
       case SK_GAME_ID::EverQuest:
-        // Fix-up rare issues during Server Select -> Game
-        //config.compatibility.d3d9.rehook_reset = true;
+        // Avoid corruption after new D3D11 update to engine
+        config.textures.d3d11.cache                 = false;
+        config.window.dont_hook_wndproc             =  true;
+        config.compatibility.disable_debug_features =  true;
         break;
 
 

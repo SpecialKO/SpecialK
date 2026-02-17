@@ -1,5 +1,9 @@
-﻿26.1.7
+﻿25.2.17
 =======
+ + Disable D3D11 texture caching in EverQuest now that it is no longer D3D9.
+
+26.1.7
+======
  + Add workaround for a product called Smart Game Booster's overlay.
 
 25.12.30
