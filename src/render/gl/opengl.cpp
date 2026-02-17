@@ -3581,7 +3581,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                *(uint32_t *)(p + 0x00) = 0x31464B53u; // 'SKF1'
                *(uint32_t *)(p + 0x04) = 1u;
                *(uint32_t *)(p + 0x08) = 0x20u;
-               *(uint32_t *)(p + 0x0C) = 0x20u;
+                *(uint32_t *)(p + 0x0C) = 0x24u;  // ✅ FIXED: data_offset = 0x24 (pixels start here)
                *(uint32_t *)(p + 0x10) = 1u;
                *(uint32_t *)(p + 0x14) = 256u;
                *(uint32_t *)(p + 0x18) = 256u;
@@ -3614,12 +3614,13 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                const uint32_t height       = *(const uint32_t *)(base + 0x18);
                const uint32_t stride       = *(const uint32_t *)(base + 0x1C);
 
-               const uint64_t counter_off  = (uint64_t)data_offset;
-               const uint64_t pixel_off    = counter_off + 4ull;
+                // ✅ FIXED: Counter at fixed offset 0x20, pixels at data_offset (0x24)
+                const uint64_t counter_off  = 0x20ull;
+                const uint64_t pixel_off    = (uint64_t)data_offset;
                const uint64_t bytes        = (uint64_t)stride * (uint64_t)height;
                const uint64_t end_off      = pixel_off + bytes;
 
-               if (header_bytes >= 0x20u && data_offset >= 0x20u && pixel_format == 1u &&
+                if (header_bytes >= 0x20u && data_offset >= 0x24u && pixel_format == 1u &&
                    width > 0u && height > 0u && stride >= width * 4u && end_off <= kMapSize)
                {
                  const uint32_t current_counter = *(const uint32_t *)(base + (size_t)counter_off);
