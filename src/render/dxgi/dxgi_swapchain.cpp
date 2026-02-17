@@ -1307,15 +1307,11 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       _SidecarLog(L"SKF1 Stage D OK: Header validated - w=%u h=%u stride=%u fmt=%u data_off=0x%X",
                   s_skf1.width, s_skf1.height, s_skf1.stride, s_skf1.pixel_format, s_skf1.data_offset);
     }
-  }
-
-  if (0 == PresentBase ())
-  {
-    SyncInterval = 0;
-  }
+  }  // End of Stage A-D header validation block
 
   // --------------------------------------------------------------------------
   // STAGE E/F: Upload (if stable) + Always Blit (last-good frame)
+  // CRITICAL: This MUST happen BEFORE PresentBase() so overlay is visible!
   // --------------------------------------------------------------------------
   if (s_skf1.view_ptr != nullptr && s_skf1.width > 0 && s_skf1.height > 0 && 
       s_skf1.stride > 0 && s_skf1.pixel_format == 1)
@@ -1724,6 +1720,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       if (cmdQueue != nullptr) cmdQueue->Release();
       dev12->Release();
     }
+  }
+
+  // Now that overlay is composited, do the actual Present
+  if (0 == PresentBase ())
+  {
+    SyncInterval = 0;
   }
 
   return
