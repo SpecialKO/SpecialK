@@ -1377,8 +1377,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
             bbDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
         {
-          const UINT copyW = (UINT)s_skf1.width;
-          const UINT copyH = (UINT)s_skf1.height;
+          const UINT copyW = 256u;  // Fixed: always 256×256 for overlay (don't use header width - frame producer may change it)
+          const UINT copyH = 256u;
 
           if (s_skf1.tex == nullptr || s_skf1.texFmt != bbDesc.Format)
           {
@@ -1504,7 +1504,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
           if (s_skf1.has_frame && s_skf1.tex != nullptr)
           {
-            D3D11_BOX srcBox = { 0, 0, 0, (UINT)s_skf1.width, (UINT)s_skf1.height, 1 };
+            D3D11_BOX srcBox = { 0, 0, 0, 256u, 256u, 1 };  // Fixed: always 256×256 overlay region
             if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
             ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
 
