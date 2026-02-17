@@ -1455,6 +1455,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                 {
                   // Upload pixel data
                   const uint8_t* srcBase = s_skf1.view_ptr + s_skf1.data_offset;
+          static std::atomic<bool> s_logged_upload_source = false;
           if (!s_logged_upload_source.exchange(true)) {
             _SidecarLog(L"→ Source: view_ptr=%p data_offset=0x%X srcBase=%p", 
                         s_skf1.view_ptr, s_skf1.data_offset, srcBase);
