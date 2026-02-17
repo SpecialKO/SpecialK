@@ -1333,6 +1333,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
     if (SUCCEEDED (hr) && dev != nullptr)
     {
+      static std::atomic<bool> s_logged_d3d11_entry = false;
+      if (!s_logged_d3d11_entry.exchange(true))
+      {
+        _SidecarLog(L"→ Entered D3D11 composite block");
+      }
+
       dev->GetImmediateContext (&ctx);
 
       ID3D11Texture2D* bb = nullptr;
@@ -1344,6 +1350,15 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       {
         D3D11_TEXTURE2D_DESC bbDesc = { };
         bb->GetDesc (&bbDesc);
+
+        static std::atomic<bool> s_logged_format_check = false;
+        if (!s_logged_format_check.exchange(true))
+        {
+          wchar_t msg[256];
+          wsprintfW(msg, L"→ Backbuffer format: %u (B8G8R8A8=%u R8G8B8A8=%u)", 
+                    bbDesc.Format, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM);
+          _SidecarLog(msg);
+        }
 
         if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
             bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
@@ -1398,6 +1413,15 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
           // STAGE E: Try to upload new frame if we have texture
           if (s_skf1.tex != nullptr)
           {
+            static std::atomic<bool> s_logged_upload_attempt = false;
+            if (!s_logged_upload_attempt.exchange(true))
+            {
+              wchar_t msg[256];
+              wsprintfW(msg, L"→ Upload section: tex=%p c1=%ld last_counter=%ld", 
+                        s_skf1.tex, (long)c1, (long)s_skf1.last_counter);
+              _SidecarLog(msg);
+            }
+
             D3D11_MAPPED_SUBRESOURCE mapped = { };
 
             if (SUCCEEDED (ctx->Map (s_skf1.tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
@@ -1456,6 +1480,14 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
           }
 
           // STAGE F: EPILOGUE - Always blit if we have a valid frame (last-good draw)
+          static std::atomic<bool> s_logged_blit_check = false;
+          if (!s_logged_blit_check.exchange(true))
+          {
+            wchar_t msg[256];
+            wsprintfW(msg, L"→ Blit check: has_frame=%d tex=%p", s_skf1.has_frame ? 1 : 0, s_skf1.tex);
+            _SidecarLog(msg);
+          }
+
           if (s_skf1.has_frame && s_skf1.tex != nullptr)
           {
             D3D11_BOX srcBox = { 0, 0, 0, (UINT)s_skf1.width, (UINT)s_skf1.height, 1 };
@@ -1475,6 +1507,16 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               _SidecarLog (L"SKF1 composite: swapchain=%p bbfmt=%d w=%u h=%u counter=%ld", 
                           pReal, (int)bbDesc.Format, (UINT)s_skf1.width, (UINT)s_skf1.height, (long)c1);
             }
+          }
+        }
+        else
+        {
+          static std::atomic<bool> s_logged_format_fail = false;
+          if (!s_logged_format_fail.exchange(true))
+          {
+            wchar_t msg[256];
+            wsprintfW(msg, L"→ Format check FAILED: bbDesc.Format=%u (not B8G8R8A8 or R8G8B8A8)", bbDesc.Format);
+            _SidecarLog(msg);
           }
         }
 
