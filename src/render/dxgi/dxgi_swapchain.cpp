@@ -1368,13 +1368,14 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         if (!s_logged_format_check.exchange(true))
         {
           wchar_t msg[256];
-          wsprintfW(msg, L"→ Backbuffer format: %u (B8G8R8A8=%u R8G8B8A8=%u)", 
-                    bbDesc.Format, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM);
+          wsprintfW(msg, L"→ Backbuffer format: %u (B8G8R8A8=%u R8G8B8A8=%u R10G10B10A2=%u)", 
+                    bbDesc.Format, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM);
           _SidecarLog(msg);
         }
 
         if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
-            bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+            bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+            bbDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
         {
           const UINT copyW = (UINT)s_skf1.width;
           const UINT copyH = (UINT)s_skf1.height;
