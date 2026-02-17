@@ -1130,8 +1130,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     else if (SUCCEEDED (pReal->GetDevice (__uuidof (ID3D12Device), (void **)&devUnk)) && devUnk != nullptr)
     {
       devUnk->Release ();
-      SK_LOGi0 (L"SidecarK: Present is running on a D3D12 swapchain (D3D11-only overlay path will not run)");
-      _SidecarLog (L"device=D3D12 (D3D11-only overlay path will not run)");
+      SK_LOGi0 (L"SidecarK: Present is running on a D3D12 swapchain");
+      _SidecarLog (L"device=D3D12");
     }
     else
     {
@@ -1461,6 +1461,63 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
     if (ctx != nullptr) ctx->Release ();
     if (dev != nullptr) dev->Release ();
+  }
+  // ============================================================================
+  // D3D12 COMPOSITING PATH
+  // ============================================================================
+  else
+  {
+    ID3D12Device* dev12 = nullptr;
+    HRESULT hr = pReal->GetDevice(__uuidof(ID3D12Device), (void**)&dev12);
+    
+    if (SUCCEEDED(hr) && dev12 != nullptr)
+    {
+      ID3D12Resource* bb12 = nullptr;
+      hr = pReal->GetBuffer(0, __uuidof(ID3D12Resource), (void**)&bb12);
+      
+      if (SUCCEEDED(hr) && bb12 != nullptr)
+      {
+        D3D12_RESOURCE_DESC bbDesc = bb12->GetDesc();
+        
+        if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+            bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+        {
+          const UINT copyW = (UINT)s_skf1.width;
+          const UINT copyH = (UINT)s_skf1.height;
+          
+          // For D3D12, we need simpler approach: use CopyTextureRegion
+          // Note: This requires the backbuffer to be in COPY_DEST state
+          // Most games should have backbuffer ready for presentation
+          
+          // Create upload buffer if needed (simplified approach for Phase 1)
+          // In production, would use command lists, upload heaps, etc.
+          // For now, just log that D3D12 path is being used
+          
+          if (s_skf1.has_frame)
+          {
+            // STAGE F: D3D12 blit would go here
+            // For Phase 1, just log that we detected D3D12 and have a frame
+            if (!s_skf1.logged_stage_f_ok.exchange(true))
+            {
+              _SidecarLog(L"SKF1 Stage F: D3D12 path detected (simple blit not yet implemented)");
+            }
+            
+            // TODO: Implement full D3D12 command list submission
+            // Would need:
+            // 1. Command allocator
+            // 2. Command list
+            // 3. Upload heap with pixel data
+            // 4. CopyTextureRegion from upload heap to backbuffer
+            // 5. Resource barriers
+            // 6. ExecuteCommandLists
+          }
+        }
+        
+        bb12->Release();
+      }
+      
+      dev12->Release();
+    }
   }
 
   return
