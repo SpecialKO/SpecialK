@@ -1482,8 +1482,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
         if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
             bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
         {
-          const UINT copyW = (UINT)s_skf1.width;
-          const UINT copyH = (UINT)s_skf1.height;
+          const UINT copyW = static_cast<UINT>(s_skf1.width);
+          const UINT copyH = static_cast<UINT>(s_skf1.height);
           
           // For D3D12, we need simpler approach: use CopyTextureRegion
           // Note: This requires the backbuffer to be in COPY_DEST state
