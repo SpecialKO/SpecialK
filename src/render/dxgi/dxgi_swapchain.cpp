@@ -1391,6 +1391,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             if (!s_skf1.logged_tex_create.exchange(true))
             {
               _SidecarLog(L"Attempting D3D11 texture creation: %ux%u BGRA8", copyW, copyH);
+              _SidecarLog(L"→ Texture format: DXGI_FORMAT_B8G8R8A8_UNORM (%u)", DXGI_FORMAT_B8G8R8A8_UNORM);
             }
 
             D3D11_TEXTURE2D_DESC tdesc = { };
@@ -1454,9 +1455,19 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                 {
                   // Upload pixel data
                   const uint8_t* srcBase = s_skf1.view_ptr + s_skf1.data_offset;
+          if (!s_logged_upload_source.exchange(true)) {
+            _SidecarLog(L"→ Source: view_ptr=%p data_offset=0x%X srcBase=%p", 
+                        s_skf1.view_ptr, s_skf1.data_offset, srcBase);
+          }
                   uint8_t*       dstBase = (uint8_t *)mapped.pData;
 
                   const UINT dstPitch = mapped.RowPitch;
+                  static std::atomic<bool> s_logged_stride_pitch = false;
+                  if (!s_logged_stride_pitch.exchange(true))
+                  {
+                    _SidecarLog(L"→ Upload: stride=%u dstRowPitch=%u copyBytesPerRow=%u",
+                                s_skf1.stride, dstPitch, 256u * 4);
+                  }
 
                   const UINT maxH = (UINT)std::min ((int)s_skf1.height, (int)copyH);
                   const UINT maxW = (UINT)std::min ((int)s_skf1.width, (int)copyW);
@@ -1505,6 +1516,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
           if (s_skf1.has_frame && s_skf1.tex != nullptr)
           {
             D3D11_BOX srcBox = { 0, 0, 0, 256u, 256u, 1 };  // Fixed: always 256×256 overlay region
+            static std::atomic<bool> s_logged_blit_details = false;
+            if (!s_logged_blit_details.exchange(true))
+            {
+              _SidecarLog(L"→ Blit destination: bb=%p (backbuffer from GetBuffer(0))", bb);
+              _SidecarLog(L"→ No backbuffer clear performed (composite only)");
+            }
             if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
             ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
 
