@@ -1362,7 +1362,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             tdesc.SampleDesc.Count   = 1;
             tdesc.SampleDesc.Quality = 0;
             tdesc.Usage              = D3D11_USAGE_DYNAMIC;
-            tdesc.BindFlags          = 0;
+            tdesc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;  // DYNAMIC usage requires at least one bind flag
             tdesc.CPUAccessFlags     = D3D11_CPU_ACCESS_WRITE;
             tdesc.MiscFlags          = 0;
 
