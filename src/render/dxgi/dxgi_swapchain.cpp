@@ -1603,7 +1603,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                   if (SUCCEEDED(hr) && uploadData != nullptr)
                   {
                     const uint8_t* srcPixels = s_skf1.view_ptr + s_skf1.data_offset;
-                    memcpy(uploadData, srcPixels, uploadBufferSize);
+                    memcpy(uploadData, srcPixels, static_cast<size_t>(uploadBufferSize));
                     s_d3d12_upload_buffer->Unmap(0, nullptr);
                     
                     // Record upload commands
