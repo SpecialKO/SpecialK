@@ -1004,6 +1004,13 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   static DWORD s_pidCached = 0;  // For reset detection only
   static std::atomic_bool s_logged_swapchain_once = false;
 
+  // D3D12 resources
+  static ID3D12CommandAllocator*      s_d3d12_cmd_allocator     = nullptr;
+  static ID3D12GraphicsCommandList*   s_d3d12_cmd_list          = nullptr;
+  static ID3D12Resource*              s_d3d12_staging_texture   = nullptr;
+  static ID3D12Resource*              s_d3d12_upload_buffer     = nullptr;
+  static ID3D12CommandQueue*          s_d3d12_cmd_queue         = nullptr;
+
   auto _SidecarLog = [&](const wchar_t* fmt, ...)
   {
     if (! SidecarK_DiagnosticsEnabled ())
