@@ -1410,7 +1410,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             HRESULT hrTex = dev->CreateTexture2D (&tdesc, nullptr, &s_skf1.tex);
             if (SUCCEEDED (hrTex) && s_skf1.tex != nullptr)
             {
-              s_skf1.texFmt = bbDesc.Format;
+              s_skf1.texFmt = DXGI_FORMAT_B8G8R8A8_UNORM;  // FIXED: Store ACTUAL format, not backbuffer format
               if (!s_skf1.logged_tex_success.exchange(true))
               {
                 _SidecarLog(L"Texture created successfully: tex=%p", s_skf1.tex);
@@ -1516,23 +1516,41 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
           if (s_skf1.has_frame && s_skf1.tex != nullptr)
           {
-            D3D11_BOX srcBox = { 0, 0, 0, 256u, 256u, 1 };  // Fixed: always 256×256 overlay region
-            static std::atomic<bool> s_logged_blit_details = false;
-            if (!s_logged_blit_details.exchange(true))
+            // Check if formats match for safe CopySubresourceRegion
+            const bool formats_match = (s_skf1.texFmt == bbDesc.Format);
+            
+            if (!formats_match)
             {
-              _SidecarLog(L"→ Blit destination: bb=%p (backbuffer from GetBuffer(0))", bb);
-              _SidecarLog(L"→ No backbuffer clear performed (composite only)");
+              // FORMAT MISMATCH: Can't use CopySubresourceRegion for cross-format copy
+              static std::atomic<bool> s_logged_format_mismatch = false;
+              if (!s_logged_format_mismatch.exchange(true))
+              {
+                _SidecarLog(L"→ FORMAT MISMATCH: overlay tex=%u backbuffer=%u", s_skf1.texFmt, bbDesc.Format);
+                _SidecarLog(L"→ Cross-format CopySubresourceRegion not supported - overlay disabled for R10G10B10A2");
+                _SidecarLog(L"→ TODO: Implement shader-based blit for format conversion");
+              }
             }
-            if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
-            ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
-
-            // STAGE F OK
-            if (!s_skf1.logged_stage_f_ok.exchange(true))
+            else
             {
-              _SidecarLog(L"SKF1 Stage F OK: Blit executed");
-            }
+              // Formats match - safe to use CopySubresourceRegion
+              D3D11_BOX srcBox = { 0, 0, 0, 256u, 256u, 1 };  // Fixed: always 256×256 overlay region
+              static std::atomic<bool> s_logged_blit_details = false;
+              if (!s_logged_blit_details.exchange(true))
+              {
+                _SidecarLog(L"→ Blit destination: bb=%p (backbuffer from GetBuffer(0))", bb);
+                _SidecarLog(L"→ No backbuffer clear performed (composite only)");
+                _SidecarLog(L"→ Using CopySubresourceRegion (formats match: %u)", bbDesc.Format);
+              }
+              if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
+              ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
 
-            // Health signal: log successful composite periodically
+              // STAGE F OK
+              if (!s_skf1.logged_stage_f_ok.exchange(true))
+              {
+                _SidecarLog(L"SKF1 Stage F OK: Blit executed");
+              }
+
+              // Health signal: log successful composite periodically
             if (s_last_overlay_log_frame.load () + 120 < frame)
             {
               s_last_overlay_log_frame.store (frame);
