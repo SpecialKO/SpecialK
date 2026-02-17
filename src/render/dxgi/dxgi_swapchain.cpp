@@ -995,6 +995,9 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     std::atomic_bool logged_stage_d_fail = false;
     std::atomic_bool logged_stage_e_ok = false;
     std::atomic_bool logged_stage_f_ok = false;
+    std::atomic_bool logged_tex_create = false;
+    std::atomic_bool logged_tex_success = false;
+    std::atomic_bool logged_tex_failure = false;
   };
 
   static SKF1_RuntimeStatus s_skf1;
@@ -1353,6 +1356,11 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               s_skf1.tex = nullptr;
             }
 
+            if (!s_skf1.logged_tex_create.exchange(true))
+            {
+              _SidecarLog(L"Attempting D3D11 texture creation: %ux%u BGRA8", copyW, copyH);
+            }
+
             D3D11_TEXTURE2D_DESC tdesc = { };
             tdesc.Width              = copyW;
             tdesc.Height             = copyH;
@@ -1366,9 +1374,21 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             tdesc.CPUAccessFlags     = D3D11_CPU_ACCESS_WRITE;
             tdesc.MiscFlags          = 0;
 
-            if (SUCCEEDED (dev->CreateTexture2D (&tdesc, nullptr, &s_skf1.tex)) && s_skf1.tex != nullptr)
+            HRESULT hrTex = dev->CreateTexture2D (&tdesc, nullptr, &s_skf1.tex);
+            if (SUCCEEDED (hrTex) && s_skf1.tex != nullptr)
             {
               s_skf1.texFmt = bbDesc.Format;
+              if (!s_skf1.logged_tex_success.exchange(true))
+              {
+                _SidecarLog(L"Texture created successfully: tex=%p", s_skf1.tex);
+              }
+            }
+            else
+            {
+              if (!s_skf1.logged_tex_failure.exchange(true))
+              {
+                _SidecarLog(L"Texture creation FAILED: hr=0x%08X tex=%p", hrTex, s_skf1.tex);
+              }
             }
           }
 
