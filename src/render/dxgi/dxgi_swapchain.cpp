@@ -1309,6 +1309,14 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     }
   }  // End of Stage A-D header validation block
 
+  // DEBUG: Log that we're checking Stage E/F entry condition
+  static std::atomic<bool> s_logged_ef_check = false;
+  if (!s_logged_ef_check.exchange(true))
+  {
+    _SidecarLog(L"→ Checking Stage E/F entry: view_ptr=%p w=%u h=%u stride=%u fmt=%u",
+                s_skf1.view_ptr, s_skf1.width, s_skf1.height, s_skf1.stride, s_skf1.pixel_format);
+  }
+
   // --------------------------------------------------------------------------
   // STAGE E/F: Upload (if stable) + Always Blit (last-good frame)
   // CRITICAL: This MUST happen BEFORE PresentBase() so overlay is visible!
@@ -1316,6 +1324,11 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   if (s_skf1.view_ptr != nullptr && s_skf1.width > 0 && s_skf1.height > 0 && 
       s_skf1.stride > 0 && s_skf1.pixel_format == 1)
   {
+    static std::atomic<bool> s_logged_ef_entered = false;
+    if (!s_logged_ef_entered.exchange(true))
+    {
+      _SidecarLog(L"→ Stage E/F block ENTERED - starting composite");
+    }
     const uint64_t counter_off = (uint64_t)s_skf1.data_offset - 4ull;
     volatile LONG* counter_ptr = (volatile LONG*)(s_skf1.view_ptr + (size_t)counter_off);
     
