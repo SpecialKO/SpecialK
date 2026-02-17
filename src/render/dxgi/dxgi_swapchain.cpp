@@ -1529,10 +1529,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               if (counter_changed || !s_skf1.has_frame)
               {
                 // Create upload buffer and staging texture if needed
-                static ID3D12Resource* s_d3d12_upload_buffer = nullptr;
-                static ID3D12Resource* s_d3d12_staging_texture = nullptr;
-                static ID3D12CommandAllocator* s_d3d12_cmd_allocator = nullptr;
-                static ID3D12GraphicsCommandList* s_d3d12_cmd_list = nullptr;
+                // (Variables declared globally at top of file)
                 
                 // Create command allocator if needed
                 if (s_d3d12_cmd_allocator == nullptr)
