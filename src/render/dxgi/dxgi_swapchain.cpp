@@ -1801,7 +1801,6 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       if (cmdQueue != nullptr) cmdQueue->Release();
       dev12->Release();
     }
-  }
   }  // End of Stage E/F block (opened at line 1325)
 
   // Now that overlay is composited, do the actual Present
