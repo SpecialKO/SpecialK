@@ -1391,8 +1391,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
             if (!s_skf1.logged_tex_create.exchange(true))
             {
-              _SidecarLog(L"Attempting D3D11 texture creation: %ux%u BGRA8", copyW, copyH);
-              _SidecarLog(L"→ Texture format: DXGI_FORMAT_B8G8R8A8_UNORM (%u)", DXGI_FORMAT_B8G8R8A8_UNORM);
+              _SidecarLog(L"Attempting D3D11 texture creation: %ux%u format=%u", copyW, copyH, bbDesc.Format);
             }
 
             D3D11_TEXTURE2D_DESC tdesc = { };
@@ -1400,7 +1399,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             tdesc.Height             = copyH;
             tdesc.MipLevels          = 1;
             tdesc.ArraySize          = 1;
-            tdesc.Format             = DXGI_FORMAT_B8G8R8A8_UNORM;
+            tdesc.Format             = bbDesc.Format;  // FIXED: Match backbuffer format!
             tdesc.SampleDesc.Count   = 1;
             tdesc.SampleDesc.Quality = 0;
             tdesc.Usage              = D3D11_USAGE_DYNAMIC;
@@ -1411,10 +1410,10 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
             HRESULT hrTex = dev->CreateTexture2D (&tdesc, nullptr, &s_skf1.tex);
             if (SUCCEEDED (hrTex) && s_skf1.tex != nullptr)
             {
-              s_skf1.texFmt = DXGI_FORMAT_B8G8R8A8_UNORM;  // FIXED: Store ACTUAL format, not backbuffer format
+              s_skf1.texFmt = bbDesc.Format;  // FIXED: Store actual format created
               if (!s_skf1.logged_tex_success.exchange(true))
               {
-                _SidecarLog(L"Texture created successfully: tex=%p", s_skf1.tex);
+                _SidecarLog(L"Texture created successfully: tex=%p format=%u", s_skf1.tex, s_skf1.texFmt);
               }
             }
             else
@@ -1473,13 +1472,47 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
                   const UINT maxH = (UINT)std::min ((int)s_skf1.height, (int)copyH);
                   const UINT maxW = (UINT)std::min ((int)s_skf1.width, (int)copyW);
-                  const UINT rowBytes = maxW * 4;
-
-                  for (UINT y = 0; y < maxH; ++y)
+                  
+                  // Check if format conversion is needed
+                  const bool need_conversion = (s_skf1.texFmt == DXGI_FORMAT_R10G10B10A2_UNORM);
+                  
+                  if (need_conversion)
                   {
-                    memcpy (dstBase + y * dstPitch,
-                            srcBase + (size_t)y * (size_t)s_skf1.stride,
-                            rowBytes);
+                    // Convert BGRA8 to R10G10B10A2
+                    for (UINT y = 0; y < maxH; ++y)
+                    {
+                      const uint8_t* srcRow = srcBase + (size_t)y * (size_t)s_skf1.stride;
+                      uint32_t* dstRow = (uint32_t*)(dstBase + y * dstPitch);
+                      
+                      for (UINT x = 0; x < maxW; ++x)
+                      {
+                        // Source: BGRA8 (4 bytes per pixel)
+                        uint8_t b = srcRow[x * 4 + 0];
+                        uint8_t g = srcRow[x * 4 + 1];
+                        uint8_t r = srcRow[x * 4 + 2];
+                        uint8_t a = srcRow[x * 4 + 3];
+                        
+                        // Convert 8-bit to 10-bit: scale from [0,255] to [0,1023]
+                        uint32_t r10 = (r * 1023 + 127) / 255;
+                        uint32_t g10 = (g * 1023 + 127) / 255;
+                        uint32_t b10 = (b * 1023 + 127) / 255;
+                        uint32_t a2  = (a * 3 + 127) / 255;  // 8-bit to 2-bit
+                        
+                        // Pack into R10G10B10A2: R in bits 0-9, G in bits 10-19, B in bits 20-29, A in bits 30-31
+                        dstRow[x] = (r10 & 0x3FF) | ((g10 & 0x3FF) << 10) | ((b10 & 0x3FF) << 20) | ((a2 & 0x3) << 30);
+                      }
+                    }
+                  }
+                  else
+                  {
+                    // Direct copy for matching formats (BGRA8)
+                    const UINT rowBytes = maxW * 4;
+                    for (UINT y = 0; y < maxH; ++y)
+                    {
+                      memcpy (dstBase + y * dstPitch,
+                              srcBase + (size_t)y * (size_t)s_skf1.stride,
+                              rowBytes);
+                    }
                   }
 
                   s_skf1.last_counter = c1;
@@ -1517,8 +1550,8 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
           if (s_skf1.has_frame && s_skf1.tex != nullptr)
           {
-            // Simple approach: Just use CopySubresourceRegion regardless of format
-            // (D3D11 may handle cross-format copy, or show artifacts we can debug)
+            // Always use CopySubresourceRegion and let D3D11 handle it
+            // D3D11 runtime SHOULD handle format conversion automatically
             D3D11_BOX srcBox = { 0, 0, 0, 256u, 256u, 1 };  // Fixed: always 256×256 overlay region
             static std::atomic<bool> s_logged_blit_details = false;
             if (!s_logged_blit_details.exchange(true))
@@ -1526,7 +1559,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
               _SidecarLog(L"→ Blit destination: bb=%p (backbuffer from GetBuffer(0))", bb);
               _SidecarLog(L"→ Backbuffer format: %u, Overlay format: %u", bbDesc.Format, s_skf1.texFmt);
               _SidecarLog(L"→ No backbuffer clear performed (composite only)");
-              _SidecarLog(L"→ Using CopySubresourceRegion (attempting cross-format blit)");
+              _SidecarLog(L"→ Using CopySubresourceRegion (D3D11 runtime handles conversion)");
             }
             if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
             ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
