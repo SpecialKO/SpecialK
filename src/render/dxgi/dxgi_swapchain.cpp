@@ -1566,7 +1566,6 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     if (ctx != nullptr) ctx->Release ();
     if (dev != nullptr) dev->Release ();
   }
-  }
   // ============================================================================
   // D3D12 COMPOSITING PATH - FULL IMPLEMENTATION
   // ============================================================================
@@ -1803,6 +1802,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       dev12->Release();
     }
   }
+  }  // End of Stage E/F block (opened at line 1325)
 
   // Now that overlay is composited, do the actual Present
   if (0 == PresentBase ())
