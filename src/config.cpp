@@ -4581,6 +4581,7 @@ auto DeclKeybind =
         config.input.gamepad.xinput.emulate = false;
         input.gamepad.scepad.hide_ds_edge_pid->store (config.input.gamepad.scepad.hide_ds_edge_pid);
 
+        plugin_mgr->exit_game_fns.emplace (SK_AKEF_ExitGame);
         extern bool SK_AKEF_TryGetPid (DWORD * outPid);
         extern void SK_AKEF_ResetPid ();
         extern std::vector<DWORD> SK_AKEF_GetExistingEndfieldPids (void);
@@ -4589,14 +4590,14 @@ auto DeclKeybind =
         //  So we manually re-create endfield process and inject specialK early
         const bool isPlatformProcess = _wcsicmp (SK_GetHostApp (), L"PlatformProcess.exe") == 0;
         const bool isGlobalInjector = SK_GetModuleHandleW (L"SpecialK64.dll") != nullptr;
-        wchar_t wszDllFullName[MAX_PATH + 2] = { };
-        GetModuleFileName (skModuleRegistry::Self(), wszDllFullName, MAX_PATH);
+        std::wstring wszDllFullName (MAX_PATH + 2, L'\0');
+        GetModuleFileName (skModuleRegistry::Self(), wszDllFullName.data(), MAX_PATH);
 
         std::vector<DWORD> existingPids = SK_AKEF_GetExistingEndfieldPids ();
         auto TerminateRemainingPid = [&existingPids](DWORD excludePid)
           {
             const DWORD currentPid = GetCurrentProcessId ();
-            for (DWORD pid : existingPids)
+            for (const DWORD pid : existingPids)
             {
               if (pid == excludePid || pid == currentPid)
                 continue;
@@ -4624,22 +4625,23 @@ auto DeclKeybind =
           if (existingPids.size () > 2)
             SK_LOGi1("Multiple Endfield.exe processes found (%zu). Probably something is broken.\n", existingPids.size());
 
-          if (isPlatformProcess && (isGlobalInjector || (StrStrIW(wszDllFullName, L"SpecialK64.dll") != nullptr)))
+          if (isPlatformProcess && (isGlobalInjector || (StrStrIW (wszDllFullName.data (), L"SpecialK64.dll") != nullptr)))
           {
             if (existingPids.size () <= 2) {
-              SK_LaunchArknightEndfield (L"Endfield.exe");
+              SK_LaunchArknightsEndfield (L"Endfield.exe");
             }
           }
           else
           {
-            if (_wcsicmp (SK_GetHostApp (), L"Endfield.exe") == 0)
+            if (_wcsicmp (SK_GetHostApp (), L"Endfield.exe") == 0) {
               SK_RunOnce (plugin_mgr->init_fns.insert (SK_AKEF_InitPlugin));
+            }
           }
         }
         else
         {
           SK_LOGi1 ("Existing Endfield.exe process found with PID %u\n", injectedPid);
-          TerminateRemainingPid(injectedPid);
+          TerminateRemainingPid (injectedPid);
           
           if (_wcsicmp (SK_GetHostApp (), L"Endfield.exe") == 0)
             SK_RunOnce (plugin_mgr->init_fns.insert (SK_AKEF_InitPlugin));

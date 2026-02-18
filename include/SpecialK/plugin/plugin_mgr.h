@@ -216,10 +216,12 @@ bool SK_SilentHill_f_PlugInCfg     (void);
 
 void SK_WatchDogs_InitPlugin       (void);
 
-extern void SK_AKEF_InitFromLauncher (void);
+void SK_AKEF_InitFromLauncher (void);
 
 void SK_MHW_PlugIn_Shutdown (void);
 extern bool __SK_MHW_KillAntiDebug;
+
+void __stdcall SK_AKEF_ExitGame (void);
 
 bool __stdcall SK_FAR_IsPlugIn      (void);
 void __stdcall SK_FAR_ControlPanel  (void);
@@ -257,7 +259,7 @@ bool SK_GalGun_PlugInCfg (void);
 extern void SK_SEH_LaunchEldenRing         ( const wchar_t* = L"eldenring.exe" );
 extern void SK_SEH_LaunchArmoredCoreVI     (void);
 extern void SK_SEH_LaunchLordsOfTheFallen2 (void);
-extern void SK_LaunchArknightEndfield      (const wchar_t* = L"Endfield.exe");
+extern void SK_LaunchArknightsEndfield     (const wchar_t* = L"Endfield.exe");
 
 enum class SK_PlugIn_Type
 {

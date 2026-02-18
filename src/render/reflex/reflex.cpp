@@ -1306,12 +1306,13 @@ static NvLL_VK_GetLatency_pfn
 
 extern void SK_VK_HookFirstDevice (VkDevice device);
 
-struct {
+struct SK_VK_REFLEX {
   VkDevice       device         = 0;
   VkSwapchainKHR swapchain      = 0;
   uint64_t       last_frame     = 0;
   VkSemaphore    NvLL_semaphore = 0;
-} SK_VK_Reflex;
+};
+SK_VK_REFLEX SK_VK_Reflex;
 
 #undef VK_NV_low_latency2
 
@@ -1434,11 +1435,8 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
     extern void SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore       semaphore, uint64_t value);
                 SK_Reflex_WaitOnSemaphore (         device, SK_VK_Reflex.NvLL_semaphore,    signalValue);
 
-    if (config.render.framerate.enforcement_policy == 2 && rb.vulkan_reflex.isPacingEligible ())
-    {
       SK::Framerate::Tick ( true, 0.0,
                       { 0,0 }, rb.swapchain.p);
-    }
   }
 
   return ret;
@@ -1503,10 +1501,17 @@ void SK_VK_HookReflex (void)
                                NvLL_VK_SetSleepMode_Detour,
       static_cast_p2p <void> (&NvLL_VK_SetSleepMode_Original) );
 
-    SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
-                              "NvLL_VK_Sleep",
+    if (SK_IsCurrentGame (SK_GAME_ID::ArknightsEndfield))
+    {
+      SK_LOGi1 (L"Arknights: Endfield detected - Skipping hooking NvLL_VK_Sleep");
+    }
+    else
+    {
+      SK_CreateDLLHook2(      L"NvLowLatencyVk.dll",
+                               "NvLL_VK_Sleep",
                                NvLL_VK_Sleep_Detour,
-      static_cast_p2p <void> (&NvLL_VK_Sleep_Original) );
+                               static_cast_p2p <void>(&NvLL_VK_Sleep_Original));
+    }
 
     SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
                               "NvLL_VK_SetLatencyMarker",
@@ -1596,7 +1601,7 @@ SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* la
       extern PFN_vkGetLatencyTimingsNV vkGetLatencyTimingsNV_Original;
 
       vkGetLatencyTimingsNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &markerInfo);
-
+      
       for ( auto i = 0u ; i < 64 ; ++i )
       {
         if (i >= markerInfo.timingCount)

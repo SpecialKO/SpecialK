@@ -3345,9 +3345,6 @@
     <ClInclude Include="depends\include\aetherim\wrapper.hpp">
       <Filter>Header Files\External Libraries\Aetherim</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\plugin\arknights_endfield.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">

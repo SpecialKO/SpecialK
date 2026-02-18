@@ -2743,11 +2743,11 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
         else
         {
           char* end = nullptr;
-          unsigned long value = std::strtoul (current, &end, 16);
+          const unsigned long value = std::strtoul (current, &end, 16);
           if (current == end)
             break;
 
-          bytes.emplace_back(static_cast<std::uint8_t> (value));
+          bytes.emplace_back (static_cast<std::uint8_t> (value));
           current = end;
         }
       }
@@ -2765,7 +2765,7 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
   if (nt->Signature != IMAGE_NT_SIGNATURE)
     return nullptr;
 
-  auto* base = reinterpret_cast<std::uint8_t*> (module);
+  auto* base = static_cast<std::uint8_t*> (module);
   const std::size_t sizeOfImage = nt->OptionalHeader.SizeOfImage;
 
   const auto patternBytes = pattern_to_bytes (pattern);
@@ -2775,8 +2775,12 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
     return nullptr;
 
   MEMORY_BASIC_INFORMATION mbi { };
-  std::uint8_t* it  = reinterpret_cast<std::uint8_t*> (base);
-  std::uint8_t* end = reinterpret_cast<std::uint8_t*> (base + sizeOfImage);
+  std::uint8_t* it  = base;
+  std::uint8_t* end = base + sizeOfImage;
+
+  const auto orig_se = SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+
+  uint8_t* found_addr = nullptr;
 
   while (it < end && VirtualQuery (it, &mbi, sizeof (mbi)))
   {
@@ -2790,28 +2794,40 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
     auto regionStart = static_cast<std::uint8_t*> (mbi.BaseAddress);
     auto regionEnd = regionStart + mbi.RegionSize;
 
-    regionStart = std::max (regionStart, const_cast<std::uint8_t*> (base));
+    regionStart = std::max (regionStart, base);
     regionEnd = std::min (regionEnd, end);
 
+   
     for (auto* cur = regionStart; cur + patternSize <= regionEnd; ++cur)
     {
       bool found = true;
 
-      for (std::size_t j = 0; j < patternSize; ++j) {
-        if (patternBytes[j].has_value() && cur[j] != gsl::at(patternBytes, j).value_or(0)) {
-          found = false;
+      try {
+        for (std::size_t j = 0; j < patternSize; ++j) {
+          const auto& byte = gsl::at (patternBytes, j);
+          if (byte.has_value () && cur[j] != byte.value_or (0)) {
+            found = false;
+            break;
+          }
+        }
+
+        if (found) {
+          found_addr = cur;
           break;
         }
       }
-
-      if (found)
-        return cur;
+      catch (const SK_SEH_IgnoredException&) {
+        // Continue searching
+      }
     }
 
+    if (found_addr)
+      break;
     it = static_cast<std::uint8_t*> (mbi.BaseAddress) + mbi.RegionSize;
   }
 
-  return nullptr;
+  SK_SEH_RemoveTranslator (orig_se);
+  return found_addr;
 }
 
 

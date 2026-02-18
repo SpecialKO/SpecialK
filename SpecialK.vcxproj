@@ -55,7 +55,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <WindowsAppContainer>false</WindowsAppContainer>
     <CharacterSet>Unicode</CharacterSet>
@@ -74,7 +74,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <WindowsAppContainer>false</WindowsAppContainer>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
@@ -1731,9 +1731,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\input\sce_pad.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
     <ClInclude Include="include\SpecialK\input\windows.gaming.input.h" />
-    <ClInclude Include="include\SpecialK\plugin\arknights_endfield.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\plugin\nier.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d9.h" />
