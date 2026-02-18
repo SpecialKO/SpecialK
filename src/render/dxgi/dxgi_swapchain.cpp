@@ -1391,7 +1391,7 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 
             if (!s_skf1.logged_tex_create.exchange(true))
             {
-              _SidecarLog(L"Attempting D3D11 texture creation: %ux%u format=%u", copyW, copyH, bbDesc.Format);
+              _SidecarLog(L"Attempting D3D11 texture creation: %ux%u format=%u (BGRA8)", copyW, copyH, DXGI_FORMAT_B8G8R8A8_UNORM);
             }
 
             D3D11_TEXTURE2D_DESC tdesc = { };
