@@ -48,6 +48,8 @@
 //#define WIN32_LEAN_AND_MEAN
 
 #include "targetver.h"
+#include <SpecialK/product_mode.h>
+
 
 #define UNICODE 1
 

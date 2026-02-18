@@ -21,6 +21,11 @@
  *
 **/
 
+#if !defined(SIDECARK_DIAGNOSTICS_ENABLED_EXTERN)
+#define SIDECARK_DIAGNOSTICS_ENABLED_EXTERN
+extern bool SidecarK_DiagnosticsEnabled ();
+#endif
+
 #pragma warning ( disable : 4273 )
 
 #define __SK_SUBSYSTEM__ L"  OpenGL  "
@@ -63,8 +68,18 @@
 SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
 HGLRC          __gl_primary_context = nullptr;
 
+static volatile LONG g_overlay_disabled                 = 0;
+static volatile LONG g_gl_precond_failures              = 0;
+static volatile LONG g_overlay_recursion_in_submit_hits = 0;
+
 SK_LazyGlobal <std::unordered_map <HGLRC, HGLRC>> __gl_shared_contexts;
 SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
+
+extern std::atomic_bool g_dxgi_present_seen;
+extern std::atomic_bool g_dxgi_overlay_owner;
+
+thread_local int  tls_gl_present_depth      = 0;
+thread_local bool tls_gl_in_overlay_submit  = false;
 
 struct SK_GL_Context {
 };
@@ -124,6 +139,160 @@ using wglChoosePixelFormatARB_pfn = BOOL (WINAPI *)(HDC     hdc,
 
 static ULONG GL_HOOKS  = 0UL;
 
+static volatile LONG s_terminal_marker_written = 0;
+static volatile LONG g_gl_overlay_gate_open = 0;
+static volatile LONG s_gl_gate_present_not_ready_hits = 0;
+static volatile LONG s_gl_gate_ready_logged = 0;
+static volatile LONG s_gl_suppressed_by_dxgi_owner_hits = 0;
+
+static bool TryWriteTerminalMarker (const char* token)
+{
+  if (! SidecarK_DiagnosticsEnabled ())
+    return true;
+
+  if (token == nullptr || token [0] == '\0')
+    return false;
+
+  if (InterlockedCompareExchange (&s_terminal_marker_written, 1, 1) != 0)
+    return true;
+
+  const DWORD pid = GetCurrentProcessId ();
+
+  wchar_t wszTempPath [MAX_PATH] = { };
+  wchar_t wszFullPath [MAX_PATH] = { };
+
+  if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+  {
+    wchar_t wszFile [64] = { };
+    wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+    lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+    lstrcatW  (wszFullPath, wszFile);
+  }
+  else
+  {
+    wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+  }
+
+  HANDLE hFile =
+    CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE,
+                  nullptr, OPEN_ALWAYS,
+                  FILE_ATTRIBUTE_NORMAL, nullptr );
+
+  if (hFile != INVALID_HANDLE_VALUE)
+  {
+    SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+    char  szBuf [1024] = { };
+    const int len =
+      _snprintf_s ( szBuf, _TRUNCATE,
+                    "marker_attempt token=%s pid=%lu open_ok=1 gle_open=0 write_ok=0 gle_write=0 bytes=0\r\n"
+                    "%s\r\n",
+                    token,
+                    (unsigned long)pid,
+                    token );
+
+    DWORD dwWritten = 0;
+    BOOL  okWrite   = FALSE;
+    DWORD gle_write = 0;
+
+    if (len > 0)
+    {
+      okWrite = WriteFile (hFile, szBuf, (DWORD)len, &dwWritten, nullptr);
+      if (! okWrite)
+        gle_write = GetLastError ();
+    }
+
+    CloseHandle (hFile);
+
+    const bool success = (okWrite == TRUE) && (dwWritten == (DWORD)len);
+    if (success)
+    {
+      InterlockedExchange (&s_terminal_marker_written, 1);
+
+      if (InterlockedExchange (&g_gl_overlay_gate_open, 1) == 0)
+      {
+        const DWORD tid = GetCurrentThreadId  ();
+
+        if (InterlockedExchange (&s_gl_gate_ready_logged, 1) == 0)
+        {
+          if (SidecarK_DiagnosticsEnabled () && GetTempPathW (MAX_PATH, wszTempPath) > 0)
+          {
+            wchar_t wszFile2 [64] = { };
+            wsprintfW (wszFile2, L"sk_gl_present_%lu.txt", (unsigned long)pid);
+
+            lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+            lstrcatW  (wszFullPath, wszFile2);
+
+            HANDLE hPresentFile =
+              CreateFileW ( wszFullPath,
+                            FILE_APPEND_DATA,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                            nullptr,
+                            OPEN_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr );
+
+            if (hPresentFile != INVALID_HANDLE_VALUE)
+            {
+              SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+              char szLine [256] = { };
+              const int len2 =
+                _snprintf_s ( szLine, _TRUNCATE,
+                              "enter_gl_present func=present_ready_set pid=%lu tid=%lu\r\n",
+                              (unsigned long)pid,
+                              (unsigned long)tid );
+
+              if (len2 > 0)
+              {
+                DWORD dwWritten2 = 0;
+                if (! WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr))
+                  OutputDebugStringA ("sk_gl_present: WriteFile failed (present_ready_set)\n");
+              }
+
+              CloseHandle (hPresentFile);
+            }
+            else
+            {
+              OutputDebugStringA ("sk_gl_present: CreateFileW failed (present_ready_set)\n");
+            }
+          }
+        }
+      }
+
+      return true;
+    }
+
+    {
+      char szDbg [256] = { };
+      _snprintf_s ( szDbg, _TRUNCATE,
+                    "marker_attempt token=%s pid=%lu open_ok=1 gle_open=0 write_ok=%lu gle_write=%lu bytes=%lu\r\n",
+                    token,
+                    (unsigned long)pid,
+                    (unsigned long)(okWrite ? 1 : 0),
+                    (unsigned long)gle_write,
+                    (unsigned long)dwWritten );
+      OutputDebugStringA (szDbg);
+    }
+
+    return false;
+  }
+  else
+  {
+    const DWORD gle_open = GetLastError ();
+    char szDbg [256] = { };
+    _snprintf_s ( szDbg, _TRUNCATE,
+                  "marker_attempt token=%s pid=%lu open_ok=0 gle_open=%lu write_ok=0 gle_write=0 bytes=0\r\n",
+                  token,
+                  (unsigned long)pid,
+                  (unsigned long)gle_open );
+    OutputDebugStringA (szDbg);
+    return false;
+  }
+}
+
 __declspec (noinline)
 int
 WINAPI
@@ -165,7 +334,6 @@ WaitForInit_GL (void)
   return;
   //SK_Thread_SpinUntilFlagged (&__gl_ready);
 }
-
 #include <SpecialK/osd/text.h>
 
 static
@@ -1348,6 +1516,63 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 {
   WaitForInit_GL ();
 
+  static volatile LONG s_hits_SwapBuffers = 0;
+  if (InterlockedIncrement (&s_hits_SwapBuffers) <= 50)
+  {
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszPath     [MAX_PATH] = { };
+
+    DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wsprintfW (wszPath, L"%ssk_backend_route_%lu.txt", wszTempPath, (unsigned long)pid);
+
+      HANDLE hFile =
+        CreateFileW ( wszPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        wchar_t wszLine [256] = { };
+        const int lenChars =
+          _snwprintf_s ( wszLine, _TRUNCATE,
+                         L"route backend=gl_present func=SwapBuffers pid=%lu tid=%lu\r\n",
+                         (unsigned long)pid,
+                         (unsigned long)tid );
+
+        DWORD dwWritten = 0;
+        BOOL  okWrite   = FALSE;
+
+        if (lenChars > 0)
+        {
+          const DWORD cbToWrite = (DWORD)lenChars * sizeof (wchar_t);
+          okWrite = WriteFile (hFile, wszLine, cbToWrite, &dwWritten, nullptr);
+          if (! (okWrite == TRUE && dwWritten == cbToWrite))
+            OutputDebugStringA ("sk_backend_route: WriteFile failed (SwapBuffers)\n");
+        }
+
+        CloseHandle (hFile);
+      }
+      else
+      {
+        OutputDebugStringA ("sk_backend_route: CreateFileW failed (SwapBuffers)\n");
+      }
+    }
+    }
+  }
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -1720,9 +1945,11 @@ SK_Overlay_DrawGL (void)
 
 
   // Queue-up Pre-SK OSD Screenshots
-  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
+  if (! g_dxgi_present_seen.load (std::memory_order_relaxed))
+  {
+    SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
 
-  SK_ImGui_DrawFrame (0x00, nullptr);
+    SK_ImGui_DrawFrame (0x00, nullptr);
 
   SK_GL_GhettoStateBlock_Apply ();
 
@@ -1730,7 +1957,8 @@ SK_Overlay_DrawGL (void)
 
 
   // Queue-up Post-SK OSD Screenshots (Does not include ReShade)
-  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
+    SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
+  }
 }
 
 
@@ -2144,8 +2372,144 @@ SK_GL_CheckSRGB (DXGI_FORMAT* fmt = nullptr)
 BOOL
 SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 {
+  static LONG s_calls = 0;
+  InterlockedIncrement (&s_calls);
+  static ULONGLONG s_last_tick = 0;
+  bool reached_draw = false;
+  const int kReasonEnter = -1;
+  int  reason       = kReasonEnter;
+
+  int  created_mapping = 0;
+
+  wchar_t map_name [128] = { };
+  DWORD   open_gle       = 0;
+  HANDLE  hmap_dbg       = NULL;
+  DWORD   gle_open       = 0;
+
+  wsprintfW (map_name, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)GetCurrentProcessId ());
+
+  const int R_ENTER         = 301;
+  const int R_OPEN_FAIL     = 310;
+  const int R_HEADER_FAIL   = 330;
+  const int R_NO_FRAME_YET  = 340;
+  const int R_UPLOAD_OK     = 350;
+  const int R_COMPOSITE_HIT = 360;
+
+  reason = R_ENTER;
+
+  auto Emit = [&](int r, bool drew_path, BOOL ret)
+  {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+      wchar_t wszPath [MAX_PATH] = { };
+      if (GetTempPathW (MAX_PATH, wszPath) > 0)
+      {
+        wchar_t wszFile [MAX_PATH] = { };
+        wsprintfW (wszFile, L"sk_gl_swapbuffers_reason_%lu.txt", pid);
+
+        wchar_t wszFull [MAX_PATH] = { };
+        lstrcpynW (wszFull, wszPath, MAX_PATH);
+        lstrcatW  (wszFull, wszFile);
+
+        const ULONGLONG now = GetTickCount64 ();
+        if (now - s_last_tick >= 1000ULL)
+        {
+          s_last_tick = now;
+
+          const wchar_t* const suffix_wide =
+            (r == R_OPEN_FAIL || open_gle != 0) ? L" map=... gle=..." : L"";
+
+          FILE* fp = nullptr;
+          if (0 == _wfopen_s (&fp, wszFull, L"w, ccs=UTF-8"))
+          {
+            wchar_t line [512] = { };
+            _snwprintf_s(
+              line, _countof(line), _TRUNCATE,
+              L"pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=%p tid=%lu map=%ls gle=%lu hmap=%p gle_open=%lu created=%d%ls\n",
+              (unsigned long)pid,
+              (long)s_calls,
+              (int)r,
+              (int)(drew_path ? 1 : 0),
+              (int)(ret ? 1 : 0),
+              (void*)hDC,
+              (unsigned long)tid,
+              (const wchar_t*)map_name,
+              (unsigned long)open_gle,
+              (void*)hmap_dbg,
+              (unsigned long)gle_open,
+              (int)created_mapping,
+              (const wchar_t*)suffix_wide
+            );
+            fputws (line, fp);
+
+            if (r == R_OPEN_FAIL || open_gle != 0)
+            {
+              wchar_t line2 [512] = { };
+              _snwprintf_s (
+                line2, _countof (line2), _TRUNCATE,
+                L" map=%ls gle=%lu\n",
+                (const wchar_t*)map_name,
+                (unsigned long)open_gle
+              );
+              fputws (line2, fp);
+            }
+
+            fclose (fp);
+          }
+        }
+      }
+    }
+
+    static LONG s_first_bad_once = 0;
+    if (! drew_path && InterlockedCompareExchange (&s_first_bad_once, 1, 0) == 0)
+    {
+      if (SidecarK_DiagnosticsEnabled ())
+      {
+        wchar_t wszPath2 [MAX_PATH] = { };
+        if (GetTempPathW (MAX_PATH, wszPath2) > 0)
+        {
+          wchar_t wszFile2 [MAX_PATH] = { };
+          wsprintfW (wszFile2, L"sk_gl_swapbuffers_first_bad_%lu.txt", pid);
+          lstrcatW  (wszPath2, wszFile2);
+
+          FILE* fp2 = nullptr;
+          if (0 == _wfopen_s (&fp2, wszPath2, L"a, ccs=UTF-8"))
+          {
+            wchar_t line [512] = { };
+            _snwprintf_s (
+              line, _countof (line), _TRUNCATE,
+              L"pid=%lu calls=%ld last_reason=%d reached_draw=%d returned=%d hdc=%p tid=%lu map=%ls gle=%lu hmap=%p gle_open=%lu created=%d%ls\n",
+              (unsigned long)pid,
+              (long)s_calls,
+              (int)r,
+              (int)(drew_path ? 1 : 0),
+              (int)(ret ? 1 : 0),
+              (void *)hDC,
+              (unsigned long)tid,
+              (const wchar_t*)map_name,
+              (unsigned long)open_gle,
+              (void *)hmap_dbg,
+              (unsigned long)gle_open,
+              (int)created_mapping,
+              (const wchar_t*)L""
+            );
+            fputws (line, fp2);
+            fclose (fp2);
+          }
+        }
+      }
+    }
+  };
+
   if (! hDC) // WTF Disgaea?
+  {
+    reason = 1;
+    Emit (reason, reached_draw, FALSE);
     return FALSE;
+  }
 
   auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -2517,7 +2881,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       {    WaitForSingleObject ( dx_gl_interop.present_man.hAckPresent, 1);
 
         if (ReadAcquire (&__SK_DLL_Ending))
+        {
+          reason = 2;
+          Emit (reason, reached_draw, TRUE);
           return TRUE;
+        }
       }
     }
 
@@ -2763,7 +3131,142 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         SK_RenderAPI::OpenGL;
 
       SK_GL_UpdateRenderStats ();
-      SK_Overlay_DrawGL       ();
+      reached_draw = true;
+      reason       = 100;
+      if (! tls_gl_in_overlay_submit)
+      {
+        if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+        {
+          if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
+          {
+            if (InterlockedCompareExchange (&g_overlay_disabled, 0, 0) == 0)
+            {
+              tls_gl_in_overlay_submit = true;
+              SK_Overlay_DrawGL       ();
+              tls_gl_in_overlay_submit = false;
+            }
+            else
+            {
+              LONG n = InterlockedIncrement (&g_gl_precond_failures);
+              if (n > 10000)
+                InterlockedExchange (&g_overlay_disabled, 1);
+            }
+          }
+          else
+          {
+            const LONG supHit = InterlockedIncrement (&s_gl_suppressed_by_dxgi_owner_hits);
+            if (supHit <= 20)
+            {
+              const DWORD pid = GetCurrentProcessId ();
+              const DWORD tid = GetCurrentThreadId  ();
+
+            wchar_t wszTempPath [MAX_PATH] = { };
+            wchar_t wszFullPath [MAX_PATH] = { };
+
+            if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+            {
+              wsprintfW (wszFullPath, L"%ssk_gl_present_%lu.txt", wszTempPath, (unsigned long)pid);
+            }
+            else
+            {
+              wsprintfW (wszFullPath, L"sk_gl_present_%lu.txt", (unsigned long)pid);
+            }
+
+            HANDLE hPresentFile =
+              CreateFileW ( wszFullPath,
+                            FILE_APPEND_DATA,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                            nullptr,
+                            OPEN_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr );
+
+            if (hPresentFile != INVALID_HANDLE_VALUE)
+            {
+              SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+              char szLine [256] = { };
+              const int len2 =
+                _snprintf_s ( szLine, _TRUNCATE,
+                              "gl_overlay_suppressed_by_dxgi_owner func=%s pid=%lu tid=%lu\r\n",
+                              (pfnSwapFunc == (LPVOID)wgl_swap_buffers) ? "wglSwapBuffers" : "SwapBuffers",
+                              (unsigned long)pid,
+                              (unsigned long)tid );
+
+              DWORD dwWritten2 = 0;
+              if (len2 > 0 && (! WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr)))
+                OutputDebugStringA ("sk_gl_present: WriteFile failed (gl_overlay_suppressed_by_dxgi_owner)\n");
+
+              CloseHandle (hPresentFile);
+            }
+            else
+            {
+              OutputDebugStringA ("sk_gl_present: CreateFileW failed (gl_overlay_suppressed_by_dxgi_owner)\n");
+            }
+            }
+          }
+        }
+      }
+      else
+      {
+        const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
+        if (hit <= 50)
+        {
+          if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+          {
+            LONG n = InterlockedIncrement (&g_gl_precond_failures);
+            if (n > 10000)
+              InterlockedExchange (&g_overlay_disabled, 1);
+          }
+
+          const DWORD pid = GetCurrentProcessId ();
+          const DWORD tid = GetCurrentThreadId  ();
+
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFullPath [MAX_PATH] = { };
+
+          DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+          if (cch > 0 && cch < MAX_PATH)
+          {
+            wsprintfW (wszFullPath, L"%ssk_gl_present_%lu.txt", wszTempPath, (unsigned long)pid);
+
+            HANDLE hPresentFile =
+              CreateFileW ( wszFullPath,
+                            FILE_APPEND_DATA,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                            nullptr,
+                            OPEN_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr );
+
+            if (hPresentFile != INVALID_HANDLE_VALUE)
+            {
+              SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+              char szLine [256] = { };
+              const int len2 =
+                _snprintf_s ( szLine, _TRUNCATE,
+                              "enter_gl_present func=%s pid=%lu tid=%lu\r\n",
+                              (pfnSwapFunc == (LPVOID)wgl_swap_buffers) ? "wglSwapBuffers" : "SwapBuffers",
+                              (unsigned long)pid,
+                              (unsigned long)tid );
+
+              if (len2 > 0)
+              {
+                DWORD dwWritten2 = 0;
+                if (! WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr))
+                  OutputDebugStringA ("sk_gl_present: WriteFile failed (enter_gl_present)\n");
+              }
+
+              CloseHandle (hPresentFile);
+            }
+            else
+            {
+              OutputDebugStringA ("sk_gl_present: CreateFileW failed (enter_gl_present)\n");
+            }
+          }
+        }
+      }
 
       // Do this before framerate limiting
       glFlush                 ();
@@ -2950,7 +3453,76 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
             SK_RenderAPI::OpenGL;
 
           SK_GL_UpdateRenderStats ();
-          SK_Overlay_DrawGL       ();
+          reached_draw = true;
+          reason       = 100;
+           if (! tls_gl_in_overlay_submit)
+          {
+            if (InterlockedCompareExchange (&g_gl_overlay_gate_open, 1, 1) != 0)
+            {
+              if (! g_dxgi_overlay_owner.load (std::memory_order_relaxed))
+              {
+                if (InterlockedCompareExchange (&g_overlay_disabled, 0, 0) == 0)
+                {
+                  tls_gl_in_overlay_submit = true;
+                  SK_Overlay_DrawGL       ();
+                  tls_gl_in_overlay_submit = false;
+                }
+              }
+            }
+            else
+            {
+              const LONG hit = InterlockedIncrement (&s_gl_gate_present_not_ready_hits);
+              if (hit <= 50)
+              {
+                const DWORD pid = GetCurrentProcessId ();
+                const DWORD tid = GetCurrentThreadId  ();
+
+                wchar_t wszTempPath [MAX_PATH] = { };
+                wchar_t wszFullPath [MAX_PATH] = { };
+
+                DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+                if (cch > 0 && cch < MAX_PATH)
+                {
+                wsprintfW (wszFullPath, L"%ssk_gl_present_%lu.txt", wszTempPath, (unsigned long)pid);
+
+                HANDLE hPresentFile =
+                  CreateFileW ( wszFullPath,
+                                FILE_APPEND_DATA,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                nullptr,
+                                OPEN_ALWAYS,
+                                FILE_ATTRIBUTE_NORMAL,
+                                nullptr );
+
+                if (hPresentFile != INVALID_HANDLE_VALUE)
+                {
+                  SetFilePointer (hPresentFile, 0, nullptr, FILE_END);
+
+                  char szLine [256] = { };
+                  const int len2 =
+                    _snprintf_s ( szLine, _TRUNCATE,
+                                  "enter_gl_present func=%s pid=%lu tid=%lu\r\n",
+                                  (pfnSwapFunc == (LPVOID)wgl_swap_buffers) ? "wglSwapBuffers" : "SwapBuffers",
+                                  (unsigned long)pid,
+                                  (unsigned long)tid );
+
+                  if (len2 > 0)
+                  {
+                    DWORD dwWritten2 = 0;
+                    if (! WriteFile (hPresentFile, szLine, (DWORD)len2, &dwWritten2, nullptr))
+                      OutputDebugStringA ("sk_gl_present: WriteFile failed (enter_gl_present)\n");
+                  }
+
+                  CloseHandle (hPresentFile);
+                }
+                else
+                {
+                  OutputDebugStringA ("sk_gl_present: CreateFileW failed (enter_gl_present)\n");
+                }
+              }
+                }
+            }
+          }
 
           // Do this before framerate limiting
           glFlush                 ();
@@ -2963,6 +3535,318 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LatentSync_BeginSwap ();
 
           SK_GL_SwapInterval (1);
+           static HANDLE   s_hMap         = nullptr;
+           static uint8_t* s_base         = nullptr;
+           static uint32_t s_w            = 0;
+           static uint32_t s_h            = 0;
+           static uint32_t s_stride       = 0;
+           static uint32_t s_last_counter = 0;
+           static bool     s_has_frame    = false;
+           static GLuint   s_tex          = 0;
+           static bool     s_test_initialized = false;
+
+           if (s_base == nullptr)
+           {
+             SetLastError (ERROR_SUCCESS);
+             hmap_dbg = OpenFileMappingW (FILE_MAP_READ, FALSE, map_name);
+             gle_open = GetLastError ();
+             if (hmap_dbg == NULL)
+             {
+               // Consumer must never create mapping, only open
+               open_gle = gle_open;
+               reason   = R_OPEN_FAIL;
+               goto skf1_epilogue;
+             }
+
+             if (hmap_dbg != NULL && s_hMap != nullptr && s_hMap != hmap_dbg)
+             {
+               CloseHandle (s_hMap);
+               s_hMap = nullptr;
+             }
+
+             s_hMap = hmap_dbg;
+
+             s_base = (uint8_t *)MapViewOfFile (s_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+             if (s_base == nullptr)
+             {
+               open_gle = GetLastError ();
+               reason   = 320;
+               goto skf1_epilogue;
+             }
+
+             if (s_base != nullptr && (! s_test_initialized))
+             {
+               uint8_t* p = (uint8_t *)s_base;
+
+               *(uint32_t *)(p + 0x00) = 0x31464B53u; // 'SKF1'
+               *(uint32_t *)(p + 0x04) = 1u;
+               *(uint32_t *)(p + 0x08) = 0x20u;
+                *(uint32_t *)(p + 0x0C) = 0x24u;  // ✅ FIXED: data_offset = 0x24 (pixels start here)
+               *(uint32_t *)(p + 0x10) = 1u;
+               *(uint32_t *)(p + 0x14) = 256u;
+               *(uint32_t *)(p + 0x18) = 256u;
+               *(uint32_t *)(p + 0x1C) = 256u * 4u;
+
+               *(volatile LONG *)(p + 0x20) = 1;
+
+               uint32_t* pixels = (uint32_t *)(p + 0x24);
+               for (uint32_t i = 0; i < 256u * 256u; ++i)
+                 pixels [i] = 0xFFFF00FFu;
+
+               s_test_initialized = true;
+             }
+           }
+
+           if (s_base != nullptr)
+           {
+             constexpr uint64_t kMapSize = 64ull * 1024ull * 1024ull;
+
+             const uint8_t* const base = s_base;
+             const uint32_t magic = *(const uint32_t *)(base + 0x00);
+             const uint32_t ver   = *(const uint32_t *)(base + 0x04);
+
+             if (magic == 0x31464B53u && ver == 1u)
+             {
+               const uint32_t header_bytes = *(const uint32_t *)(base + 0x08);
+               const uint32_t data_offset  = *(const uint32_t *)(base + 0x0C);
+               const uint32_t pixel_format = *(const uint32_t *)(base + 0x10);
+               const uint32_t width        = *(const uint32_t *)(base + 0x14);
+               const uint32_t height       = *(const uint32_t *)(base + 0x18);
+               const uint32_t stride       = *(const uint32_t *)(base + 0x1C);
+
+                // ✅ FIXED: Counter at fixed offset 0x20, pixels at data_offset (0x24)
+                const uint64_t counter_off  = 0x20ull;
+                const uint64_t pixel_off    = (uint64_t)data_offset;
+               const uint64_t bytes        = (uint64_t)stride * (uint64_t)height;
+               const uint64_t end_off      = pixel_off + bytes;
+
+                if (header_bytes >= 0x20u && data_offset >= 0x24u && pixel_format == 1u &&
+                   width > 0u && height > 0u && stride >= width * 4u && end_off <= kMapSize)
+               {
+                 const uint32_t current_counter = *(const uint32_t *)(base + (size_t)counter_off);
+                 const uint8_t* pixels          =  base + (size_t)pixel_off;
+
+                 GLint prev_unpack = 0;
+                 if (current_counter != s_last_counter)
+                 {
+                   if (s_tex == 0)
+                     glGenTextures (1, &s_tex);
+
+                   if (s_tex != 0)
+                   {
+                     GLint prev_tex = 0;
+                     glGetIntegerv (GL_TEXTURE_BINDING_2D, &prev_tex);
+                     glBindTexture (GL_TEXTURE_2D, s_tex);
+
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+                     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+
+                     glGetIntegerv (GL_UNPACK_ALIGNMENT, &prev_unpack);
+                     glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+
+                     if (s_w != width || s_h != height || s_stride != stride)
+                     {
+                       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+                       s_w      = width;
+                       s_h      = height;
+                       s_stride = stride;
+                     }
+                     else
+                     {
+                       glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, (GLsizei)width, (GLsizei)height, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+                     }
+
+                     glPixelStorei (GL_UNPACK_ALIGNMENT, prev_unpack);
+                     glBindTexture (GL_TEXTURE_2D, (GLuint)prev_tex);
+
+                     s_last_counter = current_counter;
+                     s_has_frame    = true;
+                      if (reason == R_ENTER)
+                        reason = R_UPLOAD_OK;
+                   }
+                 }
+                  else if (! s_has_frame)
+                  {
+                    reason = R_NO_FRAME_YET;
+                    reached_draw = false;
+                    status =
+                      static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+                    SK_GL_SwapInterval (0);
+                    SK_LatentSync_EndSwap ();
+                    if (status)
+                      SK_EndBufferSwap (S_OK);
+                    else
+                      SK_EndBufferSwap (E_UNEXPECTED);
+                    Emit (reason, reached_draw, status);
+                    return status;
+                  }
+
+                 if (s_has_frame && s_tex != 0)
+                 {
+                   GLint prev_program = 0;
+                   GLint prev_active_tex = 0;
+                   GLint prev_tex2d = 0;
+                   GLint prev_vao = 0;
+                   GLint prev_array = 0;
+                   GLint prev_elem = 0;
+                   GLint prev_fbo = 0;
+                   GLint prev_viewport [4] = { };
+                   GLint prev_scissor_box [4] = { };
+                   GLboolean prev_scissor = glIsEnabled (GL_SCISSOR_TEST);
+                   GLboolean prev_blend   = glIsEnabled (GL_BLEND);
+                   GLint prev_blend_src = 0, prev_blend_dst = 0;
+                   GLboolean prev_color_mask [4] = { GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE };
+                   GLint prev_unpack2 = 0;
+
+                   glGetIntegerv (GL_CURRENT_PROGRAM, &prev_program);
+                   glGetIntegerv (GL_ACTIVE_TEXTURE,  &prev_active_tex);
+                   glGetIntegerv (GL_TEXTURE_BINDING_2D, &prev_tex2d);
+                   glGetIntegerv (GL_VERTEX_ARRAY_BINDING, &prev_vao);
+                   glGetIntegerv (GL_ARRAY_BUFFER_BINDING, &prev_array);
+                   glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &prev_elem);
+                   glGetIntegerv (GL_FRAMEBUFFER_BINDING, &prev_fbo);
+                   glGetIntegerv (GL_VIEWPORT, prev_viewport);
+                   glGetIntegerv (GL_SCISSOR_BOX, prev_scissor_box);
+                   glGetIntegerv (GL_BLEND_SRC_RGB, &prev_blend_src);
+                   glGetIntegerv (GL_BLEND_DST_RGB, &prev_blend_dst);
+                   glGetBooleanv (GL_COLOR_WRITEMASK, prev_color_mask);
+                   glGetIntegerv (GL_UNPACK_ALIGNMENT, &prev_unpack2);
+
+                   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+
+                   if (prev_scissor)
+                     glDisable (GL_SCISSOR_TEST);
+
+                   glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+                   glEnable (GL_BLEND);
+                   glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+                   static GLuint s_prog = 0;
+                   static GLuint s_vs   = 0;
+                   static GLuint s_fs   = 0;
+                   static GLint  s_uTex = -1;
+                   static GLuint s_vbo  = 0;
+                   static GLuint s_ibo  = 0;
+                   static GLuint s_vao2 = 0;
+
+                   if (s_prog == 0)
+                   {
+                     const char* vs_src =
+                       "#version 130\n"
+                       "in vec2 aPos;\n"
+                       "in vec2 aUV;\n"
+                       "out vec2 vUV;\n"
+                       "void main(){ vUV=aUV; gl_Position=vec4(aPos,0.0,1.0); }\n";
+
+                     const char* fs_src =
+                       "#version 130\n"
+                       "uniform sampler2D uTex;\n"
+                       "in vec2 vUV;\n"
+                       "out vec4 oColor;\n"
+                       "void main(){ oColor = texture(uTex, vUV); }\n";
+
+                     s_vs = glCreateShader (GL_VERTEX_SHADER);
+                     glShaderSource (s_vs, 1, &vs_src, nullptr);
+                     glCompileShader (s_vs);
+
+                     s_fs = glCreateShader (GL_FRAGMENT_SHADER);
+                     glShaderSource (s_fs, 1, &fs_src, nullptr);
+                     glCompileShader (s_fs);
+
+                     s_prog = glCreateProgram ();
+                     glAttachShader (s_prog, s_vs);
+                     glAttachShader (s_prog, s_fs);
+                     glBindAttribLocation (s_prog, 0, "aPos");
+                     glBindAttribLocation (s_prog, 1, "aUV");
+                     glLinkProgram (s_prog);
+                     s_uTex = glGetUniformLocation (s_prog, "uTex");
+
+                     const float verts [16] = {
+                       -1.0f, -1.0f,  0.0f, 0.0f,
+                        1.0f, -1.0f,  1.0f, 0.0f,
+                        1.0f,  1.0f,  1.0f, 1.0f,
+                       -1.0f,  1.0f,  0.0f, 1.0f
+                     };
+                     const uint16_t idx [6] = { 0, 1, 2, 0, 2, 3 };
+
+                     glGenBuffers (1, &s_vbo);
+                     glBindBuffer (GL_ARRAY_BUFFER, s_vbo);
+                     glBufferData (GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+                     glGenBuffers (1, &s_ibo);
+                     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, s_ibo);
+                     glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
+
+                     glGenVertexArrays (1, &s_vao2);
+                     glBindVertexArray (s_vao2);
+                     glBindBuffer (GL_ARRAY_BUFFER, s_vbo);
+                     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, s_ibo);
+                     glEnableVertexAttribArray (0);
+                     glEnableVertexAttribArray (1);
+                     glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+                     glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+
+                     glBindVertexArray (0);
+                     glBindBuffer (GL_ARRAY_BUFFER, 0);
+                     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+                   }
+
+                   if (s_prog != 0)
+                   {
+                     glUseProgram (s_prog);
+                     glActiveTexture (GL_TEXTURE0);
+                     glBindTexture (GL_TEXTURE_2D, s_tex);
+                     if (s_uTex >= 0)
+                       glUniform1i (s_uTex, 0);
+                     glBindVertexArray (s_vao2);
+                     glDrawElements (GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void *)0);
+                      reason = R_COMPOSITE_HIT;
+                      reached_draw = true;
+                   }
+
+                   glPixelStorei (GL_UNPACK_ALIGNMENT, prev_unpack2);
+
+                   glBindVertexArray (prev_vao);
+                   glBindBuffer (GL_ARRAY_BUFFER, prev_array);
+                   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, prev_elem);
+                   glUseProgram (prev_program);
+                   glActiveTexture (prev_active_tex);
+                   glBindTexture (GL_TEXTURE_2D, prev_tex2d);
+                   glBindFramebuffer (GL_FRAMEBUFFER, prev_fbo);
+                   glViewport (prev_viewport [0], prev_viewport [1], prev_viewport [2], prev_viewport [3]);
+                   if (prev_scissor)
+                   {
+                     glEnable (GL_SCISSOR_TEST);
+                     glScissor (prev_scissor_box [0], prev_scissor_box [1], prev_scissor_box [2], prev_scissor_box [3]);
+                   }
+                   else
+                   {
+                     glDisable (GL_SCISSOR_TEST);
+                   }
+                   if (prev_blend)
+                     glEnable (GL_BLEND);
+                   else
+                     glDisable (GL_BLEND);
+                   glBlendFunc ((GLenum)prev_blend_src, (GLenum)prev_blend_dst);
+                   glColorMask (prev_color_mask [0], prev_color_mask [1], prev_color_mask [2], prev_color_mask [3]);
+                 }
+               }
+             }
+              else
+             {
+                reason = R_HEADER_FAIL;
+                reached_draw = false;
+               UnmapViewOfFile (s_base);
+               s_base = nullptr;
+               if (s_hMap != nullptr)
+               {
+                 CloseHandle (s_hMap);
+                 s_hMap = nullptr;
+               }
+             }
+           }
           status =
             static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
           SK_GL_SwapInterval (0);
@@ -2996,6 +3880,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
   }
 
+skf1_epilogue:
+  if (reason == kReasonEnter)
+    reason = 200;
+
+  Emit (reason, reached_draw, status);
   return status;
 }
 
@@ -3064,6 +3953,15 @@ BOOL
 WINAPI
 wglSwapBuffers (HDC hDC)
 {
+  tls_gl_present_depth++;
+  bool reentered = (tls_gl_present_depth > 1);
+  if (reentered && tls_gl_in_overlay_submit)
+  {
+    LONG n = InterlockedIncrement (&g_overlay_recursion_in_submit_hits);
+    if (n > 10)
+      InterlockedExchange (&g_overlay_disabled, 1);
+  }
+
   WaitForInit_GL ();
 
   SK_LOG1 ( ( L"[%x (tid=%04x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
@@ -3094,10 +3992,9 @@ wglSwapBuffers (HDC hDC)
   if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
-  if (config.render.osd.draw_in_vidcap || config.apis.dxgi.d3d11.hook)
-    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (wgl_swap_buffers));
+  bRet = SK_GL_SwapBuffers (hDC, (LPVOID)wgl_swap_buffers);
 
-  else
+  if (! bRet && wgl_swap_buffers != nullptr)
     bRet = wgl_swap_buffers (hDC);
 
 #ifdef SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
@@ -3108,6 +4005,7 @@ wglSwapBuffers (HDC hDC)
   SK_GL_SwapInterval (orig_swap_interval);
 
 
+  tls_gl_present_depth--;
   return bRet;
 }
 
@@ -3116,6 +4014,15 @@ BOOL
 WINAPI
 SwapBuffers (HDC hDC)
 {
+  tls_gl_present_depth++;
+  bool reentered = (tls_gl_present_depth > 1);
+  if (reentered && tls_gl_in_overlay_submit)
+  {
+    LONG n = InterlockedIncrement (&g_overlay_recursion_in_submit_hits);
+    if (n > 10)
+      InterlockedExchange (&g_overlay_disabled, 1);
+  }
+
   WaitForInit_GL ();
 
   SK_LOG1 ( ( L"[%x (tid=%04x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
@@ -3134,10 +4041,9 @@ SwapBuffers (HDC hDC)
   if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
-  if (config.render.osd.draw_in_vidcap || config.apis.dxgi.d3d11.hook)
-    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (gdi_swap_buffers));
+  bRet = SK_GL_SwapBuffers (hDC, (LPVOID)gdi_swap_buffers);
 
-  else
+  if (! bRet && gdi_swap_buffers != nullptr)
     bRet = gdi_swap_buffers (hDC);
 
   SK_GL_SwapInterval (orig_swap_interval);
@@ -3149,6 +4055,7 @@ SwapBuffers (HDC hDC)
 #endif
 
 
+  tls_gl_present_depth--;
   return bRet;
 }
 
@@ -3633,14 +4540,477 @@ SK::OpenGL::getPipelineStatsDesc (void)
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
+extern bool SidecarK_DiagnosticsEnabled ();
+
+static void
+SK_GL_WriteHookInstallMarker (
+  const wchar_t *wszSymbol,
+  const wchar_t *wszModule,
+  HMODULE        hMod,
+  FARPROC        pAddr,
+  DWORD          gle,
+  MH_STATUS      stCreate,
+  MH_STATUS      stEnable )
+{
+  static volatile LONG s_written = 0;
+  if (InterlockedCompareExchange (&s_written, 1, 0) != 0)
+    return;
+
+  const DWORD pid = GetCurrentProcessId ();
+  const DWORD tid = GetCurrentThreadId  ();
+
+  if (SidecarK_DiagnosticsEnabled ())
+  {
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszFullPath [MAX_PATH] = { };
+
+    if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+    {
+      wchar_t wszFile [64] = { };
+      wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+      lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+      lstrcatW  (wszFullPath, wszFile);
+    }
+    else
+    {
+      wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+    }
+
+    char szOut [2048] = { };
+
+    _snprintf_s (
+      szOut, _TRUNCATE,
+      "pid=%lu\r\n"
+      "tid=%lu\r\n"
+      "symbol=%ws\r\n"
+      "module=%ws\r\n"
+      "module_handle=0x%p\r\n"
+      "target_addr=0x%p\r\n"
+      "gle=%lu\r\n"
+      "create_status=%ld\r\n"
+      "enable_status=%ld\r\n",
+      (unsigned long)pid,
+      (unsigned long)tid,
+      wszSymbol != nullptr ? wszSymbol : L"<null>",
+      wszModule != nullptr ? wszModule : L"<null>",
+      (void *)hMod,
+      (void *)pAddr,
+      (unsigned long)gle,
+      (long)stCreate,
+      (long)stEnable );
+
+    HANDLE hFile =
+      CreateFileW ( wszFullPath, GENERIC_WRITE,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    nullptr, CREATE_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL, nullptr );
+
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+      DWORD dwWritten = 0;
+      SetFilePointer (hFile, 0, nullptr, FILE_END);
+      WriteFile (hFile, szOut, (DWORD)strlen (szOut), &dwWritten, nullptr);
+      CloseHandle (hFile);
+    }
+  }
+}
+
 
 static volatile LONG
  __SK_GL_initialized = FALSE;
+
+extern bool SidecarK_DiagnosticsEnabled ();
 
 DWORD
 WINAPI
 SK_HookGL (LPVOID)
 {
+  {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+      wchar_t wszTempPath [MAX_PATH] = { };
+      wchar_t wszFullPath [MAX_PATH] = { };
+
+      if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+      {
+        wchar_t wszFile [64] = { };
+        wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+        lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+        lstrcatW  (wszFullPath, wszFile);
+      }
+      else
+      {
+        wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+      }
+
+      DWORD gle_open  = 0;
+      DWORD gle_write = 0;
+      DWORD dwWritten = 0;
+      BOOL  okWrite   = FALSE;
+      int   len       = 0;
+
+      HANDLE hFile =
+        CreateFileW ( wszFullPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        char szBuf [512] = { };
+        len =
+          _snprintf_s ( szBuf, _TRUNCATE,
+                        "enter_gl_install pid=%lu tid=%lu open_ok=1 gle_open=0 write_ok=0 gle_write=0 bytes=0\r\n",
+                        (unsigned long)pid,
+                        (unsigned long)tid );
+
+        if (len > 0)
+        {
+          okWrite = WriteFile (hFile, szBuf, (DWORD)len, &dwWritten, nullptr);
+          if (! okWrite)
+            gle_write = GetLastError ();
+        }
+
+        CloseHandle (hFile);
+
+        const bool success = (okWrite == TRUE) && (dwWritten == (DWORD)len);
+        if (! success)
+        {
+          char szDbg [256] = { };
+          _snprintf_s ( szDbg, _TRUNCATE,
+                        "enter_gl_install pid=%lu tid=%lu open_ok=1 gle_open=0 write_ok=%lu gle_write=%lu bytes=%lu\r\n",
+                        (unsigned long)pid,
+                        (unsigned long)tid,
+                        (unsigned long)(okWrite ? 1 : 0),
+                        (unsigned long)gle_write,
+                        (unsigned long)dwWritten );
+          OutputDebugStringA (szDbg);
+        }
+      }
+      else
+      {
+        gle_open = GetLastError ();
+
+        char szDbg [256] = { };
+        _snprintf_s ( szDbg, _TRUNCATE,
+                      "enter_gl_install pid=%lu tid=%lu open_ok=0 gle_open=%lu write_ok=0 gle_write=0 bytes=0\r\n",
+                      (unsigned long)pid,
+                      (unsigned long)tid,
+                      (unsigned long)gle_open );
+        OutputDebugStringA (szDbg);
+      }
+    }
+  }
+
+  static uint64_t s_firstAttempt  = 0;
+  static uint64_t s_lastAttempt   = 0;
+  static bool     s_retryActive   = false;
+  static bool     s_loggedStart   = false;
+  static bool     s_loggedDone    = false;
+  static bool     s_loggedExhaust = false;
+
+  static int      s_attempt_index = 0;
+
+  static HMODULE   s_mod_gl                 = nullptr;
+  static FARPROC   s_proc_wglSwapBuffers    = nullptr;
+  static bool      s_created_wglSwapBuffers = false;
+  static bool      s_enabled_wglSwapBuffers = false;
+  static MH_STATUS s_create_wglSwapBuffers  = (MH_STATUS)0;
+  static MH_STATUS s_enable_wglSwapBuffers  = (MH_STATUS)0;
+  static bool      s_permfail_wglSwapBuffers= false;
+
+  static HMODULE   s_mod_gdi                = nullptr;
+  static FARPROC   s_proc_SwapBuffers       = nullptr;
+  static bool      s_created_SwapBuffers    = false;
+  static bool      s_enabled_SwapBuffers    = false;
+  static MH_STATUS s_create_SwapBuffers     = (MH_STATUS)0;
+  static MH_STATUS s_enable_SwapBuffers     = (MH_STATUS)0;
+  static bool      s_permfail_SwapBuffers   = false;
+
+  const uint64_t now = GetTickCount64 ();
+
+  if (! s_retryActive)
+  {
+    s_firstAttempt = now;
+    s_lastAttempt  = 0;
+    s_retryActive  = true;
+    s_attempt_index = 0;
+  }
+
+  if (s_retryActive)
+  {
+    if (now - s_firstAttempt > 10000ULL)
+    {
+      s_retryActive = false;
+
+      if (! s_loggedExhaust)
+      {
+        s_loggedExhaust = true;
+
+        if (SidecarK_DiagnosticsEnabled ())
+        {
+          const DWORD pid = GetCurrentProcessId ();
+
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFullPath [MAX_PATH] = { };
+
+          if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+          {
+            wchar_t wszFile [64] = { };
+            wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+            lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+            lstrcatW  (wszFullPath, wszFile);
+          }
+          else
+          {
+            wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+          }
+
+          HANDLE hFile =
+            CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr, OPEN_ALWAYS,
+                          FILE_ATTRIBUTE_NORMAL, nullptr );
+
+            if (hFile != INVALID_HANDLE_VALUE)
+            {
+              CloseHandle (hFile);
+            }
+
+            ;
+        }
+      }
+    }
+
+    else
+    {
+      if (! s_loggedStart)
+      {
+        s_loggedStart = true;
+
+        if (SidecarK_DiagnosticsEnabled ())
+        {
+          const DWORD pid = GetCurrentProcessId ();
+
+          wchar_t wszTempPath [MAX_PATH] = { };
+          wchar_t wszFullPath [MAX_PATH] = { };
+
+          if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+          {
+            wchar_t wszFile [64] = { };
+            wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+            lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+            lstrcatW  (wszFullPath, wszFile);
+          }
+          else
+          {
+            wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+          }
+
+          HANDLE hFile =
+            CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr, OPEN_ALWAYS,
+                          FILE_ATTRIBUTE_NORMAL, nullptr );
+
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            static const char szLine [] = "retry_start\r\n";
+            DWORD             dwWritten = 0;
+            SetFilePointer (hFile, 0, nullptr, FILE_END);
+            WriteFile (hFile, szLine, (DWORD)sizeof (szLine) - 1, &dwWritten, nullptr);
+      CloseHandle (hFile);
+    }
+    }
+      }
+
+      if (now - s_lastAttempt < 250ULL)
+      {
+        return 0;
+      }
+
+      s_lastAttempt = now;
+
+      ++s_attempt_index;
+
+      auto _AppendRetryOutcome = [&](const char* outcome, const char* extra)
+      {
+        if (! SidecarK_DiagnosticsEnabled ())
+          return;
+
+        const DWORD pid = GetCurrentProcessId ();
+
+        wchar_t wszTempPath [MAX_PATH] = { };
+        wchar_t wszFullPath [MAX_PATH] = { };
+
+        if (GetTempPathW (MAX_PATH, wszTempPath) > 0)
+        {
+          wchar_t wszFile [64] = { };
+          wsprintfW (wszFile, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+
+          lstrcpynW (wszFullPath, wszTempPath, MAX_PATH);
+          lstrcatW  (wszFullPath, wszFile);
+        }
+        else
+        {
+          wsprintfW (wszFullPath, L"sk_gl_hook_install_%lu.txt", (unsigned long)pid);
+        }
+
+        HANDLE hFile =
+          CreateFileW ( wszFullPath, FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr, OPEN_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL, nullptr );
+
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+          char szLine [1536] = { };
+          const int len =
+            _snprintf_s (
+              szLine, _TRUNCATE,
+              "%s%s%s\r\n"
+              "symbol=opengl32.dll!wglSwapBuffers mod=0x%p target=0x%p st_create=%ld st_enable=%ld permanent=%d\r\n"
+              "symbol=gdi32.dll!SwapBuffers      mod=0x%p target=0x%p st_create=%ld st_enable=%ld permanent=%d\r\n",
+              outcome,
+              (extra != nullptr && extra[0] != '\0') ? " " : "",
+              (extra != nullptr) ? extra : "",
+              (void *)s_mod_gl,  (void *)s_proc_wglSwapBuffers, (long)s_create_wglSwapBuffers, (long)s_enable_wglSwapBuffers, s_permfail_wglSwapBuffers ? 1 : 0,
+              (void *)s_mod_gdi, (void *)s_proc_SwapBuffers,    (long)s_create_SwapBuffers,    (long)s_enable_SwapBuffers,    s_permfail_SwapBuffers    ? 1 : 0);
+
+          if (len > 0)
+          {
+            DWORD dwWritten = 0;
+            SetFilePointer (hFile, 0, nullptr, FILE_END);
+            WriteFile (hFile, szLine, (DWORD)len, &dwWritten, nullptr);
+          }
+
+          CloseHandle (hFile);
+        }
+      };
+
+      auto _IsCreatePermanentFail = [](MH_STATUS st) {
+        return st == MH_ERROR_ALREADY_CREATED ||
+               st == MH_ERROR_NOT_EXECUTABLE ||
+               st == MH_ERROR_UNSUPPORTED_FUNCTION ||
+               st == MH_ERROR_MEMORY_ALLOC;
+      };
+
+      auto _IsEnablePermanentFail = [](MH_STATUS st) {
+        return st == MH_ERROR_NOT_CREATED ||
+               st == MH_ERROR_NOT_EXECUTABLE ||
+               st == MH_ERROR_UNSUPPORTED_FUNCTION;
+      };
+
+      if ((! s_enabled_wglSwapBuffers) && (! s_permfail_wglSwapBuffers))
+      {
+        if (s_mod_gl == nullptr)
+          s_mod_gl = GetModuleHandleW (L"opengl32.dll");
+
+        if (s_mod_gl != nullptr && s_proc_wglSwapBuffers == nullptr)
+          s_proc_wglSwapBuffers = GetProcAddress (s_mod_gl, "wglSwapBuffers");
+
+        if (s_proc_wglSwapBuffers != nullptr && (! s_created_wglSwapBuffers))
+        {
+          s_create_wglSwapBuffers =
+            MH_CreateHook ( (LPVOID)s_proc_wglSwapBuffers,
+                            (LPVOID)wglSwapBuffers,
+                            (LPVOID *)&wgl_swap_buffers );
+
+          if (s_create_wglSwapBuffers == MH_OK)
+            s_created_wglSwapBuffers = true;
+          else if (_IsCreatePermanentFail (s_create_wglSwapBuffers))
+            s_permfail_wglSwapBuffers = true;
+        }
+
+        if (s_created_wglSwapBuffers && (! s_enabled_wglSwapBuffers) && (! s_permfail_wglSwapBuffers))
+        {
+          s_enable_wglSwapBuffers = MH_EnableHook ((LPVOID)s_proc_wglSwapBuffers);
+
+          if (s_enable_wglSwapBuffers == MH_OK)
+            s_enabled_wglSwapBuffers = true;
+          else if (_IsEnablePermanentFail (s_enable_wglSwapBuffers))
+            s_permfail_wglSwapBuffers = true;
+        }
+      }
+
+      if ((! s_enabled_SwapBuffers) && (! s_permfail_SwapBuffers))
+      {
+        if (s_mod_gdi == nullptr)
+          s_mod_gdi = GetModuleHandleW (L"gdi32.dll");
+
+        if (s_mod_gdi != nullptr && s_proc_SwapBuffers == nullptr)
+          s_proc_SwapBuffers = GetProcAddress (s_mod_gdi, "SwapBuffers");
+
+        if (s_proc_SwapBuffers != nullptr && (! s_created_SwapBuffers))
+        {
+          s_create_SwapBuffers =
+            MH_CreateHook ( (LPVOID)s_proc_SwapBuffers,
+                            (LPVOID)SwapBuffers,
+                            (LPVOID *)&gdi_swap_buffers );
+
+          if (s_create_SwapBuffers == MH_OK)
+            s_created_SwapBuffers = true;
+          else if (_IsCreatePermanentFail (s_create_SwapBuffers))
+            s_permfail_SwapBuffers = true;
+        }
+
+        if (s_created_SwapBuffers && (! s_enabled_SwapBuffers) && (! s_permfail_SwapBuffers))
+        {
+          s_enable_SwapBuffers = MH_EnableHook ((LPVOID)s_proc_SwapBuffers);
+
+          if (s_enable_SwapBuffers == MH_OK)
+            s_enabled_SwapBuffers = true;
+          else if (_IsEnablePermanentFail (s_enable_SwapBuffers))
+            s_permfail_SwapBuffers = true;
+        }
+      }
+
+      if ((s_permfail_wglSwapBuffers || s_permfail_SwapBuffers) && (! s_loggedExhaust))
+      {
+        s_loggedExhaust = true;
+        s_retryActive   = false;
+        _AppendRetryOutcome ("retry_exhausted", s_permfail_wglSwapBuffers ? "symbol=opengl32.dll!wglSwapBuffers" : "symbol=gdi32.dll!SwapBuffers");
+      }
+
+      if (s_enabled_wglSwapBuffers && s_enabled_SwapBuffers)
+      {
+        s_retryActive = false;
+
+        if (! s_loggedDone)
+        {
+          s_loggedDone = true;
+          _AppendRetryOutcome ("retry_success", "");
+        }
+      }
+    }
+  }
+
+  if (! s_retryActive)
+  {
+    const bool okBoth = (s_enable_wglSwapBuffers == MH_OK) && (s_enable_SwapBuffers == MH_OK);
+    const char* outcome = nullptr;
+    if (okBoth && s_attempt_index == 1)
+      outcome = "initial_success";
+    else if (okBoth && s_attempt_index > 1)
+      outcome = "retry_success";
+    else
+      outcome = "retry_exhausted";
+
+    TryWriteTerminalMarker (outcome);
+  }
+
   if (! config.apis.OpenGL.hook)
   {
     SK_Thread_CloseSelf ();
@@ -3704,8 +5074,48 @@ SK_HookGL (LPVOID)
 
       SK_LoadRealGL ();
 
+      MH_STATUS stCreate_wglSwapBuffers  = (MH_STATUS)0;
+      MH_STATUS stCreate_SwapBuffers     = (MH_STATUS)0;
+      MH_STATUS stEnable_wglSwapBuffers  = (MH_STATUS)0;
+      MH_STATUS stEnable_SwapBuffers     = (MH_STATUS)0;
+
+      HMODULE  hModOpenGL32              = nullptr;
+      HMODULE  hModGdi32                 = nullptr;
+      FARPROC  pfn_wglSwapBuffers        = nullptr;
+      FARPROC  pfn_SwapBuffers           = nullptr;
+      DWORD    gle_hModOpenGL32          = 0;
+      DWORD    gle_hModGdi32             = 0;
+      DWORD    gle_pfn_wglSwapBuffers    = 0;
+      DWORD    gle_pfn_SwapBuffers       = 0;
+
       wgl_get_proc_address =
         (wglGetProcAddress_pfn)SK_GetProcAddress       (local_gl, "wglGetProcAddress");
+
+      if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, L"opengl32.dll", &hModOpenGL32))
+      {
+        gle_hModOpenGL32 = GetLastError ();
+        hModOpenGL32     = nullptr;
+      }
+
+      if (hModOpenGL32 != nullptr)
+      {
+        pfn_wglSwapBuffers = GetProcAddress (hModOpenGL32, "wglSwapBuffers");
+        if (pfn_wglSwapBuffers == nullptr)
+          gle_pfn_wglSwapBuffers = GetLastError ();
+      }
+
+      if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, L"gdi32.dll", &hModGdi32))
+      {
+        gle_hModGdi32 = GetLastError ();
+        hModGdi32     = nullptr;
+      }
+
+      if (hModGdi32 != nullptr)
+      {
+        pfn_SwapBuffers = GetProcAddress (hModGdi32, "SwapBuffers");
+        if (pfn_SwapBuffers == nullptr)
+          gle_pfn_SwapBuffers = GetLastError ();
+      }
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglMakeCurrent",
@@ -3733,10 +5143,17 @@ SK_HookGL (LPVOID)
          static_cast_p2p <void> (&wgl_set_pixel_format) );
 
       // This hook is necessary for Kingpin: Life of Crime
+      stCreate_wglSwapBuffers =
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapBuffers",
          static_cast_pfn <void*> (wglSwapBuffers),
          static_cast_p2p <void> (&wgl_swap_buffers) );
+
+      stCreate_SwapBuffers =
+      SK_CreateDLLHook2 (         L"gdi32.dll",
+                                 "SwapBuffers",
+         static_cast_pfn <void*> (wglSwapBuffers),
+         static_cast_p2p <void> (&gdi_swap_buffers) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapMultipleBuffers",
@@ -3760,6 +5177,35 @@ SK_HookGL (LPVOID)
 
         // Load user-defined DLLs (Plug-In)
         SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
+      }
+
+      stEnable_wglSwapBuffers =
+        ( (pfn_wglSwapBuffers != nullptr) ? MH_EnableHook ((LPVOID)pfn_wglSwapBuffers) : MH_ERROR_FUNCTION_NOT_FOUND );
+
+      stEnable_SwapBuffers =
+        ( (pfn_SwapBuffers != nullptr) ? MH_EnableHook ((LPVOID)pfn_SwapBuffers) : MH_ERROR_FUNCTION_NOT_FOUND );
+
+      SK_GL_WriteHookInstallMarker (
+        L"wglSwapBuffers",
+        L"opengl32.dll",
+        hModOpenGL32,
+        pfn_wglSwapBuffers,
+        pfn_wglSwapBuffers == nullptr ? gle_pfn_wglSwapBuffers : gle_hModOpenGL32,
+        stCreate_wglSwapBuffers,
+        stEnable_wglSwapBuffers );
+
+      SK_GL_WriteHookInstallMarker (
+        L"SwapBuffers",
+        L"gdi32.dll",
+        hModGdi32,
+        pfn_SwapBuffers,
+        pfn_SwapBuffers == nullptr ? gle_pfn_SwapBuffers : gle_hModGdi32,
+        stCreate_SwapBuffers,
+        stEnable_SwapBuffers );
+
+      if ( stEnable_wglSwapBuffers == MH_OK && stEnable_SwapBuffers == MH_OK )
+      {
+        TryWriteTerminalMarker ("initial_success");
       }
 
       ++GL_HOOKS;

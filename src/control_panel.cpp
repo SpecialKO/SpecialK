@@ -24,6 +24,43 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/control_panel.h>
+ 
+bool SKC_IsOverlayEnabled()
+{
+  const DWORD pid = GetCurrentProcessId();
+
+  wchar_t name[128] = {};
+  wsprintfW(name, L"Local\\SidecarK_Control_%lu", (unsigned long)pid);
+
+  HANDLE hMap = OpenFileMappingW(FILE_MAP_READ, FALSE, name);
+  if (!hMap)
+    return true;
+
+  void* view = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 4096);
+  if (!view)
+  {
+    CloseHandle(hMap);
+    return true;
+  }
+
+  BYTE* base = reinterpret_cast<BYTE*>(view);
+  const uint32_t ver = *reinterpret_cast<uint32_t*>(base + 0x04);
+
+  if (memcmp(base + 0x00, "SKC1", 4) != 0 || ver != 1u)
+  {
+    UnmapViewOfFile(view);
+    CloseHandle(hMap);
+    return true;
+  }
+
+  const volatile uint32_t* enabled = reinterpret_cast<volatile uint32_t*>(base + 0x08);
+  const bool ret = ((*enabled) != 0u);
+
+  UnmapViewOfFile(view);
+  CloseHandle(hMap);
+  return ret;
+}
+
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
@@ -9328,6 +9365,12 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   UNREFERENCED_PARAMETER (dwFlags);
   UNREFERENCED_PARAMETER (lpUser);
 
+  if (! SKC_IsOverlayEnabled ())
+  {
+    lock.unlock ();
+    return 0;
+  }
+
   // Optionally:  Disable SK's OSD while the Steam overlay is active
   //
   if ( config.platform.overlay_hides_sk_osd &&
@@ -9442,8 +9485,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       WriteULong64Release (&queued_snipped_shot, SK_GetFramesDrawn ()+backbuffers);
     }
   }
-
-
   if (rb.api == SK_RenderAPI::OpenGL)
   {
     ImGui::Render ();

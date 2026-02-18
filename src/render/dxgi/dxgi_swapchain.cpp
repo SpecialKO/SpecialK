@@ -27,8 +27,95 @@
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+extern bool SidecarK_DiagnosticsEnabled ();
+
+static constexpr bool kEnableSKF1_PresentHitCounter = true;
+static constexpr bool kEnableSKF1_SkipCounters      = true;
+static volatile LONG g_SKF1_PresentHits = 0;
+
+static volatile LONG g_SKF1_GateSkip      = 0;
+static volatile LONG g_SKF1_OpenFail     = 0;
+static volatile LONG g_SKF1_MapFail      = 0;
+static volatile LONG g_SKF1_HeaderReject = 0;
+static volatile LONG g_SKF1_SeqMismatch  = 0;
+static volatile LONG g_SKF1_CompositeHit = 0;
+
+std::atomic_bool g_dxgi_present_seen{ false };
+
+std::atomic_bool g_dxgi_overlay_owner{ false };
+
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
+
+static void SK_DXGI_WriteHitFile (const char* entry, void* this_ptr, void* func_addr)
+{
+  wchar_t mod_path [MAX_PATH] = { };
+  HMODULE hMod                = nullptr;
+  DWORD gle                   = 0;
+
+  if (func_addr != nullptr)
+  {
+    if (GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                             (LPCWSTR)func_addr, &hMod ))
+    {
+      if (GetModuleFileNameW (hMod, mod_path, MAX_PATH) == 0)
+        gle = GetLastError ();
+    }
+    else
+    {
+      gle = GetLastError ();
+    }
+  }
+  else
+  {
+    gle = ERROR_INVALID_PARAMETER;
+  }
+
+  if (! SidecarK_DiagnosticsEnabled ())
+    return;
+
+  wchar_t temp_path [MAX_PATH] = { };
+  const DWORD cch = GetTempPathW (MAX_PATH, temp_path);
+
+  if (cch == 0 || cch >= MAX_PATH)
+    return;
+
+  wchar_t file_path [MAX_PATH] = { };
+  swprintf ( file_path, MAX_PATH,
+             L"%ssk_dxgi_hit_%lu_%hs.txt",
+             temp_path,
+             (unsigned long)GetCurrentProcessId (),
+             entry != nullptr ? entry : "null" );
+
+  FILE* f = nullptr;
+  _wfopen_s (&f, file_path, L"wb");
+
+  if (f == nullptr)
+    return;
+
+  fprintf (f, "entry=%s\n", entry != nullptr ? entry : "null");
+  fprintf (f, "pid=%lu\n", (unsigned long)GetCurrentProcessId ());
+  fprintf (f, "tid=%lu\n", (unsigned long)GetCurrentThreadId  ());
+  fprintf (f, "this=%p\n", this_ptr);
+  fprintf (f, "func=%p\n", func_addr);
+
+  if (mod_path [0] != L'\0')
+  {
+    char mod_path_utf8 [MAX_PATH * 4] = { };
+    WideCharToMultiByte (CP_UTF8, 0, mod_path, -1, mod_path_utf8,
+                         (int)sizeof (mod_path_utf8), nullptr, nullptr);
+    fprintf (f, "module_path=%s\n", mod_path_utf8);
+    fprintf (f, "gle=0\n");
+  }
+  else
+  {
+    fprintf (f, "module_path=<failed>\n");
+    fprintf (f, "gle=%lu\n", (unsigned long)gle);
+  }
+
+  fclose (f);
+}
 
 HRESULT
 STDMETHODCALLTYPE
@@ -673,8 +760,1068 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
+  if (kEnableSKF1_PresentHitCounter)
+  {
+    InterlockedIncrement (&g_SKF1_PresentHits);
+  }
+
+  static volatile LONG s_hits_dxgi_Present = 0;
+  if (InterlockedIncrement (&s_hits_dxgi_Present) <= 50)
+  {
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszPath     [MAX_PATH] = { };
+
+    DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wsprintfW (wszPath, L"%ssk_backend_route_%lu.txt", wszTempPath, (unsigned long)pid);
+
+      HANDLE hFile =
+        CreateFileW ( wszPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        wchar_t wszLine [256] = { };
+        const int lenChars =
+          _snwprintf_s ( wszLine, _TRUNCATE,
+                         L"route backend=dxgi_present func=Present pid=%lu tid=%lu\r\n",
+                         (unsigned long)pid,
+                         (unsigned long)tid );
+
+        DWORD dwWritten = 0;
+        BOOL  okWrite   = FALSE;
+
+        if (lenChars > 0)
+        {
+          const DWORD cbToWrite = (DWORD)lenChars * sizeof (wchar_t);
+          okWrite = WriteFile (hFile, wszLine, cbToWrite, &dwWritten, nullptr);
+          if (! (okWrite == TRUE && dwWritten == cbToWrite))
+            OutputDebugStringA ("sk_backend_route: WriteFile failed (DXGI Present)\n");
+        }
+
+        CloseHandle (hFile);
+      }
+      else
+      {
+        OutputDebugStringA ("sk_backend_route: CreateFileW failed (DXGI Present)\n");
+      }
+    }
+    }
+  }
+
+  static LONG s_once_wrap_present = 0;
+  if (InterlockedCompareExchange (&s_once_wrap_present, 1, 0) == 0)
+    SK_DXGI_WriteHitFile ("wrap_present", (void *)this, (void *)&SK_DXGI_DispatchPresent);
+
+  static volatile LONG s_probe_once = 0;
+  if (InterlockedCompareExchange (&s_probe_once, 1, 0) == 0)
+  {
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wcscat_s (path, L"sk_dxgi_probe.txt");
+
+      FILE* f = nullptr;
+      _wfopen_s (&f, path, L"wb");
+
+      if (f != nullptr)
+      {
+        const DWORD pid = GetCurrentProcessId ();
+        void* this_ptr = (void *)this;
+
+        void** vtbl = nullptr;
+        __try
+        {
+          if (this_ptr != nullptr)
+            vtbl = *(void ***)this_ptr;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          vtbl = nullptr;
+        }
+
+        fprintf (f, "pid=%lu\n", (unsigned long)pid);
+        fprintf (f, "first_entry=Present\n");
+        fprintf (f, "swapchain=%p\n", this_ptr);
+        fprintf (f, "vtbl=%p\n", (void *)vtbl);
+
+        if (vtbl != nullptr)
+        {
+          for (int i = 0; i < 25; ++i)
+          {
+            void* fn = nullptr;
+            __try { fn = vtbl[i]; }
+            __except (EXCEPTION_EXECUTE_HANDLER) { fn = nullptr; }
+
+            fprintf (f, "vtbl[%02d]=%p\n", i, fn);
+          }
+    }
+        }
+        else
+        {
+          fprintf (f, "vtbl[00..24]=<unavailable>\n");
+        }
+
+        fprintf (f, "addr_dispatch_present=%p\n",  (void *)&SK_DXGI_DispatchPresent);
+        fprintf (f, "addr_dispatch_present1=%p\n", (void *)&SK_DXGI_DispatchPresent1);
+
+        fclose (f);
+      }
+    }
+  }
+
+  static ULONGLONG s_last = 0;
+  static LONG      s_hits = 0;
+  const LONG hits = InterlockedIncrement (&s_hits);
+
+  if (kEnableSKF1_PresentHitCounter) InterlockedIncrement (&g_SKF1_PresentHits);
+
+  const ULONGLONG now = GetTickCount64 ();
+  if (now - s_last >= 1000)
+  {
+    s_last = now;
+
+    if (SidecarK_DiagnosticsEnabled ())
+    {
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wchar_t fname [64] = { };
+      wsprintfW (fname, L"sk_dxgi_present_tick_%lu.txt", (unsigned long)GetCurrentProcessId ());
+      wcscat_s  (path, fname);
+
+      FILE* f = nullptr;
+      _wfopen_s (&f, path, L"wb");
+      if (f != nullptr)
+      {
+        fprintf (f, "entry=Present\n");
+        fprintf (f, "hits=%ld\n", hits);
+        fprintf (f, "last_swapchain=%p\n", (void *)this);
+        fclose  (f);
+      }
+    }
+    }
+  }
+
   SK_GetCurrentRenderBackend ().in_present_call = true;
 
+  g_dxgi_present_seen.store (true, std::memory_order_relaxed);
+
+  g_dxgi_overlay_owner.exchange (true, std::memory_order_relaxed);
+
+  // SidecarK proof-of-life: copy an existing overlay pixel buffer from shared
+  // memory into the game backbuffer every Present (top-left 256x256).
+  #pragma pack(push, 1)
+  struct SK_OverlayFrameHeader
+  {
+    uint32_t magic;        // 'SKOF'
+    uint32_t version;      // 2
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t pixel_format_fourcc; // 'BGRA'
+    uint32_t alpha_mode;          // 1 = premultiplied
+    uint64_t frame_id;
+    uint32_t active_buffer; // 0 or 1
+  };
+  #pragma pack(pop)
+
+  static constexpr uint32_t SK_OVERLAY_MAGIC_SKOF          = 0x464F4B53u; // 'SKOF'
+  static constexpr uint32_t SK_OVERLAY_HEADER_VERSION      = 2u;
+  static constexpr uint32_t SK_OVERLAY_PIXEL_FORMAT_BGRA   = 0x41524742u; // 'BGRA'
+
+  // ============================================================================
+  // Pre-compiled shader bytecode for R10G10B10A2 format conversion
+  struct SKF1_RuntimeStatus
+  {
+    // Stage A: PID + name
+    DWORD    last_pid = 0;
+    wchar_t  mapping_name[64] = { };
+
+    // Stage B: OpenFileMappingW
+    HANDLE   hMap = nullptr;
+    DWORD    last_open_gle = 0;
+
+    // Stage C: MapViewOfFile
+    uint8_t* view_ptr = nullptr;
+    SIZE_T   view_bytes = 0;
+    DWORD    last_view_gle = 0;
+
+    // Stage D: Header snapshot
+    char     magic[4] = { };
+    uint32_t version = 0;
+    uint32_t header_bytes = 0;
+    uint32_t data_offset = 0;
+    uint32_t pixel_format = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t stride = 0;
+    DWORD    last_header_gle = 0;
+
+    // Stage E/F: Upload and blit state
+    LONG     last_counter = 0;
+    bool     has_frame = false;
+
+    // D3D11 resources
+    ID3D11Texture2D* tex = nullptr;
+    DXGI_FORMAT      texFmt = DXGI_FORMAT_UNKNOWN;
+
+    // One-time transition markers
+    std::atomic_bool logged_enabled_on = false;
+    std::atomic_bool logged_stage_a_ok = false;
+    std::atomic_bool logged_stage_b_ok = false;
+    std::atomic_bool logged_stage_b_fail = false;
+    std::atomic_bool logged_stage_c_ok = false;
+    std::atomic_bool logged_stage_c_fail = false;
+    std::atomic_bool logged_stage_d_ok = false;
+    std::atomic_bool logged_stage_d_fail = false;
+    std::atomic_bool logged_stage_e_ok = false;
+    std::atomic_bool logged_stage_f_ok = false;
+    std::atomic_bool logged_tex_create = false;
+    std::atomic_bool logged_tex_success = false;
+    std::atomic_bool logged_tex_failure = false;
+  };
+
+  static SKF1_RuntimeStatus s_skf1;
+  static DWORD s_pidCached = 0;  // For reset detection only
+  static std::atomic_bool s_logged_swapchain_once = false;
+
+  // D3D12 resources
+  static ID3D12CommandAllocator*      s_d3d12_cmd_allocator     = nullptr;
+  static ID3D12GraphicsCommandList*   s_d3d12_cmd_list          = nullptr;
+  static ID3D12Resource*              s_d3d12_staging_texture   = nullptr;
+  static ID3D12Resource*              s_d3d12_upload_buffer     = nullptr;
+  static ID3D12CommandQueue*          s_d3d12_cmd_queue         = nullptr;
+
+  auto _SidecarLog = [&](const wchar_t* fmt, ...)
+  {
+    if (! SidecarK_DiagnosticsEnabled ())
+      return;
+
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+    if (cch == 0 || cch >= MAX_PATH)
+      return;
+
+    wcscat_s (path, L"SidecarK_Overlay.log");
+
+    FILE* f = nullptr;
+    _wfopen_s (&f, path, L"a+, ccs=UTF-8");
+    if (f == nullptr)
+      return;
+
+    SYSTEMTIME st = { };
+    GetLocalTime (&st);
+
+    fwprintf (f, L"%04u-%02u-%02u %02u:%02u:%02u.%03u pid=%lu ",
+              st.wYear, st.wMonth, st.wDay,
+              st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
+              (unsigned long)GetCurrentProcessId ());
+
+    va_list args;
+    va_start (args, fmt);
+    vfwprintf (f, fmt, args);
+    va_end (args);
+
+    fwprintf (f, L"\n");
+    fclose (f);
+  };
+
+  auto _ReleaseMappedOverlay = [&]()
+  {
+    if (s_skf1.tex != nullptr)
+    {
+      s_skf1.tex->Release ();
+      s_skf1.tex = nullptr;
+    }
+
+    s_skf1.texFmt = DXGI_FORMAT_UNKNOWN;
+
+    if (s_skf1.view_ptr != nullptr)
+    {
+      UnmapViewOfFile (s_skf1.view_ptr);
+      s_skf1.view_ptr = nullptr;
+      s_skf1.view_bytes = 0;
+    }
+
+    if (s_skf1.hMap != nullptr)
+    {
+      CloseHandle (s_skf1.hMap);
+      s_skf1.hMap = nullptr;
+    }
+
+    // Reset header and state
+    memset(s_skf1.magic, 0, sizeof(s_skf1.magic));
+    s_skf1.version = 0;
+    s_skf1.header_bytes = 0;
+    s_skf1.data_offset = 0;
+    s_skf1.pixel_format = 0;
+    s_skf1.width = 0;
+    s_skf1.height = 0;
+    s_skf1.stride = 0;
+    s_skf1.last_counter = 0;
+    s_skf1.has_frame = false;
+  };
+
+  // STAGE A: PID + Name Selection (no churn)
+  static DWORD s_pid = 0;
+  const DWORD pidNow = GetCurrentProcessId();
+  
+  // First call: initialize s_pid without reset
+  if (s_pid == 0)
+  {
+    s_pid = pidNow;
+    s_pidCached = pidNow;
+    s_skf1.last_pid = pidNow;
+  }
+  // Real PID change: reset and update
+  else if (pidNow != s_pid)
+  {
+    _ReleaseMappedOverlay();
+    s_pidCached = 0;  // Force remap on next iteration
+    s_pid = pidNow;
+    s_skf1.last_pid = pidNow;
+
+    // Reset all transition markers
+    s_skf1.logged_enabled_on.store(false);
+    s_skf1.logged_stage_a_ok.store(false);
+    s_skf1.logged_stage_b_ok.store(false);
+    s_skf1.logged_stage_b_fail.store(false);
+    s_skf1.logged_stage_c_ok.store(false);
+    s_skf1.logged_stage_c_fail.store(false);
+    s_skf1.logged_stage_d_ok.store(false);
+    s_skf1.logged_stage_d_fail.store(false);
+    s_skf1.logged_stage_e_ok.store(false);
+    s_skf1.logged_stage_f_ok.store(false);
+
+    _SidecarLog(L"pid-change: reset overlay mapping state (old=%lu new=%lu)", (unsigned long)s_pidCached, (unsigned long)pidNow);
+  }
+  // After reset: remap
+  else if (s_pidCached == 0 && pidNow == s_pid)
+  {
+    s_pidCached = pidNow;
+    s_skf1.last_pid = pidNow;
+  }
+
+  if (! s_logged_swapchain_once.exchange (true))
+  {
+    DXGI_SWAP_CHAIN_DESC scd = { };
+    if (SUCCEEDED (pReal->GetDesc (&scd)))
+    {
+      SK_LOGi0 (L"SidecarK: swapchain=%p hwnd=%p fmt=%d bufCount=%u windowed=%d", pReal, scd.OutputWindow, (int)scd.BufferDesc.Format, scd.BufferCount, scd.Windowed);
+      _SidecarLog (L"swapchain=%p hwnd=%p fmt=%d bufCount=%u windowed=%d", pReal, scd.OutputWindow, (int)scd.BufferDesc.Format, scd.BufferCount, scd.Windowed);
+    }
+
+    IUnknown* devUnk = nullptr;
+    if (SUCCEEDED (pReal->GetDevice (__uuidof (ID3D11Device), (void **)&devUnk)) && devUnk != nullptr)
+    {
+      devUnk->Release ();
+      SK_LOGi0 (L"SidecarK: Present is running on a D3D11 swapchain");
+      _SidecarLog (L"device=D3D11");
+    }
+    else if (SUCCEEDED (pReal->GetDevice (__uuidof (ID3D12Device), (void **)&devUnk)) && devUnk != nullptr)
+    {
+      devUnk->Release ();
+      SK_LOGi0 (L"SidecarK: Present is running on a D3D12 swapchain");
+      _SidecarLog (L"device=D3D12");
+    }
+    else
+    {
+      SK_LOGi0 (L"SidecarK: Present swapchain device is not D3D11 or D3D12");
+      _SidecarLog (L"device=unknown (not D3D11/D3D12)");
+    }
+  }
+
+  // ============================================================================
+  // SKF1 SELF-AUDITING PIPELINE
+  // Every stage has explicit OK/FAIL markers with GetLastError() capture
+  // ============================================================================
+
+  // Log enabled status once
+  if (!s_skf1.logged_enabled_on.exchange(true))
+  {
+    _SidecarLog(L"SKF1 enabled default ON");
+  }
+
+  // Check gate (disabled for Phase-1)
+  if (false && ! SK_ImGui_Visible)
+  {
+    if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_GateSkip);
+    return
+      SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                  nullptr, SK_DXGI_PresentSource::Wrapper );
+  }
+
+  // --------------------------------------------------------------------------
+  // STAGE A: PID + Name Selection
+  // --------------------------------------------------------------------------
+  if (s_skf1.hMap == nullptr || s_skf1.view_ptr == nullptr)
+  {
+    wsprintfW (s_skf1.mapping_name, L"Local\\SidecarK_Frame_v1_%lu", (unsigned long)s_skf1.last_pid);
+
+    if (!s_skf1.logged_stage_a_ok.exchange(true))
+    {
+      _SidecarLog(L"SKF1 Stage A: name=%ls pid=%lu", s_skf1.mapping_name, (unsigned long)s_skf1.last_pid);
+    }
+
+    // ------------------------------------------------------------------------
+    // STAGE B: OpenFileMappingW
+    // ------------------------------------------------------------------------
+    SetLastError (ERROR_SUCCESS);
+    s_skf1.hMap = OpenFileMappingW (FILE_MAP_READ, FALSE, s_skf1.mapping_name);
+    s_skf1.last_open_gle = GetLastError ();
+
+    if (s_skf1.hMap == nullptr)
+    {
+      // STAGE B FAIL
+      if (!s_skf1.logged_stage_b_fail.exchange(true))
+      {
+        _SidecarLog(L"SKF1 Stage B FAIL: OpenFileMappingW name=%ls gle=%lu", 
+                    s_skf1.mapping_name, (unsigned long)s_skf1.last_open_gle);
+      }
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_OpenFail);
+      _ReleaseMappedOverlay ();
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
+
+    // STAGE B OK
+    if (!s_skf1.logged_stage_b_ok.exchange(true))
+    {
+      _SidecarLog(L"SKF1 Stage B OK: OpenFileMappingW name=%ls hMap=%p", 
+                  s_skf1.mapping_name, (void*)s_skf1.hMap);
+    }
+
+    // ------------------------------------------------------------------------
+    // STAGE C: MapViewOfFile (map whole object, no size dependence)
+    // ------------------------------------------------------------------------
+    SetLastError (ERROR_SUCCESS);
+    s_skf1.view_ptr = (uint8_t *)MapViewOfFile (s_skf1.hMap, FILE_MAP_READ, 0, 0, 0);
+    s_skf1.last_view_gle = GetLastError ();
+
+    if (s_skf1.view_ptr == nullptr)
+    {
+      // STAGE C FAIL
+      if (!s_skf1.logged_stage_c_fail.exchange(true))
+      {
+        _SidecarLog(L"SKF1 Stage C FAIL: MapViewOfFile name=%ls hMap=%p gle=%lu", 
+                    s_skf1.mapping_name, (void*)s_skf1.hMap, (unsigned long)s_skf1.last_view_gle);
+      }
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_MapFail);
+      _ReleaseMappedOverlay ();
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
+
+    // Query actual mapped size (optional, for diagnostics)
+    MEMORY_BASIC_INFORMATION mbi = { };
+    if (VirtualQuery(s_skf1.view_ptr, &mbi, sizeof(mbi)))
+    {
+      s_skf1.view_bytes = mbi.RegionSize;
+    }
+
+    // STAGE C OK
+    if (!s_skf1.logged_stage_c_ok.exchange(true))
+    {
+      _SidecarLog(L"SKF1 Stage C OK: MapViewOfFile base=%p bytes=%llu", 
+                  (void*)s_skf1.view_ptr, (unsigned long long)s_skf1.view_bytes);
+    }
+
+    // ------------------------------------------------------------------------
+    // STAGE D: Header Read/Validate
+    // ------------------------------------------------------------------------
+    const uint8_t* p = s_skf1.view_ptr;
+    
+    // Read header fields into struct
+    memcpy(s_skf1.magic, p + 0, 4);
+    s_skf1.version       = *(const uint32_t *)(p + 0x04);
+    s_skf1.header_bytes  = *(const uint32_t *)(p + 0x08);
+    s_skf1.data_offset   = *(const uint32_t *)(p + 0x0C);
+    s_skf1.pixel_format  = *(const uint32_t *)(p + 0x10);
+    s_skf1.width         = *(const uint32_t *)(p + 0x14);
+    s_skf1.height        = *(const uint32_t *)(p + 0x18);
+    s_skf1.stride        = *(const uint32_t *)(p + 0x1C);
+
+    // Validate header
+    const uint32_t expected_magic = '1FKS';
+    const bool magic_ok   = (memcmp(s_skf1.magic, &expected_magic, 4) == 0);
+    const bool version_ok = (s_skf1.version == 1);
+    const bool header_ok  = (s_skf1.header_bytes >= 0x20u);
+    const bool offset_ok  = (s_skf1.data_offset >= 0x24u);
+    const bool format_ok  = (s_skf1.pixel_format == 1);
+    const bool dims_ok    = (s_skf1.width > 0 && s_skf1.height > 0 && s_skf1.stride > 0);
+    const bool stride_ok  = (s_skf1.stride >= s_skf1.width * 4 && s_skf1.stride <= s_skf1.width * 16);
+    
+    const uint64_t counter_off = (uint64_t)s_skf1.data_offset - 4ull;
+    const bool counter_pos_ok = (counter_off + 4ull == (uint64_t)s_skf1.data_offset);
+    
+    const uint64_t payload_bytes = (uint64_t)s_skf1.stride * (uint64_t)s_skf1.height;
+    const uint64_t pixel_end = (uint64_t)s_skf1.data_offset + payload_bytes;
+    const uint64_t kMaxMappingSize = 64ull * 1024ull * 1024ull;
+    const bool size_ok = (payload_bytes > 0 && pixel_end <= kMaxMappingSize);
+
+    if (!magic_ok || !version_ok || !header_ok || !offset_ok || !format_ok || 
+        !dims_ok || !stride_ok || !counter_pos_ok || !size_ok)
+    {
+      // STAGE D FAIL - dump all header fields for diagnosis
+      if (!s_skf1.logged_stage_d_fail.exchange(true))
+      {
+        _SidecarLog(L"SKF1 Stage D FAIL: Header validation - "
+                    L"magic=%c%c%c%c ver=%u hdr_bytes=%u data_off=%u fmt=%u w=%u h=%u stride=%u "
+                    L"[magic_ok=%d ver_ok=%d hdr_ok=%d off_ok=%d fmt_ok=%d dims_ok=%d stride_ok=%d counter_ok=%d size_ok=%d]",
+                    s_skf1.magic[0], s_skf1.magic[1], s_skf1.magic[2], s_skf1.magic[3],
+                    s_skf1.version, s_skf1.header_bytes, s_skf1.data_offset, s_skf1.pixel_format,
+                    s_skf1.width, s_skf1.height, s_skf1.stride,
+                    magic_ok, version_ok, header_ok, offset_ok, format_ok, dims_ok, stride_ok, counter_pos_ok, size_ok);
+      }
+      if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_HeaderReject);
+      _ReleaseMappedOverlay ();
+      return
+        SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
+                                    nullptr, SK_DXGI_PresentSource::Wrapper );
+    }
+
+    // STAGE D OK
+    if (!s_skf1.logged_stage_d_ok.exchange(true))
+    {
+      _SidecarLog(L"SKF1 Stage D OK: Header validated - w=%u h=%u stride=%u fmt=%u data_off=0x%X",
+                  s_skf1.width, s_skf1.height, s_skf1.stride, s_skf1.pixel_format, s_skf1.data_offset);
+    }
+  }  // End of Stage A-D header validation block
+
+  // DEBUG: Log that we're checking Stage E/F entry condition
+  static std::atomic<bool> s_logged_ef_check = false;
+  if (!s_logged_ef_check.exchange(true))
+  {
+    _SidecarLog(L"→ Checking Stage E/F entry: view_ptr=%p w=%u h=%u stride=%u fmt=%u",
+                s_skf1.view_ptr, s_skf1.width, s_skf1.height, s_skf1.stride, s_skf1.pixel_format);
+  }
+
+  // --------------------------------------------------------------------------
+  // STAGE E/F: Upload (if stable) + Always Blit (last-good frame)
+  // CRITICAL: This MUST happen BEFORE PresentBase() so overlay is visible!
+  // --------------------------------------------------------------------------
+  if (s_skf1.view_ptr != nullptr && s_skf1.width > 0 && s_skf1.height > 0 && 
+      s_skf1.stride > 0 && s_skf1.pixel_format == 1)
+  {
+    static std::atomic<bool> s_logged_ef_entered = false;
+    if (!s_logged_ef_entered.exchange(true))
+    {
+      _SidecarLog(L"→ Stage E/F block ENTERED - starting composite");
+    }
+    const uint64_t counter_off = (uint64_t)s_skf1.data_offset - 4ull;
+    volatile LONG* counter_ptr = (volatile LONG*)(s_skf1.view_ptr + (size_t)counter_off);
+    
+    // STAGE E: Stable read protocol - read c1, validate/upload, read c2
+    const LONG c1 = *counter_ptr;
+
+    static std::atomic<ULONG64> s_last_overlay_log_frame = 0;
+    const  ULONG64              frame                    = SK_GetFramesDrawn ();
+
+    ID3D11Device*        dev = nullptr;
+    ID3D11DeviceContext* ctx = nullptr;
+
+    HRESULT hr =
+      pReal->GetDevice (__uuidof (ID3D11Device), (void **)&dev);
+
+    if (SUCCEEDED (hr) && dev != nullptr)
+    {
+      static std::atomic<bool> s_logged_d3d11_entry = false;
+      if (!s_logged_d3d11_entry.exchange(true))
+      {
+        _SidecarLog(L"→ Entered D3D11 composite block");
+      }
+
+      dev->GetImmediateContext (&ctx);
+
+      ID3D11Texture2D* bb = nullptr;
+
+      hr =
+        pReal->GetBuffer (0, __uuidof (ID3D11Texture2D), (void **)&bb);
+
+      if (SUCCEEDED (hr) && bb != nullptr && ctx != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC bbDesc = { };
+        bb->GetDesc (&bbDesc);
+
+        static std::atomic<bool> s_logged_format_check = false;
+        if (!s_logged_format_check.exchange(true))
+        {
+          wchar_t msg[256];
+          wsprintfW(msg, L"→ Backbuffer format: %u (B8G8R8A8=%u R8G8B8A8=%u R10G10B10A2=%u)", 
+                    bbDesc.Format, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM);
+          _SidecarLog(msg);
+        }
+
+        if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+            bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+            bbDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
+        {
+          const UINT copyW = 256u;  // Fixed: always 256×256 for overlay (don't use header width - frame producer may change it)
+          const UINT copyH = 256u;
+
+          if (s_skf1.tex == nullptr || s_skf1.texFmt != bbDesc.Format)
+          {
+            if (s_skf1.tex != nullptr)
+            {
+              s_skf1.tex->Release ();
+              s_skf1.tex = nullptr;
+            }
+
+            if (!s_skf1.logged_tex_create.exchange(true))
+            {
+              _SidecarLog(L"Attempting D3D11 texture creation: %ux%u format=%u (BGRA8)", copyW, copyH, DXGI_FORMAT_B8G8R8A8_UNORM);
+            }
+
+            D3D11_TEXTURE2D_DESC tdesc = { };
+            tdesc.Width              = copyW;
+            tdesc.Height             = copyH;
+            tdesc.MipLevels          = 1;
+            tdesc.ArraySize          = 1;
+            tdesc.Format             = DXGI_FORMAT_B8G8R8A8_UNORM;  // CRITICAL FIX: Always BGRA8 to match source data!
+            tdesc.SampleDesc.Count   = 1;
+            tdesc.SampleDesc.Quality = 0;
+            tdesc.Usage              = D3D11_USAGE_DYNAMIC;
+            tdesc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;  // DYNAMIC usage requires at least one bind flag
+            tdesc.CPUAccessFlags     = D3D11_CPU_ACCESS_WRITE;
+            tdesc.MiscFlags          = 0;
+
+            HRESULT hrTex = dev->CreateTexture2D (&tdesc, nullptr, &s_skf1.tex);
+            if (SUCCEEDED (hrTex) && s_skf1.tex != nullptr)
+            {
+              s_skf1.texFmt = DXGI_FORMAT_B8G8R8A8_UNORM;  // Store actual format: BGRA8
+              if (!s_skf1.logged_tex_success.exchange(true))
+              {
+                _SidecarLog(L"Texture created successfully: tex=%p format=%u", s_skf1.tex, s_skf1.texFmt);
+              }
+            }
+            else
+            {
+              if (!s_skf1.logged_tex_failure.exchange(true))
+              {
+                _SidecarLog(L"Texture creation FAILED: hr=0x%08X tex=%p", hrTex, s_skf1.tex);
+              }
+            }
+          }
+
+          // STAGE E: Try to upload new frame if we have texture
+          if (s_skf1.tex != nullptr)
+          {
+            static std::atomic<bool> s_logged_upload_attempt = false;
+            if (!s_logged_upload_attempt.exchange(true))
+            {
+              wchar_t msg[256];
+              wsprintfW(msg, L"→ Upload section: tex=%p c1=%ld last_counter=%ld", 
+                        s_skf1.tex, (long)c1, (long)s_skf1.last_counter);
+              _SidecarLog(msg);
+            }
+
+            D3D11_MAPPED_SUBRESOURCE mapped = { };
+
+            if (SUCCEEDED (ctx->Map (s_skf1.tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+            {
+              // Complete stable read: check c2
+              const LONG c2 = *counter_ptr;
+              const bool stable = (c1 == c2);
+              const bool valid = (c1 != 0);
+              
+              // Only upload if stable AND valid AND counter changed
+              if (stable && valid)
+              {
+                const bool counter_changed = (c1 != s_skf1.last_counter);
+                
+                if (counter_changed || !s_skf1.has_frame)
+                {
+                  // Upload pixel data
+                  const uint8_t* srcBase = s_skf1.view_ptr + s_skf1.data_offset;
+          static std::atomic<bool> s_logged_upload_source = false;
+          if (!s_logged_upload_source.exchange(true)) {
+            _SidecarLog(L"→ Source: view_ptr=%p data_offset=0x%X srcBase=%p", 
+                        s_skf1.view_ptr, s_skf1.data_offset, srcBase);
+          }
+                  uint8_t*       dstBase = (uint8_t *)mapped.pData;
+
+                  const UINT dstPitch = mapped.RowPitch;
+                  static std::atomic<bool> s_logged_stride_pitch = false;
+                  if (!s_logged_stride_pitch.exchange(true))
+                  {
+                    _SidecarLog(L"→ Upload: stride=%u dstRowPitch=%u copyBytesPerRow=%u",
+                                s_skf1.stride, dstPitch, 256u * 4);
+                  }
+
+                  const UINT maxH = (UINT)std::min ((int)s_skf1.height, (int)copyH);
+                  const UINT maxW = (UINT)std::min ((int)s_skf1.width, (int)copyW);
+                  
+                  // Simple memcpy upload: both source and texture are BGRA8
+                  const UINT rowBytes = maxW * 4;
+                  for (UINT y = 0; y < maxH; ++y)
+                  {
+                    memcpy (dstBase + y * dstPitch,
+                            srcBase + (size_t)y * (size_t)s_skf1.stride,
+                            rowBytes);
+                  }
+
+                  s_skf1.last_counter = c1;
+                  s_skf1.has_frame = true;
+                  
+                  // STAGE E OK
+                  if (!s_skf1.logged_stage_e_ok.exchange(true))
+                  {
+                    _SidecarLog(L"SKF1 Stage E OK: Upload accepted counter=%ld has_frame=1", (long)c1);
+                  }
+                }
+              }
+              else
+              {
+                // Unstable or invalid - skip upload but DON'T clear has_frame
+                if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_SeqMismatch);
+              }
+
+              ctx->Unmap (s_skf1.tex, 0);
+            }
+            else
+            {
+              if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_MapFail);
+            }
+          }
+
+          // STAGE F: EPILOGUE - Always blit if we have a valid frame (last-good draw)
+          static std::atomic<bool> s_logged_blit_check = false;
+          if (!s_logged_blit_check.exchange(true))
+          {
+            wchar_t msg[256];
+            wsprintfW(msg, L"→ Blit check: has_frame=%d tex=%p", s_skf1.has_frame ? 1 : 0, s_skf1.tex);
+            _SidecarLog(msg);
+          }
+
+          if (s_skf1.has_frame && s_skf1.tex != nullptr)
+          {
+            // Check if formats match
+            const bool formats_match = (s_skf1.texFmt == bbDesc.Format);
+            
+            if (!formats_match)
+            {
+              // Format mismatch: BGRA8 texture vs R10G10B10A2 backbuffer
+              // CopySubresourceRegion does NOT perform format conversion!
+              static std::atomic<bool> s_logged_format_mismatch = false;
+              if (!s_logged_format_mismatch.exchange(true))
+              {
+                _SidecarLog(L"→ FORMAT MISMATCH: overlay tex=%u backbuffer=%u", s_skf1.texFmt, bbDesc.Format);
+                _SidecarLog(L"→ Cross-format CopySubresourceRegion not supported");
+                _SidecarLog(L"→ Overlay disabled until shader-based blit is implemented");
+              }
+              // Skip blit - need shader-based conversion
+            }
+            else
+            {
+              // Formats match - safe to use CopySubresourceRegion
+              D3D11_BOX srcBox = { 0, 0, 0, 256u, 256u, 1 };  // Fixed: always 256×256 overlay region
+              static std::atomic<bool> s_logged_blit_details = false;
+              if (!s_logged_blit_details.exchange(true))
+              {
+                _SidecarLog(L"→ Blit destination: bb=%p (backbuffer from GetBuffer(0))", bb);
+                _SidecarLog(L"→ Backbuffer format: %u, Overlay format: %u", bbDesc.Format, s_skf1.texFmt);
+                _SidecarLog(L"→ No backbuffer clear performed (composite only)");
+                _SidecarLog(L"→ Using CopySubresourceRegion (formats match)");
+              }
+              if (kEnableSKF1_SkipCounters) InterlockedIncrement (&g_SKF1_CompositeHit);
+              ctx->CopySubresourceRegion (bb, 0, 0, 0, 0, s_skf1.tex, 0, &srcBox);
+
+              // STAGE F OK
+              if (!s_skf1.logged_stage_f_ok.exchange(true))
+              {
+                _SidecarLog(L"SKF1 Stage F OK: Blit executed");
+              }
+            }
+
+            // Health signal: log successful composite periodically
+
+              // Health signal: log successful composite periodically
+            if (s_last_overlay_log_frame.load () + 120 < frame)
+            {
+              s_last_overlay_log_frame.store (frame);
+              _SidecarLog (L"SKF1 composite: swapchain=%p bbfmt=%d w=%u h=%u counter=%ld", 
+                          pReal, (int)bbDesc.Format, (UINT)s_skf1.width, (UINT)s_skf1.height, (long)c1);
+            }
+          }
+        }
+        else
+        {
+          static std::atomic<bool> s_logged_format_fail = false;
+          if (!s_logged_format_fail.exchange(true))
+          {
+            wchar_t msg[256];
+            wsprintfW(msg, L"→ Format check FAILED: bbDesc.Format=%u (not B8G8R8A8 or R8G8B8A8)", bbDesc.Format);
+            _SidecarLog(msg);
+          }
+        }
+
+        bb->Release ();
+      }
+    }
+
+    if (ctx != nullptr) ctx->Release ();
+    if (dev != nullptr) dev->Release ();
+  }
+  // ============================================================================
+  // D3D12 COMPOSITING PATH - FULL IMPLEMENTATION
+  // ============================================================================
+  else
+  {
+    ID3D12Device* dev12 = nullptr;
+    HRESULT hr12 = pReal->GetDevice(__uuidof(ID3D12Device), (void**)&dev12);
+    
+    if (SUCCEEDED(hr12) && dev12 != nullptr)
+    {
+      // Get command queue from device
+      ID3D12CommandQueue* cmdQueue = nullptr;
+      D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+      queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+      queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+      dev12->CreateCommandQueue(&queueDesc, __uuidof(ID3D12CommandQueue), (void**)&cmdQueue);
+      
+      ID3D12Resource* bb12 = nullptr;
+      hr12 = pReal->GetBuffer(0, __uuidof(ID3D12Resource), (void**)&bb12);
+      
+      if (SUCCEEDED(hr12) && bb12 != nullptr && cmdQueue != nullptr)
+      {
+        D3D12_RESOURCE_DESC bbDesc = bb12->GetDesc();
+        
+        if (bbDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+            bbDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+        {
+          // STAGE E: Upload pixels if we have new frame data
+          if (s_skf1.view_ptr != nullptr && s_skf1.width > 0 && s_skf1.height > 0)
+          {
+            volatile LONG* counter_ptr12 = (volatile LONG*)(s_skf1.view_ptr + (s_skf1.data_offset - 4));
+            const LONG c1_12 = *counter_ptr12;
+            
+            if (c1_12 != 0)
+            {
+              const bool counter_changed = (c1_12 != s_skf1.last_counter);
+              
+              if (counter_changed || !s_skf1.has_frame)
+              {
+                // Create upload buffer and staging texture if needed
+                // (Variables declared globally at top of file)
+                
+                // Create command allocator if needed
+                if (s_d3d12_cmd_allocator == nullptr)
+                {
+                  dev12->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                    __uuidof(ID3D12CommandAllocator), (void**)&s_d3d12_cmd_allocator);
+                }
+                
+                // Create command list if needed
+                if (s_d3d12_cmd_list == nullptr && s_d3d12_cmd_allocator != nullptr)
+                {
+                  dev12->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                    s_d3d12_cmd_allocator, nullptr,
+                    __uuidof(ID3D12GraphicsCommandList), (void**)&s_d3d12_cmd_list);
+                  s_d3d12_cmd_list->Close(); // Start closed
+                }
+                
+                const UINT64 uploadBufferSize = s_skf1.stride * s_skf1.height;
+                
+                // Create upload buffer if needed
+                if (s_d3d12_upload_buffer == nullptr)
+                {
+                  D3D12_HEAP_PROPERTIES uploadHeapProps = {};
+                  uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+                  
+                  D3D12_RESOURCE_DESC uploadBufferDesc = {};
+                  uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+                  uploadBufferDesc.Width = uploadBufferSize;
+                  uploadBufferDesc.Height = 1;
+                  uploadBufferDesc.DepthOrArraySize = 1;
+                  uploadBufferDesc.MipLevels = 1;
+                  uploadBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+                  uploadBufferDesc.SampleDesc.Count = 1;
+                  uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+                  
+                  dev12->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE,
+                    &uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr, __uuidof(ID3D12Resource), (void**)&s_d3d12_upload_buffer);
+                }
+                
+                // Create staging texture if needed
+                if (s_d3d12_staging_texture == nullptr)
+                {
+                  D3D12_HEAP_PROPERTIES defaultHeapProps = {};
+                  defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+                  
+                  D3D12_RESOURCE_DESC texDesc = {};
+                  texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+                  texDesc.Width = s_skf1.width;
+                  texDesc.Height = s_skf1.height;
+                  texDesc.DepthOrArraySize = 1;
+                  texDesc.MipLevels = 1;
+                  texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+                  texDesc.SampleDesc.Count = 1;
+                  texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+                  
+                  dev12->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE,
+                    &texDesc, D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr, __uuidof(ID3D12Resource), (void**)&s_d3d12_staging_texture);
+                }
+                
+                // Upload pixel data
+                if (s_d3d12_upload_buffer != nullptr && s_d3d12_staging_texture != nullptr &&
+                    s_d3d12_cmd_allocator != nullptr && s_d3d12_cmd_list != nullptr)
+                {
+                  // Map and copy pixel data to upload buffer
+                  void* uploadData = nullptr;
+                  D3D12_RANGE readRange = {0, 0};
+                  hr12 = s_d3d12_upload_buffer->Map(0, &readRange, &uploadData);
+                  
+                  if (SUCCEEDED(hr12) && uploadData != nullptr)
+                  {
+                    const uint8_t* srcPixels = s_skf1.view_ptr + s_skf1.data_offset;
+                    memcpy(uploadData, srcPixels, static_cast<size_t>(uploadBufferSize));
+                    s_d3d12_upload_buffer->Unmap(0, nullptr);
+                    
+                    // Record upload commands
+                    s_d3d12_cmd_allocator->Reset();
+                    s_d3d12_cmd_list->Reset(s_d3d12_cmd_allocator, nullptr);
+                    
+                    D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+                    srcLoc.pResource = s_d3d12_upload_buffer;
+                    srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+                    srcLoc.PlacedFootprint.Footprint.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+                    srcLoc.PlacedFootprint.Footprint.Width = s_skf1.width;
+                    srcLoc.PlacedFootprint.Footprint.Height = s_skf1.height;
+                    srcLoc.PlacedFootprint.Footprint.Depth = 1;
+                    srcLoc.PlacedFootprint.Footprint.RowPitch = s_skf1.stride;
+                    
+                    D3D12_TEXTURE_COPY_LOCATION dstLoc = {};
+                    dstLoc.pResource = s_d3d12_staging_texture;
+                    dstLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+                    dstLoc.SubresourceIndex = 0;
+                    
+                    s_d3d12_cmd_list->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+                    
+                    s_d3d12_cmd_list->Close();
+                    
+                    ID3D12CommandList* cmdLists[] = {s_d3d12_cmd_list};
+                    cmdQueue->ExecuteCommandLists(1, cmdLists);
+                    
+                    s_skf1.last_counter = c1_12;
+                    s_skf1.has_frame = true;
+                    
+                    if (!s_skf1.logged_stage_e_ok.exchange(true))
+                    {
+                      _SidecarLog(L"SKF1 Stage E OK: D3D12 upload accepted counter=%ld has_frame=1", (long)c1_12);
+                    }
+                  }
+                }
+              }
+              
+              // STAGE F: Blit staging texture to backbuffer
+              if (s_skf1.has_frame && s_d3d12_staging_texture != nullptr &&
+                  s_d3d12_cmd_allocator != nullptr && s_d3d12_cmd_list != nullptr)
+              {
+                // Record blit commands
+                s_d3d12_cmd_allocator->Reset();
+                s_d3d12_cmd_list->Reset(s_d3d12_cmd_allocator, nullptr);
+                
+                // Transition backbuffer to COPY_DEST
+                D3D12_RESOURCE_BARRIER barrierToCopyDest = {};
+                barrierToCopyDest.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrierToCopyDest.Transition.pResource = bb12;
+                barrierToCopyDest.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+                barrierToCopyDest.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+                barrierToCopyDest.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                s_d3d12_cmd_list->ResourceBarrier(1, &barrierToCopyDest);
+                
+                // Transition staging texture to COPY_SOURCE
+                D3D12_RESOURCE_BARRIER barrierToSrc = {};
+                barrierToSrc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrierToSrc.Transition.pResource = s_d3d12_staging_texture;
+                barrierToSrc.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+                barrierToSrc.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+                barrierToSrc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                s_d3d12_cmd_list->ResourceBarrier(1, &barrierToSrc);
+                
+                // Copy staging texture to backbuffer
+                D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+                srcLoc.pResource = s_d3d12_staging_texture;
+                srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+                srcLoc.SubresourceIndex = 0;
+                
+                D3D12_TEXTURE_COPY_LOCATION dstLoc = {};
+                dstLoc.pResource = bb12;
+                dstLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+                dstLoc.SubresourceIndex = 0;
+                
+                D3D12_BOX srcBox = {};
+                srcBox.right = s_skf1.width;
+                srcBox.bottom = s_skf1.height;
+                srcBox.back = 1;
+                
+                s_d3d12_cmd_list->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, &srcBox);
+                
+                // Transition staging texture back to COPY_DEST for next upload
+                D3D12_RESOURCE_BARRIER barrierToDest = {};
+                barrierToDest.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrierToDest.Transition.pResource = s_d3d12_staging_texture;
+                barrierToDest.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+                barrierToDest.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+                barrierToDest.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                s_d3d12_cmd_list->ResourceBarrier(1, &barrierToDest);
+                
+                // Transition backbuffer back to PRESENT
+                D3D12_RESOURCE_BARRIER barrierToPresent = {};
+                barrierToPresent.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrierToPresent.Transition.pResource = bb12;
+                barrierToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+                barrierToPresent.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+                barrierToPresent.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                s_d3d12_cmd_list->ResourceBarrier(1, &barrierToPresent);
+                
+                s_d3d12_cmd_list->Close();
+                
+                ID3D12CommandList* cmdLists[] = {s_d3d12_cmd_list};
+                cmdQueue->ExecuteCommandLists(1, cmdLists);
+                
+                if (!s_skf1.logged_stage_f_ok.exchange(true))
+                {
+                  _SidecarLog(L"SKF1 Stage F OK: D3D12 blit executed");
+                }
+              }
+            }
+          }
+        }
+        
+        bb12->Release();
+      }
+      
+      if (cmdQueue != nullptr) cmdQueue->Release();
+      dev12->Release();
+    }
+  }  // End of Stage E/F block (opened at line 1325)
+
+  // Now that overlay is composited, do the actual Present
   if (0 == PresentBase ())
   {
     SyncInterval = 0;
@@ -1260,7 +2407,149 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
                                UINT                     PresentFlags,
                          const DXGI_PRESENT_PARAMETERS *pPresentParameters )
 {
+  static volatile LONG s_hits_dxgi_Present1 = 0;
+  if (InterlockedIncrement (&s_hits_dxgi_Present1) <= 50)
+  {
+    const DWORD pid = GetCurrentProcessId ();
+    const DWORD tid = GetCurrentThreadId  ();
+
+    wchar_t wszTempPath [MAX_PATH] = { };
+    wchar_t wszPath     [MAX_PATH] = { };
+
+    DWORD cch = GetTempPathW (MAX_PATH, wszTempPath);
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wsprintfW (wszPath, L"%ssk_backend_route_%lu.txt", wszTempPath, (unsigned long)pid);
+
+      HANDLE hFile =
+        CreateFileW ( wszPath,
+                      FILE_APPEND_DATA,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL,
+                      nullptr );
+
+      if (hFile != INVALID_HANDLE_VALUE)
+      {
+        SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+        wchar_t wszLine [256] = { };
+        const int lenChars =
+          _snwprintf_s ( wszLine, _TRUNCATE,
+                         L"route backend=dxgi_present func=Present1 pid=%lu tid=%lu\r\n",
+                         (unsigned long)pid,
+                         (unsigned long)tid );
+
+        DWORD dwWritten = 0;
+        BOOL  okWrite   = FALSE;
+
+        if (lenChars > 0)
+        {
+          const DWORD cbToWrite = (DWORD)lenChars * sizeof (wchar_t);
+          okWrite = WriteFile (hFile, wszLine, cbToWrite, &dwWritten, nullptr);
+          if (! (okWrite == TRUE && dwWritten == cbToWrite))
+            OutputDebugStringA ("sk_backend_route: WriteFile failed (DXGI Present1)\n");
+        }
+
+        CloseHandle (hFile);
+      }
+      else
+      {
+        OutputDebugStringA ("sk_backend_route: CreateFileW failed (DXGI Present1)\n");
+      }
+    }
+  }
+
+  static LONG s_once_wrap_present1 = 0;
+  if (InterlockedCompareExchange (&s_once_wrap_present1, 1, 0) == 0)
+    SK_DXGI_WriteHitFile ("wrap_present1", (void *)this, (void *)&SK_DXGI_DispatchPresent1);
+
   assert (ver_ >= 1);
+
+  static volatile LONG __sk_dxgi_probe_once = 0;
+  if (InterlockedCompareExchange (&__sk_dxgi_probe_once, 1, 0) == 0)
+  {
+    wchar_t path [MAX_PATH] = { };
+    DWORD cch = GetTempPathW (MAX_PATH, path);
+
+    if (cch > 0 && cch < MAX_PATH)
+    {
+      wcscat_s (path, L"sk_dxgi_probe.txt");
+
+      FILE* f = nullptr;
+      _wfopen_s (&f, path, L"w+, ccs=UTF-8");
+
+      if (f != nullptr)
+      {
+        void* this_ptr = (void*)this;
+
+        void** vtbl = nullptr;
+        __try
+        {
+          if (this_ptr != nullptr)
+            vtbl = *(void***)this_ptr;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          vtbl = nullptr;
+        }
+
+        fwprintf (f, L"This=%p\n", this_ptr);
+        fwprintf (f, L"Vtbl=%p\n", vtbl);
+
+        bool present_detour_found  = false;
+        bool present1_detour_found = false;
+
+        auto __sk_present_probe =
+          +[](IDXGISwapChain* pSwapChain, UINT si, UINT fl) -> HRESULT
+        {
+          return ((IWrapDXGISwapChain*)pSwapChain)->Present (si, fl);
+        };
+
+        auto __sk_present1_probe =
+          +[](IDXGISwapChain1* pSwapChain, UINT si, UINT fl, const DXGI_PRESENT_PARAMETERS* p) -> HRESULT
+        {
+          return ((IWrapDXGISwapChain*)pSwapChain)->Present1 (si, fl, p);
+        };
+
+        void* present_probe  = (void*)(__sk_present_probe);
+        void* present1_probe = (void*)(__sk_present1_probe);
+
+        if (vtbl != nullptr)
+        {
+          for (int i = 0; i < 25; ++i)
+          {
+            void* fn = nullptr;
+            __try
+            {
+              fn = vtbl[i];
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+              fn = nullptr;
+            }
+
+            fwprintf (f, L"vtbl[%02d]=%p\n", i, fn);
+
+            if (fn == present_probe)
+              present_detour_found = true;
+            if (fn == present1_probe)
+              present1_detour_found = true;
+          }
+        }
+        else
+        {
+          fwprintf (f, L"vtbl[00..24]=<unavailable>\n");
+        }
+
+        fwprintf (f, L"PresentPatched=%s\n",  present_detour_found  ? L"YES" : L"NO");
+        fwprintf (f, L"Present1Patched=%s\n", present1_detour_found ? L"YES" : L"NO");
+
+        fclose (f);
+      }
+    }
+  }
 
   SK_GetCurrentRenderBackend ().in_present_call = true;
 

@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
 <a href="https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml"><img src="https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml/badge.svg" alt="Builds"></a>&nbsp;
 <a href="https://discord.gg/SpecialK"><img alt="Discord" src="https://img.shields.io/discord/778539700981071872?logo=discord&label=Discord"></a>
 </p>
@@ -50,3 +50,34 @@ There are many more possible ways to inject the DLLs, the two outlined above are
 Special K will happily inject into a game that is already running if you want to build your own tool using something like **`CreateRemoteThread (...)`**, but keep in mind that late injection will prevent some of Special K's features (particularly those related to D3D overrides and shader/texture mods) from working.
 
 > CBT Hooks were chosen due to hookchain order. Since most graphics APIs on Windows need a window before they can do non-trivial initialization, a CBT hook reliably gets us into the application ***before*** D3D9/11/12 swapchain creation.
+
+---
+
+## SidecarK control-plane ABI (frozen)
+
+This section is the single source of truth for the `SidecarKHost` control-plane contract.
+
+### Named pipe
+
+- Pipe: `\\.\pipe\SidecarK_Control_<pid>`
+- Encoding: ASCII
+- Line termination: `\n` ONLY
+
+### Commands / responses
+
+- `ping\n`        -> `pong\n`
+- `overlay off\n` -> `ok\n`
+- `overlay on\n`  -> `ok\n`
+
+### Shared memory mapping
+
+- Mapping: `Local\SidecarK_Control_<pid>`
+- Layout:
+  - offset `0x00`: `SKC1`
+  - offset `0x04`: `uint32` version = `1`
+  - offset `0x08`: `uint32` overlay_enabled
+
+### Semantics
+
+- `overlay_enabled` gates OSD visibility ONLY.
+- ImGui control panel is NOT gated in this version.

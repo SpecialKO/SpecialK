@@ -2160,6 +2160,101 @@ D3D9Swap_Present ( IDirect3DSwapChain9 *This,
         _In_ const RGNDATA             *pDirtyRegion,
         _In_       DWORD                dwFlags )
 {
+  auto append_tick = [](const wchar_t* name, const char* line) {
+    wchar_t path[MAX_PATH] = {};
+    GetTempPathW(MAX_PATH, path);
+    wcscat_s(path, name);
+    HANDLE h = CreateFileW(path, FILE_APPEND_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h != INVALID_HANDLE_VALUE) {
+      DWORD n = 0;
+      WriteFile(h, line, (DWORD)strlen(line), &n, nullptr);
+      CloseHandle(h);
+    }
+  };
+
+  static DWORD last = 0;
+  if (GetTickCount() - last >= 1000) { last = GetTickCount(); append_tick(L"sk_tick_d3d9_present.txt", "tick d3d9 present\n"); }
+
+  {
+    static  LONG s_count = 0;
+    const LONG  n       = InterlockedIncrement (&s_count);
+
+    if (n <= 10)
+    {
+      const DWORD     pid    = GetCurrentProcessId ();
+      const ULONGLONG now_ms = GetTickCount64      ();
+
+      wchar_t wszTempPath [MAX_PATH] = { };
+      wchar_t wszFilePath [MAX_PATH] = { };
+      wchar_t wszLine     [96]       = { };
+
+      const DWORD cchTemp =
+        GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+      if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+      {
+        wsprintfW ( wszFilePath, L"%ssk_overlay_HIT_d3d9_%lu.txt", wszTempPath, (unsigned long)pid );
+        wsprintfW ( wszLine,     L"HIT d3d9 %lu %llu\r\n",        (unsigned long)pid, (unsigned long long)now_ms );
+
+        HANDLE hFile =
+          CreateFileW ( wszFilePath, FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                        nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+          SetFilePointer (hFile, 0, nullptr, FILE_END);
+
+          DWORD        cbWritten = 0;
+          const DWORD  cch       = (DWORD)lstrlenW (wszLine);
+          WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
+          CloseHandle (hFile);
+        }
+      }
+    }
+  }
+
+  // %TEMP% proof logging disabled (use in-frame blink overlay instead)
+  #if 0
+  {
+    static ULONGLONG last_ms = 0ULL;
+    const ULONGLONG  now_ms  = GetTickCount64 ();
+
+    if (now_ms - last_ms >= 1000ULL)
+    {
+      last_ms = now_ms;
+
+      const DWORD pid = GetCurrentProcessId ();
+
+      wchar_t wszTempPath [MAX_PATH] = { };
+      wchar_t wszFilePath [MAX_PATH] = { };
+      wchar_t wszLine     [96]       = { };
+
+      const DWORD cchTemp =
+        GetTempPathW ((DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])), wszTempPath);
+
+      if (cchTemp != 0 && cchTemp < (DWORD)(sizeof (wszTempPath) / sizeof (wszTempPath[0])))
+      {
+        wsprintfW ( wszFilePath, L"%ssk_overlay_tick_d3d9_%lu.txt", wszTempPath, (unsigned long)pid );
+        wsprintfW ( wszLine,     L"tick d3d9 %lu %llu\r\n",         (unsigned long)pid, (unsigned long long)now_ms );
+
+        HANDLE hFile =
+          CreateFileW ( wszFilePath, FILE_APPEND_DATA,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                        nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
+
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+          DWORD        cbWritten = 0;
+          const DWORD  cch       = (DWORD)lstrlenW (wszLine);
+          WriteFile (hFile, wszLine, cch * sizeof (wchar_t), &cbWritten, nullptr);
+          CloseHandle (hFile);
+        }
+      }
+    }
+  }
+  #endif
+
  if (This == nullptr)
     return E_NOINTERFACE;
 
@@ -2167,6 +2262,23 @@ D3D9Swap_Present ( IDirect3DSwapChain9 *This,
 
   if (SUCCEEDED (This->GetDevice (&pDevice.p)) && pDevice != nullptr)
   {
+    {
+      static uint32_t s_frame = 0;
+      const bool blink = ((++s_frame % 120) < 2);
+
+      if (blink)
+      {
+        IDirect3DSurface9* back = nullptr;
+
+        if (SUCCEEDED (pDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &back)) &&
+                        back != nullptr)
+        {
+          pDevice->ColorFill (back, nullptr, D3DCOLOR_ARGB (255, 255, 0, 255));
+          back->Release ();
+        }
+      }
+    }
+
     sk_d3d9_swap_dispatch_s dispatch =
     {
       pDevice,             This,

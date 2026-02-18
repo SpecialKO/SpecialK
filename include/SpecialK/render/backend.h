@@ -112,13 +112,16 @@ struct sk_hwnd_cache_s
   bool       update     (HWND window);
 };
 
-constexpr
-float
-operator"" _Nits ( long double whitepoint_scalar ) noexcept
+constexpr float operator""_Nits(long double v) noexcept
 {
-  return
-    static_cast <float> ( whitepoint_scalar / 80.0F );
+  return static_cast<float>(v / 80.0L);
 }
+
+constexpr float operator""_Nits(unsigned long long v) noexcept
+{
+  return static_cast<float>(static_cast<long double>(v) / 80.0L);
+}
+
 
 #pragma pack(push,8)
 struct SK_ColorSpace {
