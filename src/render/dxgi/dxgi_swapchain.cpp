@@ -1577,15 +1577,16 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     if (ctx != nullptr) ctx->Release ();
     if (dev != nullptr) dev->Release ();
   }
+  }
   // ============================================================================
   // D3D12 COMPOSITING PATH - FULL IMPLEMENTATION
   // ============================================================================
   else
   {
     ID3D12Device* dev12 = nullptr;
-    HRESULT hr = pReal->GetDevice(__uuidof(ID3D12Device), (void**)&dev12);
+    HRESULT hr12 = pReal->GetDevice(__uuidof(ID3D12Device), (void**)&dev12);
     
-    if (SUCCEEDED(hr) && dev12 != nullptr)
+    if (SUCCEEDED(hr12) && dev12 != nullptr)
     {
       // Get command queue from device
       ID3D12CommandQueue* cmdQueue = nullptr;
@@ -1595,9 +1596,9 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
       dev12->CreateCommandQueue(&queueDesc, __uuidof(ID3D12CommandQueue), (void**)&cmdQueue);
       
       ID3D12Resource* bb12 = nullptr;
-      hr = pReal->GetBuffer(0, __uuidof(ID3D12Resource), (void**)&bb12);
+      hr12 = pReal->GetBuffer(0, __uuidof(ID3D12Resource), (void**)&bb12);
       
-      if (SUCCEEDED(hr) && bb12 != nullptr && cmdQueue != nullptr)
+      if (SUCCEEDED(hr12) && bb12 != nullptr && cmdQueue != nullptr)
       {
         D3D12_RESOURCE_DESC bbDesc = bb12->GetDesc();
         
@@ -1607,12 +1608,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
           // STAGE E: Upload pixels if we have new frame data
           if (s_skf1.view_ptr != nullptr && s_skf1.width > 0 && s_skf1.height > 0)
           {
-            volatile LONG* counter_ptr = (volatile LONG*)(s_skf1.view_ptr + (s_skf1.data_offset - 4));
-            const LONG c1 = *counter_ptr;
+            volatile LONG* counter_ptr12 = (volatile LONG*)(s_skf1.view_ptr + (s_skf1.data_offset - 4));
+            const LONG c1_12 = *counter_ptr12;
             
-            if (c1 != 0)
+            if (c1_12 != 0)
             {
-              const bool counter_changed = (c1 != s_skf1.last_counter);
+              const bool counter_changed = (c1_12 != s_skf1.last_counter);
               
               if (counter_changed || !s_skf1.has_frame)
               {
@@ -1686,9 +1687,9 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                   // Map and copy pixel data to upload buffer
                   void* uploadData = nullptr;
                   D3D12_RANGE readRange = {0, 0};
-                  hr = s_d3d12_upload_buffer->Map(0, &readRange, &uploadData);
+                  hr12 = s_d3d12_upload_buffer->Map(0, &readRange, &uploadData);
                   
-                  if (SUCCEEDED(hr) && uploadData != nullptr)
+                  if (SUCCEEDED(hr12) && uploadData != nullptr)
                   {
                     const uint8_t* srcPixels = s_skf1.view_ptr + s_skf1.data_offset;
                     memcpy(uploadData, srcPixels, static_cast<size_t>(uploadBufferSize));
@@ -1719,12 +1720,12 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
                     ID3D12CommandList* cmdLists[] = {s_d3d12_cmd_list};
                     cmdQueue->ExecuteCommandLists(1, cmdLists);
                     
-                    s_skf1.last_counter = c1;
+                    s_skf1.last_counter = c1_12;
                     s_skf1.has_frame = true;
                     
                     if (!s_skf1.logged_stage_e_ok.exchange(true))
                     {
-                      _SidecarLog(L"SKF1 Stage E OK: D3D12 upload accepted counter=%ld has_frame=1", (long)c1);
+                      _SidecarLog(L"SKF1 Stage E OK: D3D12 upload accepted counter=%ld has_frame=1", (long)c1_12);
                     }
                   }
                 }
