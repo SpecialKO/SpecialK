@@ -137,3 +137,16 @@ extern volatile LONG lResetD3D11;
 extern          bool bAlwaysAllowFullscreen;
 
 extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
+
+inline bool SK_CanModifySwapchain () {
+#if defined (_M_AMD64)
+  // default to false and won'b be modified unless Arknights:Endfield Plugin is loaded
+  extern bool __g_SK_AKEF_KeepOriginalSwapchain;
+  if (! SK_IsCurrentGame (SK_GAME_ID::ArknightsEndfield))
+    return true;
+
+  return !__g_SK_AKEF_KeepOriginalSwapchain;
+#else
+  return true;
+#endif
+}

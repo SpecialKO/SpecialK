@@ -154,6 +154,9 @@ HRESULT __stdcall
 HRESULT __stdcall
      SK_OPT_PresentFirstFrame    (IUnknown *, UINT, UINT);
 
+HRESULT __stdcall
+     SK_AKEF_PresentFirstFrame   (IUnknown*, UINT, UINT);
+
 void SK_Yakuza0_PlugInInit         (void);
 bool SK_Yakuza0_PlugInCfg          (void);
 
@@ -176,6 +179,7 @@ void SK_LOTF2_InitPlugin           (void);
 void SK_OPT_InitPlugin             (void);
 void SK_ACV_InitPlugin             (void);
 void SK_ACS_InitPlugin             (void);
+void SK_AKEF_InitPlugin            (void);
 
 bool SK_NIER_RAD_PlugInCfg         (void);
 bool SK_Okami_PlugInCfg            (void);
@@ -197,6 +201,7 @@ void SK_FFXV_InitPlugin            (void);
 bool SK_FFXV_PlugInCfg             (void);
 void SK_FFXV_SetupThreadPriorities (void);
 bool SK_FarCry6_PlugInCfg          (void);
+bool SK_AKEF_PlugInCfg             (void);
 
 void SK_Metaphor_InitPlugin        (void);
 
@@ -211,8 +216,12 @@ bool SK_SilentHill_f_PlugInCfg     (void);
 
 void SK_WatchDogs_InitPlugin       (void);
 
+void SK_AKEF_InitFromLauncher (void);
+
 void SK_MHW_PlugIn_Shutdown (void);
 extern bool __SK_MHW_KillAntiDebug;
+
+void __stdcall SK_AKEF_ExitGame (void);
 
 bool __stdcall SK_FAR_IsPlugIn      (void);
 void __stdcall SK_FAR_ControlPanel  (void);
@@ -250,6 +259,7 @@ bool SK_GalGun_PlugInCfg (void);
 extern void SK_SEH_LaunchEldenRing         ( const wchar_t* = L"eldenring.exe" );
 extern void SK_SEH_LaunchArmoredCoreVI     (void);
 extern void SK_SEH_LaunchLordsOfTheFallen2 (void);
+extern void SK_LaunchArknightsEndfield     (const wchar_t* = L"Endfield.exe");
 
 enum class SK_PlugIn_Type
 {

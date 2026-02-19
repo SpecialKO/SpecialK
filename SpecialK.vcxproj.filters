@@ -3992,6 +3992,9 @@
     <ClCompile Include="src\storefront\xbox.cpp">
       <Filter>Source Files\Storefronts\Xbox Live</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\arknights_endfield.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

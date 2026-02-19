@@ -490,6 +490,12 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   if (fmt_new == fmt_orig)
     return fmt_orig;
 
+  // Do not change the swapchain format if modification is disabled
+  //   Only supported by Arknights: Endfield plugin. Does not affect other games
+  if (! SK_CanModifySwapchain ()) {
+    return fmt_orig;
+  }
+
   //if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
   {
     SK_ComQIPtr <IDXGISwapChain3>
@@ -542,8 +548,8 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   if (fmt_new != fmt_orig)
   {
     SK_LOGi0 ( L" >> HDR: Overriding Original Format: '%hs' with '%hs'",
-                         SK_DXGI_FormatToStr (fmt_orig).data (),
-                         SK_DXGI_FormatToStr (fmt_new ).data () );
+                       SK_DXGI_FormatToStr (fmt_orig).data (),
+                       SK_DXGI_FormatToStr (fmt_new ).data () );
   }
 
   return
@@ -5590,7 +5596,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         }
       }
 
-      if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
+      if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap) && SK_CanModifySwapchain ())
       {
         if ( DirectX::MakeTypeless (pDesc->BufferDesc.Format) ==
              DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) || 
