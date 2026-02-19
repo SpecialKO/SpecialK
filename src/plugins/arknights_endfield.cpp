@@ -1362,9 +1362,6 @@ SK_AKEF_InitPlugin (void)
       L"Enable Hook Fixes (Reflex and NGX Vulkan)");
     __g_SK_AKEF_EnableHookFixes = b_EnableHookFixes;
 
-    OutputDebugStringW(SK_FormatStringW(L"Keeping original swapchain: %s\n", b_KeepOriginalSwapchain ? L"true" : L"false").c_str());
-    OutputDebugStringW(SK_FormatStringW(L"Enabling hook fixes: %s\n", b_EnableHookFixes ? L"true" : L"false").c_str());
-
     plugin_mgr->config_fns.emplace (SK_AKEF_PlugInCfg);
     plugin_mgr->first_frame_fns.emplace (SK_AKEF_PresentFirstFrame);
   );
