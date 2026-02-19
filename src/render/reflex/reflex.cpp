@@ -1490,6 +1490,13 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
 
 void SK_VK_HookReflex (void)
 {
+  bool skip_vkSleep_hook = false;
+
+#if defined(_M_AMD64)
+  extern bool __g_SK_AKEF_EnableHookFixes;
+  skip_vkSleep_hook = (SK_GetCurrentGameID() == SK_GAME_ID::ArknightsEndfield && __g_SK_AKEF_EnableHookFixes);
+#endif
+
   SK_RunOnce (
     SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
                               "NvLL_VK_InitLowLatencyDevice",
@@ -1501,16 +1508,13 @@ void SK_VK_HookReflex (void)
                                NvLL_VK_SetSleepMode_Detour,
       static_cast_p2p <void> (&NvLL_VK_SetSleepMode_Original) );
 
-    if (SK_IsCurrentGame (SK_GAME_ID::ArknightsEndfield))
-    {
-      SK_LOGi1 (L"Arknights: Endfield detected - Skipping hooking NvLL_VK_Sleep");
-    }
-    else
+
+    if (!skip_vkSleep_hook)
     {
       SK_CreateDLLHook2(      L"NvLowLatencyVk.dll",
                                "NvLL_VK_Sleep",
-                               NvLL_VK_Sleep_Detour,
-                               static_cast_p2p <void>(&NvLL_VK_Sleep_Original));
+                                NvLL_VK_Sleep_Detour,
+                                static_cast_p2p <void>(&NvLL_VK_Sleep_Original));
     }
 
     SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",

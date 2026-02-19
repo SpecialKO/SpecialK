@@ -625,6 +625,13 @@ NVSDK_NGX_VULKAN_Shutdown1 (VkDevice InDevice);
 void
 SK_NGX_InitVULKAN (void)
 {
+  bool skip_releaseFeature_hook = false;
+
+#if defined(_M_AMD64)
+  extern bool __g_SK_AKEF_EnableHookFixes;
+  skip_releaseFeature_hook = (SK_GetCurrentGameID() == SK_GAME_ID::ArknightsEndfield && __g_SK_AKEF_EnableHookFixes);
+#endif
+
   SK_RunOnce (
   {
     SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll");
@@ -649,11 +656,7 @@ SK_NGX_InitVULKAN (void)
                          NVSDK_NGX_VULKAN_CreateFeature1_Detour,
                 (void **)&NVSDK_NGX_VULKAN_CreateFeature1_Original );
 
-    if (SK_GetCurrentGameID () == SK_GAME_ID::ArknightsEndfield)
-    {
-      SK_LOGi0 (L"Skipping NVSDK_NGX_VULKAN_ReleaseFeature_Detour to avoid crash when opening settings");
-    }
-    else
+    if (!skip_releaseFeature_hook)
     {
       SK_CreateDLLHook2 ( L"_nvngx.dll",
                           "NVSDK_NGX_VULKAN_ReleaseFeature",

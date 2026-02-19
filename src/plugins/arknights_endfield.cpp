@@ -20,7 +20,8 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-
+#include <safetyhook/safetyhook.hpp>
+#include <SpecialK/hooks.h>
 #include <SpecialK/stdafx.h>
 #include <SpecialK/adl.h>
 #include <SpecialK/utility.h>
@@ -311,7 +312,7 @@ bool SK_AKEF_TryGetPid (DWORD* out_pid)
 
 void SK_AKEF_ResetPid (void)
 {
-  SK_AutoHandle hMutex(CreateMutexW(nullptr, FALSE, SK::ArknightsEndfield::kSharedMemoryMutexName));
+  SK_AutoHandle hMutex (CreateMutexW (nullptr, FALSE, SK::ArknightsEndfield::kSharedMemoryMutexName));
 
   if (!hMutex.isValid ())
     return;
@@ -326,7 +327,7 @@ void SK_AKEF_ResetPid (void)
 
 void SK_AKEF_CleanupSharedMemory (void)
 {
-  SK_AutoHandle hMutex(CreateMutexW(nullptr, FALSE, SK::ArknightsEndfield::kSharedMemoryMutexName));
+  SK_AutoHandle hMutex (CreateMutexW (nullptr, FALSE, SK::ArknightsEndfield::kSharedMemoryMutexName));
 
   if (!hMutex.isValid ())
     return;
@@ -523,8 +524,10 @@ SK::ArknightsEndfield::Utils::GetProcessCommandLine (HANDLE hProcess, FARPROC nt
 
   std::wstring cmd;
   cmd.resize (params.CommandLine.Length / sizeof (wchar_t));
-  ReadProcessMemory (hProcess, params.CommandLine.Buffer, cmd.data (), params.CommandLine.Length, nullptr);
-  return cmd;
+  if (ReadProcessMemory (hProcess, params.CommandLine.Buffer, cmd.data (), params.CommandLine.Length, nullptr))
+    return cmd;
+
+  return L"";
 }
 
 static HMODULE
@@ -678,6 +681,7 @@ extern NVLL_VK_SET_SLEEP_MODE_PARAMS SK_NVLL_LastSleepParams;
 extern PFN_vkWaitSemaphores vkWaitSemaphores_SK = nullptr;
 
 bool  __g_SK_AKEF_KeepOriginalSwapchain = false;
+bool  __g_SK_AKEF_EnableHookFixes       = true;
 
 namespace SK::ArknightsEndfield
 {
@@ -688,18 +692,24 @@ namespace SK::ArknightsEndfield
     FrameRate
   };
 
+  bool  b_EnableHookFixes         = true;
+  bool  b_StopDlssgHookLoop       = false;
+  bool  b_KeepOriginalSwapchain   = false;
   bool  b_OverrideUnityFramelimit = false;
-  bool  b_KeepOriginalSwapchain = false;
-  float f_UnityFramelimit = DefaultFirstFramerateLimit;
+  float f_UnityFramelimit         = DefaultFirstFramerateLimit;
 
   struct {
-    sk::ParameterBool* override_unity_framelimit = nullptr;
-    sk::ParameterBool* keep_original_swapchain = nullptr;
-    sk::ParameterFloat* unity_frameratelimit = nullptr;
+    sk::ParameterBool*  enable_hook_fixes         = nullptr;
+    sk::ParameterBool*  keep_original_swapchain   = nullptr;
+    sk::ParameterBool*  override_unity_framelimit = nullptr;
+    sk::ParameterFloat* unity_frameratelimit      = nullptr;
   } ini;
 
-  std::atomic<SK_RenderAPI> render_api { SK_RenderAPI::None };
   volatile LONG init = FALSE;
+  SK_RenderAPI render_api = SK_RenderAPI::None;
+
+  std::atomic<bool> isDlssHooksApplied { false };
+  std::atomic<bool> stopDlssHooks      { false };
 
   template <std::size_t N>
   struct CodePatch
@@ -735,14 +745,9 @@ namespace SK::ArknightsEndfield
     static_assert(offsetof(NvLowLatencyVk, m_hmodReflex) == 0xEB8, "m_hmodReflex offset mismatch");
     static_assert(sizeof(NvLowLatencyVk) == 0xEC0, "NvLowLatencyVk size mismatch");
 
-    using UnityEngine_Application_set_targetFrameRate_pfn = void (__fastcall*) (void* __this, int value);
-    using UnityEngine_Application_get_targetFrameRate_pfn = int (__fastcall*) (void* __this);
-
-    using slCommon_ReflexSleep_pfn = int (__fastcall*) (NvLowLatencyVk* nvLowLatencyVk);
-    using NvLL_VK_Sleep_pfn        = int (__fastcall*) (VkDevice device, uint64_t reflexSemaphoreValue);
-
-    using slGetPluginFunction_pfn = void* (*) (const char* functionName);
-    using slDLSSGSetOptions_pfn = sl::Result (*) (const sl::ViewportHandle& viewport, sl::DLSSGOptions& options);
+    using NvLL_VK_Sleep_pfn       = int        (__fastcall*) (VkDevice device, uint64_t reflexSemaphoreValue);
+    using slGetPluginFunction_pfn = void*      (__fastcall*) (const char* functionName);
+    using slDLSSGSetOptions_pfn   = sl::Result (__fastcall*) (const sl::ViewportHandle& viewport, sl::DLSSGOptions& options);
 
     using CreateProcess_pfn = BOOL (WINAPI*) (
       _In_opt_ LPCWSTR lpApplicationName,
@@ -757,17 +762,14 @@ namespace SK::ArknightsEndfield
       _Out_ LPPROCESS_INFORMATION lpProcessInformation
       );
 
-    static UnityEngine_Application_set_targetFrameRate_pfn
-    UnityEngine_Application_set_targetFrameRate_Original = nullptr;
+    static SafetyHookInline UnityEngine_Application_set_targetFrameRate_Hook { };
+    static SafetyHookInline UnityEngine_Application_get_targetFrameRate_Hook { };
 
-    static UnityEngine_Application_get_targetFrameRate_pfn
-    UnityEngine_Application_get_targetFrameRate_Original = nullptr;
-
-    static slDLSSGSetOptions_pfn slDLSSGSetOptions_Original     = nullptr;
-    static slDLSSGSetOptions_pfn slDLSSGSetOptions_OTA_Original = nullptr;
-
-    static slCommon_ReflexSleep_pfn slCommon_ReflexSleep_Original     = nullptr;
-    static slCommon_ReflexSleep_pfn slCommon_ReflexSleep_OTA_Original = nullptr;
+    static SafetyHookInline slInterposer_IsFeatureSupported_Hook { };
+    static SafetyHookInline slDLSSGSetOptions_Hook { };
+    static SafetyHookInline slDLSSGSetOptions_OTA_Hook { };
+    static SafetyHookInline slCommon_ReflexSleep_Hook { };
+    static SafetyHookInline slCommon_ReflexSleep_OTA_Hook { };
 
     static CreateProcess_pfn CreateProcessW_Original = nullptr;
 
@@ -780,7 +782,7 @@ namespace SK::ArknightsEndfield
     {
       SK_LOG_FIRST_CALL
 
-      UnityEngine_Application_set_targetFrameRate_Original (__this, value);
+      UnityEngine_Application_set_targetFrameRate_Hook.call (__this, value);
     }
 
     static int __fastcall
@@ -791,10 +793,10 @@ namespace SK::ArknightsEndfield
       if (b_OverrideUnityFramelimit)
         return static_cast <int> (std::clamp (f_UnityFramelimit, -1.0f, 600.0f));
 
-      return UnityEngine_Application_get_targetFrameRate_Original (__this);
+      return UnityEngine_Application_get_targetFrameRate_Hook.call<int> (__this);
     }
 
-    static sl::Result
+    static sl::Result __fastcall
     slDLSSGSetOptions_Detour (const sl::ViewportHandle& viewport, sl::DLSSGOptions& options)
     {
       SK_LOG_FIRST_CALL
@@ -812,10 +814,10 @@ namespace SK::ArknightsEndfield
         default:
           break;
         }
-      return slDLSSGSetOptions_Original (viewport, options);
+      return slDLSSGSetOptions_Hook.call<sl::Result> (viewport, options);
     }
 
-    static sl::Result
+    static sl::Result __fastcall
     slDLSSGSetOptions_OTA_Detour (const sl::ViewportHandle& viewport, sl::DLSSGOptions& options)
     {
       SK_LOG_FIRST_CALL
@@ -833,7 +835,7 @@ namespace SK::ArknightsEndfield
         default:
           break;
         }
-      return slDLSSGSetOptions_OTA_Original (viewport, options);
+      return slDLSSGSetOptions_OTA_Hook.call<sl::Result> (viewport, options);
     }
 
     __forceinline int __fastcall
@@ -857,7 +859,6 @@ namespace SK::ArknightsEndfield
         const auto result = vkWaitSemaphores_SK (nvLowLatencyVk->device, &waitInfo, 500000000);
         if (result == VK_TIMEOUT)
         {
-          SK_LOGi0(L"Timeout while waiting (100 ms) for Reflex semaphore.");
           config.nvidia.reflex.use_limiter = false;
         }
         else if (result == VK_SUCCESS)
@@ -890,7 +891,7 @@ namespace SK::ArknightsEndfield
             SK_GetProcAddress (nvLowLatencyVk->m_hmodReflex, "NvLL_VK_Sleep"));
 
           if (NvLL_VK_Sleep_Original == nullptr)
-            return slCommon_ReflexSleep_Original (nvLowLatencyVk);
+            return slCommon_ReflexSleep_Hook.call<int> (nvLowLatencyVk);
         }
       }
 
@@ -914,7 +915,7 @@ namespace SK::ArknightsEndfield
             SK_GetProcAddress (nvLowLatencyVk->m_hmodReflex, "NvLL_VK_Sleep"));
 
           if (NvLL_VK_Sleep_Original == nullptr)
-            return slCommon_ReflexSleep_OTA_Original (nvLowLatencyVk);
+            return slCommon_ReflexSleep_OTA_Hook.call<int> (nvLowLatencyVk);
         }
       }
 
@@ -1347,14 +1348,22 @@ SK_AKEF_InitPlugin (void)
       L"KeepOriginalSwapchain",
       b_KeepOriginalSwapchain,
       L"Keep Original Swapchain");
-
-    __g_SK_AKEF_KeepOriginalSwapchain = ini.keep_original_swapchain;
+    __g_SK_AKEF_KeepOriginalSwapchain = b_KeepOriginalSwapchain;
 
     ini.unity_frameratelimit =
     _CreateConfigParameterFloat (L"ArknightEndfield.System",
       L"UnityFramerateLimit",
       f_UnityFramelimit,
       L"Unity Framerate Limit");
+
+    ini.enable_hook_fixes = _CreateConfigParameterBool (L"ArknightEndfield.System",
+      L"EnableHookFixes",
+      b_EnableHookFixes,
+      L"Enable Hook Fixes (Reflex and NGX Vulkan)");
+    __g_SK_AKEF_EnableHookFixes = b_EnableHookFixes;
+
+    OutputDebugStringW(SK_FormatStringW(L"Keeping original swapchain: %s\n", b_KeepOriginalSwapchain ? L"true" : L"false").c_str());
+    OutputDebugStringW(SK_FormatStringW(L"Enabling hook fixes: %s\n", b_EnableHookFixes ? L"true" : L"false").c_str());
 
     plugin_mgr->config_fns.emplace (SK_AKEF_PlugInCfg);
     plugin_mgr->first_frame_fns.emplace (SK_AKEF_PresentFirstFrame);
@@ -1363,25 +1372,25 @@ SK_AKEF_InitPlugin (void)
   const PPEB peb = reinterpret_cast <PPEB> (__readgsqword (0x60));
   if (peb)
   {
-    UNICODE_STRING cmd = peb->ProcessParameters->CommandLine;
+    const UNICODE_STRING cmd = peb->ProcessParameters->CommandLine;
     std::wstring cmdLine = std::wstring (cmd.Buffer, cmd.Length / sizeof (wchar_t));
     if (StrStrIW (cmdLine.c_str (), L"-force-d3d11") != nullptr)
     {
-      SK::ArknightsEndfield::render_api.store (SK_RenderAPI::D3D11, std::memory_order_relaxed);
+      SK::ArknightsEndfield::render_api = SK_RenderAPI::D3D11;
     }
   }
 
   if (SK::ArknightsEndfield::render_api == SK_RenderAPI::None)
-    SK::ArknightsEndfield::render_api.store (SK_RenderAPI::Vulkan, std::memory_order_relaxed);
+    SK::ArknightsEndfield::render_api = SK_RenderAPI::Vulkan;
 
   SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
-      const auto current_render_api = SK::ArknightsEndfield::render_api.load (std::memory_order_relaxed);
+      const auto current_render_api = SK::ArknightsEndfield::render_api;
       SK_AutoHandle hProcess(GetCurrentProcess());
 
       auto InitUnityPatches = []() -> void
       {
-        constexpr int kMaxRetries = 60;
+        constexpr int kMaxRetries = 120;
         int i = 0;
         HMODULE hUnity = nullptr;
 
@@ -1396,15 +1405,16 @@ SK_AKEF_InitPlugin (void)
 
         if (hUnity)
         {
-          SK::ArknightsEndfield::CodePatch <8> mutexPatch = { };
-          mutexPatch.address = SK_ScanIdaStyle (hUnity, "48 83 7E ? ? 0F 95 C0 48 83 C4");
-          mutexPatch.description = L"Unity Mutex Bypass Patch";
-          mutexPatch.replacement = { 0xB0, 0x00, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-          mutexPatch.applyReplacement ();
-        }
-        else
-        {
-          SK_LOGi0 ("SK_AKEF_InitPlugin: UnityPlayer.dll not detected within timeout period.\n");
+          void* unity_mutex_addr = SK_ScanIdaStyle (hUnity, "3D ? ? ? ? 74 ? 83 F8 ? 74 ? 48 83 7E");
+          if (unity_mutex_addr)
+          {
+            static auto MutexPatchHook = safetyhook::create_mid (
+              static_cast <uint8_t*> (unity_mutex_addr),
+              [] (SafetyHookContext& ctx)
+              {
+                ctx.rax = 0;
+              });
+          }
         }
       };
 
@@ -1412,29 +1422,27 @@ SK_AKEF_InitPlugin (void)
       {
         // Wait for unityplayer.dll to load sl.interposer.dll,
         // which indicates that the game has finished loading the main modules and is loading the DLSS plugin soon after.
-        constexpr int kMaxRetries_interposer = 40;
+        constexpr int kMaxRetries_interposer = 60;
         constexpr DWORD kRetryDelayMs = 1000;
         int curr_try = 0;
         while (curr_try < kMaxRetries_interposer)
         {
-          if (SK_GetModuleHandle (L"sl.interposer.dll"))
+          if (SK_GetModuleHandle(L"sl.interposer.dll"))
             break;
           ++curr_try;
           SK_Sleep (kRetryDelayMs);
         }
 
-        constexpr int  kMaxAttempts     = 30;
-        static HMODULE hModSLDLSSG      = nullptr;
-        static HMODULE hModSLDLSSG_OTA  = nullptr;
-        static HMODULE hModSLCOMMON     = nullptr;
-        static HMODULE hModSLCOMMON_OTA = nullptr;
+        constexpr int  kMaxAttempts_dlss = 40;
+        int isUsingOTA                   = -1;
+        static HMODULE hModSLDLSSG       = nullptr;
+        static HMODULE hModSLDLSSG_OTA   = nullptr;
+        static HMODULE hModSLCOMMON      = nullptr;
+        static HMODULE hModSLCOMMON_OTA  = nullptr;
+        static FARPROC ntQueryAddr      = SK_GetProcAddress(L"ntdll.dll", "NtQueryInformationProcess");
 
-        for (int i = 0; i < kMaxAttempts; ++i)
+        for (int i = 0; i < kMaxAttempts_dlss; ++i)
         {
-          if (ADL_init != ADL_FALSE)
-            break;
-
-          // Ideally, we should make it to early break of this loop if one of the hooked function get called
           if (hModSLDLSSG == nullptr)
           {
             if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.dlss_g.dll", &hModSLDLSSG))
@@ -1445,17 +1453,12 @@ SK_AKEF_InitPlugin (void)
               if (slGetPluginFunction != nullptr)
               {
                 auto slDLSSGSetOptions =
-                  reinterpret_cast <SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_pfn> (slGetPluginFunction ("slDLSSGSetOptions"));
+                  static_cast <SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_pfn> (slGetPluginFunction ("slDLSSGSetOptions"));
 
                 if (slDLSSGSetOptions != nullptr)
                 {
-                  if (SK_CreateFuncHook (L"AKEF_slDLSSGSetOptions",
-                    slDLSSGSetOptions,
-                    SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_Detour,
-                    static_cast_p2p <void> (&SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_Original)) == MH_OK)
-                  {
-                    MH_EnableHook (slDLSSGSetOptions);
-                  }
+                  SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_Hook =
+                    safetyhook::create_inline (slDLSSGSetOptions, SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_Detour);
                 }
               }
             }
@@ -1470,26 +1473,14 @@ SK_AKEF_InitPlugin (void)
                 "48 89 5C 24 ? 57 48 81 EC ? ? ? ? 48 8D B9"
               );
 
-              if (reflex_sleep_addr == nullptr)
-              {
-                OutputDebugStringW(L"Failed to find Reflex Sleep function in sl.common.dll.\n");
-              }
-              else
-              {
-                if (SK_CreateFuncHook(
-                  L"AKEF_slCommon_ReflexSleep",
-                  reflex_sleep_addr,
-                  SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_Detour,
-                  static_cast_p2p <void>(&SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_Original)
-                ) == MH_OK)
-                  MH_EnableHook(reflex_sleep_addr);
-              }
-            }
-          }
-
+              if (reflex_sleep_addr != nullptr)
+                SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_Hook =
+                  safetyhook::create_inline (reflex_sleep_addr, SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_Detour);
+             }
+           }
+          
           if (hModSLDLSSG_OTA == nullptr)
           {
-            static FARPROC ntQueryAddr = SK_GetProcAddress (L"ntdll.dll", "NtQueryInformationProcess");
             hModSLDLSSG_OTA = SK::ArknightsEndfield::Utils::GetRemoteModule (
               hProcess,
               ntQueryAddr,
@@ -1504,17 +1495,12 @@ SK_AKEF_InitPlugin (void)
               if (slGetPluginFunction != nullptr)
               {
                 auto slDLSSGSetOptions =
-                  reinterpret_cast <SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_pfn> (slGetPluginFunction ("slDLSSGSetOptions"));
+                  static_cast <SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_pfn> (slGetPluginFunction ("slDLSSGSetOptions"));
 
                 if (slDLSSGSetOptions != nullptr)
                 {
-                  if (SK_CreateFuncHook (L"AKEF_slDLSSGSetOptions_OTA",
-                    slDLSSGSetOptions,
-                    SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_OTA_Detour,
-                    static_cast_p2p <void> (&SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_OTA_Original)) == MH_OK)
-                  {
-                    MH_EnableHook (slDLSSGSetOptions);
-                  }
+                  SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_OTA_Hook =
+                    safetyhook::create_inline (slDLSSGSetOptions, SK::ArknightsEndfield::Hooks::slDLSSGSetOptions_OTA_Detour);
                 }
               }
             }
@@ -1522,10 +1508,7 @@ SK_AKEF_InitPlugin (void)
 
           if (hModSLCOMMON_OTA == nullptr)
           {
-            OutputDebugStringW(L"Trying to find sl.common OTA module...\n");
-            static FARPROC ntQueryAddr = SK_GetProcAddress (L"ntdll.dll", "NtQueryInformationProcess");
-
-            hModSLDLSSG_OTA = SK::ArknightsEndfield::Utils::GetRemoteModule (
+            hModSLCOMMON_OTA = SK::ArknightsEndfield::Utils::GetRemoteModule (
               hProcess,
               ntQueryAddr,
               L"NVIDIA\\NGX\\models\\sl_common_0",
@@ -1538,45 +1521,35 @@ SK_AKEF_InitPlugin (void)
                 "48 89 5C 24 ? 57 48 81 EC ? ? ? ? 48 8D B9"
               );
 
-              if (reflex_sleep_addr == nullptr)
-              {
-                OutputDebugStringW(L"Failed to find Reflex Sleep function in sl.common.dll.\n");
-              }
-              else
-              {
-                if (SK_CreateFuncHook(
-                  L"AKEF_slCommon_OTA_ReflexSleep",
-                  reflex_sleep_addr,
-                  SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_OTA_Detour,
-                  static_cast_p2p<void>(&SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_OTA_Original)
-                ) == MH_OK)
-                  if (MH_EnableHook(reflex_sleep_addr) == MH_OK)
-                  {
-                    OutputDebugStringW(L"Successfully hooked sl.common OTA module.\n");
-                  }
-                  else
-                  {
-                    OutputDebugStringW(L"Failed to enable hook for sl.common OTA module.\n");
-                  }
-                else
-                  OutputDebugStringW(L"Failed to create hook for sl.common OTA module.\n");
-              }
+              if (reflex_sleep_addr != nullptr)
+                SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_OTA_Hook =
+                safetyhook::create_inline (reflex_sleep_addr, SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_OTA_Detour);
             }
           }
 
-          if (hModSLDLSSG && hModSLDLSSG_OTA && hModSLCOMMON && hModSLCOMMON_OTA)
+          if (isUsingOTA == -1)
+            isUsingOTA = (hModSLCOMMON_OTA) ? true : (hModSLCOMMON ? false : isUsingOTA);
+
+          if (isUsingOTA && hModSLDLSSG_OTA && hModSLCOMMON_OTA)
             break;
+          else if (!isUsingOTA && hModSLDLSSG && hModSLCOMMON)
+            break;
+
+          if (SK::ArknightsEndfield::stopDlssHooks.load (std::memory_order_relaxed))
+          {
+            break;
+          }
           SK_Sleep (kRetryDelayMs);
         }
       };
 
       InitUnityPatches ();
-      if (current_render_api == SK_RenderAPI::Vulkan)
+      if (current_render_api == SK_RenderAPI::Vulkan && SK::ArknightsEndfield::b_EnableHookFixes)
       {
         SK_LOGi1(L"Detected Vulkan renderer, initializing DLSSG hooks.\n");
         InitDLSSGHooks ();
       }
-
+      SK::ArknightsEndfield::isDlssHooksApplied.store(true, std::memory_order_relaxed);
       InterlockedExchange (&SK::ArknightsEndfield::init, 1);
       SK_Thread_CloseSelf ();
       return 0;
@@ -1630,15 +1603,11 @@ SK::ArknightsEndfield::ApplyUnityOverride (const OverrideType& overrideType, con
 
       if (set_targetFrameRate != nullptr && *(reinterpret_cast<LPVOID*> (set_targetFrameRate)) != nullptr)
       {
-        SK_RunOnce (
-          SK_CreateFuncHook (L"UnityEngine.Application.set_targetFrameRate",
-                             *(reinterpret_cast<LPVOID*> (set_targetFrameRate)),
-                             SK::ArknightsEndfield::Hooks::UnityEngine_Application_set_targetFrameRate_Detour,
-                             static_cast_p2p<void> (&SK::ArknightsEndfield::Hooks::UnityEngine_Application_set_targetFrameRate_Original))
-        );
-
-        if (MH_EnableHook (*(reinterpret_cast<LPVOID*> (set_targetFrameRate))) == MH_OK)
-          SK_LOGi1 (L"Successfully hooked UnityEngine.Application.set_targetFrameRate.\n");
+        SK_RunOnce(
+          SK::ArknightsEndfield::Hooks::UnityEngine_Application_set_targetFrameRate_Hook =
+            safetyhook::create_inline(*(reinterpret_cast<LPVOID*> (set_targetFrameRate)),
+              SK::ArknightsEndfield::Hooks::UnityEngine_Application_set_targetFrameRate_Detour);
+            );
       }
 
       if (!get_targetFrameRate)
@@ -1647,10 +1616,9 @@ SK::ArknightsEndfield::ApplyUnityOverride (const OverrideType& overrideType, con
       if (get_targetFrameRate != nullptr && *(reinterpret_cast<LPVOID*> (get_targetFrameRate)) != nullptr)
       {
         SK_RunOnce (
-          SK_CreateFuncHook (L"UnityEngine.Application.get_targetFrameRate",
-                             *(reinterpret_cast<LPVOID*> (get_targetFrameRate)),
-                             SK::ArknightsEndfield::Hooks::UnityEngine_Application_get_targetFrameRate_Detour,
-                             static_cast_p2p<void> (&SK::ArknightsEndfield::Hooks::UnityEngine_Application_get_targetFrameRate_Original))
+          SK::ArknightsEndfield::Hooks::UnityEngine_Application_get_targetFrameRate_Hook =
+          safetyhook::create_inline(*(reinterpret_cast<LPVOID*> (get_targetFrameRate)),
+            SK::ArknightsEndfield::Hooks::UnityEngine_Application_get_targetFrameRate_Detour);
         );
 
         if (MH_EnableHook (*(reinterpret_cast<LPVOID*> (get_targetFrameRate))) == MH_OK)
@@ -1689,9 +1657,56 @@ SK_AKEF_PlugInCfg (void)
 
   if (ImGui::CollapsingHeader ("Arknights: Endfield", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    static bool restartRequired = false;
-    static bool unityFpsSeeded = false;
+    static bool restartRequired  = false;
+    static bool unityFpsSeeded   = false;
+    static bool canStopDlssHooks = true;
     bool changed = false;
+
+    ImGui::SeparatorText ("Special K");
+
+    if (ImGui::Checkbox ("Keep Original Swapchain", &b_KeepOriginalSwapchain))
+    {
+      ini.keep_original_swapchain->store (b_KeepOriginalSwapchain);
+      changed = true;
+      restartRequired = true;
+    }
+
+    if (ImGui::Checkbox ("Enable Hook Fixes", &b_EnableHookFixes))
+    {
+      ini.enable_hook_fixes->store (b_EnableHookFixes);
+      changed = true;
+      restartRequired = true;
+    }
+
+    if (canStopDlssHooks && b_EnableHookFixes)
+    {
+      if (SK::ArknightsEndfield::isDlssHooksApplied.load (std::memory_order_relaxed))
+      {
+        canStopDlssHooks = false;
+      }
+
+      ImGui::SameLine();
+      if (ImGui::SmallButton ("Stop looping for enabling hooks"))
+      {
+        SK::ArknightsEndfield::stopDlssHooks.store (true, std::memory_order_relaxed);
+        canStopDlssHooks = false;
+      }
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::TextUnformatted ("Should be done after the game is loaded\n");
+        ImGui::EndTooltip ();
+      }
+    }
+
+    if (restartRequired)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV(.3f, .8f, .9f).Value);
+      ImGui::BulletText ("Game Restart Required");
+      ImGui::PopStyleColor ();
+    }
+
+    ImGui::SeparatorText ("Game Overrides");
 
     if (ImGui::Checkbox ("Override Unity Framerate Limit", &b_OverrideUnityFramelimit))
     {
@@ -1714,7 +1729,10 @@ SK_AKEF_PlugInCfg (void)
         changed = true;
       }
 
-      if (ImGui::SliderFloat ("Unity Framerate Limit", &f_UnityFramelimit, -1.0f, 520.0f, "%.0f"))
+      ImGui::SameLine ();
+      ImGui::SetNextItemWidth (200.0f);
+
+      if (ImGui::SliderFloat ("##Unity_Framelimit", &f_UnityFramelimit, -1.0f, 520.0f, "%.0f"))
       {
         ini.unity_frameratelimit->store (f_UnityFramelimit);
         ApplyUnityOverride (OverrideType::FrameRate, f_UnityFramelimit);
@@ -1725,7 +1743,7 @@ SK_AKEF_PlugInCfg (void)
       {
         ImGui::BeginGroup ();
         ImGui::TextColored (ImColor::HSV (0.18f, 0.88f, 0.94f), "  Ctrl Click");
-        ImGui::TextColored (ImColor::HSV (0.18f, 0.88f, 0.94f), " ->");
+        ImGui::TextColored (ImColor::HSV (0.18f, 0.88f, 0.94f), " ->" );
         ImGui::EndGroup ();
 
         ImGui::SameLine ();
@@ -1737,20 +1755,6 @@ SK_AKEF_PlugInCfg (void)
 
         ImGui::EndTooltip ();
       }
-    }
-
-    if (ImGui::Checkbox ("Keep Original Swapchain", &b_KeepOriginalSwapchain))
-    {
-      ini.keep_original_swapchain->store (b_KeepOriginalSwapchain);
-      changed = true;
-      restartRequired = true;
-    }
-
-    if (restartRequired)
-    {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
-      ImGui::BulletText ("Game Restart Required");
-      ImGui::PopStyleColor ();
     }
 
     if (changed)
@@ -1774,7 +1778,7 @@ SK_AKEF_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
           SK_Sleep (1000);
 
         while (SK_GetFramesDrawn () < 240)
-          SK_Sleep (250);
+          SK_Sleep (120);
 
         float _unityFrameLimit = SK::ArknightsEndfield::f_UnityFramelimit ==
                                   SK::ArknightsEndfield::DefaultFirstFramerateLimit ?
