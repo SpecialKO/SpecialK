@@ -917,9 +917,8 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
           return ret;
       }
 
-      if (DirectX::IsTypeless (texDesc.Format))
-        SK_ReleaseAssert ( pDesc         != nullptr             &&
-                           pDesc->Format != DXGI_FORMAT_UNKNOWN &&
+      if (DirectX::IsTypeless (texDesc.Format) && pDesc != nullptr)
+        SK_ReleaseAssert ( pDesc->Format != DXGI_FORMAT_UNKNOWN &&
                         (! DirectX::IsTypeless (pDesc->Format)) &&
                            DirectX::MakeSRGB (DirectX::MakeTypeless (pDesc->Format)) ==
                                                  DirectX::MakeSRGB (texDesc.Format) );
