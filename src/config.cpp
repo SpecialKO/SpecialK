@@ -2812,6 +2812,8 @@ auto DeclKeybind =
         config.textures.d3d11.cache                 = false;
         config.window.dont_hook_wndproc             =  true;
         config.compatibility.disable_debug_features =  true;
+        config.apis.d3d9.hook                       = false;
+        config.apis.d3d9ex.hook                     = false;
         break;
 
 

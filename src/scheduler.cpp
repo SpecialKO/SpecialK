@@ -1129,7 +1129,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if (bRenderThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
-    if (bLongSleep)
+    if (bLongSleep && SK_IsCurrentGame (SK_GAME_ID::EverQuest)) // EQ would punt to login screen if loading does not take long enoug
     { // This warning might happen repeatedly
       static int times_warned = 0;
       if (     ++times_warned < 5 || config.system.log_level > 0)
