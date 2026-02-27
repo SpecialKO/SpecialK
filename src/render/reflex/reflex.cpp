@@ -1378,7 +1378,7 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       }
     }
 
-    const auto reflex_interval_us =
+  const auto reflex_interval_us =
       SK_Reflex_CalculateSleepMinIntervalForVulkan (sleepModeParams->bLowLatencyMode);
 
     sleepModeParams->minimumIntervalUs =
@@ -1488,15 +1488,25 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
   SK_PCL_Heartbeat (nvapi_marker);
 }
 
+bool
+SK_VK_ShouldVkSkipSleepHook()
+{
+#if defined(_M_AMD64)
+  switch (SK_GetCurrentGameID())
+  {
+  case SK_GAME_ID::ArknightsEndfield:
+    extern bool __g_SK_AKEF_EnableHookFixes;
+    return __g_SK_AKEF_EnableHookFixes;
+  default:
+    return false;
+  }
+#else
+  return false;
+#endif
+}
+
 void SK_VK_HookReflex (void)
 {
-  bool skip_vkSleep_hook = false;
-
-#if defined(_M_AMD64)
-  extern bool __g_SK_AKEF_EnableHookFixes;
-  skip_vkSleep_hook = (SK_GetCurrentGameID() == SK_GAME_ID::ArknightsEndfield && __g_SK_AKEF_EnableHookFixes);
-#endif
-
   SK_RunOnce (
     SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
                               "NvLL_VK_InitLowLatencyDevice",
@@ -1508,8 +1518,7 @@ void SK_VK_HookReflex (void)
                                NvLL_VK_SetSleepMode_Detour,
       static_cast_p2p <void> (&NvLL_VK_SetSleepMode_Original) );
 
-
-    if (!skip_vkSleep_hook)
+    if (!SK_VK_ShouldVkSkipSleepHook())
     {
       SK_CreateDLLHook2(      L"NvLowLatencyVk.dll",
                                "NvLL_VK_Sleep",
@@ -1680,7 +1689,7 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
 
     const double dReflexFPS =
       (dRefresh - (dRefresh * dRefresh) / 3600.0);
-
+    
     // Set VRR framerate limit accordingly
     reflex_interval =
       static_cast <UINT> (round (1000000.0 / dReflexFPS));

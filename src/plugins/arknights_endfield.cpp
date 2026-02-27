@@ -675,7 +675,7 @@ extern struct NVLL_VK_SET_SLEEP_MODE_PARAMS {
   uint32_t minimumIntervalUs;
 };
 
-extern DWORD NvLL_VK_SetSleepMode_Detour(VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sleepModeParams);
+extern DWORD NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sleepModeParams);
 extern SK_VK_REFLEX SK_VK_Reflex;
 extern NVLL_VK_SET_SLEEP_MODE_PARAMS SK_NVLL_LastSleepParams;
 extern PFN_vkWaitSemaphores vkWaitSemaphores_SK = nullptr;
