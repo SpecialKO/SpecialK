@@ -3374,17 +3374,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Yakuza0:
       {
-        if (! IsProcessDPIAware ())
-        {
-          SK_Display_ForceDPIAwarenessUsingAppCompat (true);
-          SK_Display_SetMonitorDPIAwareness          (false);
-
-          // Only do this for Steam games, the Microsoft Store Yakuza games
-          //   are chronically DPI unaware and broken
-          if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
-            SK_RestartGame ();
-        }
-
         ///// Engine has a problem with its texture management that
         /////   makes texture caching / modding impossible.
         config.textures.d3d11.cache               = false;
@@ -3405,15 +3394,6 @@ auto DeclKeybind =
         config.apis.d3d9.hook                     =  false;
         config.apis.d3d9ex.hook                   =  false;
 
-        SK_Display_ForceDPIAwarenessUsingAppCompat (true);
-        SK_Display_SetMonitorDPIAwareness          (false);
-
-        dll_ini->import (L"[Import.ReShade64_Custom]\n"
-                         L"Architecture=x64\n"
-                         L"Role=Unofficial\n"
-                         L"When=PlugIn\n"
-                         L"Filename=ReShade64.dll\n");
-
         SK_D3D11_DeclHUDShader_Vtx (0x062173ec);
         SK_D3D11_DeclHUDShader_Vtx (0x48dd4bc3);
         SK_D3D11_DeclHUDShader_Vtx (0x54c0d366);
@@ -3424,14 +3404,6 @@ auto DeclKeybind =
       case SK_GAME_ID::YakuzaUnderflow:
       {
         config.render.dxgi.fake_fullscreen_mode   = true;
-
-        if (! IsProcessDPIAware ())
-        {
-          // Oly do this for Steam games, the Microsoft Store Yakuza games
-          //   are chronically DPI unaware and broken
-          if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
-            SK_RestartGame ();
-        }
 
         config.textures.d3d11.cache               =  false;
         config.window.background_render           =   true;
