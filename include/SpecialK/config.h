@@ -1797,11 +1797,16 @@ enum class SK_GAME_ID
   Ys_Eight,                     // ys8.exe
   PillarsOfEternity2,           // PillarsOfEternityII.exe
   Yakuza0,                      // Yakuza0.exe
+  Yakuza0DirectorsCut,          // Yakuza0_DC.exe
   YakuzaKiwami,                 // YakuzaKiwami.exe
+  YakuzaKiwamiR,                // yakuzakiwami_r.exe
   YakuzaKiwami2,                // YakuzaKiwami2.exe
+  YakuzaKiwami2R,               // yakuzakiwami2_r.exe
+  YakuzaKiwami3,                // YakuzaKiwami3.exe
   YakuzaUnderflow,              // Yakuza*.exe
   YakuzaLikeADragonGaiden,      // LikeADragonGaiden.exe
   YakuzaInfiniteWealth,         // likeadragon8.exe
+  YakuzaLikeADragonPirates,     // LikeADragonPirates.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   MonsterHunterStories2,        // game.exe (fantastic!)
   MonsterHunterRise,            // MonsterHunterRise.exe

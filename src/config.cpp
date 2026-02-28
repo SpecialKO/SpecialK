@@ -174,10 +174,15 @@ SK_GetCurrentGameID (void)
           { L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     },
           { L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           },
           { L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      },
+          { L"yakuza0_dc.exe",                         SK_GAME_ID::Yakuza0DirectorsCut          },
           { L"YakuzaKiwami.exe",                       SK_GAME_ID::YakuzaKiwami                 },
+          { L"yakuzakiwami_r.exe",                     SK_GAME_ID::YakuzaKiwamiR                },
           { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
+          { L"yakuzakiwami2_r.exe",                    SK_GAME_ID::YakuzaKiwami2R               },
+          { L"YakuzaKiwami3.exe",                      SK_GAME_ID::YakuzaKiwami3                },
           { L"LikeADragonGaiden.exe",                  SK_GAME_ID::YakuzaLikeADragonGaiden      },
           { L"likeadragon8.exe",                       SK_GAME_ID::YakuzaInfiniteWealth         },
+          { L"LikeADragonPirates.exe",                 SK_GAME_ID::YakuzaLikeADragonGaiden      },
           { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
           { L"MonsterHunterRise.exe",                  SK_GAME_ID::MonsterHunterRise            },
           { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
@@ -3416,13 +3421,16 @@ auto DeclKeybind =
       }
       break;
 
-      case SK_GAME_ID::YakuzaInfiniteWealth:
-      case SK_GAME_ID::YakuzaLikeADragonGaiden:
+      case SK_GAME_ID::YakuzaInfiniteWealth:      [[fallthrough]];
+      case SK_GAME_ID::YakuzaLikeADragonGaiden:   [[fallthrough]];
+      case SK_GAME_ID::Yakuza0DirectorsCut:       [[fallthrough]];
+      case SK_GAME_ID::YakuzaKiwamiR:             [[fallthrough]];
+      case SK_GAME_ID::YakuzaKiwami2R:            [[fallthrough]];
+      case SK_GAME_ID::YakuzaKiwami3:             [[fallthrough]];
+      case SK_GAME_ID::YakuzaLikeADragonPirates:
       {
         config.render.dxgi.fake_fullscreen_mode   = true;
         config.window.background_render           = true;
-        config.render.dxgi.hooks.
-                            create_swapchain4hwnd = false;
       }
       break;
 
