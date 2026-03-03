@@ -1435,8 +1435,11 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
     extern void SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore       semaphore, uint64_t value);
                 SK_Reflex_WaitOnSemaphore (         device, SK_VK_Reflex.NvLL_semaphore,    signalValue);
 
+    if (config.render.framerate.enforcement_policy == 2 && rb.vulkan_reflex.isPacingEligible ())
+    {
       SK::Framerate::Tick ( true, 0.0,
                       { 0,0 }, rb.swapchain.p);
+    }
   }
 
   return ret;
