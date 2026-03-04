@@ -354,7 +354,6 @@ SK_TaskDialogIndirect (
 
 extern void            SK_Inject_ParseWhiteAndBlacklists (const std::wstring& base_path);
 extern PROCESSENTRY32W FindProcessByName                 (const wchar_t* wszName);
-extern void            SK_Inject_ParseWhiteAndBlacklists (const std::wstring& base_path);
 
 namespace SK::ArknightsEndfield::Utils
 {
@@ -1338,25 +1337,25 @@ SK_AKEF_InitPlugin (void)
     using namespace SK::ArknightsEndfield;
 
     ini.override_unity_framelimit =
-    _CreateConfigParameterBool (L"ArknightEndfield.System",
+    _CreateConfigParameterBool (L"ArknightsEndfield.System",
       L"OverrideUnityFramerateLimit",
       b_OverrideUnityFramelimit,
       L"Override Unity Framerate Limit");
 
     ini.keep_original_swapchain =
-    _CreateConfigParameterBool (L"ArknightEndfield.System",
+    _CreateConfigParameterBool (L"ArknightsEndfield.System",
       L"KeepOriginalSwapchain",
       b_KeepOriginalSwapchain,
       L"Keep Original Swapchain");
     __g_SK_AKEF_KeepOriginalSwapchain = b_KeepOriginalSwapchain;
 
     ini.unity_frameratelimit =
-    _CreateConfigParameterFloat (L"ArknightEndfield.System",
+    _CreateConfigParameterFloat (L"ArknightsEndfield.System",
       L"UnityFramerateLimit",
       f_UnityFramelimit,
       L"Unity Framerate Limit");
 
-    ini.enable_hook_fixes = _CreateConfigParameterBool (L"ArknightEndfield.System",
+    ini.enable_hook_fixes = _CreateConfigParameterBool (L"ArknightsEndfield.System",
       L"EnableHookFixes",
       b_EnableHookFixes,
       L"Enable Hook Fixes (Reflex and NGX Vulkan)");
@@ -1388,8 +1387,8 @@ SK_AKEF_InitPlugin (void)
       auto InitUnityPatches = []() -> void
       {
         constexpr int kMaxRetries = 120;
-        int i = 0;
         HMODULE hUnity = nullptr;
+        int i = 0;
 
         while (i < kMaxRetries)
         {
@@ -1430,15 +1429,17 @@ SK_AKEF_InitPlugin (void)
           SK_Sleep (kRetryDelayMs);
         }
 
-        constexpr int  kMaxAttempts_dlss = 40;
+        constexpr int  kMaxRetries_dlss = 60;
         int isUsingOTA                   = -1;
+
         static HMODULE hModSLDLSSG       = nullptr;
         static HMODULE hModSLDLSSG_OTA   = nullptr;
         static HMODULE hModSLCOMMON      = nullptr;
         static HMODULE hModSLCOMMON_OTA  = nullptr;
-        static FARPROC ntQueryAddr      = SK_GetProcAddress(L"ntdll.dll", "NtQueryInformationProcess");
+        static FARPROC ntQueryAddr       = SK_GetProcAddress(L"ntdll.dll", "NtQueryInformationProcess");
+        const char* reflex_sleep_pattern = "48 89 5C 24 ? 57 48 81 EC ? ? ? ? 48 8D B9";
 
-        for (int i = 0; i < kMaxAttempts_dlss; ++i)
+        for (int i = 0; i < kMaxRetries_dlss; ++i)
         {
           if (hModSLDLSSG == nullptr)
           {
@@ -1465,10 +1466,7 @@ SK_AKEF_InitPlugin (void)
           {
             if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"sl.common.dll", &hModSLCOMMON))
             {
-              void* reflex_sleep_addr = SK_ScanIdaStyle (
-                hModSLCOMMON,
-                "48 89 5C 24 ? 57 48 81 EC ? ? ? ? 48 8D B9"
-              );
+              void* reflex_sleep_addr = SK_ScanIdaStyle (hModSLCOMMON, reflex_sleep_pattern);
 
               if (reflex_sleep_addr != nullptr)
                 SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_Hook =
@@ -1513,10 +1511,7 @@ SK_AKEF_InitPlugin (void)
 
             if (hModSLCOMMON_OTA != nullptr)
             {
-              void* reflex_sleep_addr = SK_ScanIdaStyle (
-                hModSLCOMMON_OTA,
-                "48 89 5C 24 ? 57 48 81 EC ? ? ? ? 48 8D B9"
-              );
+              void* reflex_sleep_addr = SK_ScanIdaStyle (hModSLCOMMON_OTA, reflex_sleep_pattern);
 
               if (reflex_sleep_addr != nullptr)
                 SK::ArknightsEndfield::Hooks::slCommon_ReflexSleep_OTA_Hook =
@@ -1543,10 +1538,10 @@ SK_AKEF_InitPlugin (void)
       InitUnityPatches ();
       if (current_render_api == SK_RenderAPI::Vulkan && SK::ArknightsEndfield::b_EnableHookFixes)
       {
-        SK_LOGi1(L"Detected Vulkan renderer, initializing DLSSG hooks.\n");
+        SK_LOGi1 (L"Detected Vulkan renderer, initializing DLSSG hooks.\n");
         InitDLSSGHooks ();
       }
-      SK::ArknightsEndfield::isDlssHooksApplied.store(true, std::memory_order_relaxed);
+      SK::ArknightsEndfield::isDlssHooksApplied.store (true, std::memory_order_relaxed);
       InterlockedExchange (&SK::ArknightsEndfield::init, 1);
       SK_Thread_CloseSelf ();
       return 0;
@@ -1587,13 +1582,13 @@ SK::ArknightsEndfield::ApplyUnityOverride (const OverrideType& overrideType, con
                 wrapper.get_image ("UnityEngine.CoreModule.dll") :
                 wrapper.get_image ("UnityEngine.dll");
       if (!image)
-        return ExitThreadAndCleanup(1);
+        return ExitThreadAndCleanup (1);
 
       if (!klass)
         klass = image->get_class ("Application", "UnityEngine");
 
       if (!klass)
-        return ExitThreadAndCleanup(1);
+        return ExitThreadAndCleanup (1);
 
       if (!set_targetFrameRate)
         set_targetFrameRate = klass->get_method ("set_targetFrameRate", 1);
