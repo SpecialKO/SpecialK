@@ -1,4 +1,8 @@
-﻿26.3.13.4
+﻿26.3.13.5
+=========
+ + Add additional logging for DLSS and DLSS-G DLL version.
+
+26.3.13.4
 =========
  + Stop checking DLSSD DLL version, since it doesn't always match DLSS DLL version.
  + Only detect DLSS driver overrides if the .bin file that NVIDIA loads is actually

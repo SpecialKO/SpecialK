@@ -956,24 +956,25 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlss_s::Version.isOlderThan (version))
     {
-      SK_LOGi1 (L"Old DLSS Version String (%ws): %ws", wszDLSS,
-                                  SK_GetDLLVersionStr (wszDLSS).c_str ());
-
-      SK_DLSS_Context::dlss_s::Version = version;
-    }
-
-    else if (! SK_DLSS_Context::dlss_s::Version.isEqualTo (version))
-    {
       SK_LOGi0 (L"New DLSS Version String (%ws): %ws", wszDLSS,
                                   SK_GetDLLVersionStr (wszDLSS).c_str ());
 
-      if (version.major != 0)
+      if (SK_DLSS_Context::dlss_s::Version.major != 0)
       {
         version.driver_override                          |= bIsDriverOverride;
         SK_DLSS_Context::dlss_s::Version.driver_override |= bIsDriverOverride;
       }
 
       SK_DLSS_Context::dlss_s::Version = version;
+    }
+
+    else if (! SK_DLSS_Context::dlss_s::Version.isEqualTo (version))
+    {
+      SK_LOGi0 (L"Old DLSS Version String (%ws): %ws", wszDLSS,
+                                  SK_GetDLLVersionStr (wszDLSS).c_str ());
+
+      if (! bIsDriverOverride)
+        SK_DLSS_Context::dlss_s::Version = version;
     }
 
     bHasVersion = SK_DLSS_Context::dlss_s::Version.major > 0;
@@ -1023,24 +1024,25 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlssg_s::Version.isOlderThan (version))
     {
-      SK_LOGi1 (L"OLD DLSS-G Version String (%ws): %ws", wszDLSSG,
-                                    SK_GetDLLVersionStr (wszDLSSG).c_str ());
-
-      SK_DLSS_Context::dlssg_s::Version = version;
-    }
-
-    else if (! SK_DLSS_Context::dlssg_s::Version.isEqualTo (version))
-    {
       SK_LOGi0 (L"New DLSS-G Version String (%ws): %ws", wszDLSSG,
                                     SK_GetDLLVersionStr (wszDLSSG).c_str ());
 
-      if (version.major != 0)
+      if (SK_DLSS_Context::dlssg_s::Version.major != 0)
       {
         version.driver_override                           |= bIsDriverOverride;
         SK_DLSS_Context::dlssg_s::Version.driver_override |= bIsDriverOverride;
       }
 
       SK_DLSS_Context::dlssg_s::Version = version;
+    }
+
+    else if (! SK_DLSS_Context::dlssg_s::Version.isEqualTo (version))
+    {
+      SK_LOGi0 (L"Old DLSS-G Version String (%ws): %ws", wszDLSSG,
+                                    SK_GetDLLVersionStr (wszDLSSG).c_str ());
+
+      if (! bIsDriverOverride)
+        SK_DLSS_Context::dlssg_s::Version = version;
     }
 
     bHasVersion = SK_DLSS_Context::dlssg_s::Version.major > 0;
