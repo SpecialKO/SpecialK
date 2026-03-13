@@ -946,9 +946,6 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
       StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSSv3 -") ||
       StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSSv2 -"))
   {
-    version.driver_override                          |= bIsDriverOverride;
-    SK_DLSS_Context::dlss_s::Version.driver_override |= bIsDriverOverride;
-
     std::swscanf (
       SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
         &version.major, &version.minor,
@@ -959,8 +956,22 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlss_s::Version.isOlderThan (version))
     {
-      SK_LOGi1 (L"DLSS Version String (%ws): %ws", wszDLSS,
-                              SK_GetDLLVersionStr (wszDLSS).c_str ());
+      SK_LOGi1 (L"Old DLSS Version String (%ws): %ws", wszDLSS,
+                                  SK_GetDLLVersionStr (wszDLSS).c_str ());
+
+      SK_DLSS_Context::dlss_s::Version = version;
+    }
+
+    else if (! SK_DLSS_Context::dlss_s::Version.isEqualTo (version))
+    {
+      SK_LOGi0 (L"New DLSS Version String (%ws): %ws", wszDLSS,
+                                  SK_GetDLLVersionStr (wszDLSS).c_str ());
+
+      if (version.major != 0)
+      {
+        version.driver_override                          |= bIsDriverOverride;
+        SK_DLSS_Context::dlss_s::Version.driver_override |= bIsDriverOverride;
+      }
 
       SK_DLSS_Context::dlss_s::Version = version;
     }
@@ -1002,9 +1013,6 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
   if (StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G -") ||
       StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G MFGLW -"))
   {
-    version.driver_override                           |= bIsDriverOverride;
-    SK_DLSS_Context::dlssg_s::Version.driver_override |= bIsDriverOverride;
-
     std::swscanf (
       SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
         &version.major, &version.minor,
@@ -1015,8 +1023,22 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlssg_s::Version.isOlderThan (version))
     {
-      SK_LOGi1 (L"DLSS-G Version String (%ws): %ws", wszDLSSG,
-                                SK_GetDLLVersionStr (wszDLSSG).c_str ());
+      SK_LOGi1 (L"OLD DLSS-G Version String (%ws): %ws", wszDLSSG,
+                                    SK_GetDLLVersionStr (wszDLSSG).c_str ());
+
+      SK_DLSS_Context::dlssg_s::Version = version;
+    }
+
+    else if (! SK_DLSS_Context::dlssg_s::Version.isEqualTo (version))
+    {
+      SK_LOGi0 (L"New DLSS-G Version String (%ws): %ws", wszDLSSG,
+                                    SK_GetDLLVersionStr (wszDLSSG).c_str ());
+
+      if (version.major != 0)
+      {
+        version.driver_override                           |= bIsDriverOverride;
+        SK_DLSS_Context::dlssg_s::Version.driver_override |= bIsDriverOverride;
+      }
 
       SK_DLSS_Context::dlssg_s::Version = version;
     }

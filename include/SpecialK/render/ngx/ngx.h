@@ -62,6 +62,15 @@ struct SK_DLSS_Context
                                       test.build    == build &&
                                       test.revision  > revision );
     }
+
+    bool isEqualTo (version_s& test)
+    {
+      return
+        test.major    == major &&
+        test.minor    == minor &&
+        test.build    == build &&
+        test.revision == revision;
+    }
   };
 
   struct dlss_s {

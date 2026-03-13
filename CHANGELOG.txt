@@ -1,4 +1,10 @@
-﻿26.3.13.3
+﻿26.3.13.4
+=========
+ + Stop checking DLSSD DLL version, since it doesn't always match DLSS DLL version.
+ + Only detect DLSS driver overrides if the .bin file that NVIDIA loads is actually
+     newer than the DLL that ships with the game.
+
+26.3.13.3
 =========
  + Revert OpenGL interop debug flag change in 26.3.12 because it breaks DXVK.
  + Set complete set of Vulkan Bridge flags explicitly (clearing existing bits)
