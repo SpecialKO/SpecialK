@@ -1,4 +1,8 @@
-﻿26.3.13.2
+﻿26.3.13.3
+=========
+ + Revert OpenGL interop debug flag change in 26.3.12 because it breaks DXVK.
+
+26.3.13.2
 =========
  + Fixed year in prev. builds; Adderall cannot fix my special kind of stupid :)
 

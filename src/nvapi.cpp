@@ -3071,9 +3071,9 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 #define OGL_DX_LAYERED_PRESENT_AUTO   0x00000002
 
   static constexpr int uiOptimalInteropFlags =
-    ( DISABLE_FULLSCREEN_OPT   | ENABLE_DFLIP_ALWAYS |
-      ENABLE_DX_SYNC_INTERVAL  | ENABLE_DXVK         |
-      DISABLE_INTEROP_GPU_SYNC );
+    ( DISABLE_FULLSCREEN_OPT      | ENABLE_DFLIP_ALWAYS     |
+      SIGNAL_PRESENT_END_FROM_CPU | ENABLE_DX_SYNC_INTERVAL |
+      FORCE_INTEROP_GPU_SYNC      | ENABLE_DXVK );
 
   if (! nv_hardware)
     return -2;
