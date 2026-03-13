@@ -1108,7 +1108,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
         if (hMod)
         {
-          if (is_dlss || is_dlssd)
+          if (is_dlss/* || is_dlssd*/)
           {
             SK_NGX_EstablishDLSSVersion (compliant_path);
           }
@@ -1446,7 +1446,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
     if (hMod)
     {
-      if (is_dlss || is_dlssd)
+      if (is_dlss/* || is_dlssd*/)
       {
         SK_NGX_EstablishDLSSVersion (compliant_path);
       }
