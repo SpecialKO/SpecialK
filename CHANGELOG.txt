@@ -1,4 +1,8 @@
-﻿25.3.13
+﻿25.3.13.1
+=========
+ + Fixed NVIDIA Reflex options missing in some OpenGL-IK games after 25.3.13.
+
+25.3.13
 =======
  + Add UI text explaining why Vulkan Reflex is unavailable in a particular game.
 

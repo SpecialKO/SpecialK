@@ -614,9 +614,10 @@ SK_RenderBackend_V2::isReflexSupported (void) const
   }
 
   bool supported =
-    sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api)       &&
-    SK_Render_GetVulkanInteropSwapChainType      (swapchain) != SK_DXGI_VK_INTEROP_TYPE_AMD &&
-                       config.nvidia.reflex.vulkan_supported == true;
+    sk::NVAPI::nv_hardware && ( ( api == SK_RenderAPI::D3D11     && SK_GL_OnD3D11 ) ||
+                                ( SK_API_IsDXGIBased (api)       &&
+        SK_Render_GetVulkanInteropSwapChainType      (swapchain) != SK_DXGI_VK_INTEROP_TYPE_AMD &&
+                           config.nvidia.reflex.vulkan_supported == true ) );
 
   // By 150 frames, we should have a solid idea whether Reflex is supported
   if (SK_GetFramesDrawn () > SK_Reflex_MinimumFramesBeforeNative)

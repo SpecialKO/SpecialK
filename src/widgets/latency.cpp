@@ -884,7 +884,9 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
        ReadULong64Acquire (&SK_RenderBackend::frames_drawn) - 2 )
   {
     static bool bRTSS64 =
-      SK_GetModuleHandle (L"RTSSHooks64.dll") != 0;
+      SK_GetModuleHandle (
+        SK_RunLHIfBitness (32, L"RTSSHooks.dll",
+                               L"RTSSHooks64.dll") ) != 0;
 
     ImGui::TextColored ( ImColor::HSV (0.1f, 1.f, 1.f),
                            bRTSS64 ? "RivaTuner Statistics Server detected, "
@@ -965,7 +967,7 @@ SK_ImGui_DrawConfig_Latency ()
 
   if (show_mode_select)
   {
-    if (bPartialReflexSupport && config.nvidia.reflex.vulkan_supported != true)
+    if (bPartialReflexSupport && config.nvidia.reflex.vulkan_supported != true && (rb.api != SK_RenderAPI::D3D11 || !SK_GL_OnD3D11) )
     {
       ImGui::BeginGroup  ();
       ImGui::TextColored (ImVec4 (0.95f, .1f, .1f, 1.f),
