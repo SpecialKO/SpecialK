@@ -912,6 +912,9 @@ SK_ImGui_DrawConfig_Latency ()
     sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)       &&
     SK_Render_GetVulkanInteropSwapChainType      (rb.swapchain) != SK_DXGI_VK_INTEROP_TYPE_AMD;
 
+  if (bPartialReflexSupport)
+      bPartialReflexSupport = !bFullReflexSupport && !(SK_API_IsDXGIBased (rb.api) && SK_GL_OnD3D11);
+
   ImGui::BeginGroup ();
 
   int reflex_mode = 0;
@@ -967,7 +970,7 @@ SK_ImGui_DrawConfig_Latency ()
 
   if (show_mode_select)
   {
-    if (bPartialReflexSupport && config.nvidia.reflex.vulkan_supported != true && (rb.api != SK_RenderAPI::D3D11 || !SK_GL_OnD3D11) )
+    if (bPartialReflexSupport && config.nvidia.reflex.vulkan_supported != true)
     {
       ImGui::BeginGroup  ();
       ImGui::TextColored (ImVec4 (0.95f, .1f, .1f, 1.f),
