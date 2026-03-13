@@ -1093,6 +1093,7 @@ struct sk_config_t
       bool    enable              =  false;
       bool    native              =  false; // Status, not settings
       bool    vulkan              =  false; // Status, not settings
+      bool    vulkan_supported    =  false; // Status, not settings
       bool    override            =  false;
       bool    combined_limiter    =  false;
       bool    disable_native      =  false;

@@ -923,6 +923,11 @@ SK_VK_CreateSwapchainKHR (
 
       vkCreateSemaphore_SK (device, &create_info, nullptr, &SK_Reflex_VkSemaphore);
     }
+
+    if (SK_VK_HasLowLatency2)
+    {
+      config.nvidia.reflex.vulkan_supported = true;
+    }
   }
 
   else

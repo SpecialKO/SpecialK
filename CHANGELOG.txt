@@ -1,4 +1,8 @@
-﻿25.3.12
+﻿25.3.13
+=======
+ + Add UI text explaining why Vulkan Reflex is unavailable in a particular game.
+
+25.3.12
 =======
  + Improved NVIDIA OpenGL interop debug flags for maximum framerate
      (allows VRR in some games that would use LFC otherwise).
