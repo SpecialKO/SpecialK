@@ -560,8 +560,39 @@ OPENGL_STUB_(glEvalPoint2,  (GLint i,GLint j),
 OPENGL_STUB_(glFeedbackBuffer,(GLsizei size,GLenum type,GLfloat *buffer),
                               (        size,       type,         buffer));
 
-OPENGL_STUB_(glFinish,(void),());
-OPENGL_STUB_(glFlush, (void),());
+static const bool SK_AlwaysRedirect = true;
+static const bool SK_NeverRedirect  = false;
+
+#define OPENGL_REDIRECT_(_Name, _Proto, _Args, _OtherFn, _Condition)     \
+    typedef void (WINAPI *imp_##_Name##_pfn) _Proto;                     \
+    static imp_##_Name##_pfn imp_##_Name = nullptr;                      \
+                                                                         \
+  void WINAPI                                                            \
+  _Name _Proto {                                                         \
+    if (imp_##_Name == nullptr) {                                        \
+                                                                         \
+      SK_LoadRealGL ();                                                  \
+                                                                         \
+      const char * const szName = #_OtherFn;                             \
+      imp_##_OtherFn=(imp_##_OtherFn##_pfn)SK_GetProcAddress(local_gl,   \
+                                                                 szName);\
+                                                                         \
+      if (imp_##_OtherFn == nullptr) {                                   \
+        dll_log->Log (                                                   \
+          L"[ OpenGL32 ] Unable to locate symbol %s in OpenGL32.dll",    \
+          L#_OtherFn);                                                   \
+        return;                                                          \
+      }                                                                  \
+    }                                                                    \
+                                                                         \
+    if (_Condition)                                                      \
+      imp_##_OtherFn _Args;                                              \
+    else                                                                 \
+      imp_##_Name    _Args;                                              \
+}
+
+OPENGL_STUB_    (glFlush, (void),());
+OPENGL_REDIRECT_(glFinish,(void),(),glFlush,SK_AlwaysRedirect);
 
 OPENGL_STUB_(glFogf, (GLenum pname,GLfloat param),
                      (       pname,        param));
@@ -2527,7 +2558,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (SK_GL_OnD3D11 && (std::exchange (dx_gl_interop.stale, false) || pSwapChain == nullptr))
     {
-      glFinish ();
+      if (imp_glFinish != nullptr)
+          imp_glFinish ();
+      else    glFinish ();
 
       if (pSwapChain != nullptr)
       {
