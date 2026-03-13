@@ -1,4 +1,10 @@
-﻿25.2.17
+﻿25.3.12
+=======
+ + Improved NVIDIA OpenGL interop debug flags for maximum framerate
+     (allows VRR in some games that would use LFC otherwise).
+ + Replace calls to glFinish (...) with glFlush (...) when using DXGI interop.
+
+25.2.17
 =======
  + Disable D3D11 texture caching in EverQuest now that it is no longer D3D9.
 
