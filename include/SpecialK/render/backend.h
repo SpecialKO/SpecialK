@@ -114,7 +114,7 @@ struct sk_hwnd_cache_s
 
 constexpr
 float
-operator"" _Nits ( long double whitepoint_scalar ) noexcept
+operator""_Nits ( long double whitepoint_scalar ) noexcept
 {
   return
     static_cast <float> ( whitepoint_scalar / 80.0F );
