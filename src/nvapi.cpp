@@ -3267,7 +3267,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
   // Highly unlikely that we'll ever reach this point... don't run games as admin! :P
   if (SK_IsAdmin ())
   {
-    auto new_val =
+    NvU32 new_val =
       bEnable ? /*ogl_dx_present_debug_val.u32CurrentValue |*/
                  uiOptimalInteropFlags
               :  0x0/*ogl_dx_present_debug_val.u32CurrentValue &
