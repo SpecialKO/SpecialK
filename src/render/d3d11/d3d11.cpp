@@ -8241,10 +8241,25 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   if (SK_COMPAT_IgnoreNvCameraCall ())
     return E_NOTIMPL;
 
+  DXGI_ADAPTER_DESC adapter_desc {};
+
+  const bool bUndesirableDriver =
+    (DriverType == D3D_DRIVER_TYPE_WARP || DriverType == D3D_DRIVER_TYPE_REFERENCE) ||
+      (pAdapter != nullptr &&
+        SUCCEEDED (pAdapter->GetDesc (&adapter_desc))               &&
+                    adapter_desc.VendorId == 0x1414 /* Microsoft */ &&
+                    adapter_desc.DeviceId == 0x008C /* Microsoft Basic Render Driver */);
+
   if (! config.render.dxgi.debug_layer)
   {
-    if (bD3D10 || bEOSOverlay || (pSwapChainDesc != nullptr && !SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
+    if (bUndesirableDriver || bD3D10 || bEOSOverlay || (pSwapChainDesc != nullptr && !SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
     {
+      if (bUndesirableDriver)
+      {
+        SK_LOGi0 ( L"==> D3D11CreateDeviceAndSwapChain: Ignoring D3D11 device with an undesirable"
+                   L" driver(WARP, Reference, or Microsoft Basic Render Driver)" );
+      }
+
       return
         D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
                                                  pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
