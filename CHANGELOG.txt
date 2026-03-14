@@ -1,4 +1,9 @@
-﻿26.3.14.1
+﻿26.3.14.2
+=========
+ + Added "Allow Flip Metering" option directly to the DLSS control panel,
+     instead of making it a hidden INI setting (shown if Frame Gen is active).
+
+26.3.14.1
 =========
  > More extensive pull requests (try 26.3.14 if something weird happens).
  + Merged pull request #335 from kisenaa:arknight-endfield

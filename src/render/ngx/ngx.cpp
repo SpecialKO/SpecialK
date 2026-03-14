@@ -2443,7 +2443,37 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PopItemWidth ();
         }
 #endif
+        ImGui::SameLine ();
       }
+
+      static bool restart_required = false;
+
+      if (__SK_IsDLSSGActive)
+      {
+        if (ImGui::Checkbox ("Allow Flip Metering", &config.nvidia.dlss.allow_flip_metering))
+        {
+          restart_required = true;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::BeginItemTooltip ())
+        {
+          ImGui::TextUnformatted ("Allow NVIDIA to use Flip Metering instead of standard DLSS Frame Pacing");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Increases latency and makes pacing worse");
+          ImGui::BulletText      ("May be required for multi-frame gen");
+          ImGui::EndTooltip      ();
+        }
+      }
+
+      if (restart_required)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::BulletText     ("Game Restart Required");
+        ImGui::PopStyleColor  ();
+      }
+
       ImGui::EndGroup    ();
       ImGui::SameLine    ();
       ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
