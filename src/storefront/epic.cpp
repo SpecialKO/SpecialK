@@ -1557,7 +1557,7 @@ SK::EOS::AppName (void)
     try
     {
       while (! std::filesystem::equivalent ( path.parent_path    (),
-                                             path.root_directory () ) )
+                                             path.root_name() / path.root_directory () ) )
       {
         if (! name.empty ())
           break;
