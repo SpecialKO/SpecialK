@@ -6679,6 +6679,80 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                     ImGui::SetItemTooltip ("Adaptive V-Sync works better in Fake Fullscreen or Windowed Mode");
                   }
                 }
+
+                bool bIsLatencyReducingTearingMode = false;
+
+                switch (config.render.framerate.tearing_mode)
+                {
+                  case SK_TearingMode::AdaptiveOff:
+                  {
+                    bIsLatencyReducingTearingMode = true;
+
+                    if (! rb.isTrueFullscreen ())
+                    {
+                      break;
+                    }
+                  }
+
+                  case SK_TearingMode::AlwaysOff_LowLatency:
+                  {
+                    bIsLatencyReducingTearingMode = true;
+
+                    ImGui::Combo (
+                      "Latency Mode",
+                      &config.render.framerate.latency_mode,
+                      "Smooth\0"
+                      "Aggressive\0\0"
+                    );
+
+                    if (ImGui::BeginItemTooltip ())
+                    {
+                      ImGui::Text       ("Controls latency reduction behavior");
+                      ImGui::Separator  ();
+                      ImGui::BulletText ("Smooth mode is slower, but uses a parabola curve to minimize judder");
+                      ImGui::BulletText ("Aggressive mode causes more judder, but reduces latency much faster");
+                      ImGui::EndTooltip ();
+                    }
+                  } break;
+
+                  default:
+                  {
+                  } break;
+                }
+
+                if (bIsLatencyReducingTearingMode)
+                {
+                  if  ( ImGui::SliderInt (
+                          "Render Queue",
+                          &config.render.framerate.render_queue,
+                          SK_RenderBackend_V2::latency.stale ? 1 : 0,
+                          16,
+                          "%d Frame(s)"
+                        )
+                      )
+                  {
+                    if ( ! SK_RenderBackend_V2::latency.stale &&
+                         config.render.framerate.render_queue == 0 )
+                    {
+                      config.render.framerate.enforcement_policy = 2;
+                    }
+                  }
+
+                  ImGui::SetItemTooltip ("Maximum limit of queued frames before Render Latency is allowed to decrease");
+
+                  if ( config.render.framerate.enforcement_policy != 2 &&
+                       config.render.framerate.render_queue       == 0 &&
+                       ! SK_RenderBackend_V2::latency.stale            )
+                  {
+                    ImGui::SameLine    ();
+                    ImGui::TextColored (
+                      ImColor (0.0f, 1.0f, 1.0f),
+                      ICON_FA_EXCLAMATION_TRIANGLE
+                    );
+
+                    ImGui::SetItemTooltip ("Render Queue of 0 is intended to be used with Low-Latency Limiter Mode");
+                  }
+                }
               }
 
               else
