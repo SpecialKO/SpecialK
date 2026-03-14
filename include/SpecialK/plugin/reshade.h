@@ -38,6 +38,9 @@ void
 SK_ReShade_LoadIfPresent (void);
 
 bool
+SK_ReShade_IsLocalDXGIPresent (void);
+
+bool
 SK_ReShade_IsLocalDLLPresent (void);
 
 UINT64 SK_ReShadeAddOn_RenderEffectsD3D12   (IDXGISwapChain1*, ID3D12Resource*, ID3D12Fence*, D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE);

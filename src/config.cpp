@@ -6185,6 +6185,9 @@ auto DeclKeybind =
   //
   if (SK_GetModuleHandleW (L"UnityPlayer.dll") || PathFileExistsW (L"UnityPlayer.dll"))
   {
+    // Pre-load ReShade's DXGI DLL in Unity games
+    SK_ReShade_IsLocalDXGIPresent ();
+
     if (config.render.framerate.engine_overrides.allow_latency_wait == -1 ||
         config.render.framerate.pre_render_limit                    == -1)
     {

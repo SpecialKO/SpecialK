@@ -82,6 +82,27 @@ SK_ReShade_GetDLL (void)
 };
 
 bool
+SK_ReShade_IsLocalDXGIPresent (void)
+{
+  const wchar_t *wszDLL = L"dxgi.dll";
+
+  wchar_t          wszReShadePath [MAX_PATH] = {};
+  SK_PathCombineW (wszReShadePath, SK_GetHostPath (), wszDLL);
+
+  if (PathFileExistsW (wszReShadePath))
+  {
+    if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+    {
+      config.render.dxgi.use_factory_cache = false;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
 SK_ReShade_IsLocalDLLPresent (void)
 {
   const wchar_t *wszDLL =
@@ -99,8 +120,9 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"dxgi.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
       {
+        config.render.dxgi.use_factory_cache = false;
         return true;
       }
     }
@@ -108,8 +130,9 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d11.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
       {
+        config.render.dxgi.use_factory_cache = false;
         return true;
       }
     }
@@ -117,8 +140,9 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d12.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
       {
+        config.render.dxgi.use_factory_cache = false;
         return true;
       }
     }
@@ -126,8 +150,9 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d9.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
       {
+        config.render.dxgi.use_factory_cache = false;
         return true;
       }
     }
@@ -135,8 +160,9 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"OpenGL32.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (SK_LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
       {
+        config.render.dxgi.use_factory_cache = false;
         return true;
       }
     }
