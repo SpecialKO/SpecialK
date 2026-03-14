@@ -1,4 +1,17 @@
-﻿26.3.13.5
+﻿26.3.14
+=======
+ + Merge pull request #330 from murmursh:dlss4.5_presets
+    * Added DLSS 4.5 presets to the control panel
+ + Merge pull request #312 from VladWinner:main
+    * Disable D3D9 hooking in Call of Duty: United Offensive to use OpenGL-IK
+ + Merge pull request #316 from Braasileiro:tvfix-latest-game-version
+    * Update TVFix to the latest game version
+ + Merge pull request #322 from HarukaMa:fix-windows-root-dir
+    * Fix Windows root directory checks
+ + Merge pull request #342 from nta:fix/yakuza-2026
+    * Fixes for 2026's Yakuza lineup
+
+26.3.13.5
 =========
  + Add additional logging for DLSS and DLSS-G DLL version.
 
