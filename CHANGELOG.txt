@@ -1,4 +1,16 @@
-﻿26.3.14
+﻿26.3.14.1
+=========
+ > More extensive pull requests (try 26.3.14 if something weird happens).
+ + Merged pull request #335 from kisenaa:arknight-endfield
+    * Added support for Arknights: Endfield and improved DLSS detection logic
+ + Merged pull request #315 from Nustat0:latent-sync-disable-reflex-limiter
+    * Hide Latent Sync and Tearing Mode if Reflex Limiter is active
+ + Merged pull request #311 from Nustat0:temp-fps-curve
+    * Added more options to customize Low Latency and Adaptive V-Sync tearing
+ + Merged pull request #306 from Nustat0:latent-sync-skip-frames
+    * Added Skip Frames toggle to Latent Sync
+
+26.3.14
 =======
  + Merge pull request #330 from murmursh:dlss4.5_presets
     * Added DLSS 4.5 presets to the control panel
