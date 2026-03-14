@@ -57,8 +57,8 @@ typedef enum NVSDK_NGX_DLSS_Hint_Render_Preset
   NVSDK_NGX_DLSS_Hint_Render_Preset_I_Reserved,  // do not use, reverts to default behavior
   NVSDK_NGX_DLSS_Hint_Render_Preset_J,
   NVSDK_NGX_DLSS_Hint_Render_Preset_K,
-  NVSDK_NGX_DLSS_Hint_Render_Preset_L,           // do not use, reverts to default behavior
-  NVSDK_NGX_DLSS_Hint_Render_Preset_M,           // do not use, reverts to default behavior
+  NVSDK_NGX_DLSS_Hint_Render_Preset_L,
+  NVSDK_NGX_DLSS_Hint_Render_Preset_M,
   NVSDK_NGX_DLSS_Hint_Render_Preset_N,           // do not use, reverts to default behavior
   NVSDK_NGX_DLSS_Hint_Render_Preset_O,           // do not use, reverts to default behavior
 } NVSDK_NGX_DLSS_Hint_Render_Preset;
