@@ -1,4 +1,13 @@
-﻿26.3.14.2
+﻿26.3.14.3
+=========
+ + Ignore Microsoft WARP and Reference D3D11 devices when hooking things.
+ + Disable DXGI Factory Cache by default in order to workaround ReShade
+     factory changes made in 6.6.0.
+
+   * Reset INI files before attempting to use ReShade 6.6.0+ in a game that
+       you previously used Special K in (...or set UseFactoryCache=false).
+
+26.3.14.2
 =========
  + Added "Allow Flip Metering" option directly to the DLSS control panel,
      instead of making it a hidden INI setting (shown if Frame Gen is active).
