@@ -2714,6 +2714,123 @@ SK_ScanAligned (const void* pattern, size_t len, const void* mask, int align)
   return SK_ScanAlignedEx (pattern, len, mask, nullptr, align);
 }
 
+void*
+__stdcall SK_ScanIdaStyle(void* module, const char* pattern)
+{
+  if (!module || !pattern)
+    return nullptr;
+
+  auto pattern_to_bytes = [](const char* pat) -> std::vector<std::optional<std::uint8_t>>
+    {
+      std::vector<std::optional<std::uint8_t>> bytes;
+      const char* current = pat;
+
+      while (*current)
+      {
+        if (*current == ' ')
+        {
+          ++current;
+          continue;
+        }
+
+        if (*current == '?')
+        {
+          ++current;
+          if (*current == '?')
+            ++current;
+          bytes.emplace_back (std::nullopt);
+        }
+        else
+        {
+          char* end = nullptr;
+          const unsigned long value = std::strtoul (current, &end, 16);
+          if (current == end)
+            break;
+
+          bytes.emplace_back (static_cast<std::uint8_t> (value));
+          current = end;
+        }
+      }
+
+      return bytes;
+    };
+
+  auto dos = static_cast<PIMAGE_DOS_HEADER> (module);
+  if (dos->e_magic != IMAGE_DOS_SIGNATURE)
+    return nullptr;
+
+  auto nt = reinterpret_cast<PIMAGE_NT_HEADERS> (
+    static_cast<std::uint8_t*> (module) + dos->e_lfanew
+    );
+  if (nt->Signature != IMAGE_NT_SIGNATURE)
+    return nullptr;
+
+  auto* base = static_cast<std::uint8_t*> (module);
+  const std::size_t sizeOfImage = nt->OptionalHeader.SizeOfImage;
+
+  const auto patternBytes = pattern_to_bytes (pattern);
+  const std::size_t patternSize = patternBytes.size ();
+
+  if (patternSize == 0 || patternSize > sizeOfImage)
+    return nullptr;
+
+  MEMORY_BASIC_INFORMATION mbi { };
+  std::uint8_t* it  = base;
+  std::uint8_t* end = base + sizeOfImage;
+
+  const auto orig_se = SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+
+  uint8_t* found_addr = nullptr;
+
+  while (it < end && VirtualQuery (it, &mbi, sizeof (mbi)))
+  {
+    // Skip unreadable / non-image memory
+    if (!(mbi.Type & MEM_IMAGE) || (mbi.Protect & PAGE_NOACCESS) ||  mbi.Protect == 0)
+    {
+      it = static_cast<std::uint8_t*> (mbi.BaseAddress) + mbi.RegionSize;
+      continue;
+    }
+
+    auto regionStart = static_cast<std::uint8_t*> (mbi.BaseAddress);
+    auto regionEnd = regionStart + mbi.RegionSize;
+
+    regionStart = std::max (regionStart, base);
+    regionEnd = std::min (regionEnd, end);
+
+   
+    for (auto* cur = regionStart; cur + patternSize <= regionEnd; ++cur)
+    {
+      bool found = true;
+
+      try {
+        for (std::size_t j = 0; j < patternSize; ++j) {
+          const auto& byte = gsl::at (patternBytes, j);
+          if (byte.has_value () && cur[j] != byte.value_or (0)) {
+            found = false;
+            break;
+          }
+        }
+
+        if (found) {
+          found_addr = cur;
+          break;
+        }
+      }
+      catch (const SK_SEH_IgnoredException&) {
+        // Continue searching
+      }
+    }
+
+    if (found_addr)
+      break;
+    it = static_cast<std::uint8_t*> (mbi.BaseAddress) + mbi.RegionSize;
+  }
+
+  SK_SEH_RemoveTranslator (orig_se);
+  return found_addr;
+}
+
+
 BOOL
 __stdcall
 SK_InjectMemory ( LPVOID  base_addr,

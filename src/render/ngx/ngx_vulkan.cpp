@@ -622,6 +622,24 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_VULKAN_Shutdown1 (VkDevice InDevice);
 
+bool
+SK_NGX_ShouldSkipReleaseFeatureHook()
+{
+#if defined(_M_AMD64)
+  switch (SK_GetCurrentGameID())
+  {
+    case SK_GAME_ID::ArknightsEndfield:
+      extern bool __g_SK_AKEF_EnableHookFixes;
+      return __g_SK_AKEF_EnableHookFixes;
+      break;
+    default:
+      return false;
+  }
+#else
+  return false;
+#endif
+}
+
 void
 SK_NGX_InitVULKAN (void)
 {
@@ -646,13 +664,16 @@ SK_NGX_InitVULKAN (void)
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                          "NVSDK_NGX_VULKAN_CreateFeature1",
-                          NVSDK_NGX_VULKAN_CreateFeature1_Detour,
+                         NVSDK_NGX_VULKAN_CreateFeature1_Detour,
                 (void **)&NVSDK_NGX_VULKAN_CreateFeature1_Original );
 
-    SK_CreateDLLHook2 ( L"_nvngx.dll",
-                           "NVSDK_NGX_VULKAN_ReleaseFeature",
-                            NVSDK_NGX_VULKAN_ReleaseFeature_Detour,
-                  (void **)&NVSDK_NGX_VULKAN_ReleaseFeature_Original );
+    if (! SK_NGX_ShouldSkipReleaseFeatureHook ())
+    {
+      SK_CreateDLLHook2 ( L"_nvngx.dll",
+                          "NVSDK_NGX_VULKAN_ReleaseFeature",
+                           NVSDK_NGX_VULKAN_ReleaseFeature_Detour,
+                  (void **)&NVSDK_NGX_VULKAN_ReleaseFeature_Original);
+    }
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                            "NVSDK_NGX_VULKAN_EvaluateFeature",

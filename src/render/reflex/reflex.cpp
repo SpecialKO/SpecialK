@@ -1308,12 +1308,13 @@ static NvLL_VK_GetLatency_pfn
 
 extern void SK_VK_HookFirstDevice (VkDevice device);
 
-struct {
+struct SK_VK_REFLEX {
   VkDevice       device         = 0;
   VkSwapchainKHR swapchain      = 0;
   uint64_t       last_frame     = 0;
   VkSemaphore    NvLL_semaphore = 0;
-} SK_VK_Reflex;
+};
+SK_VK_REFLEX SK_VK_Reflex;
 
 #undef VK_NV_low_latency2
 
@@ -1379,7 +1380,7 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       }
     }
 
-    const auto reflex_interval_us =
+  const auto reflex_interval_us =
       SK_Reflex_CalculateSleepMinIntervalForVulkan (sleepModeParams->bLowLatencyMode);
 
     sleepModeParams->minimumIntervalUs =
@@ -1492,6 +1493,23 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
   SK_PCL_Heartbeat (nvapi_marker);
 }
 
+bool
+SK_VK_ShouldVkSkipSleepHook()
+{
+#if defined(_M_AMD64)
+  switch (SK_GetCurrentGameID())
+  {
+  case SK_GAME_ID::ArknightsEndfield:
+    extern bool __g_SK_AKEF_EnableHookFixes;
+    return __g_SK_AKEF_EnableHookFixes;
+  default:
+    return false;
+  }
+#else
+  return false;
+#endif
+}
+
 void SK_VK_HookReflex (void)
 {
   SK_RunOnce (
@@ -1505,10 +1523,13 @@ void SK_VK_HookReflex (void)
                                NvLL_VK_SetSleepMode_Detour,
       static_cast_p2p <void> (&NvLL_VK_SetSleepMode_Original) );
 
-    SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
-                              "NvLL_VK_Sleep",
-                               NvLL_VK_Sleep_Detour,
-      static_cast_p2p <void> (&NvLL_VK_Sleep_Original) );
+    if (!SK_VK_ShouldVkSkipSleepHook())
+    {
+      SK_CreateDLLHook2(      L"NvLowLatencyVk.dll",
+                               "NvLL_VK_Sleep",
+                                NvLL_VK_Sleep_Detour,
+                                static_cast_p2p <void>(&NvLL_VK_Sleep_Original));
+    }
 
     SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
                               "NvLL_VK_SetLatencyMarker",
@@ -1598,7 +1619,7 @@ SK_RenderBackend_V2::vk_reflex_s::getLatencyReport (NV_LATENCY_RESULT_PARAMS* la
       extern PFN_vkGetLatencyTimingsNV vkGetLatencyTimingsNV_Original;
 
       vkGetLatencyTimingsNV_Original (SK_Reflex_VkDevice, SK_Reflex_VkSwapchain, &markerInfo);
-
+      
       for ( auto i = 0u ; i < 64 ; ++i )
       {
         if (i >= markerInfo.timingCount)
@@ -1673,7 +1694,7 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
 
     const double dReflexFPS =
       (dRefresh - (dRefresh * dRefresh) / 3600.0);
-
+    
     // Set VRR framerate limit accordingly
     reflex_interval =
       static_cast <UINT> (round (1000000.0 / dReflexFPS));

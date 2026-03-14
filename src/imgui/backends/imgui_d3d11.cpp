@@ -2039,6 +2039,15 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
   //   )
   //{
   //}
+  if (_pDevice != nullptr && _pDevice.p != nullptr)
+  {
+      HRESULT removedReason = _pDevice->GetDeviceRemovedReason ();
+      if (FAILED (removedReason))
+      {
+          SK_LOG1( (L"D3D11 Device Removed:  0x%08X", removedReason), L"D3D11BkEnd");
+      }
+  }
+
   if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
         _pSwapChain.IsEqualObject  (pSwapChain)            )//||
         //_pSwapChain.IsEqualObject  (pUnwrapped) )
