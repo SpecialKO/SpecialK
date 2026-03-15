@@ -1498,6 +1498,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
           if (hModAddOn != skModuleRegistry::INVALID_MODULE)
           {
+            reshade::register_addon (hModAddOn, reshade_module);
+
             //dll_log->LogEx (false, L"success!\n");
 
             // Don't announce global AddOns
