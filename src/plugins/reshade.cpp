@@ -91,7 +91,8 @@ SK_ReShade_IsLocalDXGIPresent (void)
 
   if (PathFileExistsW (wszReShadePath))
   {
-    if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+    if ( StrStrIW (SK_GetDLLVersionStr (wszReShadePath).c_str (),   L"ReShade") &&
+          GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon") )
     {
       config.render.dxgi.use_factory_cache = false;
       __SK_DisableQuickHook                = TRUE;
@@ -106,6 +107,8 @@ SK_ReShade_IsLocalDXGIPresent (void)
 bool
 SK_ReShade_IsLocalDLLPresent (void)
 {
+  SK_PROFILE_FIRST_CALL
+
   const wchar_t *wszDLL =
     SK_RunLHIfBitness (64, L"ReShade64.dll",
                            L"ReShade32.dll");
@@ -121,7 +124,8 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"dxgi.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if ( StrStrIW (SK_GetDLLVersionStr (wszReShadePath).c_str (),   L"ReShade") &&
+            GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon") )
       {
         __SK_DisableQuickHook                = TRUE;
         config.render.dxgi.use_factory_cache = false;
@@ -133,7 +137,8 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d11.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if ( StrStrIW (SK_GetDLLVersionStr (wszReShadePath).c_str (),   L"ReShade") &&
+            GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon") )
       {
         __SK_DisableQuickHook                = TRUE;
         config.render.dxgi.use_factory_cache = false;
@@ -145,7 +150,8 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d12.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if ( StrStrIW (SK_GetDLLVersionStr (wszReShadePath).c_str (),   L"ReShade") &&
+            GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon") )
       {
         __SK_DisableQuickHook                = TRUE;
         config.render.dxgi.use_factory_cache = false;
@@ -157,7 +163,8 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"d3d9.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if ( StrStrIW (SK_GetDLLVersionStr (wszReShadePath).c_str (),   L"ReShade") &&
+            GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon") )
       {
         __SK_DisableQuickHook                = TRUE;
         config.render.dxgi.use_factory_cache = false;
@@ -169,7 +176,8 @@ SK_ReShade_IsLocalDLLPresent (void)
     SK_PathCombineW     (wszReShadePath, SK_GetHostPath (), L"OpenGL32.dll");
     if (PathFileExistsW (wszReShadePath))
     {
-      if (GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon"))
+      if ( StrStrIW (SK_GetDLLVersionStr (wszReShadePath).c_str (),   L"ReShade") &&
+            GetProcAddress (LoadLibraryW (wszReShadePath), "ReShadeRegisterAddon") )
       {
         __SK_DisableQuickHook                = TRUE;
         config.render.dxgi.use_factory_cache = false;
@@ -1402,6 +1410,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   if (ReadAcquire (&__SK_DLL_Ending))
     return false;
 
+  SK_PROFILE_FIRST_CALL
   SK_PROFILE_SCOPED_TASK (SK_ReShadeAddOn_Init)
 
   // Load ReShade's early import even earlier than normal so that AddOns
