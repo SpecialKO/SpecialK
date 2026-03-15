@@ -1436,8 +1436,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
 
-  registered = reshade_module && ( (! is_plugin) ||
-    reshade::register_addon (SK_GetDLL (), reshade_module) );
+  registered = reshade_module &&
+    reshade::register_addon (SK_GetDLL (), reshade_module);
 
   if (registered)
   {
@@ -1451,6 +1451,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     if (! PathIsDirectoryW (shared_addon_path.c_str ()))
           CreateDirectoryW (shared_addon_path.c_str (), nullptr);
+
+    static bool has_renodx = false;
 
     auto _AutoLoadAddOns = [&](void)
     {
@@ -1498,7 +1500,10 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
           if (hModAddOn != skModuleRegistry::INVALID_MODULE)
           {
-            reshade::register_addon (hModAddOn, reshade_module);
+            if (StrStrIW (path.wstring ().c_str (), L"renodx"))
+            {
+              has_renodx = true;
+            }
 
             //dll_log->LogEx (false, L"success!\n");
 
@@ -1528,28 +1533,20 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     _AutoLoadAddOns ();
 
-    if (is_plugin || (!SK_ReShade_HasRenoDX () || config.reshade.allow_addon_with_reno))
+    if (registered)
     {
-      // As long as RenoDX is not loaded, late-register SK's AddOn for a normal install of ReShade
-      if (! is_plugin)
-      {
-        registered =
-          reshade::register_addon (SK_GetDLL (), reshade_module);
-      }
+      // Enable advanced AddOn functionality if RenoDX is not loaded
+      config.reshade.is_addon =
+        (!(SK_ReShade_HasRenoDX () || has_renodx) || config.reshade.allow_addon_with_reno);
 
-      if (registered)
-      {
-        config.reshade.is_addon = true;
-
-        reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
-        reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
-        reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
-        reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
-        reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
-        reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
-        reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
-        //reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
-      }
+      reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
+      reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
+      reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
+      reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
+      reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
+      reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
+      reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
+      //reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
     }
   }
 
