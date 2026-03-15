@@ -568,6 +568,7 @@ struct sk_config_t
     bool        is_addon_hookless     = false;  // True if ReShade has no hooked effect runtimes
     bool        has_local_ini         = false;  // Using local ReShade.ini instead of SK's
     bool        allow_unsafe_addons   = false;
+    bool        allow_addon_with_reno = false;
     SK_ConfigSerializedKeybind
                 toggle_overlay_keybind= {
                     SK_Keybind {

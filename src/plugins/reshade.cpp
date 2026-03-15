@@ -1526,24 +1526,28 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     _AutoLoadAddOns ();
 
-    if (! is_plugin)
+    if (is_plugin || (!SK_ReShade_HasRenoDX () || config.reshade.allow_addon_with_reno))
     {
-      registered =
-        reshade::register_addon (SK_GetDLL (), reshade_module);
-    }
+      // As long as RenoDX is not loaded, late-register SK's AddOn for a normal install of ReShade
+      if (! is_plugin)
+      {
+        registered =
+          reshade::register_addon (SK_GetDLL (), reshade_module);
+      }
 
-    if (registered)
-    {
-      config.reshade.is_addon = true;
+      if (registered)
+      {
+        config.reshade.is_addon = true;
 
-      reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
-      reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
-      reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
-      reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
-      reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
-      reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
-      reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
-      //reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
+        reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
+        reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
+        reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
+        reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
+        reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
+        reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
+        reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
+        //reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
+      }
     }
   }
 

@@ -1,4 +1,20 @@
-﻿26.3.15.2
+﻿26.3.15.3
+=========
+ + Partially rever 26.3.15.1, because RenoDX continues to break stuff in some
+     games.
+
+ + Added new INI option to allow SK's intended ReShade functionality even if
+     RenoDX is loaded:
+
+    [ReShade.System]
+    AllowSKAddOnWithRenoDX={true|false}  Default: false
+
+      Setting to true will allow SK's ReShade AddOn registration to work even
+        if RenoDX is loaded, but some advanced ReShade features will be
+          unavailable in RenoDX games (i.e. draw before/after, overlay hide,
+            etc.).
+
+26.3.15.2
 =========
  + Loading ReShade{32|64}.dll from a game directory without an existing
      ReShade.ini will now opt-in to using SK's profile directory for ReShade

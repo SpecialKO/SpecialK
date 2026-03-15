@@ -827,6 +827,7 @@ struct {
   } overlay;
   sk::ParameterBool*      draw_first              = nullptr;
   sk::ParameterBool*      unsafe_addons           = nullptr;
+  sk::ParameterBool*      allow_sk_addon_and_reno = nullptr;
 } reshade_cfg;
 
 struct {
@@ -2306,6 +2307,7 @@ auto DeclKeybind =
 
     ConfigEntry (reshade_cfg.draw_first,                 L"Draw ReShade before SK's overlay in AddOn capable versions",dll_ini,         L"ReShade.System",        L"DrawFirst"),
     ConfigEntry (reshade_cfg.unsafe_addons,              L"Supress warnings for incompatible ReShade AddOns",          dll_ini,         L"ReShade.System",        L"UnsafeAddOns"),
+    ConfigEntry (reshade_cfg.allow_sk_addon_and_reno,    L"Enable Special K's ReShade Add-On when RenoDX is in use.",  dll_ini,         L"ReShade.System",        L"AllowSKAddOnWithRenoDX"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
@@ -4824,6 +4826,7 @@ auto DeclKeybind =
 
   reshade_cfg.draw_first->load              (config.reshade.draw_first);
   reshade_cfg.unsafe_addons->load           (config.reshade.allow_unsafe_addons);
+  reshade_cfg.allow_sk_addon_and_reno->load (config.reshade.allow_addon_with_reno);
 
   notifications.location->load              (config.notifications.location);
   notifications.silent->load                (config.notifications.silent);
@@ -7597,6 +7600,7 @@ SK_SaveConfig ( std::wstring name,
 
   reshade_cfg.draw_first->store               (config.reshade.draw_first);
   reshade_cfg.unsafe_addons->store            (config.reshade.allow_unsafe_addons);
+  reshade_cfg.allow_sk_addon_and_reno->store  (config.reshade.allow_addon_with_reno);
 
   notifications.location->store               (config.notifications.location);
   notifications.silent->store                 (config.notifications.silent);
