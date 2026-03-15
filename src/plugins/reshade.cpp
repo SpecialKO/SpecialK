@@ -1414,8 +1414,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   if (reshade_module == nullptr)
       reshade_module = reshade::internal::get_reshade_module_handle ();
 
-  bool is_plugin =              reshade_module &&
-    StrStrIW (SK_GetModuleName (reshade_module).c_str (), L"ReShade");
+  //bool is_plugin =              reshade_module &&
+  //  StrStrIW (SK_GetModuleName (reshade_module).c_str (), L"ReShade");
 
   const auto reshade_base_path =
     SK_ReShadeGetBasePath ();
