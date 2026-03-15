@@ -6183,25 +6183,24 @@ auto DeclKeybind =
 
   // Auto-Config for Unity Engine Games on First Launch
   //
-  if (SK_GetModuleHandleW (L"UnityPlayer.dll") || PathFileExistsW (L"UnityPlayer.dll"))
-  {
-    // Pre-load ReShade's DXGI DLL in Unity games
-    SK_ReShade_IsLocalDXGIPresent ();
-
-    if (config.render.framerate.engine_overrides.allow_latency_wait == -1 ||
-        config.render.framerate.pre_render_limit                    == -1)
+  SK_RunOnce (
+    if (SK_GetModuleHandleW (L"UnityPlayer.dll") || PathFileExistsW (L"UnityPlayer.dll"))
     {
-      // Unity will be assigned a maximum frame latency of 1 frame if it tries
-      //   to use latency waitable and user has not overriden the pre-render limit.
-      config.render.framerate.engine_overrides.allow_latency_wait  =  TRUE;
+      if (config.render.framerate.engine_overrides.allow_latency_wait == -1 ||
+          config.render.framerate.pre_render_limit                    == -1)
+      {
+        // Unity will be assigned a maximum frame latency of 1 frame if it tries
+        //   to use latency waitable and user has not overriden the pre-render limit.
+        config.render.framerate.engine_overrides.allow_latency_wait  =  TRUE;
+      }
+      config.render.framerate.engine_overrides.allow_wait_for_vblank = FALSE;
+      config.textures.cache.ignore_nonmipped                         =  true;
     }
-    config.render.framerate.engine_overrides.allow_wait_for_vblank = FALSE;
-    config.textures.cache.ignore_nonmipped                         =  true;
-  }
 
-  // Figure out the storefront type
-  //
-  SK_Platform_EstablishStorefrontOnFirstLoad ();
+    // Figure out the storefront type
+    //
+    SK_Platform_EstablishStorefrontOnFirstLoad ();
+  );
 
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.osd.keys.console_toggle);

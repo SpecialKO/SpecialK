@@ -1,4 +1,10 @@
-﻿26.3.15
+﻿26.3.15.1
+=========
+ + Tweak ReShade AddOn registration so that SK still has access to advanced
+     ReShade features (i.e. draw before/after, overlay hide, etc.) when
+       RenoDX + dxgi.dll are in use.
+
+26.3.15
 =======
  + Pre-load ReShade (if dxgi.dll) in Unity engine games to prevent problems
      introduced in ReShade 6.6.0 that would cause it to fail.

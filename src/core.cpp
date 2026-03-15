@@ -2182,7 +2182,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (false, L"done!\n");
   }
 
-  SK_ReShadeAddOn_Init ();
+  // As of ReShade 6.6.0, ReShade will poop the bed if it is dxgi.dll and not loaded before SK is,
+  //   so explicitly pre-load it now.
+  SK_ReShade_IsLocalDXGIPresent ();
+  SK_ReShade_LoadIfPresent      ();
+  SK_ReShadeAddOn_Init          ();
 
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
