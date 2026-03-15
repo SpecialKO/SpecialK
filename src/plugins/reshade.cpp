@@ -179,6 +179,11 @@ SK_ReShade_IsLocalDLLPresent (void)
     }
   }
 
+  else
+  {
+    config.render.dxgi.use_factory_cache = false;
+  }
+
   return bLocalRaw;
 }
 

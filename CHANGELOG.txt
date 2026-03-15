@@ -1,4 +1,10 @@
-﻿26.3.15.4
+﻿26.3.15.5
+=========
+ + Automatically turn off DXGI factory caching if ReShade is detected,
+     rather than expecting users to reset old INIs from before the default
+       was changed to off.
+
+26.3.15.4
 =========
  + Improved RenoDX detection for the changes made in 26.3.15.3.
  + Allow partial SK ReShade AddOn support even if RenoDX is loaded, but disable
