@@ -182,6 +182,9 @@ SK_ReShade_IsLocalDLLPresent (void)
   return bLocalRaw;
 }
 
+HMODULE
+SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode);
+
 void
 SK_ReShade_LoadIfPresent (void)
 {
@@ -197,39 +200,16 @@ SK_ReShade_LoadIfPresent (void)
   wchar_t          wszReShadePath [MAX_PATH] = {};
   SK_PathCombineW (wszReShadePath, SK_GetHostPath (), wszDLL);
 
+  wchar_t          wszReShadeINI [MAX_PATH] = {};
+  SK_PathCombineW (wszReShadeINI, SK_GetHostPath (), L"ReShade.ini");
+
   if (PathFileExistsW (wszReShadePath))
   {
-    wchar_t          wszReShadeINIPath [MAX_PATH] = {};
-    SK_PathCombineW (wszReShadeINIPath, SK_GetHostPath (), L"ReShade.ini");
-
-    if (! PathFileExistsW (wszReShadeINIPath))
-    {
-      FILE *fINI =
-        _wfopen (wszReShadeINIPath, L"w+");
-
-      if (fINI != nullptr)
-      {
-        fputs (R"(
-[GENERAL]
-EffectSearchPaths=.\,.\reshade-shaders\Shaders
-TextureSearchPaths=.\,.\reshade-shaders\Textures
-PresetPath=.\ReShadePreset.ini
-
-[OVERLAY]
-NoFontScaling=1
-
-[STYLE]
-EditorFont=ProggyClean.ttf
-EditorFontSize=13
-EditorStyleIndex=0
-Font=ProggyClean.ttf
-FontSize=13
-StyleIndex=2)", fINI);
-        fclose (fINI);
-      }
-    }
-
-    LoadLibraryW (wszReShadePath);
+    // If no INI exists already, then behave like a global install.
+    if (! PathFileExistsW (wszReShadeINI))
+       SK_ReShade_LoadDLL (wszReShadePath, L"Normal");
+    else
+       SK_LoadLibraryW    (wszReShadePath);
   }
 
   SK_ReShadeAddOn_Init ();
