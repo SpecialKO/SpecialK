@@ -1272,30 +1272,6 @@ BOOL SK_ReShade_HasRenoDX (void)
   {
     if (bRet && (! config.reshade.allow_unsafe_addons))
     {
-      static bool
-          warned = false;
-      if (warned) return bRet;
-
-      SK_RunOnce (
-      {
-        static constexpr auto import_name =
-          SK_RunLHIfBitness ( 64, L"ReShade64",
-                                  L"ReShade32" );
-
-        if (SK_Import_HasEarlyImport (import_name))
-        {
-          SK_MessageBox (
-            L"RenoDX is Incompatible if ReShade is Loaded Early.\r\n\r\n"
-            L" >> ReShade's Load Order Has Been Changed to Lazy <<\r\n\r\n"
-            L"  * A Game Restart Is Required.",
-              L"RenoDX / SpecialK Incompatibility",
-                 MB_OK | MB_ICONASTERISK
-          );
-
-          SK_Import_ChangeLoadOrder (import_name, SK_IMPORT_LAZY);
-        }
-      });
-
       static auto reshade_dll_path =
         SK_GetModuleName (reshade::internal::get_reshade_module_handle ());
 
@@ -1330,30 +1306,6 @@ BOOL SK_ReShade_HasRenoDX (void)
           void
           SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10);
           SK_HDR_SetOverridesForGame (     bScRGB,      bHDR10);
-        }
-
-        if (SK_API_IsLayeredOnD3D12 (SK_GetCurrentRenderBackend ().api))
-        {
-          SK_RunOnce (
-          {
-            warned = true;
-
-            //
-            // TODO:  Make this owner draw and add buttons to actually DO
-            //          the things discussed as Option 1 and Option 2 on
-            //            behalf of the user.
-            //
-            SK_ImGui_CreateNotification (
-              "AddOn.Incompatible", SK_ImGui_Toast::Warning,
-              "If RenoDX does not work, try loading ReShade as a Plug-In\n\n"
-              "  Option 1:   ReShade64.dll in game directory\n"
-              "  Option 2:   Global Plug-In (Lazy Load Order)\n\n"
-              " * Remove dxgi/d3d11/d3d12.dll or set UnsafeAddOns=true to ignore.",
-                "Potential RenoDX Incompatibility",
-                  20000, SK_ImGui_Toast::UseDuration |
-                         SK_ImGui_Toast::ShowCaption |
-                         SK_ImGui_Toast::ShowTitle );
-          });
         }
       }
     }
