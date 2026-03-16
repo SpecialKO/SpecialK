@@ -3575,10 +3575,36 @@ SK_Input_PreHookXInput (void)
                                        driver_name;
 
   std::filesystem::path
-    path_to_highest_xinput_ver = L"";
+    path_to_highest_xinput_ver = L"",
+    path_to_exe_dir            = SK_GetHostPath ();
 
   std::error_code ec =
     std::error_code ();
+
+  // If there is no local XInput1_4 DLL, check for XInput1_3 or lower...
+  // 
+  //   If these DLLs exist, copy them to XInput1_4 since SK redirects all
+  //     XInput imports to XInput1_4 for simplicity and hooking purposes.
+  //
+  if (! std::filesystem::exists (path_to_exe_dir / L"XInput1_4.dll", ec))
+  {
+    for ( auto&& version :
+            { ( path_to_exe_dir / L"XInput1_3.dll"   ),
+              ( path_to_exe_dir / L"XInput1_2.dll"   ),
+              ( path_to_exe_dir / L"XInput1_1.dll"   ),
+              ( path_to_exe_dir / L"XInput9_1_0.dll" ),
+              ( path_to_exe_dir / L"XInputUap.dll" )
+            } )
+    {
+      if (std::filesystem::exists (version, ec))
+      {
+        if (std::filesystem::copy_file (version, path_to_exe_dir / L"XInput1_4.dll", ec))
+        {
+          break;
+        }
+      }
+    }
+  }
 
   static const auto *pSystemDirectory =
     SK_GetSystemDirectory ();
