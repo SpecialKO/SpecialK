@@ -81,6 +81,8 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
       SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
       SK_ComPtr <ID3D12Device>       pDevice12;
 
+      reshade::UnwrapObject (&This);
+
       const bool bIsStreamline =
         (SK_slGetNativeInterface (This, (void **)&pCmdQueue.p) == sl::Result::eOk);
 
@@ -98,6 +100,9 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
       {
         SK_ComPtr <ID3D12Device>   pDevice;
         SK_ComPtr <IDXGISwapChain> pSwapChain;
+
+        reshade::UnwrapObject (&pLazyD3D12Device);
+        reshade::UnwrapObject (&pLazyD3D12Chain);
 
         if (SK_slGetNativeInterface (pLazyD3D12Device, (void **)&pDevice.p   ) != sl::Result::eOk)
                            pDevice = pLazyD3D12Device;
@@ -238,6 +243,8 @@ _InstallCommandQueueHooksImpl (ID3D12Device* pDevice12)
     SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <ID3D12Device> pDev12;
+
+  reshade::UnwrapObject (&pDev12);
 
   if (bHasStreamline)
   {

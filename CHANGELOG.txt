@@ -1,4 +1,9 @@
-﻿26.3.16.3
+﻿26.3.17
+=======
+ + Added ReShade interface unwrapping support to bypass proxy objects and
+     significantly improve compatibility with ReShade and RenoDX.
+
+26.3.16.3
 =========
  + Eliminate possible "corrupted interface" error in D3D11 debug layer when
      opening SK's Render Mod Toolkit.

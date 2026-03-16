@@ -78,6 +78,8 @@ SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
 
   if (NvAPI_D3D_SetLatencyMarker_Original != nullptr)
   {
+    reshade::UnwrapObject (&pDev);
+
     SK_ComPtr <ID3D12Device>                     pDev12;
     if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
       return NvAPI_D3D_SetLatencyMarker_Original(pDev12.p, pSetLatencyMarkerParams);
@@ -106,6 +108,8 @@ SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
   if (NvAPI_D3D_Sleep_Original != nullptr)
   {
     lastSleepFrame = SK_GetFramesDrawn ();
+
+    reshade::UnwrapObject (&pDev);
 
     SK_ComPtr <ID3D12Device>                     pDev12;
     if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
@@ -136,6 +140,8 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   if (config.nvidia.reflex.disable_native)
     return NVAPI_OK;
 
+  reshade::UnwrapObject (&pDev);
+
   SK_ComPtr <ID3D12Device>                     pDev12;
   if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
     return SK_NvAPI_D3D_Sleep (                pDev12);
@@ -157,6 +163,8 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
      (NvAPI_D3D_SetSleepMode)
   if (NvAPI_D3D_SetSleepMode_Original != nullptr)
   {
+    reshade::UnwrapObject (&pDev);
+
     SK_ComPtr <ID3D12Device>                     pDev12;
     if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
       return NvAPI_D3D_SetSleepMode_Original (   pDev12, &params);

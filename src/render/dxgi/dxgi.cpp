@@ -2705,6 +2705,8 @@ SK_Streamline_SetupNativeLimiter (void)
 
       SK_slUpgradeInterface ((void **)&pSwapChain.p);
 
+      reshade::UnwrapObject (&pSwapChain.p);
+
       SK_ComPtr <IDXGISwapChain>                       pNativeChain;
       SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeChain.p);
 
@@ -6355,6 +6357,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
+  reshade::UnwrapObject (&pSwapChain);
+
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
@@ -6385,6 +6389,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
+    reshade::UnwrapObject (&pDev12.p);
+
     if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
         _ExchangeProxyForNative (pDev12,           pNativeDev12);
 
@@ -6392,6 +6398,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
     if (pNativeSwapChain != nullptr)
     {
+      reshade::UnwrapObject (&pCmdQueue.p);
+
       if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
           _ExchangeProxyForNative (pCmdQueue,           pNativeCmdQueue);
 
@@ -6417,6 +6425,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
   else if ( pDev11 != nullptr )
   {
+    reshade::UnwrapObject (&pDev11.p);
+
     if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
         _ExchangeProxyForNative (pDev11,           pNativeDev11);
 
@@ -6479,6 +6489,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
+  reshade::UnwrapObject (&pSwapChain);
+
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
@@ -6509,6 +6521,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
+    reshade::UnwrapObject (&pDev12.p);
+
     if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
         _ExchangeProxyForNative (pDev12,           pNativeDev12);
 
@@ -6516,6 +6530,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 
     if (pNativeSwapChain != nullptr)
     {
+      reshade::UnwrapObject (&pCmdQueue.p);
+
       if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
           _ExchangeProxyForNative (pCmdQueue,           pNativeCmdQueue);
 
@@ -6541,6 +6557,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 
   else if ( pDev11 != nullptr )
   {
+    reshade::UnwrapObject (&pDev11.p);
+
     if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
         _ExchangeProxyForNative (pDev11,           pNativeDev11);
 
@@ -6924,6 +6942,8 @@ DXGIFactory_CreateSwapChain_Override (
       //
       if (pCmdQueue != nullptr && pDev12 != nullptr)
       {
+        reshade::UnwrapObject (&pCmdQueue.p);
+
         SK_ComPtr <ID3D12CommandQueue>                    pNativeCmdQueue;
         if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
             _ExchangeProxyForNative (pCmdQueue,           pNativeCmdQueue);
@@ -7581,9 +7601,14 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         SK_ComPtr <IDXGISwapChain3> pNativeSwap3;
         SK_ComPtr <ID3D12Device>    pNativeDev12;
 
+        reshade::UnwrapObject (&pDev12.p);
+
         if (                         pDev12.p                            != nullptr &&
             SK_slGetNativeInterface (pDev12.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
             _ExchangeProxyForNative (pDev12,             pNativeDev12);
+
+        reshade::UnwrapObject (&pTemp);
+
         SK_ComQIPtr<IDXGISwapChain3> pSwap3 (pTemp);
         if (                         pSwap3.p                            != nullptr &&
             SK_slGetNativeInterface (pSwap3.p, (void **)&pNativeSwap3.p) == sl::Result::eOk)
@@ -7645,6 +7670,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       // D3D12
       else if (pCmdQueue.p != nullptr)
       {
+        reshade::UnwrapObject (&pCmdQueue.p);
+
         SK_ComPtr <ID3D12CommandQueue>                    pNativeCmdQueue;
         if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
             _ExchangeProxyForNative (pCmdQueue,           pNativeCmdQueue);
@@ -9111,6 +9138,8 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
       {
         This->SetFullscreenState (FALSE, nullptr);
 
+        reshade::UnwrapObject (&This);
+
         // Make sure we're not screwed over by NVIDIA Streamline
         SK_ComPtr <IDXGIOutput>                      pOutput;
         SK_ComPtr <IDXGISwapChain4>                  pNativeSwap4;
@@ -9665,6 +9694,8 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
 
   SK_ComPtr <IDXGISwapChain> pSwapChain;
 
+  reshade::UnwrapObject (&pProxySwapChain);
+
   if (bHasStreamline)
   {
     if (SK_slGetNativeInterface (pProxySwapChain, (void **)&pSwapChain.p) == sl::Result::eOk)
@@ -9878,6 +9909,8 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
 
   SK_ComPtr <IDXGIDevice1> pDevice;
 
+  reshade::UnwrapObject (&pProxyDevice);
+
   if (bHasStreamline)
   {
     if (SK_slGetNativeInterface (pProxyDevice, (void **)&pDevice.p) == sl::Result::eOk)
@@ -10033,6 +10066,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
     SK_IsModuleLoaded (L"NvPresent64.dll");
 
   SK_ComPtr <IDXGIFactory> pFactory;
+
+  reshade::UnwrapObject (&pProxyFactory);
 
   if (bHasStreamline)
   {
@@ -10528,6 +10563,10 @@ HookDXGI (LPVOID user)
                     SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p,   &desc, &pSwapChain.p);
       }
 
+      reshade::UnwrapObject (&pFactory.p);
+      reshade::UnwrapObject (&pDevice.p);
+      reshade::UnwrapObject (&pImmediateContext.p);
+
       if (bHasStreamline)
       {
         if (SK_slGetNativeInterface (pFactory.p, (void **)&pNativeFactory.p) == sl::Result::eOk)
@@ -10582,6 +10621,10 @@ HookDXGI (LPVOID user)
 
       if (SUCCEEDED (hr))
       {
+        reshade::UnwrapObject (&pFactory.p);
+        reshade::UnwrapObject (&pDevice.p);
+        reshade::UnwrapObject (&pImmediateContext.p);
+
         if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
             _ExchangeProxyForNative (pFactory,           pNativeFactory);
 
@@ -10607,6 +10650,8 @@ HookDXGI (LPVOID user)
     {
       if (pSwapChain != nullptr)
       {
+        reshade::UnwrapObject (&pSwapChain.p);
+
         if (SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk) {
                                      pSwapChain.p->AddRef (); // Leak the SwapChain to avoid crashes in Nixxes games
             _ExchangeProxyForNative (pSwapChain,             pNativeSwapChain);

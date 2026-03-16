@@ -97,4 +97,23 @@ struct reshade_format
 
 BOOL SK_ReShade_HasRenoDX (void);
 
+namespace reshade {
+  inline constexpr GUID IID_UnwrappedObject = { 0x7f2c9a11, 0x3b4e, 0x4d6a, { 0x81, 0x2f, 0x5e, 0x9c, 0xd3, 0x7a, 0x1b, 0x42 } }; // {7F2C9A11-3B4E-4D6A-812F-5E9CD37A1B42}
+
+  struct DECLSPEC_UUID("7F2C9A11-3B4E-4D6A-812F-5E9CD37A1B42") ReShadeRetrieveBaseInterface : IUnknown {};
+  template <typename T>
+  inline bool UnwrapObject(T** reshade_proxy) {
+    auto* unknown = static_cast<IUnknown*>(*reshade_proxy);
+    if (unknown == nullptr) return false;
+    ReShadeRetrieveBaseInterface* native_base = nullptr;
+    if (SUCCEEDED(unknown->QueryInterface(&native_base))) {
+      native_base->Release();
+      *reshade_proxy = (T*)(native_base);
+      return true;
+    }
+    assert(false);
+    return false;
+  }
+};
+
 #endif /* __SK__RESHADE_H__ */

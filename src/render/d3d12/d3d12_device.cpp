@@ -2627,6 +2627,8 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
 
   SK_ComPtr <ID3D12Device> pDev12;
 
+  reshade::UnwrapObject (&pDevice12);
+
   if (bHasStreamline)
   {
     if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) == sl::Result::eOk)
