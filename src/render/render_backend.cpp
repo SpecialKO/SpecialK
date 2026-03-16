@@ -4597,6 +4597,17 @@ SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
               SK_ImGui_Warning (L"MPOs are not active, consider restarting your driver.")
             );
           }
+
+          // MPOs can be disabled through the registry!
+          else if (isMPODisabled ( ))
+          {
+            if (pDisplay == &displays[active_display] && config.display.warn_no_mpo_planes && pDisplay->mpo_planes > 1)
+            {
+              SK_RunOnce(
+                SK_ImGui_Warning (L"MPOs are available but disabled through the registry; use SKIF to re-enable.")
+              );
+            }
+          }
         }
       }
 
