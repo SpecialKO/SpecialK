@@ -457,17 +457,10 @@ IWrapDXGISwapChain : IDXGISwapChain4
   std::recursive_mutex  _backbufferLock;
   std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
                         _backbuffers;
-
-  struct {
-    SK_ComPtr <ID3D11ShaderResourceView> srv;
-    SK_ComPtr <ID3D11RenderTargetView>   rtv;
-
-    void release (void) noexcept
-    {
-      srv = nullptr;
-      rtv = nullptr;
-    }
-  } _backbuffer_views;
+  concurrency::concurrent_unordered_map <ID3D11Texture2D*, ID3D11ShaderResourceView*>
+                        _backbuffer_srvs;
+  concurrency::concurrent_unordered_map <ID3D11Texture2D*, ID3D11RenderTargetView*>
+                        _backbuffer_rtvs;
 
   DXGI_FORMAT _last_requested_format = DXGI_FORMAT_UNKNOWN;
 

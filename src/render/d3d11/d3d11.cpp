@@ -5116,31 +5116,20 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
   auto _Finish = [&](void) ->
   void
   {
-    // This SEH translator hack is necessary for Yakuza's crazy engine, it
-    //   can recover from what will effectively be no render target bound,
-    //     and SK is capable of purging the memory it incorrectly deleted
-    //       from its caches after the first exception is raised.
-    auto orig_se =
-      SK_SEH_ApplyTranslator (
-        SK_FilteringStructuredExceptionTranslator (
-          EXCEPTION_ACCESS_VIOLATION
-        )
-      );
-    try
-    {
+    __try {
       bWrapped ?
         pDevCtx->OMSetRenderTargets ( NumViews, ppRenderTargetViews, pDSV )
                :
         D3D11_OMSetRenderTargets_Original (
           pDevCtx, NumViews, ppRenderTargetViews,
             pDSV );
-    }
-    catch (const SK_SEH_IgnoredException&) {
+    } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                       EXCEPTION_EXECUTE_HANDLER  :
+                                       EXCEPTION_CONTINUE_SEARCH) {
       SK_LOGi0 (
         L"Caught Access Violation during call to OMSetRenderTargets (...)!"
       );
     };
-    SK_SEH_RemoveTranslator (orig_se);
   };
 
   if (! (SK::ControlPanel::D3D11::show_shader_mod_dlg && (! SK_D3D11_ApplyingStateBlock)))

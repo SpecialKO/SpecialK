@@ -1,4 +1,8 @@
-﻿26.3.16
+﻿26.3.16.1
+=========
+ + Minor optimization of D3D11 Proxy BackBuffers (for HDR / Blt->Flip Model).
+
+26.3.16
 =======
  + Added HDR preset change notification when activated using its keybind.
  + Auto-copy local XInput1_3 or older DLLs to XInput1_4 in order to ensure

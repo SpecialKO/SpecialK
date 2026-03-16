@@ -430,9 +430,6 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
 {
   std::scoped_lock lock (_backbufferLock);
 
-  //
-  // TODO: Optimize this to store SRV and RTVs persistently
-  //
   if (IsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) && _backbuffers.contains (0))
   {
     if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
@@ -456,13 +453,17 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
             srvDesc.ViewDimension       = D3D_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = 1;
 
-          SK_ComPtr <ID3D11ShaderResourceView>                           pSRV;
-          pDev11->CreateShaderResourceView (_backbuffers [0], &srvDesc, &pSRV.p);
+          ID3D11Texture2D*            pBackbuffer = _backbuffers [0].p;
+          ID3D11ShaderResourceView** ppSRV        = &_backbuffer_srvs [pBackbuffer];
 
-          if (pSRV.p != nullptr)
+          if (*ppSRV == nullptr)
           {
-                                    pSRV.p->AddRef ();
-            memcpy (pData, (void *)&pSRV.p, sizeof (void *));
+            pDev11->CreateShaderResourceView (pBackbuffer, &srvDesc, ppSRV);
+          }
+
+          if (*ppSRV != nullptr)
+          {  (*ppSRV)->AddRef ();
+            memcpy (pData, (void *)ppSRV, sizeof (void *));
             return S_OK;
           }
         }
@@ -500,13 +501,16 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
             rtvDesc.Format        = typed_format;
             rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-          SK_ComPtr <ID3D11RenderTargetView>                      pRTV;
-          pDev11->CreateRenderTargetView (pBackBuffer, &rtvDesc, &pRTV.p);
+          ID3D11RenderTargetView** ppRTV = &_backbuffer_rtvs [pBackBuffer.p];
 
-          if (pRTV.p != nullptr)
+          if (*ppRTV == nullptr)
           {
-                                    pRTV.p->AddRef ();
-            memcpy (pData, (void *)&pRTV.p, sizeof (void *));
+            pDev11->CreateRenderTargetView (pBackBuffer, &rtvDesc, ppRTV);
+          }
+
+          if (*ppRTV != nullptr)
+          {  (*ppRTV)->AddRef ();
+            memcpy (pData, (void *)ppRTV, sizeof (void *));
             return S_OK;
           }
         }
@@ -993,6 +997,22 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   DXGI_SWAP_CHAIN_DESC swapDesc = { };
   GetDesc            (&swapDesc);
 
+  if (! _backbuffer_rtvs.empty ())
+  {
+    std::scoped_lock lock (_backbufferLock);
+
+    for ( auto& rtv : _backbuffer_rtvs )
+    {
+      if (rtv.second != nullptr)
+      {
+        rtv.second->Release ();
+        rtv.second = nullptr;
+      }
+    }
+
+    _backbuffer_rtvs.clear ();
+  }
+
   HRESULT hr =
     pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
     //SK_DXGI_SwapChain_ResizeBuffers_Impl ( pReal, BufferCount, Width, Height,
@@ -1041,6 +1061,12 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
             else
             {
               SK_LOGi1 (L"ResizeBuffers => Remove");
+
+              if (_backbuffer_srvs [backbuffer.p] != nullptr)
+              {   _backbuffer_srvs [backbuffer.p]->Release ();
+                  _backbuffer_srvs [backbuffer.p]  = nullptr;
+              }
+
               backbuffer.Release ();
             }
           }
@@ -1061,6 +1087,7 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
         {
           SK_LOGi1 (L"ResizeBuffers => Clear");
           _backbuffers.clear ();
+          _backbuffer_srvs.clear ();
         }
       }
     }
