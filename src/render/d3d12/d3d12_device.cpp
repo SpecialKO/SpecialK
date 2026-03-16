@@ -2627,14 +2627,14 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
 
   SK_ComPtr <ID3D12Device> pDev12;
 
-  reshade::UnwrapObject (&pDevice12);
-
   if (bHasStreamline)
   {
     if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) == sl::Result::eOk)
       SK_LOGi0 (L"Hooking Streamline Native Interface for ID3D12Device...");
     else pDev12 = pDevice12;
   } else pDev12 = pDevice12;
+
+  reshade::UnwrapObject (&pDev12);
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandQueue",
                             *(void ***)*(&pDev12), 8,

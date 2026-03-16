@@ -2828,17 +2828,19 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   UINT                                                          BufferIdx     = UINT_MAX-1;
   pCmdList->GetPrivateData (SKID_D3D12BackbufferIdx,  &uiSize, &BufferIdx);
 
-  reshade::UnwrapObject (&pRoot->_pSwapChain);
-
   SK_ComPtr <ID3D12Resource>                                 pBackbuffer;
   SK_ComPtr <IDXGISwapChain>                                 pRealSwapChain;
   if (SK_slGetNativeInterface (pRoot->_pSwapChain, (void **)&pRealSwapChain.p) == sl::Result::eOk)
   {   _ExchangeProxyForNative (pRoot->_pSwapChain,           pRealSwapChain);
+      reshade::UnwrapObject  (&pRoot->_pSwapChain);
     pRealSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
   }
 
   else if (pRoot->_pSwapChain != nullptr)
+  {
+    reshade::UnwrapObject (&pRoot->_pSwapChain);
     pRoot->_pSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
+  }
 
   if (pRoot->getCurrentBackBufferIndex () == BufferIdx   &&
                             pParentBuffer == pBackbuffer &&
@@ -3139,9 +3141,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   std::scoped_lock lock(_ctx_lock);
 #endif
 
-  reshade::UnwrapObject (&pSwapChain);
-  reshade::UnwrapObject (&pCommandQueue);
-
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
                                pSwapChain =          pNativeSwapChain.p;
@@ -3153,6 +3152,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       _ExchangeProxyForNative (_pCommandQueue,          pNativeQueue)
     else                       _pCommandQueue         = pNativeQueue;
   }
+
+  reshade::UnwrapObject (&pSwapChain);
+  reshade::UnwrapObject (&_pCommandQueue);
 
   // Turn HDR off in dgVoodoo2 so it does not crash
 #ifdef _M_IX86
@@ -3192,10 +3194,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       return false;
     }
 
-    reshade::UnwrapObject (&_pDevice);
-
     if (SK_slGetNativeInterface (_pDevice.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
         _ExchangeProxyForNative (_pDevice,             pNativeDev12);
+
+    reshade::UnwrapObject (&_pDevice);
   }
 
   if (_pDevice.p != nullptr)
@@ -3232,11 +3234,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           if (_pCommandQueue != nullptr)
           {   _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
 
-            reshade::UnwrapObject (&_pDevice);
-
             SK_ComPtr <ID3D12Device>                         pNativeDev12;
             if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
                 _ExchangeProxyForNative (_pDevice,           pNativeDev12);
+
+            reshade::UnwrapObject (&_pDevice);
           }
         }
 #endif

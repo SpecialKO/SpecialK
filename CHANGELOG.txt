@@ -1,4 +1,9 @@
-﻿26.3.17.2
+﻿26.3.17.3
+=========
+ + Re-order ReShade unwrap code in D3D12 games to ensure that Reflex status
+     does not warn about "no draw calls captured."
+
+26.3.17.2
 =========
  + Fixed default INI parameters for Arknights: Endfield to include D3D12
      for NVIDIA's Vulkan/DXGI Interop.
