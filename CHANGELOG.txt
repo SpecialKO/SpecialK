@@ -1,4 +1,11 @@
-﻿26.3.17.1
+﻿26.3.17.2
+=========
+ + Fixed default INI parameters for Arknights: Endfield to include D3D12
+     for NVIDIA's Vulkan/DXGI Interop.
+ + Merge pull request #345 from Aemony:main
+    * Warn when MPOs are disabled through the registry
+
+26.3.17.1
 =========
  + Remove warnings for loading ReShade early if RenoDX is present.
  + Change default ReShade plug-in load order to Early.

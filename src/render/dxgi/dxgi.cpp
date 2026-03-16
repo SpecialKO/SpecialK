@@ -7637,7 +7637,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       SK_Render_GetVulkanInteropSwapChainType (This) == SK_DXGI_VK_INTEROP_TYPE_AMD;
 
     // Cache Flip Model Chains, and Detect Vulkan/DXGI Interop
-    if (SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect))
+    if (SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect) && ppSwapChain != nullptr)
     {
       if (pDev11.p != nullptr)
       {
