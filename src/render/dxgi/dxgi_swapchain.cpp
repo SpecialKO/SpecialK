@@ -2063,6 +2063,72 @@ SK_RenderBackend_V2::isTrueFullscreen (void) const
 }
 
 bool
+SK_RenderBackend_V2::isMPODisabled (void)
+{
+  if (! SK_API_IsDXGIBased (api))
+    return false;
+
+  typedef unsigned long DWMOverlayTestModeFlags;  // -> enum DWMOverlayTestModeFlags_
+
+  enum DWMOverlayTestModeFlags_
+  {
+    DWMOverlayTestModeFlags_None        = 0,      // No overlay test mode flag is set
+    DWMOverlayTestModeFlags_MPORelated1 = 1 << 0, // Unknown purpose (but MPO related)
+    DWMOverlayTestModeFlags_Unknown1    = 1 << 1, // Unknown purpose
+    DWMOverlayTestModeFlags_MPORelated2 = 1 << 2, // Unknown purpose (but MPO related)
+    DWMOverlayTestModeFlags_Unknown2    = 1 << 4, // Unknown purpose
+    DWMOverlayTestModeFlags_INITIAL     = 1 << 16 // Initial dummy value before we check it
+  };
+
+  static DWMOverlayTestModeFlags flagOverlayTestMode = DWMOverlayTestModeFlags_INITIAL;
+  static int iDisableOverlay = 0;
+  static bool  isDisabled    = false;
+
+  if (flagOverlayTestMode != DWMOverlayTestModeFlags_INITIAL)
+    return isDisabled;
+
+  isDisabled = false;
+
+  HKEY hKey;
+  unsigned long size = 1024;
+
+  // Check if GraphicsDrivers's DisableOverlays has MPOs disabled
+  if (ERROR_SUCCESS == RegOpenKeyExW (HKEY_LOCAL_MACHINE, LR"(SYSTEM\CurrentControlSet\Control\GraphicsDrivers\)", 0, KEY_READ | KEY_WOW64_64KEY, &hKey))
+  {
+    if (ERROR_SUCCESS == RegQueryValueEx (hKey, L"DisableOverlays", NULL, NULL, (LPBYTE)&iDisableOverlay, &size))
+    { }
+    else
+      iDisableOverlay = 0;
+
+    RegCloseKey (hKey);
+  }
+
+  else
+    iDisableOverlay = 0;
+
+  // Check if DWM's OverlayTestMode has MPOs disabled
+  if (ERROR_SUCCESS == RegOpenKeyExW (HKEY_LOCAL_MACHINE, LR"(SOFTWARE\Microsoft\Windows\Dwm\)", 0, KEY_READ | KEY_WOW64_64KEY, &hKey))
+  {
+    if (ERROR_SUCCESS == RegQueryValueEx (hKey, L"OverlayTestMode", NULL, NULL, (LPBYTE)&flagOverlayTestMode, &size))
+    { }
+    else
+      flagOverlayTestMode = DWMOverlayTestModeFlags_None;
+
+    RegCloseKey (hKey);
+  }
+
+  else
+    flagOverlayTestMode = DWMOverlayTestModeFlags_None;
+
+  
+  if (iDisableOverlay || ((flagOverlayTestMode & DWMOverlayTestModeFlags_MPORelated1) == DWMOverlayTestModeFlags_MPORelated1 &&
+                          (flagOverlayTestMode & DWMOverlayTestModeFlags_MPORelated2) == DWMOverlayTestModeFlags_MPORelated2))
+    isDisabled = true;
+
+  return isDisabled;
+}
+
+bool
 SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept
 {
   if (SK_ComQIPtr <IDXGISwapChain> pDXGISwapChain (pSwapChain);

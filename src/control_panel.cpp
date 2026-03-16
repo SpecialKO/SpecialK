@@ -2168,7 +2168,18 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
   if (display.mpo_planes <= 1)
        ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Unsupported " ICON_FA_EXCLAMATION_TRIANGLE );
-  else ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", display.mpo_planes );
+  else if (rb.isMPODisabled ())
+  {
+       ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "%d (Disabled) " ICON_FA_EXCLAMATION_TRIANGLE, display.mpo_planes );
+
+    if (ImGui::IsItemHovered () && ImGui::BeginTooltip ())
+    {
+      ImGui::Text ("MPOs are available but disabled through the registry; use SKIF to re-enable.");
+      ImGui::EndTooltip ( );
+    }
+  }
+  else
+      ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", display.mpo_planes );
 
   auto _PrintEnabled      = [](UINT enabled)
   {

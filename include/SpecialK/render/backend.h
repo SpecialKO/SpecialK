@@ -766,6 +766,8 @@ public:
   bool isFakeFullscreen (void) const;
   bool isTrueFullscreen (void) const;
 
+  bool isMPODisabled (void);
+
   bool update_outputs = false;
 };
 #pragma pack(pop)
