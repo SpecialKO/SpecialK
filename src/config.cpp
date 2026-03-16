@@ -4563,9 +4563,6 @@ auto DeclKeybind =
 
         config.textures.d3d11.cache = false;          // cause UI or 2D texture issues
         config.textures.cache.ignore_nonmipped = true;
-        config.apis.dxgi.d3d12.hook = false;
-        config.apis.d3d9.hook = false;
-        config.apis.d3d9ex.hook = false;
 
         config.apis.Vulkan.translate = 1;
         config.apis.NvAPI.vulkan_bridge = 1;

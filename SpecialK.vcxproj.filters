@@ -3993,7 +3993,7 @@
       <Filter>Source Files\Storefronts\Xbox Live</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\arknights_endfield.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
