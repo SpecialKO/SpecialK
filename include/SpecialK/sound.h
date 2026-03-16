@@ -171,7 +171,19 @@ public:
     }
   }
 
-  virtual ~SK_MMDev_Endpoint (void) { };
+  virtual ~SK_MMDev_Endpoint (void) {
+    // Let this stuff leak at exit rather than crash
+    if (ReadAcquire (&__SK_DLL_Ending) == 0)
+    {
+      control_.sessions.p       = nullptr;
+      control_.meter.p          = nullptr;
+      control_.volume.p         = nullptr;
+      control_.loudness.p       = nullptr;
+      control_.auto_gain.p      = nullptr;
+      control_.audio_client.p   = nullptr;
+      control_.spatial_client.p = nullptr;
+    }
+  };
 
   SK_IMMDevice device_ = nullptr;
   EDataFlow    flow_   = eRender;
