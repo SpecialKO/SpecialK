@@ -143,11 +143,11 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
     if (! SK_IsInjected ())
       ImGui::Text       ("Plug-In Load Order is Suggested by Default.");
     else
-      ImGui::Text       ("Lazy Load Order is Suggested by Default.");
+      ImGui::Text       ("Early Load Order is Suggested by Default.");
     ImGui::Separator    ();
-    ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
-    ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
-    ImGui::BulletText   ("Lazy plug-ins have undefined load order, but may allow ReShade to load as a plug-in in some stubborn games.");
+    ImGui::BulletText   ("Early plug-ins handle rendering before Special K.");
+    ImGui::BulletText   ("Plug-In load order applies after Special K sets all of its own hooks up.");
+    ImGui::BulletText   ("Lazy may allow old versions of ReShade (6.5.1-) to load as a plug-in in some stubborn games.");
     ImGui::EndTooltip   ();
   }
 
@@ -273,7 +273,7 @@ SK::ControlPanel::PlugIns::Draw (void)
         changed |=
           SK_ImGui_PlugInSelector (
             dll_ini, "ReShade", imp_path_reshade, imp_name_reshade, reshade_official, order,
-              SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
+              SK_IsInjected () ? SK_Import_LoadOrder::Early :
                                  SK_Import_LoadOrder::PlugIn );
 
         static bool compatibility = false;
@@ -333,7 +333,7 @@ SK::ControlPanel::PlugIns::Draw (void)
 
           if (! compatibility)
           {
-            dll_ini->get_section (imp_name_reshade).get_value (L"When").assign (L"Lazy");
+            dll_ini->get_section (imp_name_reshade).get_value (L"When").assign (L"Early");
           }
 
           config.utility.save_async ();
@@ -344,10 +344,9 @@ SK::ControlPanel::PlugIns::Draw (void)
           ImGui::BeginTooltip    ();
           ImGui::TextUnformatted ("Compatibility mode should be preferred unless you need a specific Add-On.");
           ImGui::Separator       ();
-          ImGui::BulletText      ("Load-Order is irrelevant in Compatibility mode.");
+          ImGui::BulletText      ("Load Order is irrelevant in Compatibility mode.");
           ImGui::BulletText      ("Frame Generation games are more stable in Compatibility mode.");
-          ImGui::BulletText      ("May disable support for some ReShade Add-Ons.");
-          ImGui::BulletText      ("Very little support can be offered for non-Compatibility mode.");
+          ImGui::BulletText      ("Some Add-Ons (i.e. RenoDX, REST, Depth Buffer) are unsupported in Compatibility mode.");
           ImGui::EndTooltip      ();
         }
 
