@@ -1,4 +1,9 @@
-﻿26.3.16.1
+﻿26.3.16.2
+=========
+ + Switch from Fiber Local Storage to Thread Local Storage for lower memory
+     management overhead.
+
+26.3.16.1
 =========
  + Minor optimization of D3D11 Proxy BackBuffers (for HDR / Blt->Flip Model).
 

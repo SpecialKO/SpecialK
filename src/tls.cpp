@@ -137,7 +137,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 
   pTLS =
     static_cast <SK_TLS *> (
-      FlsGetValue (dwTLSIndex)
+      TlsGetValue (dwTLSIndex)
     );
 
 
@@ -166,7 +166,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
       // Try to store it in TLS again, because this hash map is thread-safe,
       //   but not exactly fast under high contention workloads.
       if (dwTLSIndex > 0 && dwTLSIndex < TlsMax1)
-        FlsSetValue       ( dwTLSIndex, pTLS );
+        TlsSetValue       ( dwTLSIndex, pTLS );
     }
   }
 
@@ -187,7 +187,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
       pTLS =
         new SK_TLS (dwTLSIndex);
 
-      if ( FlsSetValue ( dwTLSIndex,
+      if ( TlsSetValue ( dwTLSIndex,
                           pTLS ) == FALSE )
       {
         // The Win32 API call failed, but did manipulating the TEB manually
@@ -308,7 +308,7 @@ SK_CleanupTLS (void)
                 freed, SK_Thread_GetCurrentId () ), L"TLS Memory" );
 #endif
 
-  if ( FlsSetValue (
+  if ( TlsSetValue (
          ReadULongAcquire (&__SK_TLS_INDEX),
            nullptr ) != FALSE
      )

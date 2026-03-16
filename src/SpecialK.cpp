@@ -396,7 +396,7 @@ SK_TLS_Acquire (void) noexcept
   {
     WriteULongRelease (
       &__SK_TLS_INDEX,
-        FlsAlloc (nullptr)
+        TlsAlloc ()
       );
   }
 
@@ -416,7 +416,7 @@ SK_TLS_Release (void) noexcept
 
   if (dwTlsIdx <= SK_TLS_MAX_IDX)
   {
-    FlsFree (dwTlsIdx);
+    TlsFree (dwTlsIdx);
   }
 }
 
