@@ -377,15 +377,15 @@ SK_HDR_KeyPress ( BOOL Control,
     {
       SK_ImGui_CreateNotification (
         "HDR.PresetActivated", SK_ImGui_Toast::Info,
-          SK_FormatString ("'%hs' activated using keybind '%ws'\r\n\t" ICON_FA_INFO_CIRCLE
-                           "The keybind may be re-configured from the HDR widget.", it.preset_name,
-                                                                                    it.preset_activate.human_readable.c_str ()
-                          ).c_str (),
-                           "HDR Preset Activated", 2000UL,
+          ICON_FA_KEYBOARD "  Keybinds are configurable from the HDR widget.",
+          SK_FormatString ( "'%hs' Activated By Pressing '%ws'",
+                              it.preset_name,
+                              it.preset_activate.human_readable.c_str ()
+                          ).c_str (), 7500UL,
                                SK_ImGui_Toast::UseDuration |
                                SK_ImGui_Toast::ShowCaption |
-                               SK_ImGui_Toast::ShowNewest  |
-                               SK_ImGui_Toast::DoNotSaveINI
+                               SK_ImGui_Toast::ShowTitle   |
+                               SK_ImGui_Toast::ShowNewest
       );
 
       it.activate ();
