@@ -2469,20 +2469,26 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
 bool
 SK_D3D11_SafeGetTexDesc (ID3D11Texture2D* pTex, D3D11_TEXTURE2D_DESC* desc)
 {
-  __try
+  if ( pTex != nullptr &&
+       desc != nullptr )
   {
-    if (pTex != nullptr)
+    __try
     {
-      pTex->GetDesc (desc);
+      ID3D11Texture2D*                                        pTex2D = nullptr;
+      if (SUCCEEDED (pTex->QueryInterface <ID3D11Texture2D> (&pTex2D)))
+      {
+        pTex2D->GetDesc (desc);
+        pTex2D->Release ();
 
-      return true;
+        return true;
+      }
     }
-  }
 
-  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                                    EXCEPTION_EXECUTE_HANDLER  :
-                                    EXCEPTION_CONTINUE_SEARCH  )
-  { };
+    __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                      EXCEPTION_EXECUTE_HANDLER  :
+                                      EXCEPTION_CONTINUE_SEARCH  )
+    { };
+  }
 
   return false;
 }

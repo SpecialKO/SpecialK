@@ -1,4 +1,10 @@
-﻿26.3.16.2
+﻿26.3.16.3
+=========
+ + Eliminate possible "corrupted interface" error in D3D11 debug layer when
+     opening SK's Render Mod Toolkit.
+ + Avoid WASAPI audio endpoint cleanup on exit to prevent rare crashes.
+
+26.3.16.2
 =========
  + Switch from Fiber Local Storage to Thread Local Storage for lower memory
      management overhead.
