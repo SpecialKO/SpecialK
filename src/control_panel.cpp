@@ -5765,7 +5765,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                bool changed  = false;
 
         // Don't apply this number if it's < 10; that does very undesirable things
-        float target_orig = __target_fps;
+        float target_orig    = __target_fps,
+              target_orig_bg = __target_fps_bg;
 
         bool limit = (__target_fps > 0.0f);
 
@@ -5863,8 +5864,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         float fps_slider_width    = 0.0f;
 
         bool bg_limit =
-              ( limit &&
-          ( __target_fps_bg != 0.0f ) );
+          ( __target_fps_bg > 0.0f );
 
         auto _GraphMeasurementConfig = [&](void)
         {
@@ -6020,58 +6020,59 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           config.utility.save_async_if (method_changed);
         };
 
-        if (limit)
+        if (limit && ImGui::BeginItemTooltip ())
         {
-          if (ImGui::BeginItemTooltip ())
-          {
-            ImGui::TextUnformatted (
-              "Graph color represents frame time variance, not proximity"
-              " to your target FPS."
-            );
+          ImGui::TextUnformatted (
+            "Graph color represents frame time variance, not proximity"
+            " to your target FPS."
+          );
 
-            ImGui::EndTooltip ();
+          ImGui::EndTooltip ();
+        }
+
+        if (advanced)
+        {
+          if (ImGui::Checkbox ("Background", &bg_limit))
+          {
+            if (__target_fps_bg != 0.0f) // Negative zero... it exists and we don't want it.
+                __target_fps_bg = -__target_fps_bg;
+
+            if (__target_fps_bg == 0.0f)
+                __target_fps_bg = static_cast <float> (dRefreshRate);
+
+            config.render.framerate.target_fps_bg = __target_fps_bg;
           }
 
-          if (advanced)
+          if (ImGui::BeginItemTooltip ())
           {
-            if (ImGui::Checkbox ("Background", &bg_limit))
-            {
-              if (bg_limit) __target_fps_bg = __target_fps;
-              else          __target_fps_bg =         0.0f;
+            static bool unity =
+              rb.windows.unity;
 
-              config.render.framerate.target_fps_bg = __target_fps_bg;
+            ImGui::Text (
+              "Optional secondary limit applies when the game is running"
+              " in the background."
+            );
+
+            if (unity)
+            {
+              ImGui::Separator   (    );
+              ImGui::Spacing     (    );
+              ImGui::BulletText  ( "This is a Unity engine game and "
+                                   "requires special attention." );
+              ImGui::Spacing     (    );
+              ImGui::TreePush    ( "" );
+              ImGui::TextColored ( ImColor (.62f, .62f, .62f),
+                                   "\tRefer to the Following Setting:" );
+              ImGui::Spacing     (    );
+              ImGui::TreePush    ( "" );
+              ImGui::TextColored ( ImColor (1.f, 1.f, 1.f),
+                                     "\tWindow Management > Input/Output"
+                                     " Behavior > Continue Rendering" );
+              ImGui::TreePop     (    );
+              ImGui::TreePop     (    );
             }
 
-            if (ImGui::BeginItemTooltip ())
-            {
-              static bool unity =
-                rb.windows.unity;
-
-              ImGui::Text (
-                "Optional secondary limit applies when the game is running"
-                " in the background." );
-
-              if (unity)
-              {
-                ImGui::Separator   (    );
-                ImGui::Spacing     (    );
-                ImGui::BulletText  ( "This is a Unity engine game and "
-                                     "requires special attention." );
-                ImGui::Spacing     (    );
-                ImGui::TreePush    ( "" );
-                ImGui::TextColored ( ImColor (.62f, .62f, .62f),
-                                     "\tRefer to the Following Setting:" );
-                ImGui::Spacing     (    );
-                ImGui::TreePush    ( "" );
-                ImGui::TextColored ( ImColor (1.f, 1.f, 1.f),
-                                       "\tWindow Management > Input/Output"
-                                       " Behavior > Continue Rendering" );
-                ImGui::TreePop     (    );
-                ImGui::TreePop     (    );
-              }
-
-              ImGui::EndTooltip ();
-            }
+            ImGui::EndTooltip ();
           }
         }
 
@@ -6110,6 +6111,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
           float target_mag = fabs (target);
 
+          bool bBackgroundFPS = (! strcmp (command, "BackgroundFPS"));
+
           ImGui::PushStyleColor ( ImGuiCol_Text,
             ( active ? ImColor (1.00f, 1.00f, 1.00f).Value
                      : ImColor (0.73f, 0.73f, 0.73f).Value ) );
@@ -6143,7 +6146,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                     target = graph_target;
             }
             else
-              target = target_orig;
+              target = bBackgroundFPS ? target_orig_bg : target_orig;
           }
           ImGui::PopStyleColor ();
 
@@ -6182,12 +6185,12 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
             static std::string        strFractList ("", 1024);
             static std::vector <double> dFractList;
-            static int                  iFractSel  = 0;
+            static int                  iFractSel  = 0, iFractSelBG = 0;
             static auto                *pLastLabel = command;
                    auto                 itemWidth  =
               ImGui::CalcTextSize (std::format ("1:1 ({:.10f})", realRefresh).c_str ()).x;
 
-            bool activateSelection = (__target_fps > 0.0f);
+            bool activateSelection = (bBackgroundFPS ? __target_fps_bg : __target_fps) > 0.0f;
             bool resetSelection    = 
               (lastRefresh != realRefresh);
 
@@ -6213,10 +6216,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 }
 
                 double dBiasedRefresh =
-                             dRefresh - (!bVRRBias ? 0.0f :
+                             dRefresh - (bBackgroundFPS || !bVRRBias ? 0.0f :
                              dRefresh * dRefresh) / (3600.0);
 
-                if (bVRRBias)
+                if (!bBackgroundFPS && bVRRBias)
                   dBiasedRefresh -= 0.005 * dBiasedRefresh;
 
                 strFractList += (
@@ -6232,7 +6235,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                 if ( target_mag < dBiasedRefresh + 0.75 &&
                      target_mag > dBiasedRefresh - 0.75 )
                 {
-                  iFractSel = idx;
+                  if (bBackgroundFPS) iFractSelBG = idx;
+                  else                iFractSel   = idx;
                 }
 
                 idx++; denom++;
@@ -6243,22 +6247,53 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               strFractList += "\0\0";
             }
 
-            iFractSel =
-              std::min (static_cast <int> (dFractList.size ()),
-                                           iFractSel);
+            static int iLastFractSel   = iFractSel,
+                       iLastFractSelBG = iFractSelBG;
 
-            static int                      iLastFractSel =iFractSel;
-            if (iFractSel != std::exchange (iLastFractSel, iFractSel) || (resetSelection && activateSelection))
+            int& LastFractSel = bBackgroundFPS ? iLastFractSelBG : iLastFractSel,
+                     FractSel = bBackgroundFPS ?     iFractSelBG :     iFractSel;
+
+            FractSel =
+              std::min (static_cast <int> (dFractList.size ()),
+                                            FractSel);
+
+            if (FractSel != std::exchange (LastFractSel, FractSel) || (resetSelection && activateSelection))
             {
               if (bFirstFrame == false)
               {
                 SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                  "TargetFPS %f", static_cast <float> (dFractList [iFractSel])
+                  bBackgroundFPS
+                    ? "BackgroundFPS %f"
+                    :     "TargetFPS %f",
+                  static_cast <float> (dFractList [FractSel])
                 );
               }
             }
 
             bFirstFrame = false;
+
+            if (bBackgroundFPS)
+            {
+              ImGui::PushItemWidth (itemWidth);
+
+              if  ( ImGui::Combo (
+                      "Refresh Rate Factors",
+                      &iFractSelBG,
+                      strFractList.data ()
+                    )
+                  )
+              {
+                cp->ProcessCommandFormatted (
+                  "%s %f", command, static_cast <float> (dFractList [iFractSelBG])
+                );
+              }
+
+              ImGui::PopItemWidth ();
+              ImGui::EndPopup     ();
+              ImGui::PopID        ();
+
+              return;
+            }
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
@@ -6955,30 +6990,22 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         fps_slider_width = ImGui::GetItemRectSize ().x;
 
 
-        if (limit)
+        if (advanced)
         {
-          if (advanced)
+          if (bg_limit)
           {
-            if (bg_limit)
-            {
-              _LimitSlider (
-                __target_fps_bg, "###Background_FPS",
-                                    "BackgroundFPS", (! SK_IsGameWindowActive ())
-              );
-            }
+            _LimitSlider (
+              __target_fps_bg, "###Background_FPS",
+                                  "BackgroundFPS", (! SK_IsGameWindowActive ())
+            );
+          }
 
-            else
-            {
-              fps_slider_width -= ImGui::CalcTextSize ("Graph Measurement").x;
-              _GraphMeasurementConfig ();
-            }
+          else
+          {
+            fps_slider_width -= ImGui::CalcTextSize ("Graph Measurement").x;
+            _GraphMeasurementConfig ();
           }
         }
-
-        else
-        {
-          bg_limit = false;
-        };
 
         ImGui::EndGroup ();
 

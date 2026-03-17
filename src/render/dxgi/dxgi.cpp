@@ -3570,7 +3570,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
       // Measure frametime after Present returns, and after any additional code SK runs after Present finishes
       if (config.fps.timing_method == SK_FrametimeMeasures_NewFrameBegin ||
-         (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps <= 0.0f))
+         (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () <= 0.0f))
       {
         if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit || __target_fps <= 0.0f))
         {
