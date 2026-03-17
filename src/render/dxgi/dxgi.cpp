@@ -4815,7 +4815,7 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
 
 
   //
-  // Do not apply backbuffer count overrides in D3D12 unless user presents
+  // Do not apply buffer count overrides in D3D12 unless user presents
   //   a valid footgun license and can afford to lose a few toes.
   //
   if (                            SK_ComPtr <ID3D12Device> pSwapDev12;

@@ -1306,7 +1306,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
       if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
-        if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
+        if (ImGui::InputInt ("Buffer Count", &config.render.framerate.buffer_count))
         {
           auto& io =
             ImGui::GetIO ();
@@ -2266,7 +2266,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::TextUnformatted   ("Color:");
     //ImGui::TextUnformatted   ("Depth/Stencil:");
       ImGui::TextUnformatted   ("Resolution:");
-      ImGui::TextUnformatted   ("Back Buffers:");
+      ImGui::TextUnformatted   ("Buffers:");
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
         ImGui::TextUnformatted ("Scaling Mode:");
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
