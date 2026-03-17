@@ -1564,19 +1564,17 @@ SK::ControlPanel::D3D11::Draw (void)
       config.utility.save_async_if (changed);
     }
 
-    if (! config.reshade.is_addon)
+    // This only works when we have wrapped SwapChains
+    if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
+         ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
     {
-      // This only works when we have wrapped SwapChains
-      if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
-           ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
-      {
-        if (d3d11 && !indirect) ImGui::SameLine ();
+      if (d3d11 && !indirect)
+        ImGui::SameLine ();
 
-        OSD::DrawVideoCaptureOptions ();
-      }
+      OSD::DrawVideoCaptureOptions ();
     }
 
-    else
+    if (config.reshade.is_addon)
     {
       if (d3d11 && !indirect)
         ImGui::SameLine ();
@@ -1614,7 +1612,7 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       ImGui::SameLine ();
 
-      if (ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11"))
+      if (ImGui::TreeNode ("Debug###Debug_D3D11"))
       {
         ImGui::TreePop               ();
         ImGui::Separator             ();
