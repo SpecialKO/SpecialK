@@ -1233,8 +1233,11 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
         if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV.p)))
         {
-          const ImVec2 uv0 (flip_horizontal ? 1.0f : 0.0f, flip_vertical ? 1.0f : 0.0f);
-          const ImVec2 uv1 (flip_horizontal ? 0.0f : 1.0f, flip_vertical ? 0.0f : 1.0f);
+          // Pre-flip Unity textures
+          const ImVec2 uv0 (flip_horizontal ? 1.0f : 0.0f, flip_vertical ? rb.windows.unity ? 0.0f : 1.0f :
+                                                                           rb.windows.unity ? 1.0f : 0.0f);
+          const ImVec2 uv1 (flip_horizontal ? 0.0f : 1.0f, flip_vertical ? rb.windows.unity ? 0.0f : 1.0f :
+                                                                           rb.windows.unity ? 1.0f : 0.0f);
 
           ImGui::BeginChildFrame (ImGui::GetID ("TextureView_Frame"), ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
                                   ImGuiWindowFlags_AlwaysAutoResize |
