@@ -6109,8 +6109,6 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           static auto cp =
             SK_GetCommandProcessor ();
 
-          float target_mag = fabs (target);
-
           bool bBackgroundFPS = (! strcmp (command, "BackgroundFPS"));
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
@@ -6122,21 +6120,17 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               rb.windows.device.getDevCaps ().res.refresh
             ) * 1.25f;
 
-          if ( ImGui::DragFloat ( label, &target_mag,
+          if ( ImGui::DragFloat ( label, &target,
                                       1.0f, 24.0f, max_limit, target > 0 ?
                           ( active ? "%6.3f fps  (Limit Engaged)" :
                                      "%6.3f fps  (~Window State)" )
                                                                   :
                                                            target < 0 ?
-                                             "%6.3f fps  (Graphing Only)"
+                              std::format ("{:6.3f} fps  (Graphing Only)", fabs (target)).c_str ()
                                                                   :
                                              "VSYNC Rate (No Preference)" )
              )
           {
-            target =
-              ( ( target < 0.0f ) ? (-1.0f * target_mag) :
-                                             target_mag    );
-
             if (target > 10.0f || target == 0.0f)
               cp->ProcessCommandFormatted ("%s %f", command, target);
             else if (target < 0.0f)
@@ -6231,6 +6225,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   ) + '\0'
                 );
                 dFractList.push_back (dBiasedRefresh);
+
+                float target_mag = fabs (target);
 
                 if ( target_mag < dBiasedRefresh + 0.75 &&
                      target_mag > dBiasedRefresh - 0.75 )
