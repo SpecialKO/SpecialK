@@ -1,4 +1,11 @@
-﻿26.3.17.3
+﻿26.3.17.4
+=========
+ + Allow SK's ReShade AddOn to enable itself when RenoDX is present by default.
+    * Helps keep SK from post-processing ReShade's UI or being post-processed.
+ + Allow "Show OSD in Video Capture" option to be set from the control panel
+     when SK's ReShade AddOn is active (was removed due to lack of space).
+
+26.3.17.3
 =========
  + Re-order ReShade unwrap code in D3D12 games to ensure that Reflex status
      does not warn about "no draw calls captured."

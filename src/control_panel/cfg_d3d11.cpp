@@ -1576,7 +1576,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (config.reshade.is_addon)
     {
-      if (d3d11 && !indirect)
+      if (d3d11 && !indirect || ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
+                                  ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 ))
         ImGui::SameLine ();
 
       if (ImGui::Checkbox ("Draw ReShade First", &config.reshade.draw_first))

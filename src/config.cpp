@@ -7596,8 +7596,12 @@ SK_SaveConfig ( std::wstring name,
   }
 
   reshade_cfg.draw_first->store               (config.reshade.draw_first);
-  reshade_cfg.unsafe_addons->store            (config.reshade.allow_unsafe_addons);
-  reshade_cfg.allow_sk_addon_and_reno->store  (config.reshade.allow_addon_with_reno);
+
+  if (SK_ReShade_HasRenoDX ())
+  {
+    reshade_cfg.unsafe_addons->store          (config.reshade.allow_unsafe_addons);
+    reshade_cfg.allow_sk_addon_and_reno->store(config.reshade.allow_addon_with_reno);
+  }
 
   notifications.location->store               (config.notifications.location);
   notifications.silent->store                 (config.notifications.silent);
