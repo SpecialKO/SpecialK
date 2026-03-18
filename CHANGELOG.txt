@@ -1,4 +1,8 @@
-﻿26.3.17.4
+﻿26.3.18
+=======
+ + Improved ReShade compatibility with FarCry Primal and potentially other games.
+
+26.3.17.4
 =========
  + Allow SK's ReShade AddOn to enable itself when RenoDX is present by default.
     * Helps keep SK from post-processing ReShade's UI or being post-processed.

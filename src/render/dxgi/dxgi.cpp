@@ -6357,7 +6357,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  reshade::UnwrapObject (&pSwapChain);
+  // If we unwrapped this, then the game would bypass ReShade...
+//reshade::UnwrapObject (&pSwapChain);
 
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
@@ -6492,7 +6493,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
-  reshade::UnwrapObject (&pSwapChain);
+  // If we unwrapped this, then the game would bypass ReShade...
+//reshade::UnwrapObject (&pSwapChain);
 
   SK_DXGI_HookSwapChain   (pNativeSwapChain != nullptr ?
                            pNativeSwapChain.p          :
@@ -9702,7 +9704,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     else pSwapChain = pProxySwapChain;
   } else pSwapChain = pProxySwapChain;
 
-  reshade::UnwrapObject (&pSwapChain);
+//reshade::UnwrapObject (&pSwapChain);
 
   if (pSwapChain == nullptr)
     return;
