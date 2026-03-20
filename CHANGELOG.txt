@@ -1,4 +1,11 @@
-﻿26.3.20
+﻿26.3.21
+=======
+ + Decoupled foreground framerate limit from background so that no foreground
+     limit needs to be set in order to set a background limit.
+ + Made the INI file more confusing by changing BackBufferCount to BufferCount,
+     and leaving the old BackBufferCount variable even though it does nothing.
+
+26.3.20
 =======
  + Only show Nixxes instability warnings one time, and do not display errors if
      attempting to use local injection with crs-video.exe. (Death Stranding 2)
