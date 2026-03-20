@@ -251,7 +251,7 @@ int
 SK_Platform_DrawOSD (void);
 
 std::wstring
-SK_Platform_RemoveTrademarkSymbols (std::wstring name);
+SK_Platform_RemoveTrademarkSymbols (const std::wstring& name);
 
 void
 SK_Platform_EstablishStorefrontOnFirstLoad (void);

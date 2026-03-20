@@ -4772,8 +4772,6 @@ SK_Window_UninitHooks (void)
 
     UNSET_HOOK_TARGET (GetWindowRect);
     UNSET_HOOK_TARGET (GetClientRect);
-
-    UNSET_HOOK_TARGET (GetWindowInfo);
   );
 }
 

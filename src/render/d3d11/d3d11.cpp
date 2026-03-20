@@ -635,7 +635,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
   LONG new_handle =
            handle;
 
-  if ( TRUE != SK_D3D11_SetDeviceContextHandle (pDevCtx, new_handle) )
+  if ( FALSE == SK_D3D11_SetDeviceContextHandle (pDevCtx, new_handle) )
   {
     new_handle = 0;
   }
@@ -5338,14 +5338,14 @@ SK_REMASTER_DESTROY_UAV_CALLBACK (10);
 SK_REMASTER_DESTROY_RT_CALLBACK  (11);
 SK_REMASTER_DESTROY_UAV_CALLBACK (11);
 
-#define SK_GET_REMASTER_DESTROY_UAV_CALLBACK(bits)         \
-        bits == 8  ? SK_D3D11_Remastered8BitUAVDestroyed  :\
-        bits == 10 ? SK_D3D11_Remastered10BitUAVDestroyed :\
-        bits == 11 ? SK_D3D11_Remastered11BitUAVDestroyed : nullptr
-#define SK_GET_REMASTER_DESTROY_RT_CALLBACK(bits)         \
-        bits == 8  ? SK_D3D11_Remastered8BitRTDestroyed  :\
-        bits == 10 ? SK_D3D11_Remastered10BitRTDestroyed :\
-        bits == 11 ? SK_D3D11_Remastered11BitRTDestroyed : nullptr
+#define SK_GET_REMASTER_DESTROY_UAV_CALLBACK(bits)           \
+        (bits) == 8  ? SK_D3D11_Remastered8BitUAVDestroyed  :\
+        (bits) == 10 ? SK_D3D11_Remastered10BitUAVDestroyed :\
+        (bits) == 11 ? SK_D3D11_Remastered11BitUAVDestroyed : nullptr
+#define SK_GET_REMASTER_DESTROY_RT_CALLBACK(bits)           \
+        (bits) == 8  ? SK_D3D11_Remastered8BitRTDestroyed  :\
+        (bits) == 10 ? SK_D3D11_Remastered10BitRTDestroyed :\
+        (bits) == 11 ? SK_D3D11_Remastered11BitRTDestroyed : nullptr
 
 HRESULT
 WINAPI

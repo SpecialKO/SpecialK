@@ -4707,7 +4707,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
   if (SUCCEEDED (ret))
   {
-    if (! silent)
+    if ((! silent) && pClosestMatch != nullptr)
     {
       SK_LOGi0 (
         L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
@@ -6291,7 +6291,7 @@ SK_DXVK_VulkanBridgeOptInForFactory (IDXGIFactory* pFactory)
       SUCCEEDED (pFactory->QueryInterface (SKID_DXVK_InteropFactory, (void **)&pDXVKFactory.p)))
   {
     SK_RunOnce (
-      config.apis.NvAPI.vulkan_bridge = true;
+      config.apis.NvAPI.vulkan_bridge = TRUE;
       SK_SaveConfig ();
 
       SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
@@ -7639,7 +7639,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       SK_Render_GetVulkanInteropSwapChainType (This) == SK_DXGI_VK_INTEROP_TYPE_AMD;
 
     // Cache Flip Model Chains, and Detect Vulkan/DXGI Interop
-    if (SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect) && ppSwapChain != nullptr)
+    if (SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect) &&  ppSwapChain != nullptr
+                                                             && *ppSwapChain != nullptr)
     {
       if (pDev11.p != nullptr)
       {

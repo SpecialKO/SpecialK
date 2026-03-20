@@ -5317,7 +5317,7 @@ SK_GetStoreOverlayState (bool bReal)
 }
 
 std::wstring
-SK_Platform_RemoveTrademarkSymbols (std::wstring name)
+SK_Platform_RemoveTrademarkSymbols (const std::wstring& name)
 {
   std::wstring out;
 

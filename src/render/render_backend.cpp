@@ -828,8 +828,6 @@ SK_VK_CreateSwapchainKHR (
 
   const wchar_t* wszPresentMode = L"";
 
-  std::wstring present_mode = L"";
-
   switch (_CreateInfoCopy.presentMode)
   {
     case VK_PRESENT_MODE_IMMEDIATE_KHR:    wszPresentMode = L"Immediate";    break;
@@ -2737,13 +2735,13 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
           ( static_cast <int> (SK_RenderAPI::D3D9  ) |
             static_cast <int> (SK_RenderAPI::D3D9Ex)  );
 
-        wcsncpy (name, L"D3D9Ex", 8);
+        wcsncpy (name, L"D3D9Ex", 7);
       }
 
       else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
       {
                  api  = SK_RenderAPI::D3D9;
-        wcsncpy (name, L"D3D9  ", 8);
+        wcsncpy (name, L"D3D9  ", 7);
       }
 
       else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
@@ -2762,7 +2760,7 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
             break;
           default:
             api = SK_RenderAPI::D3D12;
-            wcsncpy (name, L"D3D12 ", 8);
+            wcsncpy (name, L"D3D12 ", 7);
             break;
         }
 
@@ -2861,7 +2859,7 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
               } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
                 wcsncpy (name, L"D3D11.1", 8);
               } else {
-                wcsncpy (name, L"D3D11 ", 8);
+                wcsncpy (name, L"D3D11 ", 7);
               }
             }
           }
@@ -2899,7 +2897,7 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
       if (major > 0) wsnprintf (name, 8,  L"GL %d.%d", major, minor);
       else
 #endif
-      wcsncpy (name, L"OpenGL", 8);
+      wcsncpy (name, L"OpenGL", 7);
     }
   }
 }
