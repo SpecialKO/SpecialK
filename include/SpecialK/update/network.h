@@ -51,6 +51,7 @@ struct sk_internet_get_t {
 
 struct sk_download_request_s
 {
+  std::wstring  path;
   INTERNET_PORT port =       INTERNET_DEFAULT_HTTP_PORT;
   wchar_t       wszHostName [INTERNET_MAX_HOST_NAME_LENGTH] = { };
   wchar_t       wszHostPath [INTERNET_MAX_PATH_LENGTH]      = { };
@@ -66,6 +67,9 @@ struct sk_download_request_s
                          bool (*finisher)(const std::vector <uint8_t>&&,
                                           const std::wstring_view) = nullptr)
   {
+    finish_routine = finisher;
+    path           = local_path;
+
     std::wstring wide_url =
       SK_UTF8ToWideChar (url.data ());
 
@@ -93,6 +97,9 @@ struct sk_download_request_s
                          bool (*finisher)(const std::vector <uint8_t>&&,
                                           const std::wstring_view) = nullptr)
   {
+    finish_routine = finisher;
+    path           = local_path;
+
     URL_COMPONENTSW
       urlcomps                  = {                      };
       urlcomps.dwStructSize     = sizeof (URL_COMPONENTSW);
