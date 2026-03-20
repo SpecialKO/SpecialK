@@ -166,6 +166,12 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
   const bool file_exists =
     PathFileExistsW (wszDllFile);
 
+  auto hMod =
+    SK_GetModuleHandleW (wszDllFile);
+
+  if (hMod != 0)
+    return hMod;
+
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
   if (StrStrIW (wszDllFile, L"ReShade") != nullptr && file_exists)
   {
@@ -302,6 +308,10 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 void
 SK_LoadImportModule (import_s& import)
 {
+  // Do not load twice...
+  if (import.hLibrary != nullptr)
+    return;
+
   if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
   {
     SK_ReShade_LoadDLL ( import.filename->get_value_ref ().c_str (),
@@ -314,12 +324,15 @@ SK_LoadImportModule (import_s& import)
     wcsncpy_s   (wszProfilePlugIn, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
     PathAppendW (wszProfilePlugIn, import.filename->get_value_str ().c_str ());
 
-    import.hLibrary = SK_Modules->LoadLibrary (
-      wszProfilePlugIn
-    );
+    if (! SK_GetModuleHandleW (wszProfilePlugIn))
+    {
+      import.hLibrary = SK_Modules->LoadLibrary (
+        wszProfilePlugIn
+      );
+    }
   }
 
-  if (import.hLibrary == nullptr)
+  if (import.hLibrary == nullptr && !SK_GetModuleHandleW (import.filename->get_value_str ().c_str ()))
   {
     import.hLibrary = SK_Modules->LoadLibrary (
       import.filename->get_value_str ().c_str ()
@@ -336,7 +349,7 @@ SK_LoadImportModule (import_s& import)
         import.filename->get_value_str ().c_str (),
                   wszExpandedPath, MAX_PATH );
 
-    if (nExpandedPathSize != 0)
+    if (nExpandedPathSize != 0 && !SK_GetModuleHandleW (wszExpandedPath))
     {
       if (nExpandedPathSize <= MAX_PATH)
       {
@@ -364,7 +377,7 @@ SK_LoadImportModule (import_s& import)
               wszLongExpandedPath.get (),
                     nExpandedPathSize );
 
-        if (nLongPathSize != 0)
+        if (nLongPathSize != 0 && !SK_GetModuleHandleW (wszLongExpandedPath.get ()))
         {
           import.hLibrary =
             SK_Modules->LoadLibrary (
