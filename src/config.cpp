@@ -953,6 +953,7 @@ struct {
     sk::ParameterInt*     tearing_mode            = nullptr;
     sk::ParameterInt*     latency_mode            = nullptr;
     sk::ParameterInt*     render_queue            = nullptr;
+    sk::ParameterInt*     buffer_count_old        = nullptr;
     sk::ParameterInt*     buffer_count            = nullptr;
     sk::ParameterInt*     max_delta_time          = nullptr;
     sk::ParameterBool*    flip_discard            = nullptr;
@@ -2094,7 +2095,8 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.last_refresh_rate,     L"Refresh rate the last time framerate limit was configured.",dll_ini,         L"Render.FrameRate",      L"LastRefreshRate"),
     ConfigEntry (render.framerate.last_monitor_path,     L"The monitor the last time framerate limit was configured.", dll_ini,         L"Render.FrameRate",      L"LastMonitorPath"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
-    ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
+    ConfigEntry (render.framerate.buffer_count_old,      L"Number of (Back)Buffers in the Swapchain",                  dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
+    ConfigEntry (render.framerate.buffer_count,          L"Number of (Back)Buffers in the Swapchain",                  dll_ini,         L"Render.FrameRate",      L"BufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
     ConfigEntry (render.framerate.tearing_mode,          L"Tearing Mode (Always On/Off or Adaptive)",                  dll_ini,         L"Render.FrameRate",      L"TearingMode"),
@@ -5016,13 +5018,17 @@ auto DeclKeybind =
   render.hdr.last_used_colorspace->load      (config.render.hdr.last_used_colorspace);
 
   render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
-  render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
   render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
   render.framerate.present_interval->load    (config.render.framerate.present_interval);
   render.framerate.sync_interval_clamp->load (config.render.framerate.sync_interval_clamp);
   render.framerate.tearing_mode->load        (config.render.framerate.tearing_mode);
   render.framerate.latency_mode->load        (config.render.framerate.latency_mode);
   render.framerate.render_queue->load        (config.render.framerate.render_queue);
+
+  if (! render.framerate.buffer_count->load (config.render.framerate.buffer_count))
+  {
+    render.framerate.buffer_count_old->load (config.render.framerate.buffer_count);
+  }
 
   if (render.framerate.refresh_rate)
   {
