@@ -2127,7 +2127,7 @@ SK::Framerate::Limiter::try_wait (void)
 
   if (tracks_window)
   {
-    if (SK_IsGameWindowActive () || __target_fps_bg == 0.0f)
+    if (SK_IsGameWindowActive () || __target_fps_bg <= 0.0f)
     {
       if (fps <= 0.0f) {
         return false;

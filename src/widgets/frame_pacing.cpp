@@ -960,7 +960,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   static const bool ffx = SK_GetModuleHandle (L"UnX.dll") != nullptr;
 
   float& target =
-    ( SK_IsGameWindowActive () || __target_fps_bg == 0.0f ) ?
+    ( SK_IsGameWindowActive () || __target_fps_bg <= 0.0f ) ?
                   __target_fps  : __target_fps_bg;
 
   float target_frametime = ( target == 0.0f ) ?
