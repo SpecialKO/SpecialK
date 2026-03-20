@@ -1872,21 +1872,46 @@ SK_EstablishRootPath (void)
 }
 
 bool
+SK_ShouldAbortStartupForLaunchers (void)
+{
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+  {
+    if (! SK_IsInjected ())
+    {
+      // We have no choice but to allow injection if using local injection
+      if (StrStrIW (SK_GetHostApp (), L"crs-video"))
+      {
+        // ...
+      }
+
+      else
+      {
+        SK_MessageBox (
+          L"Local Injection is not supported for this game because it uses a launcher",
+          L"Please switch to Global Injection", MB_ICONHAND | MB_OK
+        );
+
+        return true;
+      }
+    }
+
+    else
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
   // Early-out for launchers
   //
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+  if (SK_ShouldAbortStartupForLaunchers ())
   {
-    if (! SK_IsInjected ())
-    {
-      SK_MessageBox (
-        L"Local Injection is not supported for this game because it uses a launcher",
-        L"Please switch to Global Injection", MB_ICONHAND | MB_OK
-      );
-    }
-
     return false;
   }
 

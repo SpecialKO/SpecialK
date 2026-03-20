@@ -7883,12 +7883,18 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   {
     if (! _wcsicmp (wszClassName, L"GameNxApp") && SK_GetModuleHandleW (L"sl.dlss_g.dll"))
     {
-      SK_MessageBox (
-        L"You must use Local Injection or remove sl.dlss_g.dll for Special K to work in Nixxes games.\r\n\r\n"
-        L"Otherwise they will crash or Frame Generation will not work.",
-        L"Nixxes/Special K Software Incompatibility",
-        MB_ICONEXCLAMATION | MB_OK
-      );
+      if (! SK_GetDLLConfig ()->get_section (L"Compatibility").contains_key  (L"NixxesWarningShown"))
+      {     SK_GetDLLConfig ()->get_section (L"Compatibility").add_key_value (L"NixxesWarningShown", L"true");
+
+        config.utility.save_async ();
+
+        SK_MessageBox (
+          L"You may need to use Local Injection or remove sl.dlss_g.dll for Special K to work correctly in Nixxes games.\r\n\r\n"
+          L"Otherwise they may crash or Frame Generation will not work.\r\n\r\nPress OK to continue; message will not be shown again.",
+          L"Nixxes/Special K Software Incompatibility",
+          MB_ICONEXCLAMATION | MB_OK
+        );
+      }
     }
   }
 
