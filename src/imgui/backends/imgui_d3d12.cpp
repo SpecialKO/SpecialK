@@ -2275,6 +2275,8 @@ bool SK_D3D12_RenderCtx_IsHDRCompatible (ID3D12GraphicsCommandList* pCommandList
   // Unsafe to use HDR + ReShade + Streamline
   if (SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.reshade.is_addon)
   {
+    SK_LOGi0 (L"ReShade + HDR + Streamline Detected - Disabling HDR Support for Compatibility");
+
     bSupported = FALSE;
     return false;
   }

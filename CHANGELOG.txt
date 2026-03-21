@@ -1,4 +1,9 @@
-﻿26.3.21.1
+﻿26.3.21.2
+=========
+ + Fixed screenshot override (Global\osd.ini [Screenshot.System] OverridePath=)
+     not correctly working for local injection games with SpecialK.central cfg.
+
+26.3.21.1
 =========
  + Workaround an HDR-related deadlock in games that use NVIDIA Streamline and
      D3D12 Agility, while ReShade and Special K are loaded (40-series+ GPUs).

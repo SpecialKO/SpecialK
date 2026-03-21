@@ -161,7 +161,7 @@ SK_ScreenshotManager::getBasePath (void) const
       std::wstring profile_path =
         std::wstring (LR"(\)") + SK_GetHostApp () + std::wstring (LR"(\XXX)");
 
-      if (! SK_IsInjected ())
+      if (! (SK_IsInjected () || config.system.central_repository))
       {
         if (app_cache_mgr->loadAppCacheForExe       (path_to_app))
         {
