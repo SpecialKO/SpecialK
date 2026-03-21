@@ -29,6 +29,8 @@ SK_LazyGlobal <sk::ParameterFactory> g_ParameterFactory;
 bool
 sk::iParameter::load (void)
 {
+  bool bRet = false;
+
   const iSK_INISection* section =
     ( ini == nullptr ) ? nullptr
                        : ini->contains_section (ini_section);
@@ -43,11 +45,25 @@ sk::iParameter::load (void)
     {
       set_value_str (*key);
 
-      return true;
+      bRet = true;
+    }
+
+    const std::wstring* key_old =
+      section->contains_key (ini_key_old);
+
+    if (   key_old != nullptr &&
+        (! key_old->empty ()) )
+    {
+      if (! std::exchange (bRet, true))
+      {
+        set_value_str (*key_old);
+      }
+
+      ini->get_section (ini_section).remove_key (ini_key_old);
     }
   }
 
-  return false;
+  return bRet;
 }
 
 bool
@@ -699,10 +715,12 @@ void
 STDMETHODCALLTYPE
 iSK_ParameterBase::register_to_ini ( iSK_INI      *file,
                                      std::wstring  section,
-                                     std::wstring  key )
+                                     std::wstring  key,
+                                     std::wstring  key_old = L"" )
 {
   ini         = file;
   ini_section = section;
   ini_key     = key;
+  ini_key_old = key_old;
 }
 #endif
