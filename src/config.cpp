@@ -332,6 +332,7 @@ SK_GetCurrentGameID (void)
           { L"RelicCardinal.exe",                      SK_GAME_ID::AgeOfEmpires4                },
           { L"Endfield.exe",                           SK_GAME_ID::ArknightsEndfield            },
           { L"PlatformProcess.exe",                    SK_GAME_ID::ArknightsEndfield            },
+          { L"CrimsonDesert.exe",                      SK_GAME_ID::CrimsonDesert                }
         };
 
     first_check  = false;

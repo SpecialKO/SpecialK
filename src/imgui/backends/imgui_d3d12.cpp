@@ -2265,6 +2265,41 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
   ++stagingFrame.hdr.format_conversions;
 }
 
+bool SK_D3D12_RenderCtx_IsHDRCompatible (ID3D12GraphicsCommandList* pCommandList, SK_D3D12_RenderCtx* This)
+{
+  static BOOL bSupported = 0;
+
+  if (     bSupported != 0)
+    return bSupported != FALSE;
+
+  // Unsafe to use HDR + ReShade + Streamline
+  if (SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.reshade.is_addon)
+  {
+    bSupported = FALSE;
+    return false;
+  }
+
+  // This may crash in some combinations of ReShade + Streamline + SK + Agility and debugging it
+  //   is currently impractical, so we'll just catch the exception and disable HDR support if it happens.
+  __try {
+    pCommandList->SetGraphicsRootSignature ( This->pHDRSignature );
+    pCommandList->SetPipelineState         ( This->pHDRPipeline  );
+
+    bSupported = TRUE;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    SK_LOGi0 (L"DEBUGME: D3D12 RenderCtx HDR Compatibility Test Crashed - HDR Undefined!");
+
+    bSupported = FALSE;
+
+    return false;
+  }
+
+  return true;
+}
+
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
@@ -2417,7 +2452,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     stagingFrame.hdr.skip_copy;
 
   auto _DrawAllReShadeEffects = [&](bool draw_first)
-  {
+  {  
     if ( config.reshade.is_addon                 &&
          config.reshade.draw_first == draw_first && _pReShadeRuntime != nullptr )
     {
@@ -2522,7 +2557,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     }
   };
 
-  if (bHDR)
+  if (bHDR && SK_D3D12_RenderCtx_IsHDRCompatible (pCommandList, this))
   {
     SK_RunOnce (
       _InitCopyTextureRegionHook (pCommandList)

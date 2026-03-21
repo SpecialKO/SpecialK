@@ -144,6 +144,8 @@ HookD3D12 (LPVOID user)
           )
          )
       {
+        reshade::UnwrapObject (&pDevice.p);
+
         SK_D3D12_InstallDeviceHooks       (pDevice.p);
         SK_D3D12_InstallCommandQueueHooks (pDevice.p);
       }

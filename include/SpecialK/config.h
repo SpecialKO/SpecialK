@@ -1944,7 +1944,8 @@ enum class SK_GAME_ID
   PhoenixWright_Trilogy,        // PWAAT.exe
   eFootball_PES_2021,           // PES2021.exe
   AgeOfEmpires4,                // RelicCardinal.exe
-  ArknightsEndfield,             // Endfield.exe, PlatformProcess.exe (if injected too late)
+  ArknightsEndfield,            // Endfield.exe, PlatformProcess.exe (if injected too late)
+  CrimsonDesert,                // CrimsonDesert.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -1,4 +1,9 @@
-﻿26.3.21
+﻿26.3.21.1
+=========
+ + Workaround an HDR-related deadlock in games that use NVIDIA Streamline and
+     D3D12 Agility, while ReShade and Special K are loaded (40-series+ GPUs).
+
+26.3.21
 =======
  + Decoupled foreground framerate limit from background so that no foreground
      limit needs to be set in order to set a background limit.
