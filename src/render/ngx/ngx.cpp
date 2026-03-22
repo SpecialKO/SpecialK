@@ -2419,30 +2419,6 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
           ImGui::EndTooltip      ();
         }
-
-        // Remove mode option, it is being phased out...
-#if 0
-        if (config.render.framerate.streamline.enable_native_limit)
-        {
-          ImGui::SameLine ();
-
-          int sel = ( config.render.framerate.streamline.enforcement_policy == 4 ) ? 0 :
-                    ( config.render.framerate.streamline.enforcement_policy == 2 ) ? 1 : 0;
-
-          ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
-
-          if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Normal\0Low-Latency\0\0", 2))
-          {
-            config.render.framerate.streamline.enforcement_policy =
-              ( sel == 0 ) ? 4 :
-              ( sel == 1 ) ? 2 : 4;
-
-            config.utility.save_async ();
-          }
-
-          ImGui::PopItemWidth ();
-        }
-#endif
         ImGui::SameLine ();
       }
 
@@ -2464,6 +2440,33 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::BulletText      ("Increases latency and makes pacing worse");
           ImGui::BulletText      ("May be required for multi-frame gen");
           ImGui::EndTooltip      ();
+        }
+
+        if ((! config.nvidia.reflex.vulkan) && config.render.framerate.streamline.enable_native_limit)
+        {
+          int sel = ( config.render.framerate.streamline.low_latency == true ) ? 1 : 0;
+
+          ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
+
+          if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Smooth\0Low-Latency\0\0", 2))
+          {
+            config.render.framerate.streamline.low_latency =
+              ( sel == 1 );
+
+            config.utility.save_async ();
+          }
+
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::TextUnformatted ("Trade Latency for Smoothness.");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("In games with bad Reflex integration, 'Smooth' mode may help.");
+            ImGui::BulletText      ("Framepacing graph will have visible jitter in 'Smooth' mode.");
+            ImGui::BulletText      ("Low-Latency mode is suggested for most games.");
+            ImGui::EndTooltip      ();
+          }
+
+          ImGui::PopItemWidth ();
         }
       }
 

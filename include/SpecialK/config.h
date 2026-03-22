@@ -842,7 +842,7 @@ struct sk_config_t
       struct {
         bool  enable_native_limit  =  false;
         float target_fps           =   0.0f;
-        int   enforcement_policy   =      4; // Pending removal
+        bool  low_latency          =   true;
       } streamline;
       struct {
         int  allow_latency_wait    = -1;

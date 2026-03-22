@@ -61,6 +61,12 @@ NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
 void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
 
+extern UINT            __SK_DLSSGMultiFrameCount;
+extern IDXGISwapChain   *SK_Streamline_ProxyChain;
+
+extern void   SK_SpawnPresentMonWorker (void);
+extern HANDLE SK_ImGui_SignalBackupInputThread;
+
 //
 // NOTE: All hooks currently assume a game only has one D3D device, and that it is the
 //       same one as SK's Render Backend is using.
@@ -134,6 +140,36 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
   if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
   {
+    return NVAPI_OK;
+  }
+
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit)
+  {
+    if (config.render.framerate.streamline.low_latency)
+    {
+      reshade::UnwrapObject (&pDev);
+
+      SK_ComPtr <ID3D12Device>                     pDev12;
+      if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+        SK_NvAPI_D3D_Sleep (                       pDev12);
+      else
+        SK_NvAPI_D3D_Sleep (pDev);
+    }
+
+    auto pLimiter =
+      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain, false);
+
+    if (pLimiter != nullptr)
+    {
+      pLimiter->wait ();
+    }
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    auto                                tNow = SK_QueryPerf ();
+    SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
+
     return NVAPI_OK;
   }
 
@@ -295,12 +331,6 @@ NV_LATENCY_MARKER_PARAMS SK_Reflex_LastLatencyMarkerParams;
 bool                     SK_Reflex_AllowPresentEndMarker   = true;
 bool                     SK_Reflex_AllowPresentStartMarker = true;
 
-extern UINT            __SK_DLSSGMultiFrameCount;
-extern IDXGISwapChain   *SK_Streamline_ProxyChain;
-
-extern void   SK_SpawnPresentMonWorker (void);
-extern HANDLE SK_ImGui_SignalBackupInputThread;
-
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
@@ -340,46 +370,6 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
           bSkipCall = true;
       }
     }
-
-#if 1
-    if (pSetLatencyMarkerParams->markerType == SIMULATION_START ||
-        pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
-    {  
-      auto pLimiter =
-        SK::Framerate::GetLimiter (SK_Streamline_ProxyChain, false);
-
-      if (pLimiter != nullptr && __SK_IsDLSSGActive)
-      {
-        if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
-        {
-          config.render.framerate.streamline.enforcement_policy = 2;
-        }
-
-        auto& rb =
-          SK_GetCurrentRenderBackend ();
-
-        if ( config.render.framerate.streamline.enforcement_policy == 2 &&
-                               pSetLatencyMarkerParams->markerType == INPUT_SAMPLE )
-        {
-          pLimiter->wait ();
-
-          auto                                tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
-        }
-
-        // Fallback to normal mode if the game has no latency markers
-        //
-        else if ( ( config.render.framerate.streamline.enforcement_policy == 4 || SK_Reflex_LastInputFrameId == 0 ) &&
-                                      pSetLatencyMarkerParams->markerType == SIMULATION_START )
-        {
-          pLimiter->wait ();
-
-          auto                                tNow = SK_QueryPerf ();
-          SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
-        }
-      }
-    }
-#endif
   }
 
 #ifdef _DEBUG

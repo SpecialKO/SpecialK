@@ -1,4 +1,11 @@
-﻿26.3.21.2
+﻿26.3.22
+=======
+ + Added Smooth / Low-Latency Mode to DLSS Frame Generation Native Pacing.
+
+    * Default is Low-Latency, Smooth may offer relief in games with bad Reflex,
+        but latency will go up by 1 screen refresh on average.
+
+26.3.21.2
 =========
  + Fixed screenshot override (Global\osd.ini [Screenshot.System] OverridePath=)
      not correctly working for local injection games with SpecialK.central cfg.

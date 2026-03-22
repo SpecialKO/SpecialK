@@ -2732,8 +2732,8 @@ SK_Streamline_SetupNativeLimiter (void)
                &config.render.framerate.streamline.target_fps ) );
 
           pCommandProc->AddVariable
-           ( "Streamline.LimitSite", SK_CreateVar ( SK_IVariable::Int,
-               &config.render.framerate.streamline.enforcement_policy ) );
+           ( "Streamline.LowLatency", SK_CreateVar ( SK_IVariable::Boolean,
+               &config.render.framerate.streamline.low_latency ) );
         }
       }
     }
