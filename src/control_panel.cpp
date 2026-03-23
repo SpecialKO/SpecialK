@@ -1732,8 +1732,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
   auto& display =
     rb.displays [rb.active_display];
 
-
-#if 0
+#define ALLOW_DPI_SCALING_CONFIG
+#ifdef ALLOW_DPI_SCALING_CONFIG
   bool bDPIAwareBefore =
        bDPIAware;
 #endif
@@ -1742,7 +1742,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
   // This has never been useful, default policy is the right
   //   policy > 98% of the time.
-#if 0
+#ifdef ALLOW_DPI_SCALING_CONFIG
   if (ImGui::Checkbox ("Ignore DPI Scaling",      &bDPIAware))
   {
     config.dpi.disable_scaling                  = (bDPIAware);
@@ -5367,6 +5367,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
       //   multi-framegen rate before trying to calculate LFC rate.
       const float fFrameGenRate =      SK_NGX_IsUsingDLSS_G () &&
         config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f ?
+      //config.render.framerate.streamline.wantNativePacing () ?
           static_cast <float> (SK_NGX_DLSSG_GetMultiFrameCount ()) + 1.0f
                                                                :     1.0f;
 

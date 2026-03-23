@@ -350,6 +350,7 @@ struct sk_config_t
     bool   framenumber    = false;
     bool   compact_vrr    = false;
     int    timing_method  = SK_FrametimeMeasures_LimiterPacing;
+    int    getTimingMethod (void);
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };
@@ -839,10 +840,11 @@ struct sk_config_t
         bool  finish_after_present  =  true;
       } latent_sync;
       bool    use_amd_mwaitx       =   true;
-      struct {
+      struct streamline_s {
         bool  enable_native_limit  =  false;
         float target_fps           =   0.0f;
         bool  low_latency          =   true;
+        bool  wantNativePacing (void);
       } streamline;
       struct {
         int  allow_latency_wait    = -1;
