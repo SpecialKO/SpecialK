@@ -1855,7 +1855,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     }
 
 
-    if (config.fps.timing_method == SK_FrametimeMeasures_PresentSubmit)
+    if (config.fps.getTimingMethod () == SK_FrametimeMeasures_PresentSubmit)
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
     }
@@ -1896,8 +1896,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     auto *pLimiter =
       SK::Framerate::GetLimiter (pSwapChain);
 
-    if (config.fps.timing_method == SK_FrametimeMeasures_NewFrameBegin ||
-       (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () <= 0.0f))
+    if (config.fps.getTimingMethod () == SK_FrametimeMeasures_NewFrameBegin ||
+       (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () <= 0.0f))
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
     }

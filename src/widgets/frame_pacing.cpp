@@ -967,7 +967,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                            ( 1000.0f   / (ffx ? 30.0f : 60.0f) ) :
                              ( 1000.0f / fabs (target) );
 
-  if (config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f &&
+  if (config.render.framerate.streamline.wantNativePacing () &&
       __SK_IsDLSSGActive)
   {
     target_frametime = 1000.0f / config.render.framerate.streamline.target_fps;
@@ -1465,7 +1465,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   float target_avg_frametime = 2.0f * target_frametime + 0.1f;
 
-  if (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing () && SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
   {
     target_avg_frametime /= 2.0f;
   }

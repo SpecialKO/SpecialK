@@ -3946,12 +3946,15 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
     SK_D3D12_BeginFrame ();
   }
 
+  const bool should_wait = 
+    !(__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ());
+
   rb.driverSleepNV      (0);
   rb.setLatencyMarkerNV (RENDERSUBMIT_END);
 
   if (config.render.framerate.enforcement_policy == 0 && rb.swapchain.p != nullptr)
   {
-    SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
+    SK::Framerate::Tick ( bWaitOnFail && should_wait, 0.0, { 0,0 }, rb.swapchain.p );
   }
 
   rb.present_staging.begin_overlays.time.QuadPart =
@@ -3969,7 +3972,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 
   if (config.render.framerate.enforcement_policy == 1 && rb.swapchain.p != nullptr)
   {
-    SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
+    SK::Framerate::Tick ( bWaitOnFail && should_wait, 0.0, { 0,0 }, rb.swapchain.p );
   }
 
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
@@ -3987,7 +3990,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
        config.render.framerate.enforcement_policy <  0 )
   {
     if (rb.swapchain.p != nullptr)
-      SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
+      SK::Framerate::Tick ( bWaitOnFail && should_wait, 0.0, { 0,0 }, rb.swapchain.p );
   }
 }
 
@@ -4605,11 +4608,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  auto _FrameTick = [&](void) -> void
+  auto _FrameTick = [&](bool bWait = true) -> void
   {
-    bool bWait =
-      SUCCEEDED (hr);
-
     // Only implement waiting on successful Presents,
     //   unsuccessful Presents must return immediately
     SK::Framerate::Tick ( bWait, 0.0,
@@ -4619,7 +4619,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   if (config.render.framerate.enforcement_policy == 3 && rb.swapchain.p != nullptr)
   {
-    _FrameTick ();
+    _FrameTick (SUCCEEDED (hr));
   }
 
   // Various required actions at the end of every frame in order to
@@ -4660,8 +4660,14 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   if ((config.render.framerate.enforcement_policy == 2 && !rb.vulkan_reflex.isPacingEligible ()) || rb.vulkan_reflex.needsFallbackSleep ())
   {
-    if (rb.swapchain.p != nullptr)
-      _FrameTick ();
+    extern NvU64 SK_Reflex_LastNativeSleepFrame;
+    extern NvU64 SK_Reflex_SkipLowLatencyFrameTick;
+
+    bool should_wait = 
+      !(__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ());
+
+    if (rb.swapchain.p != nullptr && (SK_Reflex_SkipLowLatencyFrameTick == SK_Reflex_LastNativeSleepFrame || !should_wait))
+      _FrameTick (should_wait && !config.nvidia.reflex.use_limiter);
 
     if (config.system.log_level > 0)
       SK_ReleaseAssert (rb.swapchain.p != nullptr);

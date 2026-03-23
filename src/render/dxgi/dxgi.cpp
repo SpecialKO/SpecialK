@@ -2539,7 +2539,7 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
   //
   // Serious bug in Assassin's Creed Shadows that prevents Frame Generation from working correctly
   //
-  if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows) && __target_fps > 0.0 && config.render.framerate.streamline.enable_native_limit)
+  if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows) && config.render.framerate.streamline.wantNativePacing ())
   {
     if (__SK_IsDLSSGActive)
     {
@@ -2573,7 +2573,7 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
   }
 
   if ((! __SK_IsDLSSGActive) || config.render.framerate.streamline.target_fps <= 0.0f ||
-                             (! config.render.framerate.streamline.enable_native_limit))
+                             (! config.render.framerate.streamline.wantNativePacing ()))
   {
     SK_Reflex_AllowPresentEndMarker   = true;
     SK_Reflex_AllowPresentStartMarker = true;
@@ -2759,7 +2759,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   if (Source == SK_DXGI_PresentSource::Hook &&
       rb.api == SK_RenderAPI::D3D12         &&
       __SK_IsDLSSGActive                    &&
-      config.render.framerate.streamline.enable_native_limit)
+      config.render.framerate.streamline.wantNativePacing ())
   {
     SK_Streamline_SetupNativeLimiter ();
   }
@@ -3497,7 +3497,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
     // Measure frametime before Present is issued
-    if (config.fps.timing_method == SK_FrametimeMeasures_PresentSubmit && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit || __target_fps <= 0.0f)))
+    if (config.fps.getTimingMethod () == SK_FrametimeMeasures_PresentSubmit && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing () || __target_fps <= 0.0f)))
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
     }
@@ -3569,10 +3569,10 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       rb.setLatencyMarkerNV (SIMULATION_START);
 
       // Measure frametime after Present returns, and after any additional code SK runs after Present finishes
-      if (config.fps.timing_method == SK_FrametimeMeasures_NewFrameBegin ||
-         (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () <= 0.0f))
+      if (config.fps.getTimingMethod () == SK_FrametimeMeasures_NewFrameBegin ||
+         (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () <= 0.0f))
       {
-        if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit || __target_fps <= 0.0f))
+        if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing () || __target_fps <= 0.0f))
         {
           SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
         }

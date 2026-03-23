@@ -56,6 +56,7 @@ NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
 NvU64                    SK_Reflex_LastNativeMarkerFrame     = 0ULL;
 NvU64                    SK_Reflex_LastNativeSleepFrame      = 0ULL;
 NvU64                    SK_Reflex_LastNativeFramePresented  = 0ULL;
+NvU64                    SK_Reflex_SkipLowLatencyFrameTick   = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
@@ -135,54 +136,84 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
   SK_LOG_FIRST_CALL
 
+  NvAPI_Status ret = NVAPI_OK;
+
   SK_Reflex_LastNativeSleepFrame =
     SK_GetFramesDrawn ();
 
   if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
   {
-    return NVAPI_OK;
+    return ret;
   }
 
-  if (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f)
+  reshade::UnwrapObject (&pDev);
+
+  SK_ComPtr <ID3D12Device>                     pNativeDev;
+  if (SK_slGetNativeInterface (pDev, (void **)&pNativeDev.p) != sl::Result::eOk)
+                                               pNativeDev = (ID3D12Device *)pDev;
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
   {
-    if (config.render.framerate.streamline.low_latency)
-    {
-      reshade::UnwrapObject (&pDev);
-
-      SK_ComPtr <ID3D12Device>                     pDev12;
-      if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-        SK_NvAPI_D3D_Sleep (                       pDev12);
-      else
-        SK_NvAPI_D3D_Sleep (pDev);
-    }
-
     auto pLimiter =
-      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain, false);
+      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
     if (pLimiter != nullptr)
-    {
-      pLimiter->wait ();
-    }
+        pLimiter->wait ();
 
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
+    SK_Reflex_SkipLowLatencyFrameTick =
+      SK_Reflex_LastNativeSleepFrame;// + std::max (2U, __SK_DLSSGMultiFrameCount);
+
+    if (config.render.framerate.streamline.low_latency)
+    {
+      ret =
+        SK_NvAPI_D3D_Sleep (pNativeDev);
+    }
 
     auto                                tNow = SK_QueryPerf ();
     SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
 
-    return NVAPI_OK;
+    return ret;
   }
 
-  if (config.nvidia.reflex.disable_native)
-    return NVAPI_OK;
+  if (config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing ()))
+  {
+    auto pLimiter =
+      SK::Framerate::GetLimiter (rb.swapchain);
 
-  reshade::UnwrapObject (&pDev);
+    if (pLimiter != nullptr)
+        pLimiter->wait ();
 
-  SK_ComPtr <ID3D12Device>                     pDev12;
-  if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
-    return SK_NvAPI_D3D_Sleep (                pDev12);
-  else
-    return SK_NvAPI_D3D_Sleep (pDev);
+    if (! config.nvidia.reflex.disable_native)
+    {
+      ret =
+        SK_NvAPI_D3D_Sleep (pNativeDev);
+    }
+
+    if (pLimiter->get_limit () > 0.0f)
+    {
+      SK_Reflex_SkipLowLatencyFrameTick =
+        SK_Reflex_LastNativeSleepFrame;
+
+      if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing)
+      {
+        auto                                tNow = SK_QueryPerf ();
+        SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
+      }
+    }
+
+    return ret;
+  }
+
+  if (! config.nvidia.reflex.disable_native)
+  {
+    return
+      SK_NvAPI_D3D_Sleep (pNativeDev);
+  }
+
+  return ret;
 }
 
 NVAPI_INTERFACE
@@ -349,8 +380,7 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
 
   if ( SK_Streamline_ProxyChain != nullptr                          &&
-         config.render.framerate.streamline.enable_native_limit     &&
-         config.render.framerate.streamline.target_fps > 0.0f       &&
+         config.render.framerate.streamline.wantNativePacing ()     &&
                                                  __SK_IsDLSSGActive &&
                                  pSetLatencyMarkerParams != nullptr )
   {
@@ -1132,7 +1162,7 @@ SK_NV_AdaptiveSyncControl (void)
             // If we are counting native frames, then multiply those by the current
             //   multi-framegen rate before trying to calculate LFC rate.
             const float fFrameGenRate =      SK_NGX_IsUsingDLSS_G () &&
-              config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f ?
+              config.render.framerate.streamline.wantNativePacing () ?
                 static_cast <float> (SK_NGX_DLSSG_GetMultiFrameCount ()) + 1.0f
                                                                      :     1.0f;
 

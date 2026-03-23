@@ -3055,7 +3055,7 @@ SK::Framerate::Limiter::wait (void)
                 bIgnoreHighVariation |=
                   config.render.framerate.enforcement_policy == 2 ||
                   config.nvidia.reflex.use_limiter                ||
-                  config.fps.timing_method ==
+                  config.fps.getTimingMethod () ==
                     SK_FrametimeMeasures_NewFrameBegin;
               }
 
@@ -4504,14 +4504,14 @@ SK::Framerate::TickEx ( bool     /*wait*/,
 
     if (last_frame < SK_GetFramesDrawn () - 1)
     {
-      if (! (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f))
+      if (! (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()))
       {
         skip_frame_history = true;
       }
     }
 
     if (std::exchange (last_frame, SK_GetFramesDrawn ())
-                                != SK_GetFramesDrawn () || (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f))
+                                != SK_GetFramesDrawn () || (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()))
     {
       if (!   (reset_frame_history ||
                 skip_frame_history) ) SK_ImGui_Frames->timeFrame (dt);
@@ -4609,6 +4609,38 @@ SK::Framerate::TickEx ( bool     /*wait*/,
   pLimiter->amortization._last_frame = now;
 }
 
+int sk_config_t::fps_osd_s::getTimingMethod (void)
+{
+  if (__SK_IsDLSSGActive)
+  {
+    if (config.render.framerate.streamline.enable_native_limit)
+    {
+      if (__target_fps <= 0.0f)
+      {
+        return SK_FrametimeMeasures_NewFrameBegin;
+      }
+    }
+
+    else if (__target_fps > 0.0f)
+    {
+      return SK_FrametimeMeasures_PresentSubmit;
+    }
+  }
+
+  return timing_method;
+}
+
+bool sk_config_t::render_s::framerate_s::streamline_s::wantNativePacing (void)
+{
+  if (__target_fps <= 0.0f)
+  {
+    return false;
+  }
+
+  return enable_native_limit;
+}
+
+
 void
 SK::Framerate::Tick ( bool          wait,
                       double        dt,
@@ -4638,7 +4670,7 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.enable_native_limit))
+  if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing ()))
   {
     SK::Framerate::TickEx (false, dt, now, swapchain);
   }
