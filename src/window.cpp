@@ -4659,8 +4659,7 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
     }
 
     // DXGI checks on this during SwapChain creation...
-    //   lie to DXGI if we have to, so that SwapCHain creation succeeds.
-    if (StrStrIW (SK_GetCallerName ().c_str (), L"dxgi.dll"))
+    //   lie to DXGI if we have to, so that SwapChain creation succeeds.
     {
       pwi->dwExStyle &= ~WS_EX_TOPMOST;
 
@@ -5548,7 +5547,7 @@ GetForegroundWindow_Detour (void)
 
   // This function is hooked before we actually know the game's HWND,
   //   this would be catastrophic.
-  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
+  if (game_window.hWnd != 0)
   {
     const SK_RenderBackend_V2& rb =
       SK_GetCurrentRenderBackend ();
@@ -5560,7 +5559,7 @@ GetForegroundWindow_Detour (void)
       {
         // Do not lie to SDL about this state, it will not handle window focus messages correctly
         //   if we spoof this.
-        if (! rb.windows.sdl)
+        if ((! rb.windows.sdl) && IsWindow (game_window.hWnd))
         {
           return game_window.hWnd;
         }

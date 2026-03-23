@@ -163,9 +163,12 @@ D3D11Dev_CreateShaderResourceView_Override (
   if (pResource == nullptr)
     return E_INVALIDARG;
 
-  if (SK_IsCurrentGame (SK_GAME_ID::Metaphor) &&
-                       pDesc != nullptr       &&
-                       pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+  static const bool bIsGameMetaphor =
+    SK_IsCurrentGame (SK_GAME_ID::Metaphor);
+
+  if ( bIsGameMetaphor &&
+      pDesc != nullptr &&
+      pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D ) [[unlikely]]
   {
 #if 0
     // Depth Buffer Upgrade for Less Aliasing...

@@ -1875,28 +1875,31 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
 {
   std::scoped_lock lock(_ctx_lock);
 
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
   if (pSwapChain != nullptr)
-  {
-    SK_ComQIPtr <IDXGISwapChain1>
-             pSwap1 (pSwapChain);
-    if (     pSwap1.p != nullptr)
+  {   pSwapChain->GetDesc (&swapDesc);
+
+    static HWND hWndLast    =     0;
+    static bool bDummyClass = false;
+
+    if (hWndLast != swapDesc.OutputWindow)
+    {   hWndLast  = swapDesc.OutputWindow;
+      bDummyClass = SK_Win32_IsDummyWindowClass (hWndLast);
+    }
+
+    if (bDummyClass)
     {
-      HWND              hWnd;
-      pSwap1->GetHwnd (&hWnd);
+      return false;
+    }
 
-      if (SK_Win32_IsDummyWindowClass (hWnd))
-      {
-        return false;
-      }
+    uint8_t x = 0;
+    UINT size = 1;
+    pSwapChain->GetPrivateData (SKID_DXGI_DummySwapChain, &size, &x);
 
-      uint8_t x = 0;
-      UINT size = 1;
-      pSwapChain->GetPrivateData (SKID_DXGI_DummySwapChain, &size, &x);
-
-      if (x != 0)
-      {
-        return false;
-      }
+    if (x != 0)
+    {
+      return false;
     }
   }
 
@@ -1919,9 +1922,6 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
 
       return true;
     }
-
-    DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-    pSwapChain->GetDesc (&swapDesc);
 
     SK_LOG0 ( ( L"(+) Acquiring D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %hs, HWND=%08xh}",
                 pDevice,             swapDesc.BufferCount,
