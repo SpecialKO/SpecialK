@@ -1,4 +1,8 @@
-﻿26.3.23
+﻿26.3.23.1
+=========
+ + Fixed potential flood of "ReShade + HDR + Streamline Detected - ..." logs.
+
+26.3.23
 =======
  + Added DPI scaling option back to the Display menu in the control panel.
  + Changed VRR optimized framerate limiter mode to use Reflex NVAPI Sleep

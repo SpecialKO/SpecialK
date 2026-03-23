@@ -2267,9 +2267,9 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 
 bool SK_D3D12_RenderCtx_IsHDRCompatible (ID3D12GraphicsCommandList* pCommandList, SK_D3D12_RenderCtx* This)
 {
-  static BOOL bSupported = 0;
+  static BOOL bSupported = -1;
 
-  if (     bSupported != 0)
+  if (     bSupported != -1)
     return bSupported != FALSE;
 
   // Unsafe to use HDR + ReShade + Streamline
