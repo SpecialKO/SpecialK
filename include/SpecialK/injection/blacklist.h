@@ -127,6 +127,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"vc2010redist_x64.exe",
   L"ubisoftgamelauncher64.exe",
   L"sen3launcher.exe",
+  L"krsdkexternal.exe", // Wuthering Waves something
 
   L"wallpaper64.exe",
   L"winrtutil64.exe",

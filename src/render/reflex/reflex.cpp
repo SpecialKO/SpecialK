@@ -143,7 +143,7 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     return NVAPI_OK;
   }
 
-  if (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit)
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f)
   {
     if (config.render.framerate.streamline.low_latency)
     {
