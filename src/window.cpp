@@ -4660,6 +4660,7 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
 
     // DXGI checks on this during SwapChain creation...
     //   lie to DXGI if we have to, so that SwapChain creation succeeds.
+    if (StrStrIW (SK_GetCallerName ().c_str (), L"dxgi.dll"))
     {
       pwi->dwExStyle &= ~WS_EX_TOPMOST;
 
@@ -5600,6 +5601,14 @@ WINAPI
 SetForegroundWindow_Detour (HWND hWnd)
 {
   SK_LOG_FIRST_CALL;
+
+  // Fix problems with Crimson Sands bringing itself to the foreground constantly
+  //   when using background rendering
+  if ( hWnd == game_window.hWnd && config.window.background_render
+                                && !SK_IsGameWindowActive () )
+  {
+    return TRUE;
+  }
 
   // This breaks alt-tab and window activation in some cases
 #if 0
