@@ -1,4 +1,10 @@
-﻿26.3.25
+﻿26.3.25.1
+=========
+ + Implement SOFTWARE cursor auto-hide functionality for Crimson Desert,
+     by spoofing the cursor position to be off-screen when SK would normally
+       hide the HARDWARE cursor when configured to do so.
+
+26.3.25
 =======
  + Partially revert VRR Optimized Limiter changes from 26.3.23
  + Prevent Crimson Sands from stubbornly bringing the game window to the

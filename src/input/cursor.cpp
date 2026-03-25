@@ -1174,6 +1174,27 @@ SK_ImGui_CursorWarpingCooledDown (void)
   return s_GameSetCursorPosTime < SK::ControlPanel::current_time - kCursorWarpCooldown;
 }
 
+std::optional <BOOL>
+GetCursorPos_GameSpecificFixes (LPPOINT lpPoint)
+{
+  static bool bCrimsonDesert =
+    SK_IsCurrentGame (SK_GAME_ID::CrimsonDesert);
+
+  if (bCrimsonDesert && config.input.cursor.manage)
+  {
+    bool  SK_Window_IsCursorActive (void);
+    if (! SK_Window_IsCursorActive () || config.input.cursor.timeout == 0)
+    {
+      lpPoint->x = game_window.actual.window.right  - 1;
+      lpPoint->y = game_window.actual.window.bottom - 1;
+
+      return TRUE;
+    }
+  }
+
+  return std::nullopt;
+}
+
 BOOL
 WINAPI
 GetCursorPos_Detour (LPPOINT lpPoint)
@@ -1182,6 +1203,10 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   if (lpPoint == nullptr)
     return FALSE;
+
+  if ( auto fixed_return = GetCursorPos_GameSpecificFixes (lpPoint);
+            fixed_return.has_value () )
+     return fixed_return.    value ();
 
   //
   // Allow games running as a background window with Continue Rendering enabled
