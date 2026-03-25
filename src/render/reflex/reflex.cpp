@@ -178,6 +178,7 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     return ret;
   }
 
+#if 0
   if (config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing ()))
   {
     auto pLimiter =
@@ -206,6 +207,7 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
     return ret;
   }
+#endif
 
   if (! config.nvidia.reflex.disable_native)
   {

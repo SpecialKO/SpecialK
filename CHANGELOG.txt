@@ -1,4 +1,11 @@
-﻿26.3.23.1
+﻿26.3.25
+=======
+ + Partially revert VRR Optimized Limiter changes from 26.3.23
+ + Prevent Crimson Sands from stubbornly bringing the game window to the
+     foreground while it is not the active application if Continue Rendering
+       is enabled.
+
+26.3.23.1
 =========
  + Fixed potential flood of "ReShade + HDR + Streamline Detected - ..." logs.
 
