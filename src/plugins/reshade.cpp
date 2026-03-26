@@ -1270,6 +1270,7 @@ BOOL SK_ReShade_HasRenoDX (void)
 
   auto _= [&](BOOL bRet) -> BOOL
   {
+#if 0
     if (bRet && (! config.reshade.allow_unsafe_addons))
     {
       static auto reshade_dll_path =
@@ -1309,6 +1310,7 @@ BOOL SK_ReShade_HasRenoDX (void)
         }
       }
     }
+#endif
 
     return bRet;
   };

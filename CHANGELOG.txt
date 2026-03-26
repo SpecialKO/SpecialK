@@ -1,6 +1,15 @@
-﻿26.3.25.2
+﻿26.3.25.3
 =========
- + Prevent persistently storing temporary HDR overrides when ReShade is loaded.
+ + Further changes to prevent HDR override when RenoDX is loaded, hopefully
+     it correctly sets the colorspace in recent builds.
+
+   * Setting allows SDR users to use RenoDX, for the RenoDX mods where such
+       a thing makes any sense.
+
+26.3.25.2
+=========
+ + Prevent persistently storing temporary HDR overrides when Streamline or
+     ReShade are loaded.
 
 26.3.25.1
 =========
