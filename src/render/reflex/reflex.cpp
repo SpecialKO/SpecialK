@@ -186,6 +186,12 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
   if (config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive))
   {
+    if (! config.nvidia.reflex.disable_native)
+    {
+      ret =
+        SK_NvAPI_D3D_Sleep (pNativeDev);
+    }
+
     auto pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain);
 
@@ -194,12 +200,6 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
     SK_Reflex_SkipLowLatencyFrameTick =
       SK_Reflex_LastNativeSleepFrame;
-
-    if (! config.nvidia.reflex.disable_native)
-    {
-      ret =
-        SK_NvAPI_D3D_Sleep (pNativeDev);
-    }
 
     if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing)
     {

@@ -4615,16 +4615,21 @@ int sk_config_t::fps_osd_s::getTimingMethod (void)
   {
     if (config.render.framerate.streamline.enable_native_limit)
     {
-      if (__target_fps <= 0.0f)
+      if (__target_fps <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
       {
         return SK_FrametimeMeasures_NewFrameBegin;
       }
     }
 
-    else if (__target_fps > 0.0f)
+    else if (__target_fps > 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
     {
       return SK_FrametimeMeasures_PresentSubmit;
     }
+  }
+
+  else if (__target_fps <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
+  {
+    return SK_FrametimeMeasures_NewFrameBegin;
   }
 
   return timing_method;
@@ -4671,7 +4676,7 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () > 0.0f && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing ()) && (config.render.framerate.enforcement_policy != 2 || SK_Reflex_LastNativeSleepFrame == 0 || SK_Reflex_LastNativeSleepFrame < SK_GetFramesDrawn () - 8))
+  if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing ()) && (config.render.framerate.enforcement_policy != 2 || SK_Reflex_LastNativeSleepFrame == 0 || SK_Reflex_LastNativeSleepFrame < SK_GetFramesDrawn () - 8))
   {
     SK::Framerate::TickEx (false, dt, now, swapchain);
   }
