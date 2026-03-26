@@ -26,6 +26,11 @@
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <imgui/font_awesome.h>
 
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"HDR Widget"
+#endif
+
+
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
 
@@ -774,6 +779,8 @@ public:
           __SK_HDR_16BitSwap = false;
           __SK_HDR_10BitSwap = false;
 
+          __SK_HDR_UserForced = false;
+
           rb.scanout.colorspace_override = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
           run ();
@@ -807,6 +814,8 @@ public:
         if (__SK_HDR_16BitSwap)
             __SK_HDR_10BitSwap = false;
 
+        //__SK_HDR_UserForced = true;
+
         run ();
       }
 
@@ -820,6 +829,8 @@ public:
         rb.scanout.colorspace_override = __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 :
                                          __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
                                                             : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        //__SK_HDR_UserForced = true;
 
         if (__SK_HDR_10BitSwap)
             __SK_HDR_16BitSwap = false;
@@ -1002,7 +1013,7 @@ public:
       __SK_HDR_16BitSwap = false;
       __SK_HDR_10BitSwap = !__SK_HDR_Disallow10BitSwap;
 
-      _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+      _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap && __SK_HDR_UserForced);
     }
 
     if (__SK_HDR_Disallow10BitSwap && __SK_HDR_10BitSwap)
@@ -1010,7 +1021,7 @@ public:
       __SK_HDR_10BitSwap = false;
       __SK_HDR_16BitSwap = !__SK_HDR_Disallow16BitSwap;
 
-      _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+      _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap && __SK_HDR_UserForced);
     }
 
 
@@ -1197,8 +1208,8 @@ public:
 
       if (changed)
       {
-        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
-        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap && __SK_HDR_UserForced);
+        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap && __SK_HDR_UserForced);
 
         if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
         {
@@ -3380,22 +3391,26 @@ void SK_HDR_DisableOverridesForGame (void)
   __SK_HDR_16BitSwap = false;
   __SK_HDR_10BitSwap = false;
 
+  __SK_HDR_UserForced = false;
+
   // Initialize the INI variables
   SK_HDR_RunWidgetOnce ();
 
-  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
-  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap  && __SK_HDR_UserForced);
+  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap  && __SK_HDR_UserForced);
 }
 
 void
 SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10)
 {
+  SK_LOG_FIRST_CALL
+
   __SK_HDR_16BitSwap = bScRGB;
   __SK_HDR_10BitSwap = bHDR10;
 
   // Initialize the INI variables
   SK_HDR_RunWidgetOnce ();
 
-  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
-  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap && __SK_HDR_UserForced);
+  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap && __SK_HDR_UserForced);
 }

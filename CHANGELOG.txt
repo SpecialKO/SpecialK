@@ -1,4 +1,8 @@
-﻿26.3.25.1
+﻿26.3.25.2
+=========
+ + Prevent persistently storing temporary HDR overrides when ReShade is loaded.
+
+26.3.25.1
 =========
  + Implement SOFTWARE cursor auto-hide functionality for Crimson Desert,
      by spoofing the cursor position to be off-screen when SK would normally
@@ -7,7 +11,7 @@
 26.3.25
 =======
  + Partially revert VRR Optimized Limiter changes from 26.3.23
- + Prevent Crimson Sands from stubbornly bringing the game window to the
+ + Prevent Crimson Desert from stubbornly bringing the game window to the
      foreground while it is not the active application if Continue Rendering
        is enabled.
 

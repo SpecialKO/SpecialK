@@ -9494,7 +9494,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     // Only do scRGB colorspace overrides if we're actually in FP16
     if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
-      if (__SK_HDR_16BitSwap)
+      if (__SK_HDR_16BitSwap && __SK_HDR_UserForced)
       {
         ColorSpace = rb.scanout.colorspace_override;
       }
@@ -9510,7 +9510,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       if (rb.scanout.colorspace_override !=
             DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
       {
-        if (__SK_HDR_10BitSwap)
+        if (__SK_HDR_10BitSwap && __SK_HDR_UserForced)
         {
           ColorSpace = rb.scanout.colorspace_override;
         }
@@ -9551,6 +9551,12 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if (SUCCEEDED (hr))
   {
+    if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 && !__SK_HDR_UserForced)
+    {
+      __SK_HDR_10BitSwap = false;
+      __SK_HDR_16BitSwap = false;
+    }
+
     config.utility.save_async_if (
       std::exchange (config.render.hdr.last_used_colorspace, ColorSpace) != ColorSpace
     );
@@ -9599,7 +9605,7 @@ IDXGISwapChain3_SetColorSpace1_Override (
   DXGI_COLOR_SPACE_TYPE  ColorSpace )
 {
   return
-    SK_DXGISwap3_SetColorSpace1_Impl (This, ColorSpace, FALSE, _ReturnAddress ());
+    SK_DXGISwap3_SetColorSpace1_Impl (This, ColorSpace, FALSE, SK_GetModuleFromAddr (_ReturnAddress ()) == SK_GetDLL () ? SK_Debug_GetImageBaseAddr () : _ReturnAddress ());
 }
 
 using IDXGIOutput6_GetDesc1_pfn = HRESULT (WINAPI *)
