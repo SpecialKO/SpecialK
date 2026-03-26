@@ -4660,8 +4660,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   if ((config.render.framerate.enforcement_policy == 2 && !rb.vulkan_reflex.isPacingEligible ()) || rb.vulkan_reflex.needsFallbackSleep ())
   {
+    extern NvU64 SK_Reflex_LastNativeSleepFrame;
+
     bool should_wait = 
-      !(__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ());
+      !(__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()) && (SK_Reflex_LastNativeSleepFrame == 0 || SK_Reflex_LastNativeSleepFrame < SK_GetFramesDrawn () - 8);
 
     if (rb.swapchain.p != nullptr)
       _FrameTick (should_wait && !config.nvidia.reflex.use_limiter);

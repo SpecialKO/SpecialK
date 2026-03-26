@@ -5755,12 +5755,16 @@ SK_DXGI_CreateSwapChain_PreInit (
         if ( config.render.framerate.flip_discard &&
                    dxgi_caps.present.flip_discard )
         {
-
             pDesc->SwapEffect = 
               (original_swap_effect == DXGI_SWAP_EFFECT_DISCARD ||
                original_swap_effect == DXGI_SWAP_EFFECT_FLIP_DISCARD) ?
                                        DXGI_SWAP_EFFECT_FLIP_DISCARD  :
                                        DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+
+          if (bIsD3D12)
+          {
+            pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+          }
         }
         else // On Windows 8.1 and older, sequential must substitute for discard
           pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -9381,6 +9385,8 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   return hr;
 }
 
+static thread_local bool SK_DXGI_InSetColorSpace1Wrapoper = false;
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGISwap3_SetColorSpace1_Impl (
@@ -9390,8 +9396,18 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   void                  *pCaller  = nullptr
 )
 {
+  if (SK_DXGI_InSetColorSpace1Wrapoper && !bWrapped)
+  {
+    return
+      IDXGISwapChain3_SetColorSpace1_Original
+           (pSwapChain3, ColorSpace);
+  }
+
   // This seems to be called recursively, best to keep an eye on it
   SK_PROFILE_SCOPED_TASK (SK_DXGISwap3_SetColorSpace1_Impl)
+
+  if (bWrapped)
+    SK_DXGI_InSetColorSpace1Wrapoper = true;
 
   const auto RequestedColorSpace = ColorSpace;
 
@@ -9595,6 +9611,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     hr = S_OK;
   }
 
+  SK_DXGI_InSetColorSpace1Wrapoper = false;
+
   return hr;
 }
 
@@ -9605,7 +9623,9 @@ IDXGISwapChain3_SetColorSpace1_Override (
   DXGI_COLOR_SPACE_TYPE  ColorSpace )
 {
   return
-    SK_DXGISwap3_SetColorSpace1_Impl (This, ColorSpace, FALSE, SK_GetModuleFromAddr (_ReturnAddress ()) == SK_GetDLL () ? SK_Debug_GetImageBaseAddr () : _ReturnAddress ());
+    SK_DXGISwap3_SetColorSpace1_Impl ( This, ColorSpace, FALSE,
+      SK_GetModuleFromAddr (_ReturnAddress ()) == SK_GetDLL () ? SK_Debug_GetImageBaseAddr () :
+                            _ReturnAddress () );
 }
 
 using IDXGIOutput6_GetDesc1_pfn = HRESULT (WINAPI *)

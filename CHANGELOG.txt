@@ -1,9 +1,14 @@
-﻿26.3.25.3
+﻿26.3.26
+=======
+ + Attempt #2 at using NVIDIA Reflex Sleep API call as the trigger point for
+     framerate limiting in low-latency mode.
+
+26.3.25.3
 =========
  + Further changes to prevent HDR override when RenoDX is loaded, hopefully
      it correctly sets the colorspace in recent builds.
 
-   * Setting allows SDR users to use RenoDX, for the RenoDX mods where such
+   * This change allows SDR users to use RenoDX, for the RenoDX mods where such
        a thing makes any sense.
 
 26.3.25.2

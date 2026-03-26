@@ -160,6 +160,12 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto pLimiter =
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
+    //if (pLimiter != nullptr)
+    //    pLimiter->wait ();
+
+    pLimiter =
+      SK::Framerate::GetLimiter (rb.swapchain.p);
+
     if (pLimiter != nullptr)
         pLimiter->wait ();
 
@@ -178,8 +184,7 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     return ret;
   }
 
-#if 0
-  if (config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing ()))
+  if (config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive))
   {
     auto pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain);
@@ -187,27 +192,23 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     if (pLimiter != nullptr)
         pLimiter->wait ();
 
+    SK_Reflex_SkipLowLatencyFrameTick =
+      SK_Reflex_LastNativeSleepFrame;
+
     if (! config.nvidia.reflex.disable_native)
     {
       ret =
         SK_NvAPI_D3D_Sleep (pNativeDev);
     }
 
-    if (pLimiter->get_limit () > 0.0f)
+    if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing)
     {
-      SK_Reflex_SkipLowLatencyFrameTick =
-        SK_Reflex_LastNativeSleepFrame;
-
-      if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing)
-      {
-        auto                                tNow = SK_QueryPerf ();
-        SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
-      }
+      auto                                tNow = SK_QueryPerf ();
+      SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
     }
 
     return ret;
   }
-#endif
 
   if (! config.nvidia.reflex.disable_native)
   {
