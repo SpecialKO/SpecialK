@@ -55,6 +55,7 @@ using  NvAPI_D3D_Sleep_pfn            =
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
 NvU64                    SK_Reflex_LastNativeMarkerFrame     = 0ULL;
 NvU64                    SK_Reflex_LastNativeSleepFrame      = 0ULL;
+NvU32                    SK_Reflex_LastNativeSleepTime       = 0ULL;
 NvU64                    SK_Reflex_LastNativeFramePresented  = 0ULL;
 NvU64                    SK_Reflex_SkipLowLatencyFrameTick   = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
@@ -141,6 +142,9 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   SK_Reflex_LastNativeSleepFrame =
     SK_GetFramesDrawn ();
 
+  SK_Reflex_LastNativeSleepTime =
+    SK_timeGetTime ();
+
   if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
   {
     return ret;
@@ -184,16 +188,20 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     return ret;
   }
 
+#if 1
   if (config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive))
   {
-    if (! config.nvidia.reflex.disable_native)
-    {
-      ret =
-        SK_NvAPI_D3D_Sleep (pNativeDev);
-    }
-
     auto pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain);
+
+    if (! config.nvidia.reflex.disable_native)
+    {
+      if (SK_QueryPerf ().QuadPart < pLimiter->get_next_tick ())
+      {
+        ret =
+          SK_NvAPI_D3D_Sleep (pNativeDev); 
+      }
+    }
 
     if (pLimiter != nullptr)
         pLimiter->wait ();
@@ -209,6 +217,7 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
     return ret;
   }
+#endif
 
   if (! config.nvidia.reflex.disable_native)
   {
@@ -434,6 +443,32 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       SK_Reflex_LastNativeMarkerFrame =
         SK_GetFramesDrawn ();
     }
+
+#if 0
+    if (pSetLatencyMarkerParams->markerType == SIMULATION_START && config.render.framerate.enforcement_policy == 2 && (!__SK_IsDLSSGActive))
+    {
+      auto pLimiter =
+        SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain);
+
+      SK_Reflex_LastNativeSleepTime =
+        SK_timeGetTime ();
+
+      if (pLimiter != nullptr)
+          pLimiter->wait ();
+
+      SK_Reflex_LastNativeSleepTime =
+        SK_timeGetTime ();
+
+      SK_Reflex_SkipLowLatencyFrameTick =
+        SK_GetFramesDrawn ();
+
+      if (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing)
+      {
+        auto                                tNow = SK_QueryPerf ();
+        SK::Framerate::TickEx (false, -1.0, tNow, SK_GetCurrentRenderBackend ().swapchain);
+      }
+    }
+#endif
   }
 
   if (pSetLatencyMarkerParams != nullptr)

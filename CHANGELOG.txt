@@ -1,4 +1,12 @@
-﻿26.3.26
+﻿26.3.26.1
+=========
+ + Improved handling of games that stop calling NVIDIA Reflex Sleep for
+     long periods of time.
+ + Skip the actual driver-sleep if Low Latency mode is enabled and the
+     game is not rendering faster than the GPU can draw at to eliminate
+       Reflex stutter.
+
+26.3.26
 =======
  + Attempt #2 at using NVIDIA Reflex Sleep API call as the trigger point for
      framerate limiting in low-latency mode.
