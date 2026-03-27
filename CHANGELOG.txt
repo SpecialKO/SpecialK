@@ -1,4 +1,9 @@
-﻿26.3.26.1
+﻿26.3.26.2
+=========
+ + Turn off NVIDIA Reflex Low-Latency mode when SK's own limiter is set to
+     Low-Latency.
+
+26.3.26.1
 =========
  + Improved handling of games that stop calling NVIDIA Reflex Sleep for
      long periods of time.
