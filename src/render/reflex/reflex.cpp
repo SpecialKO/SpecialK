@@ -164,8 +164,8 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto pLimiter =
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
-    //if (pLimiter != nullptr)
-    //    pLimiter->wait ();
+    if (pLimiter != nullptr)
+        pLimiter->wait ();
 
     pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain.p);
@@ -552,6 +552,11 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     }
     else
       config.nvidia.reflex.frame_interval_us = 0;
+
+    //if (config.render.framerate.streamline.enable_native_limit && __SK_IsDLSSGActive)
+    //{
+      config.nvidia.reflex.frame_interval_us = 0;
+    //}
 
     pSetSleepModeParams->minimumIntervalUs     = config.nvidia.reflex.frame_interval_us;
 
@@ -981,11 +986,16 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
 
     if (config.nvidia.reflex.use_limiter || __SK_ForceDLSSGPacing)
     {
+      config.nvidia.reflex.frame_interval_us = 0;
+
       if (__target_fps > 10.0f)
       {
-        config.nvidia.reflex.frame_interval_us =
-          (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 24
-                                                                             : 0 );
+        if (config.nvidia.reflex.use_limiter || !config.render.framerate.streamline.enable_native_limit)
+        {
+          config.nvidia.reflex.frame_interval_us =
+            (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 24
+                                                                               : 0 );
+        }
       }
     }
 

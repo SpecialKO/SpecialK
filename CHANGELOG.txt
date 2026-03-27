@@ -1,4 +1,8 @@
-﻿26.3.27
+﻿26.3.27.1
+=========
+ + Correctly disable Reflex framerate limiter when Native Pacing is enabled.
+
+26.3.27
 =======
  + Enable DLSS Frame Generation Native Pacing by default.
  + Report generated framerate instead of input (native) framerate when

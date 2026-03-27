@@ -4692,8 +4692,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   );
 
   __SK_FramerateScale =
-    (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit) ?
-                                 std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f) : 1.0f;
+    (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f) ?
+                                                        std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f) : 1.0f;
 
   SK_StartPerfMonThreads ();
 
