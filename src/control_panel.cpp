@@ -7006,14 +7006,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         ImGui::EndGroup ();
 
-        if (((! limit) || bg_limit) && advanced)
+        if (advanced && bg_limit)
         {
-          if (bg_limit)
-          {
-            fps_slider_width += ImGui::GetStyle ().ItemSpacing.x;
-
-            _GraphMeasurementConfig ();
-          }
+          fps_slider_width += ImGui::GetStyle ().ItemSpacing.x;
+          _GraphMeasurementConfig ();
         }
         ImGui::SameLine ();
         ImGui::EndGroup ();

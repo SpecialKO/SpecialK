@@ -954,7 +954,6 @@ struct {
     sk::ParameterInt*     tearing_mode            = nullptr;
     sk::ParameterInt*     latency_mode            = nullptr;
     sk::ParameterInt*     render_queue            = nullptr;
-    sk::ParameterInt*     buffer_count_old        = nullptr;
     sk::ParameterInt*     buffer_count            = nullptr;
     sk::ParameterInt*     max_delta_time          = nullptr;
     sk::ParameterBool*    flip_discard            = nullptr;
@@ -1519,7 +1518,8 @@ _Tp*
 SK_CreateINIParameter ( const wchar_t *wszDescription,
                         iSK_INI       *pINIFile,
                         const wchar_t *wszSection,
-                        const wchar_t *wszKey )
+                        const wchar_t *wszKey,
+                        const wchar_t *wszKeyOld )
 {
   using value_type =
    _Tp::value_type;
@@ -1533,6 +1533,9 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
     );
 
   if (ret != nullptr)
+    if (wszKeyOld != nullptr)
+      ret->register_to_ini (pINIFile, wszSection, wszKey, wszKeyOld);
+    else
       ret->register_to_ini (pINIFile, wszSection, wszKey);
 
   return ret;
@@ -1699,6 +1702,13 @@ auto DeclKeybind =
                     (sec),      (key)              \
 }
 
+#define LegacyEntry(param,descrip,ini,sec,key,key_old) {\
+  reinterpret_cast <sk::iParameter **> (&(param)),      \
+  std::type_index (              typeid ((param))),     \
+                    (descrip),  (ini),                  \
+                    (sec),      (key),  (key_old)       \
+}
+
 #define Keybind(bind,descrip,ini,sec) {             \
   reinterpret_cast <sk::iParameter **>  ((bind)),   \
   std::type_index (              typeid ((bind))),  \
@@ -1716,6 +1726,7 @@ auto DeclKeybind =
           iSK_INI          *ini_         = nullptr;
     const wchar_t          *section_     = nullptr;
     const wchar_t          *key_         = nullptr;
+    const wchar_t          *key_old_     = nullptr;
   };
 
   static const std::initializer_list <param_decl_s> params_to_build
@@ -2096,8 +2107,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.last_refresh_rate,     L"Refresh rate the last time framerate limit was configured.",dll_ini,         L"Render.FrameRate",      L"LastRefreshRate"),
     ConfigEntry (render.framerate.last_monitor_path,     L"The monitor the last time framerate limit was configured.", dll_ini,         L"Render.FrameRate",      L"LastMonitorPath"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
-    ConfigEntry (render.framerate.buffer_count_old,      L"Number of (Back)Buffers in the Swapchain",                  dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
-    ConfigEntry (render.framerate.buffer_count,          L"Number of (Back)Buffers in the Swapchain",                  dll_ini,         L"Render.FrameRate",      L"BufferCount"),
+    LegacyEntry (render.framerate.buffer_count,          L"Number of (Back)Buffers in the Swapchain",                  dll_ini,         L"Render.FrameRate",      L"BufferCount", L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
     ConfigEntry (render.framerate.tearing_mode,          L"Tearing Mode (Always On/Off or Adaptive)",                  dll_ini,         L"Render.FrameRate",      L"TearingMode"),
@@ -2412,7 +2422,7 @@ auto DeclKeybind =
     {
       if (*decl.parameter_ == nullptr)
           *decl.parameter_ =
-        SK_CreateINIParameter <sk::ParameterBool> (decl.description_, decl.ini_, decl.section_, decl.key_);
+        SK_CreateINIParameter <sk::ParameterBool> (decl.description_, decl.ini_, decl.section_, decl.key_, decl.key_old_);
 
       continue;
     }
@@ -2421,7 +2431,7 @@ auto DeclKeybind =
     {
       if (*decl.parameter_ == nullptr)
           *decl.parameter_ =
-        SK_CreateINIParameter <sk::ParameterInt> (decl.description_, decl.ini_, decl.section_, decl.key_);
+        SK_CreateINIParameter <sk::ParameterInt> (decl.description_, decl.ini_, decl.section_, decl.key_, decl.key_old_);
 
       continue;
     }
@@ -2430,7 +2440,7 @@ auto DeclKeybind =
     {
       if (*decl.parameter_ == nullptr)
           *decl.parameter_ =
-        SK_CreateINIParameter <sk::ParameterInt64> (decl.description_, decl.ini_, decl.section_, decl.key_);
+        SK_CreateINIParameter <sk::ParameterInt64> (decl.description_, decl.ini_, decl.section_, decl.key_, decl.key_old_);
 
       continue;
     }
@@ -2439,7 +2449,7 @@ auto DeclKeybind =
     {
       if (*decl.parameter_ == nullptr)
           *decl.parameter_ =
-        SK_CreateINIParameter <sk::ParameterFloat> (decl.description_, decl.ini_, decl.section_, decl.key_);
+        SK_CreateINIParameter <sk::ParameterFloat> (decl.description_, decl.ini_, decl.section_, decl.key_, decl.key_old_);
 
       continue;
     }
@@ -2448,7 +2458,7 @@ auto DeclKeybind =
     {
       if (*decl.parameter_ == nullptr)
           *decl.parameter_ =
-        SK_CreateINIParameter <sk::ParameterStringW> (decl.description_, decl.ini_, decl.section_, decl.key_);
+        SK_CreateINIParameter <sk::ParameterStringW> (decl.description_, decl.ini_, decl.section_, decl.key_, decl.key_old_);
 
       continue;
     }
@@ -2457,7 +2467,7 @@ auto DeclKeybind =
     {
       if (*decl.parameter_ == nullptr)
           *decl.parameter_ =
-        SK_CreateINIParameter <sk::ParameterVec2f> (decl.description_, decl.ini_, decl.section_, decl.key_);
+        SK_CreateINIParameter <sk::ParameterVec2f> (decl.description_, decl.ini_, decl.section_, decl.key_, decl.key_old_);
 
       continue;
     }
@@ -5017,17 +5027,13 @@ auto DeclKeybind =
   render.hdr.last_used_colorspace->load      (config.render.hdr.last_used_colorspace);
 
   render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
+  render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
   render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
   render.framerate.present_interval->load    (config.render.framerate.present_interval);
   render.framerate.sync_interval_clamp->load (config.render.framerate.sync_interval_clamp);
   render.framerate.tearing_mode->load        (config.render.framerate.tearing_mode);
   render.framerate.latency_mode->load        (config.render.framerate.latency_mode);
   render.framerate.render_queue->load        (config.render.framerate.render_queue);
-
-  if (! render.framerate.buffer_count->load (config.render.framerate.buffer_count))
-  {
-    render.framerate.buffer_count_old->load (config.render.framerate.buffer_count);
-  }
 
   if (render.framerate.refresh_rate)
   {

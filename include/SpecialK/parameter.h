@@ -60,11 +60,13 @@ public:
 
   void register_to_ini (            iSK_INI* file,
                          const std::wstring& section,
-                         const std::wstring& key      )
+                         const std::wstring& key,
+                         const std::wstring& key_old = L"" )
   {
     ini         = file;
     ini_section = section;
     ini_key     = key;
+    ini_key_old = key_old;
   }
 
   // Returns true if a key exists but has no value
@@ -77,6 +79,7 @@ private:
   iSK_INI*                 ini;
   std::wstring             ini_section;
   std::wstring             ini_key;
+  std::wstring             ini_key_old;
 };
 
 template <typename _T>
