@@ -841,7 +841,7 @@ struct sk_config_t
       } latent_sync;
       bool    use_amd_mwaitx       =   true;
       struct streamline_s {
-        bool  enable_native_limit  =  false;
+        bool  enable_native_limit  =   true;
         float target_fps           =   0.0f;
         bool  low_latency          =   true;
         bool  wantNativePacing (void);

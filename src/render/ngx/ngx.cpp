@@ -2416,7 +2416,7 @@ SK_NGX_DLSS_ControlPanel (void)
         {
           ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
           ImGui::Separator       ();
-          ImGui::BulletText      ("The NATIVE framerate will be reported in graphs and text");
+          ImGui::BulletText      ("This mode is the smoothest possible, but may not work correctly if the engine has poor Reflex integration.");
           ImGui::EndTooltip      ();
         }
         ImGui::SameLine ();

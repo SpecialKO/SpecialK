@@ -1,7 +1,15 @@
-﻿26.3.26.2
+﻿26.3.27
+=======
+ + Enable DLSS Frame Generation Native Pacing by default.
+ + Report generated framerate instead of input (native) framerate when
+     Native Pacing is enabled.
+
+26.3.26.2
 =========
- + Turn off NVIDIA Reflex Low-Latency mode when SK's own limiter is set to
+ + Turned off NVIDIA Reflex Low-Latency mode when SK's own limiter is set to
      Low-Latency.
+ + Changed optimal VRR framerate to 1% below Reflex limit instead of 0.5%,
+     to recover from latency spikes quicker without visible stutter.
 
 26.3.26.1
 =========

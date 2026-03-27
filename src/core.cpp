@@ -4691,6 +4691,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     &SK_RenderBackend::frames_drawn
   );
 
+  __SK_FramerateScale =
+    (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit) ?
+                                 std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f) : 1.0f;
+
   SK_StartPerfMonThreads ();
 
   if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);

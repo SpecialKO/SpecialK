@@ -71,6 +71,8 @@ float __target_fps      = 0.0;
 float __target_fps_bg   = 0.0;
 float __target_fps_temp = 0.0;
 
+float __SK_FramerateScale = 1.0f;
+
 enum class SK_LimitApplicationSite {
   BeforeBufferSwap,
   DuringBufferSwap,

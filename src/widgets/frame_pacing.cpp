@@ -1268,7 +1268,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                         SK_RenderBackend_V2::latency.stats.MaxMs,
                         SK_RenderBackend_V2::latency.delays.SyncDelay,
               (double)max - (double)min,
-                      1000.0f / (sum / frames),
+                     (1000.0f / (sum / frames)) * __SK_FramerateScale,
                         ((double)max-(double)min)/(1000.0f/(sum/frames)) );
     }
 

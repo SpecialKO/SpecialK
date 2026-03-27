@@ -876,7 +876,7 @@ SK_DrawOSD (void)
       if (config.fps.compact)
       {
         OSD_PRINTF (vrr && config.fps.compact_vrr ? "%*hs%2.0f | %3.01fHz\n"
-                                                  : "%*hs%2.0f\n"), left_padding, pad_str, fps, fVBlankHz
+                                                  : "%*hs%2.0f\n"), left_padding, pad_str, fps * __SK_FramerateScale, fVBlankHz
         OSD_END
       }
 
@@ -989,7 +989,7 @@ SK_DrawOSD (void)
         OSD_PRINTF format, left_padding, pad_str,
           rb.name,
             // Cast to FP to avoid integer division by zero.
-            1000.0f * 0.0f / 1.0f, fVBlankHz, 0.0f
+            (1000.0f * 0.0f / 1.0f) * __SK_FramerateScale, fVBlankHz, 0.0f
         OSD_END
       }
 
@@ -998,7 +998,7 @@ SK_DrawOSD (void)
         OSD_PRINTF format, left_padding, pad_str,
           rb.name,
             // Cast to FP to avoid integer division by zero.
-            1000.0f * 0.0f / 1.0f, 0.0f
+            (1000.0f * 0.0f / 1.0f) * __SK_FramerateScale, 0.0f
         OSD_END
       }
     }
