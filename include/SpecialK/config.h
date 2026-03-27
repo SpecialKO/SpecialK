@@ -1229,7 +1229,24 @@ struct sk_config_t
         bool  blackout_api        = false;
         bool  emulate             = false;
         bool  debug               = false;
-        float deadzone            =  5.0f; // 5% Left/Right Analog Stick Deadzone
+        // Stick shaping; deadzones are raw units (0-16384), curve types are SK_StickCurveType
+        bool  stick_shaping            = false; // Gates all of the settings below
+        int   input_deadzone_l         =     0; // Controller deadzone (input floor)
+        int   input_deadzone_r         =     0;
+        int   deadzone_elimination_l   =     0; // Game deadzone (output floor)
+        int   deadzone_elimination_r   =     0;
+        int   stick_curve_l            =     0; // SK_StickCurveType
+        int   stick_curve_r            =     0;
+        float stick_curve_power_l      =  2.0f; // Power exponent
+        float stick_curve_power_r      =  2.0f;
+        float stick_curve_expo_l       =  0.6f; // Expo amount      (0..1)
+        float stick_curve_expo_r       =  0.6f;
+        float stick_curve_sig_k_l      =  8.0f; // Sigmoid steepness
+        float stick_curve_sig_k_r      =  8.0f;
+        float stick_curve_sig_mid_l    = 0.65f; // Sigmoid midpoint
+        float stick_curve_sig_mid_r    = 0.65f;
+        float stick_curve_sig_w_l      =  1.0f; // Sigmoid strength (0..1)
+        float stick_curve_sig_w_r      =  1.0f;
         bool  invert_lx           =  false;
         bool  invert_ly           =  false;
         bool  invert_rx           =  false;

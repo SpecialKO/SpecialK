@@ -1706,6 +1706,247 @@ SK::ControlPanel::Input::Draw (void)
         ////ImGui::EndGroup   ();
 
         ImGui::Separator ( );
+
+        // Deadzone: controller deadzone (input floor c) + game deadzone (output floor D).
+        bool deadzone_changed = false;
+
+        ImGui::Text     ("Stick Deadzones");
+        ImGui::TreePush ("");
+        ImGui::BeginGroup     (  );
+
+        deadzone_changed |=
+        ImGui::Checkbox       ("Enable stick deadzone and response curve shaping",
+          &config.input.gamepad.xinput.stick_shaping);
+
+        ImGui::SetItemTooltip (
+          "Enables shaping for this game. Controller deadzones are shared by all games."
+        );
+
+        if (! config.input.gamepad.xinput.stick_shaping)
+        {
+          ImGui::SameLine     (  );
+          ImGui::TextDisabled ("(inactive)");
+        }
+
+        const float item_spacing_x = ImGui::GetStyle ().ItemSpacing.x;
+        const float slider_width   = item_spacing_x * 2 +
+                   ImGui::CalcTextSize ("32767 Raw Input\t").x;
+
+        ImGui::PushItemWidth  (slider_width);
+
+        deadzone_changed |=
+        ImGui::SliderInt      ("Controller (Left)##InputDeadzoneL",
+          &config.input.gamepad.xinput.input_deadzone_l,
+          0, SK_StickDeadzone_Max, "%d Raw Input", ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::SetItemTooltip (
+          "Ignore left-stick noise/drift below this magnitude (input side).\n"
+          "Shared by all games: it calibrates the controller, not the game."
+        );
+
+        deadzone_changed |=
+        ImGui::SliderInt      ("Controller (Right)##InputDeadzoneR",
+          &config.input.gamepad.xinput.input_deadzone_r,
+          0, SK_StickDeadzone_Max, "%d Raw Input", ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::SetItemTooltip (
+          "Ignore right-stick noise/drift below this magnitude (input side).\n"
+          "Shared by all games: it calibrates the controller, not the game."
+        );
+
+        deadzone_changed |=
+        ImGui::SliderInt      ("Game (Left)##DeadzoneElimL",
+          &config.input.gamepad.xinput.deadzone_elimination_l,
+          0, SK_StickDeadzone_Max, "%d Raw Input", ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::SetItemTooltip (
+          "Smallest real input is boosted to this so it clears the game's built-in\n"
+          "deadzone (output floor). Set it just above the game's own deadzone."
+        );
+
+        deadzone_changed |=
+        ImGui::SliderInt      ("Game (Right)##DeadzoneElimR",
+          &config.input.gamepad.xinput.deadzone_elimination_r,
+          0, SK_StickDeadzone_Max, "%d Raw Input", ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::SetItemTooltip (
+          "Smallest real input is boosted to this so it clears the game's built-in\n"
+          "deadzone (output floor). Set it just above the game's own deadzone."
+        );
+
+        ImGui::PopItemWidth   (  );
+        ImGui::EndGroup       (  );
+        ImGui::TreePop        (  );
+
+        config.utility.save_async_if (deadzone_changed);
+
+        ImGui::Separator ( );
+
+        // Stick Response Curves
+        {
+          static const char* curve_items = "Linear\0Power\0Expo\0Sigmoid\0";
+
+          auto DrawCurvePreview = [&](SK_Stick stick)
+          {
+            const SK_StickShaping shaping = SK_XInput_GetStickShaping (stick);
+
+            // c = controller deadzone (input floor), D = game deadzone (output floor).
+            const float c = shaping.input_deadzone;
+            const float D = shaping.deadzone_elimination;
+
+            const float  size   = ImGui::GetFontSize () * 6.0f;
+            const ImVec2 origin = ImGui::GetCursorScreenPos ();
+
+            // Dummy (not InvisibleButton): the preview is a draw-only region. An
+            //   InvisibleButton is gamepad-navigable, and being tall + top-aligned
+            //   with the first slider it out-scores the slider below it on D-pad
+            //   Down, swallowing nav and skipping Midpoint/Strength.
+            ImGui::Dummy (ImVec2 (size, size));
+
+            ImDrawList* dl = ImGui::GetWindowDrawList ();
+
+            const ImU32 col_border = ImGui::GetColorU32 (ImVec4 (0.30f, 0.34f, 0.40f, 0.60f));
+            const ImU32 col_ref    = ImGui::GetColorU32 (ImVec4 (0.55f, 0.58f, 0.64f, 0.55f));
+            const ImU32 col_guide  = ImGui::GetColorU32 (ImVec4 (0.45f, 0.48f, 0.54f, 0.40f));
+            const ImU32 col_curve  = ImGui::GetColorU32 (ImVec4 (1.00f, 0.72f, 0.30f, 1.00f));
+            const ImU32 col_dot    = ImGui::GetColorU32 (ImVec4 (1.00f, 1.00f, 1.00f, 1.00f));
+            const ImU32 col_dot_hot = ImGui::GetColorU32 (ImVec4 (1.00f, 0.12f, 0.12f, 1.00f));
+
+            auto P = [&](float x, float y) -> ImVec2 {
+              return ImVec2 (origin.x + x * size, origin.y + (1.0f - y) * size);
+            };
+
+            dl->AddRect (origin, ImVec2 (origin.x + size, origin.y + size), col_border);
+            dl->AddLine (P (0.0f, 0.0f), P (1.0f, 1.0f), col_ref, 1.0f);
+
+            // Calibration guides: vertical at x = c (where movement begins),
+            //   horizontal at y = D (the game-deadzone entry the trace lands on).
+            if (c > 0.0f) dl->AddLine (P (c, 0.0f), P (c, 1.0f), col_guide, 1.0f);
+            if (D > 0.0f) dl->AddLine (P (0.0f, D), P (1.0f, D), col_guide, 1.0f);
+
+            // Plot the whole pipeline: flat at 0 up to c, near-vertical rise to D
+            //   at c, then the shaped ramp to (1,1).
+            const int N = 48;
+            ImVec2 prev = P (0.0f, std::max (0.0f, std::min (1.0f,
+                            SK_XInput_ShapeStickOutput (0.0f, shaping))));
+            for (int i = 1; i <= N; i++)
+            {
+              const float x = static_cast <float> (i) / N;
+              float       y = SK_XInput_ShapeStickOutput (x, shaping);
+              y = std::max (0.0f, std::min (1.0f, y));
+              const ImVec2 cur = P (x, y);
+              dl->AddLine (prev, cur, col_curve, 2.0f);
+              prev = cur;
+            }
+
+            XINPUT_STATE live = { };
+            const int    slot = config.input.gamepad.xinput.ui_slot;
+            if (slot >= 0 && slot < XUSER_MAX_COUNT && SK_XInput_PollController (slot, &live))
+            {
+              const float ax = (stick == SK_Stick_Left) ? live.Gamepad.sThumbLX : live.Gamepad.sThumbRX;
+              const float ay = (stick == SK_Stick_Left) ? live.Gamepad.sThumbLY : live.Gamepad.sThumbRY;
+
+              float u = sqrtf (ax * ax + ay * ay) / 32767.0f;
+              if (u > 1.0f) u = 1.0f;
+
+              const float v = std::max (0.0f, std::min (1.0f,
+                                SK_XInput_ShapeStickOutput (u, shaping)));
+
+              // Bright red once the stick clears the controller deadzone (u > c):
+              //   this is the same instant the output leaves the floor and lands
+              //   on D, marking exactly where in-game movement begins.
+              dl->AddCircleFilled (P (u, v), 3.5f, (u > c) ? col_dot_hot : col_dot);
+            }
+          };
+
+          bool curve_changed = false;
+
+          ImGui::Text     ("Stick Response Curves");
+
+          if (! config.input.gamepad.xinput.stick_shaping)
+          {
+            ImGui::SameLine     (  );
+            ImGui::TextDisabled ("(inactive)");
+          }
+
+          ImGui::TreePush ("");
+
+          auto DrawStickCurve = [&](const char* label, SK_Stick stick) -> bool
+          {
+            bool  changed = false;
+            auto& xi      = config.input.gamepad.xinput;
+
+            const bool left = (stick == SK_Stick_Left);
+
+            int*   p_type = left ? &xi.stick_curve_l         : &xi.stick_curve_r;
+            float* p_pow  = left ? &xi.stick_curve_power_l   : &xi.stick_curve_power_r;
+            float* p_expo = left ? &xi.stick_curve_expo_l    : &xi.stick_curve_expo_r;
+            float* p_sigk = left ? &xi.stick_curve_sig_k_l   : &xi.stick_curve_sig_k_r;
+            float* p_sigm = left ? &xi.stick_curve_sig_mid_l : &xi.stick_curve_sig_mid_r;
+            float* p_sigw = left ? &xi.stick_curve_sig_w_l   : &xi.stick_curve_sig_w_r;
+
+            ImGui::PushID (stick);
+
+            changed |= ImGui::Combo (label, p_type, curve_items, 4);
+            ImGui::SetItemTooltip (
+              "Reshapes how stick magnitude maps to in-game response, preserving\n"
+              "direction. Shapes the feel between the deadzones. Linear = unchanged."
+            );
+
+            ImGui::TreePush ("");
+
+            if (*p_type != SK_StickCurve_Linear)
+            {
+              ImGui::BeginGroup    (  );
+              ImGui::PushItemWidth (ImGui::GetFontSize () * 9.0f);
+
+              if (*p_type == SK_StickCurve_Power)
+              {
+                changed |= ImGui::SliderFloat ("Exponent", p_pow, SK_StickPower_Min, SK_StickPower_Max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SetItemTooltip ("k < 1 sharpens the center; k > 1 softens it.");
+              }
+              else if (*p_type == SK_StickCurve_Expo)
+              {
+                float pct = *p_expo * 100.0f;
+                if (ImGui::SliderFloat ("Amount", &pct, 0.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp))
+                { *p_expo = pct / 100.0f; changed = true; }
+                ImGui::SetItemTooltip ("Blends a cubic curve in; softens the center.");
+              }
+              else if (*p_type == SK_StickCurve_Sigmoid)
+              {
+                changed |= ImGui::SliderFloat ("Steepness", p_sigk, SK_StickSigmoidK_Min,   SK_StickSigmoidK_Max,   "%.1f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SetItemTooltip ("How sharply the response transitions around the midpoint.");
+                changed |= ImGui::SliderFloat ("Midpoint",  p_sigm, SK_StickSigmoidMid_Min, SK_StickSigmoidMid_Max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SetItemTooltip ("Stick magnitude at which the response is steepest.");
+                float pct = *p_sigw * 100.0f;
+                if (ImGui::SliderFloat ("Strength", &pct, 0.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp))
+                { *p_sigw = pct / 100.0f; changed = true; }
+                ImGui::SetItemTooltip ("Strength blends from Linear (0%) to full S-curve (100%).");
+              }
+
+              ImGui::PopItemWidth  (  );
+              ImGui::EndGroup      (  );
+
+              ImGui::SameLine      (  );
+            }
+
+            DrawCurvePreview (stick);          // always, including Linear
+
+            ImGui::TreePop ();
+
+            ImGui::PopID ();
+            return changed;
+          };
+
+          curve_changed |= DrawStickCurve ("Left Stick##CurveL",  SK_Stick_Left);
+          curve_changed |= DrawStickCurve ("Right Stick##CurveR", SK_Stick_Right);
+
+          ImGui::TreePop ();
+
+          config.utility.save_async_if (curve_changed);
+
+          ImGui::Separator ( );
+        }
       }
 
       SK_HID_PlayStationDevice *pNewestInput = nullptr;
@@ -2096,6 +2337,12 @@ SK::ControlPanel::Input::Draw (void)
               config.utility.save_async ();
             }
 
+            if (config.input.gamepad.xinput.emulate)
+            {
+              if (SK_ImGui_IsItemRightClicked ())
+                show_debug_option = true;
+            }
+
             if (ImGui::BeginItemTooltip ())
             {
               ImGui::TextUnformatted ("Adds PlayStation controller support to Xbox-only games");
@@ -2115,37 +2362,10 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::EndTooltip      ();
             }
 
-            if (config.input.gamepad.xinput.emulate)
+            if (config.input.gamepad.xinput.emulate && show_debug_option)
             {
-              ImGui::SameLine        ();
-              ImGui::PushItemWidth   (
-                ImGui::GetStyle ().ItemSpacing.x +
-                ImGui::CalcTextSize ("888.8% Deadzone ").x
-              );
-              if (ImGui::SliderFloat (            "###XInput_Deadzone",
-                                      &config.input.gamepad.xinput.deadzone,
-                                       0.0f, 30.0f, "%4.1f%% Deadzone"))
-              {
-                config.input.gamepad.xinput.deadzone =
-                  std::clamp (config.input.gamepad.xinput.deadzone, 0.0f, 100.0f);
-
-                config.utility.save_async ();
-              }
-              ImGui::PopItemWidth    ();
-
-              if (SK_ImGui_IsItemRightClicked ())
-                show_debug_option = true;
-
-              else
-              {
-                ImGui::SetItemTooltip ("Apply a Deadzone to Analog Stick Input (" ICON_FA_XBOX " Mode)");
-              }
-
-              if (show_debug_option)
-              {
-                ImGui::SameLine ();
-                ImGui::Checkbox ("Debug Mode",   &config.input.gamepad.xinput.debug);
-              }
+              ImGui::SameLine ();
+              ImGui::Checkbox ("Debug Mode",   &config.input.gamepad.xinput.debug);
               //ImGui::TreePop  (  );
             }
 

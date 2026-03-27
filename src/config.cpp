@@ -29,6 +29,7 @@
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/input/xinput.h>
 
 #include <SpecialK/storefront/epic.h>
 #include <filesystem>
@@ -1223,7 +1224,25 @@ struct {
       sk::ParameterBool*  auto_slot_assign        = nullptr;
       sk::ParameterBool*  blackout_api            = nullptr;
       sk::ParameterBool*  emulate                 = nullptr;
-      sk::ParameterFloat* deadzone                = nullptr;
+      sk::ParameterBool*  stick_shaping           = nullptr;
+      sk::ParameterInt*   input_deadzone_l        = nullptr;
+      sk::ParameterInt*   input_deadzone_r        = nullptr;
+      sk::ParameterInt*   deadzone_elimination_l  = nullptr;
+      sk::ParameterInt*   deadzone_elimination_r  = nullptr;
+      sk::
+        ParameterStringW* stick_curve_l           = nullptr;
+      sk::
+        ParameterStringW* stick_curve_r           = nullptr;
+      sk::ParameterFloat* stick_curve_power_l     = nullptr;
+      sk::ParameterFloat* stick_curve_power_r     = nullptr;
+      sk::ParameterFloat* stick_curve_expo_l      = nullptr;
+      sk::ParameterFloat* stick_curve_expo_r      = nullptr;
+      sk::ParameterFloat* stick_curve_sig_k_l     = nullptr;
+      sk::ParameterFloat* stick_curve_sig_k_r     = nullptr;
+      sk::ParameterFloat* stick_curve_sig_mid_l   = nullptr;
+      sk::ParameterFloat* stick_curve_sig_mid_r   = nullptr;
+      sk::ParameterFloat* stick_curve_sig_w_l     = nullptr;
+      sk::ParameterFloat* stick_curve_sig_w_r     = nullptr;
       sk::ParameterBool*  invert_lx               = nullptr;
       sk::ParameterBool*  invert_ly               = nullptr;
       sk::ParameterBool*  invert_rx               = nullptr;
@@ -1952,7 +1971,23 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.blackout_api,      L"Prevent game from seeing XInput at all, useful if a game "
                                                          L"supports native SONY input and XInput.",                    dll_ini,         L"Input.XInput",          L"HideAllDevices"),
     ConfigEntry (input.gamepad.xinput.emulate,           L"For non-Xbox controllers, translate HID to XInput",         dll_ini,         L"Input.XInput",          L"EnableEmulation"),
-    ConfigEntry (input.gamepad.xinput.deadzone,          L"In HID->XInput, filter analog values below this threshold", dll_ini,         L"Input.XInput",          L"DeadzonePercent"),
+    ConfigEntry (input.gamepad.xinput.stick_shaping,          L"Enable the stick deadzone and response-curve settings",     dll_ini,         L"Input.XInput",          L"EnableStickShaping"),
+    ConfigEntry (input.gamepad.xinput.input_deadzone_l,       L"Left stick controller deadzone (input floor), 0-16384",     input_ini,       L"Input.XInput",          L"InputDeadzoneLeft"),
+    ConfigEntry (input.gamepad.xinput.input_deadzone_r,       L"Right stick controller deadzone (input floor), 0-16384",    input_ini,       L"Input.XInput",          L"InputDeadzoneRight"),
+    ConfigEntry (input.gamepad.xinput.deadzone_elimination_l, L"Left stick game deadzone (output floor), 0-16384",          dll_ini,         L"Input.XInput",          L"DeadzoneEliminationLeft"),
+    ConfigEntry (input.gamepad.xinput.deadzone_elimination_r, L"Right stick game deadzone (output floor), 0-16384",         dll_ini,         L"Input.XInput",          L"DeadzoneEliminationRight"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_l,          L"Left stick response curve: Linear, Power, Expo or Sigmoid", dll_ini,         L"Input.XInput",          L"StickCurveLeft"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_r,          L"Right stick response curve: Linear, Power, Expo or Sigmoid", dll_ini,         L"Input.XInput",          L"StickCurveRight"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_power_l,    L"Left stick Power curve exponent",                           dll_ini,         L"Input.XInput",          L"StickCurvePowerLeft"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_power_r,    L"Right stick Power curve exponent",                          dll_ini,         L"Input.XInput",          L"StickCurvePowerRight"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_expo_l,     L"Left stick Expo curve amount (0..1)",                       dll_ini,         L"Input.XInput",          L"StickCurveExpoLeft"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_expo_r,     L"Right stick Expo curve amount (0..1)",                      dll_ini,         L"Input.XInput",          L"StickCurveExpoRight"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_sig_k_l,    L"Left stick Sigmoid curve steepness",                        dll_ini,         L"Input.XInput",          L"StickCurveSigmoidSteepnessLeft"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_sig_k_r,    L"Right stick Sigmoid curve steepness",                       dll_ini,         L"Input.XInput",          L"StickCurveSigmoidSteepnessRight"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_sig_mid_l,  L"Left stick Sigmoid curve midpoint",                         dll_ini,         L"Input.XInput",          L"StickCurveSigmoidMidpointLeft"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_sig_mid_r,  L"Right stick Sigmoid curve midpoint",                        dll_ini,         L"Input.XInput",          L"StickCurveSigmoidMidpointRight"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_sig_w_l,    L"Left stick Sigmoid curve strength (0..1)",                  dll_ini,         L"Input.XInput",          L"StickCurveSigmoidStrengthLeft"),
+    ConfigEntry (input.gamepad.xinput.stick_curve_sig_w_r,    L"Right stick Sigmoid curve strength (0..1)",                 dll_ini,         L"Input.XInput",          L"StickCurveSigmoidStrengthRight"),
     ConfigEntry (input.gamepad.xinput.invert_lx,         L"Invert the X-Axis on the Left Analog Stick",                dll_ini,         L"Input.XInput",          L"InvertLX"),
     ConfigEntry (input.gamepad.xinput.invert_ly,         L"Invert the Y-Axis on the Left Analog Stick",                dll_ini,         L"Input.XInput",          L"InvertLY"),
     ConfigEntry (input.gamepad.xinput.invert_rx,         L"Invert the X-Axis on the Right Analog Stick",               dll_ini,         L"Input.XInput",          L"InvertRX"),
@@ -5595,7 +5630,32 @@ auto DeclKeybind =
   input.gamepad.xinput.auto_slot_assign->load  (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->load      (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->load           (config.input.gamepad.xinput.emulate);
-  input.gamepad.xinput.deadzone->load          (config.input.gamepad.xinput.deadzone);
+  input.gamepad.xinput.stick_shaping->load          (config.input.gamepad.xinput.stick_shaping);
+  input.gamepad.xinput.input_deadzone_l->load       (config.input.gamepad.xinput.input_deadzone_l);
+  input.gamepad.xinput.input_deadzone_r->load       (config.input.gamepad.xinput.input_deadzone_r);
+  input.gamepad.xinput.deadzone_elimination_l->load (config.input.gamepad.xinput.deadzone_elimination_l);
+  input.gamepad.xinput.deadzone_elimination_r->load (config.input.gamepad.xinput.deadzone_elimination_r);
+
+  std::wstring curve;
+
+  if (input.gamepad.xinput.stick_curve_l->load (curve))
+    config.input.gamepad.xinput.stick_curve_l = SK_XInput_StickCurveTypeFromString (curve.c_str ());
+  if (input.gamepad.xinput.stick_curve_r->load (curve))
+    config.input.gamepad.xinput.stick_curve_r = SK_XInput_StickCurveTypeFromString (curve.c_str ());
+
+  input.gamepad.xinput.stick_curve_power_l->load    (config.input.gamepad.xinput.stick_curve_power_l);
+  input.gamepad.xinput.stick_curve_power_r->load    (config.input.gamepad.xinput.stick_curve_power_r);
+  input.gamepad.xinput.stick_curve_expo_l->load     (config.input.gamepad.xinput.stick_curve_expo_l);
+  input.gamepad.xinput.stick_curve_expo_r->load     (config.input.gamepad.xinput.stick_curve_expo_r);
+  input.gamepad.xinput.stick_curve_sig_k_l->load    (config.input.gamepad.xinput.stick_curve_sig_k_l);
+  input.gamepad.xinput.stick_curve_sig_k_r->load    (config.input.gamepad.xinput.stick_curve_sig_k_r);
+  input.gamepad.xinput.stick_curve_sig_mid_l->load  (config.input.gamepad.xinput.stick_curve_sig_mid_l);
+  input.gamepad.xinput.stick_curve_sig_mid_r->load  (config.input.gamepad.xinput.stick_curve_sig_mid_r);
+  input.gamepad.xinput.stick_curve_sig_w_l->load    (config.input.gamepad.xinput.stick_curve_sig_w_l);
+  input.gamepad.xinput.stick_curve_sig_w_r->load    (config.input.gamepad.xinput.stick_curve_sig_w_r);
+
+  SK_XInput_SanitizeStickShapingConfig ();
+
   input.gamepad.xinput.invert_lx->load         (config.input.gamepad.xinput.invert_lx);
   input.gamepad.xinput.invert_ly->load         (config.input.gamepad.xinput.invert_ly);
   input.gamepad.xinput.invert_rx->load         (config.input.gamepad.xinput.invert_rx);
@@ -7265,7 +7325,23 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->store              (config.input.gamepad.xinput.emulate);
-  input.gamepad.xinput.deadzone->store             (config.input.gamepad.xinput.deadzone);
+  input.gamepad.xinput.stick_shaping->store          (config.input.gamepad.xinput.stick_shaping);
+  input.gamepad.xinput.input_deadzone_l->store       (config.input.gamepad.xinput.input_deadzone_l);
+  input.gamepad.xinput.input_deadzone_r->store       (config.input.gamepad.xinput.input_deadzone_r);
+  input.gamepad.xinput.deadzone_elimination_l->store (config.input.gamepad.xinput.deadzone_elimination_l);
+  input.gamepad.xinput.deadzone_elimination_r->store (config.input.gamepad.xinput.deadzone_elimination_r);
+  input.gamepad.xinput.stick_curve_l->store          (SK_XInput_StickCurveTypeToString (static_cast <SK_StickCurveType> (config.input.gamepad.xinput.stick_curve_l)));
+  input.gamepad.xinput.stick_curve_r->store          (SK_XInput_StickCurveTypeToString (static_cast <SK_StickCurveType> (config.input.gamepad.xinput.stick_curve_r)));
+  input.gamepad.xinput.stick_curve_power_l->store    (config.input.gamepad.xinput.stick_curve_power_l);
+  input.gamepad.xinput.stick_curve_power_r->store    (config.input.gamepad.xinput.stick_curve_power_r);
+  input.gamepad.xinput.stick_curve_expo_l->store     (config.input.gamepad.xinput.stick_curve_expo_l);
+  input.gamepad.xinput.stick_curve_expo_r->store     (config.input.gamepad.xinput.stick_curve_expo_r);
+  input.gamepad.xinput.stick_curve_sig_k_l->store    (config.input.gamepad.xinput.stick_curve_sig_k_l);
+  input.gamepad.xinput.stick_curve_sig_k_r->store    (config.input.gamepad.xinput.stick_curve_sig_k_r);
+  input.gamepad.xinput.stick_curve_sig_mid_l->store  (config.input.gamepad.xinput.stick_curve_sig_mid_l);
+  input.gamepad.xinput.stick_curve_sig_mid_r->store  (config.input.gamepad.xinput.stick_curve_sig_mid_r);
+  input.gamepad.xinput.stick_curve_sig_w_l->store    (config.input.gamepad.xinput.stick_curve_sig_w_l);
+  input.gamepad.xinput.stick_curve_sig_w_r->store    (config.input.gamepad.xinput.stick_curve_sig_w_r);
   input.gamepad.xinput.invert_lx->store            (config.input.gamepad.xinput.invert_lx);
   input.gamepad.xinput.invert_ly->store            (config.input.gamepad.xinput.invert_ly);
   input.gamepad.xinput.invert_rx->store            (config.input.gamepad.xinput.invert_rx);
