@@ -1719,8 +1719,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
                  config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
             || ( config.render.framerate.target_fps <= dVRROptimalFPS + 0.1f &&
                  config.render.framerate.target_fps >= dVRROptimalFPS - 0.1f ) 
-            || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.005 * dVRROptimalFPS + 0.1f &&
-                 config.render.framerate.target_fps >= dVRROptimalFPS - 0.005 * dVRROptimalFPS - 0.1f ) )
+            || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.01 * dVRROptimalFPS + 0.1f &&
+                 config.render.framerate.target_fps >= dVRROptimalFPS - 0.01 * dVRROptimalFPS - 0.1f ) )
           {
             // Re-apply AutoVRR
             if ( config.render.framerate.auto_low_latency.triggered ||
@@ -1775,7 +1775,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       double dVRROptimalFPS =
         (dRefreshRate - (dRefreshRate * dRefreshRate) / (3600.0));
 
-      dVRROptimalFPS -= 0.005 * dVRROptimalFPS;
+      dVRROptimalFPS -= 0.01 * dVRROptimalFPS;
 
       if (config.render.framerate.auto_low_latency.waiting)
       {

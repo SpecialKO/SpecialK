@@ -5827,8 +5827,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                    config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
               || ( config.render.framerate.target_fps <= dVRROptimalFPS + 0.1f &&
                    config.render.framerate.target_fps >= dVRROptimalFPS - 0.1f ) 
-              || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.005 * dVRROptimalFPS + 0.1f &&
-                   config.render.framerate.target_fps >= dVRROptimalFPS - 0.005 * dVRROptimalFPS - 0.1f ) )
+              || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.01 * dVRROptimalFPS + 0.1f &&
+                   config.render.framerate.target_fps >= dVRROptimalFPS - 0.01 * dVRROptimalFPS - 0.1f ) )
             {
               // Re-apply AutoVRR
               if ( config.render.framerate.auto_low_latency.triggered ||
@@ -6215,7 +6215,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                              dRefresh * dRefresh) / (3600.0);
 
                 if (!bBackgroundFPS && bVRRBias)
-                  dBiasedRefresh -= 0.005 * dBiasedRefresh;
+                  dBiasedRefresh -= 0.01 * dBiasedRefresh;
 
                 strFractList += (
                   std::format (
@@ -6931,7 +6931,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
               if (bVRRBias)
               {
                 ImGui::SameLine ();
-                ImGui::TextUnformatted ("\t(Reflex - 0.5% FPS)");
+                ImGui::TextUnformatted ("\t(Reflex - 1.0% FPS)");
               }
             }
             //if (                                   bVRRBias &&

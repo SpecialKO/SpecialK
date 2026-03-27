@@ -2527,7 +2527,7 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
   if (__target_fps > 0.0f)
   {
     config.render.framerate.streamline.target_fps =
-                                    (__target_fps / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.005f);
+                                    (__target_fps / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.01f);
   }
 
   else
