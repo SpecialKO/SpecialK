@@ -978,7 +978,7 @@ struct {
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
     sk::ParameterBool*    use_amd_mwaitx          = nullptr;
     sk::ParameterBool*    apply_streamline_pacing = nullptr;
-    sk::ParameterBool*    streamline_low_latency  = nullptr;
+    sk::ParameterInt*     streamline_pacing_mode  = nullptr;
     sk::ParameterBool*    force_vk_mailbox        = nullptr;
     sk::ParameterBool*    force_vk_adaptive       = nullptr;
     sk::ParameterBool*    max_timer_resolution    = nullptr;
@@ -2116,7 +2116,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.
                                 apply_streamline_pacing, L"Apply Pacing to Native frames when using DLSS Frame Gen.",  dll_ini,         L"Render.FrameRate",      L"EnableStreamlinePacing"),
     ConfigEntry (render.framerate.
-                                streamline_low_latency,  L"When to apply Native Frame pacing.",                        dll_ini,         L"Render.FrameRate",      L"StreamlineLowLatency"),
+                                streamline_pacing_mode,  L"Level of DLSS Frame Gen pacing latency reduction.",         dll_ini,         L"Render.FrameRate",      L"StreamlinePacingMode"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Engine",      L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.engine.
@@ -4919,8 +4919,8 @@ auto DeclKeybind =
   render.framerate.use_amd_mwaitx->load       (config.render.framerate.use_amd_mwaitx);
   render.framerate.apply_streamline_pacing->
                                          load (config.render.framerate.streamline.enable_native_limit);
-  render.framerate.streamline_low_latency->
-                                         load (config.render.framerate.streamline.low_latency);
+  render.framerate.streamline_pacing_mode->
+                                         load (config.render.framerate.streamline.pacing_mode);
 
   if (! SK_CPU_HasMWAITX) // Turn off if CPU does not support
     config.render.framerate.use_amd_mwaitx = false;
@@ -7310,8 +7310,8 @@ SK_SaveConfig ( std::wstring name,
 
   render.framerate.apply_streamline_pacing->
                                        store (config.render.framerate.streamline.enable_native_limit);
-  render.framerate.streamline_low_latency->
-                                       store (config.render.framerate.streamline.low_latency);
+  render.framerate.streamline_pacing_mode->
+                                       store (config.render.framerate.streamline.pacing_mode);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->

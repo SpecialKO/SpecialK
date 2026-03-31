@@ -1,5 +1,7 @@
-﻿26.4.1
-======
+﻿26.3.31
+=======
+ + Added Ultra Low-Latency option to DLSS Frame Generation Pacing, and
+     enabled Flip Metering by default.
  + Allow SleepEx (...) with -1 (infinity) for dwMilliseconds, but check
      for alertable flag in this special case.
 

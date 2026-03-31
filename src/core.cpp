@@ -4648,6 +4648,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
     SK_D3D12_EndFrame (pTLS);
   }
+  
+  if (__SK_IsDLSSGActive)
+  {
+    void SK_Reflex_SetSleepModeOverrides (void);
+         SK_Reflex_SetSleepModeOverrides ();
+  }
 
   SK_RandomCrapThatShouldBeInPlugIns ();
 

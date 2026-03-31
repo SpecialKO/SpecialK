@@ -585,7 +585,7 @@ struct SK_D3D12_RenderCtx {
 
     SK_D3D12_RenderCtx::FenceCtx
       fence, reshade_fence,
-               timer_fence;
+               timer_fence, latency_fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList            = nullptr;
     SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator       = nullptr;

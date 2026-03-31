@@ -2408,18 +2408,57 @@ SK_NGX_DLSS_ControlPanel (void)
       // FIXME:  Implement Vulkan Native Pacing
       if (__SK_IsDLSSGActive && (! config.nvidia.reflex.vulkan))
       {
-        if (ImGui::Checkbox ("Pace Native Frames", &config.render.framerate.streamline.enable_native_limit))
+        ImGui::PushItemWidth (ImGui::CalcTextSize ("Ultra Low-Latency\tTT").x);
+
+        int pacing_mode =
+          std::max (0, config.render.framerate.streamline.pacing_mode - 1);
+
+        if (ImGui::Combo ("Frame Generation Pacing", &pacing_mode,
+                          "Smooth\0Low-Latency\0Ultra Low-Latency\0\0", 4))
         {
+          config.render.framerate.streamline.pacing_mode = pacing_mode + 1;
+
+          // Off mode is disabled for now.
+          if (config.render.framerate.streamline.pacing_mode == 0)
+              config.render.framerate.streamline.pacing_mode  = 3;
+              //config.render.framerate.streamline.enable_native_limit = false;
+          else
+              config.render.framerate.streamline.enable_native_limit = true;
+
+          void SK_Reflex_SetSleepModeOverrides (void);
+               SK_Reflex_SetSleepModeOverrides ();
+
           config.utility.save_async ();
         }
+
         if (ImGui::BeginItemTooltip ())
         {
-          ImGui::TextUnformatted ("Apply framerate limiting to a game's native frames when Frame Generation is active.");
+          ImGui::TextUnformatted ("Apply Special K's Framerate Limiter to a Game's Native Frames.");
           ImGui::Separator       ();
-          ImGui::BulletText      ("This mode is the smoothest possible, but may not work correctly if the engine has poor Reflex integration.");
+          ImGui::BeginGroup      ();
+        //ImGui::BulletText      ("Off ");
+          ImGui::BulletText      ("Smooth ");
+          ImGui::BulletText      ("Low-Latency ");
+          ImGui::BulletText      ("Ultra Low-Latency ");
+          ImGui::EndGroup        ();
+          ImGui::SameLine        ();
+          ImGui::BeginGroup      ();
+        //ImGui::TextUnformatted ("  Default NVIDIA Streamline Behavior");
+          ImGui::TextUnformatted ("  Favor Smoothness Over Latency");
+          ImGui::TextUnformatted ("  Enable Driver-level Latency Reduction");
+          ImGui::TextUnformatted ("  Enable Reflex Framerate Limiter");
+          ImGui::EndGroup        ();
+          ImGui::SameLine        ();
+          ImGui::BeginGroup      ();
+        //ImGui::TextUnformatted ("");
+          ImGui::TextUnformatted ("May add up to 1/2 frame of latency worst-case; average-case is lower than Off.");
+          ImGui::TextUnformatted ("");
+          ImGui::TextUnformatted ("Lowest latency, but may cause visible stutter.");
+          ImGui::EndGroup        ();
           ImGui::EndTooltip      ();
         }
-        ImGui::SameLine ();
+
+        ImGui::PopItemWidth ();
       }
 
       static bool flip_restart_required = false;
@@ -2437,36 +2476,9 @@ SK_NGX_DLSS_ControlPanel (void)
         {
           ImGui::TextUnformatted ("Allow NVIDIA to use Flip Metering instead of standard DLSS Frame Pacing");
           ImGui::Separator       ();
-          ImGui::BulletText      ("Increases latency and makes pacing worse");
-          ImGui::BulletText      ("May be required for multi-frame gen");
+          ImGui::BulletText      ("Flip Metering paces generated frames better, but is not compatible with some software like RTSS.");
+          ImGui::BulletText      ("May be required for multi-frame gen.");
           ImGui::EndTooltip      ();
-        }
-
-        if ((! config.nvidia.reflex.vulkan) && config.render.framerate.streamline.enable_native_limit)
-        {
-          int sel = ( config.render.framerate.streamline.low_latency == true ) ? 1 : 0;
-
-          ImGui::PushItemWidth (ImGui::CalcTextSize ("Low-Latency\tTT").x);
-
-          if (ImGui::Combo ("Mode###StreamlinePacingMode", &sel, "Smooth\0Low-Latency\0\0", 2))
-          {
-            config.render.framerate.streamline.low_latency =
-              ( sel == 1 );
-
-            config.utility.save_async ();
-          }
-
-          if (ImGui::BeginItemTooltip ())
-          {
-            ImGui::TextUnformatted ("Trade Latency for Smoothness.");
-            ImGui::Separator       ();
-            ImGui::BulletText      ("In games with bad Reflex integration, 'Smooth' mode may help.");
-            ImGui::BulletText      ("Framepacing graph will have visible jitter in 'Smooth' mode.");
-            ImGui::BulletText      ("Low-Latency mode is suggested for most games.");
-            ImGui::EndTooltip      ();
-          }
-
-          ImGui::PopItemWidth ();
         }
       }
 

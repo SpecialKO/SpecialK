@@ -161,29 +161,73 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
   if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
   {
+    if (config.render.framerate.streamline.pacing_mode >= 3)
+    {
+      ret =
+        SK_NvAPI_D3D_Sleep (pNativeDev);
+    }
+
     auto pLimiter =
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
     if (pLimiter != nullptr)
         pLimiter->wait ();
 
-    pLimiter =
-      SK::Framerate::GetLimiter (rb.swapchain.p);
-
-    if (pLimiter != nullptr)
-        pLimiter->wait ();
-
     SK_Reflex_SkipLowLatencyFrameTick =
-      SK_Reflex_LastNativeSleepFrame;// + std::max (2U, __SK_DLSSGMultiFrameCount);
-
-    if (config.render.framerate.streamline.low_latency)
-    {
-      ret =
-        SK_NvAPI_D3D_Sleep (pNativeDev);
-    }
+      SK_Reflex_LastNativeSleepFrame;
 
     auto                                tNow = SK_QueryPerf ();
     SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
+
+#if 0
+    if (rb.api == SK_RenderAPI::D3D12 && pLimiter->get_limit () > 0.0f)
+    {
+      static float offset = 0.0f;
+
+      extern float SK_LatentSyncAlpha            ;
+      extern float SK_LatentSyncDeltaMultiplier  ;
+      extern float SK_LatentSyncBackOffMultiplier;
+
+      static bool lastLastFrameLate = false;
+      extern bool
+            SK_ImGui_D3D12_IsLastFrameComplete (void);
+      bool lastFrameLate = ! SK_ImGui_D3D12_IsLastFrameComplete ();
+      if ( lastFrameLate)
+      {
+        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier;
+
+        offset =
+          SK_LatentSyncAlpha * offset + (1.0f - SK_LatentSyncAlpha) * delta;
+
+        offset =
+          std::min (0.075f, offset);
+      }
+
+      else if (offset > 0.0f)
+      {
+        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
+
+        offset =
+          std::max (0.0f, SK_LatentSyncAlpha * offset - (1.0f - SK_LatentSyncAlpha) * delta);
+      }
+
+      if (offset > 0.0f && pLimiter->effective_frametime () > 0.0f)
+      {
+        //SK_LOGi0 (L"Last Frame not complete, delaying %2.3f%% of a frame", 100.0f * offset);
+
+        static HANDLE hTimer = (HANDLE)-1;
+
+        SK_Framerate_WaitUntilQPC (
+          SK_QueryPerf ().QuadPart +
+            static_cast <LONGLONG> (
+              static_cast <double> (pLimiter->get_ticks_per_frame ()) *
+                            offset ), hTimer
+        );
+      }
+
+      lastLastFrameLate = lastFrameLate;
+    }
+#endif
 
     return ret;
   }
@@ -215,6 +259,56 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
       SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
     }
 
+#if 0
+    if (rb.api == SK_RenderAPI::D3D12 && pLimiter->get_limit () > 0.0f)
+    {
+      static float offset = 0.0f;
+
+      extern float SK_LatentSyncAlpha            ;
+      extern float SK_LatentSyncDeltaMultiplier  ;
+      extern float SK_LatentSyncBackOffMultiplier;
+
+      static bool lastLastFrameLate = false;
+      extern bool
+            SK_ImGui_D3D12_IsLastFrameComplete (void);
+      bool lastFrameLate = ! SK_ImGui_D3D12_IsLastFrameComplete ();
+      if ( lastFrameLate)
+      {
+        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier;
+
+        offset =
+          SK_LatentSyncAlpha * offset + (1.0f - SK_LatentSyncAlpha) * delta;
+
+        offset =
+          std::min (0.075f, offset);
+      }
+
+      else if (offset > 0.0f)
+      {
+        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
+
+        offset =
+          std::max (0.0f, SK_LatentSyncAlpha * offset - (1.0f - SK_LatentSyncAlpha) * delta);
+      }
+
+      if (offset > 0.0f && pLimiter->effective_frametime () > 0.0f)
+      {
+        //SK_LOGi0 (L"Lastg Frame not complete, delaying %2.3f%% of a frame", 100.0f * offset);
+
+        static HANDLE hTimer = (HANDLE)-1;
+
+        SK_Framerate_WaitUntilQPC (
+          SK_QueryPerf ().QuadPart +
+            static_cast <LONGLONG> (
+              static_cast <double> (pLimiter->get_ticks_per_frame ()) *
+                            offset ), hTimer
+        );
+      }
+
+      lastLastFrameLate = lastFrameLate;
+    }
+#endif
+
     return ret;
   }
 #endif
@@ -237,6 +331,19 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
 
   if (params.minimumIntervalUs != 0 &&         params.minimumIntervalUs > 50)
       params.minimumIntervalUs = pSetSleepModeParams->minimumIntervalUs - 2;
+
+  // Avoid redundant calls
+  static NV_SET_SLEEP_MODE_PARAMS oldParams = {};
+  static IUnknown*                oldDevice = nullptr;
+
+  if (oldDevice == pDev)
+  {
+    if (! memcmp (&oldParams, pSetSleepModeParams, sizeof (NV_SET_SLEEP_MODE_PARAMS)))
+      return NVAPI_OK;
+  }
+
+  oldDevice = pDev;
+  oldParams = *pSetSleepModeParams;
 
   SK_PROFILE_SCOPED_TASK 
      (NvAPI_D3D_SetSleepMode)
@@ -536,13 +643,16 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
   }
 
   bool applyOverride =
-    (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override || (config.render.framerate.enforcement_policy == 2 && __target_fps > 0.0f);
+    (__SK_ForceDLSSGPacing && (__target_fps > 10.0f || config.render.framerate.streamline.enable_native_limit)) || config.nvidia.reflex.override || (config.render.framerate.enforcement_policy == 2 && __target_fps > 10.0f);
 
   if (applyOverride)
   {
-    pSetSleepModeParams->bLowLatencyBoost      = config.nvidia.reflex.low_latency_boost;
-    pSetSleepModeParams->bLowLatencyMode       = config.nvidia.reflex.low_latency;
-    pSetSleepModeParams->bUseMarkersToOptimize = config.nvidia.reflex.marker_optimization;
+    if (config.nvidia.reflex.override)
+    {
+      pSetSleepModeParams->bLowLatencyBoost      = config.nvidia.reflex.low_latency_boost;
+      pSetSleepModeParams->bLowLatencyMode       = config.nvidia.reflex.low_latency;
+      pSetSleepModeParams->bUseMarkersToOptimize = config.nvidia.reflex.marker_optimization;
+    }
 
     if ((__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.use_limiter)
     {
@@ -553,14 +663,23 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     else
       config.nvidia.reflex.frame_interval_us = 0;
 
-    //if (config.render.framerate.streamline.enable_native_limit && __SK_IsDLSSGActive)
-    //{
+    // Native Pacing overrides
+    if (config.render.framerate.streamline.enable_native_limit && __SK_IsDLSSGActive)
+    {
+      if (config.render.framerate.streamline.pacing_mode == 0)
+          config.render.framerate.streamline.pacing_mode  = 3;
+
+      if (config.render.framerate.streamline.pacing_mode >= 2)
+        pSetSleepModeParams->bLowLatencyMode = true;
+      else
+        pSetSleepModeParams->bLowLatencyMode = false;
+
       config.nvidia.reflex.frame_interval_us = 0;
-    //}
+    }
 
     pSetSleepModeParams->minimumIntervalUs     = config.nvidia.reflex.frame_interval_us;
 
-    if (config.render.framerate.enforcement_policy == 2 && __target_fps > 0.0f)
+    if (config.render.framerate.enforcement_policy == 2 && __target_fps > 0.0f && !__SK_IsDLSSGActive && !config.nvidia.reflex.use_limiter)
     {
       // Conflicts with SK's own low latency mode
       pSetSleepModeParams->bLowLatencyMode = false;
@@ -574,6 +693,19 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
 
   return
     SK_NvAPI_D3D_SetSleepMode (pDev, pSetSleepModeParams);
+}
+
+void
+SK_Reflex_SetSleepModeOverrides (void)
+{
+  if (SK_Reflex_NativeSleepModeParams.version == 0)
+    return;
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.device.p != nullptr)
+    NvAPI_D3D_SetSleepMode_Detour (rb.device.p, &SK_Reflex_NativeSleepModeParams);
 }
 
 void

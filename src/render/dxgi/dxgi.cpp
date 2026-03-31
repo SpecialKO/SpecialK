@@ -2732,8 +2732,8 @@ SK_Streamline_SetupNativeLimiter (void)
                &config.render.framerate.streamline.target_fps ) );
 
           pCommandProc->AddVariable
-           ( "Streamline.LowLatency", SK_CreateVar ( SK_IVariable::Boolean,
-               &config.render.framerate.streamline.low_latency ) );
+           ( "Streamline.PacingMode", SK_CreateVar ( SK_IVariable::Int,
+               &config.render.framerate.streamline.pacing_mode ) );
         }
       }
     }
@@ -3151,6 +3151,13 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   {
     if (_IsBackendD3D11 (rb.api))
     {
+      // Flush the D3D11 Immediate Context early to ensure all rendering
+      //   commands have been submitted before we kick off the OSD rendering
+      if (auto* dev_ctx  = rb.d3d11.immediate_ctx;
+                dev_ctx != nullptr) {
+                dev_ctx->Flush ();
+      }
+
       // Start / End / Readback Pipeline Stats
       SK_D3D11_UpdateRenderStats (This);
     }

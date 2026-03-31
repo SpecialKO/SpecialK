@@ -1042,10 +1042,11 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if (dwMilliseconds == (DWORD)-1)
   {
-    SK_ReleaseAssert(dwMilliseconds != (DWORD)-1 || bAlertable != FALSE);
+    // If this assertion fails, this sleep is irreversible!
+    SK_ReleaseAssert (dwMilliseconds != (DWORD)-1 || bAlertable != FALSE);
 
     return
-      SleepEx_Original (dwMilliseconds, bAlertable);
+      SK_SleepEx (dwMilliseconds, bAlertable);
   }
 
   // For sleeps longer than 1 second, let's do some consistency checks

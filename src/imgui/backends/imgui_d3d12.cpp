@@ -66,6 +66,7 @@ struct SK_ImGui_D3D12Ctx
   SK_ComPtr <ID3D12Device>        pLastDevice;
   SK_ComPtr <ID3D12RootSignature> pRootSignature;
   SK_ComPtr <ID3D12PipelineState> pPipelineState;
+  SK_ComPtr <ID3D12Fence>         pFence;
 
   DXGI_FORMAT                     RTVFormat             = DXGI_FORMAT_UNKNOWN;
 
@@ -85,6 +86,24 @@ struct SK_ImGui_D3D12Ctx
 
 // A few ImGui pipeline states must never be disabled during render mod
 extern concurrency::concurrent_unordered_set <ID3D12PipelineState *> _criticalVertexShaders;
+
+bool
+SK_ImGui_D3D12_IsLastFrameComplete (void)
+{
+ if (! _d3d12_rbk->_pSwapChain.p || ! _d3d12_rbk->_pDevice.p)
+    return false;
+
+  INT iLastFrame = _d3d12_rbk->getCurrentBackBufferIndex () - 1;
+  if (iLastFrame < 0)
+      iLastFrame = (INT)_d3d12_rbk->frames_.size () - 1;
+
+  if (_d3d12_rbk->frames_ [iLastFrame].fence->GetCompletedValue () < _d3d12_rbk->frames_ [iLastFrame].fence.value)
+  {
+    return false;
+  }
+
+  return true;
+}
 
 HRESULT
 WINAPI

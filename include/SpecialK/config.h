@@ -843,7 +843,7 @@ struct sk_config_t
       struct streamline_s {
         bool  enable_native_limit  =   true;
         float target_fps           =   0.0f;
-        bool  low_latency          =   true;
+        int   pacing_mode          =      1; // 0 = N/A, 1 = Smooth, 2 = Low-Latency, 3 = Ultra-Low-Latency
         bool  wantNativePacing (void);
       } streamline;
       struct {
@@ -1127,7 +1127,7 @@ struct sk_config_t
       int     use_sharpening      = SK_NoPreference;
       float   forced_sharpness    =   0.0f;
       int     forced_multiframe   = SK_NoPreference;
-      bool    allow_flip_metering =  false;
+      bool    allow_flip_metering =   true;
       bool    streamline_dbg_out  =  false;
       struct {
         float performance         =   0.0f;
