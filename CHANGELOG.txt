@@ -1,4 +1,9 @@
-﻿26.3.27.1
+﻿26.4.1
+======
+ + Allow SleepEx (...) with -1 (infinity) for dwMilliseconds, but check
+     for alertable flag in this special case.
+
+26.3.27.1
 =========
  + Correctly disable Reflex framerate limiter when Native Pacing is enabled.
 
