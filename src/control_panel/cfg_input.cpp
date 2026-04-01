@@ -3648,8 +3648,8 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
   if (config.window.unconfine_cursor)
     ovr = 2;
 
-  changed |= ImGui::RadioButton ("Normal Game Behavior", &ovr, 0); ImGui::SameLine ();
-  changed |= ImGui::RadioButton ("Keep Inside Window",   &ovr, 1); ImGui::SameLine ();
+  changed |= ImGui::RadioButton ("Normal Behavior", &ovr, 0); ImGui::SameLine ();
+  changed |= ImGui::RadioButton ("Keep Inside",     &ovr, 1); ImGui::SameLine ();
 
   if (ImGui::BeginItemTooltip ())
   {
@@ -3659,7 +3659,7 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
     ImGui::EndTooltip ();
   }
 
-  changed |= ImGui::RadioButton ("Unrestrict Cursor",    &ovr, 2);
+  changed |= ImGui::RadioButton ("Unrestricted",    &ovr, 2);
 
   ImGui::SetItemTooltip ("Prevent Game from Restricting Cursor to Window");
 
@@ -3670,7 +3670,7 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
 
-  changed |= ImGui::Checkbox ("Prevent Taskbar Unhide", &config.window.clip_taskbar);
+  changed |= ImGui::Checkbox ("Prevent Taskbar", &config.window.clip_taskbar);
 
   ImGui::SetItemTooltip ("Prevents a Windows Taskbar configured to auto-hide from "
                          "appearing when the cursor reaches the edge of the screen.");
