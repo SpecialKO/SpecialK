@@ -8920,7 +8920,41 @@ SK_DWM_Flush (void)
 
 
 
+std::optional <BOOL>
+SK_ClipCursor_GameSpecificFixes (const RECT* lpRect)
+{
+  std::ignore = lpRect;
 
+  switch (SK_GetCurrentGameID ())
+  {
+    case SK_GAME_ID::CrimsonDesert:
+    {
+      if (game_window.active && !config.window.unconfine_cursor)
+      {
+        RECT rcWindow = game_window.actual.window;
+
+        static int width  = GetSystemMetrics (SM_CXSIZEFRAME);
+        static int height = GetSystemMetrics (SM_CYSIZEFRAME);
+
+        rcWindow.left   +=  width * 2;
+        rcWindow.right  -=  width * 2;
+        rcWindow.top    += height * 2;
+        rcWindow.bottom -= height * 2;
+
+        BOOL bRet =
+          ClipCursor_Original != nullptr ?
+          ClipCursor_Original (&rcWindow):
+          ClipCursor          (&rcWindow);
+
+        return bRet;
+      }
+    } break;
+    default:
+      break;
+  }
+
+  return std::nullopt;
+}
 
 BOOL
 WINAPI
@@ -8933,6 +8967,10 @@ SK_ClipCursor (const RECT *lpRect)
   // Do not allow cursor clipping when the game's window is inactive
   if ((! game_window.active) || (game_window.size_move)) // Or being moved
     lpRect = nullptr;
+
+  if (auto fixup = SK_ClipCursor_GameSpecificFixes (lpRect);
+           fixup.has_value ())
+    return fixup.    value ();
 
   //
   // Avoid unnecessary OS calls, since we have the base function hooked already

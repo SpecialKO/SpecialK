@@ -1,4 +1,10 @@
-﻿26.4.1.1
+﻿26.4.1.2
+========
+ + Prevent Crimson Desert from activating window resize in Borderless Fullscreen
+     when clicking on the edge of the screen; unless "Unconfine Cursor" is setup.
+   * ReShade breaks this while its UI is open, be careful.
+
+26.4.1.1
 ========
  + Correctly handle Reflex framerate limits when a background framerate limit
      is set, particularly when no foreground limit is set.
