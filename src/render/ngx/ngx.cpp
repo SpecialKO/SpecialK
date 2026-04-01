@@ -2451,9 +2451,9 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::SameLine        ();
           ImGui::BeginGroup      ();
         //ImGui::TextUnformatted ("");
-          ImGui::TextUnformatted ("May add up to 1/2 frame of latency worst-case; average-case is lower than Off.");
+          ImGui::TextUnformatted ("Adds latency if GPU load exceeds ~96%; use a more conservative limit for best results.");
           ImGui::TextUnformatted ("");
-          ImGui::TextUnformatted ("Lowest latency, but may cause visible stutter.");
+          ImGui::TextUnformatted ("Lowest latency; may can cause stutter in some games.");
           ImGui::EndGroup        ();
           ImGui::EndTooltip      ();
         }
@@ -2476,8 +2476,8 @@ SK_NGX_DLSS_ControlPanel (void)
         {
           ImGui::TextUnformatted ("Allow NVIDIA to use Flip Metering instead of standard DLSS Frame Pacing");
           ImGui::Separator       ();
-          ImGui::BulletText      ("Flip Metering paces generated frames better, but is not compatible with some software like RTSS.");
-          ImGui::BulletText      ("May be required for multi-frame gen.");
+          ImGui::BulletText      ("Paces generated frames at the driver level, but produces nonsense timing graphs in some apps (i.e. RTSS).");
+          ImGui::BulletText      ("This optimization is important for multi-frame gen users.");
           ImGui::EndTooltip      ();
         }
       }

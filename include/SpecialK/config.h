@@ -843,7 +843,7 @@ struct sk_config_t
       struct streamline_s {
         bool  enable_native_limit  =   true;
         float target_fps           =   0.0f;
-        int   pacing_mode          =      1; // 0 = N/A, 1 = Smooth, 2 = Low-Latency, 3 = Ultra-Low-Latency
+        int   pacing_mode          =      3; // 0 = N/A, 1 = Smooth, 2 = Low-Latency, 3 = Ultra-Low-Latency
         bool  wantNativePacing (void);
       } streamline;
       struct {

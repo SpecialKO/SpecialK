@@ -1,4 +1,9 @@
-﻿26.3.31.1
+﻿26.4.1
+======
+ + Default DLSS Frame Generation Pacing mode to Ultra Low-Latency.
+ + Workaround GOG Galaxy DRM bug that causes crashes when unlocking achievements.
+
+26.3.31.1
 =========
  + Added option to prevent the mouse cursor from unhiding the Windows taskbar
      when moved to the edge of the screen while SK is locking the cursor to

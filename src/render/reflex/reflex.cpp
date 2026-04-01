@@ -643,7 +643,7 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
   }
 
   bool applyOverride =
-    (__SK_ForceDLSSGPacing && (__target_fps > 10.0f || config.render.framerate.streamline.enable_native_limit)) || config.nvidia.reflex.override || (config.render.framerate.enforcement_policy == 2 && __target_fps > 10.0f);
+    (__SK_ForceDLSSGPacing && (__target_fps > 10.0f || config.render.framerate.streamline.enable_native_limit)) || config.nvidia.reflex.override || config.nvidia.reflex.use_limiter || (config.render.framerate.enforcement_policy == 2 && __target_fps > 10.0f);
 
   if (applyOverride)
   {
@@ -669,7 +669,7 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
       if (config.render.framerate.streamline.pacing_mode == 0)
           config.render.framerate.streamline.pacing_mode  = 3;
 
-      if (config.render.framerate.streamline.pacing_mode >= 2)
+      if (config.render.framerate.streamline.pacing_mode >= 2 || __target_fps < 10.0f)
         pSetSleepModeParams->bLowLatencyMode = true;
       else
         pSetSleepModeParams->bLowLatencyMode = false;
@@ -678,12 +678,6 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     }
 
     pSetSleepModeParams->minimumIntervalUs     = config.nvidia.reflex.frame_interval_us;
-
-    if (config.render.framerate.enforcement_policy == 2 && __target_fps > 0.0f && !__SK_IsDLSSGActive && !config.nvidia.reflex.use_limiter)
-    {
-      // Conflicts with SK's own low latency mode
-      pSetSleepModeParams->bLowLatencyMode = false;
-    }
   }
 
   else if (! pSetSleepModeParams->bLowLatencyMode)
