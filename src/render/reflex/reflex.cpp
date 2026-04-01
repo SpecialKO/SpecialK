@@ -39,6 +39,7 @@ extern float __target_fps;
 volatile ULONG64 SK_Reflex_LastFrameSleptVk  = 0;
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile ULONG64 SK_Reflex_LastFrameId       = 0;
+volatile ULONG64 SK_Reflex_InvalidFrameCount = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
 using  NvAPI_QueryInterface_pfn       =
@@ -112,6 +113,8 @@ SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
   if (lastSleepFrameId == ReadULong64Acquire (&SK_Reflex_LastFrameId))
   {
     SK_RunOnce (SK_LOGi0 (L"Game called NvAPI_D3D_Sleep twice in one frame!"));
+
+    InterlockedIncrement (&SK_Reflex_InvalidFrameCount);
 
     return NVAPI_OK;
   }
@@ -372,7 +375,7 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
 
   static std::atomic_bool bQueueInput    = false;
   static std::atomic_long lastMarkerType = OUT_OF_BAND_PRESENT_END;
-  
+
   if (markerParams.markerType == INPUT_SAMPLE)
   {
     // bQueueInput=true denotes an invalid place to put an input latency marker,
@@ -402,7 +405,7 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
     {
          NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
       SK_NvAPI_D3D_SetLatencyMarker (pDevice, &marker);
-  
+
       if (! bNative)
         SK_PCL_Heartbeat (markerParams);
     };
@@ -412,14 +415,14 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
 
     // Submit our generated input marker in-between the possible real markers
     _SubmitMarker (input_params);
-  
+
     if (! bPreSubmit)
       _SubmitMarker (markerParams);
 
     // We're fixing a game's native Reflex... make note of its internal frame id
     if (bNative)
       SK_Reflex_LastInputFrameId = markerParams.frameID;
-  
+
     bFixed = true;
   }
 
@@ -431,7 +434,14 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
   }
 
   if (bNative)
+  {
     SK_Reflex_LastNativeMarkerFrame = SK_GetFramesDrawn ();
+
+    if (bFixed)
+    {
+      InterlockedIncrement (&SK_Reflex_InvalidFrameCount);
+    }
+  }
 
   return
     bFixed;

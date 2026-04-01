@@ -946,6 +946,26 @@ SK_ImGui_DrawConfig_Latency ()
     ImGui::TextColored ( ImColor::HSV (0.1f, 1.f, 1.f),
                            "Game is using native Reflex, data shown here may not update every frame." );
 
+    extern volatile ULONG64 SK_Reflex_InvalidFrameCount;
+    UINT64 uiInvalidFrames =
+       ReadULong64Acquire (&SK_Reflex_InvalidFrameCount);
+
+    if (uiInvalidFrames > 0)
+    {
+      ImGui::BeginGroup  ();
+      ImGui::TextColored (
+        ImVec4 (1.f, 1.f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE );
+      ImGui::SameLine    ();
+      ImGui::Text        ( "Native Reflex Invalid Frame Count: " );
+      ImGui::SameLine    ();
+      ImGui::TextColored (
+        ImVec4 (.8f, .2f, .2f, 1.f), "%llu", uiInvalidFrames );
+      ImGui::EndGroup    ();
+
+      ImGui::SetItemTooltip ( "If this counter increases during gameplay (not loading screens), "
+                              "consider disabling Native Reflex or using Smooth Frame Generation Pacing." );
+    }
+
     ImGui::Checkbox ( "Override Game's Reflex Mode",
                         &config.nvidia.reflex.override );
 
