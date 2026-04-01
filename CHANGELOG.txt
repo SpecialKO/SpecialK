@@ -1,4 +1,10 @@
-﻿26.3.31
+﻿26.3.31.1
+=========
+ + Added option to prevent the mouse cursor from unhiding the Windows taskbar
+     when moved to the edge of the screen while SK is locking the cursor to
+       the game window.
+
+26.3.31
 =======
  + Added Ultra Low-Latency option to DLSS Frame Generation Pacing, and
      enabled Flip Metering by default.

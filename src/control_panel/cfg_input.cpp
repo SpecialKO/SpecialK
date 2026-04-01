@@ -3663,6 +3663,21 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
 
   ImGui::SetItemTooltip ("Prevent Game from Restricting Cursor to Window");
 
+  if (! config.window.confine_cursor)
+    SK_ImGui_BeginDisabled ();
+
+  ImGui::SameLine    ();
+  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine    ();
+
+  changed |= ImGui::Checkbox ("Prevent Taskbar Unhide", &config.window.clip_taskbar);
+
+  ImGui::SetItemTooltip ("Prevents a Windows Taskbar configured to auto-hide from "
+                         "appearing when the cursor reaches the edge of the screen.");
+
+  if (! config.window.confine_cursor)
+    SK_ImGui_EndDisabled ();
+
   if (changed)
   {
     switch (ovr)

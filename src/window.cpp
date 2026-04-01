@@ -1935,10 +1935,20 @@ ClipCursor_Detour (const RECT *lpRect)
       //   flat-out ignore cursor clip rects if the window's not even active.
       if (SK_IsGameWindowActive ())
       {
+        RECT rcWindow = game_window.actual.window;
+
+        if (config.window.clip_taskbar)
+        {
+          rcWindow.left   += 2;
+          rcWindow.right  -= 2;
+          rcWindow.bottom -= 2;
+          rcWindow.top    += 2;
+        }
+
         return
           SK_ClipCursor ( config.window.unconfine_cursor ? nullptr
                                                          :
-                                      &game_window.actual.window );
+                                                       &rcWindow );
       }
     }
 
@@ -2036,14 +2046,24 @@ ClipCursor_Detour (const RECT *lpRect)
   {
     if (SK_IsGameWindowActive ())
     {
+      RECT rcWindow = game_window.actual.window;
+
+      if (config.window.clip_taskbar)
+      {
+        rcWindow.left   += 2;
+        rcWindow.right  -= 2;
+        rcWindow.bottom -= 2;
+        rcWindow.top    += 2;
+      }
+
       if (lpRect != nullptr)
       {
         if (! SK_ImGui_Active ()) // Never narrow the clip rect while SK's UI is active
         {
           // If confining, and the game provides a rectangle small enough to satisfy confinement,
           //   then allow it to happen.
-          if ( PtInRect (&game_window.actual.window, POINT { _rect.left,  _rect.top    }) &&
-               PtInRect (&game_window.actual.window, POINT { _rect.right, _rect.bottom }) )
+          if ( PtInRect (&rcWindow, POINT { _rect.left,  _rect.top    }) &&
+               PtInRect (&rcWindow, POINT { _rect.right, _rect.bottom }) )
           {
             return
               SK_ClipCursor (&_rect);
@@ -2052,7 +2072,7 @@ ClipCursor_Detour (const RECT *lpRect)
       }
 
       return
-        SK_ClipCursor (&game_window.actual.window);
+        SK_ClipCursor (&rcWindow);
     }
   }
 
@@ -2108,8 +2128,18 @@ ClipCursor_Detour (const RECT *lpRect)
       }
     }
 
+    RECT rcClip = game_window.cursor_clip;
+
+    if (config.window.confine_cursor && config.window.clip_taskbar)
+    {
+      if (rcClip.left   <= rcClip.right  - 2) rcClip.left   += 2; else rcClip.left   = rcClip.right;
+      if (rcClip.right  >= rcClip.left   + 2) rcClip.right  -= 2; else rcClip.right  = rcClip.left;
+      if (rcClip.bottom >= rcClip.top    + 2) rcClip.bottom -= 2; else rcClip.bottom = rcClip.top;
+      if (rcClip.top    <= rcClip.bottom - 2) rcClip.top    += 2; else rcClip.top    = rcClip.bottom;
+    }
+
     return
-      SK_ClipCursor (&game_window.cursor_clip);
+      SK_ClipCursor (&rcClip);
   }
 
   return

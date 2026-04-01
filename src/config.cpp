@@ -1275,6 +1275,7 @@ struct {
   sk::ParameterBool*      background_mute         = nullptr;
   sk::ParameterBool*      confine_cursor          = nullptr;
   sk::ParameterBool*      unconfine_cursor        = nullptr;
+  sk::ParameterBool*      prevent_taskbar_unhide  = nullptr;
   sk::ParameterBool*      persistent_drag         = nullptr;
   sk::ParameterBool*      fullscreen              = nullptr;
   sk::ParameterStringW*   override                = nullptr;
@@ -1983,6 +1984,7 @@ auto DeclKeybind =
     ConfigEntry (window.offset.y,                        L"Y Offset (Percent or Absolute)",                            dll_ini,         L"Window.System",         L"YOffset"),
     ConfigEntry (window.confine_cursor,                  L"Confine the Mouse Cursor to the Game Window",               dll_ini,         L"Window.System",         L"ConfineCursor"),
     ConfigEntry (window.unconfine_cursor,                L"Unconfine the Mouse Cursor from the Game Window",           dll_ini,         L"Window.System",         L"UnconfineCursor"),
+    ConfigEntry (window.prevent_taskbar_unhide,          L"Prevent the Mouse Cursor from Unhiding the Taskbar",        dll_ini,         L"Window.System",         L"PreventTaskbarUnhide"),
     ConfigEntry (window.persistent_drag,                 L"Remember where the window is dragged to",                   dll_ini,         L"Window.System",         L"PersistentDragPos"),
     ConfigEntry (window.fullscreen,                      L"Make the Game Window Fill the Screen (scale to fit)",       dll_ini,         L"Window.System",         L"Fullscreen"),
     ConfigEntry (window.override,                        L"Force the Client Region to this Size in Windowed Mode",     dll_ini,         L"Window.System",         L"OverrideRes"),
@@ -4922,6 +4924,11 @@ auto DeclKeybind =
   render.framerate.streamline_pacing_mode->
                                          load (config.render.framerate.streamline.pacing_mode);
 
+  // Non-native pacing codepath is broken / being phased-out,
+  //   better to just force-enable native limit if pacing mode is not 0.
+  if (config.render.framerate.streamline.pacing_mode != 0)
+      config.render.framerate.streamline.enable_native_limit = true;
+
   if (! SK_CPU_HasMWAITX) // Turn off if CPU does not support
     config.render.framerate.use_amd_mwaitx = false;
 
@@ -5613,6 +5620,7 @@ auto DeclKeybind =
 
   window.confine_cursor->load         (config.window.confine_cursor);
   window.unconfine_cursor->load       (config.window.unconfine_cursor);
+  window.prevent_taskbar_unhide->load (config.window.clip_taskbar);
   window.persistent_drag->load        (config.window.persistent_drag);
   window.fullscreen->load             (config.window.fullscreen);
   window.fix_mouse_coords->load       (config.window.res.override.fix_mouse);
@@ -7195,6 +7203,7 @@ SK_SaveConfig ( std::wstring name,
 
   window.confine_cursor->store                (config.window.confine_cursor);
   window.unconfine_cursor->store              (config.window.unconfine_cursor);
+  window.prevent_taskbar_unhide->store        (config.window.clip_taskbar);
   window.persistent_drag->store               (config.window.persistent_drag);
   window.fullscreen->store                    (config.window.fullscreen);
   window.always_on_top->store                 (config.window.always_on_top);

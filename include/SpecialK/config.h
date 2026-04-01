@@ -1380,6 +1380,7 @@ struct sk_config_t
     bool    background_mute     = false;
     bool    confine_cursor      = false;
     bool    unconfine_cursor    = false;
+    bool    clip_taskbar        = false; // Don't allow the cursor to move into the taskbar area when confining
     bool    persistent_drag     = false;
     bool    drag_lock           = false; // NOT SAVED IN INI
     bool    fullscreen          = false;

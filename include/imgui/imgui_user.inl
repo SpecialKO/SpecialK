@@ -3898,6 +3898,39 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
     SK_ImGui_ProcessGamepadInput = false;
 }
 
+void
+SK_AdjustWindowRectForTaskbar (RECT& rcWindow)
+{
+  static RECT rcWorkLast   = rcWindow;
+  static RECT rcWindowLast = {};
+
+  if (memcmp (&rcWindowLast, &game_window.actual.window, sizeof (RECT)) != 0)
+  {            rcWindowLast = game_window.actual.window;
+               rcWorkLast   = game_window.actual.window;
+    HMONITOR hMon =
+      MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+
+    MONITORINFO minfo = {                         };
+                minfo.cbSize = sizeof (MONITORINFO);
+
+    if (GetMonitorInfoW (hMon, &minfo))
+    {
+      minfo.rcWork.left   += 2;
+      minfo.rcWork.right  -= 2;
+      minfo.rcWork.top    += 2;
+      minfo.rcWork.bottom -= 2;
+
+      if (! IntersectRect (&rcWorkLast, &game_window.actual.window, &minfo.rcWork))
+      {
+        // Not sure how this can fail.
+        rcWorkLast = game_window.actual.window;
+      }
+    }
+  }
+
+  rcWindow = rcWorkLast;
+}
+
 
 void
 SK_ImGui_User_NewFrame (void)
@@ -4361,13 +4394,20 @@ SK_ImGui_User_NewFrame (void)
 
   if (bActive)
   {
+    RECT rcWindow = game_window.actual.window;
+
+    if (config.window.confine_cursor && config.window.clip_taskbar)
+    {
+      SK_AdjustWindowRectForTaskbar (rcWindow);
+    }
+
     if (SK_ImGui_Active () || capture_mouse)
       SK_ClipCursor (config.window.confine_cursor ?
-                      &game_window.actual.window  : nullptr);
+                      &rcWindow                   : nullptr);
     else if (config.window.unconfine_cursor)
       SK_ClipCursor (nullptr);
     else if (config.window.confine_cursor)
-      SK_ClipCursor (&game_window.actual.window);
+      SK_ClipCursor (&rcWindow);
     else
       SK_ClipCursor (&game_window.cursor_clip);
   }
