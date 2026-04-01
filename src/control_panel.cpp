@@ -7139,6 +7139,8 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                   break;
 
                 case limiter_mode_e::Reflex:
+                  config.render.framerate.enforcement_policy = 2;
+
                   if (! std::exchange (original_reflex_settings.changed, true))
                   {
                     original_reflex_settings.low_latency = config.nvidia.reflex.low_latency;

@@ -38,6 +38,7 @@ extern float __target_fps;
 
 volatile ULONG64 SK_Reflex_LastFrameSleptVk  = 0;
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
+volatile ULONG64 SK_Reflex_LastFrameId       = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
 using  NvAPI_QueryInterface_pfn       =
@@ -107,15 +108,17 @@ SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
   // Ensure games never call this more than once per-frame, which
   //   Monster Hunter Wilds does and potentially other games too...
   static UINT64
-      lastSleepFrame = MAXUINT64;
-  if (lastSleepFrame == SK_GetFramesDrawn ())
+      lastSleepFrameId = MAXUINT64;
+  if (lastSleepFrameId == ReadULong64Acquire (&SK_Reflex_LastFrameId))
   {
+    SK_RunOnce (SK_LOGi0 (L"Game called NvAPI_D3D_Sleep twice in one frame!"));
+
     return NVAPI_OK;
   }
 
   if (NvAPI_D3D_Sleep_Original != nullptr)
   {
-    lastSleepFrame = SK_GetFramesDrawn ();
+    lastSleepFrameId = ReadULong64Acquire (&SK_Reflex_LastFrameId);
 
     reshade::UnwrapObject (&pDev);
 
@@ -145,11 +148,6 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   SK_Reflex_LastNativeSleepTime =
     SK_timeGetTime ();
 
-  if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
-  {
-    return ret;
-  }
-
   reshade::UnwrapObject (&pDev);
 
   SK_ComPtr <ID3D12Device>                     pNativeDev;
@@ -161,17 +159,17 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
   if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
   {
-    if (config.render.framerate.streamline.pacing_mode >= 3)
-    {
-      ret =
-        SK_NvAPI_D3D_Sleep (pNativeDev);
-    }
-
     auto pLimiter =
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
     if (pLimiter != nullptr)
         pLimiter->wait ();
+
+    if (config.render.framerate.streamline.pacing_mode >= 3)
+    {
+      ret =
+        SK_NvAPI_D3D_Sleep (pNativeDev);
+    }
 
     SK_Reflex_SkipLowLatencyFrameTick =
       SK_Reflex_LastNativeSleepFrame;
@@ -238,17 +236,17 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain);
 
-    if (! config.nvidia.reflex.disable_native)
+    if (!config.nvidia.reflex.use_limiter)
     {
-      if (SK_QueryPerf ().QuadPart < pLimiter->get_next_tick ())
-      {
-        ret =
-          SK_NvAPI_D3D_Sleep (pNativeDev); 
-      }
+      if (pLimiter != nullptr)
+          pLimiter->wait ();
     }
 
-    if (pLimiter != nullptr)
-        pLimiter->wait ();
+    if (! config.nvidia.reflex.disable_native)
+    {
+      ret =
+        SK_NvAPI_D3D_Sleep (pNativeDev);
+    }
 
     SK_Reflex_SkipLowLatencyFrameTick =
       SK_Reflex_LastNativeSleepFrame;
@@ -497,6 +495,11 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   if (        hModRTSS && SK_GetCallingDLL () == hModRTSS)
     return NVAPI_OK;
 
+  if ( pSetLatencyMarkerParams != nullptr  &&
+       pSetLatencyMarkerParams->markerType == SIMULATION_START )
+  {
+    SK_Reflex_LastFrameId = pSetLatencyMarkerParams->frameID;
+  }
 
   if ( SK_Streamline_ProxyChain != nullptr                          &&
          config.render.framerate.streamline.wantNativePacing ()     &&

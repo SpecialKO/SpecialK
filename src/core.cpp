@@ -4649,11 +4649,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_D3D12_EndFrame (pTLS);
   }
   
-  if (__SK_IsDLSSGActive)
-  {
-    void SK_Reflex_SetSleepModeOverrides (void);
-         SK_Reflex_SetSleepModeOverrides ();
-  }
+  void SK_Reflex_SetSleepModeOverrides (void);
+       SK_Reflex_SetSleepModeOverrides ();
 
   SK_RandomCrapThatShouldBeInPlugIns ();
 
@@ -4669,10 +4666,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     extern NvU32 SK_Reflex_LastNativeSleepTime;
 
     bool should_wait = 
-      !(__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()) && (SK_Reflex_LastNativeSleepTime == 0 || SK_Reflex_LastNativeSleepTime < SK_timeGetTime () - 250);
+      !(__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()) && (SK_Reflex_LastNativeSleepTime == 0 || SK_Reflex_LastNativeSleepTime < SK_timeGetTime () - 250) && !config.nvidia.reflex.use_limiter;
 
     if (rb.swapchain.p != nullptr)
-      _FrameTick (should_wait && !config.nvidia.reflex.use_limiter);
+      _FrameTick (should_wait);
 
     if (config.system.log_level > 0)
       SK_ReleaseAssert (rb.swapchain.p != nullptr);
