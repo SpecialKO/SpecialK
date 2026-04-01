@@ -7026,7 +7026,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         {
           ImGui::TreePop    ();
           ImGui::Separator  ();
-          if (__target_fps > 0.0f)
+          if (__target_fps > 0.0f || __target_fps_bg > 0.0f)
           {
             ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.3f);
             ImGui::BeginGroup ();

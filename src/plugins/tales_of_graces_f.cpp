@@ -1513,9 +1513,9 @@ SK_TGFix_NobleFrameRateManager_SetQualitySettingFrameRate_Detour (MonoObject* __
     static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
     static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
 
-  if (__target_fps > 0.0f || fActiveRefresh >= 120.0f)
+  if (__target_fps_now > 0.0f || fActiveRefresh >= 120.0f)
   {
-    if (__target_fps <= 0.0f)
+    if (__target_fps_now <= 0.0f)
     {
       SK_TGFix_LastSetFrameRateLimit = fActiveRefresh;
 
@@ -1523,10 +1523,10 @@ SK_TGFix_NobleFrameRateManager_SetQualitySettingFrameRate_Detour (MonoObject* __
         NobleFrameRateManager_SetQualitySettingFrameRate_Original (__this, fActiveRefresh * 1.008f);
     }
 
-    SK_TGFix_LastSetFrameRateLimit = __target_fps;
+    SK_TGFix_LastSetFrameRateLimit = __target_fps_now;
 
     return
-      NobleFrameRateManager_SetQualitySettingFrameRate_Original (__this, __target_fps * 1.01f);
+      NobleFrameRateManager_SetQualitySettingFrameRate_Original (__this, __target_fps_now * 1.01f);
   }
 #else
   //SK_TGFix_LastSetFrameRateLimit = rate;
@@ -1552,9 +1552,9 @@ SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour (MonoObject* __this, fl
     static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
     static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
 
-  if (__target_fps > 0.0f || fActiveRefresh >= 120.0f)
+  if (__target_fps_now > 0.0f || fActiveRefresh >= 120.0f)
   {
-    if (__target_fps <= 0.0f)
+    if (__target_fps_now <= 0.0f)
     {
       SK_TGFix_LastSetFrameRateLimit = fActiveRefresh;
 
@@ -1562,10 +1562,10 @@ SK_TGFix_NobleFrameRateManager_SetTargetFrameRate_Detour (MonoObject* __this, fl
         NobleFrameRateManager_SetTargetFrameRate_Original (__this, fActiveRefresh * 1.008f);
     }
 
-    SK_TGFix_LastSetFrameRateLimit = __target_fps;
+    SK_TGFix_LastSetFrameRateLimit = __target_fps_now;
 
     return
-      NobleFrameRateManager_SetTargetFrameRate_Original (__this, __target_fps * 1.01f);
+      NobleFrameRateManager_SetTargetFrameRate_Original (__this, __target_fps_now * 1.01f);
   }
 #else
   //SK_TGFix_LastSetFrameRateLimit = rate;
@@ -2431,12 +2431,12 @@ void STDMETHODCALLTYPE SK_TGFix_EndFrame (void)
 {
   if (SK_TGFix_FrameRateManagerSingleton != nullptr)
   {
-    if ( __target_fps > 0.0f &&
-         __target_fps != SK_TGFix_LastSetFrameRateLimit )
+    if ( __target_fps_now > 0.0f &&
+         __target_fps_now != SK_TGFix_LastSetFrameRateLimit )
     {
       SK_TGFix_LastSetFrameRateLimit =
-                          __target_fps;
-      void* args [1] = { &__target_fps };
+                          __target_fps_now;
+      void* args [1] = { &__target_fps_now };
 
       InvokeMethod ("Noble", "FrameRateManager", "SetTargetFrameRate",         1,
                      SK_TGFix_FrameRateManagerSingleton, "Assembly-CSharp", args);

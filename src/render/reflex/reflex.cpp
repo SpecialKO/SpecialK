@@ -35,6 +35,7 @@
 #include <reflex/pclstats.h>
 
 extern float __target_fps;
+extern float __target_fps_now;
 
 volatile ULONG64 SK_Reflex_LastFrameSleptVk  = 0;
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
@@ -598,8 +599,8 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
     );
 
     const bool bWantAccuratePresentTiming = false;
-      //( config.render.framerate.target_fps > 0.0f ||
-      //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
+      //( config.render.framerate.target_fps     > 0.0f ||
+      //                        __target_fps_now > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
 
     if ( pSetLatencyMarkerParams->markerType == PRESENT_START ||
          pSetLatencyMarkerParams->markerType == PRESENT_END )
@@ -656,7 +657,7 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
   }
 
   bool applyOverride =
-    (__SK_ForceDLSSGPacing && (__target_fps > 10.0f || config.render.framerate.streamline.enable_native_limit)) || config.nvidia.reflex.override || config.nvidia.reflex.use_limiter || (config.render.framerate.enforcement_policy == 2 && __target_fps > 10.0f);
+    (__SK_ForceDLSSGPacing && (__target_fps_now > 10.0f || config.render.framerate.streamline.enable_native_limit)) || config.nvidia.reflex.override || config.nvidia.reflex.use_limiter || (config.render.framerate.enforcement_policy == 2 && __target_fps_now > 10.0f);
 
   if (applyOverride)
   {
@@ -667,11 +668,11 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
       pSetSleepModeParams->bUseMarkersToOptimize = config.nvidia.reflex.marker_optimization;
     }
 
-    if ((__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.use_limiter)
+    if ((__SK_ForceDLSSGPacing && __target_fps_now > 10.0f) || config.nvidia.reflex.use_limiter)
     {
       config.nvidia.reflex.frame_interval_us =
-            (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 6
-                                                                               : 0 );
+            (UINT)(round (1000000.0 / __target_fps_now)) + ( __SK_ForceDLSSGPacing ? 6
+                                                                                   : 0 );
     }
     else
       config.nvidia.reflex.frame_interval_us = 0;
@@ -682,7 +683,7 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
       if (config.render.framerate.streamline.pacing_mode == 0)
           config.render.framerate.streamline.pacing_mode  = 3;
 
-      if (config.render.framerate.streamline.pacing_mode >= 2 || __target_fps < 10.0f)
+      if (config.render.framerate.streamline.pacing_mode >= 2 || __target_fps_now < 10.0f)
         pSetSleepModeParams->bLowLatencyMode = true;
       else
         pSetSleepModeParams->bLowLatencyMode = false;
@@ -955,8 +956,8 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
       return true;
 
     const bool bWantAccuratePresentTiming = false;
-      //( config.render.framerate.target_fps > 0.0f ||
-      //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
+      //( config.render.framerate.target_fps     > 0.0f ||
+      //                        __target_fps_now > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
 
     // Only do this if game is not Reflex native, or if the marker is a flash
     if ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || (bWantAccuratePresentTiming && (marker == PRESENT_START || marker == PRESENT_END)))
@@ -1063,7 +1064,7 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
     SK_Reflex_LastNativeSleepFrame > SK_GetFramesDrawn () - 10;
 
   bool applyOverride =
-    (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
+    (__SK_ForceDLSSGPacing && __target_fps_now > 10.0f) || config.nvidia.reflex.override;
 
   // Game has native Reflex, we should bail out (unles overriding it).
   if (config.nvidia.reflex.native && (! applyOverride))
@@ -1127,13 +1128,13 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
     {
       config.nvidia.reflex.frame_interval_us = 0;
 
-      if (__target_fps > 10.0f)
+      if (__target_fps_now > 10.0f)
       {
         if (config.nvidia.reflex.use_limiter || !config.render.framerate.streamline.enable_native_limit)
         {
           config.nvidia.reflex.frame_interval_us =
-            (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 24
-                                                                               : 0 );
+            (UINT)(round (1000000.0 / __target_fps_now)) + ( __SK_ForceDLSSGPacing ? 24
+                                                                                   : 0 );
         }
       }
     }
@@ -1922,12 +1923,12 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
   }
 
   const bool applyUserOverride =
-    (__target_fps > 10.0f && (__SK_ForceDLSSGPacing || config.nvidia.reflex.use_limiter));
+    (__target_fps_now > 10.0f && (__SK_ForceDLSSGPacing || config.nvidia.reflex.use_limiter));
 
   if (applyUserOverride)
   {
     UINT interval =
-      (UINT)(round (1000000.0 / __target_fps)) + ( __SK_ForceDLSSGPacing ? 6 : 0 );
+      (UINT)(round (1000000.0 / __target_fps_now)) + ( __SK_ForceDLSSGPacing ? 6 : 0 );
 
     // Vulkan Reflex is too primitive to perform this on its own, so we need to
     //   pre-adjust the limit.

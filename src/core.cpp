@@ -73,6 +73,7 @@ volatile LONG     __SK_Init       = FALSE;
   extern bool     __SK_RunDLL_Bypass;
 
   extern float    __target_fps;
+  extern float    __target_fps_now;
 
          BOOL     __SK_DisableQuickHook = FALSE;
 
@@ -3471,7 +3472,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       if (config.system.handle_crashes)
         SK::Diagnostics::CrashHandler::Reinstall ();
 
-      __target_fps = config.render.framerate.target_fps;
+      __target_fps     = config.render.framerate.target_fps;
+      __target_fps_now = __target_fps;
     } break;
 
 
@@ -3919,6 +3921,12 @@ __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
   SK_PROFILE_SCOPED_TASK (SK_BeginBufferSwapEx)
+
+  // Update the active framerate limit for window state agnostic functions.
+  __target_fps_now =
+    (SK_IsGameWindowActive () || __target_fps_bg <= 0.0f) ?
+                                 __target_fps             :
+                                 __target_fps_bg;
 
   void SK_Render_CountVBlanks (void);
        SK_Render_CountVBlanks ();
@@ -4695,8 +4703,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   );
 
   __SK_FramerateScale =
-    (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps > 0.0f) ?
-                                                        std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f) : 1.0f;
+    (__SK_IsDLSSGActive && config.render.framerate.streamline.enable_native_limit && __target_fps_now > 0.0f) ?
+                                                            std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f) : 1.0f;
 
   SK_StartPerfMonThreads ();
 

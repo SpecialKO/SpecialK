@@ -4932,8 +4932,9 @@ auto DeclKeybind =
   if (! SK_CPU_HasMWAITX) // Turn off if CPU does not support
     config.render.framerate.use_amd_mwaitx = false;
 
-  __target_fps    = config.render.framerate.target_fps;
-  __target_fps_bg = config.render.framerate.target_fps_bg;
+  __target_fps_now = config.render.framerate.target_fps;
+  __target_fps_bg  = config.render.framerate.target_fps_bg;
+  __target_fps     = __target_fps_now;
 
 //  render.framerate.control.
 //                  render_ahead->load        (config.render.framerate.max_render_ahead);

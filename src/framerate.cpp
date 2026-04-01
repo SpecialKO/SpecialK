@@ -69,6 +69,7 @@ SK::Framerate::EventCounter SK::Framerate::events;
 
 float __target_fps      = 0.0;
 float __target_fps_bg   = 0.0;
+float __target_fps_now  = 0.0;
 float __target_fps_temp = 0.0;
 
 float __SK_FramerateScale = 1.0f;
@@ -574,6 +575,9 @@ CreateWaitableTimerExW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
 void
 SK_ImGui_LatentSyncConfig (void)
 {
+  // nb: This does not work correctly for background framerate limiting,
+  //       because it uses __target_fps...
+
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -4617,19 +4621,19 @@ int sk_config_t::fps_osd_s::getTimingMethod (void)
   {
     if (config.render.framerate.streamline.enable_native_limit)
     {
-      if (__target_fps <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
+      if (__target_fps_now <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
       {
         return SK_FrametimeMeasures_NewFrameBegin;
       }
     }
 
-    else if (__target_fps > 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
+    else if (__target_fps_now > 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
     {
       return SK_FrametimeMeasures_PresentSubmit;
     }
   }
 
-  else if (__target_fps <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
+  else if (__target_fps_now <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
   {
     return SK_FrametimeMeasures_NewFrameBegin;
   }
@@ -4639,7 +4643,7 @@ int sk_config_t::fps_osd_s::getTimingMethod (void)
 
 bool sk_config_t::render_s::framerate_s::streamline_s::wantNativePacing (void)
 {
-  if (__target_fps <= 0.0f)
+  if (__target_fps_now <= 0.0f)
   {
     return false;
   }

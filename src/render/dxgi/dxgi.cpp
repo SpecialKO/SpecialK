@@ -2523,11 +2523,11 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
   SK_Streamline_ProxyChain = This;
 
   extern float
-      __target_fps;
-  if (__target_fps > 0.0f)
+      __target_fps_now;
+  if (__target_fps_now > 0.0f)
   {
     config.render.framerate.streamline.target_fps =
-                                    (__target_fps / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.01f);
+                                    (__target_fps_now / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.01f);
   }
 
   else
@@ -3504,7 +3504,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
     // Measure frametime before Present is issued
-    if (config.fps.getTimingMethod () == SK_FrametimeMeasures_PresentSubmit && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing () || __target_fps <= 0.0f)))
+    if (config.fps.getTimingMethod () == SK_FrametimeMeasures_PresentSubmit && ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing () || __target_fps_now <= 0.0f)))
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
     }
@@ -3579,7 +3579,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       if (config.fps.getTimingMethod () == SK_FrametimeMeasures_NewFrameBegin ||
          (config.fps.getTimingMethod () == SK_FrametimeMeasures_LimiterPacing && pLimiter->get_limit () <= 0.0f))
       {
-        if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing () || __target_fps <= 0.0f))
+        if ((!__SK_IsDLSSGActive || !config.render.framerate.streamline.wantNativePacing () || __target_fps_now <= 0.0f))
         {
           SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
         }

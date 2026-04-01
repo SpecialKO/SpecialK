@@ -157,9 +157,9 @@ SK_Unity_PlugInCfg (void)
         
         if (SK_ImGui_IsItemRightClicked ())
         {
-          if (__target_fps > 0.0f)
+          if (__target_fps_now > 0.0f)
           {
-            SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+            SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps_now;
             SK_Unity_Cfg.time_fixed_delta_time.store ();
 
             config.utility.save_async ();
@@ -172,7 +172,7 @@ SK_Unity_PlugInCfg (void)
         { ImGui::TextUnformatted    ("Set the animation rate for Unity.");
           ImGui::Separator          ();
           ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
-          if (__target_fps > 0.0f)
+          if (__target_fps_now > 0.0f)
           { ImGui::Separator        ();
             ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to Match Framerate Limit");
           } ImGui::EndTooltip       ();
@@ -197,9 +197,9 @@ SK_Unity_PlugInCfg (void)
 
       if (ImGui::Checkbox ("Match Framerate Limit", &SK_Unity_Cfg.fixed_delta_auto_sync))
       {
-        if (SK_Unity_Cfg.fixed_delta_auto_sync && __target_fps > 0.0f)
+        if (SK_Unity_Cfg.fixed_delta_auto_sync && __target_fps_now > 0.0f)
         {
-          SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps;
+          SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps_now;
           SK_Unity_Cfg.time_fixed_delta_time.store ();
           SK_Unity_Cfg.fixed_delta_auto_sync.store ();
 
@@ -1011,7 +1011,7 @@ SK_Unity_EndFrame (void)
   static float last_fps = 0;
 
   bool forced_update =
-    (SK_Unity_Cfg.fixed_delta_auto_sync) && last_fps != __target_fps && __target_fps > 0.0f;
+    (SK_Unity_Cfg.fixed_delta_auto_sync) && last_fps != __target_fps_now && __target_fps_now > 0.0f;
 
   // Stupid hack to ensure this is applied initially; may take many frames.
   if (SK_GetFramesDrawn () >= 15 && (forced_update || SK_GetFramesDrawn () < 1500))
@@ -1024,13 +1024,13 @@ SK_Unity_EndFrame (void)
 
       if (forced_update)
       {
-        SK_Unity_Cfg.time_fixed_delta_time = 1.0f/__target_fps;
+        SK_Unity_Cfg.time_fixed_delta_time = 1.0f/__target_fps_now;
       }
 
       if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
           SK_Unity_Cfg.time_fixed_delta_time != SK_Unity_OriginalFixedDeltaTime)
       {
-        if (SK_Unity_Cfg.fixed_delta_auto_sync) last_fps = __target_fps;
+        if (SK_Unity_Cfg.fixed_delta_auto_sync) last_fps = __target_fps_now;
         SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
       }
 
