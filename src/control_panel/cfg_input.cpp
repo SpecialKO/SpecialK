@@ -3670,7 +3670,7 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
 
-  changed |= ImGui::Checkbox ("Prevent Taskbar", &config.window.clip_taskbar);
+  changed |= ImGui::Checkbox ("Avoid Taskbar", &config.window.clip_taskbar);
 
   ImGui::SetItemTooltip ("Prevents a Windows Taskbar configured to auto-hide from "
                          "appearing when the cursor reaches the edge of the screen.");
