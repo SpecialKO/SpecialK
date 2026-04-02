@@ -852,6 +852,7 @@ struct sk_config_t
       } engine_overrides;
       bool   max_timer_resolution  = true;
       bool   force_high_res_timers = true;
+      bool   ignore_env_vars       = false;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;

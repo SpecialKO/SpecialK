@@ -979,6 +979,7 @@ struct {
     sk::ParameterBool*    use_amd_mwaitx          = nullptr;
     sk::ParameterBool*    apply_streamline_pacing = nullptr;
     sk::ParameterInt*     streamline_pacing_mode  = nullptr;
+    sk::ParameterBool*    ignore_environment_vars = nullptr;
     sk::ParameterBool*    force_vk_mailbox        = nullptr;
     sk::ParameterBool*    force_vk_adaptive       = nullptr;
     sk::ParameterBool*    max_timer_resolution    = nullptr;
@@ -2119,6 +2120,8 @@ auto DeclKeybind =
                                 apply_streamline_pacing, L"Apply Pacing to Native frames when using DLSS Frame Gen.",  dll_ini,         L"Render.FrameRate",      L"EnableStreamlinePacing"),
     ConfigEntry (render.framerate.
                                 streamline_pacing_mode,  L"Level of DLSS Frame Gen pacing latency reduction.",         dll_ini,         L"Render.FrameRate",      L"StreamlinePacingMode"),
+    ConfigEntry (render.framerate.
+                                ignore_environment_vars, L"Ignore environment variable-defined framerate limits.",     dll_ini,         L"Render.FrameRate",      L"IgnoreEnvironmentVars"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Engine",      L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.engine.
@@ -4548,6 +4551,12 @@ auto DeclKeybind =
       } break;
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::CrimsonDesert:
+      {
+        // Prevent the Ctrl+Shift debug shenanigans in this game from
+        //   causing the window to resize itself during combat.
+        config.window.confine_cursor = true;
+      } break;
       case SK_GAME_ID::EnderLilies:
       {
         SK_EnderLilies_InitPlugIn ();
@@ -4923,6 +4932,8 @@ auto DeclKeybind =
                                          load (config.render.framerate.streamline.enable_native_limit);
   render.framerate.streamline_pacing_mode->
                                          load (config.render.framerate.streamline.pacing_mode);
+  render.framerate.ignore_environment_vars->
+                                         load (config.render.framerate.ignore_env_vars);
 
   // Non-native pacing codepath is broken / being phased-out,
   //   better to just force-enable native limit if pacing mode is not 0.
@@ -7322,6 +7333,8 @@ SK_SaveConfig ( std::wstring name,
                                        store (config.render.framerate.streamline.enable_native_limit);
   render.framerate.streamline_pacing_mode->
                                        store (config.render.framerate.streamline.pacing_mode);
+  render.framerate.ignore_environment_vars->
+                                       store (config.render.framerate.ignore_env_vars);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->

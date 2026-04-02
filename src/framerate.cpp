@@ -4288,22 +4288,23 @@ SK::Framerate::Limiter::wait (void)
 
 double SK_Framerate_GetLimitEnvVar (double target)
 {
+  if (config.render.framerate.ignore_env_vars)
+    return target;
+
   static double dEnvVarFPS = 0.0;
 
   SK_RunOnce (
   {
-    wchar_t                                              wszEnvVarFPS [32] = { };
-    if (GetEnvironmentVariableW (L"SUNSHINE_CLIENT_FPS", wszEnvVarFPS, 31))
+    wchar_t                                       wszEnvVarFPS [32] = { };
+    if (GetEnvironmentVariableW (L"SK_FPS_LIMIT", wszEnvVarFPS, 31))
     {
       dEnvVarFPS = _wtof (wszEnvVarFPS);
     }
-
+    else if (GetEnvironmentVariableW (L"SUNSHINE_CLIENT_FPS", wszEnvVarFPS, 31))
+    {
+      dEnvVarFPS = _wtof (wszEnvVarFPS);
+    }
     else if (GetEnvironmentVariableW (L"APOLLO_CLIENT_FPS", wszEnvVarFPS, 31))
-    {
-      dEnvVarFPS = _wtof (wszEnvVarFPS);
-    }
-
-    else if (GetEnvironmentVariableW (L"SK_FPS_LIMIT", wszEnvVarFPS, 31))
     {
       dEnvVarFPS = _wtof (wszEnvVarFPS);
     }

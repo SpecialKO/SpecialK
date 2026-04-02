@@ -1,4 +1,16 @@
-﻿26.4.1.2
+﻿26.4.2
+======
+ + The SK_FPS_LIMIT environment variable now takes precedence over Sunshine/Apollo;
+     if set to 0.0 it will allow software streamed using Sunshine/Apollo to ignore
+       SUNSHINE_CLIENT_FPS and use an INI-defined framerate limit as usual.
+ + Added INI option to ignore framerate environment variables
+
+    [Render.Framerate]
+    IgnoreEnvironmentVars={true|false}  Default: false
+
+ + Removed GOG Galaxy DRM workaround.
+
+26.4.1.2
 ========
  + Prevent Crimson Desert from activating window resize in Borderless Fullscreen
      when clicking on the edge of the screen; unless "Unconfine Cursor" is setup.
