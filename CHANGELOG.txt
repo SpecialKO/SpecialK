@@ -1,4 +1,10 @@
-﻿26.4.3
+﻿26.4.3.1
+========
+ + Ensure SK's framerate limiter only attempts to flush D3D11 immediate context
+     if it is running on the same thread as the SwapChain, because it would
+       deadlock Reflex-native games using Low-Latency limiter mode otherwise.
+
+26.4.3
 ======
  + Handle GOG games that use both EOS and Galaxy APIs together, allowing achievement
      management to show up in the control panel (provided Galaxy API 1.120+).

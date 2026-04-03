@@ -2493,7 +2493,17 @@ SK::Framerate::Limiter::wait (void)
     // Flush batched commands before zonking this thread off
     if (tracks_window && rb.d3d11.immediate_ctx != nullptr)
     {
-      rb.d3d11.immediate_ctx->Flush ();
+      if (ReadULongAcquire (&rb.thread) == SK_Thread_GetCurrentId ())
+      {
+        rb.d3d11.immediate_ctx->Flush ();
+      }
+
+      else
+      {
+        SK_RunOnce (
+          SK_LOGi0 (L"Framerate limiter is running on a different thread than the D3D11 Immediate Context!")
+        );
+      }
     }
 
     SK_Framerate_SanitizeTimerResolution ();

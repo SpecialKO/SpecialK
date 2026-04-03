@@ -166,8 +166,13 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto pLimiter =
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
-    if (pLimiter != nullptr)
-        pLimiter->wait ();
+    static UINT64
+        lastSleepFrameId = MAXUINT64;
+    if (lastSleepFrameId != ReadULong64Acquire (&SK_Reflex_LastFrameId))
+    {   lastSleepFrameId  = ReadULong64Acquire (&SK_Reflex_LastFrameId);
+      if (pLimiter != nullptr)
+          pLimiter->wait ();
+    }
 
     if (config.render.framerate.streamline.pacing_mode >= 3)
     {
@@ -240,10 +245,15 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain);
 
-    if (!config.nvidia.reflex.use_limiter)
+    if (! config.nvidia.reflex.use_limiter)
     {
-      if (pLimiter != nullptr)
-          pLimiter->wait ();
+      static UINT64
+          lastSleepFrameId = MAXUINT64;
+      if (lastSleepFrameId != ReadULong64Acquire (&SK_Reflex_LastFrameId))
+      {   lastSleepFrameId  = ReadULong64Acquire (&SK_Reflex_LastFrameId);
+        if (pLimiter != nullptr)
+            pLimiter->wait ();
+      }
     }
 
     if (! config.nvidia.reflex.disable_native)
@@ -1087,9 +1097,11 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
                  NvAPI_D3D_GetSleepStatus (device.p, &sleepStatusParams)
              )
           {
-            SK_Reflex_NativeSleepModeParams.bLowLatencyMode  =
+            SK_Reflex_NativeSleepModeParams.bLowLatencyMode   =
               sleepStatusParams.bLowLatencyMode;
-            SK_Reflex_NativeSleepModeParams.version          =
+            SK_Reflex_NativeSleepModeParams.minimumIntervalUs =
+              sleepStatusParams.sleepIntervalUs;
+            SK_Reflex_NativeSleepModeParams.version           =
               NV_SET_SLEEP_MODE_PARAMS_VER;
           }
         }
