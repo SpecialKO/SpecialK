@@ -113,11 +113,11 @@ SK_Platform_GetAchievementManager (void)
   if (SK::SteamAPI::GetCallbacksRun () > 0 && SK::SteamAPI::AppID () > 0)
       pMgr = SK_Steam_GetAchievementManager ();
 
-  if (pMgr == nullptr && SK::EOS::GetTicksRetired () > 0)
-      pMgr = SK_EOS_GetAchievementManager ();
-
   if (pMgr == nullptr && SK::Galaxy::GetTicksRetired () > 0)
       pMgr = SK_Galaxy_GetAchievementManager ();
+
+  if (pMgr == nullptr && SK::EOS::GetTicksRetired () > 0)
+      pMgr = SK_EOS_GetAchievementManager ();
 
   return pMgr;
 }

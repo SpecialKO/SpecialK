@@ -1,4 +1,9 @@
-﻿26.4.2
+﻿26.4.3
+======
+ + Handle GOG games that use both EOS and Galaxy APIs together, allowing achievement
+     management to show up in the control panel (provided Galaxy API 1.120+).
+
+26.4.2
 ======
  + The SK_FPS_LIMIT environment variable now takes precedence over Sunshine/Apollo;
      if set to 0.0 it will allow software streamed using Sunshine/Apollo to ignore

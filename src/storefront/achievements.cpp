@@ -2467,10 +2467,10 @@ SK_AchievementManager::OnVarChange (SK_IVariable *var, void *val)
     if (bSteam)
       SK_Steam_UnlockAchievement (iAchievement);
 
-    else if (SK::EOS::GetTicksRetired    ( ) > 0)
-             SK_EOS_UnlockAchievement (iAchievement);
     else if (SK::Galaxy::GetTicksRetired ( ) > 0)
              SK_Galaxy_UnlockAchievement (iAchievement);
+    else if (SK::EOS::GetTicksRetired    ( ) > 0)
+             SK_EOS_UnlockAchievement (iAchievement);
 
     return true;
   }

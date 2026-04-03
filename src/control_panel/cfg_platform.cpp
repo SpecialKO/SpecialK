@@ -46,8 +46,8 @@ SK::ControlPanel::Platform::Draw (void)
   {
     // Some Steam games use EOS but aren't themselves an Epic game
     bool bSteam =  (SK::SteamAPI::AppID         () != 0);
-    bool bEpic  = ((SK::EOS::GetTicksRetired    () >  0) && (! bSteam));
     bool bGOG   =  (SK::Galaxy::GetTicksRetired () >  0);
+    bool bEpic  = ((SK::EOS::GetTicksRetired    () >  0) && (! bSteam)) && (! bGOG);
 
     // Some games falsely report themselves as Steam, if SteamAPI callbacks are not running,
     //   but one of the other storefronts APIs are, we can assume the game is not actually a Steam game.
@@ -235,10 +235,13 @@ SK::ControlPanel::Platform::Draw (void)
 
             auto SK_Platform_LoadUnlockSound = [](void)
             {
-              if (SK::EOS::UserID () != nullptr)
+              if (SK::EOS::UserID () != nullptr || SK::Galaxy::GetTicksRetired () > 0)
+              {
+                if (SK::EOS::UserID () != nullptr)
                    SK_EOS_LoadUnlockSound    (config.platform.achievements.sound_file.c_str ());
-              else if (SK::Galaxy::GetTicksRetired () > 0)
+                if (SK::Galaxy::GetTicksRetired () > 0)
                    SK_Galaxy_LoadUnlockSound (config.platform.achievements.sound_file.c_str ());
+              }
               else SK_Steam_LoadUnlockSound  (config.platform.achievements.sound_file.c_str ());
             };
 
