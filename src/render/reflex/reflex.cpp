@@ -186,56 +186,6 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto                                tNow = SK_QueryPerf ();
     SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
 
-#if 0
-    if (rb.api == SK_RenderAPI::D3D12 && pLimiter->get_limit () > 0.0f)
-    {
-      static float offset = 0.0f;
-
-      extern float SK_LatentSyncAlpha            ;
-      extern float SK_LatentSyncDeltaMultiplier  ;
-      extern float SK_LatentSyncBackOffMultiplier;
-
-      static bool lastLastFrameLate = false;
-      extern bool
-            SK_ImGui_D3D12_IsLastFrameComplete (void);
-      bool lastFrameLate = ! SK_ImGui_D3D12_IsLastFrameComplete ();
-      if ( lastFrameLate)
-      {
-        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier;
-
-        offset =
-          SK_LatentSyncAlpha * offset + (1.0f - SK_LatentSyncAlpha) * delta;
-
-        offset =
-          std::min (0.075f, offset);
-      }
-
-      else if (offset > 0.0f)
-      {
-        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
-
-        offset =
-          std::max (0.0f, SK_LatentSyncAlpha * offset - (1.0f - SK_LatentSyncAlpha) * delta);
-      }
-
-      if (offset > 0.0f && pLimiter->effective_frametime () > 0.0f)
-      {
-        //SK_LOGi0 (L"Last Frame not complete, delaying %2.3f%% of a frame", 100.0f * offset);
-
-        static HANDLE hTimer = (HANDLE)-1;
-
-        SK_Framerate_WaitUntilQPC (
-          SK_QueryPerf ().QuadPart +
-            static_cast <LONGLONG> (
-              static_cast <double> (pLimiter->get_ticks_per_frame ()) *
-                            offset ), hTimer
-        );
-      }
-
-      lastLastFrameLate = lastFrameLate;
-    }
-#endif
-
     return ret;
   }
 
@@ -271,55 +221,6 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
       SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
     }
 
-#if 0
-    if (rb.api == SK_RenderAPI::D3D12 && pLimiter->get_limit () > 0.0f)
-    {
-      static float offset = 0.0f;
-
-      extern float SK_LatentSyncAlpha            ;
-      extern float SK_LatentSyncDeltaMultiplier  ;
-      extern float SK_LatentSyncBackOffMultiplier;
-
-      static bool lastLastFrameLate = false;
-      extern bool
-            SK_ImGui_D3D12_IsLastFrameComplete (void);
-      bool lastFrameLate = ! SK_ImGui_D3D12_IsLastFrameComplete ();
-      if ( lastFrameLate)
-      {
-        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier;
-
-        offset =
-          SK_LatentSyncAlpha * offset + (1.0f - SK_LatentSyncAlpha) * delta;
-
-        offset =
-          std::min (0.075f, offset);
-      }
-
-      else if (offset > 0.0f)
-      {
-        float delta = (float)pLimiter->effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
-
-        offset =
-          std::max (0.0f, SK_LatentSyncAlpha * offset - (1.0f - SK_LatentSyncAlpha) * delta);
-      }
-
-      if (offset > 0.0f && pLimiter->effective_frametime () > 0.0f)
-      {
-        //SK_LOGi0 (L"Lastg Frame not complete, delaying %2.3f%% of a frame", 100.0f * offset);
-
-        static HANDLE hTimer = (HANDLE)-1;
-
-        SK_Framerate_WaitUntilQPC (
-          SK_QueryPerf ().QuadPart +
-            static_cast <LONGLONG> (
-              static_cast <double> (pLimiter->get_ticks_per_frame ()) *
-                            offset ), hTimer
-        );
-      }
-
-      lastLastFrameLate = lastFrameLate;
-    }
-#endif
 
     return ret;
   }
@@ -1614,7 +1515,15 @@ NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sle
       }
     }
 
-  const auto reflex_interval_us =
+    // Having Low Latency Mode enabled will cause native pacing to run at unlimited
+    //   framerate... NV's drivers are stupendously messed up after ~581.94
+    if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
+    {
+      sleepModeParams->bLowLatencyMode  = false;
+      sleepModeParams->bLowLatencyBoost = false;
+    }
+
+    const auto reflex_interval_us =
       SK_Reflex_CalculateSleepMinIntervalForVulkan (sleepModeParams->bLowLatencyMode);
 
     sleepModeParams->minimumIntervalUs =
@@ -1637,6 +1546,12 @@ NvLL_VK_SetLatencyMarker_Detour (VkDevice vkDevice, NVLL_VK_LATENCY_MARKER_PARAM
 
   if (pSetLatencyMarkerParams != nullptr)
   {
+    if ( pSetLatencyMarkerParams != nullptr  &&
+         pSetLatencyMarkerParams->markerType == VK_SIMULATION_START )
+    {
+      SK_Reflex_LastFrameId = pSetLatencyMarkerParams->frameID;
+    }
+
     // The game's frameID, SK has a different running counter...
     SK_VK_Reflex.last_frame = pSetLatencyMarkerParams->frameID;
   }
@@ -1657,6 +1572,40 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
   {
     NvLL_VK_SetSleepMode_Detour (device, &SK_NVLL_LastSleepParams);
   }
+
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
+  {
+    auto pLimiter =
+      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
+
+    static UINT64
+        lastSleepFrameId = MAXUINT64;
+    if (lastSleepFrameId != ReadULong64Acquire (&SK_Reflex_LastFrameId))
+    {   lastSleepFrameId  = ReadULong64Acquire (&SK_Reflex_LastFrameId);
+      if (pLimiter != nullptr)
+          pLimiter->wait ();
+    }
+
+    NvLL_VK_Status ret = NVLL_VK_OK;
+
+    //if (config.render.framerate.streamline.pacing_mode >= 3)
+    {
+      ret =
+        NvLL_VK_Sleep_Original (device, signalValue);
+    }
+
+    SK_Reflex_SkipLowLatencyFrameTick =
+      SK_Reflex_LastNativeSleepFrame;
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    auto                                tNow = SK_QueryPerf ();
+    SK::Framerate::TickEx (false, -1.0, tNow, rb.swapchain.p);
+
+    return ret;
+  }
+
 
   auto ret =
     NvLL_VK_Sleep_Original (device, signalValue);
@@ -1908,6 +1857,23 @@ SK_RenderBackend_V2::vk_reflex_s::needsFallbackSleep (void) const
 UINT
 SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
 {
+  if (config.render.framerate.streamline.wantNativePacing ())
+  {
+    extern float
+        __target_fps_now;
+    if (__target_fps_now > 0.0f)
+    {
+      config.render.framerate.streamline.target_fps =
+                                      (__target_fps_now / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.01f);
+    }
+
+    else
+    {
+      config.render.framerate.streamline.target_fps =
+        -abs (config.render.framerate.streamline.target_fps);
+    }
+  }
+
   UINT reflex_interval = 0UL;
 
   const auto& rb =
@@ -1942,17 +1908,30 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
     UINT interval =
       (UINT)(round (1000000.0 / __target_fps_now)) + ( __SK_ForceDLSSGPacing ? 6 : 0 );
 
+    static bool bIsBrokenDriver =
+      _wtof (sk::NVAPI::GetDriverVersion ().c_str ()) <= 581.94;
+
     // Vulkan Reflex is too primitive to perform this on its own, so we need to
     //   pre-adjust the limit.
     if (__SK_IsDLSSGActive)
-      interval *= (__SK_DLSSGMultiFrameCount + 1);
+    {
+      if (bIsBrokenDriver)
+      {
+        interval *= (__SK_DLSSGMultiFrameCount + 1);
+      }
+
+      else
+      {
+        reflex_interval = 0;
+      }
+    }
 
     reflex_interval =
       reflex_interval == 0 ?           interval
                            : std::max (interval, reflex_interval);
   }
 
-  // Throw away any intervals > 100 ms, parameters are suspect.
+  //// Throw away any intervals > 100 ms, parameters are suspect.
   if (reflex_interval > 100000)
       reflex_interval = 0;
 

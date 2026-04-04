@@ -2084,17 +2084,17 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       NvAPI_Disp_GetDitherControl =
         (NvAPI_Disp_GetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_GetDitherControl);
 
-      if (NvAPI_GPU_GetRamType == nullptr) {
+      if (NvAPI_GPU_GetRamType == nullptr && !config.compatibility.using_wine) {
         dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");
         nv_hardware = false;
       }
 
-      if (NvAPI_GPU_GetFBWidthAndLocation == nullptr) {
+      if (NvAPI_GPU_GetFBWidthAndLocation == nullptr && !config.compatibility.using_wine) {
         dll_log->LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
         nv_hardware = false;
       }
 
-      if (NvAPI_GPU_GetPCIEInfo == nullptr) {
+      if (NvAPI_GPU_GetPCIEInfo == nullptr && !config.compatibility.using_wine) {
         dll_log->LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
         nv_hardware = false;
       }
@@ -3053,6 +3053,10 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
 
 BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 {
+  // This is completely undefined on Linux, there is no real DXGI to interop with :)
+  if (config.compatibility.using_wine)
+    return true;
+
 #define OGL_DX_PRESENT_DEBUG_ID       0x20324987
 #define DISABLE_FULLSCREEN_OPT        0x00000001
 #define ENABLE_DFLIP_ALWAYS           0x00000004

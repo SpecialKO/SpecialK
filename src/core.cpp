@@ -275,19 +275,6 @@ SK_LoadGPUVendorAPIs (void)
     dll_log->LogEx (false, L"================================================"
                            L"===========================================\n" );
 
-    // None of the GPU vendor-specific APIs work in WINE.
-    //
-    if (config.compatibility.using_wine)
-    {
-#ifdef THREADED_VENDOR_API_INIT
-      SK_Thread_CloseSelf ();
-
-      return 0;
-#else
-      return;
-#endif
-    }
-
     dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API           (NvAPI)...");
 
     SK_NvAPI_SetAppName         (       SK_GetFullyQualifiedApp () );
@@ -304,7 +291,7 @@ SK_LoadGPUVendorAPIs (void)
 
     if (nvapi_init)
     {
-      if (config.apis.NvAPI.vulkan_bridge != SK_NoPreference)
+      if (config.apis.NvAPI.vulkan_bridge != SK_NoPreference && !config.compatibility.using_wine)
       {
         SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
       }

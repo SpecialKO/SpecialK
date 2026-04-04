@@ -1161,7 +1161,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
       else
       {
         ImGui::TextUnformatted (
-          "SteamOS  (Presentation Model Undefined)"
+          "Linux/Proton  (Presentation Model Undefined)"
         );
       }
     }
