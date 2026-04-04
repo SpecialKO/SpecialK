@@ -1,4 +1,22 @@
-﻿26.4.3.1
+﻿26.4.4
+======
+ + Added support for fake NVAPI on Linux for NV users running through Proton.
+    * Enables native Reflex features and Reflex injection in D3D11 and D3D12.
+ + Refactored Vulkan hooks to integrate custom dispatch tables and eventually
+     add support for Reflex functionality in DXVK (D3D9) and emulators.
+ + Enable DLSS Frame Generation native pacing when running in Wine.
+ + Changed the Presentation Model Undefined text when running in Wine to stop
+     referring to the Proton quagmire of broken APIs as "SteamOS."
+
+ + Added warning if attempting to use RenoDX in Crimson Desert without deleting
+     the incompatible MSVC runtime DLLs that come with the game.
+
+ - DOOM: The Dark Ages is known to have broken Reflex at the driver-level on
+     drivers newer than ~581.94, leading to half-framerate when frame gen is
+       enabled; use an older driver or disable SK's limiter in this game.
+   * VK/DXGI interop is also broken in the game if the display is HDR-enabled.
+
+26.4.3.1
 ========
  + Ensure SK's framerate limiter only attempts to flush D3D11 immediate context
      if it is running on the same thread as the SwapChain, because it would

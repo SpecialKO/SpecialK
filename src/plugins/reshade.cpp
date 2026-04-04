@@ -1471,6 +1471,19 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
             if (StrStrIW (path.wstring ().c_str (), L"renodx"))
             {
               has_renodx = true;
+
+              if (PathFileExistsW (L"msvcp140.dll"))
+              {
+                if (StrStrW (SK_GetDLLVersionStr (L"msvcp140.dll").c_str (),
+                                                  L"14.22.27821.0 built by: vcwrkspc") != nullptr)
+                {
+                  SK_MessageBox (
+                    L"RenoDX is not compatible with the version of the Microsoft Visual C++ Redistributable that ships with this game.\n\n"
+                    L"Remove the DLL (msvcp140.dll) from the game directory or uninstall RenoDX to resolve crashing.",
+                    L"Incompatible DLLs: RenoDX vs. MSVC Runtime",  MB_OK | MB_ICONHAND
+                  );
+                }
+              }
             }
 
             //dll_log->LogEx (false, L"success!\n");
