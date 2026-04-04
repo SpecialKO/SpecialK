@@ -2444,16 +2444,16 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::SameLine        ();
           ImGui::BeginGroup      ();
         //ImGui::TextUnformatted ("  Default NVIDIA Streamline Behavior");
-          ImGui::TextUnformatted ("  Favor Smoothness Over Latency");
-          ImGui::TextUnformatted ("  Enable Driver-level Latency Reduction");
-          ImGui::TextUnformatted ("  Enable Reflex Framerate Limiter");
+          ImGui::TextUnformatted ("  Favors Smoothness Over Latency ");
+          ImGui::TextUnformatted ("  Enables Driver-level Latency Reduction ");
+          ImGui::TextUnformatted ("  Enables Reflex Framerate Limiter ");
           ImGui::EndGroup        ();
           ImGui::SameLine        ();
           ImGui::BeginGroup      ();
         //ImGui::TextUnformatted ("");
-          ImGui::TextUnformatted ("Adds latency if GPU load exceeds ~96%; use a more conservative limit for best results.");
+          ImGui::TextUnformatted ("  Adds latency if GPU load exceeds ~96%; use a more conservative limit for best results.");
           ImGui::TextUnformatted ("");
-          ImGui::TextUnformatted ("Lowest latency; may can cause stutter in some games.");
+          ImGui::TextUnformatted ("  Lowest latency (but standard native Reflex behavior); may cause stutter in some games.");
           ImGui::EndGroup        ();
           ImGui::EndTooltip      ();
         }
