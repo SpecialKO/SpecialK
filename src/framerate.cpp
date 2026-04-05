@@ -4473,6 +4473,9 @@ SK::Framerate::TickEx ( bool     /*wait*/,
                         LARGE_INTEGER now,
                         IUnknown*     swapchain )
 {
+  if (__SK_IsDLSSGActive && config.nvidia.reflex.vulkan && dt != -1.0)
+    return;
+
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
 
@@ -4516,24 +4519,8 @@ SK::Framerate::TickEx ( bool     /*wait*/,
         now
     );
 
-    static ULONG64 last_frame         = 0;
-    bool           skip_frame_history = false;
-
-    if (last_frame < SK_GetFramesDrawn () - 1)
-    {
-      if (! (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()))
-      {
-        skip_frame_history = true;
-      }
-    }
-
-    if (std::exchange (last_frame, SK_GetFramesDrawn ())
-                                != SK_GetFramesDrawn () || (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()))
-    {
-      if (!   (reset_frame_history ||
-                skip_frame_history) ) SK_ImGui_Frames->timeFrame (dt);
-      else if (reset_frame_history)   SK_ImGui_Frames->reset     (  );
-    }
+    if (! reset_frame_history) SK_ImGui_Frames->timeFrame (dt);
+    else                       SK_ImGui_Frames->reset     (  );
   }
 
   static constexpr int _NUM_STATS = 5;
@@ -4629,7 +4616,7 @@ SK::Framerate::TickEx ( bool     /*wait*/,
 int sk_config_t::fps_osd_s::getTimingMethod (void)
 {
   if (__SK_IsDLSSGActive)
-  {
+  {      
     if (config.render.framerate.streamline.enable_native_limit)
     {
       if (__target_fps_now <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
@@ -4660,7 +4647,7 @@ bool sk_config_t::render_s::framerate_s::streamline_s::wantNativePacing (void)
   }
 
   return enable_native_limit;
-}
+}                               
 
 extern NvU32 SK_Reflex_LastNativeSleepTime;
 

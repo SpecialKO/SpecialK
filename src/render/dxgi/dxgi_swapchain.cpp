@@ -1172,23 +1172,22 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
       static LONGLONG next_frame = 0;
 
       auto *pLimiter =
-        SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain);
+        SK::Framerate::GetLimiter ((IUnknown *)-1);
+
       if (pLimiter != nullptr)
       {
-        next_frame = pLimiter->get_next_tick ();
+        WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, INFINITE);
+        pLimiter->standalone = true;
+        pLimiter->set_limit (__target_fps_now);
+        pLimiter->align_to  (SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain));
+        pLimiter->wait      (                );
       }
-
-      //DWORD dwTimeStart = SK_timeGetTime ();
-
-      void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
-           SK_Framerate_WaitUntilQPC (next_frame, hTimer);
-
-      //SK_LOGi0 (L"Waited %d msecs on Unity Game Thread...", SK_timeGetTime () - dwTimeStart);
 
       // Unity doesn't need to see this, give it fake data...
       //   the actual reliability of the frame stats is much lower
       //     than Unity believes and they are better off with an error :)
       auto ret = E_ACCESSDENIED;
+
       //auto ret =
       //  pReal->GetFrameStatistics (pStats);
 
@@ -1642,6 +1641,15 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
         metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
         metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
       );
+
+      if (config.compatibility.disable_dx12_vk_interop && !__SK_HDR_UserForced)
+      {
+        SK_LOGi0 (L"Turning on HDR10 for Vk Interop SwapChain...");
+
+        __SK_HDR_10BitSwap = true;
+
+        SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+      }
     }
 
     if (config.render.dxgi.hdr_metadata_override == -1)

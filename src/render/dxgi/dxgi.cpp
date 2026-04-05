@@ -9392,7 +9392,7 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   return hr;
 }
 
-static thread_local bool SK_DXGI_InSetColorSpace1Wrapoper = false;
+static thread_local bool SK_DXGI_InSetColorSpace1Wrapper = false;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -9403,18 +9403,18 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   void                  *pCaller  = nullptr
 )
 {
-  if (SK_DXGI_InSetColorSpace1Wrapoper && !bWrapped)
-  {
-    return
-      IDXGISwapChain3_SetColorSpace1_Original
-           (pSwapChain3, ColorSpace);
-  }
+  //if (SK_DXGI_InSetColorSpace1Wrapper && !bWrapped)
+  //{
+  //  return
+  //    IDXGISwapChain3_SetColorSpace1_Original
+  //         (pSwapChain3, ColorSpace);
+  //}
 
   // This seems to be called recursively, best to keep an eye on it
   SK_PROFILE_SCOPED_TASK (SK_DXGISwap3_SetColorSpace1_Impl)
 
-  if (bWrapped)
-    SK_DXGI_InSetColorSpace1Wrapoper = true;
+  //if (bWrapped)
+  //  SK_DXGI_InSetColorSpace1Wrapper = true;
 
   const auto RequestedColorSpace = ColorSpace;
 
@@ -9618,7 +9618,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     hr = S_OK;
   }
 
-  SK_DXGI_InSetColorSpace1Wrapoper = false;
+  //SK_DXGI_InSetColorSpace1Wrapper = false;
 
   return hr;
 }

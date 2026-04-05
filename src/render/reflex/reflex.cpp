@@ -1573,26 +1573,40 @@ NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue)
     NvLL_VK_SetSleepMode_Detour (device, &SK_NVLL_LastSleepParams);
   }
 
-  if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
+  if (__SK_IsDLSSGActive)// && config.render.framerate.streamline.wantNativePacing ())
   {
+  ////config.render.framerate.streamline.enable_native_limit = true;
+
     auto pLimiter =
-      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
+      SK::Framerate::GetLimiter ((IUnknown *)-1);
 
     static UINT64
         lastSleepFrameId = MAXUINT64;
     if (lastSleepFrameId != ReadULong64Acquire (&SK_Reflex_LastFrameId))
     {   lastSleepFrameId  = ReadULong64Acquire (&SK_Reflex_LastFrameId);
-      if (pLimiter != nullptr)
+      extern float
+          __target_fps_now;
+      if (__target_fps_now > 0.0f)
+      {
+        config.render.framerate.streamline.target_fps =
+                                        (__target_fps_now / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.01f);
+      }
+
+      else
+      {
+        config.render.framerate.streamline.target_fps =
+          -abs (config.render.framerate.streamline.target_fps);
+      }
+
+      if (pLimiter != nullptr) {
+          pLimiter->standalone = true;
+          pLimiter->set_limit (config.render.framerate.streamline.target_fps);
           pLimiter->wait ();
+      }
     }
 
-    NvLL_VK_Status ret = NVLL_VK_OK;
-
-    //if (config.render.framerate.streamline.pacing_mode >= 3)
-    {
-      ret =
-        NvLL_VK_Sleep_Original (device, signalValue);
-    }
+    NvLL_VK_Status ret =
+      NvLL_VK_Sleep_Original (device, signalValue);
 
     SK_Reflex_SkipLowLatencyFrameTick =
       SK_Reflex_LastNativeSleepFrame;
