@@ -2294,10 +2294,11 @@ bool SK_D3D12_RenderCtx_IsHDRCompatible (ID3D12GraphicsCommandList* pCommandList
   // Unsafe to use HDR + ReShade + Streamline
   if (SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.reshade.is_addon)
   {
-    SK_LOGi0 (L"ReShade + HDR + Streamline Detected - Disabling HDR Support for Compatibility");
-
-    bSupported = FALSE;
-    return false;
+    if (config.reshade.draw_first)
+    {
+      SK_LOGi0 (L"ReShade + HDR + Streamline Detected - ReShade DrawFirst Disabled");
+      config.reshade.draw_first = false;
+    }
   }
 
   // This may crash in some combinations of ReShade + Streamline + SK + Agility and debugging it
@@ -2553,10 +2554,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
         //
         // Pulling the rug out from underneath things is a bad idea in DLSS3
         //   games, so stall all queued frames before proceeding.
-        // 
+        //
         // Streamline has a second queue on its fake SwapChain, that SK cannot
         //   properly synchronize other than draining the entire queue.
-        //  
+        //
         drain_queue ();
       }
 
