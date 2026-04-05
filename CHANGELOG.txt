@@ -1,4 +1,9 @@
-﻿26.4.4
+﻿26.4.5
+======
+ + Fixed previous Reflex and HDR-related issues in DOOM: The Dark Ages.
+ + Removed RenoDX warning for Crimson Desert; statically linking fixes the mod.
+
+26.4.4
 ======
  + Added support for fake NVAPI on Linux for NV users running through Proton.
     * Enables native Reflex features and Reflex injection in D3D11 and D3D12.

@@ -1168,6 +1168,7 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
           SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
       );
 
+#if 0
       static HANDLE   hTimer     = 0;
       static LONGLONG next_frame = 0;
 
@@ -1176,12 +1177,12 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 
       if (pLimiter != nullptr)
       {
-        WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, INFINITE);
+      //WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, INFINITE);
         pLimiter->standalone = true;
         pLimiter->set_limit (__target_fps_now);
-        pLimiter->align_to  (SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain));
         pLimiter->wait      (                );
       }
+#endif
 
       // Unity doesn't need to see this, give it fake data...
       //   the actual reliability of the frame stats is much lower
