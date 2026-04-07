@@ -660,23 +660,7 @@ SK_AKEF_GetExistingEndfieldPids (void)
   Global Variables and Plugin Settings (Hooks, CodePatches, etc.)
 */
 
-// Update the struct-layout if reflex.cpp is updated
-extern struct SK_VK_REFLEX {
-  VkDevice       device;
-  VkSwapchainKHR swapchain;
-  uint64_t       last_frame;
-  VkSemaphore    NvLL_semaphore;
-};
-
-extern struct NVLL_VK_SET_SLEEP_MODE_PARAMS {
-  bool     bLowLatencyMode;
-  bool     bLowLatencyBoost;
-  uint32_t minimumIntervalUs;
-};
-
-extern DWORD NvLL_VK_SetSleepMode_Detour (VkDevice device, NVLL_VK_SET_SLEEP_MODE_PARAMS* sleepModeParams);
-extern SK_VK_REFLEX SK_VK_Reflex;
-extern NVLL_VK_SET_SLEEP_MODE_PARAMS SK_NVLL_LastSleepParams;
+extern DWORD NvLL_VK_Sleep_Detour (VkDevice device, uint64_t signalValue);
 extern PFN_vkWaitSemaphores vkWaitSemaphores_SK = nullptr;
 
 bool  __g_SK_AKEF_KeepOriginalSwapchain = false;
@@ -838,11 +822,11 @@ namespace SK::ArknightsEndfield
     }
 
     __forceinline int __fastcall
-    NvLL_VK_Sleep (const NvLL_VK_Sleep_pfn NvLL_VK_Sleep_Original, NvLowLatencyVk* nvLowLatencyVk)
+    NvLL_VK_Sleep (NvLowLatencyVk* nvLowLatencyVk)
     {
       ++nvLowLatencyVk->reflexSemaphoreValue;
 
-      const int ret = NvLL_VK_Sleep_Original (nvLowLatencyVk->device, nvLowLatencyVk->reflexSemaphoreValue);
+      const int ret = NvLL_VK_Sleep_Detour (nvLowLatencyVk->device, nvLowLatencyVk->reflexSemaphoreValue);
 
       if (ret == 0)
       {
@@ -858,15 +842,8 @@ namespace SK::ArknightsEndfield
         const auto result = vkWaitSemaphores_SK (nvLowLatencyVk->device, &waitInfo, 500000000);
         if (result == VK_TIMEOUT)
         {
+          SK_LOGi0 (L"Timeout while waiting (500 ms) for Reflex semaphore.");
           config.nvidia.reflex.use_limiter = false;
-        }
-        else if (result == VK_SUCCESS)
-        {
-          auto& rb =
-            SK_GetCurrentRenderBackend ();
-
-          if (config.render.framerate.enforcement_policy == 2 && rb.vulkan_reflex.isPacingEligible ())
-            SK::Framerate::Tick (true, 0.0, { 0,0 }, rb.swapchain.p);         
         }
       }
       return ret;
@@ -876,49 +853,14 @@ namespace SK::ArknightsEndfield
     slCommon_ReflexSleep_Detour (NvLowLatencyVk* nvLowLatencyVk)
     {
       SK_LOG_FIRST_CALL
-
-      SK_VK_Reflex.device = nvLowLatencyVk->device;
-      if (config.nvidia.reflex.override || __SK_ForceDLSSGPacing)
-        NvLL_VK_SetSleepMode_Detour (nvLowLatencyVk->device, &SK_NVLL_LastSleepParams);
-      
-      static NvLL_VK_Sleep_pfn NvLL_VK_Sleep_Original = nullptr;
-      if (NvLL_VK_Sleep_Original == nullptr)
-      {
-        if (nvLowLatencyVk->m_hmodReflex != nullptr)
-        {
-          NvLL_VK_Sleep_Original = reinterpret_cast <NvLL_VK_Sleep_pfn> (
-            SK_GetProcAddress (nvLowLatencyVk->m_hmodReflex, "NvLL_VK_Sleep"));
-
-          if (NvLL_VK_Sleep_Original == nullptr)
-            return slCommon_ReflexSleep_Hook.call<int> (nvLowLatencyVk);
-        }
-      }
-
-      return NvLL_VK_Sleep (NvLL_VK_Sleep_Original, nvLowLatencyVk);
+      return NvLL_VK_Sleep (nvLowLatencyVk);
     }
 
     static int __fastcall
     slCommon_ReflexSleep_OTA_Detour (NvLowLatencyVk* nvLowLatencyVk)
     {
       SK_LOG_FIRST_CALL
-
-      if (config.nvidia.reflex.override || __SK_ForceDLSSGPacing)
-          NvLL_VK_SetSleepMode_Detour (nvLowLatencyVk->device, &SK_NVLL_LastSleepParams);
-
-        static NvLL_VK_Sleep_pfn NvLL_VK_Sleep_Original = nullptr;
-      if (NvLL_VK_Sleep_Original == nullptr)
-      {
-        if (nvLowLatencyVk->m_hmodReflex != nullptr)
-        {
-          NvLL_VK_Sleep_Original = reinterpret_cast <NvLL_VK_Sleep_pfn> (
-            SK_GetProcAddress (nvLowLatencyVk->m_hmodReflex, "NvLL_VK_Sleep"));
-
-          if (NvLL_VK_Sleep_Original == nullptr)
-            return slCommon_ReflexSleep_OTA_Hook.call<int> (nvLowLatencyVk);
-        }
-      }
-
-      return NvLL_VK_Sleep (NvLL_VK_Sleep_Original, nvLowLatencyVk);
+      return NvLL_VK_Sleep (nvLowLatencyVk);
     }
   }
 
