@@ -1,4 +1,10 @@
-﻿26.4.5
+﻿26.4.8
+======
+ + Add safeguards in Streamline games with late injection to use pacer.cmdQueue
+ + Add logging for delayed global injection.
+ + Do not enable Vulkan Bridge in games running through Proton.
+
+26.4.5
 ======
  + Fixed previous Reflex and HDR-related issues in DOOM: The Dark Ages.
  + Removed RenoDX warning for Crimson Desert; statically linking fixes the mod.

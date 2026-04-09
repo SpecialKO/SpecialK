@@ -3055,7 +3055,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 {
   // This is completely undefined on Linux, there is no real DXGI to interop with :)
   if (config.compatibility.using_wine)
-    return true;
+    return !bEnable;
 
 #define OGL_DX_PRESENT_DEBUG_ID       0x20324987
 #define DISABLE_FULLSCREEN_OPT        0x00000001
