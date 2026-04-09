@@ -24,6 +24,11 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"   Core   "
+
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -2108,6 +2113,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return true;
   }
 
+
+  if (SK_Inject_GetInjectionDelayInSeconds () > 0.0f) {
+    SK_LOGi0 ( L"Injection delayed %.2f seconds...",
+      SK_Inject_GetInjectionDelayInSeconds () );
+  }
 
   budget_log->init ( LR"(logs\dxgi_budget.log)", L"wc+,ccs=UTF-8" );
 
