@@ -1,4 +1,8 @@
-﻿26.4.8
+﻿26.4.8.1
+========
+ + Disable non-compatibility mode ReShade plug-ins for late injection (D3D12).
+
+26.4.8
 ======
  + Add safeguards in Streamline games with late injection to use pacer.cmdQueue
  + Add logging for delayed global injection.

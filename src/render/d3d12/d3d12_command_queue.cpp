@@ -94,9 +94,11 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
            (StrStrIA (name.c_str (), "3D Queue (GPU") != nullptr);
 
       // When Streamline is involved, we -DO NOT- want 3D Queue (GPU x)...
-      if (bIsStreamline && sk::NVAPI::nv_hardware)
-          compatible_name = !compatible_name && StrStrIA (name.c_str (), "pacer.cmdQueue");
-      if (compatible_name)
+      if (bIsStreamline && sk::NVAPI::nv_hardware) {
+            compatible_name = !compatible_name && StrStrIA (name.c_str (), "pacer.cmdQueue");
+        if (compatible_name && !config.reshade.is_addon_hookless)
+                                config.reshade.is_addon = false; // Cannot safely do this for late injection
+      } if (compatible_name)
       {
         SK_ComPtr <ID3D12Device>   pDevice;
         SK_ComPtr <IDXGISwapChain> pSwapChain;
