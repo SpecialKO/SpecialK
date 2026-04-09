@@ -95,7 +95,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
       // When Streamline is involved, we -DO NOT- want 3D Queue (GPU x)...
       if (bIsStreamline && sk::NVAPI::nv_hardware)
-          compatible_name = !compatible_name;
+          compatible_name = !compatible_name && StrStrIA (name.c_str (), "pacer.cmdQueue");
       if (compatible_name)
       {
         SK_ComPtr <ID3D12Device>   pDevice;
