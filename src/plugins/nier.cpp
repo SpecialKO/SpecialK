@@ -101,6 +101,7 @@ struct far_game_state_s
                            return ( pHacking   != nullptr && (*pHacking   & 0x2) != 0 );
     }
   bool isShorting (void) { return ( pShortcuts != nullptr && (*pShortcuts & 0x1) != 0 ); }
+  bool needFPSCap2(void) { return ( isInMenu() || isLoading() || isHacking() || isShorting() ); }
 
   bool needFPSCap (void) {
     if (! patchable)
@@ -2352,6 +2353,10 @@ SK_FAR_PlugInCfg (void)
       bool remove_cap = far_uncap_fps->get_value ();
 
 #ifdef WORKING_FPS_UNCAP
+
+      if (game_state.needFPSCap2())
+        ImGui::BeginDisabled();
+
       if (ImGui::Checkbox ("Remove 60 FPS Cap  ", &remove_cap))
       {
         changed = true;
@@ -2366,11 +2371,27 @@ SK_FAR_PlugInCfg (void)
         }
       }
 
-      if (ImGui::IsItemHovered ())
+      if (game_state.needFPSCap2())
+      {
+        ImGui::EndDisabled();
+      }
+
+      if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
       {
         ImGui::BeginTooltip  ();
-        ImGui::Text          ("Can be toggled with "); ImGui::SameLine ();
-        ImGui::TextColored   (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
+
+        if (game_state.needFPSCap2())
+        {
+          ImGui::Text        ("An FPS cap is currently being enforced for compatibility reasons.");
+          ImGui::Text        ("The setting will be made available in-game during regular gameplay.");
+        }
+
+        else
+        {
+          ImGui::Text          ("Can be toggled with "); ImGui::SameLine ();
+          ImGui::TextColored   (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
+        }
+        
         ImGui::Separator     ();
         ImGui::TreePush      ("");
 
