@@ -35,6 +35,8 @@
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+#include <imgui/font_awesome.h>
+
 
 
 #define FAR_VERSION_NUM L"0.10.3"
@@ -2355,7 +2357,13 @@ SK_FAR_PlugInCfg (void)
 #ifdef WORKING_FPS_UNCAP
 
       if (game_state.needFPSCap2())
-        ImGui::BeginDisabled();
+      {
+        ImGui::BeginGroup    ();
+        ImGui::TextColored   ( ImVec4 (1.f, 1.f, 0.f, 1.f),
+                               "  " ICON_FA_EXCLAMATION_TRIANGLE );
+        ImGui::SameLine      ();
+        ImGui::BeginDisabled ();
+      }
 
       if (ImGui::Checkbox ("Remove 60 FPS Cap  ", &remove_cap))
       {
@@ -2373,7 +2381,8 @@ SK_FAR_PlugInCfg (void)
 
       if (game_state.needFPSCap2())
       {
-        ImGui::EndDisabled();
+        ImGui::EndDisabled   ();
+        ImGui::EndGroup      ();
       }
 
       if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
