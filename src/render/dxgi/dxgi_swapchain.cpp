@@ -321,6 +321,26 @@ IWrapDXGISwapChain::Release (void)
   //
   if (xrefs == 0)
   {
+    auto _ClearCachedViews = [&](void)
+    {
+      for (     auto& rtv : _backbuffer_rtvs)
+        if (auto orig_rtv = std::exchange (rtv.second, nullptr);
+                 orig_rtv != nullptr)
+                 orig_rtv->Release ();
+
+      for (     auto& srv : _backbuffer_srvs)
+        if (auto orig_srv = std::exchange (srv.second, nullptr);
+                 orig_srv != nullptr)
+                 orig_srv->Release ();
+
+      _backbuffer_rtvs.clear ();
+      _backbuffer_srvs.clear ();
+    };
+
+    // Clear the persistent caches used for backbuffer proxying,
+    //   otherwise reference counts would not match up.
+    _ClearCachedViews ();
+
     // We're going to make this available for recycling
     if (hWnd_ != 0)
     {
@@ -1646,6 +1666,13 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
       if (config.compatibility.disable_dx12_vk_interop && !__SK_HDR_UserForced)
       {
         SK_LOGi0 (L"Turning on HDR10 for Vk Interop SwapChain...");
+
+        auto       desc = DXGI_SWAP_CHAIN_DESC1 {};
+        GetDesc1 (&desc);
+
+        // This should be for HDR10, not scRGB...
+        SK_ReleaseAssert (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+                          desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM);
 
         __SK_HDR_10BitSwap = true;
 

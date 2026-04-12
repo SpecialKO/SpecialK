@@ -6359,6 +6359,8 @@ auto _PushInitialDWMColorSpace = [](IDXGISwapChain* pSwapChain, SK_RenderBackend
   }
 };
 
+IDXGISwapChain1* SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnknown* pDevice);
+
 IWrapDXGISwapChain*
 SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain  *pSwapChain,
@@ -6467,6 +6469,11 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
     // Stash the pointer to this device so that we can test equality on wrapped devices
     pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pNativeDev11.p != nullptr ? pNativeDev11.p : pDev11.p);
+
+    auto           desc = DXGI_SWAP_CHAIN_DESC {};
+    ret->GetDesc (&desc);
+
+    SK_DXGI_MakeCachedSwapChainForHwnd ((IDXGISwapChain1 *)ret, desc.OutputWindow, pDevice);
   }
 
   if (ret != nullptr)
@@ -6600,6 +6607,11 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
       SK_LOGs0 ( L"  D3D 11  ",
                  L"Active D3D11 Device Context Established on creation of new SwapChain" );
     }
+
+    auto           desc = DXGI_SWAP_CHAIN_DESC {};
+    ret->GetDesc (&desc);
+
+    SK_DXGI_MakeCachedSwapChainForHwnd ((IDXGISwapChain1 *)ret, desc.OutputWindow, pDevice);
   }
 
   if (ret != nullptr)
@@ -6945,6 +6957,8 @@ DXGIFactory_CreateSwapChain_Override (
   }
 
   DXGI_CALL ( ret, ret );
+
+  IDXGISwapChain1* SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnknown* pDevice);
 
   if ( SUCCEEDED (ret) )
   {
