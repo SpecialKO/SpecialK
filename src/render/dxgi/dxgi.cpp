@@ -470,10 +470,15 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
         SK_RunLHIfBitness (64, L"amdvlk64.dll",
                                L"amdvlk32.dll"));
 
-    if (! bIsAMD)
+    // Native scRGB, or 10-bpc SDR/HDR do not need this...
+    if (fmt_orig != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+        fmt_orig != DXGI_FORMAT_R10G10B10A2_UNORM)
     {
-      TenBitSwap                       = true;
-      config.render.output.force_10bpc = true;
+      if (! bIsAMD)
+      {
+        TenBitSwap                       = true;
+        config.render.output.force_10bpc = true;
+      }
     }
   }
 

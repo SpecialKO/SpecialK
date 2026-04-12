@@ -1665,18 +1665,29 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 
       if (config.compatibility.disable_dx12_vk_interop && !__SK_HDR_UserForced)
       {
-        SK_LOGi0 (L"Turning on HDR10 for Vk Interop SwapChain...");
-
         auto       desc = DXGI_SWAP_CHAIN_DESC1 {};
         GetDesc1 (&desc);
 
-        // This should be for HDR10, not scRGB...
-        SK_ReleaseAssert (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
-                          desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM);
+        if (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+            desc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
+        {
+          SK_LOGi0 (L"Turning on HDR10 for Vk Interop SwapChain...");
 
-        __SK_HDR_10BitSwap = true;
+          __SK_HDR_10BitSwap = true;
+          __SK_HDR_16BitSwap = false;
 
-        SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+          SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+        }
+
+        else
+        {
+          SK_LOGi0 (L"Turning on scRGB for Vk Interop SwapChain...");
+
+          __SK_HDR_16BitSwap = true;
+          __SK_HDR_10BitSwap = false;
+
+          SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+        }
       }
     }
 
