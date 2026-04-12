@@ -1211,9 +1211,22 @@ SK::ControlPanel::D3D11::Draw (void)
           {
             if (! (bIsAdaptiveVSync || bIsAdaptiveLatentSync) || bReflexLimiter)
             {
-              ImGui::Text       ("Enables True VSYNC -OFF- in Windowed Mode");
-              ImGui::Separator  ();
-              ImGui::BulletText ("Presentation Interval 0 will turn VSYNC off");
+              const bool bDLSS3OnVRRDisplay =
+                (__SK_IsDLSSGActive && rb.displays [rb.active_display].nvapi.vrr_enabled && config.render.framerate.present_interval != 0);
+
+              if (! bDLSS3OnVRRDisplay)
+              {
+                ImGui::Text       ("Enables True VSYNC -OFF- in Windowed Mode");
+                ImGui::Separator  ();
+                ImGui::BulletText ("Presentation Interval 0 will turn VSYNC off");
+              }
+
+              else
+              {
+                ImGui::Text       ("Setting Ignored (Frame Generation Enabled on a VRR Display)");
+                ImGui::Separator  ();
+                ImGui::BulletText ("FORCE VSYNC off (Present Interval 0) if you want obnoxious screen tearing.");
+              }
             }
             else
             {

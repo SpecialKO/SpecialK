@@ -1357,9 +1357,18 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       ) == SK_NoPreference
     );
 
+    bool        dlssg_changing = (__SK_IsDLSSGActive && config.render.framerate.present_interval != 0);
+    static bool last_dlssg     = false;
+
+    if (std::exchange (last_dlssg, __SK_IsDLSSGActive) != __SK_IsDLSSGActive)
+    {
+      dlssg_changing = true;
+    }
+
     // Re-populate the list if the current state changes
     if ( rb_interval_changed ||
          sk_interval_no_pref ||
+         dlssg_changing      ||
          vsync_list.empty () )
     {
       const char* current_no_override_state =
@@ -1369,6 +1378,12 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
         rb.present_interval == 3 ? "  1/3 (No VRR)\0" :
         rb.present_interval == 4 ? "  1/4 (No VRR)\0" :
                                    "  ??? (Invalid)\0";
+
+      if (__SK_IsDLSSGActive && rb.present_interval == 0 && config.render.framerate.present_interval != 0 &&
+                                rb.displays [rb.active_display].nvapi.vrr_enabled)
+      {
+        current_no_override_state = "  Forced ON (Frame Gen)\0";
+      }
 
       static constexpr char* no_override_label = "  No Override\0";
       static constexpr char  override_list []  =

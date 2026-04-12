@@ -2773,7 +2773,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     rb.displays [rb.active_display];
 
   const bool bDLSS3OnVRRDisplay =
-    (__SK_IsDLSSGActive && display.nvapi.vrr_enabled);
+    (__SK_IsDLSSGActive && display.nvapi.vrr_enabled && config.render.framerate.present_interval != 0);
 
   auto _Present = [&](UINT _SyncInterval,
                       UINT _Flags) ->

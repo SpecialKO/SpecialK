@@ -1,4 +1,10 @@
-﻿26.4.12.2
+﻿26.4.12.3
+=========
+ + Allow enabling screen tearing when using DLSS Frame Generation on VRR.
+    * You must select VSYNC Forced OFF from the Display menu; SK disables
+        tearing for framegen on VRR screens for obvious reasons.
+
+26.4.12.2
 =========
  + Log when HDR colorspace support is being hidden from games in calls to
      IDXGIOutput6::GetDesc1.
