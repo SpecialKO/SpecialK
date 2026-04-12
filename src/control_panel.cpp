@@ -4483,7 +4483,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         }
 
         bool bDisable =
-          ( config.apis.NvAPI.disable_hdr &&
+          ( config.apis.NvAPI.disable_hdr ||
             config.render.dxgi.hide_hdr_support );
 
         static bool bOriginal = bDisable;

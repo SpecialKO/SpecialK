@@ -1,4 +1,10 @@
-﻿26.4.12
+﻿26.4.12.1
+=========
+ + Show HDR as disabled in the control panel if NVAPI or DXGI HDR are disabled,
+     rather than BOTH having to be disabled.
+ + Added support for scRGB HDR in Vulkan.
+
+26.4.12
 =======
  + Fixed problem caused by 26.3.16.1 optimization of D3D11 Proxy BackBuffers,
      that was preventing native HDR from working in Vulkan games.
