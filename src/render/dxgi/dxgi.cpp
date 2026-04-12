@@ -9340,6 +9340,8 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   _In_  DXGI_COLOR_SPACE_TYPE  ColorSpace,
   _Out_ UINT                  *pColorSpaceSupported )
 {
+  SK_LOG_FIRST_CALL
+
   // Avoid log spam in some games that abuse this API
   static bool bSkipLogSpam =
     SK_GetCurrentRenderBackend ().windows.capcom;
@@ -9360,8 +9362,11 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   if (pColorSpaceSupported == nullptr)
     return DXGI_ERROR_INVALID_CALL;
 
+  std::wstring caller =
+    SK_GetCallerName ();
+
   // NVIDIA will fallback to a D3D11 SwapChain for interop if we tell it that a colorspace is unsupported.
-  if (config.compatibility.disable_dx12_vk_interop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv") || StrStrIW (SK_GetCallerName ().c_str (), L"vulkan-1"))
+  if (config.compatibility.disable_dx12_vk_interop || StrStrIW (caller.c_str (), L"nvoglv") || StrStrIW (caller.c_str (), L"vulkan-1"))
   {   config.compatibility.disable_dx12_vk_interop = true; // Set this so it will trigger even if called by something wrapping the SwapChain
     SK_ComPtr <ID3D11Device> pDevice11;
     if (FAILED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice11.p)))
@@ -9388,14 +9393,11 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   {
     if (config.render.dxgi.hide_hdr_support)
     {
-      if (SK_GetCallingDLL () != SK_GetDLL ())
+      if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+          ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
       {
-        if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
-            ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
-        {
-          *pColorSpaceSupported = 0x0;
-          return hr;
-        }
+        *pColorSpaceSupported = 0x0;
+        return hr;
       }
     }
 
@@ -9673,14 +9675,27 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
   HRESULT hr =
     IDXGIOutput6_GetDesc1_Original (This, pDesc);
 
-  if (config.render.dxgi.hide_hdr_support)
+  if (SUCCEEDED (hr) && pDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
   {
-    if (SK_GetCallingDLL () != SK_GetDLL ())
+    if (config.render.dxgi.hide_hdr_support && SK_GetCallingDLL () != SK_GetDLL ())
     {
-      if (SUCCEEDED (hr) && pDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
+      static bool silent = false;
+      static int
+            calls = 0;
+      if (++calls > 5 && std::exchange (silent, true) == false)
       {
-        pDesc->ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+        SK_LOGi0 (L"Excessive calls to IDXGIOutput6::GetDesc1, will not log future calls.");
       }
+
+      if (! silent)
+      {
+        SK_LOGi0 (
+          L"Hiding HDR support from game by reporting monitor's color space as "
+          L"sRGB."
+        );
+      }
+
+      pDesc->ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
     }
   }
 

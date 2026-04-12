@@ -1,4 +1,9 @@
-﻿26.4.12.1
+﻿26.4.12.2
+=========
+ + Log when HDR colorspace support is being hidden from games in calls to
+     IDXGIOutput6::GetDesc1.
+
+26.4.12.1
 =========
  + Show HDR as disabled in the control panel if NVAPI or DXGI HDR are disabled,
      rather than BOTH having to be disabled.
