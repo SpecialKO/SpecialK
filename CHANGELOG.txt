@@ -1,4 +1,10 @@
-﻿26.4.12.3
+﻿26.4.13
+=======
+ + Revert to old behavior for screen tearing when DLSS Frame Gen is active
+     on VRR; tearing is disabled whenever SK's limiter is enabled.
+   * Tooltips explaining this have been updated.
+
+26.4.12.3
 =========
  + Allow enabling screen tearing when using DLSS Frame Generation on VRR.
     * You must select VSYNC Forced OFF from the Display menu; SK disables

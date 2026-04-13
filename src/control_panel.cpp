@@ -1357,7 +1357,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       ) == SK_NoPreference
     );
 
-    bool        dlssg_changing = (__SK_IsDLSSGActive && config.render.framerate.present_interval != 0);
+    bool        dlssg_changing = (__SK_IsDLSSGActive && config.render.framerate.present_interval != 0 && __target_fps_now > 0.0f);
     static bool last_dlssg     = false;
 
     if (std::exchange (last_dlssg, __SK_IsDLSSGActive) != __SK_IsDLSSGActive)
@@ -1380,9 +1380,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
                                    "  ??? (Invalid)\0";
 
       if (__SK_IsDLSSGActive && rb.present_interval == 0 && config.render.framerate.present_interval != 0 &&
-                                rb.displays [rb.active_display].nvapi.vrr_enabled)
+                                rb.displays [rb.active_display].nvapi.vrr_enabled && __target_fps_now > 0.0f)
       {
-        current_no_override_state = "  Forced ON (Frame Gen)\0";
+        current_no_override_state = "  Forced ON (FG Pacing)\0";
       }
 
       static constexpr char* no_override_label = "  No Override\0";
