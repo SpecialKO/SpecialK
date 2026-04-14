@@ -218,8 +218,10 @@ NVSDK_NGX_VULKAN_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
 
-  NVSDK_NGX_Result ret =
-    NVSDK_NGX_VULKAN_DestroyParameters_Original (InParameters);
+  NVSDK_NGX_Result ret = NVSDK_NGX_Result_Success;
+
+  // Let it leak to maintain lock-free operation elsewhere.
+  //NVSDK_NGX_VULKAN_DestroyParameters_Original (InParameters);
 
   if (NVSDK_NGX_SUCCEED (ret))
   {
