@@ -1254,9 +1254,6 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
   if (! dll)
     return;
 
-  static std::recursive_mutex establish_dlss_version_mutex;
-  std::lock_guard           _(establish_dlss_version_mutex);
-
   auto version =
     SK_DLSS_Context::dlss_s::Version;
 
@@ -1284,7 +1281,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlss_s::Version.isOlderThan (version))
     {
-      SK_LOGi0 (L"New DLSS Version String (%ws): %ws", wszDLSS,
+      SK_LOGi1 (L"New DLSS Version String (%ws): %ws", wszDLSS,
                                ver_str.c_str ());
 
       if (SK_DLSS_Context::dlss_s::Version.major != 0)
@@ -1298,7 +1295,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 
     else if (! SK_DLSS_Context::dlss_s::Version.isEqualTo (version))
     {
-      SK_LOGi0 (L"Old DLSS Version String (%ws): %ws", wszDLSS,
+      SK_LOGi1 (L"Old DLSS Version String (%ws): %ws", wszDLSS,
                                ver_str.c_str ());
 
       if (! bIsDriverOverride)
@@ -1340,10 +1337,6 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
 
   if (! dll)
     return;
-
-  static std::recursive_mutex establish_dlssd_version_mutex;
-  std::lock_guard           _(establish_dlssd_version_mutex);
-
 
   auto version =
     SK_DLSS_Context::dlssd_s::Version;
@@ -1417,9 +1410,6 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
   if (! dll)
     return;
 
-  static std::recursive_mutex establish_dlssg_version_mutex;
-  std::lock_guard           _(establish_dlssg_version_mutex);
-
   auto version =
     SK_DLSS_Context::dlssg_s::Version;
 
@@ -1446,7 +1436,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlssg_s::Version.isOlderThan (version))
     {
-      SK_LOGi0 (L"New DLSS-G Version String (%ws): %ws", wszDLSSG,
+      SK_LOGi1 (L"New DLSS-G Version String (%ws): %ws", wszDLSSG,
                                  ver_str.c_str ());
 
       if (SK_DLSS_Context::dlssg_s::Version.major != 0)
@@ -1460,7 +1450,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 
     else if (! SK_DLSS_Context::dlssg_s::Version.isEqualTo (version))
     {
-      SK_LOGi0 (L"Old DLSS-G Version String (%ws): %ws", wszDLSSG,
+      SK_LOGi1 (L"Old DLSS-G Version String (%ws): %ws", wszDLSSG,
                                  ver_str.c_str ());
 
       if (! bIsDriverOverride)
