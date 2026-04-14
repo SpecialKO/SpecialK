@@ -1,9 +1,9 @@
 ﻿26.4.14.3
 =========
- + Improve window activation at start setting, and do not allow SKIF to make
-     itself the foreground window at game exit unless game drew at least one
-       frame before exiting.
+ + Improve window activation at start setting.
  + Defer destruction of NGX parameters to allow lock-free DLSS get / set.
+ + Added Ray Reconstruction settings to DLSS Control Panel.
+ + Correctly report Ray Reconstruction preset in text OSD.
 
 26.4.14.2
 =========

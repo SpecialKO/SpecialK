@@ -2601,10 +2601,8 @@ void SK_Inject_WakeUpSKIF (void)
     if ( dwPid != 0x0 &&
          dwPid != GetCurrentProcessId () )
     {
-      if (__SK_DLL_Ending && SK_GetFramesDrawn () > 0)
-      {
-        AllowSetForegroundWindow (dwPid);
-      } PostMessage              (hWndExisting, WM_SKIF_EVENT_SIGNAL, (WPARAM)game_window.hWnd, 0x0);
+      AllowSetForegroundWindow (dwPid);
+      PostMessage              (hWndExisting, WM_SKIF_EVENT_SIGNAL, (WPARAM)game_window.hWnd, 0x0);
     }
   }
 }

@@ -63,6 +63,44 @@ typedef enum NVSDK_NGX_DLSS_Hint_Render_Preset
   NVSDK_NGX_DLSS_Hint_Render_Preset_O,           // do not use, reverts to default behavior
 } NVSDK_NGX_DLSS_Hint_Render_Preset;
 
+typedef enum NVSDK_NGX_RayReconstruction_Hint_Render_Preset
+{
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_Default, // default behavior, may or may not change after OTA
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_A,       // Deprecated, use preset D or E
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_B,       // Deprecated, use preset D or E
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_C,       // Deprecated, use preset D or E
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_D,       // Default model (transformer)
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E,       // Latest transformer model (must use if DoF guide is needed)
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_G,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_H,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_I,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_J,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_K,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_L,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_M,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_N,       // Do not use, reverts to default behavior
+  NVSDK_NGX_RayReconstruction_Hint_Render_Preset_O,       // Do not use, reverts to default behavior
+} NVSDK_NGX_RayReconstruction_Hint_Render_Preset;
+
+typedef enum NVSDK_NGX_DLSS_Roughness_Mode
+{
+  NVSDK_NGX_DLSS_Roughness_Mode_Unpacked = 0, // Read roughness separately 
+  NVSDK_NGX_DLSS_Roughness_Mode_Packed   = 1, // Read roughness from normals.w
+} NVSDK_NGX_DLSS_Roughness_Mode;
+
+typedef enum NVSDK_NGX_DLSS_Depth_Type
+{
+  NVSDK_NGX_DLSS_Depth_Type_Linear = 0, // Linear Depth
+  NVSDK_NGX_DLSS_Depth_Type_HW     = 1, // HW Depth
+} NVSDK_NGX_DLSS_Depth_Type;
+
+typedef enum  NVSDK_NGX_DLSS_Denoise_Mode
+{
+  NVSDK_NGX_DLSS_Denoise_Mode_Off       = 0,
+  NVSDK_NGX_DLSS_Denoise_Mode_DLUnified = 1, // DL based unified upscaler
+} NVSDK_NGX_DLSS_Denoise_Mode;
+
 typedef struct NVSDK_NGX_FeatureCommonInfo_Internal NVSDK_NGX_FeatureCommonInfo_Internal;
 
 typedef enum NVSDK_NGX_Version
@@ -603,26 +641,6 @@ typedef struct NVSDK_NGX_FeatureRequirement
 
 #define NVSDK_NGX_Parameter_DLSSDOptimalSettingsCallback                          "DLSSDOptimalSettingsCallback"
 #define NVSDK_NGX_Parameter_DLSSDGetStatsCallback                                 "DLSSDGetStatsCallback"
-
-typedef enum NVSDK_NGX_RayReconstruction_Hint_Render_Preset
-{
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_Default,                   // default behavior, may or may not change after OTA
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_A/*RR_DEPRECATED_PRESET*/, // Deprecated, use preset D or E
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_B/*RR_DEPRECATED_PRESET*/, // Deprecated, use preset D or E
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_C/*RR_DEPRECATED_PRESET*/, // Deprecated, use preset D or E
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_D,                         // Default model (transformer)
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E,                         // Latest transformer model (must use if DoF guide is needed)
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_G,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_H,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_I,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_J,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_K,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_L,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_M,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_N,                         // Do not use, reverts to default behavior
-    NVSDK_NGX_RayReconstruction_Hint_Render_Preset_O,                         // Do not use, reverts to default behavior
-} NVSDK_NGX_RayReconstruction_Hint_Render_Preset;
 
 typedef struct ID3D11Resource ID3D11Resource;
 typedef struct ID3D12Resource ID3D12Resource;

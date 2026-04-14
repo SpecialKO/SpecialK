@@ -1126,8 +1126,6 @@ struct sk_config_t
       int     forced_rr_preset    = SK_NoPreference;
       int     forced_auto_exposure= SK_NoPreference;
       int     forced_alpha_upscale= SK_NoPreference;
-      int     forced_rr_denoise   = SK_NoPreference;
-      int     forced_rr_roughness = SK_NoPreference;
       int     forced_rr_hw_depth  = SK_NoPreference;
       int     use_sharpening      = SK_NoPreference;
       float   forced_sharpness    =   0.0f;

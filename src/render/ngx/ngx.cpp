@@ -547,6 +547,14 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
     }
   }
 
+  if ( config.nvidia.dlss.forced_rr_hw_depth != SK_NoPreference &&
+       ! strcmp (InName, NVSDK_NGX_Parameter_Use_HW_Depth) )
+  {
+    SK_LOGi0 ( L"Forcing DLSS Ray Reconstruction HW Depth %ws",
+      config.nvidia.dlss.forced_rr_hw_depth != 0 ? L"ON" : L"OFF" );
+    InValue = config.nvidia.dlss.forced_rr_hw_depth;
+  }
+
   NVSDK_NGX_Parameter_SetI_Original (InParameter, InName, InValue);
 }
 
@@ -691,6 +699,14 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
     }
   }
 
+  if ( config.nvidia.dlss.forced_rr_hw_depth != SK_NoPreference &&
+       ! strcmp (InName, NVSDK_NGX_Parameter_Use_HW_Depth) )
+  {
+    SK_LOGi0 ( L"Forcing DLSS Ray Reconstruction HW Depth %ws",
+      config.nvidia.dlss.forced_rr_hw_depth != 0 ? L"ON" : L"OFF" );
+    InValue = config.nvidia.dlss.forced_rr_hw_depth;
+  }
+
   NVSDK_NGX_Parameter_SetUI_Original (InParameter, InName, InValue);
 }
 
@@ -833,6 +849,14 @@ NVSDK_NGX_Parameter_SetULL_Detour (NVSDK_NGX_Parameter* InParameter, const char*
 
       InValue = config.nvidia.dlss.forced_rr_preset;
     }
+  }
+
+  if ( config.nvidia.dlss.forced_rr_hw_depth != SK_NoPreference &&
+       ! strcmp (InName, NVSDK_NGX_Parameter_Use_HW_Depth) )
+  {
+    SK_LOGi0 ( L"Forcing DLSS Ray Reconstruction HW Depth %ws",
+      config.nvidia.dlss.forced_rr_hw_depth != 0 ? L"ON" : L"OFF" );
+    InValue = config.nvidia.dlss.forced_rr_hw_depth;
   }
 
   NVSDK_NGX_Parameter_SetULL_Original (InParameter, InName, InValue);
@@ -1897,11 +1921,16 @@ const char*
 SK_NGX_DLSS_GetCurrentPerfQualityStr (void)
 {
   auto params =
-    SK_NGX_GetDLSSParameters ();
+   !SK_NGX_IsUsingDLSS_D     () ?
+    SK_NGX_GetDLSSParameters () : nullptr;
 
   if (! params)
   {
-    return "Unknown Performance/Quality Mode";
+    params =
+      SK_NGX_GetDLSSDParameters ();
+
+    if (params == nullptr)
+      return "Unknown Performance/Quality Mode";
   }
 
   unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
@@ -1938,11 +1967,16 @@ const char*
 SK_NGX_DLSS_GetCurrentPresetStr (void)
 {
   auto params =
-    SK_NGX_GetDLSSParameters ();
+   !SK_NGX_IsUsingDLSS_D     () ?
+    SK_NGX_GetDLSSParameters () : nullptr;
 
   if (! params)
   {
-    return "Unknown/Invalid";
+    params =
+      SK_NGX_GetDLSSDParameters ();
+
+    if (params == nullptr)
+      return "Unknown/Invalid";
   }
 
   unsigned int preset;
@@ -1950,38 +1984,86 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
 
   NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
 
-  const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
-
-  switch (perf_quality)
+  if (! SK_NGX_IsUsingDLSS_D ())
   {
-    case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
-    case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
-    case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
-    // Extended PerfQuality modes                                  
-    case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
-    case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
-    case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
-    default:
-      break;
+    const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
+
+    switch (perf_quality)
+    {
+      case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
+      case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
+      case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
+      // Extended PerfQuality modes                                  
+      case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
+      case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
+      case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
+      default:
+        break;
+    }
+    
+    NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+    switch (preset)
+    {
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_Default:    return "Default"; break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_A:          return "A";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_B:          return "B";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_C:          return "C";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_D:          return "D";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_E:          return "E";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_F:          return "F";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_G:          return "G";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_H_Reserved: return "H...?";   break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_I_Reserved: return "I...?";   break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_J:          return "J";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_K:          return "K";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_L:          return "L";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_M:          return "M";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_N:          return "N";       break;
+      case NVSDK_NGX_DLSS_Hint_Render_Preset_O:          return "O";       break;
+      default:                                           return "Unknown"; break;
+    }
   }
-  
-  NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
 
-  switch (preset)
+  else
   {
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: return "Default";      break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       return "A";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       return "B";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       return "C";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       return "D";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       return "E";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       return "F";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       return "G";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       return "J";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       return "K";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_L:       return "L";            break;
-    case NVSDK_NGX_DLSS_Hint_Render_Preset_M:       return "M";            break;
-    default:                                        return "DLSS Default"; break;
+    const char *szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;
+
+    switch (perf_quality)
+    {
+      case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Performance;      break;
+      case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Balanced;         break;
+      case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Quality;          break;
+      // Extended PerfQuality modes                                  
+      case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraPerformance; break;
+      case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraQuality;     break;
+      case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;             break;
+      default:
+        break;
+    }
+    
+    NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+    switch (preset)
+    {
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_Default: return "Default"; break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_A:       return "A";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_B:       return "B";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_C:       return "C";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_D:       return "D";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E:       return "E";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F:       return "F";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_G:       return "G";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_H:       return "H";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_I:       return "I";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_J:       return "J";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_K:       return "K";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_L:       return "L";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_M:       return "M";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_N:       return "N";       break;
+      case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_O:       return "O";       break;
+      default:                                                     return "Unknown"; break;
+    }
   }
 }
 
@@ -1995,12 +2077,19 @@ SK_NGX_DLSS_GetResolution (int& x, int& y, int& out_x, int& out_y)
   }
 
   auto params =
-    SK_NGX_GetDLSSParameters ();
+   !SK_NGX_IsUsingDLSS_D     () ?
+    SK_NGX_GetDLSSParameters () : nullptr;
 
-  if (params == nullptr)
+  if (! params)
   {
-    x = 0; y = 0;
-    return;
+    params =
+      SK_NGX_GetDLSSDParameters ();
+
+    if (params == nullptr)
+    {
+      x = 0; y = 0;
+      return;
+    }
   }
 
   std::lock_guard
@@ -2124,8 +2213,11 @@ SK_NGX_DLSS_ControlPanel (void)
         params->Get (
           NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
 
+        const bool bIsUsingDLSSD =
+          SK_NGX_IsUsingDLSS_D ();
+
         // Removed in 2.5.1
-        static const bool bHasSharpening =
+        const bool bHasSharpening = !bIsUsingDLSSD &&
           SK_DLSS_Context::dlss_s::hasSharpening ();
 
         static const bool bHasDLAAQualityLevel =
@@ -2146,13 +2238,16 @@ SK_NGX_DLSS_ControlPanel (void)
         static const bool bHasPresetM =
           SK_DLSS_Context::dlss_s::hasPresetM ();
 
-        static const bool bHasAlphaUpscaling =
+        const bool bHasDenoising = bIsUsingDLSSD;
+        const bool bHasHWDepth   = bIsUsingDLSSD;
+
+        const bool bHasAlphaUpscaling = !bIsUsingDLSSD &&
           SK_DLSS_Context::dlss_s::hasAlphaUpscaling () &&
           ( config.nvidia.dlss.forced_alpha_upscale != -1 ||
               (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling) ==
                                      NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling );
 
-        static const bool bHasAutoExposure = true;/*
+        const bool bHasAutoExposure = !bIsUsingDLSSD && *SK_NGX_DLSS_GetCurrentPresetStr () < L'L';/*
           config.nvidia.dlss.forced_auto_exposure != -1 ||
             (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AutoExposure) ==
                                    NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;*/
@@ -2212,13 +2307,30 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::
           TextUnformatted ("Alpha Upscaling:     ");
         }
+        if (bHasDenoising)
+        {
+          ImGui::Spacing  ();
+          ImGui::
+          TextUnformatted ("Denoising Mode:      ");
+        }
+        if (bHasHWDepth)
+        {
+          ImGui::Spacing  ();
+          ImGui::
+          TextUnformatted ("Depth Format:        ");
+        }
+        if (bIsUsingDLSSD) // Add an extra line of spacing for alignment
+        ImGui::Spacing ();
         ImGui::Spacing ();
         ImGui::
-          TextUnformatted ("DLSS Preset:         ");
+          TextUnformatted (bIsUsingDLSSD ? "DLSS RR Preset:      "
+                                         : "DLSS Preset:         ");
         ImGui::Spacing ();
         ImGui::Spacing ();
         ImGui::
-          TextUnformatted ("DLSS Perf/Quality:   ");
+          TextUnformatted (bIsUsingDLSSD ? "DLSS RR Perf/Quality:"
+                                         : "DLSS Perf/Quality:   ");
+
         if (! config.nvidia.dlss.force_dlaa)
         {
           if (ImGui::IsItemHovered ())
@@ -2244,11 +2356,16 @@ SK_NGX_DLSS_ControlPanel (void)
           std::max ({
                ImGui::CalcTextSize (szPerfQuality).x,
                ImGui::CalcTextSize (szPreset).x,
-               ImGui::CalcTextSize ("Off").x
+               ImGui::CalcTextSize ("Off").x,
+             bIsUsingDLSSD ?
+               ImGui::CalcTextSize ("Perspective").x
+                           : 0.0f,
           }) + ImGui::GetStyle ().ItemSpacing.x;
 
         const float fComboBoxWidth =
           ImGui::CalcTextSize ("Game Default\t  ").x + ImGui::GetStyle ().FramePadding.x * 2;
+
+        static float fComboBoxHeight = 0.0f;
 
         if (bHasAutoExposure)
         {
@@ -2326,41 +2443,161 @@ SK_NGX_DLSS_ControlPanel (void)
           }
         }
 
+        if (bHasDenoising)
+        {
+          ImVec2 vCursor = ImGui::GetCursorPos ();
+
+          ImGui::Spacing ();
+
+          unsigned int denoise = 0U;
+
+          NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_DLSS_Denoise_Mode, &denoise);
+
+          switch (denoise)
+          {
+            case NVSDK_NGX_DLSS_Denoise_Mode_DLUnified:
+              ImGui::TextUnformatted ("Unified");
+              break;
+            case NVSDK_NGX_DLSS_Denoise_Mode_Off:
+              ImGui::TextUnformatted ("Off");
+              break;
+            default:
+              ImGui::Text ("Unknown: %d", denoise);
+              break;
+          }
+
+          ImGui::SetCursorPos (
+            ImVec2 (vCursor.x, vCursor.y + fComboBoxHeight)
+          );
+        }
+        if (bHasHWDepth)
+        {
+          int force_hw_depth =
+            config.nvidia.dlss.forced_rr_hw_depth + 1;
+
+          ImVec2 vCursor = ImGui::GetCursorPos ();
+
+          unsigned int hw_depth = 0U;
+
+          NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_Use_HW_Depth, &hw_depth);
+
+          if (hw_depth > 0)
+            ImGui::TextUnformatted ("Perspective");
+          else
+            ImGui::TextUnformatted ("Linear");
+
+          ImGui::SetCursorPos (
+            ImVec2 (vCursor.x + fItemSpacingX, vCursor.y)
+          );
+
+          ImGui::SetNextItemWidth (
+            fComboBoxWidth
+          );
+  
+          if ( ImGui::Combo (
+                 "###DepthType",
+             &force_hw_depth, "Game Default\0"
+                              "Force Linear\0"
+                              "Force Perspective\0\0") )
+          {
+            config.nvidia.dlss.forced_rr_hw_depth =
+              force_hw_depth - 1;
+            restart_required = true;
+
+            if (config.nvidia.dlss.forced_rr_hw_depth >= 0)
+              NVSDK_NGX_Parameter_SetI_Original (params, NVSDK_NGX_Parameter_Use_HW_Depth, config.nvidia.dlss.forced_rr_hw_depth);
+
+            SK_NGX_Reset ();
+
+            config.utility.save_async ();
+          }
+
+          fComboBoxHeight =
+            ImGui::GetCursorPosY () - vCursor.y;
+        }
+
         unsigned int preset;
 
         const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
 
-        switch (perf_quality)
+        if (! bIsUsingDLSSD)
         {
-          case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
-          case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
-          case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
-          // Extended PerfQuality modes                                  
-          case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
-          case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
-          case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
-          default:
-            break;
+          switch (perf_quality)
+          {
+            case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
+            case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
+            case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
+            // Extended PerfQuality modes                                  
+            case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
+            case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
+            case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
+            default:
+              break;
+          }
+        }
+
+        else
+        {
+          switch (perf_quality)
+          {
+            case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Performance;      break;
+            case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Balanced;         break;
+            case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Quality;          break;
+            // Extended PerfQuality modes                                  
+            case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraPerformance; break;
+            case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraQuality;     break;
+            case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;             break;
+            default:
+              break;
+          }
         }
 
         NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
 
-        switch (preset)
+        if (! bIsUsingDLSSD)
         {
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       szPreset = "J";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       szPreset = "K";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_L:       szPreset = "L";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_M:       szPreset = "M";       break;
-          default:
-            break;
+          switch (preset)
+          {
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_J:       szPreset = "J";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_K:       szPreset = "K";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_L:       szPreset = "L";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_M:       szPreset = "M";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_N:       szPreset = "N";       break;
+            case NVSDK_NGX_DLSS_Hint_Render_Preset_O:       szPreset = "O";       break;
+            default:                                        szPreset = "Unknown"; break;
+          }
+        }
+
+        else
+        {
+          switch (preset)
+          {
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_Default: szPreset = "Default"; break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_A:       szPreset = "A";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_B:       szPreset = "B";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_C:       szPreset = "C";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_D:       szPreset = "D";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E:       szPreset = "E";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F:       szPreset = "F";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_G:       szPreset = "G";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_H:       szPreset = "H";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_I:       szPreset = "I";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_J:       szPreset = "J";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_K:       szPreset = "K";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_L:       szPreset = "L";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_M:       szPreset = "M";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_N:       szPreset = "N";       break;
+            case NVSDK_NGX_RayReconstruction_Hint_Render_Preset_O:       szPreset = "O";       break;
+            default:                                                     szPreset = "Unknown"; break;
+          }
         }
 
         ImGui::BeginGroup      ();
@@ -2373,11 +2610,16 @@ SK_NGX_DLSS_ControlPanel (void)
           ImVec2 (vCursor.x + fItemSpacingX, vCursor.y)
         );
 
-        int preset_override = config.nvidia.dlss.forced_preset + 1;
-        if (preset_override > 8)
+        int preset_override = (! bIsUsingDLSSD) ? config.nvidia.dlss.forced_preset    + 1 :
+                                                  config.nvidia.dlss.forced_rr_preset + 1;
+
+        if (! bIsUsingDLSSD)
         {
-          // Skip over H and I
-          preset_override -= 2;
+          if (preset_override > 8)
+          {
+            // Skip over H and I
+            preset_override -= 2;
+          }
         }
 
         ImGui::SetNextItemWidth (
@@ -2385,7 +2627,7 @@ SK_NGX_DLSS_ControlPanel (void)
         );
 
 
-        static const char* combo_str =
+        static const char* combo_str_dlss =
           bHasPresetM ? bHasPresetA ? "Game Default\0"
                                       "DLSS Default\0"
                                       "Override: A\0"
@@ -2467,33 +2709,57 @@ SK_NGX_DLSS_ControlPanel (void)
                         "Override: F\0"
                         "Override: G (Invalid)\0\0";
 
-        static const int selections =
-                        bHasPresetM ? 13 :
-                        bHasPresetK ? 11 :
-                        bHasPresetJ ? 10 : 9;
+        const int selections =
+          (! bIsUsingDLSSD) ? bHasPresetM ? 13 :
+                              bHasPresetK ? 11 :
+                              bHasPresetJ ? 10 : 9
+                            :                    7; // DLSS-D
+
+        static const char* combo_str_dlssd =
+          "Game Default\0"
+          "DLSS Default\0"
+          "Override: A\0"
+          "Override: B\0"
+          "Override: C\0"
+          "Override: D\0"
+          "Override: E\0\0";
+
+        auto combo_str =
+          (! bIsUsingDLSSD) ? combo_str_dlss
+                            : combo_str_dlssd;
 
         if ( ImGui::Combo ( "##",
                             &preset_override, combo_str, selections )
            )
         {
-          config.nvidia.dlss.forced_preset = preset_override - 1;
-
-          // Skip over H and I
-          if (config.nvidia.dlss.forced_preset > 7)
-              config.nvidia.dlss.forced_preset += 2;
-
-          if (config.nvidia.dlss.forced_preset != -1)
+          if (! bIsUsingDLSSD)
           {
-            if (! bHasPresetA)
-            {
-              if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
-                  config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
-              {
-                config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
-              }
-            }
+            config.nvidia.dlss.forced_preset = preset_override - 1;
 
-            NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
+            // Skip over H and I
+            if (config.nvidia.dlss.forced_preset > 7)
+                config.nvidia.dlss.forced_preset += 2;
+
+            if (config.nvidia.dlss.forced_preset != -1)
+            {
+              if (! bHasPresetA)
+              {
+                if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
+                    config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
+                {
+                  config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
+                }
+              }
+
+              NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
+            }
+          }
+
+          else
+          {
+            config.nvidia.dlss.forced_rr_preset = preset_override - 1;
+
+            NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_rr_preset);
           }
 
           SK_NGX_Reset ();
@@ -2503,7 +2769,7 @@ SK_NGX_DLSS_ControlPanel (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered () && bHasPresetA)
+        if (ImGui::IsItemHovered () && bHasPresetA && !bIsUsingDLSSD)
         {
           ImGui::BeginTooltip    ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
@@ -3182,6 +3448,9 @@ SK_NGX_Reset (void)
   WriteULong64Release (&SK_NGX_DLSS11.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
   WriteULong64Release (&SK_NGX_DLSS12.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
   WriteULong64Release (&SK_NGX_VULKAN.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
+
+  WriteULong64Release (&SK_NGX_DLSS12.ray_reconstruction.ResetFrame, SK_GetFramesDrawn () + 1);
+  WriteULong64Release (&SK_NGX_VULKAN.ray_reconstruction.ResetFrame, SK_GetFramesDrawn () + 1);
 }
 
 namespace sl
