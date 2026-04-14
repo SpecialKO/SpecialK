@@ -1935,6 +1935,18 @@ SK_NGX_DLSS_GetCurrentPerfQualityStr (void)
 
   unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
 
+  // Implicitly assign anything that is full resolution scale to
+  //   "DLAA" because some games are using native scaling with
+  //     other quality levels...
+  void SK_NGX_DLSS_GetResolution (int& x, int& y, int& out_x, int& out_y);
+
+  int                                  x,     y,
+                                   out_x, out_y;
+  SK_NGX_DLSS_GetResolution (x, y, out_x, out_y);
+  
+  if ( x == out_x &&
+       y == out_y ) return "DLAA";
+
   NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
 
   switch (perf_quality)
@@ -2885,6 +2897,18 @@ SK_NGX_DLSS_ControlPanel (void)
             szPerfQuality = "Unknown Performance/Quality Mode";
             break;
         }
+
+        // Implicitly assign anything that is full resolution scale to
+        //   "DLAA" because some games are using native scaling with
+        //     other quality levels...
+        int                                  x,     y,
+                                         out_x, out_y;
+        SK_NGX_DLSS_GetResolution (x, y, out_x, out_y);
+
+        if ( x == out_x &&
+             y == out_y )
+          szPerfQuality = "DLAA";
+
         ImGui::TextUnformatted (szPerfQuality);
         ImGui::EndGroup ();
 
