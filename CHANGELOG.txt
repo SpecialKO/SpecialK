@@ -1,4 +1,10 @@
-﻿26.4.14.2
+﻿26.4.14.3
+=========
+ + Improve window activation at start setting, and do not allow SKIF to make
+     itself the foreground window at game exit unless game drew at least one
+       frame before exiting.
+
+26.4.14.2
 =========
  + Added DLSS-D DLL version to DLSS control panel.
 

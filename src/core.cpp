@@ -4135,7 +4135,7 @@ SK_BackgroundRender_EndFrame (void)
     if (std::exchange (first_frame, false))
     {
      if (PathFileExistsW (L"REFramework.dll"))
-             LoadLibraryW (L"REFramework.dll");
+            LoadLibraryW (L"REFramework.dll");
 
       if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
       {
@@ -4792,6 +4792,26 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     }
   }
 #endif
+
+  if (config.window.activate_at_start || SK_IsCurrentGame (SK_GAME_ID::CrimsonDesert))
+  {
+    if (game_window.hWnd != 0 && SK_GetFramesDrawn () > 1)
+    {
+      SK_RunOnce (
+        AllowSetForegroundWindow (0);
+
+        bool background_render =
+          std::exchange (config.window.background_render, false);
+
+        SetForegroundWindow        (game_window.hWnd);
+        SK_RealizeForegroundWindow (game_window.hWnd);
+        SetForegroundWindow        (game_window.hWnd);
+        ActivateWindow             (game_window.hWnd, true);
+
+        config.window.background_render = background_render;
+      );
+    }
+  }
 
 
 #if 0
