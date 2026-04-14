@@ -296,8 +296,6 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
   {
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
-      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssg.dll");
-
       SK_DLSS_Context::dlssg_s::instance_s instance;
 
       instance.Handle     = *OutHandle;
@@ -336,8 +334,6 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
 
     else if (InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
     {
-      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssd.dll");
-
       SK_DLSS_Context::dlssd_s::instance_s instance;
 
       instance.Handle     = *OutHandle;

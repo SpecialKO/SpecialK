@@ -1254,6 +1254,9 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
   if (! dll)
     return;
 
+  static std::recursive_mutex establish_dlss_version_mutex;
+  std::lock_guard           _(establish_dlss_version_mutex);
+
   auto version =
     SK_DLSS_Context::dlss_s::Version;
 
@@ -1338,6 +1341,10 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
   if (! dll)
     return;
 
+  static std::recursive_mutex establish_dlssd_version_mutex;
+  std::lock_guard           _(establish_dlssd_version_mutex);
+
+
   auto version =
     SK_DLSS_Context::dlssd_s::Version;
 
@@ -1362,7 +1369,7 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
     //   upgrading anything.
     if (SK_DLSS_Context::dlssd_s::Version.isOlderThan (version))
     {
-      SK_LOGi0 (L"New DLSS-D Version String (%ws): %ws", wszDLSSD,
+      SK_LOGi1 (L"New DLSS-D Version String (%ws): %ws", wszDLSSD,
                                  ver_str.c_str ());
 
       if (SK_DLSS_Context::dlssd_s::Version.major != 0)
@@ -1376,7 +1383,7 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
 
     else if (! SK_DLSS_Context::dlssd_s::Version.isEqualTo (version))
     {
-      SK_LOGi0 (L"Old DLSS-D Version String (%ws): %ws", wszDLSSD,
+      SK_LOGi1 (L"Old DLSS-D Version String (%ws): %ws", wszDLSSD,
                                  ver_str.c_str ());
 
       if (! bIsDriverOverride)
@@ -1384,11 +1391,6 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
     }
 
     bHasVersion = SK_DLSS_Context::dlssd_s::Version.major > 0;
-  }
-
-  else
-  {
-    SK_LOGi0 (L"Supposed DLSS-D DLL has unexpected product name: %ws", product_str.c_str ());
   }
 }
 
@@ -1414,6 +1416,9 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 
   if (! dll)
     return;
+
+  static std::recursive_mutex establish_dlssg_version_mutex;
+  std::lock_guard           _(establish_dlssg_version_mutex);
 
   auto version =
     SK_DLSS_Context::dlssg_s::Version;
@@ -1472,13 +1477,15 @@ SK_NGX_GetDLSSVersion (void) noexcept
   static const SK_DLSS_Context::version_s s_fallback { };
 
   auto getVersion = [](const SK_DLSS_Context& dlssContext) -> const SK_DLSS_Context::version_s*
-    {
-      if (!dlssContext.apis_called)
-        return nullptr;
+  {
+    if (! dlssContext.apis_called)
+      return nullptr;
+  
+    const auto& v =
+      dlssContext.super_sampling.Version;
 
-      const auto& v = dlssContext.super_sampling.Version;
-      return (v.major != 0) ? &v : nullptr;
-    };
+    return (v.major != 0) ? &v : nullptr;
+  };
 
   if (auto* v = getVersion (SK_NGX_DLSS12))
     return *v;
@@ -1498,18 +1505,45 @@ SK_NGX_GetDLSSGVersion (void) noexcept
   static const SK_DLSS_Context::version_s s_fallback { };
 
   auto getDlssgVersion = [](const SK_DLSS_Context& dlssContext) -> const SK_DLSS_Context::version_s*
-    {
-      if (!dlssContext.apis_called)
-        return nullptr;
+  {
+    if (! dlssContext.apis_called)
+      return nullptr;
+  
+    const auto& v =
+      dlssContext.frame_gen.Version;
 
-      const auto& v = dlssContext.frame_gen.Version;
-      return (v.major != 0) ? &v : nullptr;
-    };
+    return (v.major != 0) ? &v : nullptr;
+  };
 
   if (auto* v = getDlssgVersion (SK_NGX_DLSS12))
     return *v;
 
   if (auto* v = getDlssgVersion (SK_NGX_VULKAN))
+    return *v;
+
+  return s_fallback;
+}
+
+const SK_DLSS_Context::version_s&
+SK_NGX_GetDLSSDVersion (void) noexcept
+{
+  static const SK_DLSS_Context::version_s s_fallback { };
+
+  auto getDlssdVersion = [](const SK_DLSS_Context& dlssContext) -> const SK_DLSS_Context::version_s*
+  {
+    if (! dlssContext.apis_called)
+      return nullptr;
+
+    const auto& v =
+      dlssContext.ray_reconstruction.Version;
+
+    return (v.major != 0) ? &v : nullptr;
+  };
+
+  if (auto* v = getDlssdVersion (SK_NGX_DLSS12))
+    return *v;
+
+  if (auto* v = getDlssdVersion (SK_NGX_VULKAN))
     return *v;
 
   return s_fallback;
@@ -1686,7 +1720,7 @@ void
 SK_NGX_Init (void)
 {
   // Too early
-  if (! GetModuleHandleW (L"_nvngx.dll"))
+  if (! SK_GetModuleHandleW (L"_nvngx.dll"))
   {
     SK_LOGi0 (L"Tried to initialize NGX while _nvngx.dll was not yet loaded...");
     return;
@@ -2059,6 +2093,12 @@ SK_NGX_DLSS_ControlPanel (void)
 
       auto params =
         SK_NGX_GetDLSSParameters ();
+
+      // If using Ray Reconstruction from the beginning, there will be
+      //   no Supersampling parameters.
+      if (params == nullptr)
+          params =
+        SK_NGX_GetDLSSDParameters ();
   
       static auto path_to_plugin_dlss =
         std::filesystem::path (
@@ -2080,6 +2120,9 @@ SK_NGX_DLSS_ControlPanel (void)
 
       static auto& dlssg_version =
         SK_NGX_GetDLSSGVersion ();
+
+      static auto& dlssd_version =
+        SK_NGX_GetDLSSDVersion ();
 
       static bool restart_required = false;
 
@@ -2937,6 +2980,31 @@ SK_NGX_DLSS_ControlPanel (void)
         }
       }
 
+      if (dlssd_version.major > 0)
+      {
+        //ImGui::SameLine ();
+
+        color =
+          dlssd_version.driver_override ? ImVec4 (1.f, 1.f, 0.f, 1.f) :
+                              ImGui::GetStyleColorVec4 (ImGuiCol_Text);
+
+        ImGui::TextUnformatted ( "DLSS-D Version: " );
+        ImGui::SameLine        ();
+        ImGui::TextColored     ( color,
+          "%d.%d.%d%hs", dlssd_version.major, dlssd_version.minor,
+                                              dlssd_version.build,
+                                              dlssd_version.driver_override ?
+                                           " " ICON_FA_QUESTION_CIRCLE "\t" :
+                                                                       "\t" );
+
+        if (dlssd_version.driver_override)
+        {
+          ImGui::SetItemTooltip (
+            "A forced driver override is active, SK may be unable to "
+            "change DLSS-D settings and reported active settings may be inaccurate." );
+        }
+      }
+
       static bool bRestartNeeded = false;
 
       // Only offer option to replace DLSS DLLs in DLSS 2.x+ games and
@@ -2959,7 +3027,7 @@ SK_NGX_DLSS_ControlPanel (void)
           static bool clicked_once = false;
 
           bool bClicked =
-            ImGui::Selectable (ICON_FA_INFO_CIRCLE " Auto-Load a Newer DLSS DLL...");
+            ImGui::Selectable (ICON_FA_INFO_CIRCLE " SK Can Auto-Load Newer DLSS Versions...");
 
           clicked_once |= bClicked;
 
@@ -2967,7 +3035,7 @@ SK_NGX_DLSS_ControlPanel (void)
           {
             ImGui::BeginTooltip ();
             ImGui::BulletText   ("Click to Create the Plug-In Directory for Auto-Load.");
-            ImGui::BulletText   ("Place nvngx_dlss.dll in the Directory.");
+            ImGui::BulletText   ("Place nvngx_dlss.dll, nvngx_dlssd.dll and nvngx_dlssg.dll in the Directory.");
             ImGui::EndTooltip   ();
           }
 

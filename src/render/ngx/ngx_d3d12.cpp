@@ -324,8 +324,6 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
 
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
-      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssg.dll");
-
       SK_DLSS_Context::dlssg_s::instance_s instance;
 
       instance.Handle     = *OutHandle;
@@ -367,8 +365,6 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
 
     else if (InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
     {
-      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssd.dll");
-
       SK_DLSS_Context::dlssd_s::instance_s instance;
 
       instance.Handle     = *OutHandle;

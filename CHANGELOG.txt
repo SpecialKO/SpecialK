@@ -1,4 +1,8 @@
-﻿26.4.14.1
+﻿26.4.14.2
+=========
+ + Added DLSS-D DLL version to DLSS control panel.
+
+26.4.14.1
 =========
  + Improved DLSS/DLSS-D/DLSS-G version detection by delaying version checks
      until a .dll (normal / OTA update) or .bin (driver override) calls one

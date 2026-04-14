@@ -312,8 +312,6 @@ NVSDK_NGX_D3D11_CreateFeature_Detour ( ID3D11DeviceContext       *InDevCtx,
 
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
-      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssg.dll");
-
       SK_DLSS_Context::dlssg_s::instance_s instance;
 
       instance.Handle     = *OutHandle;

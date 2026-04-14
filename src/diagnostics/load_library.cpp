@@ -247,6 +247,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
 
 extern std::wstring SK_XInput_LinkedVersion;
+extern void SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSS) noexcept;
 extern void SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSS) noexcept;
 extern void SK_NGX_EstablishDLSSVersion  (const wchar_t* wszDLSS) noexcept;
 extern void SK_NGX_Init                  (void);
@@ -601,6 +602,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     }
     else if ( StrStrIW (wszCallingMod,     L"nvngx_dlss.dll")  ) SK_NGX_EstablishDLSSVersion  (wszCallingMod);
     else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssg.dll") ) SK_NGX_EstablishDLSSGVersion (wszCallingMod);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssd.dll") ) SK_NGX_EstablishDLSSDVersion (wszCallingMod);
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
                 StrStrIW( wszCallingMod,     L"_nvngx.dll" ) ||
                // Handles case where a .bin file is loaded, but something has LoadLibrary hooked
@@ -622,9 +624,11 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
         //   EstablishDLSS*Version (...) will figure it out.
         SK_NGX_EstablishDLSSVersion  (wszFileName);
         SK_NGX_EstablishDLSSGVersion (wszFileName);
+        SK_NGX_EstablishDLSSDVersion (wszFileName);
       }
       else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlss.dll")))  SK_NGX_EstablishDLSSVersion  (wszFileName);
       else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssg.dll"))) SK_NGX_EstablishDLSSGVersion (wszFileName);
+      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssd.dll"))) SK_NGX_EstablishDLSSDVersion (wszFileName);
     }
 #if 0
     if (! config.platform.silent) {
@@ -1108,7 +1112,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
         if (hMod)
         {
-          if (is_dlss/* || is_dlssd*/)
+          if (is_dlss)
           {
             SK_NGX_EstablishDLSSVersion (compliant_path);
           }
@@ -1116,6 +1120,11 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
           else if (is_dlssg)
           {
             SK_NGX_EstablishDLSSGVersion (compliant_path);
+          }
+
+          else if (is_dlssd)
+          {
+            SK_NGX_EstablishDLSSDVersion (compliant_path);
           }
         }
       }
@@ -1446,7 +1455,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
     if (hMod)
     {
-      if (is_dlss/* || is_dlssd*/)
+      if (is_dlss)
       {
         SK_NGX_EstablishDLSSVersion (compliant_path);
       }
@@ -1454,6 +1463,11 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
       else if (is_dlssg)
       {
         SK_NGX_EstablishDLSSGVersion (compliant_path);
+      }
+
+      else if (is_dlssd)
+      {
+        SK_NGX_EstablishDLSSDVersion (compliant_path);
       }
     }
   }
