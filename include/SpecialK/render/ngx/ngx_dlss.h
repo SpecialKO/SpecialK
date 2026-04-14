@@ -27,7 +27,7 @@ NVSDK_NGX_Parameter* SK_NGX_GetDLSSParameters  (void);
 bool                 SK_NGX_IsUsingDLSS        (void);
 bool                 SK_NGX_IsUsingDLSS_D      (void);
 bool                 SK_NGX_IsUsingDLSS_G      (void); 
-void                 SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters);
+void                 SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters, NVSDK_NGX_Feature InFeatureID);
 void                 SK_NGX_DLSS_ControlPanel  (void);
 void                 SK_NGX_DLSS_GetResolution            (int& x, int& y, int& out_x, int& out_y);
 const char*          SK_NGX_DLSS_GetCurrentPerfQualityStr (void);

@@ -3,7 +3,7 @@
  + Improved DLSS/DLSS-D/DLSS-G version detection by delaying version checks
      until a .dll (normal / OTA update) or .bin (driver override) calls one
        of SK's hooked NGX API functions.
- + Started work on separating DLSS Supersampling and DLSS Ray Reconstruction
+ + Started work on separating DLSS Super Sampling and DLSS Ray Reconstruction
      settings; eventually Ray Reconstruction-specific settings will be shown
        in the DLSS control panel.
 

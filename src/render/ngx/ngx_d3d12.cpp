@@ -268,6 +268,14 @@ NVSDK_NGX_D3D12_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
         instance.second.Parameters = nullptr;
       }
     }
+
+    for ( auto& instance : SK_NGX_DLSS12.ray_reconstruction.Instances )
+    {
+      if (instance.second.Parameters == InParameters)
+      {
+        instance.second.Parameters = nullptr;
+      }
+    }
   }
 
   return ret;
@@ -296,7 +304,7 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
   if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
       InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
   {
-    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters);
+    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters, InFeatureID);
   }
 
   NVSDK_NGX_Result ret =
@@ -307,6 +315,13 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
   if ( NVSDK_NGX_SUCCEED (ret) ||
        ret == NVSDK_NGX_Result_FAIL_FeatureAlreadyExists )
   {
+    if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+        InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    {
+      if (NVSDK_NGX_SUCCEED (ret))
+        SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters, InFeatureID);
+    }
+
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
       SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssg.dll");
@@ -337,10 +352,7 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
       SK_LOGi1 (L"DLSS-G Feature Created!");
     }
 
-    // These won't be used at the same time, so treat them as if they're
-    //   the same feature, just with extra stuff.
-    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
-             InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
     {
       SK_DLSS_Context::dlss_s::instance_s instance;
 
@@ -351,6 +363,21 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
       SK_NGX_DLSS12.super_sampling.Instances [*OutHandle] = instance;
 
       SK_LOGi1 (L"DLSS Feature Created!");
+    }
+
+    else if (InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    {
+      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssd.dll");
+
+      SK_DLSS_Context::dlssd_s::instance_s instance;
+
+      instance.Handle     = *OutHandle;
+      instance.Parameters = InParameters;
+      instance.DLSS_Type  = InFeatureID;
+
+      SK_NGX_DLSS12.ray_reconstruction.Instances [*OutHandle] = instance;
+
+      SK_LOGi1 (L"DLSS-D Feature Created!");
     }
   }
 
@@ -417,6 +444,42 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
     }
   }
 
+  else if (SK_NGX_DLSS12.ray_reconstruction.hasInstance (InFeatureHandle))
+  {
+    if (config.nvidia.dlss.forced_rr_preset != -1)
+    {
+      unsigned int dlssd_perf_qual;
+
+      InParameters->Get (NVSDK_NGX_Parameter_PerfQualityValue, &dlssd_perf_qual);
+
+      const unsigned int preset =
+        static_cast <unsigned int> (config.nvidia.dlss.forced_rr_preset);
+
+      const char *szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;
+
+      switch (dlssd_perf_qual)
+      {
+        case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Performance;      break;
+        case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Balanced;         break;
+        case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Quality;          break;
+        // Extended PerfQuality modes                                  
+        case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraPerformance; break;
+        case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraQuality;     break;
+        case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;             break;
+        default:
+          break;
+      }
+
+      NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameters, szPresetHint, preset);
+    }
+
+    if (ReadULong64Acquire (&SK_NGX_DLSS12.ray_reconstruction.ResetFrame) >
+        ReadULong64Acquire (&SK_NGX_DLSS12.ray_reconstruction.LastFrame))
+    {
+      NVSDK_NGX_Parameter_SetI_Original ((NVSDK_NGX_Parameter *)InParameters, "Reset", 1);
+    }
+  }
+
   const SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
@@ -434,17 +497,19 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
     NVSDK_NGX_D3D12_EvaluateFeature_Original (InCmdList, InFeatureHandle, InParameters, InCallback);
 
   if (NVSDK_NGX_SUCCEED (ret))
-  {
-    SK_NGX_DLSS12.frame_gen.evaluateFeature      (SK_NGX_DLSS12.frame_gen.getInstance      (InFeatureHandle));
-    SK_NGX_DLSS12.super_sampling.evaluateFeature (SK_NGX_DLSS12.super_sampling.getInstance (InFeatureHandle));
+  {                                                  
+    SK_NGX_DLSS12.frame_gen.evaluateFeature          (SK_NGX_DLSS12.frame_gen.getInstance          (InFeatureHandle));
+    SK_NGX_DLSS12.super_sampling.evaluateFeature     (SK_NGX_DLSS12.super_sampling.getInstance     (InFeatureHandle));
+    SK_NGX_DLSS12.ray_reconstruction.evaluateFeature (SK_NGX_DLSS12.ray_reconstruction.getInstance (InFeatureHandle));
   }
 
   else
   {
     const wchar_t* wszFeatureName =
-      SK_NGX_DLSS12.frame_gen.hasInstance      (InFeatureHandle) ? L"DLSS Frame Generation" :
-      SK_NGX_DLSS12.super_sampling.hasInstance (InFeatureHandle) ? L"DLSS"                  :
-                                                                   L"Unknown Feature";
+      SK_NGX_DLSS12.frame_gen.hasInstance          (InFeatureHandle) ? L"DLSS Frame Generation"   :
+      SK_NGX_DLSS12.super_sampling.hasInstance     (InFeatureHandle) ? L"DLSS Super Sampling"     :
+      SK_NGX_DLSS12.ray_reconstruction.hasInstance (InFeatureHandle) ? L"DLSS Ray Reconstruction" :
+                                                                       L"Unknown Feature";
 
     SK_LOGi0 (
       L"NVSDK_NGX_D3D12_EvaluateFeature (%p, %ws, %p, %p) Failed - %x (%ws)",
@@ -503,6 +568,15 @@ NVSDK_NGX_D3D12_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
       pSuperSamplingInstance->Handle     = nullptr;
 
       SK_LOGi1 (L"DLSS Feature Released!");
+    }
+
+    auto pRayReconstructionInstance  = SK_NGX_DLSS12.ray_reconstruction.getInstance (InHandle);
+    if ( pRayReconstructionInstance != nullptr )
+    {
+      pRayReconstructionInstance->Parameters = nullptr;
+      pRayReconstructionInstance->Handle     = nullptr;
+
+      SK_LOGi1 (L"DLSS-D Feature Released!");
     }
   }
 

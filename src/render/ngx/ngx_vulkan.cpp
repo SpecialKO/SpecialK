@@ -242,6 +242,14 @@ NVSDK_NGX_VULKAN_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
         instance.second.Parameters = nullptr;
       }
     }
+
+    for ( auto& instance : SK_NGX_VULKAN.ray_reconstruction.Instances )
+    {
+      if (instance.second.Parameters == InParameters)
+      {
+        instance.second.Parameters = nullptr;
+      }
+    }
   }
 
   return ret;
@@ -268,13 +276,20 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
   if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
       InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
   {
-    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters);
+    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters, InFeatureID);
   }
 
   NVSDK_NGX_Result ret =
     NVSDK_NGX_VULKAN_CreateFeature_Original ( InCmdBuffer,
                                               InFeatureID,
                                               InParameters, OutHandle );
+
+  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+      InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+  {
+    if (NVSDK_NGX_SUCCEED (ret))
+      SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters, InFeatureID);
+  }
 
   if ( NVSDK_NGX_SUCCEED (ret) ||
        ret == NVSDK_NGX_Result_FAIL_FeatureAlreadyExists )
@@ -306,14 +321,8 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
       SK_LOGi0 (L"DLSS-G Feature Created!");
     }
 
-    // These won't be used at the same time, so treat them as if they're
-    //   the same feature, just with extra stuff.
-    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
-             InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
     {
-      //SK_ReleaseAssert ( SK_NGX_VULKAN.super_sampling.Handle == *OutHandle ||
-      //                   SK_NGX_VULKAN.super_sampling.Handle == nullptr );
-
       SK_DLSS_Context::dlss_s::instance_s instance;
 
       instance.Handle     = *OutHandle;
@@ -322,7 +331,22 @@ NVSDK_NGX_VULKAN_CreateFeature_Detour ( VkCommandBuffer            InCmdBuffer,
 
       SK_NGX_VULKAN.super_sampling.Instances [*OutHandle] = instance;
 
-      SK_LOGi0 (L"DLSS Feature Created!");
+      SK_LOGi1 (L"DLSS Feature Created!");
+    }
+
+    else if (InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    {
+      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssd.dll");
+
+      SK_DLSS_Context::dlssd_s::instance_s instance;
+
+      instance.Handle     = *OutHandle;
+      instance.Parameters = InParameters;
+      instance.DLSS_Type  = InFeatureID;
+
+      SK_NGX_VULKAN.ray_reconstruction.Instances [*OutHandle] = instance;
+
+      SK_LOGi1 (L"DLSS-D Feature Created!");
     }
   }
 
@@ -364,9 +388,10 @@ NVSDK_NGX_VULKAN_CreateFeature1_Detour ( VkDevice                   InDevice,
     SK_NGX_HookParameters (InParameters)
   );
 
-  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
+  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+      InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
   {
-    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters);
+    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters, InFeatureID);
   }
 
   NVSDK_NGX_Result ret =
@@ -378,6 +403,12 @@ NVSDK_NGX_VULKAN_CreateFeature1_Detour ( VkDevice                   InDevice,
   if ( NVSDK_NGX_SUCCEED (ret) ||
        ret == NVSDK_NGX_Result_FAIL_FeatureAlreadyExists )
   {
+    if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+        InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    {
+      SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters, InFeatureID);
+    }
+
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
       SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssg.dll");
@@ -407,9 +438,6 @@ NVSDK_NGX_VULKAN_CreateFeature1_Detour ( VkDevice                   InDevice,
 
     else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
     {
-      //SK_ReleaseAssert ( SK_NGX_VULKAN.super_sampling.Handle == *OutHandle ||
-      //                   SK_NGX_VULKAN.super_sampling.Handle == nullptr );
-
       SK_DLSS_Context::dlss_s::instance_s instance;
 
       instance.Handle     = *OutHandle;
@@ -419,6 +447,21 @@ NVSDK_NGX_VULKAN_CreateFeature1_Detour ( VkDevice                   InDevice,
       SK_NGX_VULKAN.super_sampling.Instances [*OutHandle] = instance;
 
       SK_LOGi0 (L"DLSS Feature Created1!");
+    }
+
+    else if (InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
+    {
+      SK_NGX_EstablishDLSSGVersion (L"nvngx_dlssd.dll");
+
+      SK_DLSS_Context::dlssd_s::instance_s instance;
+
+      instance.Handle     = *OutHandle;
+      instance.Parameters = InParameters;
+      instance.DLSS_Type  = InFeatureID;
+
+      SK_NGX_VULKAN.ray_reconstruction.Instances [*OutHandle] = instance;
+
+      SK_LOGi0 (L"DLSS-D Feature Created1!");
     }
   }
 
@@ -485,13 +528,50 @@ NVSDK_NGX_VULKAN_EvaluateFeature_Detour (VkCommandBuffer InCmdList, const NVSDK_
     }
   }
 
+  else if (SK_NGX_VULKAN.ray_reconstruction.hasInstance (InFeatureHandle))
+  {
+    if (config.nvidia.dlss.forced_rr_preset != -1)
+    {
+      unsigned int dlssd_perf_qual;
+
+      InParameters->Get (NVSDK_NGX_Parameter_PerfQualityValue, &dlssd_perf_qual);
+
+      const unsigned int preset =
+        static_cast <unsigned int> (config.nvidia.dlss.forced_rr_preset);
+
+      const char *szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;
+
+      switch (dlssd_perf_qual)
+      {
+        case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Performance;      break;
+        case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Balanced;         break;
+        case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_Quality;          break;
+        // Extended PerfQuality modes                                  
+        case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraPerformance; break;
+        case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_UltraQuality;     break;
+        case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_RayReconstruction_Hint_Render_Preset_DLAA;             break;
+        default:
+          break;
+      }
+
+      NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameters, szPresetHint, preset);
+    }
+
+    if (ReadULong64Acquire (&SK_NGX_VULKAN.ray_reconstruction.ResetFrame) >
+        ReadULong64Acquire (&SK_NGX_VULKAN.ray_reconstruction.LastFrame))
+    {
+      NVSDK_NGX_Parameter_SetI_Original ((NVSDK_NGX_Parameter *)InParameters, "Reset", 1);
+    }
+  }
+
   NVSDK_NGX_Result ret =
     NVSDK_NGX_VULKAN_EvaluateFeature_Original (InCmdList, InFeatureHandle, InParameters, InCallback);
 
   if (NVSDK_NGX_SUCCEED (ret))
   {
-    auto dlss_g = SK_NGX_VULKAN.frame_gen.getInstance      (InFeatureHandle);
-    auto dlss   = SK_NGX_VULKAN.super_sampling.getInstance (InFeatureHandle);
+    auto dlss_g = SK_NGX_VULKAN.frame_gen.getInstance          (InFeatureHandle);
+    auto dlss_d = SK_NGX_VULKAN.ray_reconstruction.getInstance (InFeatureHandle);
+    auto dlss   = SK_NGX_VULKAN.super_sampling.getInstance     (InFeatureHandle);
 
     if (dlss_g != nullptr)
     {
@@ -499,16 +579,18 @@ NVSDK_NGX_VULKAN_EvaluateFeature_Detour (VkCommandBuffer InCmdList, const NVSDK_
       config.render.framerate.streamline.enable_native_limit = false;
     }
 
-    SK_NGX_VULKAN.frame_gen.     evaluateFeature (dlss_g);
-    SK_NGX_VULKAN.super_sampling.evaluateFeature (dlss  );
+    SK_NGX_VULKAN.frame_gen.         evaluateFeature (dlss_g);
+    SK_NGX_VULKAN.ray_reconstruction.evaluateFeature (dlss_d);
+    SK_NGX_VULKAN.super_sampling.    evaluateFeature (dlss  );
   }
 
   else
   {
     const wchar_t* wszFeatureName =
-      SK_NGX_VULKAN.frame_gen.hasInstance      (InFeatureHandle) != 0 ? L"DLSS Frame Generation" :
-      SK_NGX_VULKAN.super_sampling.hasInstance (InFeatureHandle) != 0 ? L"DLSS"                  :
-                                                                        L"Unknown Feature";
+      SK_NGX_VULKAN.frame_gen.hasInstance          (InFeatureHandle) ? L"DLSS Frame Generation"   :
+      SK_NGX_VULKAN.super_sampling.hasInstance     (InFeatureHandle) ? L"DLSS Super Sampling"     :
+      SK_NGX_VULKAN.ray_reconstruction.hasInstance (InFeatureHandle) ? L"DLSS Ray Reconstruction" :
+                                                                       L"Unknown Feature";
 
     SK_LOGi0 (
       L"NVSDK_NGX_VULKAN_EvaluateFeature (%p, %ws, %p, %p) Failed - %x (%ws)",
@@ -567,6 +649,15 @@ NVSDK_NGX_VULKAN_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
       pSuperSamplingInstance->Handle     = nullptr;
 
       SK_LOGi1 (L"DLSS Feature Released!");
+    }
+
+    auto pRayReconstructionInstance  = SK_NGX_VULKAN.ray_reconstruction.getInstance (InHandle);
+    if ( pRayReconstructionInstance != nullptr )
+    {
+      pRayReconstructionInstance->Parameters = nullptr;
+      pRayReconstructionInstance->Handle     = nullptr;
+
+      SK_LOGi1 (L"DLSS-D Feature Released!");
     }
   }
 

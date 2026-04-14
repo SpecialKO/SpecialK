@@ -170,13 +170,19 @@ struct SK_DLSS_Context
     struct instance_s {
       NVSDK_NGX_Handle*    Handle     = nullptr;
       NVSDK_NGX_Parameter* Parameters = nullptr;
+      NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_RayReconstruction;
     };
     concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
                          Instances {};
     instance_s*          LastInstance   = nullptr;
     volatile ULONG64     LastFrame      = 0ULL;
+    volatile ULONG64     ResetFrame     = 0ULL; // If >= Current Frame, issue a DLSS-D Reset
     static DWORD         IndicatorFlags;
     static version_s     Version;
+
+    // TODO, what versions do these things become deprecated / removed in...?
+    static bool hasPresetsAThroughC (void) { return true; };
+    static bool hasPresetsDThroughE (void) { return true; };
 
     // Are these separate from DLSS...?
     static void showIndicator    (bool show);
