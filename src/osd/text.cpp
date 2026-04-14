@@ -1010,7 +1010,7 @@ SK_DrawOSD (void)
 
   _DrawFrameCountIf (! (config.fps.show || config.fps.compact));
 
-  if (config.dlss.show && (SK_NGX_IsUsingDLSS () || SK_NGX_IsUsingDLSS_G ()))
+  if (config.dlss.show && (SK_NGX_IsUsingDLSS () || SK_NGX_IsUsingDLSS_G () || SK_NGX_IsUsingDLSS_D ()))
   {
     int x     = 0,
         y     = 0,

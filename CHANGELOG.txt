@@ -1,4 +1,9 @@
-﻿26.4.14.3
+﻿26.4.14.4
+=========
+ + Correctly show DLSS status text in the OSD if Ray Reconstruction is active
+     and Frame Generation is not.
+
+26.4.14.3
 =========
  + Improve window activation at start setting.
  + Defer destruction of NGX parameters to allow lock-free DLSS get / set.
