@@ -1,4 +1,13 @@
-﻿26.4.14
+﻿26.4.14.1
+=========
+ + Improved DLSS/DLSS-D/DLSS-G version detection by delaying version checks
+     until a .dll (normal / OTA update) or .bin (driver override) calls one
+       of SK's hooked NGX API functions.
+ + Started work on separating DLSS Supersampling and DLSS Ray Reconstruction
+     settings; eventually Ray Reconstruction-specific settings will be shown
+       in the DLSS control panel.
+
+26.4.14
 =======
  + Added automatic workaround for NVIDIA Reflex limiting framerate to primary
      monitor's refresh rate when running on secondary monitors if primary is

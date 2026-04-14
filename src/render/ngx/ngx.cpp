@@ -83,6 +83,96 @@ SK_NGX_DLSSG_GetMultiFrameCount (void)
     __SK_DLSSGMultiFrameCount;
 }
 
+void
+SK_NGX_EstablishDLLVersionFromAPICall (int operation, LPCVOID pReturn) noexcept
+{
+  static concurrency::concurrent_unordered_set <LPCVOID>
+      tested_call_site_addrs {};
+  if (tested_call_site_addrs.count (pReturn))
+    return;
+
+  if ( operation == SK_NGX_SetParameter ||
+       operation == SK_NGX_GetParameter )
+  {
+    tested_call_site_addrs.insert (pReturn);
+
+    const auto name = 
+      SK_GetCallerName (pReturn);
+
+    if ( SK_IsCallingDLL (    LR"(NGX\models\dlssg\versions\)", pReturn ) ||
+         (! _wcsicmp (name.c_str (), L"nvngx_dlssg.dll")) )
+    { if (! _wcsicmp (name.c_str (), L"nvngx_dlssg.dll"))
+      {
+        if (! SK_DLSS_Context::dlssg_s::Version.driver_override)
+              SK_DLSS_Context::dlssg_s::Version = {};
+
+        // Normal DLL, not a driver override (.bin)
+        SK_NGX_EstablishDLSSGVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );        
+      }
+
+      // Driver override (.bin) from NGX\models\...
+      else
+      {
+        SK_NGX_EstablishDLSSGVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );
+      }
+
+      return;
+    }
+
+    if ( SK_IsCallingDLL (    LR"(NGX\models\dlss\versions\)", pReturn) ||
+         (! _wcsicmp (name.c_str (), L"nvngx_dlss.dll")) )
+    { if (! _wcsicmp (name.c_str (), L"nvngx_dlss.dll"))
+      {
+        if (! SK_DLSS_Context::dlss_s::Version.driver_override)
+              SK_DLSS_Context::dlss_s::Version = {};
+
+        // Normal DLL, not a driver override (.bin)
+        SK_NGX_EstablishDLSSVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );        
+      }
+
+      // Driver override (.bin) from NGX\models\...
+      else
+      {
+        SK_NGX_EstablishDLSSVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );
+      }
+
+      return;
+    }
+
+    if ( SK_IsCallingDLL (    LR"(NGX\models\dlssd\versions\)", pReturn) ||
+         (! _wcsicmp (name.c_str (), L"nvngx_dlssd.dll")) )
+    { if (! _wcsicmp (name.c_str (), L"nvngx_dlssd.dll"))
+      {
+        if (! SK_DLSS_Context::dlssd_s::Version.driver_override)
+              SK_DLSS_Context::dlssd_s::Version = {};
+
+        // Normal DLL, not a driver override (.bin)
+        SK_NGX_EstablishDLSSDVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );        
+      }
+
+      // Driver override (.bin) from NGX\models\...
+      else
+      {
+        SK_NGX_EstablishDLSSDVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );
+      }
+
+      return;
+    }
+  }
+}
+
 static  unsigned  int SK_NGX_GameSetPerfQuality = 0;
 static constexpr bool SK_NGX_LogAllParams       = false;
 
@@ -104,6 +194,8 @@ NVSDK_CONV
 NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* InName, float InValue)
 {
   SK_LOG_FIRST_CALL
+
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_SetParameter);
 
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetF (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
@@ -165,6 +257,8 @@ NVSDK_NGX_Parameter_SetD_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_SetParameter);
+
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetD (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
@@ -225,6 +319,8 @@ NVSDK_CONV
 NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* InName, int InValue)
 {
   SK_LOG_FIRST_CALL
+
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_SetParameter);
 
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
@@ -414,6 +510,8 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
 {
   SK_LOG_FIRST_CALL
 
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_SetParameter);
+
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetUI (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
@@ -514,6 +612,8 @@ NVSDK_CONV
 NVSDK_NGX_Parameter_SetULL_Detour (NVSDK_NGX_Parameter* InParameter, const char* InName, unsigned long long InValue)
 {
   SK_LOG_FIRST_CALL
+
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_SetParameter);
 
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_SetULL (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
@@ -623,6 +723,8 @@ NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter *InParamete
 {
   SK_LOG_FIRST_CALL
 
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_GetParameter);
+
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 2),
               L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
@@ -644,6 +746,8 @@ NVSDK_CONV
 NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const char *InName, unsigned int *OutValue)
 {
   SK_LOG_FIRST_CALL
+
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_GetParameter);
 
   auto ret =
     NVSDK_NGX_Parameter_GetUI_Original (InParameter, InName, OutValue);
@@ -732,6 +836,8 @@ NVSDK_NGX_Parameter_GetI_Detour (const NVSDK_NGX_Parameter *InParameter, const c
 {
   SK_LOG_FIRST_CALL
 
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_GetParameter);
+
   auto ret =
     NVSDK_NGX_Parameter_GetI_Original (InParameter, InName, OutValue);
 
@@ -817,6 +923,8 @@ NVSDK_NGX_Parameter_GetULL_Detour (const NVSDK_NGX_Parameter *InParameter, const
 {
   SK_LOG_FIRST_CALL
 
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_GetParameter);
+
   auto ret =
     NVSDK_NGX_Parameter_GetULL_Original (InParameter, InName, OutValue);
 
@@ -901,6 +1009,8 @@ NVSDK_NGX_UpdateFeature_Detour ( const NVSDK_NGX_Application_Identifier *Applica
 {
   SK_LOG_FIRST_CALL
 
+  SK_NGX_EstablishDLLVersionFromAPICall (SK_NGX_UpdateFeature);
+
   if (config.nvidia.dlss.disable_ota_updates)
   {
     SK_LOGi0 (L"DLSS OTA Updates Forced OFF");
@@ -955,6 +1065,7 @@ SK_NGX_GetDLSSParameters(void)
 
 SK_DLSS_Context::version_s SK_DLSS_Context::dlss_s::Version;
 SK_DLSS_Context::version_s SK_DLSS_Context::dlssg_s::Version;
+SK_DLSS_Context::version_s SK_DLSS_Context::dlssd_s::Version;
 
 void
 SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
@@ -967,22 +1078,34 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
   const bool bIsDriverOverride =
     _wcsicmp (PathFindExtensionW (wszDLSS), L".bin") == 0;
 
-  if (bHasVersion && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
+  const bool bIsVersionValid =
+    bHasVersion && SK_DLSS_Context::dlss_s::Version.major > 0;
+
+  if (bIsVersionValid && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
     return;
 
-  if (! GetModuleHandleW (wszDLSS))
+  const HMODULE dll =
+    SK_GetModuleHandleW (wszDLSS);
+
+  if (! dll)
     return;
 
   auto version =
     SK_DLSS_Context::dlss_s::Version;
 
-  std::wstring dll_ver_str =
+  version.dll = dll;
+
+  std::wstring ver_str =
     SK_GetDLLVersionStr (wszDLSS);
 
+  std::wstring product_str =
+    SK_GetDLLProductName (wszDLSS);
+
   // Verify this is in fact a DLSS DLL
-  if (StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSS -")   ||
-      StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSSv3 -") ||
-      StrStrW (dll_ver_str.c_str (), L"NVIDIA DLSSv2 -"))
+  if (StrStrW (product_str.c_str (), L"Deep Learning SuperSampling") ||
+      StrStrW (    ver_str.c_str (), L"NVIDIA DLSS -")               ||
+      StrStrW (    ver_str.c_str (), L"NVIDIA DLSSv3 -")             ||
+      StrStrW (    ver_str.c_str (), L"NVIDIA DLSSv2 -"))
   {
     std::swscanf (
       SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
@@ -995,7 +1118,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
     if (SK_DLSS_Context::dlss_s::Version.isOlderThan (version))
     {
       SK_LOGi0 (L"New DLSS Version String (%ws): %ws", wszDLSS,
-                                  SK_GetDLLVersionStr (wszDLSS).c_str ());
+                               ver_str.c_str ());
 
       if (SK_DLSS_Context::dlss_s::Version.major != 0)
       {
@@ -1009,7 +1132,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
     else if (! SK_DLSS_Context::dlss_s::Version.isEqualTo (version))
     {
       SK_LOGi0 (L"Old DLSS Version String (%ws): %ws", wszDLSS,
-                                  SK_GetDLLVersionStr (wszDLSS).c_str ());
+                               ver_str.c_str ());
 
       if (! bIsDriverOverride)
         SK_DLSS_Context::dlss_s::Version = version;
@@ -1029,6 +1152,92 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
 }
 
 void
+SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
+{
+  SK_NGX_Init ();
+
+  static bool bHasVersion = false;
+
+  // Driver overrides have extension .bin
+  const bool bIsDriverOverride =
+    _wcsicmp (PathFindExtensionW (wszDLSSD), L".bin") == 0;
+
+  const bool bIsVersionValid =
+    bHasVersion && SK_DLSS_Context::dlssd_s::Version.major > 0;
+
+  if (bIsVersionValid && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
+    return;
+
+  const HMODULE dll =
+    SK_GetModuleHandleW (wszDLSSD);
+
+  if (! dll)
+    return;
+
+  auto version =
+    SK_DLSS_Context::dlssd_s::Version;
+
+  version.dll = dll;
+
+  std::wstring product_str =
+    SK_GetDLLProductName (wszDLSSD);
+
+  // Verify this is in fact a DLSS-D DLL
+  if (StrStrIW (product_str.c_str (), L"Ray Reconstruction"))
+  {
+    std::wstring ver_str =
+      SK_GetDLLVersionStr (wszDLSSD);
+
+    std::swscanf (
+      SK_GetDLLVersionShort (wszDLSSD).c_str (), L"%d,%d,%d,%d",
+        &version.major, &version.minor,
+        &version.build, &version.revision
+    );
+
+    // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
+    //   upgrading anything.
+    if (SK_DLSS_Context::dlssd_s::Version.isOlderThan (version))
+    {
+      SK_LOGi0 (L"New DLSS-D Version String (%ws): %ws", wszDLSSD,
+                                 ver_str.c_str ());
+
+      if (SK_DLSS_Context::dlssd_s::Version.major != 0)
+      {
+        version.driver_override                           |= bIsDriverOverride;
+        SK_DLSS_Context::dlssd_s::Version.driver_override |= bIsDriverOverride;
+      }
+
+      SK_DLSS_Context::dlssd_s::Version = version;
+    }
+
+    else if (! SK_DLSS_Context::dlssd_s::Version.isEqualTo (version))
+    {
+      SK_LOGi0 (L"Old DLSS-D Version String (%ws): %ws", wszDLSSD,
+                                 ver_str.c_str ());
+
+      if (! bIsDriverOverride)
+        SK_DLSS_Context::dlssd_s::Version = version;
+    }
+
+    bHasVersion = SK_DLSS_Context::dlssd_s::Version.major > 0;
+
+////// Turn off overrides before we break stuff!
+////if (bHasVersion && SK_DLSS_Context::dlss_s::Version.major < 2)
+////{
+////  config.nvidia.dlss.auto_redirect_dlss = false;
+////  config.nvidia.dlss.forced_preset      = -1;
+////  config.nvidia.dlss.use_sharpening     = -1;
+////  config.nvidia.dlss.force_dlaa         = false;
+////}
+  }
+
+  else
+  {
+    SK_LOGi0 (L"Purported DLSS-D DLL has unexpected product name: %ws", product_str.c_str ());
+  }
+}
+
+void
 SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 {
   SK_NGX_Init ();
@@ -1039,18 +1248,33 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
   const bool bIsDriverOverride =
     _wcsicmp (PathFindExtensionW (wszDLSSG), L".bin") == 0;
 
-  if (bHasVersion && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
+  const bool bIsVersionValid =
+    bHasVersion && SK_DLSS_Context::dlssg_s::Version.major > 0;
+
+  if (bIsVersionValid && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
     return;
 
-  if (! GetModuleHandleW (wszDLSSG))
+  const auto dll =
+    SK_GetModuleHandleW (wszDLSSG);
+
+  if (! dll)
     return;
 
   auto version =
     SK_DLSS_Context::dlssg_s::Version;
 
+  version.dll = dll;
+
+  std::wstring ver_str =
+    SK_GetDLLVersionStr (wszDLSSG);
+
+  std::wstring product_str =
+    SK_GetDLLProductName (wszDLSSG);
+
   // Verify this is in fact a DLSSG DLL
-  if (StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G -") ||
-      StrStrW (SK_GetDLLVersionStr (wszDLSSG).c_str (), L"NVIDIA DLSS-G MFGLW -"))
+  if (StrStrW (product_str.c_str (), L"NVIDIA DLSS-G MFGLW") ||
+      StrStrW (    ver_str.c_str (), L"NVIDIA DLSS-G -") ||
+      StrStrW (    ver_str.c_str (), L"NVIDIA DLSS-G MFGLW -"))
   {
     std::swscanf (
       SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
@@ -1063,7 +1287,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
     if (SK_DLSS_Context::dlssg_s::Version.isOlderThan (version))
     {
       SK_LOGi0 (L"New DLSS-G Version String (%ws): %ws", wszDLSSG,
-                                    SK_GetDLLVersionStr (wszDLSSG).c_str ());
+                                 ver_str.c_str ());
 
       if (SK_DLSS_Context::dlssg_s::Version.major != 0)
       {
@@ -1077,7 +1301,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
     else if (! SK_DLSS_Context::dlssg_s::Version.isEqualTo (version))
     {
       SK_LOGi0 (L"Old DLSS-G Version String (%ws): %ws", wszDLSSG,
-                                    SK_GetDLLVersionStr (wszDLSSG).c_str ());
+                                 ver_str.c_str ());
 
       if (! bIsDriverOverride)
         SK_DLSS_Context::dlssg_s::Version = version;

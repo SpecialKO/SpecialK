@@ -1236,7 +1236,7 @@ SK_SelfDestruct (void) noexcept
 }
 
 HMODULE
-SK_GetCallingDLL (LPCVOID pReturn)
+SK_GetCallingDLL (LPCVOID pReturn) noexcept
 {
   HMODULE hCallingMod = nullptr;
 
@@ -1249,10 +1249,74 @@ SK_GetCallingDLL (LPCVOID pReturn)
 }
 
 std::wstring
-SK_GetCallerName (LPCVOID pReturn)
+SK_GetCallerName (LPCVOID pReturn) noexcept
+{
+  const HMODULE module =
+    SK_GetCallingDLL (pReturn);
+
+  return
+    SK_GetModuleName (module);
+}
+
+std::wstring
+SK_GetCallerFullName (LPCVOID pReturn) noexcept
+{
+  const HMODULE module =
+    SK_GetCallingDLL (pReturn);
+
+  return
+    SK_GetModuleFullName (module);
+}
+
+LPCVOID
+SK_GetCallingDLLBase (LPCVOID pReturn) noexcept
+{
+  MODULEINFO mod_info  = { };
+  const auto base_addr =
+    ( GetModuleInformation
+      ( SK_GetCurrentProcess (   ),
+        SK_GetCallingDLL (pReturn),
+            &mod_info,
+     sizeof (mod_info) ) ) ?
+             mod_info.lpBaseOfDll
+                           :
+                          pReturn;
+
+  SK_ReleaseAssert (
+    mod_info.SizeOfImage > 0 && base_addr != pReturn
+  );
+
+  return
+    base_addr;
+}
+
+bool
+SK_IsCallingDLL ( const wchar_t* const wszModule,
+                        LPCVOID          pReturn ) noexcept
+{
+  const HMODULE named_module =
+    SK_GetModuleHandleW (wszModule);
+
+  if (SK_IsCallingDLL (named_module, pReturn))
+    return true;
+
+  const HMODULE calling_module =
+    SK_GetCallingDLL (pReturn);
+
+  const bool fuzzy_match =
+    StrStrIW (
+      SK_GetModuleFullName (calling_module).c_str (),
+         wszModule
+             ) != nullptr;
+
+  return fuzzy_match;
+}
+
+bool
+SK_IsCallingDLL (HMODULE hModule, LPCVOID pReturn) noexcept
 {
   return
-    SK_GetModuleName (SK_GetCallingDLL (pReturn));
+    SK_GetCallingDLL (pReturn) == hModule;
 }
 
 SK_ThreadSuspension_Ctx

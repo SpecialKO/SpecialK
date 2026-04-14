@@ -279,8 +279,12 @@ iSK_INI*       SK_GetDLLConfig              (void);
 
 #pragma intrinsic (_ReturnAddress)
 
-HMODULE        SK_GetCallingDLL             (LPCVOID pReturn = _ReturnAddress ());
-std::wstring   SK_GetCallerName             (LPCVOID pReturn = _ReturnAddress ());
+HMODULE        SK_GetCallingDLL             (LPCVOID pReturn                                 = _ReturnAddress ()) noexcept;
+LPCVOID        SK_GetCallingDLLBase         (LPCVOID pReturn                                 = _ReturnAddress ()) noexcept;
+std::wstring   SK_GetCallerName             (LPCVOID pReturn                                 = _ReturnAddress ()) noexcept;
+std::wstring   SK_GetCallerFullName         (LPCVOID pReturn                                 = _ReturnAddress ()) noexcept;
+bool           SK_IsCallingDLL              (const wchar_t* const wszModule, LPCVOID pReturn = _ReturnAddress ()) noexcept;
+bool           SK_IsCallingDLL              (      HMODULE          hModule, LPCVOID pReturn = _ReturnAddress ()) noexcept;
 HMODULE        SK_GetModuleFromAddr         (LPCVOID addr);
 std::wstring   SK_GetModuleName             (HMODULE hDll);
 std::wstring   SK_GetModuleFullName         (HMODULE hDll);

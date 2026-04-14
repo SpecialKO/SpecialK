@@ -2108,7 +2108,7 @@ SK_ImGui_DrawReflexNonPrimaryWarning (void)
 
   if (ImGui::BeginItemTooltip ())
   {
-    ImGui::TextUnformatted ("Reflex Low-Latency Mode Limits Framerate to Primary Monitor's Refresh.");
+    ImGui::TextUnformatted ("Reflex Low-Latency Mode Limits Framerate according to Primary Monitor's Refresh.");
     ImGui::Separator       ();
     
     if (__target_fps_now <= 0.0f)

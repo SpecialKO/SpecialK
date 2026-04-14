@@ -36,6 +36,22 @@ extern SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
 void SK_NGX_EstablishDLSSVersion  (const wchar_t*) noexcept;
 void SK_NGX_EstablishDLSSGVersion (const wchar_t*) noexcept;
+void SK_NGX_EstablishDLSSDVersion (const wchar_t*) noexcept;
+
+enum {
+  SK_NGX_Init_                   = 0,
+  SK_NGX_SetParameter            = 1,
+  SK_NGX_GetParameter            = 2,
+  SK_NGX_UpdateFeature           = 3,
+  SK_NGX_CreateFeature           = 4,
+  SK_NGX_EvaluateFeature         = 5,
+  SK_NGX_ReleaseFeature          = 6,
+  SK_NGX_GetParameters           = 7,
+  SK_NGX_GetCapabilityParameters = 8,
+  SK_NGX_GetFeatureRequirements  = 9
+};
+
+void SK_NGX_EstablishDLLVersionFromAPICall (int operation, LPCVOID pReturn = _ReturnAddress ()) noexcept;
 
 struct SK_DLSS_Context
 {
@@ -49,6 +65,7 @@ struct SK_DLSS_Context
                  build           = 0,
                  revision        = 0;
     bool         driver_override = false;
+    HMODULE      dll             = nullptr;
 
     bool isOlderThan (version_s& test)
     {
@@ -149,7 +166,39 @@ struct SK_DLSS_Context
     }
   } frame_gen;
 
-  inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (L"nvngx_dlss.dll"); };
+  struct dlssd_s {
+    struct instance_s {
+      NVSDK_NGX_Handle*    Handle     = nullptr;
+      NVSDK_NGX_Parameter* Parameters = nullptr;
+    };
+    concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
+                         Instances {};
+    instance_s*          LastInstance   = nullptr;
+    volatile ULONG64     LastFrame      = 0ULL;
+    static DWORD         IndicatorFlags;
+    static version_s     Version;
+
+    // Are these separate from DLSS...?
+    static void showIndicator    (bool show);
+    static bool isIndicatorShown (void);
+
+    bool        hasInstance (const NVSDK_NGX_Handle* handle) { return Instances.count (handle) != 0; }
+    instance_s* getInstance (const NVSDK_NGX_Handle* handle) { if (hasInstance (handle)) return &Instances [handle]; return nullptr; }
+
+    bool evaluateFeature (instance_s* feature)
+    {
+      if (feature == nullptr)
+        return false;
+
+      WriteULong64Release (&LastFrame, SK_GetFramesDrawn ());
+
+      LastInstance = feature;
+
+      return true;
+    }
+  } ray_reconstruction;
+
+  inline void log_call (void) noexcept { apis_called = true; };
 };
 
 extern SK_DLSS_Context SK_NGX_VULKAN;
