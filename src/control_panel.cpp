@@ -3218,8 +3218,7 @@ SK_NV_LatencyControlPanel (void)
     return;
   }
 
-  if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
-                                                  && config.nvidia.reflex.enable)
+  if (SK_Reflex_IsFramerateLimitIncorrect ())
   {
     ImGui::SameLine    (                                 );
     ImGui::BeginGroup  (                                 );
@@ -3231,7 +3230,7 @@ SK_NV_LatencyControlPanel (void)
                          " monitors."                    );
     ImGui::EndGroup    (                                 );
 
-    ImGui::SetItemTooltip ("Use the Display menu to assign Primary monitors");
+    SK_ImGui_DrawReflexNonPrimaryWarning ();
   }
 
   SK_ImGui_DrawConfig_Latency ();
@@ -5827,6 +5826,13 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             "Your active display device is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
                                  );
           ImGui::SameLine       ();
+        }
+
+        else if (SK_Reflex_IsFramerateLimitIncorrect () && __target_fps_now <= 0.0f)
+        {
+          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+          SK_ImGui_DrawReflexNonPrimaryWarning ();
+          ImGui::SameLine    ();
         }
 
         if (ImGui::Checkbox ("Framerate Limit", &limit))

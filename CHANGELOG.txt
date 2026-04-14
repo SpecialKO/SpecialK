@@ -1,4 +1,13 @@
-﻿26.4.13
+﻿26.4.14
+=======
+ + Added automatic workaround for NVIDIA Reflex limiting framerate to primary
+     monitor's refresh rate when running on secondary monitors if primary is
+       VRR capable and VSYNC is enabled.
+ + Enabling a framerate limit greater than primary monitor's VRR refresh rate
+     while Reflex Low-Latency Mode is active will now disable VSYNC in order
+       to escape the LONG STANDING Reflex bug mentioned above.
+
+26.4.13
 =======
  + Revert to old behavior for screen tearing when DLSS Frame Gen is active
      on VRR; tearing is disabled whenever SK's limiter is enabled.

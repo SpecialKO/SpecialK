@@ -2772,8 +2772,12 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   const auto& display =
     rb.displays [rb.active_display];
 
+  extern  std::optional <bool>  SK_Reflex_ShouldTearingBeOverridden (void);
+  const auto tearing_override = SK_Reflex_ShouldTearingBeOverridden ();
+
   const bool bDLSS3OnVRRDisplay =
-    (__SK_IsDLSSGActive && display.nvapi.vrr_enabled && config.render.framerate.present_interval != 0 && __target_fps_now > 0.0f);
+      __SK_IsDLSSGActive && tearing_override.has_value () ?
+                           !tearing_override.    value () : false;
 
   auto _Present = [&](UINT _SyncInterval,
                       UINT _Flags) ->
@@ -2784,7 +2788,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (_SyncInterval > 1 && SK_GetFramesDrawn () < 120)
         _SyncInterval = 1;
 
-    if ( config.render.framerate.target_fps_bg > 0.0f && 
+    if ( config.render.framerate.target_fps_bg > 0.0f &&
          config.render.framerate.target_fps_bg < rb.getActiveRefreshRate () / 2.0f &&
          (! SK_IsGameWindowActive ()) )
     {
@@ -2853,12 +2857,29 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         // Remove this flag
         _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
       }
-    
+
       // Turn tearing off when using frame generation
       if (bDLSS3OnVRRDisplay)
       {
         _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+        _Flags |=  DXGI_PRESENT_RESTART;
         _SyncInterval = 0;
+      }
+    }
+
+    if (! bDLSS3OnVRRDisplay)
+    {
+      // Need tearing override for other reasons...
+      if (  tearing_override.has_value ())
+      { if (tearing_override.    value ())
+        {
+          _SyncInterval = 0;
+          _Flags |= (DXGI_PRESENT_ALLOW_TEARING | DXGI_PRESENT_RESTART);
+        }
+        else
+        {
+          _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+        }
       }
     }
 

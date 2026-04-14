@@ -261,4 +261,9 @@ bool  SK_NvAPI_DRS_SetDWORD (NvU32 setting_id, DWORD dwValue);
 extern void     SK_NV_AdaptiveSyncControl ();
 
 
+bool SK_Reflex_IsLowLatencyModeActive     (void);
+bool SK_Reflex_IsPrimaryDisplayVRR        (void);
+bool SK_Reflex_IsFramerateLimitIncorrect  (void);
+void SK_ImGui_DrawReflexNonPrimaryWarning (void);
+
 #endif /* __SK__NVAPI_H__ */

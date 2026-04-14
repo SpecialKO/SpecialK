@@ -968,6 +968,9 @@ SK_RenderBackend_V2::driverSleepNV (int site) const
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return;
 
+  if (! config.nvidia.reflex.native)
+    SK_Reflex_LastLatencyDevice = device.p;
+
   static bool
     lastOverride = false;
 
@@ -1951,4 +1954,169 @@ SK_Reflex_CalculateSleepMinIntervalForVulkan (bool bLowLatency)
 
   return
     reflex_interval;
+}
+
+bool
+SK_Reflex_IsLowLatencyModeActive (void)
+{
+  const bool bReflexLowLatency =
+    SK_Reflex_NativeSleepModeParams.bLowLatencyMode ||
+      ((config.nvidia.reflex.override || (!config.nvidia.reflex.native && config.nvidia.reflex.enable))
+                                      &&   config.nvidia.reflex.low_latency);
+
+  return bReflexLowLatency;
+}
+
+// Should mirror the state that Reflex is using to determine if a VRR framerate limit is needed
+bool
+SK_Reflex_IsPrimaryDisplayVRR (void)
+{
+  const auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (SK_Reflex_LastLatencyDevice != nullptr)
+  {
+    NV_GET_SLEEP_STATUS_PARAMS sleep_status = { };
+    sleep_status.version = NV_GET_SLEEP_STATUS_PARAMS_VER;
+
+    __try {
+      NvAPI_D3D_GetSleepStatus (SK_Reflex_LastLatencyDevice, &sleep_status);
+
+      return sleep_status.bFsVrr;
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER) {};
+  }
+
+  return
+    (rb.displays [rb.active_display].nvapi.vrr_enabled);
+}
+
+// Returns true/false if a tearing override is necessary, for situations
+//   such as DLSS frame generation or running a Reflex native game on
+//     a secondary VRR display with a higher refresh than primary.
+std::optional <bool>
+SK_Reflex_ShouldTearingBeOverridden (void)
+{
+  // If no limit is active, then the user is on their own.
+  if (__target_fps_now <= 0.0f)
+  {
+    return std::nullopt;
+  }
+
+  const auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const auto& display =
+    rb.displays [rb.active_display];
+
+  auto GetPrimaryDisplay = [&](void)
+  {
+    SK_ReleaseAssert (rb.displays [rb.primary_display].primary);
+    return                         rb.primary_display;
+  };
+
+  int primary_idx = GetPrimaryDisplay ();
+  if (primary_idx < 0 || primary_idx > rb._MAX_DISPLAYS)
+      primary_idx = rb.active_display;
+    
+  const auto& primary_display =
+    rb.displays [primary_idx];
+
+  if (display.nvapi.vrr_enabled || SK_Reflex_IsPrimaryDisplayVRR ())
+  {
+    // If frame gen is active and SK's framerate limiter is configured, then
+    //   tearing should be turned off for VRR displays.
+    if (__SK_IsDLSSGActive && config.render.framerate.present_interval != 0 && display.nvapi.vrr_enabled)
+    {
+      SK_RunOnce (
+        SK_LOGi0 (
+          L"Tearing forced OFF because DLSS Frame Generation is active on a VRR"
+          L" display and SK's framerate limiter is configured."
+        )
+      );
+
+      return false;
+    }
+
+    // Bypass certain incorrect Reflex behavior if necessary.
+    if (SK_Reflex_IsLowLatencyModeActive () && SK_Reflex_IsPrimaryDisplayVRR ())
+    {
+      if (primary_idx != rb.active_display)
+      {
+        const double dPrimaryRefresh =
+          (double)primary_display.signal.timing.vsync_freq.Numerator /
+          (double)primary_display.signal.timing.vsync_freq.Denominator;
+
+        const double dPrimaryVRROptimalFPS =
+          ( dPrimaryRefresh - 
+           (dPrimaryRefresh *
+            dPrimaryRefresh) / 3600.0 );
+
+        // Tearing must be forced on because Reflex would limit to the wrong
+        //   display's maximum refresh.
+        if (__target_fps_now > dPrimaryVRROptimalFPS)
+        {
+          SK_RunOnce (
+            const double dActiveRefresh =
+              (double)display.signal.timing.vsync_freq.Numerator /
+              (double)display.signal.timing.vsync_freq.Denominator;
+
+            const size_t name_len_max =
+              std::max ( wcslen (primary_display.name),
+                         wcslen (        display.name) );
+
+            SK_LOGi0 (
+              L"Tearing forced ON because Reflex is limiting a non-primary "
+              L"display with a higher refresh than primary." );
+            SK_LOGi0 (
+              L"Primary Display.: %*ws @ %.02f Hz (VRR Optimal FPS: %.02f)",
+                              name_len_max,
+              primary_display.name, dPrimaryRefresh,
+                                    dPrimaryVRROptimalFPS );
+            SK_LOGi0 (
+              L"Active Display..: %*ws @ %.02f Hz, Target FPS: %.02f",
+                      name_len_max, display.name, dActiveRefresh,
+                                                  __target_fps_now );
+          );
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return std::nullopt;
+}
+
+bool
+SK_Reflex_IsFramerateLimitIncorrect (void)
+{
+  const auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  return
+    rb.present_interval == 1 && (! rb.displays [rb.active_display].primary) && SK_Reflex_IsLowLatencyModeActive () && SK_Reflex_IsPrimaryDisplayVRR ();
+}
+
+void
+SK_ImGui_DrawReflexNonPrimaryWarning (void)
+{
+  if (! SK_Reflex_IsFramerateLimitIncorrect ())
+    return;
+
+  if (ImGui::BeginItemTooltip ())
+  {
+    ImGui::TextUnformatted ("Reflex Low-Latency Mode Limits Framerate to Primary Monitor's Refresh.");
+    ImGui::Separator       ();
+    
+    if (__target_fps_now <= 0.0f)
+      ImGui::BulletText ("No framerate limit configured, so Reflex's incorrect framerate limit is active!");
+    else
+    {
+      ImGui::TextUnformatted ("If necessary, SK will disable VSYNC to bypass this restriction.");
+      ImGui::BulletText      ("If tearing is visible, you must assign the active display as primary instead!");
+    }
+    ImGui::EndTooltip      ();
+  }
 }

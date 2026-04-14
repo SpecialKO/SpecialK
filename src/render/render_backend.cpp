@@ -5321,6 +5321,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   UINT        enum_count = idx;
   static UINT last_count = idx;
 
+  primary_display = 0;
+
   for ( auto& disp : displays )
   {
     // Clear out any old entries that might be wrong now
@@ -5355,6 +5357,9 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     display.primary =
       ( minfo.dwFlags & MONITORINFOF_PRIMARY );
+
+    if (display.primary)
+      primary_display = idx;
 
     float bestIntersectArea = -1.0f;
 
