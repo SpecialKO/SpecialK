@@ -2075,7 +2075,8 @@ SK_Reflex_ShouldTearingBeOverridden (void)
               primary_display.name, dPrimaryRefresh,
                                     dPrimaryVRROptimalFPS );
             SK_LOGi0 (
-              L"Active Display..: %*ws @ %.02f Hz, Target FPS: %.02f",
+            
+              L"Active Display..: %*ws @ %.02f Hz,      Target FPS: %.02f",
                       name_len_max, display.name, dActiveRefresh,
                                                   __target_fps_now );
           );
@@ -2096,7 +2097,7 @@ SK_Reflex_IsFramerateLimitIncorrect (void)
     SK_GetCurrentRenderBackend ();
 
   return
-    rb.present_interval == 1 && (! rb.displays [rb.active_display].primary) && SK_Reflex_IsLowLatencyModeActive () && SK_Reflex_IsPrimaryDisplayVRR ();
+    rb.present_interval != 0 && (! rb.displays [rb.active_display].primary) && SK_Reflex_IsLowLatencyModeActive () && SK_Reflex_IsPrimaryDisplayVRR ();
 }
 
 void
