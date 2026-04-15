@@ -1149,6 +1149,7 @@ struct sk_config_t
       bool    dump_buffers        =  false;
       bool    spoof_support       =  false;
       bool    calculate_delta_ms  =  false;
+      float   dmfg_target_fps     =  -1.0f;
     } dlss;
     struct misc_s {
       int     force_rebar         = SK_NoPreference;

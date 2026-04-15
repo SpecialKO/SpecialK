@@ -2,7 +2,8 @@
 =======
  + Added experimental implementation of NvAPI_D3D_SetReflexSync (...) when FG
      is active, or when SK's framerate limiter mode is set to Low-Latency.
- + 
+ + Added DLSS Frame Generation DMFG slider for testing (settings not saved).
+     * Need RTX 5xxx GPU owners to test this.
 
 26.4.14.4
 =========

@@ -406,6 +406,20 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
 
   SK_NGX_DLSS12.log_call ();
 
+  if (SK_NGX_DLSS12.frame_gen.hasInstance (InFeatureHandle))
+  {
+    auto params =
+      SK_NGX_GetDLSSGParameters ();
+
+    if (params != nullptr)
+    {
+      if (config.nvidia.dlss.dmfg_target_fps == -1.0f)
+        params->Set ("DLSSG.TargetFrameRate", __target_fps_now);
+      else
+        params->Set ("DLSSG.TargetFrameRate", config.nvidia.dlss.dmfg_target_fps);
+    }
+  }
+
   if (SK_NGX_DLSS12.super_sampling.hasInstance (InFeatureHandle))
   {
     if (config.nvidia.dlss.forced_preset != -1)

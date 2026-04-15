@@ -24,6 +24,8 @@
 #include <render/ngx/ngx_defs.h>
 
 NVSDK_NGX_Parameter* SK_NGX_GetDLSSParameters  (void);
+NVSDK_NGX_Parameter* SK_NGX_GetDLSSDParameters (void);
+NVSDK_NGX_Parameter* SK_NGX_GetDLSSGParameters (void);
 bool                 SK_NGX_IsUsingDLSS        (void);
 bool                 SK_NGX_IsUsingDLSS_D      (void);
 bool                 SK_NGX_IsUsingDLSS_G      (void); 

@@ -24,6 +24,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/ngx/ngx.h>
+#include <SpecialK/nvapi.h>
 #include <imgui/font_awesome.h>
 
 #ifdef  __SK_SUBSYSTEM__
@@ -1248,6 +1249,26 @@ SK_NGX_GetDLSSDParameters (void)
     return p;
 
   return getDLSSDParameters (SK_NGX_VULKAN);
+}
+
+NVSDK_NGX_Parameter*
+SK_NGX_GetDLSSGParameters (void)
+{
+  auto getDLSSGParameters = [](const SK_DLSS_Context& dlssContext) -> NVSDK_NGX_Parameter*
+  {
+    if (dlssContext.apis_called == false)
+      return nullptr;
+  
+    if (const auto* inst = dlssContext.ray_reconstruction.LastInstance; inst && inst->Handle)
+      return inst->Parameters;
+
+    return nullptr;
+  };
+
+  if (auto p = getDLSSGParameters (SK_NGX_DLSS12))
+    return p;
+
+  return getDLSSGParameters (SK_NGX_VULKAN);
 }
   
 
@@ -3127,6 +3148,19 @@ SK_NGX_DLSS_ControlPanel (void)
       // FIXME:  Implement Vulkan Native Pacing
       if (__SK_IsDLSSGActive && (! config.nvidia.reflex.vulkan))
       {
+        // What a stupid hack, this needs to be rewritten a more sensible way.
+        static bool is_dynamic_fg_compatible =
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX " ) != nullptr &&
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 2") == nullptr &&
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 3") == nullptr &&
+          StrStrW (sk::NVAPI::EnumGPUs_DXGI ()[0].Description, L"RTX 4") == nullptr;
+
+        if (is_dynamic_fg_compatible)
+        {
+          ImGui::SliderFloat    ("DMFG TargetFPS", &config.nvidia.dlss.dmfg_target_fps, 10.0f, 360.0f);
+          ImGui::SetItemTooltip ("-1.0 entered manually will match SK's framerate limit.");
+        }
+
         ImGui::PushItemWidth (ImGui::CalcTextSize ("Ultra Low-Latency\tTT").x);
 
         int pacing_mode =
