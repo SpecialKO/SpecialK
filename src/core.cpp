@@ -4947,6 +4947,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SetEvent (SK_Unity_GetFrameStatsWaitEvent);
   }
 
+  if (SK_API_IsDirect3D9 (rb.api) || SK_API_IsDXGIBased (rb.api))
+    SK_Reflex_SetupReflexSync (device);
+
+
   SK_GetCurrentRenderBackend ().in_present_call = false;
 
 

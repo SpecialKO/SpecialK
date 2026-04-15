@@ -1,4 +1,10 @@
-﻿26.4.14.4
+﻿26.4.15
+=======
+ + Added experimental implementation of NvAPI_D3D_SetReflexSync (...) when FG
+     is active, or when SK's framerate limiter mode is set to Low-Latency.
+ + 
+
+26.4.14.4
 =========
  + Correctly show DLSS status text in the OSD if Ray Reconstruction is active
      and Frame Generation is not.

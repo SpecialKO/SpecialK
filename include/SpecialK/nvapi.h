@@ -266,4 +266,45 @@ bool SK_Reflex_IsPrimaryDisplayVRR        (void);
 bool SK_Reflex_IsFramerateLimitIncorrect  (void);
 void SK_ImGui_DrawReflexNonPrimaryWarning (void);
 
+#define SK_NvAPI_DeclareOrdinal(func,ordinal) static auto constexpr func##_Ordinal = ordinal;
+#define SK_NvAPI_QueryInterface
+
+#ifndef __unknwnbase_h__
+struct IUnknown;
+#endif
+
+NVAPI_INTERFACE
+SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
+                             __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams );
+
+bool SK_Reflex_SetupReflexSync (IUnknown* pDev);
+
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D_GetSleepStatus,             0xaef96ca1)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D_SetSleepMode,               0xac1ca9e0)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D_Sleep,                      0x852cd1d2)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D_SetReflexSync,              0xb9f6faff)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D_GetLatency,                 0x1a587f9c)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D_SetLatencyMarker,           0xd9984c05)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D12_SetAsyncFrameMarker,      0x13c98f73)
+SK_NvAPI_DeclareOrdinal (NvAPI_D3D11_SetAsyncFrameMarker,      0x59c2c510)
+SK_NvAPI_DeclareOrdinal (NvAPI_NGX_GetNGXOverrideState,        0x3fd96fba)
+SK_NvAPI_DeclareOrdinal (NvAPI_NGX_SetNGXOverrideState,        0xb60fcb4e)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_InitLowLatencyDevice,    0x5c1696b6)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_DestroyLowLatencyDevice, 0x11a5932b)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_GetSleepStatus,          0xadf966af)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_SetSleepMode,            0x2acfd162)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_Sleep,                   0x36732b1e)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_GetLatency,              0x3233d44a)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_SetLatencyMarker,        0xa17d13d6)
+SK_NvAPI_DeclareOrdinal (NvAPI_Vulkan_NotifyOutOfBandVkQueue,  0x5d6d3840)
+
+#define SK_NvAPI_HookFunction(name)          \
+  auto name##_addr = NvAPI_QueryInterface    \
+                         (name##_Ordinal);   \
+  SK_CreateFuncHook ( _L (#name),            \
+                          name##_addr,       \
+                          name##_Detour,     \
+  static_cast_p2p <void>(&name##_Original)); \
+  MH_QueueEnableHook (    name##_addr);
+
 #endif /* __SK__NVAPI_H__ */

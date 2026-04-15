@@ -1189,7 +1189,7 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
       );
 
 #if 0
-      static HANDLE   hTimer     = 0;
+      static HANDLE   hTimer     = (HANDLE)-1;
       static LONGLONG next_frame = 0;
 
       auto *pLimiter =

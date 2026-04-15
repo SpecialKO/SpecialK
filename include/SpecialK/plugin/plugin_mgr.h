@@ -21,8 +21,9 @@
 #ifndef __SK__Plugin__Manager_H__
 #define __SK__Plugin__Manager_H__
 
+#ifndef __unknwnbase_h__
 struct IUnknown;
-#include <Unknwnbase.h>
+#endif
 
 #include <string>
 

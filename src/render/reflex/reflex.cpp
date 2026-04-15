@@ -46,13 +46,21 @@ volatile LONG    SK_RenderBackend::flip_skip = 0;
 using  NvAPI_QueryInterface_pfn       =
   void*                (*)(unsigned int ordinal);
 using  NvAPI_D3D_SetLatencyMarker_pfn =
-  NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
-                           __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams);
+  NvAPI_Status (__cdecl *)(__in IUnknown                  *pDev,
+                           __in NV_LATENCY_MARKER_PARAMS  *pSetLatencyMarkerParams);
 using  NvAPI_D3D_SetSleepMode_pfn     =
-  NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
-                           __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams);
+  NvAPI_Status (__cdecl *)(__in IUnknown                  *pDev,
+                           __in NV_SET_SLEEP_MODE_PARAMS  *pSetSleepModeParams);
 using  NvAPI_D3D_Sleep_pfn            =
-  NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev);
+  NvAPI_Status (__cdecl *)(__in IUnknown                  *pDev);
+using  NvAPI_D3D_SetReflexSync_pfn    =
+  NvAPI_Status (__cdecl *)(__in IUnknown                  *pDev,
+                           __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams);
+
+static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = nullptr;
+static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
+static NvAPI_D3D_Sleep_pfn            NvAPI_D3D_Sleep_Original            = nullptr;
+static NvAPI_D3D_SetReflexSync_pfn    NvAPI_D3D_SetReflexSync_Original    = nullptr;
 
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
@@ -76,10 +84,6 @@ extern HANDLE SK_ImGui_SignalBackupInputThread;
 // NOTE: All hooks currently assume a game only has one D3D device, and that it is the
 //       same one as SK's Render Backend is using.
 //
-
-static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = nullptr;
-static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
-static NvAPI_D3D_Sleep_pfn            NvAPI_D3D_Sleep_Original            = nullptr;
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
@@ -233,6 +237,53 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   }
 
   return ret;
+}
+
+NVAPI_INTERFACE
+NvAPI_D3D_SetReflexSync_Detour ( __in IUnknown                  *pDev,
+                                 __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams )
+{
+  SK_LOG_FIRST_CALL
+
+  static NvU32       enabled = MAXDWORD;
+  if (std::exchange (enabled, (NvU32)pSetReflexSyncParams->bEnable) != pSetReflexSyncParams->bEnable)
+    SK_LOGi0 (L"NVIDIA Reflex Sync %wsabled by game...",               pSetReflexSyncParams->bEnable ? L"En" : L"NOT En");
+
+  static NvU32       disabled = MAXDWORD;
+  if (std::exchange (disabled, (NvU32)pSetReflexSyncParams->bDisable) != pSetReflexSyncParams->bDisable)
+                 if (disabled)
+    SK_LOGi0 (L"NVIDIA Reflex Sync disabled by game...");
+
+  static NV_SET_REFLEX_SYNC_PARAMS_V1 lastParams = { .version = MAXDWORD };
+
+  if (std::exchange (lastParams.vblankIntervalUs,
+          pSetReflexSyncParams->vblankIntervalUs)   !=    pSetReflexSyncParams->vblankIntervalUs)
+    SK_LOGi0 (L"NVIDIA Reflex Sync vblankIntervalUs changed by game: %u us (%0.2f ms)",
+          pSetReflexSyncParams->vblankIntervalUs, (double)pSetReflexSyncParams->vblankIntervalUs / 1000.0);
+
+  if (std::exchange (lastParams.timeInQueueUs,
+          pSetReflexSyncParams->timeInQueueUs)    !=   pSetReflexSyncParams->timeInQueueUs)
+    SK_LOGi0 (L"NVIDIA Reflex Sync timeInQueueUs changed by game: %i us (%0.2f ms)",
+          pSetReflexSyncParams->timeInQueueUs, (double)pSetReflexSyncParams->timeInQueueUs / 1000.0);
+
+  if (std::exchange (lastParams.timeInQueueUsTarget,
+          pSetReflexSyncParams->timeInQueueUsTarget)    !=   pSetReflexSyncParams->timeInQueueUsTarget)
+    SK_LOGi0 (L"NVIDIA Reflex Sync timeInQueueUsTarget changed by game: %i us (%0.2f ms)",
+          pSetReflexSyncParams->timeInQueueUsTarget, (double)pSetReflexSyncParams->timeInQueueUsTarget / 1000.0);
+
+  return
+    NvAPI_D3D_SetReflexSync_Original (pDev, pSetReflexSyncParams);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
+                             __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams )
+{
+  if (NvAPI_D3D_SetReflexSync_Original == nullptr)
+    return NVAPI_NO_IMPLEMENTATION;
+
+  return
+    NvAPI_D3D_SetReflexSync_Original (pDev, pSetReflexSyncParams);
 }
 
 NVAPI_INTERFACE
@@ -650,29 +701,12 @@ SK_NvAPI_HookReflex (void)
           SK_GetProcAddress (hLib, "nvapi_QueryInterface")
         );
 
-      static auto constexpr D3D_SET_LATENCY_MARKER = 3650636805;
-      static auto constexpr D3D_SET_SLEEP_MODE     = 2887559648;
-      static auto constexpr D3D_SLEEP              = 2234307026;
-
       // Hook SetLatencyMarker so we know if a game is natively using Reflex.
       //
-      SK_CreateFuncHook (      L"NvAPI_D3D_SetLatencyMarker",
-                                 NvAPI_QueryInterface (D3D_SET_LATENCY_MARKER),
-                                 NvAPI_D3D_SetLatencyMarker_Detour,
-        static_cast_p2p <void> (&NvAPI_D3D_SetLatencyMarker_Original) );
-      MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SET_LATENCY_MARKER));
-
-      SK_CreateFuncHook (      L"NvAPI_D3D_SetSleepMode",
-                                 NvAPI_QueryInterface (D3D_SET_SLEEP_MODE),
-                                 NvAPI_D3D_SetSleepMode_Detour,
-        static_cast_p2p <void> (&NvAPI_D3D_SetSleepMode_Original) );
-      MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SET_SLEEP_MODE));
-
-      SK_CreateFuncHook (      L"NvAPI_D3D_Sleep",
-                                 NvAPI_QueryInterface (D3D_SLEEP),
-                                 NvAPI_D3D_Sleep_Detour,
-        static_cast_p2p <void> (&NvAPI_D3D_Sleep_Original) );
-      MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SLEEP));
+      SK_NvAPI_HookFunction (NvAPI_D3D_SetLatencyMarker);
+      SK_NvAPI_HookFunction (NvAPI_D3D_SetSleepMode);
+      SK_NvAPI_HookFunction (NvAPI_D3D_Sleep);
+      SK_NvAPI_HookFunction (NvAPI_D3D_SetReflexSync);
 
       SK_ApplyQueuedHooks ();
     }
@@ -2120,4 +2154,29 @@ SK_ImGui_DrawReflexNonPrimaryWarning (void)
     }
     ImGui::EndTooltip      ();
   }
+}
+
+bool SK_Reflex_SetupReflexSync (IUnknown* pDev)
+{
+  NV_SET_REFLEX_SYNC_PARAMS
+  rsync_params                    = {                           };
+  rsync_params.version            = NV_SET_REFLEX_SYNC_PARAMS_VER;
+  rsync_params.bEnable            = (!__SK_IsDLSSGActive && config.render.framerate.enforcement_policy == 2) ||
+                                     (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()) && __target_fps_now > 0.0f;
+  rsync_params.bDisable            = !rsync_params.bEnable;
+  rsync_params.timeInQueueUs       = 0;
+  rsync_params.timeInQueueUsTarget = 0;
+  rsync_params.vblankIntervalUs    = rsync_params.bEnable ? static_cast <NvU32> (1000.0 * (1000.0 / __target_fps_now))
+                                                          : 0;
+
+  if (NVAPI_OK == SK_NvAPI_D3D_SetReflexSync (pDev, &rsync_params))
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"SK_NvAPI_D3D_SetReflexSync (...) successful!");
+    );
+  
+    return true;
+  }
+  
+  return false;
 }
