@@ -5074,3 +5074,17 @@ SK_Framerate_EnergyControlPanel (void)
     ImGui::TreePop    ();
   }
 }
+
+bool
+game_pacer_s::wantPacing (void)
+{
+  return // Restricted to Unity and NVIDIA only for now...
+    SK_GetCurrentRenderBackend ().windows.unity && config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware/*&& config.render.framerate.enforcement_policy == 2*/;
+}
+
+void
+game_pacer_s::signalEvent (void)
+{
+  if (event != 0)
+    SetEvent (event);
+}

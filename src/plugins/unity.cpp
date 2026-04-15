@@ -1,7 +1,7 @@
 ﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 //
-// Copyright 2025 Andon "Kaldaien" Coleman
+// Copyright 2025 - 2026 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -24,6 +24,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/nvapi.h>
 #include <imgui/font_awesome.h>
 
 #ifdef  __SK_SUBSYSTEM__
@@ -81,8 +82,7 @@ float SK_Unity_OriginalFixedDeltaTime   =  0.0f;
 int   SK_Unity_GlyphEnumVal             =    -1;
 bool  SK_Unity_GlyphCacheDirty          = false;
 
-HANDLE SK_Unity_GetFrameStatsWaitEvent = 0;
-bool   SK_Unity_FullIl2cppEngineTime   = true; // Il2cpp may strip out setter functions from UnityEngine.Time
+bool  SK_Unity_FullIl2cppEngineTime     = true; // Il2cpp may strip out setter functions from UnityEngine.Time
 
 bool SK_Unity_HookMonoInit        (void);
 void SK_Unity_SetInputPollingFreq (float PollingHz);
@@ -104,7 +104,7 @@ SK_Unity_PlugInCfg (void)
   SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
 
   const bool has_fixed_tick  = SK_Unity_OriginalFixedDeltaTime != 0.0f;
-  const bool has_game_pacing = SK_Unity_GetFrameStatsWaitEvent != 0;
+  const bool has_game_pacing = game_pace.event != 0 && sk::NVAPI::nv_hardware;
 
   if (! (show_controller_cfg || has_fixed_tick || has_game_pacing))
   {
@@ -234,9 +234,7 @@ SK_Unity_PlugInCfg (void)
         ImGui::TextUnformatted ("Experimental game/render thread framerate limiting");
         ImGui::Separator       ();
         ImGui::BulletText      ("Normal framerate limiting only limits the render thread.");
-        ImGui::BulletText      ("This mode reduces latency by one frame and should be smoother.");
-        ImGui::Separator       ();
-        ImGui::TextUnformatted ("Latency reduction is not reflected in Reflex timing diagram.");
+        ImGui::BulletText      ("This mode reduces latency by up to one frame and should be smoother.");
         ImGui::EndTooltip ();
       }
     }

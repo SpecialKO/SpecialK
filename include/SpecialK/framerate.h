@@ -837,5 +837,12 @@ extern float __target_fps_temp;
 
 extern LONGLONG __SK_LatentSyncPostDelay;
 
+struct game_pacer_s {
+  DWORD  last_paced_time = 0UL;
+  HANDLE event           = 0;
+  bool   wantPacing  (void);
+  void   signalEvent (void);
+} game_pace;
+
 
 #endif /* __SK__FRAMERATE_H__ */

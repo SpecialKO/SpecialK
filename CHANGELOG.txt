@@ -1,4 +1,11 @@
-﻿26.4.15.4
+﻿26.4.15.5
+=========
+ + Open up Unity Game Thread Pacing to Normal and Latent Sync limiter modes,
+     with reduced effectiveness.
+ + Only show Unity Game Thread Pacing option on NVIDIA GPUs for now.
+ + Fixed Reflex timeline when using Game Thread Pacing.
+
+26.4.15.4
 =========
  + Do not synchronize Unity game thread to SwapChain thread if the game thread
      is already running behind schedule.

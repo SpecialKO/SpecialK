@@ -201,14 +201,17 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
     const auto frame_id =
       SK_GetFramesDrawn ();
 
-    static ULONG64
-        last_frame = 0;
-    if (std::exchange (last_frame, frame_id) < frame_id)
+    if (!game_pace.wantPacing () || game_pace.last_paced_time < SK_timeGetTime ())
     {
-      if (InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) < frame_id)
+      static ULONG64
+          last_frame = 0;
+      if (std::exchange (last_frame, frame_id) < frame_id)
       {
-        rb.setLatencyMarkerNV (SIMULATION_END);
-        rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+        if (InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) < frame_id)
+        {
+          rb.setLatencyMarkerNV (SIMULATION_END);
+          rb.setLatencyMarkerNV (RENDERSUBMIT_START);
+        }
       }
     }
   }

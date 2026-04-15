@@ -4664,8 +4664,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
         rb.api
   );
 
-  extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
-  if (!(config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && config.render.framerate.enforcement_policy == 2 && SK_Unity_GetFrameStatsWaitEvent != 0) || !sk::NVAPI::nv_hardware)
+  // Pacing the game's thread is unsupported or unwanted, so use traditional
+  //   SwapChain sync instead...
+  if (! game_pace.wantPacing ())
     rb.driverSleepNV (1);
 
   if ((config.render.framerate.enforcement_policy == 2 && !rb.vulkan_reflex.isPacingEligible ()) || rb.vulkan_reflex.needsFallbackSleep ())
@@ -4696,6 +4697,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   SK_ScePad_PaceMaker ();
 
+  game_pace.last_paced_time = SK_timeGetTime () + 65536UL;
 
   InterlockedIncrementAcquire (
     &SK_RenderBackend::frames_drawn
@@ -4943,11 +4945,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_Window_RepositionIfNeeded ();
   }
 
-  extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
-  if (          SK_Unity_GetFrameStatsWaitEvent != 0)
-  {
-    SetEvent (SK_Unity_GetFrameStatsWaitEvent);
-  }
+  game_pace.signalEvent ();
 
   if (SK_API_IsDirect3D9 (rb.api) || SK_API_IsDXGIBased (rb.api))
     SK_Reflex_SetupReflexSync (device);

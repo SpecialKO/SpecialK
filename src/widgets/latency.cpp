@@ -881,7 +881,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
   ImGui::EndGroup   ();
 
   if ( ReadULong64Acquire (&SK_Reflex_LastFrameMarked) <
-       ReadULong64Acquire (&SK_RenderBackend::frames_drawn) - 2 )
+       ReadULong64Acquire (&SK_RenderBackend::frames_drawn) - 2 && !game_pace.wantPacing () )
   {
     static bool bRTSS64 =
       SK_GetModuleHandle (

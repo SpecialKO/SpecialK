@@ -1179,58 +1179,43 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 
   if (SK_GetCurrentRenderBackend ().windows.unity && SK_GetCallingDLL () == hModUnityPlayer)
   {
-    extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
-    extern bool   SK_Unity_PaceGameThread;
+    SK_RunOnce (
+      game_pace.event =
+        SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
+    );
 
-    if (config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware && config.render.framerate.enforcement_policy == 2)
+    if (game_pace.wantPacing ())
     {
-      SK_RunOnce (
-        SK_Unity_GetFrameStatsWaitEvent =
-          SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
-      );
-
-      static HANDLE   hTimer     = (HANDLE)-1;
-      static LONGLONG next_frame = 0;
-
-      auto *pLimiter =
-        SK::Framerate::GetLimiter ((IUnknown *)-1);
-
-      if (pLimiter != nullptr)
-      {
-#if 0
-        pLimiter->standalone = true;
-        pLimiter->set_limit (__target_fps_now);
-        pLimiter->wait      (                );
-#else
-        pLimiter =
-          SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p, false);
-
-        if (pLimiter != nullptr)
-        {
-          const auto next_tick =
-            pLimiter->get_next_tick ();
-
-          // Do not sync to SwapChain thread if the game thread is already behind schedule.
-          if (SK_QueryPerf ().QuadPart < next_tick)
-            WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, 3UL);
-
-          const auto ticks_per_half_ms =
-            static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
-
-          // This needs cleaning up.
-          if (  next_tick - ticks_per_half_ms / 2LL > SK_QueryPerf ().QuadPart)
-          { if (next_tick > SK_QueryPerf ().QuadPart + ticks_per_half_ms / 2LL)
-              SK_Framerate_WaitUntilQPC ( next_tick  - ticks_per_half_ms / 2LL, hTimer );
-          }
-        }
-#endif
-      }
+      static HANDLE hTimer = (HANDLE)-1;
 
       auto& rb =
         SK_GetCurrentRenderBackend ();
 
+      auto pLimiter =
+        SK::Framerate::GetLimiter (rb.swapchain.p, false);
+
+      if (pLimiter != nullptr)
+      {
+        const auto next_tick =
+          pLimiter->get_next_tick ();
+
+        // Do not sync to SwapChain thread if the game thread is already behind schedule.
+        if (SK_QueryPerf ().QuadPart < next_tick)
+        {
+          WaitForSingleObject (game_pace.event, 2UL);
+
+          static const auto ticks_per_half_ms =
+            static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
+
+          SK_Framerate_WaitUntilQPC (next_tick - ticks_per_half_ms / 3LL, hTimer);
+        }
+      }
+
       rb.driverSleepNV      (       1        );
       rb.setLatencyMarkerNV (SIMULATION_START);
+
+      game_pace.last_paced_time =
+        SK_timeGetTime ();
 
       // Unity doesn't need to see this, give it fake data...
       //   the actual reliability of the frame stats is much lower

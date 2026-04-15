@@ -3600,10 +3600,9 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   ////if (_IsBackendD3D12 (rb.api) && InterlockedCompareExchange (&lResetD3D12, 0, 1) == 1) _d3d12_rbk->release (This);
 
       // Unity Engine Pacing Sync Event
-      extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
-      if (          SK_Unity_GetFrameStatsWaitEvent != 0 && config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware && config.render.framerate.enforcement_policy == 2)
+      if (game_pace.wantPacing ())
       {
-        SetEvent (SK_Unity_GetFrameStatsWaitEvent);
+        game_pace.signalEvent ();
       }
       else
       {
