@@ -82,7 +82,6 @@ int   SK_Unity_GlyphEnumVal             =    -1;
 bool  SK_Unity_GlyphCacheDirty          = false;
 
 HANDLE SK_Unity_GetFrameStatsWaitEvent = 0;
-bool   SK_Unity_PaceGameThread         = true;
 bool   SK_Unity_FullIl2cppEngineTime   = true; // Il2cpp may strip out setter functions from UnityEngine.Time
 
 bool SK_Unity_HookMonoInit        (void);
@@ -225,7 +224,10 @@ SK_Unity_PlugInCfg (void)
 
     if (has_game_pacing)
     {
-      ImGui::Checkbox ("Pace Unity Game Thread", &SK_Unity_PaceGameThread);
+      if (ImGui::Checkbox ("Pace Unity Game Thread", &config.render.framerate.pace_game_thread))
+      {
+        config.utility.save_async ();
+      }
 
       if (ImGui::BeginItemTooltip ())
       {

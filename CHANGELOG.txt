@@ -1,4 +1,10 @@
-﻿
+﻿26.4.15.2
+=========
+ + Made Pace Unity Game Thread a persistent setting available through the
+     Unity control panel in supported modern Unity (2019+) games.
+   * This will decrease latency and make the game smoother, if VRR Optimized
+       framerate limit mode is active; Reflex timeline graph is half-broken.
+
 26.4.15.1
 =========
  + Eliminated primary display assertion when checking for broken Reflex VRR.

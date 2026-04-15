@@ -3594,12 +3594,21 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
       _EndSwap ();
 
-      
+
       // All hooked chains need to be servicing >= this reset request, or restart them
   ////if (_IsBackendD3D11 (rb.api) && InterlockedCompareExchange (&lResetD3D11, 0, 1) == 1) _d3d11_rbk->release (This);
   ////if (_IsBackendD3D12 (rb.api) && InterlockedCompareExchange (&lResetD3D12, 0, 1) == 1) _d3d12_rbk->release (This);
 
-      rb.setLatencyMarkerNV (SIMULATION_START);
+      // Unity Engine Pacing Sync Event
+      extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
+      if (          SK_Unity_GetFrameStatsWaitEvent != 0 && config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware && config.render.framerate.enforcement_policy == 2)
+      {
+        SetEvent (SK_Unity_GetFrameStatsWaitEvent);
+      }
+      else
+      {
+        rb.setLatencyMarkerNV (SIMULATION_START);
+      }
 
       // Measure frametime after Present returns, and after any additional code SK runs after Present finishes
       if (config.fps.getTimingMethod () == SK_FrametimeMeasures_NewFrameBegin ||

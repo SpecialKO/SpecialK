@@ -986,6 +986,7 @@ struct {
     sk::ParameterBool*    force_vk_adaptive       = nullptr;
     sk::ParameterBool*    max_timer_resolution    = nullptr;
     sk::ParameterBool*    force_high_res_timers   = nullptr;
+    sk::ParameterBool*    pace_game_thread        = nullptr;
 
     struct
     {
@@ -2131,6 +2132,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Engine",      L"OverrideCPUCoreCount"),
     ConfigEntry (render.framerate.max_timer_resolution,  L"Set the process timer resolution to the maximum supported", dll_ini,         L"FrameRate.Engine",      L"UseMaxTimerResolution"),
     ConfigEntry (render.framerate.force_high_res_timers, L"Force Waitable Timer code to use Win10 High-Res Timers",    dll_ini,         L"FrameRate.Engine",      L"ForceHighResTimers"),
+    ConfigEntry (render.framerate.pace_game_thread,      L"Pace the game thread in supported engines (i.e. Unity)",    dll_ini,         L"FrameRate.Engine",      L"PaceGameThread"),
     ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
     ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in -frames or milliseconds) to Resync Timing",   dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
@@ -4958,6 +4960,7 @@ auto DeclKeybind =
   render.framerate.override_cpu_count->load   (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->load (config.render.framerate.max_timer_resolution);
   render.framerate.force_high_res_timers->load(config.render.framerate.force_high_res_timers);
+  render.framerate.pace_game_thread->load     (config.render.framerate.pace_game_thread);
 
   render.framerate.latent_sync.offset->load   (config.render.framerate.latent_sync.scanline_offset);
   render.framerate.latent_sync.resync->load   (config.render.framerate.latent_sync.scanline_resync);
@@ -7348,6 +7351,7 @@ SK_SaveConfig ( std::wstring name,
                                        store (config.render.framerate.max_timer_resolution);
   render.framerate.force_high_res_timers->
                                        store (config.render.framerate.force_high_res_timers);
+  render.framerate.pace_game_thread->  store (config.render.framerate.pace_game_thread);
   render.framerate.engine.allow_latency_wait
                                      ->store (config.render.framerate.engine_overrides.allow_latency_wait);
 

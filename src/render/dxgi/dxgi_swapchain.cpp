@@ -26,6 +26,7 @@
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/nvapi.h>
 
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
@@ -1181,14 +1182,13 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
     extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
     extern bool   SK_Unity_PaceGameThread;
 
-    if (SK_Unity_PaceGameThread)
+    if (config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware && config.render.framerate.enforcement_policy == 2)
     {
       SK_RunOnce (
         SK_Unity_GetFrameStatsWaitEvent =
           SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
       );
 
-#if 0
       static HANDLE   hTimer     = (HANDLE)-1;
       static LONGLONG next_frame = 0;
 
@@ -1197,12 +1197,35 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 
       if (pLimiter != nullptr)
       {
-      //WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, INFINITE);
+#if 0
         pLimiter->standalone = true;
         pLimiter->set_limit (__target_fps_now);
         pLimiter->wait      (                );
-      }
+#else
+        pLimiter =
+          SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p, false);
+
+        if (pLimiter != nullptr)
+        {
+          const auto next_tick =
+            pLimiter->get_next_tick ();
+
+          WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, 66UL);
+
+          const auto ticks_per_half_ms =
+            static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
+          
+          if (next_tick > SK_QueryPerf ().QuadPart + ticks_per_half_ms / 2LL)
+            SK_Framerate_WaitUntilQPC ( next_tick  - ticks_per_half_ms / 2LL, hTimer );
+        }
 #endif
+      }
+
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      rb.driverSleepNV      (       1        );
+      rb.setLatencyMarkerNV (SIMULATION_START);
 
       // Unity doesn't need to see this, give it fake data...
       //   the actual reliability of the frame stats is much lower

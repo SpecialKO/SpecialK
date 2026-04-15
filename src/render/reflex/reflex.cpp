@@ -2051,7 +2051,7 @@ SK_Reflex_ShouldTearingBeOverridden (void)
     else
       return rb.primary_display;
 
-    //SK_ReleaseAssert (rb.displays [rb.primary_display].primary);
+  //SK_ReleaseAssert (rb.displays [rb.primary_display].primary);
   };
 
   int primary_idx = GetPrimaryDisplay ();

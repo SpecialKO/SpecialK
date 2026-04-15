@@ -4664,7 +4664,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
         rb.api
   );
 
-  rb.driverSleepNV (1);
+  extern HANDLE SK_Unity_GetFrameStatsWaitEvent;
+  if (!(config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && config.render.framerate.enforcement_policy == 2 && SK_Unity_GetFrameStatsWaitEvent != 0) || !sk::NVAPI::nv_hardware)
+    rb.driverSleepNV (1);
 
   if ((config.render.framerate.enforcement_policy == 2 && !rb.vulkan_reflex.isPacingEligible ()) || rb.vulkan_reflex.needsFallbackSleep ())
   {
