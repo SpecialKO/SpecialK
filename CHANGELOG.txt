@@ -1,4 +1,9 @@
-﻿26.4.15.3
+﻿26.4.15.4
+=========
+ + Do not synchronize Unity game thread to SwapChain thread if the game thread
+     is already running behind schedule.
+
+26.4.15.3
 =========
  + Eliminate potential hitch during asset loads when Unity Game Thread Pacing
      is enabled.

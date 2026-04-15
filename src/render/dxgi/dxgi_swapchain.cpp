@@ -1210,12 +1210,15 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
           const auto next_tick =
             pLimiter->get_next_tick ();
 
-          WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, 2UL);
+          // Do not sync to SwapChain thread if the game thread is already behind schedule.
+          if (SK_QueryPerf ().QuadPart < next_tick)
+            WaitForSingleObject (SK_Unity_GetFrameStatsWaitEvent, 3UL);
 
           const auto ticks_per_half_ms =
             static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
 
-          if (next_tick - ticks_per_half_ms / 2LL > SK_QueryPerf ().QuadPart)
+          // This needs cleaning up.
+          if (  next_tick - ticks_per_half_ms / 2LL > SK_QueryPerf ().QuadPart)
           { if (next_tick > SK_QueryPerf ().QuadPart + ticks_per_half_ms / 2LL)
               SK_Framerate_WaitUntilQPC ( next_tick  - ticks_per_half_ms / 2LL, hTimer );
           }
