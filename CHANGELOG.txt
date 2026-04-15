@@ -1,4 +1,9 @@
-﻿26.4.15.2
+﻿26.4.15.3
+=========
+ + Eliminate potential hitch during asset loads when Unity Game Thread Pacing
+     is enabled.
+
+26.4.15.2
 =========
  + Made Pace Unity Game Thread a persistent setting available through the
      Unity control panel in supported modern Unity (2019+) games.
