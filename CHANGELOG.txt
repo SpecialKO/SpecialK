@@ -1,4 +1,9 @@
-﻿26.4.15
+﻿
+26.4.15.1
+=========
+ + Eliminated primary display assertion when checking for broken Reflex VRR.
+
+26.4.15
 =======
  + Added experimental implementation of NvAPI_D3D_SetReflexSync (...) when FG
      is active, or when SK's framerate limiter mode is set to Low-Latency.
