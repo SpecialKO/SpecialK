@@ -1179,54 +1179,8 @@ IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 
   if (SK_GetCurrentRenderBackend ().windows.unity && SK_GetCallingDLL () == hModUnityPlayer)
   {
-    SK_RunOnce (
-      game_pace.event =
-        SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
-    );
-
-    if (game_pace.wantPacing ())
-    {
-      static HANDLE hTimer = (HANDLE)-1;
-
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
-
-      auto pLimiter =
-        SK::Framerate::GetLimiter (rb.swapchain.p, false);
-
-      if (pLimiter != nullptr)
-      {
-        const auto next_tick =
-          pLimiter->get_next_tick ();
-
-        // Do not sync to SwapChain thread if the game thread is already behind schedule.
-        if (SK_QueryPerf ().QuadPart < next_tick)
-        {
-          WaitForSingleObject (game_pace.event, 2UL);
-
-          static const auto ticks_per_half_ms =
-            static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
-
-          SK_Framerate_WaitUntilQPC (next_tick - ticks_per_half_ms / 3LL, hTimer);
-        }
-      }
-
-      rb.driverSleepNV      (       1        );
-      rb.setLatencyMarkerNV (SIMULATION_START);
-
-      game_pace.last_paced_time =
-        SK_timeGetTime ();
-
-      // Unity doesn't need to see this, give it fake data...
-      //   the actual reliability of the frame stats is much lower
-      //     than Unity believes and they are better off with an error :)
-      auto ret = E_ACCESSDENIED;
-
-      //auto ret =
-      //  pReal->GetFrameStatistics (pStats);
-
-      return ret;
-    }
+    extern HRESULT SK_Unity_PaceGameThreadDxgi (IDXGISwapChain *pSwapChain, DXGI_FRAME_STATISTICS *pStats);
+    return         SK_Unity_PaceGameThreadDxgi (pReal, pStats);
   }
 
   return
