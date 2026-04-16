@@ -1,4 +1,11 @@
-﻿26.4.15.5
+﻿26.4.16
+=======
+ + Detect and handle older Unity games that do not support Game Thread Pacing.
+    * Game Thread Pacing only works when Unity's in-game VSYNC setting is ON.
+ + Handle case where VSYNC state changes in Unity and fallback to older Reflex
+     implementation is necessary.
+
+26.4.15.5
 =========
  + Open up Unity Game Thread Pacing to Normal and Latent Sync limiter modes,
      with reduced effectiveness.

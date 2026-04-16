@@ -838,8 +838,11 @@ extern float __target_fps_temp;
 extern LONGLONG __SK_LatentSyncPostDelay;
 
 struct game_pacer_s {
-  DWORD  last_paced_time = 0UL;
-  HANDLE event           = 0;
+  ULONG64 last_frame_id   = 0ULL;
+  DWORD   last_paced_time = 0UL;
+  HANDLE  event           = 0;
+
+  bool   isSupported (void);
   bool   wantPacing  (void);
   void   signalEvent (void);
 } game_pace;

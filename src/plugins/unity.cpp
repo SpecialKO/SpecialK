@@ -104,7 +104,7 @@ SK_Unity_PlugInCfg (void)
   SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
 
   const bool has_fixed_tick  = SK_Unity_OriginalFixedDeltaTime != 0.0f;
-  const bool has_game_pacing = game_pace.event != 0 && sk::NVAPI::nv_hardware;
+  const bool has_game_pacing = game_pace.isSupported ();
 
   if (! (show_controller_cfg || has_fixed_tick || has_game_pacing))
   {
@@ -2960,54 +2960,54 @@ SK_Unity_PaceGameThreadDxgi (IDXGISwapChain *pSwapChain, DXGI_FRAME_STATISTICS *
       SK_CreateEvent (nullptr, FALSE, TRUE, nullptr)
   );
 
+  game_pace.last_frame_id =
+    SK_GetFramesDrawn ();
+
   if (game_pace.wantPacing ())
   {
     static HANDLE hTimer = (HANDLE)-1;
-  
+
     auto& rb =
       SK_GetCurrentRenderBackend ();
-  
+
+    rb.driverSleepNV (1);
+
     auto pLimiter =
       SK::Framerate::GetLimiter (rb.swapchain.p, false);
-  
-    rb.driverSleepNV (1);
-  
+
     if (pLimiter != nullptr)
     {
       SK_RunOnce (
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL)
       );
-  
+
       const auto next_tick =
         pLimiter->get_next_tick ();
-  
+
       const auto timeNow =
         SK_QueryPerf ().QuadPart;
-  
+
       // Do not sync to SwapChain thread if the game thread is already behind schedule.
       if (timeNow < next_tick)
       {
-        if (timeNow < next_tick + (static_cast <LONG64> (SK_QpcTicksPerMs) * 3LL) / 2LL)
-          WaitForSingleObject (game_pace.event, 2UL);
-  
+        SK_WaitForSingleObject (game_pace.event, 2UL);
+
         static const auto ticks_per_half_ms =
           static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
-  
-        SK_Framerate_WaitUntilQPC (next_tick - ticks_per_half_ms / 3LL, hTimer);
+
+        SK_Framerate_WaitUntilQPC (next_tick - (5 * ticks_per_half_ms) / 4, hTimer);
       }
     }
-  
+
     rb.setLatencyMarkerNV (SIMULATION_START);
-  
+
     game_pace.last_paced_time =
       SK_timeGetTime ();
-  
+
     // Unity doesn't need to see this, give it fake data...
     //   the actual reliability of the frame stats is much lower
     //     than Unity believes and they are better off with an error :)
-    auto ret = E_ACCESSDENIED;
-
-    return ret;
+    return E_ACCESSDENIED;
   }
 
   return

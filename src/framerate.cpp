@@ -5078,8 +5078,8 @@ SK_Framerate_EnergyControlPanel (void)
 bool
 game_pacer_s::wantPacing (void)
 {
-  return // Restricted to Unity and NVIDIA only for now...
-    SK_GetCurrentRenderBackend ().windows.unity && config.render.framerate.pace_game_thread && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware/*&& config.render.framerate.enforcement_policy == 2*/;
+  return 
+    config.render.framerate.pace_game_thread && isSupported () && event != 0 && last_frame_id > SK_GetFramesDrawn () - 2/*&& config.render.framerate.enforcement_policy == 2*/;
 }
 
 void
@@ -5087,4 +5087,11 @@ game_pacer_s::signalEvent (void)
 {
   if (event != 0)
     SetEvent (event);
+}
+
+bool
+game_pacer_s::isSupported (void)
+{
+  return
+    last_frame_id != 0 && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware;
 }
