@@ -6595,3 +6595,66 @@ SK_Render_CountVBlanks ()
 
   SetEvent (hVRREvent);
 }
+
+  void
+  SK_RenderBackend_V2::postNewFrameOnThread (SK_TLS *pTLS, bool designated_thread_may_change)
+  {
+    ULONG64 ullFramesPresented =
+      InterlockedIncrement (&pTLS->render->frames_presented);
+
+    static DWORD last_render_thread_ = 0U;
+  
+    // D3D11 should always use the most recently active thread
+    //   as the "render thread," D3D12 should use the thread
+    //     that has presented the most frames.
+    const bool render_thread_popularity_based =
+                    nullptr != d3d11.immediate_ctx ||
+      SK_API_IsLayeredOnD3D11 (api);
+  
+
+    if (designated_thread_may_change)
+    {
+      if (render_thread_popularity_based)
+      {
+        if (ullFramesPresented > most_frames)
+        {
+          InterlockedExchange ( &most_frames,
+                                   ullFramesPresented );
+        }
+  
+        InterlockedExchange ( &thread,
+                            SK_Thread_GetCurrentId () );
+      }
+  
+      if (render_thread_popularity_based)
+      {
+        InterlockedExchange ( &last_thread,
+                                 SK_Thread_GetCurrentId () );
+      }
+    }
+
+    // One and done, this thread designation is never allowed to change
+    //   after we establish it on the first frame presented...
+    else if (! ReadULongAcquire (&thread))
+    {
+      InterlockedExchange ( &thread,
+                          SK_Thread_GetCurrentId () );
+    }
+
+    if (thread != last_render_thread_)
+    {
+      static            int render_thread_changes = 0;
+      static auto constexpr MaxThreadChangesToLog = 5;
+
+      if (last_render_thread_ != 0 &&
+               render_thread_changes++ < MaxThreadChangesToLog)
+      {
+        SK_LOGi0 (L"Render thread has changed to %zu", thread);
+      }
+
+      last_render_thread_ = thread;
+    }
+
+    // Unused on various codepaths
+    std::ignore = ullFramesPresented;
+  };

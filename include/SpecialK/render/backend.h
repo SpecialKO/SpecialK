@@ -735,27 +735,30 @@ public:
   volatile ULONG64         most_frames  =  0;
   SK_Thread_HybridSpinlock res_lock;
 
-  bool canEnterFullscreen    (void) const;
+  bool   canEnterFullscreen    (void) const;
 
-  void requestFullscreenMode (bool override = false);
-  void requestWindowedMode   (bool override = false);
+  void   requestFullscreenMode (bool override = false);
+  void   requestWindowedMode   (bool override = false);
 
-  double getActiveRefreshRate (HMONITOR hMonitor = 0 /*Default to HWND's nearest*/) const;
+  double getActiveRefreshRate  (HMONITOR hMonitor = 0 /*Default to HWND's nearest*/) const;
 
   HANDLE getSwapWaitHandle     (void) const;
   void   releaseOwnedResources (void);
 
-  void            queueUpdateOutputs   (void);
-  void            updateOutputTopology (void);
-  const output_s* getContainingOutput  (const RECT& rkRect) const;
-  bool            routeAudioForDisplay (const output_s *pOutput, bool force_update = false) const;
-  void            updateWDDMCaps       (      output_s *pOutput);
-  bool            assignOutputFromHWND (HWND hWndContainer);
+  void   postNewFrameOnThread  (SK_TLS *pTLS                         = SK_TLS_Bottom (),
+                                bool    designated_thread_may_change = true);
+  void   queueUpdateOutputs    (void);
+  void   updateOutputTopology  (void);
+  const output_s*
+         getContainingOutput   (const RECT& rkRect)                                 const;
+  bool   routeAudioForDisplay  (const output_s *pOutput, bool force_update = false) const;
+  void   updateWDDMCaps        (      output_s *pOutput);
+  bool   assignOutputFromHWND  (HWND hWndContainer);
 
-  bool isReflexSupported  (void)                                        const;
-  bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker)            const;
-  bool getLatencyReportNV (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams) const;
-  void driverSleepNV      (int site)                                    const;
+  bool   isReflexSupported     (void)                                        const;
+  bool   setLatencyMarkerNV    (NV_LATENCY_MARKER_TYPE    marker)            const;
+  bool   getLatencyReportNV    (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams) const;
+  void   driverSleepNV         (int site)                                    const;
 
   std::string decodeEDIDForName      (uint8_t* edid, size_t length) const;
   POINT       decodeEDIDForNativeRes (uint8_t* edid, size_t length) const;
@@ -767,7 +770,7 @@ public:
   bool isFakeFullscreen (void) const;
   bool isTrueFullscreen (void) const;
 
-  bool isMPODisabled (void);
+  bool isMPODisabled (void) const;
 
   bool update_outputs = false;
 };

@@ -4721,30 +4721,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
       pTLS =
     SK_TLS_Bottom ();
 
-  ULONG64 ullFramesPresented =
-    InterlockedIncrement (&pTLS->render->frames_presented);
-
-#ifdef _RENDER_THREAD_TRANSIENCE
-  if (ullFramesPresented > rb.most_frames)
-  {
-    InterlockedExchange ( &rb.most_frames,
-                       ullFramesPresented );
-    InterlockedExchange ( &rb.thread,
-                           SK_Thread_GetCurrentId () );
-  }
-
-  InterlockedExchange ( &rb.last_thread,
-                              SK_Thread_GetCurrentId () );
-#else
-  (void)ullFramesPresented;
-
-  if (! ReadULongAcquire (&rb.thread))
-  {
-    InterlockedExchange ( &rb.thread,
-                            SK_Thread_GetCurrentId () );
-  }
-#endif
-
+  // Record a frame presented on this thread.
+  rb.postNewFrameOnThread (pTLS);
 
   if (__SK_LatentSyncPostDelay > 1LL)
   {

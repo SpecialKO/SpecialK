@@ -2,6 +2,16 @@
 =========
  + Fixed Reflex Low Latency mode not working to limit VRR
      framerate in Unity games.
+ + Changed "Render Thread" status assignment logic:
+
+     D3D11 = Thread that most recently Presented a frame
+     D3D12 = Thread that has Presented the most frames
+     Other = Same as D3D12
+     -----
+       Old = First thread to Present a frame
+
+    * This affects certain functionality such as "Sleepless Render Thread"
+         and framerate limiting's command queue flushing behavior in D3D11.
 
 26.4.17
 =======

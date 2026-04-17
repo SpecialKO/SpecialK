@@ -2077,10 +2077,12 @@ SK_RenderBackend_V2::isTrueFullscreen (void) const
 }
 
 bool
-SK_RenderBackend_V2::isMPODisabled (void)
+SK_RenderBackend_V2::isMPODisabled (void) const
 {
   if (! SK_API_IsDXGIBased (api))
+  {
     return false;
+  }
 
   typedef unsigned long DWMOverlayTestModeFlags;  // -> enum DWMOverlayTestModeFlags_
 
@@ -2095,51 +2097,64 @@ SK_RenderBackend_V2::isMPODisabled (void)
   };
 
   static DWMOverlayTestModeFlags flagOverlayTestMode = DWMOverlayTestModeFlags_INITIAL;
-  static int iDisableOverlay = 0;
-  static bool  isDisabled    = false;
+
+  static int   iDisableOverlay = 0;
+  static bool isDisabled       = false;
 
   if (flagOverlayTestMode != DWMOverlayTestModeFlags_INITIAL)
-    return isDisabled;
+  {
+    return
+      isDisabled;
+  }
 
   isDisabled = false;
 
-  HKEY hKey;
+  HKEY          hKey;
   unsigned long size = 1024;
 
   // Check if GraphicsDrivers's DisableOverlays has MPOs disabled
   if (ERROR_SUCCESS == RegOpenKeyExW (HKEY_LOCAL_MACHINE, LR"(SYSTEM\CurrentControlSet\Control\GraphicsDrivers\)", 0, KEY_READ | KEY_WOW64_64KEY, &hKey))
   {
-    if (ERROR_SUCCESS == RegQueryValueEx (hKey, L"DisableOverlays", NULL, NULL, (LPBYTE)&iDisableOverlay, &size))
-    { }
-    else
+    if (ERROR_SUCCESS != RegQueryValueEx (hKey, L"DisableOverlays", NULL, NULL, (LPBYTE)&iDisableOverlay, &size))
+    {
       iDisableOverlay = 0;
+    }
 
     RegCloseKey (hKey);
   }
 
   else
+  {
     iDisableOverlay = 0;
+  }
 
   // Check if DWM's OverlayTestMode has MPOs disabled
   if (ERROR_SUCCESS == RegOpenKeyExW (HKEY_LOCAL_MACHINE, LR"(SOFTWARE\Microsoft\Windows\Dwm\)", 0, KEY_READ | KEY_WOW64_64KEY, &hKey))
   {
-    if (ERROR_SUCCESS == RegQueryValueEx (hKey, L"OverlayTestMode", NULL, NULL, (LPBYTE)&flagOverlayTestMode, &size))
-    { }
-    else
-      flagOverlayTestMode = DWMOverlayTestModeFlags_None;
+    if (ERROR_SUCCESS != RegQueryValueEx (hKey, L"OverlayTestMode", NULL, NULL, (LPBYTE)&flagOverlayTestMode, &size))
+    {
+      flagOverlayTestMode =
+        DWMOverlayTestModeFlags_None;
+    }
 
     RegCloseKey (hKey);
   }
 
   else
+  {
     flagOverlayTestMode = DWMOverlayTestModeFlags_None;
+  }
 
   
-  if (iDisableOverlay || ((flagOverlayTestMode & DWMOverlayTestModeFlags_MPORelated1) == DWMOverlayTestModeFlags_MPORelated1 &&
-                          (flagOverlayTestMode & DWMOverlayTestModeFlags_MPORelated2) == DWMOverlayTestModeFlags_MPORelated2))
+  if ( iDisableOverlay ||
+          ((flagOverlayTestMode & DWMOverlayTestModeFlags_MPORelated1) == DWMOverlayTestModeFlags_MPORelated1 &&
+           (flagOverlayTestMode & DWMOverlayTestModeFlags_MPORelated2) == DWMOverlayTestModeFlags_MPORelated2) )
+  {
     isDisabled = true;
+  }
 
-  return isDisabled;
+  return
+    isDisabled;
 }
 
 bool
