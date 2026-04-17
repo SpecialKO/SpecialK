@@ -81,6 +81,7 @@ bool  SK_Unity_CustomizableGlyphs       = false;
 float SK_Unity_OriginalFixedDeltaTime   =  0.0f;
 int   SK_Unity_GlyphEnumVal             =    -1;
 bool  SK_Unity_GlyphCacheDirty          = false;
+float SK_Unity_LatencyDelayPercent      =0.025f;
 
 bool  SK_Unity_FullIl2cppEngineTime     = true; // Il2cpp may strip out setter functions from UnityEngine.Time
 
@@ -222,12 +223,17 @@ SK_Unity_PlugInCfg (void)
       }
     }
 
-    if (has_game_pacing)
+    if (has_game_pacing && (SK_GetCurrentRenderBackend ().present_interval > 0 || config.render.framerate.present_interval == 0))
     {
+      static bool show_tweaks = false;
+
       if (ImGui::Checkbox ("Pace Unity Game Thread", &config.render.framerate.pace_game_thread))
       {
         config.utility.save_async ();
       }
+
+      if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+        show_tweaks = true;
 
       if (ImGui::BeginItemTooltip ())
       {
@@ -236,6 +242,15 @@ SK_Unity_PlugInCfg (void)
         ImGui::BulletText      ("SK will limit both the game and render threads, reducing animation error and latency.");
         ImGui::BulletText      ("This feature is unique to Unity engine games (2020 or newer).");
         ImGui::EndTooltip ();
+      }
+
+      if (config.render.framerate.pace_game_thread && show_tweaks)
+      {
+        ImGui::SameLine    ();
+        ImGui::SliderFloat ("Latency Bias", &SK_Unity_LatencyDelayPercent, 0.0f, 100.0f, "%.1f%%");
+
+        SK_Unity_LatencyDelayPercent =
+          std::clamp (SK_Unity_LatencyDelayPercent, -1.5f, 50.0f);
       }
     }
 
@@ -2990,12 +3005,13 @@ SK_Unity_PaceGameThreadDxgi (IDXGISwapChain *pSwapChain, DXGI_FRAME_STATISTICS *
       // Do not sync to SwapChain thread if the game thread is already behind schedule.
       if (timeNow < next_tick)
       {
-        SK_WaitForSingleObject (game_pace.event, 2UL);
+        //SK_WaitForSingleObject (game_pace.event, 15UL);
 
-        static const auto ticks_per_half_ms =
-          static_cast <LONG64> (SK_QpcTicksPerMs) / 2LL;
-
-        SK_Framerate_WaitUntilQPC (next_tick - (5 * ticks_per_half_ms) / 4, hTimer);
+        SK_Framerate_WaitUntilQPC (next_tick -
+          static_cast <LONGLONG> (
+            static_cast <double> (pLimiter->get_ticks_per_frame ()) *
+                           (SK_Unity_LatencyDelayPercent / 100.0f)), hTimer
+        );
       }
     }
 
