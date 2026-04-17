@@ -1,4 +1,8 @@
-﻿26.4.17.2
+﻿26.4.17.3
+=========
+ + Stop processing background gamepad input if SKIF is in the foreground.
+
+26.4.17.2
 =========
  + Reduced the amount of time SK's framerate limiter spends busy-waiting for
      common FPS targets (very high framerates always require busy-wait).

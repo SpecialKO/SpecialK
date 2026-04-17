@@ -3832,14 +3832,30 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
 
     if (process_input)
     {
-      static std::unordered_map <HWND, BOOL> injected_pid_cache;
+      static std::unordered_map <HWND, DWORD> injected_pid_cache;
 
       bool any_injected = false;
+
+      DWORD dwPidOfSKIF = 0;
+      HWND     hWndSKIF = 0;
+      bool  game_iconic = IsIconic (game_window.hWnd);
 
       for ( auto& window : windows_above )
       {
         if (injected_pid_cache.find (window) == injected_pid_cache.end ())
         {
+          if (! game_iconic)
+          {
+            if (hWndSKIF == 0)
+                hWndSKIF = FindWindow (L"SKIF_ImGuiWindow", nullptr);
+            if (hWndSKIF == 0)
+                hWndSKIF = (HWND)-1;
+            else if (dwPidOfSKIF == 0)
+            {
+              SK_GetWindowThreadProcessId (hWndSKIF, &dwPidOfSKIF);
+            }
+          }
+
           DWORD                                 dwPid = 0x0;
           SK_GetWindowThreadProcessId (window, &dwPid);
 
@@ -3850,8 +3866,8 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
             OpenEventW (EVENT_ALL_ACCESS, FALSE, wszInjectionSignature)
           );
 
-          injected_pid_cache [window] =
-            hInjectionSignature.isValid ();
+          injected_pid_cache [window] =   (  (dwPid == dwPidOfSKIF ) ||
+           hInjectionSignature.isValid () ) ? dwPid : 0x0;
         }
 
         if (! any_injected)
@@ -3878,13 +3894,11 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
 
           for ( auto& window : windows_above )
           {
-            if (IsWindowOverlapping (window, rcVisibleWindow))
+            if (IsWindowOverlapping (window, rcVisibleWindow) &&
+                 injected_pid_cache [window])
             {
-              if (injected_pid_cache [window])
-              {
-                process_input = false;
-                break;
-              }
+              process_input = false;
+              break;
             }
           }
         }
