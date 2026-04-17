@@ -5079,7 +5079,7 @@ bool
 game_pacer_s::wantPacing (void)
 {
   return 
-    config.render.framerate.pace_game_thread && isSupported () && event != 0 && last_frame_id > SK_GetFramesDrawn () - 2/*&& config.render.framerate.enforcement_policy == 2*/;
+    config.render.framerate.pace_game_thread && isSupported () && event != 0 && last_frame_id > SK_GetFramesDrawn () - 2;
 }
 
 void
@@ -5093,5 +5093,5 @@ bool
 game_pacer_s::isSupported (void)
 {
   return
-    last_frame_id != 0 && !config.nvidia.reflex.native && sk::NVAPI::nv_hardware;
+    last_frame_id != 0 && !config.nvidia.reflex.native;
 }

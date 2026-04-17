@@ -1,4 +1,9 @@
-﻿26.4.16.1
+﻿26.4.17
+=======
+ + Allow non-NVIDIA users to enable Unity Game Thread Pacing,
+     minus Reflex integration (rather marginal benefit loss).
+
+26.4.16.1
 =========
  + Only show Unity Game Thread Pacing setting when VSYNC is on.
  + Rename "Composite" to "Scanout" in Latency Widget.
