@@ -854,6 +854,7 @@ struct sk_config_t
       bool   force_high_res_timers = true;
       bool   ignore_env_vars       = false;
       bool   pace_game_thread      = true;
+      bool   precise_short_sleep   = false;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;

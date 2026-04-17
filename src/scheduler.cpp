@@ -986,6 +986,36 @@ SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
   if (ReadAcquire (&__sleep_init) == FALSE)
     return SleepEx (dwMilliseconds, bAlertable);
 
+  // Experimental stuff; no practical application beyond testing an alternate
+  //   higher-precision implementation of Sleep (...) that wastes A LOT of CPU
+  //     time for short waits...
+
+  if (dwMilliseconds == INFINITE || bAlertable || dwMilliseconds > 1)
+  {
+    return SleepEx_Original != nullptr                   ?
+           SleepEx_Original (dwMilliseconds, bAlertable) :
+           SleepEx          (dwMilliseconds, bAlertable);
+  }
+
+  SK_RunOnce (
+    SK_GetCommandProcessor ()->AddVariable (
+      "Scheduler.PreciseShortSleep",
+        new SK_IVarStub <bool> (&config.render.framerate.precise_short_sleep)
+    )
+  ); 
+
+  if (config.render.framerate.precise_short_sleep)
+  {
+    static thread_local HANDLE hTimer = (HANDLE)-1;
+
+    SK_Framerate_WaitUntilQPC (
+      SK_QueryPerf ().QuadPart + dwMilliseconds * SK_QpcTicksPerMs,
+        hTimer
+    );
+
+    return 0;
+  }
+
   return
     SleepEx_Original != nullptr                   ?
     SleepEx_Original (dwMilliseconds, bAlertable) :
