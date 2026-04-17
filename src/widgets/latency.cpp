@@ -554,7 +554,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
        ImPlot::PlotLine ("Simulation",    &history.sample_age [head], &history.simulation    [head], elements);
        ImPlot::PlotLine ("Render Submit", &history.sample_age [head], &history.render_submit [head], elements);
-       ImPlot::PlotLine ("Composite",     &history.sample_age [head], &history.frame_total   [head], elements);
+       ImPlot::PlotLine ("Scanout",       &history.sample_age [head], &history.frame_total   [head], elements);
        ImPlot::PlotLine ("GPU Busy",      &history.sample_age [head], &history.gpu_active    [head], elements);
        ImPlot::PlotLine ("CPU Busy",      &history.sample_age [head], &history.gpu_start     [head], elements);
      };

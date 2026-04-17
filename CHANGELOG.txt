@@ -1,4 +1,9 @@
-﻿26.4.16
+﻿26.4.16.1
+=========
+ + Only show Unity Game Thread Pacing setting when VSYNC is on.
+ + Rename "Composite" to "Scanout" in Latency Widget.
+
+26.4.16
 =======
  + Detect and handle older Unity games that do not support Game Thread Pacing.
     * Game Thread Pacing only works when Unity's in-game VSYNC setting is ON.
