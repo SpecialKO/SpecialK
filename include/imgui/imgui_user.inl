@@ -3894,8 +3894,9 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
 
           for ( auto& window : windows_above )
           {
-            if (IsWindowOverlapping (window, rcVisibleWindow) &&
-                 injected_pid_cache [window])
+            if ((injected_pid_cache [window] == dwPidOfSKIF   && !game_iconic) ||
+               (IsWindowOverlapping (window, rcVisibleWindow) &&
+                 injected_pid_cache [window]))
             {
               process_input = false;
               break;
