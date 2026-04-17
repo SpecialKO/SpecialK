@@ -3005,8 +3005,6 @@ SK_Unity_PaceGameThreadDxgi (IDXGISwapChain *pSwapChain, DXGI_FRAME_STATISTICS *
       // Do not sync to SwapChain thread if the game thread is already behind schedule.
       if (timeNow < next_tick)
       {
-        //SK_WaitForSingleObject (game_pace.event, 15UL);
-
         SK_Framerate_WaitUntilQPC (next_tick -
           static_cast <LONGLONG> (
             static_cast <double> (pLimiter->get_ticks_per_frame ()) *

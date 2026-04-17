@@ -1,4 +1,9 @@
-﻿26.4.17
+﻿26.4.17.1
+=========
+ + Fixed Reflex Low Latency mode not working to limit VRR
+     framerate in Unity games.
+
+26.4.17
 =======
  + Allow non-NVIDIA users to enable Unity Game Thread Pacing,
      minus Reflex integration (rather marginal benefit loss).

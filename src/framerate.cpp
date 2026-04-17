@@ -5092,6 +5092,8 @@ game_pacer_s::signalEvent (void)
 bool
 game_pacer_s::isSupported (void)
 {
+  static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 150;
+
   return
-    last_frame_id != 0 && !config.nvidia.reflex.native;
+    last_frame_id != 0 && !config.nvidia.reflex.native && SK_GetFramesDrawn () > SK_Reflex_MinimumFramesBeforeNative;
 }
