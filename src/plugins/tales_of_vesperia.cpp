@@ -795,7 +795,7 @@ SK_TVFix_BeginFrame (void)
 
   if (ulFramesDrawn > 30 && ulFramesDrawn < 33)
   {
-    extern void SK_ImGui_QueueResetD3D11 (void);
+    extern void SK_ImGui_QueueResetD3D11 (void) noexcept;
     SK_RunOnce (SK_ImGui_QueueResetD3D11 ());
 
     if (ulFramesDrawn == 31)

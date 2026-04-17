@@ -486,7 +486,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
 };
 
 bool                  SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept;
-DXGI_COLOR_SPACE_TYPE SK_DXGI_GetColorSpace1  (IDXGISwapChain* pSwapChain);
+DXGI_COLOR_SPACE_TYPE SK_DXGI_GetColorSpace1  (      IDXGISwapChain* pSwapChain) noexcept;
 
 void ResetImGui_D3D12 (IDXGISwapChain *This);
 void ResetImGui_D3D11 (IDXGISwapChain *This);
@@ -495,7 +495,7 @@ extern SetFullscreenState_pfn SetFullscreenState_Original;
 extern ResizeTarget_pfn       ResizeTarget_Original;
 extern ResizeBuffers_pfn      ResizeBuffers_Original;
 
-uint64_t SK_DXGI_LastFrameSwapChainDestroyed (void);
+uint64_t SK_DXGI_LastFrameSwapChainDestroyed (void) noexcept;
 
 
 #endif /* __SK__DXGI_SWAPCHAIN_H__ */

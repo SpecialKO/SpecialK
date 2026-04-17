@@ -32,7 +32,7 @@
 
 void
 SK_DXGI_SetDebugName ( IDXGIObject* pDXGIObject,
-           const std::wstring&      kName )
+           const std::wstring&      kName ) noexcept
 {
   if (! pDXGIObject)
     return;
@@ -107,7 +107,7 @@ SK_DXGI_GET_OBJECT_NAME_N ( IDXGIObject *pObject,
 }
 
 bool
-SK_DXGI_HasDebugName (IDXGIObject* pDXGIObj)
+SK_DXGI_HasDebugName (IDXGIObject* pDXGIObj) noexcept
 {
   if (pDXGIObj == nullptr)
     return false;

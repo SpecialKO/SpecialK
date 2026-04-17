@@ -54,7 +54,7 @@ void __make_self_titled (DWORD dwTid);
 
 // Game has given this thread a custom name, it's special :)
 bool
-SK_Thread_HasCustomName (DWORD dwTid)
+SK_Thread_HasCustomName (DWORD dwTid) noexcept
 {
   auto& SelfTitled =
     _SK_SelfTitledThreads.get ();
@@ -1211,7 +1211,7 @@ SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
 
 
 DWORD
-SK_GetRenderThreadID (void)
+SK_GetRenderThreadID (void) noexcept
 {
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -1221,7 +1221,7 @@ SK_GetRenderThreadID (void)
 }
 
 DWORD
-SK_GetMainThreadID (void)
+SK_GetMainThreadID (void) noexcept
 {
   static DWORD tid = 0;
 

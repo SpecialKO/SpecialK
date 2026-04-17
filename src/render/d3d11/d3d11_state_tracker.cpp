@@ -125,7 +125,7 @@ SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx)
 
 bool
 SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
-                                         UINT                 dev_idx )
+                                         UINT                 dev_idx ) noexcept
 {
   if (pDevCtx == nullptr)
     return false;
@@ -159,7 +159,7 @@ SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
 
 bool
 SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
-                           SK_TLS**             ppTLS )
+                           SK_TLS**             ppTLS ) noexcept
 {
   UNREFERENCED_PARAMETER (pDevCtx); UNREFERENCED_PARAMETER (ppTLS);
 
@@ -186,7 +186,7 @@ bool SK_D3D11_IsTrackingRequired (void)
 
 bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
-                               UINT                 dev_idx )
+                               UINT                 dev_idx ) noexcept
 {
   if (pDevCtx == nullptr)
     return false;
@@ -323,7 +323,7 @@ void
 d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
                                     ID3D11ClassInstance *const *ppClassInstances,
                                     UINT                        NumClassInstances,
-                                    UINT                        dev_idx )
+                                    UINT                        dev_idx ) noexcept
 {
   if (pDevContext == nullptr) return;
 
@@ -433,7 +433,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 }
 
 void
-d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
+d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx) noexcept
 {
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -523,7 +523,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 }
 
 void
-d3d11_shader_tracking_s::use (ID3D11DeviceContext* pDevCtx)
+d3d11_shader_tracking_s::use (ID3D11DeviceContext* pDevCtx) noexcept
 {
   if (pDevCtx != nullptr && first_rtv.Format == DXGI_FORMAT_UNKNOWN)
   {
@@ -555,7 +555,7 @@ d3d11_shader_tracking_s::use (ID3D11DeviceContext* pDevCtx)
 }
 
 void
-d3d11_shader_tracking_s::use_cmdlist (ID3D11DeviceContext* pDevCtx)
+d3d11_shader_tracking_s::use_cmdlist (ID3D11DeviceContext* pDevCtx) noexcept
 {
   if (pDevCtx != nullptr && first_rtv.Format == DXGI_FORMAT_UNKNOWN)
   {
@@ -589,7 +589,7 @@ d3d11_shader_tracking_s::use_cmdlist (ID3D11DeviceContext* pDevCtx)
 bool
 SK_D3D11_ShouldTrackComputeDispatch ( ID3D11DeviceContext* pDevCtx,
                                const  SK_D3D11DispatchType dispatch_type,
-                                      UINT                 dev_idx )
+                                      UINT                 dev_idx ) noexcept
 {
   UNREFERENCED_PARAMETER (dispatch_type);
 
@@ -606,7 +606,7 @@ SK_D3D11_ShouldTrackComputeDispatch ( ID3D11DeviceContext* pDevCtx,
 bool
 SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
                          const SK_D3D11DrawType     draw_type,
-                               UINT                 dev_idx )
+                               UINT                 dev_idx ) noexcept
 {
   // If ReShade (custom version) is loaded, state tracking is non-optional
   if ( (intptr_t)hModReShade < (intptr_t)nullptr )

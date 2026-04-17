@@ -1961,11 +1961,11 @@ enum class SK_GAME_ID
 
 SK_GAME_ID
 __stdcall
-SK_GetCurrentGameID (void);
+SK_GetCurrentGameID (void) noexcept;
 
 bool
 __stdcall
-SK_IsCurrentGame (SK_GAME_ID game_id);
+SK_IsCurrentGame (SK_GAME_ID game_id) noexcept;
 
 const wchar_t*
 __stdcall

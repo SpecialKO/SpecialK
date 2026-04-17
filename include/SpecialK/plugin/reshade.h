@@ -32,7 +32,7 @@
 
 HMODULE
 __stdcall
-SK_ReShade_GetDLL (void);
+SK_ReShade_GetDLL (void) noexcept;
 
 void
 SK_ReShade_LoadIfPresent (void);
@@ -51,9 +51,9 @@ void   SK_ReShadeAddOn_ActivateOverlay    (bool             activate);
 bool   SK_ReShadeAddOn_IsOverlayActive    (void);
 
 reshade::api::effect_runtime*
-     SK_ReShadeAddOn_GetRuntimeForHWND      (HWND hWnd);
+     SK_ReShadeAddOn_GetRuntimeForHWND      (HWND hWnd) noexcept;
 reshade::api::effect_runtime*
-     SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain);
+     SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain) noexcept;
 void SK_ReShadeAddOn_CleanupRTVs            (reshade::api::effect_runtime *runtime, bool must_wait = false);
 
 reshade::api::effect_runtime*
@@ -62,7 +62,7 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQ
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain);
 
-void SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime);
+void SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime) noexcept;
 void SK_ReShadeAddOn_DestroyEffectRuntime          (reshade::api::effect_runtime *runtime);
 
 void SK_ReShadeAddOn_CleanupConfigAndLogs (void);

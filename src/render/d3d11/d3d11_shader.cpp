@@ -154,7 +154,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                           ID3D11ClassInstance *const *ppClassInstances,
                           UINT                        NumClassInstances,
                           bool                        bWrapped,
-                          UINT                        dev_idx )
+                          UINT                        dev_idx ) noexcept
 {
   SK_WRAP_AND_HOOK
 

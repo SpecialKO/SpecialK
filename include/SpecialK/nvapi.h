@@ -275,7 +275,7 @@ struct IUnknown;
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
-                             __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams );
+                             __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams ) noexcept;
 
 bool SK_Reflex_SetupReflexSync (IUnknown* pDev);
 

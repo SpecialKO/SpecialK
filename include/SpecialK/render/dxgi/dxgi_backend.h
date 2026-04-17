@@ -340,36 +340,36 @@ static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 256;
 extern           int SK_D3D11_AllocatedDevContexts;
 
 LONG
-SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pDevCtx);
+SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pDevCtx) noexcept;
 
 // Use this when wrapping a device context, we want the wrapper and the
 //   internal pointer to agree on context handle
 void
 SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
-                             ID3D11DeviceContext *pDstCtx );
+                             ID3D11DeviceContext *pDstCtx ) noexcept;
 
 extern std::string
 SK_WideCharToUTF8 (const std::wstring& in);
 
-bool SK_DXGI_HasDebugName (       IDXGIObject* pDXGIObject );
+bool SK_DXGI_HasDebugName (       IDXGIObject* pDXGIObject )          noexcept;
 void SK_DXGI_SetDebugName (       IDXGIObject* pDXGIObject,
-                           const std::wstring& kName );
+                           const std::wstring& kName )                noexcept;
 
-bool SK_D3D11_HasDebugName (       ID3D11DeviceChild* pDevChild );
+bool SK_D3D11_HasDebugName (       ID3D11DeviceChild* pDevChild )     noexcept;
 void SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
-                             const std::wstring&      kName );
+                             const std::wstring&      kName )         noexcept;
 
-bool SK_D3D12_HasDebugName (       ID3D12Object* pD3D12Obj );
+bool SK_D3D12_HasDebugName (       ID3D12Object* pD3D12Obj )          noexcept;
 void SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
-                             const std::wstring& kName );
+                             const std::wstring& kName )              noexcept;
 
-std::wstring SK_D3D12_GetDebugNameW    (ID3D12Object* pD3D12Obj);
-std::string  SK_D3D12_GetDebugNameA    (ID3D12Object* pD3D12Obj);
-std::string  SK_D3D12_GetDebugNameUTF8 (ID3D12Object* pD3D12Obj);
+std::wstring SK_D3D12_GetDebugNameW    (ID3D12Object* pD3D12Obj)      noexcept;
+std::string  SK_D3D12_GetDebugNameA    (ID3D12Object* pD3D12Obj)      noexcept;
+std::string  SK_D3D12_GetDebugNameUTF8 (ID3D12Object* pD3D12Obj)      noexcept;
 
-std::wstring SK_D3D11_GetDebugNameW    (ID3D11DeviceChild* pD3D11Obj);
-std::string  SK_D3D11_GetDebugNameA    (ID3D11DeviceChild* pD3D11Obj);
-std::string  SK_D3D11_GetDebugNameUTF8 (ID3D11DeviceChild* pD3D11Obj);
+std::wstring SK_D3D11_GetDebugNameW    (ID3D11DeviceChild* pD3D11Obj) noexcept;
+std::string  SK_D3D11_GetDebugNameA    (ID3D11DeviceChild* pD3D11Obj) noexcept;
+std::string  SK_D3D11_GetDebugNameUTF8 (ID3D11DeviceChild* pD3D11Obj) noexcept;
 
 namespace SK
 {

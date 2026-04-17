@@ -1050,39 +1050,39 @@ SK_D3D11_IgnoreWrappedOrDeferred (
   bool                 bWrapped,
   bool                 bDeferred,
   ID3D11DeviceContext* pDevCtx
-);
+) noexcept;
 
 bool
 SK_D3D11_ShouldTrackSetShaderResources (
   ID3D11DeviceContext* pDevCtx,
   UINT                 dev_idx = (UINT)-1
-);
+) noexcept;
 
 bool
 SK_D3D11_ShouldTrackMMIO (
   ID3D11DeviceContext* pDevCtx,
   SK_TLS**             ppTLS = nullptr
-);
+) noexcept;
 
 bool
 SK_D3D11_ShouldTrackRenderOp (
   ID3D11DeviceContext* pDevCtx,
   UINT                 dev_idx = (UINT)-1
-);
+) noexcept;
 
 bool
 SK_D3D11_ShouldTrackDrawCall (
         ID3D11DeviceContext* pDevCtx,
   const SK_D3D11DrawType     draw_type,
         UINT                 dev_idx = (UINT)-1
-);
+) noexcept;
 
 bool
 SK_D3D11_ShouldTrackComputeDispatch (
          ID3D11DeviceContext* pDevCtx,
   const  SK_D3D11DispatchType dispatch_type,
          UINT                 dev_idx
-);
+) noexcept;
 
 // All known targets are indexed using the calling device context,
 //   no internal locking is necessary as long as dev ctx's are one per-thread.
@@ -1190,7 +1190,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext*        pDevCtx,
                           ID3D11ClassInstance *const *ppClassInstances,
                           UINT                        NumClassInstances,
                           bool                        Wrapped = false,
-                          UINT                        dev_idx = UINT_MAX );
+                          UINT                        dev_idx = UINT_MAX ) noexcept;
 
 // Indicates whether the shader mod window is tracking render target refs
 extern bool live_rt_view;

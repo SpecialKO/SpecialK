@@ -66,10 +66,10 @@ SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
 
 bool
 SK_D3D11_IsDirectCopyCompatible ( DXGI_FORMAT src,
-                                  DXGI_FORMAT dst );
+                                  DXGI_FORMAT dst ) noexcept;
 
 bool SK_D3D11_AreTexturesDirectCopyable ( D3D11_TEXTURE2D_DESC *pSrc,
-                                          D3D11_TEXTURE2D_DESC *pDst );
+                                          D3D11_TEXTURE2D_DESC *pDst ) noexcept;
 
 bool SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                                ID3D11Texture2D *pDstTex,
@@ -79,16 +79,16 @@ bool SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                                UINT             DstX           = 0,
                                UINT             DstY           = 0
                              //UINT             DstZ           = 0 // (Unneeded)
-);
+) noexcept;
 
 bool SK_D3D11_EnsureMatchingDevices ( ID3D11Device *pDevice0,
-                                      ID3D11Device *pDevice1 );
+                                      ID3D11Device *pDevice1 ) noexcept;
 
 bool SK_D3D11_EnsureMatchingDevices ( ID3D11DeviceChild *pDeviceChild,
-                                      ID3D11Device      *pDevice );
+                                      ID3D11Device      *pDevice ) noexcept;
 
 bool SK_D3D11_EnsureMatchingDevices ( IDXGISwapChain *pSwapChain,
-                                      ID3D11Device   *pDevice );
+                                      ID3D11Device   *pDevice ) noexcept;
 
 bool SK_DXGI_IsSwapChainReal  (const DXGI_SWAP_CHAIN_DESC   &desc)        noexcept;
 bool SK_DXGI_IsSwapChainReal  (      IDXGISwapChain         *pSwapChain)  noexcept;
@@ -97,7 +97,7 @@ bool SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1  &desc,
 
 DXGI_FORMAT
 SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
-                                              BOOL bFlipModel = FALSE );
+                                              BOOL bFlipModel = FALSE ) noexcept;
 
 HRESULT
 SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
@@ -122,11 +122,11 @@ HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
                             _T       *pPrivateData ) noexcept;
 
-void        SK_DXGI_SignalBudgetThread (void);
+void        SK_DXGI_SignalBudgetThread (void) noexcept;
 bool WINAPI SK_DXGI_IsTrackingBudget   (void) noexcept;
 
 DXGI_COLOR_SPACE_TYPE
-SK_DXGI_GetColorSpace1  (IDXGISwapChain *pSwapChain);
+SK_DXGI_GetColorSpace1  (IDXGISwapChain *pSwapChain) noexcept;
 bool SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept;
 
 void SK_HDR_ReleaseResources       (void);
@@ -138,14 +138,15 @@ extern          bool bAlwaysAllowFullscreen;
 
 extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
 
-inline bool SK_CanModifySwapchain () {
+inline bool SK_CanModifySwapchain (void) noexcept
+{
 #if defined (_M_AMD64)
   // default to false and won'b be modified unless Arknights:Endfield Plugin is loaded
-  extern bool __g_SK_AKEF_KeepOriginalSwapchain;
   if (! SK_IsCurrentGame (SK_GAME_ID::ArknightsEndfield))
     return true;
 
-  return !__g_SK_AKEF_KeepOriginalSwapchain;
+  extern bool __g_SK_AKEF_KeepOriginalSwapchain;
+  return     !__g_SK_AKEF_KeepOriginalSwapchain;
 #else
   return true;
 #endif

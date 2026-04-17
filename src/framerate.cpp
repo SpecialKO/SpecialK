@@ -4362,7 +4362,7 @@ SK_LazyGlobal <
 // Is this really a COM object?
 //  - Can QueryInterface be called?
 BOOL
-SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_)
+SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_) noexcept
 {
   IUnknown* pUnk = nullptr;
   

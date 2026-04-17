@@ -30,7 +30,7 @@ using GetSystemTimePreciseAsFileTime_pfn = void ( WINAPI * )(
   _k32GetSystemTimePreciseAsFileTime = nullptr;
 
 WORD
-SK_Timestamp (wchar_t* const out)
+SK_Timestamp (wchar_t* const out) noexcept
 {
   if (out == nullptr)
     return 0;
@@ -148,7 +148,7 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
 
 
 BOOL
-SK_FlushLog (iSK_Logger* pLog)
+SK_FlushLog (iSK_Logger* pLog) noexcept
 {
   static volatile HANDLE
     hFlushThread = INVALID_HANDLE_VALUE;
@@ -358,7 +358,7 @@ void
 iSK_Logger::LogEx ( bool                 _Timestamp,
   _In_z_ _Printf_format_string_
                      wchar_t const* const _Format,
-                                          ... )
+                                          ... ) noexcept
 {
   const bool                                                 _UseOutputDebugString =
       ((! initialized) || (fLog == nullptr));
@@ -463,7 +463,7 @@ __declspec(nothrow)
 void
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     wchar_t const* const _Format,
-                                         ... )
+                                         ... ) noexcept
 {
   const bool                                                 _UseOutputDebugString =
       ((! initialized) || (fLog == nullptr));
@@ -563,7 +563,7 @@ __declspec(nothrow)
 void
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     char const* const _Format,
-                                      ... )
+                                      ... ) noexcept
 {
   const bool                                                 _UseOutputDebugString =
       ((! initialized) || (fLog == nullptr));
@@ -688,7 +688,7 @@ SK_CreateLog (const wchar_t* const wszName)
 
 std::wstring
 __stdcall
-SK_SummarizeCaller (LPVOID lpReturnAddr)
+SK_SummarizeCaller (LPVOID lpReturnAddr) noexcept
 {
   wchar_t wszSummary [256] = { };
   char    szSymbol   [256] = { };

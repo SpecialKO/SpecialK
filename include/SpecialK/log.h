@@ -164,7 +164,7 @@ SK_Log_GetPath (const wchar_t* wszFileName);
 
 std::wstring
 __stdcall
-SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
+SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ()) noexcept;
 
 #define SK_LOG_CALL(source) do {                    \
     char  szSymbol [1024] = { };                    \

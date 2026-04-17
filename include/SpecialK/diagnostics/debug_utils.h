@@ -879,8 +879,8 @@ bool SK_Process_IsSuspended (DWORD dwPid);
 bool SK_Process_Suspend     (DWORD dwPid);
 bool SK_Process_Resume      (DWORD dwPid);
 
-void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString);
-void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString);
+void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString) noexcept;
+void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString) noexcept;
 
 using SetLastError_pfn   = void (WINAPI *)(_In_ DWORD dwErrCode);
 using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);

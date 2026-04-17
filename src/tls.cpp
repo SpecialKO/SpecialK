@@ -341,7 +341,7 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 extern DWORD SK_TLS_Acquire (void);
 
 SK_TLS*
-SK_TLS_Bottom (void)
+SK_TLS_Bottom (void) noexcept
 {
   // For unusual cases where SK_TLS_Bottom is called
   //   before DllMain (...) returns.
@@ -408,7 +408,7 @@ SK_TLS_Bottom (void)
 
 _On_failure_ (_Ret_maybenull_)
 SK_TLS*
-SK_TLS_BottomEx (DWORD dwTid)
+SK_TLS_BottomEx (DWORD dwTid) noexcept
 {
   SK_TLS* pTLS = nullptr;
 

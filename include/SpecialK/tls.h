@@ -28,8 +28,8 @@
 class SK_TLS;
 
 //SK_TLS* __cdecl SK_TLS_Get      (void); // Alias: SK_TLS_Top
-extern SK_TLS* SK_TLS_Bottom   (void);
-extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
+extern SK_TLS* SK_TLS_Bottom   (void)        noexcept;
+extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid) noexcept;
 
 #include <Windows.h>
 

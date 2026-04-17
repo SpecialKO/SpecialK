@@ -448,7 +448,7 @@ static volatile ULONG __osd_frames_drawn = 0;
 
 DXGI_FORMAT
 SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
-                                              BOOL bFlipModel )
+                                              BOOL bFlipModel ) noexcept
 {
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -970,7 +970,7 @@ SK_DXGI_RemoveDynamicRangeFromModes ( int&             first,
 dxgi_caps_t dxgi_caps;
 
 BOOL
-SK_DXGI_SupportsTearing (void)
+SK_DXGI_SupportsTearing (void) noexcept
 {
   return dxgi_caps.swapchain.allow_tearing;
 }
@@ -1425,13 +1425,13 @@ SK_GetDXGIAdapterInterface (gsl::not_null <IUnknown *> pAdapter)
 }
 
 void
-SK_ImGui_QueueResetD3D12 (void)
+SK_ImGui_QueueResetD3D12 (void) noexcept
 {
   InterlockedExchange (&__gui_reset_dxgi, TRUE);
 }
 
 void
-SK_ImGui_QueueResetD3D11 (void)
+SK_ImGui_QueueResetD3D11 (void) noexcept
 {
   InterlockedExchange (&__gui_reset_dxgi, TRUE);
 }
@@ -10877,7 +10877,7 @@ struct budget_thread_params_t
 SK_LazyGlobal <budget_thread_params_t> budget_thread;
 
 void
-SK_DXGI_SignalBudgetThread (void)
+SK_DXGI_SignalBudgetThread (void) noexcept
 {
   if (budget_thread->manual != INVALID_HANDLE_VALUE)
     SetEvent (budget_thread->manual);

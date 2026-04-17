@@ -29,7 +29,7 @@
 #include <SpecialK/utility/lazy_global.h>
 
 class           SK_TLS;
-extern __inline SK_TLS* SK_TLS_Bottom (void);
+extern __inline SK_TLS* SK_TLS_Bottom (void) noexcept;
 
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
@@ -102,13 +102,13 @@ typedef enum DLL_ROLE : unsigned
   DWORDALIGN = MAXDWORD
 } DLL_ROLE;
 
-bool SK_API_IsDXGIBased      (SK_RenderAPI api);
-bool SK_API_IsGDIBased       (SK_RenderAPI api);
-bool SK_API_IsDirect3D9      (SK_RenderAPI api);
-bool SK_API_IsPlugInBased    (SK_RenderAPI api);
-bool SK_API_IsLayeredOnD3D10 (SK_RenderAPI api);
-bool SK_API_IsLayeredOnD3D11 (SK_RenderAPI api);
-bool SK_API_IsLayeredOnD3D12 (SK_RenderAPI api);
+bool SK_API_IsDXGIBased      (SK_RenderAPI api) noexcept;
+bool SK_API_IsGDIBased       (SK_RenderAPI api) noexcept;
+bool SK_API_IsDirect3D9      (SK_RenderAPI api) noexcept;
+bool SK_API_IsPlugInBased    (SK_RenderAPI api) noexcept;
+bool SK_API_IsLayeredOnD3D10 (SK_RenderAPI api) noexcept;
+bool SK_API_IsLayeredOnD3D11 (SK_RenderAPI api) noexcept;
+bool SK_API_IsLayeredOnD3D12 (SK_RenderAPI api) noexcept;
 
 
 #ifdef  SK_BUILD_DLL
@@ -198,7 +198,7 @@ extern SK_LazyGlobal <iSK_Logger> epic_log;
 extern SK_LazyGlobal <iSK_Logger> gog_log;
 
 
-bool SK_GetStoreOverlayState (bool bReal);
+bool SK_GetStoreOverlayState (bool bReal) noexcept;
 
 
 // Pass nullptr to cleanup ALL windows; for internal use only.

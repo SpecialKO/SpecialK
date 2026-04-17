@@ -72,7 +72,7 @@ SK_D3D12_GET_OBJECT_NAME_N ( ID3D12Object *pObject,
 }
 
 bool
-SK_D3D12_HasDebugName (ID3D12Object* pD3D12Obj)
+SK_D3D12_HasDebugName (ID3D12Object* pD3D12Obj) noexcept
 {
   if (pD3D12Obj == nullptr)
     return false;
@@ -126,7 +126,7 @@ SK_D3D12_GetDebugName (ID3D12Object* pD3D12Obj)
 
 void
 SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
-                        const std::wstring&     kName )
+                        const std::wstring&     kName ) noexcept
 {
   if (pD3D12Obj != nullptr && kName.size () > 0)
   {
@@ -153,21 +153,21 @@ SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
 }
 
 std::wstring
-SK_D3D12_GetDebugNameW (ID3D12Object* pD3D12Obj)
+SK_D3D12_GetDebugNameW (ID3D12Object* pD3D12Obj) noexcept
 {
   return
     SK_D3D12_GetDebugName <wchar_t> (pD3D12Obj);
 }
 
 std::string
-SK_D3D12_GetDebugNameA (ID3D12Object* pD3D12Obj)
+SK_D3D12_GetDebugNameA (ID3D12Object* pD3D12Obj) noexcept
 {
   return
     SK_D3D12_GetDebugName <char> (pD3D12Obj);
 }
 
 std::string
-SK_D3D12_GetDebugNameUTF8 (ID3D12Object* pD3D12Obj)
+SK_D3D12_GetDebugNameUTF8 (ID3D12Object* pD3D12Obj) noexcept
 {
   auto wide_name =
     SK_D3D12_GetDebugName <wchar_t> (pD3D12Obj);

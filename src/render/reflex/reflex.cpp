@@ -72,7 +72,7 @@ NvU64                    SK_Reflex_SkipLowLatencyFrameTick   = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
-void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
+void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker) noexcept;
 
 extern UINT            __SK_DLSSGMultiFrameCount;
 extern IDXGISwapChain   *SK_Streamline_ProxyChain;
@@ -87,7 +87,7 @@ extern HANDLE SK_ImGui_SignalBackupInputThread;
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
-                                __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
+                                __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams ) noexcept
 {
   SK_PROFILE_SCOPED_TASK (NvAPI_D3D_SetLatencyMarker)
 
@@ -107,7 +107,7 @@ SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
 }
 
 NVAPI_INTERFACE
-SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
+SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)  noexcept
 {
   SK_PROFILE_SCOPED_TASK (NvAPI_D3D_Sleep)
 
@@ -277,7 +277,7 @@ NvAPI_D3D_SetReflexSync_Detour ( __in IUnknown                  *pDev,
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
-                             __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams )
+                             __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams )  noexcept
 {
   if (NvAPI_D3D_SetReflexSync_Original == nullptr)
     return NVAPI_NO_IMPLEMENTATION;
@@ -288,7 +288,7 @@ SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
-                            __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
+                            __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams ) noexcept
 {
   NV_SET_SLEEP_MODE_PARAMS params =
              *pSetSleepModeParams;
@@ -329,7 +329,7 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
 // If this returns true, we submitted the latency marker(s) ourselves and normal processing
 //   logic should be skipped.
 bool
-SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice, bool native = false)
+SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice, bool native = false) noexcept
 {
   // If true, we submitted the latency marker(s) ourselves and the normal processing
   //   should be ignored.
@@ -412,7 +412,7 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
 
 std::optional <NvAPI_Status>
 SK_Reflex_GameSpecificLatencyMarkerFixups ( __in IUnknown                 *pDev,
-                                            __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
+                                            __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams ) noexcept
 {
   if (SK_IsCurrentGame (SK_GAME_ID::MonsterHunterWilds))
   {
@@ -666,7 +666,7 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
 }
 
 void
-SK_Reflex_SetSleepModeOverrides (void)
+SK_Reflex_SetSleepModeOverrides (void) noexcept
 {
   if (SK_Reflex_NativeSleepModeParams.version == 0)
     return;
@@ -714,7 +714,7 @@ SK_NvAPI_HookReflex (void)
 }
 
 void
-SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
+SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker) noexcept
 {
   if (config.nvidia.reflex.native)
     return;
@@ -766,7 +766,7 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 }
 
 bool
-SK_RenderBackend_V2::isReflexSupported (void) const
+SK_RenderBackend_V2::isReflexSupported (void) const noexcept
 {
   // Interop and HW vendor never change...
   //   api -might-, but we'll just ignore that for perf.
@@ -791,7 +791,7 @@ SK_RenderBackend_V2::isReflexSupported (void) const
 #include <vulkan/vulkan_core.h>
 
 bool
-SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
+SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const noexcept
 {
   SK_PROFILE_SCOPED_TASK (SK_RenderBackend_V2__setLatencyMarkerNV)
 
@@ -964,7 +964,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 }
 
 bool
-SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyParams) const
+SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyParams) const noexcept
 {
   if (device.p == nullptr)
     return false;
@@ -989,7 +989,7 @@ SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyPa
 
 
 void
-SK_RenderBackend_V2::driverSleepNV (int site) const
+SK_RenderBackend_V2::driverSleepNV (int site) const noexcept
 {
   if (! device.p)
     return;
@@ -1723,19 +1723,19 @@ SK_VK_SetLatencyMarker (VkSetLatencyMarkerInfoNV& marker, VkLatencyMarkerNV type
   }
 
   extern void
-  SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
+  SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker) noexcept;
   SK_PCL_Heartbeat (nvapi_marker);
 }
 
 bool
-SK_VK_ShouldVkSkipSleepHook()
+SK_VK_ShouldVkSkipSleepHook (void)
 {
 #if defined(_M_AMD64)
-  switch (SK_GetCurrentGameID())
+  switch (SK_GetCurrentGameID ())
   {
   case SK_GAME_ID::ArknightsEndfield:
     extern bool __g_SK_AKEF_EnableHookFixes;
-    return __g_SK_AKEF_EnableHookFixes;
+    return      __g_SK_AKEF_EnableHookFixes;
   default:
     return false;
   }

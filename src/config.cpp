@@ -60,7 +60,7 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
 
 bool
 __stdcall
-SK_IsCurrentGame (SK_GAME_ID game_id)
+SK_IsCurrentGame (SK_GAME_ID game_id) noexcept
 {
   return
     SK_GetCurrentGameID () == game_id;
@@ -68,7 +68,7 @@ SK_IsCurrentGame (SK_GAME_ID game_id)
 
 SK_GAME_ID
 __stdcall
-SK_GetCurrentGameID (void)
+SK_GetCurrentGameID (void) noexcept
 {
   static SK_GAME_ID current_game =
          SK_GAME_ID::UNKNOWN_GAME;

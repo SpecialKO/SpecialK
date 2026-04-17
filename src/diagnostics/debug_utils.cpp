@@ -1608,7 +1608,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
 
 void
 WINAPI
-SK_OutputDebugStringW (LPCWSTR lpOutputString)
+SK_OutputDebugStringW (LPCWSTR lpOutputString) noexcept
 {
   if ( OutputDebugStringW_Original != nullptr)
        OutputDebugStringW_Original (lpOutputString);
@@ -1617,7 +1617,7 @@ SK_OutputDebugStringW (LPCWSTR lpOutputString)
 
 void
 WINAPI
-SK_OutputDebugStringA (LPCSTR lpOutputString)
+SK_OutputDebugStringA (LPCSTR lpOutputString) noexcept
 {
   if ( OutputDebugStringA_Original != nullptr)
        OutputDebugStringA_Original (lpOutputString);

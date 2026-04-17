@@ -108,8 +108,8 @@ struct sk_hwnd_cache_s
     return hwnd;
   };
 
-  devcaps_s& getDevCaps (void);
-  bool       update     (HWND window);
+  devcaps_s& getDevCaps (void)        noexcept;
+  bool       update     (HWND window) noexcept;
 };
 
 constexpr
@@ -746,8 +746,8 @@ public:
   void   releaseOwnedResources (void);
 
   void   postNewFrameOnThread  (SK_TLS *pTLS                         = SK_TLS_Bottom (),
-                                bool    designated_thread_may_change = true);
-  void   queueUpdateOutputs    (void);
+                                bool    designated_thread_may_change = true) noexcept;
+  void   queueUpdateOutputs    (void) noexcept;
   void   updateOutputTopology  (void);
   const output_s*
          getContainingOutput   (const RECT& rkRect)                                 const;
@@ -755,10 +755,10 @@ public:
   void   updateWDDMCaps        (      output_s *pOutput);
   bool   assignOutputFromHWND  (HWND hWndContainer);
 
-  bool   isReflexSupported     (void)                                        const;
-  bool   setLatencyMarkerNV    (NV_LATENCY_MARKER_TYPE    marker)            const;
-  bool   getLatencyReportNV    (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams) const;
-  void   driverSleepNV         (int site)                                    const;
+  bool   isReflexSupported     (void)                                        const noexcept;
+  bool   setLatencyMarkerNV    (NV_LATENCY_MARKER_TYPE    marker)            const noexcept;
+  bool   getLatencyReportNV    (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams) const noexcept;
+  void   driverSleepNV         (int site)                                    const noexcept;
 
   std::string decodeEDIDForName      (uint8_t* edid, size_t length) const;
   POINT       decodeEDIDForNativeRes (uint8_t* edid, size_t length) const;
@@ -767,10 +767,10 @@ public:
 
   bool resetTemporaryDisplayChanges (void);
 
-  bool isFakeFullscreen (void) const;
-  bool isTrueFullscreen (void) const;
+  bool isFakeFullscreen (void) const noexcept;
+  bool isTrueFullscreen (void) const noexcept;
 
-  bool isMPODisabled (void) const;
+  bool isMPODisabled (void) const noexcept;
 
   bool update_outputs = false;
 };
@@ -808,10 +808,10 @@ __stdcall
 SK_InitRenderBackends (void);
 
 SK_API
-IUnknown* __stdcall SK_Render_GetDevice (void);
+IUnknown* __stdcall SK_Render_GetDevice (void) noexcept;
 
 SK_API
-IUnknown* __stdcall SK_Render_GetSwapChain (void);
+IUnknown* __stdcall SK_Render_GetSwapChain (void) noexcept;
 
 void SK_BootD3D8   (void);
 void SK_BootDDraw  (void);
@@ -822,8 +822,8 @@ void SK_BootDXGI   (void);
 void SK_BootOpenGL (void);
 void SK_BootVulkan (void);
 
-BOOL SK_DXGI_SupportsTearing    (void);
-void SK_DXGI_SignalBudgetThread (void);
+BOOL SK_DXGI_SupportsTearing    (void) noexcept;
+void SK_DXGI_SignalBudgetThread (void) noexcept;
 
 
 _Return_type_success_ (nullptr)
@@ -862,7 +862,7 @@ ComputeIntersectionArea ( int ax1, int ay1, int ax2, int ay2,
 }
 
 
-bool SK_RenderBackendUtil_IsFullscreen          (void);
+bool SK_RenderBackendUtil_IsFullscreen          (void) noexcept;
 void SK_D3D_SetupShaderCompiler                 (void);
 void SK_Display_DisableDPIScaling               (void);
 DPI_AWARENESS SK_GetThreadDpiAwareness          (void);
@@ -938,7 +938,7 @@ LONG WINAPI SK_DisplayConfigGetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER
 bool SK_ETW_EndTracing (void);
 
 uint32_t
-SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain);
+SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain) noexcept;
 
 // Disables Vulkan layers (i.e. if using DXGI interop, prefer software hook the D3D11 SwapChain and not Vulkan)
 void SK_Vulkan_DisableThirdPartyLayers (void); // Can only be called during application startup

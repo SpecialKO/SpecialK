@@ -43,7 +43,7 @@ static const UINT
     std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
     std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
 
-void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
+void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb) noexcept
 {
   if (dc == nullptr)
     return;
@@ -213,7 +213,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->GetPredication         (&sb->Predication, &sb->PredicationValue);
 }
 
-void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
+void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb) noexcept
 {
   if (dc == nullptr || sb == nullptr)
     return;

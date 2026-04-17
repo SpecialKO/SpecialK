@@ -29,7 +29,7 @@ BOOL SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_);
 
 HMODULE
 __stdcall
-SK_ReShade_GetDLL (void)
+SK_ReShade_GetDLL (void) noexcept
 {
   static HMODULE hModReShade =
     sk::narrow_cast <HMODULE> (nullptr);
@@ -361,7 +361,7 @@ struct dxgi_rtv_s {
 Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
 
 reshade::api::effect_runtime*
-SK_ReShadeAddOn_GetRuntimeForHWND (HWND hWnd)
+SK_ReShadeAddOn_GetRuntimeForHWND (HWND hWnd) noexcept
 {
   if (hWnd != 0)
   {
@@ -373,7 +373,7 @@ SK_ReShadeAddOn_GetRuntimeForHWND (HWND hWnd)
 }
 
 reshade::api::effect_runtime*
-SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
+SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain) noexcept
 {
   if (ReadAcquire (&__SK_DLL_Ending) || pSwapChain == nullptr)
     return nullptr;
@@ -1524,7 +1524,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
 
 void
-SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime)
+SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime) noexcept
 {
   if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;

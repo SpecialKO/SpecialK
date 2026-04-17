@@ -30,7 +30,7 @@
 
 void
 SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
-                        const std::wstring&      kName )
+                        const std::wstring&      kName ) noexcept 
 {
   if (! pDevChild)
     return;
@@ -126,7 +126,7 @@ SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
 }
 
 bool
-SK_D3D11_HasDebugName (ID3D11DeviceChild* pD3D11Obj)
+SK_D3D11_HasDebugName (ID3D11DeviceChild* pD3D11Obj) noexcept
 {
   if (pD3D11Obj == nullptr)
     return false;
@@ -189,21 +189,21 @@ SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
 }
 
 std::wstring
-SK_D3D11_GetDebugNameW (ID3D11DeviceChild* pD3D11Obj)
+SK_D3D11_GetDebugNameW (ID3D11DeviceChild* pD3D11Obj) noexcept
 {
   return
     SK_D3D11_GetDebugName <wchar_t> (pD3D11Obj);
 }
 
 std::string
-SK_D3D11_GetDebugNameA (ID3D11DeviceChild* pD3D11Obj)
+SK_D3D11_GetDebugNameA (ID3D11DeviceChild* pD3D11Obj) noexcept
 {
   return
     SK_D3D11_GetDebugName <char> (pD3D11Obj);
 }
 
 std::string
-SK_D3D11_GetDebugNameUTF8 (ID3D11DeviceChild* pD3D11Obj)
+SK_D3D11_GetDebugNameUTF8 (ID3D11DeviceChild* pD3D11Obj) noexcept
 {
   auto wide_name =
     SK_D3D11_GetDebugName <wchar_t> (pD3D11Obj);

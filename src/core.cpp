@@ -5221,7 +5221,7 @@ void
 };
 
 bool
-SK_API_IsDXGIBased (SK_RenderAPI api)
+SK_API_IsDXGIBased (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5242,7 +5242,7 @@ SK_API_IsDXGIBased (SK_RenderAPI api)
 }
 
 bool
-SK_API_IsLayeredOnD3D10 (SK_RenderAPI api)
+SK_API_IsLayeredOnD3D10 (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5257,7 +5257,7 @@ SK_API_IsLayeredOnD3D10 (SK_RenderAPI api)
 }
 
 bool
-SK_API_IsLayeredOnD3D11 (SK_RenderAPI api)
+SK_API_IsLayeredOnD3D11 (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5276,7 +5276,7 @@ SK_API_IsLayeredOnD3D11 (SK_RenderAPI api)
 }
 
 bool
-SK_API_IsLayeredOnD3D12 (SK_RenderAPI api)
+SK_API_IsLayeredOnD3D12 (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5296,7 +5296,7 @@ SK_API_IsLayeredOnD3D12 (SK_RenderAPI api)
 }
 
 bool
-SK_API_IsDirect3D9 (SK_RenderAPI api)
+SK_API_IsDirect3D9 (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5309,7 +5309,7 @@ SK_API_IsDirect3D9 (SK_RenderAPI api)
 }
 
 bool
-SK_API_IsGDIBased (SK_RenderAPI api)
+SK_API_IsGDIBased (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5321,7 +5321,7 @@ SK_API_IsGDIBased (SK_RenderAPI api)
 }
 
 bool
-SK_API_IsPlugInBased (SK_RenderAPI api)
+SK_API_IsPlugInBased (SK_RenderAPI api) noexcept
 {
   switch (api)
   {
@@ -5341,7 +5341,7 @@ SK_API_IsPlugInBased (SK_RenderAPI api)
 }
 
 bool
-SK_GetStoreOverlayState (bool bReal)
+SK_GetStoreOverlayState (bool bReal) noexcept
 {
   static std::atomic_bool     s_LastState = false;
   static std::atomic<ULONG64> s_LastFrame = 0;

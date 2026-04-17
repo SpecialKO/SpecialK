@@ -551,7 +551,7 @@ volatile LONG                               resolve_idx   = 0;
 volatile LONG                               resolve_mutex = 0;
 
 LONG
-SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
+SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx ) noexcept
 {
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
@@ -654,7 +654,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 
 void
 SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
-                             ID3D11DeviceContext *pDstCtx )
+                             ID3D11DeviceContext *pDstCtx ) noexcept
 {
   LONG src_handle =
     SK_D3D11_GetDeviceContextHandle (pSrcCtx);
@@ -758,7 +758,7 @@ void WaitForInitD3D11 (void)
 
 uint32_t
 __stdcall
-SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex);
+SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex) noexcept;
 
 struct d3d11_caps_t {
   struct {
@@ -773,7 +773,7 @@ D3D11CreateDevice_pfn             D3D11CreateDevice_Import             = nullptr
 
 void
 SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
-                     D3D_FEATURE_LEVEL        FeatureLevel )
+                     D3D_FEATURE_LEVEL        FeatureLevel ) noexcept
 {
   if (ppDevice != nullptr)
   {
@@ -1946,7 +1946,7 @@ SK_D3D11_UpdateSubresource_Impl (
 }
 
 bool
-SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst)
+SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst) noexcept
 {
   if (                        src  ==                        dst ||
                                   DirectX::MakeSRGB (src) == dst ||

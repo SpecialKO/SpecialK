@@ -86,7 +86,7 @@ SK_DXGI_ReleaseSwapChainOnHWnd (
 uint64_t SK_DXGI_SwapChainDestroyedOnFrame = 0;
 
 uint64_t
-SK_DXGI_LastFrameSwapChainDestroyed (void)
+SK_DXGI_LastFrameSwapChainDestroyed (void) noexcept
 {
   return
     SK_DXGI_SwapChainDestroyedOnFrame;
@@ -2056,7 +2056,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 }
 
 bool
-SK_RenderBackend_V2::isFakeFullscreen (void) const
+SK_RenderBackend_V2::isFakeFullscreen (void) const noexcept
 {
   if (! SK_API_IsDXGIBased (api))
     return false;
@@ -2070,14 +2070,14 @@ SK_RenderBackend_V2::isFakeFullscreen (void) const
 }
 
 bool
-SK_RenderBackend_V2::isTrueFullscreen (void) const
+SK_RenderBackend_V2::isTrueFullscreen (void) const noexcept
 {
   return
     fullscreen_exclusive && (! isFakeFullscreen ());
 }
 
 bool
-SK_RenderBackend_V2::isMPODisabled (void) const
+SK_RenderBackend_V2::isMPODisabled (void) const noexcept
 {
   if (! SK_API_IsDXGIBased (api))
   {

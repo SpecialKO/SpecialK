@@ -42,7 +42,7 @@
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
 
 double
-SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
+SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor) noexcept
 {
   static double   dRefresh      = 0.0;
   static DWORD    dwLastChecked = 0;
@@ -2097,7 +2097,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 }
 
 bool
-SK_RenderBackendUtil_IsFullscreen (void)
+SK_RenderBackendUtil_IsFullscreen (void) noexcept
 {
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -2466,7 +2466,7 @@ mode_change_request_e request_mode_change (mode_change_request_e::None);
 SK_API
 IUnknown*
 __stdcall
-SK_Render_GetDevice (void)
+SK_Render_GetDevice (void) noexcept
 {
   return
     SK_GetCurrentRenderBackend ().device;
@@ -2476,7 +2476,7 @@ SK_Render_GetDevice (void)
 SK_API
 IUnknown*
 __stdcall
-SK_Render_GetSwapChain (void)
+SK_Render_GetSwapChain (void) noexcept
 {
   return
     SK_GetCurrentRenderBackend ().swapchain;
@@ -2592,7 +2592,7 @@ SK_RenderBackend_V2::scan_out_s::getEOTF (void) const
 
 
 sk_hwnd_cache_s::devcaps_s&
-sk_hwnd_cache_s::getDevCaps (void)
+sk_hwnd_cache_s::getDevCaps (void) noexcept
 {
   const DWORD dwNow = SK_timeGetTime ();
 
@@ -2737,7 +2737,7 @@ SK_Render_GetAPIName (SK_RenderAPI api)
 }
 
 uint32_t
-SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain)
+SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain) noexcept
 {
   uint32_t  bVkInterop     = 0;
   UINT     uiVkInteropSize = 4;
@@ -2975,7 +2975,7 @@ sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
   update (wnd);
 }
 
-bool sk_hwnd_cache_s::update (HWND wnd)
+bool sk_hwnd_cache_s::update (HWND wnd) noexcept
 {
   if (hwnd != wnd || last_changed == 0UL)
   {
@@ -4568,7 +4568,7 @@ SK_WDDM_CAPS::init (D3DKMT_HANDLE hAdapter)
 }
 
 void
-SK_RenderBackend_V2::queueUpdateOutputs (void)
+SK_RenderBackend_V2::queueUpdateOutputs (void) noexcept
 {
   update_outputs = true;
 }
@@ -6597,7 +6597,7 @@ SK_Render_CountVBlanks ()
 }
 
   void
-  SK_RenderBackend_V2::postNewFrameOnThread (SK_TLS *pTLS, bool designated_thread_may_change)
+  SK_RenderBackend_V2::postNewFrameOnThread (SK_TLS *pTLS, bool designated_thread_may_change) noexcept
   {
     ULONG64 ullFramesPresented =
       InterlockedIncrement (&pTLS->render->frames_presented);

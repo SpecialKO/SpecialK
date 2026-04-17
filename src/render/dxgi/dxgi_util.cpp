@@ -1466,7 +1466,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
             _In_opt_       UINT             SrcSubresource,
             _In_opt_       UINT             DstSubresource,
             _In_opt_       UINT             DstX,
-            _In_opt_       UINT             DstY )
+            _In_opt_       UINT             DstY ) noexcept
 {
   SK_ComPtr <ID3D11DeviceContext> pDevCtx;
   SK_ComPtr <ID3D11Device>        pDev;
@@ -2268,7 +2268,7 @@ SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
 }
 
 bool
-SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTURE2D_DESC* pDstDesc)
+SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTURE2D_DESC* pDstDesc) noexcept
 {
   if (pSrcDesc == nullptr || pDstDesc == nullptr)
     return false;
@@ -2315,7 +2315,7 @@ SK_D3D11_CheckForMatchingDevicesUsingPrivateData ( ID3D11Device *pDevice0,
 }
 
 bool
-SK_D3D11_EnsureMatchingDevices (ID3D11Device *pDevice0, ID3D11Device *pDevice1)
+SK_D3D11_EnsureMatchingDevices (ID3D11Device *pDevice0, ID3D11Device *pDevice1) noexcept
 {
   if (pDevice0 == nullptr || pDevice1 == nullptr)
     return false;
@@ -2326,7 +2326,7 @@ SK_D3D11_EnsureMatchingDevices (ID3D11Device *pDevice0, ID3D11Device *pDevice1)
 }
 
 bool
-SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *pDevice)
+SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *pDevice) noexcept
 {
   if (pDeviceChild == nullptr || pDevice == nullptr)
     return false;
@@ -2350,7 +2350,7 @@ SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *p
 }
 
 bool
-SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevice)
+SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevice) noexcept
 {
   if (pSwapChain == nullptr || pDevice == nullptr)
     return false;
@@ -2367,7 +2367,7 @@ SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevic
 
 
 DXGI_COLOR_SPACE_TYPE
-SK_DXGI_GetColorSpace1 (IDXGISwapChain *pSwapChain)
+SK_DXGI_GetColorSpace1 (IDXGISwapChain *pSwapChain) noexcept
 {
   if (SK_DXGI_LiveWrappedSwapChain1s != 0 ||
       SK_DXGI_LiveWrappedSwapChains  != 0)

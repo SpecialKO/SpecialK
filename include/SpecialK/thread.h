@@ -320,8 +320,8 @@ SK_AvRevertMmThreadCharacteristics (
   _In_ HANDLE AvrtHandle
 );
 
-extern DWORD SK_GetRenderThreadID (void);
-extern DWORD SK_GetMainThreadID   (void);
+extern DWORD SK_GetRenderThreadID (void) noexcept;
+extern DWORD SK_GetMainThreadID   (void) noexcept;
 
 extern volatile LONG __SK_MMCS_PendingChanges;
 
@@ -447,7 +447,7 @@ SK_MMCS_GetTaskForThreadID   ( DWORD dwTid,        const char* name );
 static
 __forceinline
 DWORD
-SK_GetCurrentThreadId (void)
+SK_GetCurrentThreadId (void) noexcept
 {
   return reinterpret_cast <DWORD *> (NtCurrentTeb ()) [
 #ifdef _M_AMD64
@@ -619,7 +619,7 @@ typedef struct _TEB_SK {
 
 __forceinline
 TEB_SK*
-SK_Thread_GetTEB_FAST (void)
+SK_Thread_GetTEB_FAST (void) noexcept
 {
 #ifdef _UNSTABLE
 #ifdef _M_IX86
@@ -637,7 +637,7 @@ SK_Thread_GetTEB_FAST (void)
 
 __forceinline
 DWORD
-SK_Thread_GetCurrentId (void)
+SK_Thread_GetCurrentId (void) noexcept
 {
   return
     sk::narrow_cast    <DWORD    > (
