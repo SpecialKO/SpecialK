@@ -1,4 +1,11 @@
-﻿26.4.18.2
+﻿26.4.18.3
+=========
++ Block gamepad input to games while the Windows/Xbox Game Bar is active,
+    since it cannot do so itself.
++ Prevent toggling SK's control panel while another overlay is active and
+    SK is hiding itself.
+
+26.4.18.2
 =========
  + Fixed weird problem with Galaxy's DRM (not an April Fool's joke this time);
      gog_1_112::UnauthorizedAccessError would continuously throw exceptions if

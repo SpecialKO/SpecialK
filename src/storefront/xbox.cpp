@@ -80,10 +80,12 @@ SK_Xbox_GetOverlayState (bool real)
 
   // This is a heavy API that requires IPC, ensure this is done at most
   //   a single time per-frame...
-  static bool   last_state =      false;
-  static UINT64 last_frame = UINT64_MAX;
+  static bool   last_state = false;
+  static UINT64 last_frame =     0;
 
-  if (last_frame == SK_GetFramesDrawn ())
+  // Actually, throttle it even more... once every 10 frames.
+  //  - It's not cheap, and a callback would be better.
+  if (last_frame > SK_GetFramesDrawn () - 10)
     return last_state;
 
   if (SK_GameBar_Statics != nullptr)

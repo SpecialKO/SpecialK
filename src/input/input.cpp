@@ -59,10 +59,16 @@ SK_ImGui_WantGamepadCapture (bool update) noexcept
     return false;
   }
 
-  if (! SK_GImDefaultContext ())
+  // Xbox Overlay skips this scenario, whether or not ImGui can draw anything,
+  //   we nmed to block input to the game on Xbox's behalf, since game bar does
+  //     not run any code inside the game to do this itself.
+  if (! SK_Xbox_GetOverlayState (true))
   {
-    capture.store (false);
-    return false;
+    if (! SK_GImDefaultContext ())
+    {
+      capture.store (false);
+      return false;
+    }
   }
 
   auto _Return = [](BOOL bCapture) ->

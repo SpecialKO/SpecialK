@@ -5352,6 +5352,14 @@ SK_GetStoreOverlayState (bool bReal) noexcept
       SK_Platform_GetOverlayState (bReal) ||
       SK_ReShadeAddOn_IsOverlayActive ();
 
+    // The Xbox overlay cannot block PlayStation controller input to games,
+    //   but Special K can... so if it's open, update gamepad capture state.
+    //
+    //  Normally we would want the eopposite behavior, because most overlays
+    //    run inside the game process, but Xbox's overlay is external.
+    if (ret && SK_Xbox_GetOverlayState (true))
+           SK_ImGui_WantGamepadCapture (true);
+
     s_LastState.store (ret);
     s_LastFrame.store (SK_GetFramesDrawn ());
 

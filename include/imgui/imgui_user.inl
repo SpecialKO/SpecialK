@@ -1624,6 +1624,13 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
   if (SK_ImGuiEx_Visible)
     return SK_ImGui_Active ();
 
+  // Do not allow toggling SK's overlay while another overlay is hiding SK.
+  if ( config.platform.overlay_hides_sk_osd &&
+       SK_GetStoreOverlayState (true) )
+  {
+    return false;
+  }
+
   //
   // Only allow one toggle per-frame, even if we wind up calling
   //   this function multiple times to translate HID to XInput...
