@@ -2028,6 +2028,8 @@ crc32c (        uint32_t crc,
 _Notnull_ const void    *input,
                 size_t   length ) noexcept;
 
+#define USE_ORIGINAL_IMHASH
+
 // Known size hash
 // It is ok to call ImHashData on a string with known length but the ### operator won't be supported.
 // FIXME-OPT: Replace with e.g. FNV1a hash? CRC32 pretty much randomly access 1KB. Need to do proper measurements.
@@ -2087,28 +2089,25 @@ ImGuiID ImHashStr(const char* data_p, size_t data_size, ImGuiID seed) noexcept
         while (data_size-- != 0)
         {
             if (*data++ == '#' && data_size >= 2 && data[0] == '#' && data[1] == '#')
-                start_of_data = &data[2]; // Skip "###" in the hash
+                start_of_data = &data[-1]; // Start the hash at the "###"
         }
     }
     else
     {
-        size_t str_size = 0;
+        unparsed_size = 0;
         while (unsigned char c = *data++)
         {
-            str_size++;
-
             if (c == '#' && data[0] == '#' && data[1] == '#') {
-                start_of_data = &data[2]; // Skip "###" in the hash
-                str_size      = 0;
+                start_of_data = &data[-1]; // Start the hash at the "###"
             }
+            unparsed_size++;
         }
-        unparsed_size = str_size;
     }
 
-    if (start_of_data <= data + unparsed_size)
+    if (start_of_data <= (const unsigned char *)data_p + unparsed_size)
     {
-      crc =
-        crc32c (crc, start_of_data, static_cast <unsigned int> (data + unparsed_size - start_of_data));
+        crc =
+            crc32c (crc, start_of_data, static_cast <unsigned int> ((const unsigned char *)data_p + unparsed_size - start_of_data));
     }
 #endif
     return ~crc;
