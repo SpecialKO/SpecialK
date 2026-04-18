@@ -1,4 +1,11 @@
-﻿26.4.17.3
+﻿26.4.18
+=======
+ + Block gamepad input to games while the Alt-Tab application switcher
+     is visible and covering the game (since gamepads now control it).
+ + Only block input to games when SKIF is the foreground if SKIF is configured
+     to use gamepad input.
+
+26.4.17.3
 =========
  + Stop processing background gamepad input if SKIF is in the foreground.
 
