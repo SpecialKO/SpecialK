@@ -2162,6 +2162,13 @@ SK_Framerate_SanitizeTimerResolution (void) noexcept
   if (! config.render.framerate.max_timer_resolution)
     return;
 
+  // Only do this occasionally, it defeats the purpose to
+  //   call it frequently.
+  static int
+        tick_tock       = 0;
+  if (++tick_tock % 64 != 0)
+    return;
+
   auto _SetTimerResolution =
     ( ZwSetTimerResolution_Original != nullptr ) ?
       ZwSetTimerResolution_Original              :
@@ -2211,7 +2218,7 @@ extern bool                                  reset_frame_history;
 
 void
 SK::Framerate::Limiter::wait (void) noexcept
-{
+{  
   // This is actually counter-productive in testing... when the thread priority
   //   is lowered after this goes out of scope it may reschedule the thread.
   //SK_Thread_ScopedPriority prio_scope (THREAD_PRIORITY_TIME_CRITICAL);
@@ -2506,6 +2513,7 @@ SK::Framerate::Limiter::wait (void) noexcept
       }
     }
 
+    // Trigger a timer phase shift.
     SK_Framerate_SanitizeTimerResolution ();
 
     // Create an unnamed waitable timer.
@@ -4502,7 +4510,7 @@ SK::Framerate::TickEx ( bool     /*wait*/,
 
 
   // Prevent inserting infinity into the dataset
-  if ( std::isnormal (dt) )
+  //if ( std::isnormal (dt) )
   {
     if (snapshots->frame_history.addSample (1000.0 * dt, now))
     {
@@ -4597,7 +4605,7 @@ SK::Framerate::TickEx ( bool     /*wait*/,
       } break;
     }
 
-    if (std::isnormal (sample) && now.QuadPart > 0)
+    if (/*std::isnormal(sample) &&*/ now.QuadPart > 0)
     {
       container->addSample (
         sample, now
@@ -4610,25 +4618,31 @@ SK::Framerate::TickEx ( bool     /*wait*/,
 
 int sk_config_t::fps_osd_s::getTimingMethod (void)
 {
-  if (__SK_IsDLSSGActive)
-  {      
-    if (config.render.framerate.streamline.enable_native_limit)
+  switch (timing_method)
+  {
+    case SK_FrametimeMeasures_LimiterPacing:
     {
-      if (__target_fps_now <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
+      if (__SK_IsDLSSGActive)
+      {      
+        if (config.render.framerate.streamline.enable_native_limit)
+        {
+          if (__target_fps_now <= 0.0f)
+          {
+            return SK_FrametimeMeasures_NewFrameBegin;
+          }
+        }
+
+        else if (__target_fps_now > 0.0f)
+        {
+          return SK_FrametimeMeasures_PresentSubmit;
+        }
+      }
+
+      else if (__target_fps_now <= 0.0f)
       {
         return SK_FrametimeMeasures_NewFrameBegin;
       }
-    }
-
-    else if (__target_fps_now > 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
-    {
-      return SK_FrametimeMeasures_PresentSubmit;
-    }
-  }
-
-  else if (__target_fps_now <= 0.0f && timing_method == SK_FrametimeMeasures_LimiterPacing)
-  {
-    return SK_FrametimeMeasures_NewFrameBegin;
+    } break;
   }
 
   return timing_method;
@@ -4860,7 +4874,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     {
       if (datum.when.QuadPart >= 0)
       {
-        if (isnormal (datum.val))
+        //if (isnormal (datum.val))
         {
           kWriteBuffer.second.emplace_back (datum.val);
         }
@@ -4891,6 +4905,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer) noexcept
   if (llQPC < SK_QueryPerf ().QuadPart)
     return;
 
+  // Trigger a timer phase shift.
   SK_Framerate_SanitizeTimerResolution ();
 
   if ((LONG_PTR)hTimer < 0)
@@ -5066,10 +5081,10 @@ SK_Framerate_EnergyControlPanel (void)
 }
 
 bool
-game_pacer_s::wantPacing (void) noexcept
+game_pacer_s::wantPacing (ULONG64 frames_drawn) noexcept
 {
   return 
-    config.render.framerate.pace_game_thread && isSupported () && event != 0 && last_frame_id > SK_GetFramesDrawn () - 2;
+    config.render.framerate.pace_game_thread && isSupported (frames_drawn) && event != 0 && last_frame_id > frames_drawn - 2;
 }
 
 void
@@ -5080,10 +5095,10 @@ game_pacer_s::signalEvent (void) noexcept
 }
 
 bool
-game_pacer_s::isSupported (void) noexcept
+game_pacer_s::isSupported (ULONG64 frames_drawn) noexcept
 {
   static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 150;
 
   return
-    last_frame_id != 0 && !config.nvidia.reflex.native && SK_GetFramesDrawn () > SK_Reflex_MinimumFramesBeforeNative;
+    last_frame_id != 0 && !config.nvidia.reflex.native && frames_drawn > SK_Reflex_MinimumFramesBeforeNative;
 }

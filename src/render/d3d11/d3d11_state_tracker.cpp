@@ -201,7 +201,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
     const auto frame_id =
       SK_GetFramesDrawn ();
 
-    if (!game_pace.wantPacing () || game_pace.last_paced_time < SK_timeGetTime ())
+    if (!game_pace.wantPacing (frame_id) || game_pace.last_paced_time < SK::ControlPanel::current_time)
     {
       static ULONG64
           last_frame = 0;

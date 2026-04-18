@@ -4688,9 +4688,12 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
       pwi->cyWindowBorders = 0;
     }
 
+    static HMODULE hModSystemDXGI =
+      LoadLibraryExW (L"dxgi.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+
     // DXGI checks on this during SwapChain creation...
     //   lie to DXGI if we have to, so that SwapChain creation succeeds.
-    if (StrStrIW (SK_GetCallerName ().c_str (), L"dxgi.dll"))
+    if (SK_IsCallingDLL (hModSystemDXGI))
     {
       pwi->dwExStyle &= ~WS_EX_TOPMOST;
 

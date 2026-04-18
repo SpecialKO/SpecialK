@@ -842,9 +842,9 @@ struct game_pacer_s {
   DWORD   last_paced_time = 0UL;
   HANDLE  event           = 0;
 
-  bool   isSupported (void) noexcept;
-  bool   wantPacing  (void) noexcept;
-  void   signalEvent (void) noexcept;
+  bool   isSupported (ULONG64 frames_drawn = SK_GetFramesDrawn ()) noexcept;
+  bool   wantPacing  (ULONG64 frames_drawn = SK_GetFramesDrawn ()) noexcept;
+  void   signalEvent (void)                                        noexcept;
 } game_pace;
 
 

@@ -2144,12 +2144,14 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   }
 }
 
+#ifdef USE_D3D11_GPU_WAIT
 static HANDLE SK_ImGui_D3D11GPUEvent = 0;
+#endif
 
 void
 SK_ImGui_WaitD3D11 (void)
 {
-#if 0
+#ifdef USE_D3D11_GPU_WAIT
   if (SK_ImGui_D3D11GPUEvent != 0)
     WaitForSingleObject (SK_ImGui_D3D11GPUEvent, 100UL);
 #endif
@@ -2178,15 +2180,21 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   if (! pTLS)
     return;
 
+#ifdef USE_D3D11_GPU_WAIT
   SK_RunOnce (
     SK_ImGui_D3D11GPUEvent =
       SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
   );
 
-  SK_ComQIPtr <IDXGIDevice2>
-      pDXGIDev2 (pDev);
-  if (pDXGIDev2 != nullptr)
-      pDXGIDev2->EnqueueSetEvent (SK_ImGui_D3D11GPUEvent);
+  // This is currently unused... it's for a more advanced framerate limiter.
+  if (SK_ImGui_D3D11GPUEvent != nullptr)
+  {
+    SK_ComQIPtr <IDXGIDevice2>
+        pDXGIDev2 (pDev);
+    if (pDXGIDev2 != nullptr)
+        pDXGIDev2->EnqueueSetEvent (SK_ImGui_D3D11GPUEvent);
+  }
+#endif
 
 #define _SetupThreadContext()                                                   \
                              pTLS->imgui->drawing                      = FALSE; \
@@ -2336,8 +2344,16 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
     }
   }
 
-  if (pDXGIDev2 != nullptr)
-      pDXGIDev2->EnqueueSetEvent (SK_ImGui_D3D11GPUEvent);
+#ifdef USE_D3D11_GPU_WAIT
+  // This is currently unused... it's for a more advanced framerate limiter.
+  if (SK_ImGui_D3D11GPUEvent != nullptr)
+  {
+    SK_ComQIPtr <IDXGIDevice2>
+        pDXGIDev2 (pDev);
+    if (pDXGIDev2 != nullptr)
+        pDXGIDev2->EnqueueSetEvent (SK_ImGui_D3D11GPUEvent);
+  }
+#endif
 }
 
 HRESULT

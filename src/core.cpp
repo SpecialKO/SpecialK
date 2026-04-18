@@ -2904,8 +2904,18 @@ SK_Inject_PostHeartbeatToSKIF (void)
     //   but alt-tab can still flicker.
     if (hWndSKIF != game_window.hWnd && IsWindow (hWndSKIF))
     {
-      DWORD                                   dwPid = 0x0;
-      SK_GetWindowThreadProcessId (hWndSKIF, &dwPid);
+      static HWND   hWndLast = 0;
+      static DWORD dwPidLast = 0;
+
+      DWORD dwPid = 0x0;
+
+      if (hWndLast == hWndSKIF)
+              dwPid = dwPidLast;
+      else
+      {      
+        SK_GetWindowThreadProcessId (hWndSKIF, &dwPid);
+                          hWndLast = hWndSKIF;  dwPidLast = dwPid;
+      }
     
       if ( dwPid != 0x0 &&
            dwPid != GetCurrentProcessId () )
@@ -4730,13 +4740,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     if ( config.render.framerate.present_interval == 0 &&
          config.render.framerate.target_fps        > 0.0f )
     {
-      SK_AutoHandle hTimer (
-        INVALID_HANDLE_VALUE
-      );
+      static thread_local HANDLE hTimer = (HANDLE)-1;
 
       SK_Framerate_WaitUntilQPC (
         qpcTimeOfSwap.QuadPart + __SK_LatentSyncPostDelay,
-                    hTimer.m_h  );
+                        hTimer  );
     }
   }
 

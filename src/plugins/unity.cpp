@@ -2981,9 +2981,9 @@ SK_Unity_PaceGameThreadDxgi (IDXGISwapChain *pSwapChain, DXGI_FRAME_STATISTICS *
   game_pace.last_frame_id =
     SK_GetFramesDrawn ();
 
-  if (game_pace.wantPacing ())
+  if (game_pace.wantPacing (game_pace.last_frame_id))
   {
-    static HANDLE hTimer = (HANDLE)-1;
+    static thread_local HANDLE hTimer = (HANDLE)-1;
 
     auto& rb =
       SK_GetCurrentRenderBackend ();
