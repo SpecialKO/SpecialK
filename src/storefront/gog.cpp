@@ -484,9 +484,9 @@ public:
         {
           static std::vector <BYTE> data;
   
-                       _fseeki64 (fGlobalStats, 0, SEEK_END);
-          data.resize (_ftelli64 (fGlobalStats));
-                          rewind (fGlobalStats);
+                       fseek (fGlobalStats, 0, SEEK_END);
+          data.resize (ftell (fGlobalStats));
+                      rewind (fGlobalStats);
 
           if (! data.empty ())
           {

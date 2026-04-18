@@ -490,7 +490,7 @@ STDMETHODCALLTYPE
 D3D11_RSSetViewports_Override (
                  ID3D11DeviceContext* This,
   _In_           UINT                 NumViewports,
-  _In_opt_ const D3D11_VIEWPORT*      pViewports );
+  _In_opt_ const D3D11_VIEWPORT*      pViewports ) noexcept;
 
 extern __declspec (noinline)
 void
@@ -505,7 +505,7 @@ SK_D3D11_CopySubresourceRegion_Impl (
   _In_           ID3D11Resource *pSrcResource,
   _In_           UINT            SrcSubresource,
   _In_opt_ const D3D11_BOX      *pSrcBox,
-                 BOOL            bWrapped );
+                 BOOL            bWrapped ) noexcept;
 
 using RSSetViewports_pfn        = void (STDMETHODCALLTYPE *)
           (ID3D11DeviceContext*,UINT, const D3D11_VIEWPORT*);
