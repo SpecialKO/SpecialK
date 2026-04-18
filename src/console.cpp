@@ -505,7 +505,7 @@ SK_DrawConsole (void)
 
 BOOL
 __stdcall
-SK_IsConsoleVisible (void)
+SK_IsConsoleVisible (void) noexcept
 {
   return
     SK_Console::getInstance ()->isVisible ();

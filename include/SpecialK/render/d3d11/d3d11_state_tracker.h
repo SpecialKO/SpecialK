@@ -347,10 +347,10 @@ struct SK_D3D11_KnownThreads
     //active.reserve (16);
   }
 
-  void   clear_all    (void);
-  size_t count_all    (void);
+  void   clear_all    (void) noexcept;
+  size_t count_all    (void) noexcept;
 
-  void   clear_active (void)
+  void   clear_active (void) noexcept
   {
     if (use_lock)
     {
@@ -364,7 +364,7 @@ struct SK_D3D11_KnownThreads
     active.clear ();
   }
 
-  size_t count_active (void)
+  size_t count_active (void) noexcept
   {
     if (use_lock)
     {
@@ -377,7 +377,7 @@ struct SK_D3D11_KnownThreads
     return active.size ();
   }
 
-  float  active_ratio (void)
+  float  active_ratio (void) noexcept
   {
     if (use_lock)
     {
@@ -392,7 +392,7 @@ struct SK_D3D11_KnownThreads
            static_cast <float> (ids.size    ());
   }
 
-  static void mark (void) ;
+  static void mark (void) noexcept;
 
 private:
   std::unordered_set <DWORD>                     ids;

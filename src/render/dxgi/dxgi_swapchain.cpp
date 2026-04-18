@@ -611,7 +611,7 @@ IWrapDXGISwapChain::PresentBase (void)
         std::scoped_lock lock (_backbufferLock);
 
         std::pair <BOOL*, BOOL>
-          SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
+          SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx) noexcept;
 
         auto flag_result =
           SK_ImGui_FlagDrawing_OnD3D11Ctx (

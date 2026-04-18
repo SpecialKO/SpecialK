@@ -189,7 +189,7 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 }
 
 bool
-SK_ImGui_WantKeyboardCapture (bool update)
+SK_ImGui_WantKeyboardCapture (bool update) noexcept
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_WantKeyboardCapture)
 
@@ -277,7 +277,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
 }
 
 bool
-SK_ImGui_WantTextCapture (void)
+SK_ImGui_WantTextCapture (void) noexcept
 {
   if (! SK_GImDefaultContext ())
     return false;
@@ -410,7 +410,7 @@ GetKeyboardState_pfn GetKeyboardState_Original = nullptr;
 
 SHORT
 WINAPI
-SK_GetAsyncKeyState (int vKey)
+SK_GetAsyncKeyState (int vKey) noexcept
 {
   if (GetAsyncKeyState_Original != nullptr)
     return GetAsyncKeyState_Original (vKey);
@@ -423,7 +423,7 @@ SK_GetAsyncKeyState (int vKey)
 //   function pointer and this code only has to be written once.
 SHORT
 WINAPI
-SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
+SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc) noexcept
 {
   if (pfnGetFunc == nullptr)
     return 0;
@@ -513,7 +513,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 
 SHORT
 WINAPI
-GetAsyncKeyState_Detour (_In_ int vKey)
+GetAsyncKeyState_Detour (_In_ int vKey) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -526,7 +526,7 @@ GetAsyncKeyState_Detour (_In_ int vKey)
 
 SHORT
 WINAPI
-SK_GetKeyState (_In_ int nVirtKey)
+SK_GetKeyState (_In_ int nVirtKey) noexcept
 {
   if (GetKeyState_Original != nullptr)
     return GetKeyState_Original (nVirtKey);
@@ -536,7 +536,7 @@ SK_GetKeyState (_In_ int nVirtKey)
 
 SHORT
 WINAPI
-GetKeyState_Detour (_In_ int vKey)
+GetKeyState_Detour (_In_ int vKey) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -551,7 +551,7 @@ GetKeyState_Detour (_In_ int vKey)
 
 BOOL
 WINAPI
-SK_GetKeyboardState (PBYTE lpKeyState)
+SK_GetKeyboardState (PBYTE lpKeyState) noexcept
 {
   if (GetKeyboardState_Original != nullptr)
     return GetKeyboardState_Original (lpKeyState);
@@ -562,7 +562,7 @@ SK_GetKeyboardState (PBYTE lpKeyState)
 
 BOOL
 WINAPI
-GetKeyboardState_Detour (PBYTE lpKeyState)
+GetKeyboardState_Detour (PBYTE lpKeyState) noexcept
 {
   SK_LOG_FIRST_CALL
 

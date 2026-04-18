@@ -697,7 +697,7 @@ SK_GetRawInputData (HRAWINPUT hRawInput,
                     UINT      uiCommand,
                     LPVOID    pData,
                     PUINT     pcbSize,
-                    UINT      cbSizeHeader)
+                    UINT      cbSizeHeader) noexcept
 {
   if (GetRawInputData_Original != nullptr)
   {
@@ -737,7 +737,7 @@ UINT
 WINAPI
 GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
                           _Inout_   PUINT     pcbSize,
-                          _In_      UINT      cbSizeHeader)
+                          _In_      UINT      cbSizeHeader) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -930,7 +930,7 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
                           _Inout_   PUINT     pcbSize,
                           _In_      UINT      cbSizeHeader,
                                     BOOL      self,
-                                    INT       precache_size = 0);
+                                    INT       precache_size = 0) noexcept;
 
 UINT
 WINAPI
@@ -938,7 +938,7 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
                         _In_      UINT      uiCommand,
                         _Out_opt_ LPVOID    pData,
                         _Inout_   PUINT     pcbSize,
-                        _In_      UINT      cbSizeHeader)
+                        _In_      UINT      cbSizeHeader) noexcept
 {
   SK_LOG_FIRST_CALL
 

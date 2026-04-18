@@ -229,7 +229,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _Inout_   PUINT     pcbSize,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self,
-                                     INT       precache_size = 0 )
+                                     INT       precache_size = 0 ) noexcept
 {
   if (! hRawInput)
   {
@@ -3779,7 +3779,7 @@ SK_ImGui_Util_TrackFgProcessChange (void)
 }
 
 void
-SK_ImGui_UpdateGamepadProcessingEligibility (void)
+SK_ImGui_UpdateGamepadProcessingEligibility (void) noexcept
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_UpdateGamepadProcessingEligibility)
 
@@ -3909,12 +3909,11 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void)
             //  cache_entry.start_menu = true;
           }
 
-          if (cache_entry.pid != 0)
-            window_cache [window] = cache_entry;
+          window_cache [window] = cache_entry;
         }
 
         if (! any_potential)
-              any_potential = window_cache.count (window);
+              any_potential = window_cache [window].pid != 0;
       }
 
       if (any_potential)

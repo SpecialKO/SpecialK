@@ -2124,8 +2124,8 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
 }
 
 
-bool
-SK::Framerate::Limiter::try_wait (void)
+bool 
+SK::Framerate::Limiter::try_wait (void) noexcept
 {
   if (limit_behavior != LIMIT_APPLY) {
     return false;
@@ -2157,7 +2157,7 @@ extern ZwSetTimerResolution_pfn
        ZwSetTimerResolution_Original;
 
 void
-SK_Framerate_SanitizeTimerResolution (void)
+SK_Framerate_SanitizeTimerResolution (void) noexcept
 {
   if (! config.render.framerate.max_timer_resolution)
     return;
@@ -2210,7 +2210,7 @@ extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
 extern bool                                  reset_frame_history;
 
 void
-SK::Framerate::Limiter::wait (void)
+SK::Framerate::Limiter::wait (void) noexcept
 {
   // This is actually counter-productive in testing... when the thread priority
   //   is lowered after this goes out of scope it may reschedule the thread.
@@ -4344,7 +4344,7 @@ SK::Framerate::Limiter::set_limit (float& target)
 }
 
 double
-SK::Framerate::Limiter::effective_frametime (void)
+SK::Framerate::Limiter::effective_frametime (void) noexcept
 {
   return effective_ms;
 }
@@ -4466,7 +4466,7 @@ void
 SK::Framerate::TickEx ( bool     /*wait*/,
                         double         dt,
                         LARGE_INTEGER now,
-                        IUnknown*     swapchain )
+                        IUnknown*     swapchain ) noexcept
 {
   if (__SK_IsDLSSGActive && config.nvidia.reflex.vulkan && dt != -1.0)
     return;
@@ -4650,7 +4650,7 @@ void
 SK::Framerate::Tick ( bool          wait,
                       double        dt,
                       LARGE_INTEGER now,
-                      IUnknown*     swapchain )
+                      IUnknown*     swapchain ) noexcept
 {
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
@@ -4718,14 +4718,14 @@ SK::Framerate::Stats::calcMax (double seconds) noexcept
 }
 
 double
-SK::Framerate::Stats::calcOnePercentLow (double seconds)
+SK::Framerate::Stats::calcOnePercentLow (double seconds) noexcept
 {
   return
     calcOnePercentLow (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 double
-SK::Framerate::Stats::calcPointOnePercentLow (double seconds)
+SK::Framerate::Stats::calcPointOnePercentLow (double seconds) noexcept
 {
   return
     calcPointOnePercentLow (SK_DeltaPerf (seconds, SK_PerfFreq));
@@ -4741,14 +4741,14 @@ SK::Framerate::Stats::calcHitches ( double tolerance,
 }
 
 int
-SK::Framerate::Stats::calcNumSamples (double seconds)
+SK::Framerate::Stats::calcNumSamples (double seconds) noexcept
 {
   return
     calcNumSamples (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 void
-SK::Framerate::DeepFrameState::reset (void)
+SK::Framerate::DeepFrameState::reset (void) noexcept
 {
   auto _clear =
     [&](SK::Framerate::Stats* pStats, auto idx) ->
@@ -4886,7 +4886,7 @@ double SK::Framerate::Limiter::timer_res_ms = 15.0;
 
 
 void
-SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
+SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer) noexcept
 {
   if (llQPC < SK_QueryPerf ().QuadPart)
     return;
@@ -5066,21 +5066,21 @@ SK_Framerate_EnergyControlPanel (void)
 }
 
 bool
-game_pacer_s::wantPacing (void)
+game_pacer_s::wantPacing (void) noexcept
 {
   return 
     config.render.framerate.pace_game_thread && isSupported () && event != 0 && last_frame_id > SK_GetFramesDrawn () - 2;
 }
 
 void
-game_pacer_s::signalEvent (void)
+game_pacer_s::signalEvent (void) noexcept
 {
   if (event != 0)
     SetEvent (event);
 }
 
 bool
-game_pacer_s::isSupported (void)
+game_pacer_s::isSupported (void) noexcept
 {
   static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 150;
 

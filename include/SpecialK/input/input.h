@@ -43,15 +43,15 @@ extern uint64_t      SK_PerfFreq;
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 
-bool SK_ImGui_WantGamepadCapture  (bool update = false);
-bool SK_ImGui_WantHWCursor        (void);
-bool SK_ImGui_WantMouseCapture    (bool update = false, POINT* ptCursor = nullptr);
+bool SK_ImGui_WantGamepadCapture  (bool update = false)                            noexcept;
+bool SK_ImGui_WantHWCursor        (void)                                           noexcept;
+bool SK_ImGui_WantMouseCapture    (bool update = false, POINT* ptCursor = nullptr) noexcept;
 bool SK_ImGui_WantMouseButtonCapture
-                                  (void);
-bool SK_ImGui_WantMouseCaptureEx  (DWORD dwReasonMask = 0xFFFF, POINT* ptCursor = nullptr);
-bool SK_ImGui_WantKeyboardCapture (bool update = false);
-bool SK_ImGui_WantTextCapture     (void);
-void SK_ImGui_UpdateMouseTracker  (void);
+                                  (void)                                           noexcept;
+bool SK_ImGui_WantMouseCaptureEx  (DWORD dwReasonMask = 0xFFFF, POINT* ptCursor = nullptr) noexcept;
+bool SK_ImGui_WantKeyboardCapture (bool update = false)                            noexcept;
+bool SK_ImGui_WantTextCapture     (void)                                           noexcept;
+void SK_ImGui_UpdateMouseTracker  (void)                                           noexcept;
 
 void SK_Input_HookDI8         (void);
 void SK_Input_HookHID         (void);
@@ -84,9 +84,9 @@ void SK_Input_SetLatencyMarker       (void) noexcept;
 //     the thread manually so it doesn't crash.
 void SK_SDL_ShutdownInput (void);
 
-BOOL __stdcall SK_IsConsoleVisible (void);
+BOOL __stdcall SK_IsConsoleVisible (void) noexcept;
 
-SHORT WINAPI SK_GetAsyncKeyState (int vKey);
+SHORT WINAPI SK_GetAsyncKeyState (int vKey) noexcept;
 
 bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
 bool SK_Input_DetermineMouseIdleState (MSG* lpMsg);
@@ -1311,7 +1311,7 @@ SK_GetRawInputData ( HRAWINPUT hRawInput,
                      UINT      uiCommand,
                      LPVOID    pData,
                      PUINT     pcbSize,
-                     UINT      cbSizeHeader );
+                     UINT      cbSizeHeader ) noexcept;
 
 UINT
 WINAPI
@@ -1344,8 +1344,8 @@ LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
-BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);
+SHORT WINAPI SK_GetKeyState      (int   nVirtKey)   noexcept;
+BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState) noexcept;
 
 extern char SK_KeyMap_LeftHand_Arrow (char key);
 

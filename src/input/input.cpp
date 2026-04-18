@@ -40,7 +40,7 @@ extern "C" {
 DWORD SK_WGI_GamePollingThreadId = 0;
 
 bool
-SK_ImGui_WantGamepadCapture (bool update)
+SK_ImGui_WantGamepadCapture (bool update) noexcept
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_WantGamepadCapture)
 

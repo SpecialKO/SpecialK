@@ -249,7 +249,7 @@ D3D11_GetData_Override (
  _Out_writes_bytes_opt_   ( DataSize )
        void                *pData,
  _In_  UINT                 DataSize,
- _In_  UINT                 GetDataFlags )
+ _In_  UINT                 GetDataFlags ) noexcept
 {
   if (pAsync == nullptr)
     return E_INVALIDARG;
@@ -270,7 +270,7 @@ D3D11_VSSetShader_Override (
  _In_     ID3D11DeviceContext        *This,
  _In_opt_ ID3D11VertexShader         *pVertexShader,
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-          UINT                        NumClassInstances )
+          UINT                        NumClassInstances ) noexcept
 {
   if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
@@ -306,7 +306,7 @@ D3D11_VSGetShader_Override (
  _In_        ID3D11DeviceContext  *This,
  _Out_       ID3D11VertexShader  **ppVertexShader,
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
- _Inout_opt_ UINT                 *pNumClassInstances )
+ _Inout_opt_ UINT                 *pNumClassInstances ) noexcept
 {
   if (ppVertexShader == nullptr)
     return;
@@ -325,7 +325,7 @@ D3D11_PSSetShader_Override (
  _In_     ID3D11DeviceContext        *This,
  _In_opt_ ID3D11PixelShader          *pPixelShader,
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-          UINT                        NumClassInstances )
+          UINT                        NumClassInstances ) noexcept
 {
   if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
@@ -361,7 +361,7 @@ D3D11_PSGetShader_Override (
  _In_        ID3D11DeviceContext  *This,
  _Out_       ID3D11PixelShader   **ppPixelShader,
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
- _Inout_opt_ UINT                 *pNumClassInstances )
+ _Inout_opt_ UINT                 *pNumClassInstances ) noexcept
 {
   if (ppPixelShader == nullptr)
     return;
@@ -380,7 +380,7 @@ D3D11_GSSetShader_Override (
  _In_     ID3D11DeviceContext        *This,
  _In_opt_ ID3D11GeometryShader       *pGeometryShader,
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-          UINT                        NumClassInstances )
+          UINT                        NumClassInstances ) noexcept
 {
   if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
@@ -416,7 +416,7 @@ D3D11_GSGetShader_Override (
  _In_        ID3D11DeviceContext   *This,
  _Out_       ID3D11GeometryShader **ppGeometryShader,
  _Out_opt_   ID3D11ClassInstance  **ppClassInstances,
- _Inout_opt_ UINT                  *pNumClassInstances )
+ _Inout_opt_ UINT                  *pNumClassInstances ) noexcept
 {
   if (ppGeometryShader == nullptr)
     return;
@@ -435,7 +435,7 @@ D3D11_HSSetShader_Override (
  _In_     ID3D11DeviceContext        *This,
  _In_opt_ ID3D11HullShader           *pHullShader,
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-          UINT                        NumClassInstances )
+          UINT                        NumClassInstances ) noexcept
 {
   if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
@@ -471,7 +471,7 @@ D3D11_HSGetShader_Override (
  _In_        ID3D11DeviceContext  *This,
  _Out_       ID3D11HullShader    **ppHullShader,
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
- _Inout_opt_ UINT                 *pNumClassInstances )
+ _Inout_opt_ UINT                 *pNumClassInstances ) noexcept
 {
   if (ppHullShader == nullptr)
     return;
@@ -491,7 +491,7 @@ D3D11_DSSetShader_Override (
  _In_     ID3D11DeviceContext        *This,
  _In_opt_ ID3D11DomainShader         *pDomainShader,
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-          UINT                        NumClassInstances )
+          UINT                        NumClassInstances ) noexcept
 {
   if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
@@ -527,7 +527,7 @@ D3D11_DSGetShader_Override (
  _In_        ID3D11DeviceContext  *This,
  _Out_       ID3D11DomainShader  **ppDomainShader,
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
- _Inout_opt_ UINT                 *pNumClassInstances )
+ _Inout_opt_ UINT                 *pNumClassInstances ) noexcept
 {
   if (ppDomainShader == nullptr)
     return;
@@ -545,7 +545,7 @@ D3D11_CSSetShader_Override (
  _In_     ID3D11DeviceContext        *This,
  _In_opt_ ID3D11ComputeShader        *pComputeShader,
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-          UINT                        NumClassInstances )
+          UINT                        NumClassInstances ) noexcept
 {
   if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
@@ -581,7 +581,7 @@ D3D11_CSGetShader_Override (
  _In_        ID3D11DeviceContext  *This,
  _Out_       ID3D11ComputeShader **ppComputeShader,
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
- _Inout_opt_ UINT                 *pNumClassInstances )
+ _Inout_opt_ UINT                 *pNumClassInstances ) noexcept
 {
   if (ppComputeShader == nullptr)
     return;
@@ -594,7 +594,7 @@ D3D11_CSGetShader_Override (
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_ClearState_Override (ID3D11DeviceContext* This)
+D3D11_ClearState_Override (ID3D11DeviceContext* This) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -607,7 +607,7 @@ STDMETHODCALLTYPE
 D3D11_ExecuteCommandList_Override (
     _In_  ID3D11DeviceContext *This,
     _In_  ID3D11CommandList   *pCommandList,
-          BOOL                 RestoreContextState )
+          BOOL                 RestoreContextState ) noexcept
 {
   SK_ComPtr <ID3D11Device> pDevice;
   This->GetDevice (       &pDevice.p);
@@ -691,7 +691,7 @@ STDMETHODCALLTYPE
 D3D11_FinishCommandList_Override (
             ID3D11DeviceContext  *This,
             BOOL                  RestoreDeferredContextState,
-  _Out_opt_ ID3D11CommandList   **ppCommandList )
+  _Out_opt_ ID3D11CommandList   **ppCommandList ) noexcept
 {
   SK_ComPtr <ID3D11Device> pDevice;
   This->GetDevice (       &pDevice.p);
@@ -724,7 +724,7 @@ STDMETHODCALLTYPE
 D3D11_RSSetScissorRects_Override (
                  ID3D11DeviceContext *This,
   _In_           UINT                 NumRects,
-  _In_opt_ const D3D11_RECT          *pRects )
+  _In_opt_ const D3D11_RECT          *pRects ) noexcept
 {
   if (pRects == nullptr)
     return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
@@ -784,7 +784,7 @@ D3D11_VSSetConstantBuffers_Override (
            ID3D11DeviceContext*  This,
   _In_     UINT                  StartSlot,
   _In_     UINT                  NumBuffers,
-  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers ) noexcept
 {
   //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
@@ -802,7 +802,7 @@ D3D11_PSSetConstantBuffers_Override (
            ID3D11DeviceContext*  This,
   _In_     UINT                  StartSlot,
   _In_     UINT                  NumBuffers,
-  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers ) noexcept
 {
   //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
@@ -816,7 +816,7 @@ D3D11_VSSetShaderResources_Override (
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
   _In_     UINT                             NumViews,
-  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept
 {
   if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -847,7 +847,7 @@ D3D11_PSSetShaderResources_Override (
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
   _In_     UINT                             NumViews,
-  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept
 {
   if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -875,7 +875,7 @@ D3D11_GSSetShaderResources_Override (
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
   _In_     UINT                             NumViews,
-  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept
 {
   if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -903,7 +903,7 @@ D3D11_HSSetShaderResources_Override (
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
   _In_     UINT                             NumViews,
-  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept
 {
   if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -931,7 +931,7 @@ D3D11_DSSetShaderResources_Override (
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
   _In_     UINT                             NumViews,
-  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept
 {
   if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -959,7 +959,7 @@ D3D11_CSSetShaderResources_Override (
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
   _In_     UINT                             NumViews,
-  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept
 {
   if (config.render.d3d11.track_set_shader_res && (SK::ControlPanel::D3D11::show_shader_mod_dlg || ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 || ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0) && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -986,7 +986,7 @@ D3D11_CSSetUnorderedAccessViews_Override (
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumUAVs,
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-  _In_opt_ const UINT                             *pUAVInitialCounts )
+  _In_opt_ const UINT                             *pUAVInitialCounts ) noexcept
 {
   return
     D3D11_CSSetUnorderedAccessViews_Original ( This,
@@ -1007,7 +1007,7 @@ D3D11_UpdateSubresource1_Override (
   _In_     const void                 *pSrcData,
   _In_           UINT                  SrcRowPitch,
   _In_           UINT                  SrcDepthPitch,
-  _In_           UINT                  CopyFlags)
+  _In_           UINT                  CopyFlags) noexcept
 {
 #if 0
   if (pDstResource != nullptr)
@@ -1205,7 +1205,7 @@ D3D11_UpdateSubresource_Override (
   _In_opt_ const D3D11_BOX           *pDstBox,
   _In_     const void                *pSrcData,
   _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch)
+  _In_           UINT                 SrcDepthPitch) noexcept
 {
 #if 0
   if (pDstResource != nullptr)
@@ -1267,7 +1267,7 @@ D3D11_Map_Override (
      _In_ UINT                      Subresource,
      _In_ D3D11_MAP                 MapType,
      _In_ UINT                      MapFlags,
-_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
+_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource ) noexcept
 {
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pResource != nullptr)
@@ -1311,7 +1311,7 @@ STDMETHODCALLTYPE
 D3D11_Unmap_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Resource      *pResource,
-  _In_ UINT                 Subresource )
+  _In_ UINT                 Subresource ) noexcept
 {
   if (pResource == nullptr)
     return;
@@ -1351,7 +1351,7 @@ STDMETHODCALLTYPE
 D3D11_CopyResource_Override (
        ID3D11DeviceContext *This,
   _In_ ID3D11Resource      *pDstResource,
-  _In_ ID3D11Resource      *pSrcResource )
+  _In_ ID3D11Resource      *pSrcResource ) noexcept
 {
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pSrcResource != nullptr && pDstResource != nullptr)
@@ -1409,7 +1409,7 @@ D3D11_CopySubresourceRegion_Override (
   _In_           UINT                 DstZ,
   _In_           ID3D11Resource      *pSrcResource,
   _In_           UINT                 SrcSubresource,
-  _In_opt_ const D3D11_BOX           *pSrcBox )
+  _In_opt_ const D3D11_BOX           *pSrcBox ) noexcept
 {
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pSrcResource != nullptr && pDstResource != nullptr)
@@ -1470,7 +1470,7 @@ D3D11_ResolveSubresource_Override (
   _In_ UINT                 DstSubresource,
   _In_ ID3D11Resource      *pSrcResource,
   _In_ UINT                 SrcSubresource,
-  _In_ DXGI_FORMAT          Format )
+  _In_ DXGI_FORMAT          Format ) noexcept
 {
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pSrcResource != nullptr && pDstResource != nullptr)
@@ -1522,7 +1522,7 @@ D3D11_ResolveSubresource_Override (
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
+D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1544,7 +1544,7 @@ D3D11_DrawIndexed_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 IndexCount,
   _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation )
+  _In_ INT                  BaseVertexLocation ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1571,7 +1571,7 @@ STDMETHODCALLTYPE
 D3D11_Draw_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCount,
-  _In_ UINT                 StartVertexLocation )
+  _In_ UINT                 StartVertexLocation ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1601,7 +1601,7 @@ D3D11_DrawIndexedInstanced_Override (
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation )
+  _In_ UINT                 StartInstanceLocation ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1632,7 +1632,7 @@ STDMETHODCALLTYPE
 D3D11_DrawIndexedInstancedIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs )
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1659,7 +1659,7 @@ D3D11_DrawInstanced_Override (
   _In_ UINT                 VertexCountPerInstance,
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation )
+  _In_ UINT                 StartInstanceLocation ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1690,7 +1690,7 @@ STDMETHODCALLTYPE
 D3D11_DrawInstancedIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs )
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1719,7 +1719,7 @@ STDMETHODCALLTYPE
 D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
                           _In_ UINT                 ThreadGroupCountX,
                           _In_ UINT                 ThreadGroupCountY,
-                          _In_ UINT                 ThreadGroupCountZ )
+                          _In_ UINT                 ThreadGroupCountZ ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1750,7 +1750,7 @@ STDMETHODCALLTYPE
 D3D11_DispatchIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs )
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1783,7 +1783,7 @@ D3D11_OMSetRenderTargets_Override (
          ID3D11DeviceContext           *This,
 _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
-_In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
+_In_opt_ ID3D11DepthStencilView        *pDepthStencilView ) noexcept
 {
   return
     SK_D3D11_OMSetRenderTargets_Impl ( This,
@@ -1805,7 +1805,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
   _In_           UINT                              UAVStartSlot,
   _In_           UINT                              NumUAVs,
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-  _In_opt_ const UINT                             *pUAVInitialCounts )
+  _In_opt_ const UINT                             *pUAVInitialCounts ) noexcept
 {
   if (SK::ControlPanel::D3D11::show_shader_mod_dlg && (! SK_D3D11_ApplyingStateBlock))
   {
@@ -1834,7 +1834,7 @@ STDMETHODCALLTYPE
 D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
                               _In_ UINT                     NumViews,
                          _Out_opt_ ID3D11RenderTargetView **ppRenderTargetViews,
-                         _Out_opt_ ID3D11DepthStencilView **ppDepthStencilView)
+                         _Out_opt_ ID3D11DepthStencilView **ppDepthStencilView) noexcept
 {
   D3D11_OMGetRenderTargets_Original (
     This,        NumViews,
@@ -1852,7 +1852,7 @@ D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
   _Out_opt_ ID3D11DepthStencilView    **ppDepthStencilView,
   _In_      UINT                        UAVStartSlot,
   _In_      UINT                        NumUAVs,
-  _Out_opt_ ID3D11UnorderedAccessView **ppUnorderedAccessViews)
+  _Out_opt_ ID3D11UnorderedAccessView **ppUnorderedAccessViews) noexcept
 {
   D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original (
     This, NumRTVs, ppRenderTargetViews, ppDepthStencilView,
@@ -1866,7 +1866,7 @@ D3D11_ClearDepthStencilView_Override (ID3D11DeviceContext    *This,
                                  _In_ ID3D11DepthStencilView *pDepthStencilView,
                                  _In_ UINT                    ClearFlags,
                                  _In_ FLOAT                   Depth,
-                                 _In_ UINT8                   Stencil)
+                                 _In_ UINT8                   Stencil) noexcept
 {
   D3D11_ClearDepthStencilView_Original (
     This,      pDepthStencilView,
@@ -1881,7 +1881,7 @@ STDMETHODCALLTYPE
 D3D11_RSSetViewports_Override (
                  ID3D11DeviceContext* This,
   _In_           UINT                 NumViewports,
-  _In_opt_ const D3D11_VIEWPORT*      pViewports )
+  _In_opt_ const D3D11_VIEWPORT*      pViewports ) noexcept
 {
   if (pViewports == nullptr)
     return D3D11_RSSetViewports_Original (
@@ -1950,7 +1950,7 @@ D3D11_PSSetSamplers_Override
   _In_     ID3D11DeviceContext          *This,
   _In_     UINT                          StartSlot,
   _In_     UINT                          NumSamplers,
-  _In_opt_ ID3D11SamplerState */*const*/* ppSamplers)
+  _In_opt_ ID3D11SamplerState */*const*/* ppSamplers) noexcept
 {
   if (! (SK_D3D11_IsDevCtxDeferred (This)))
   {

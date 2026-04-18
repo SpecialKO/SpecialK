@@ -141,7 +141,7 @@ D3D11Dev_CreateBuffer_Override (
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer )
+  _Out_opt_      ID3D11Buffer           **ppBuffer ) noexcept
 {
   if (pDesc == nullptr)
     return E_INVALIDARG;
@@ -158,7 +158,7 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView ) noexcept
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
@@ -514,8 +514,8 @@ D3D11Dev_CreateShaderResourceView1_Override (
   _In_           ID3D11Device3                    *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC1 *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView1       **ppSRView )
-{
+  _Out_opt_      ID3D11ShaderResourceView1       **ppSRView ) noexcept
+{ 
   if (pResource == nullptr)
     return E_INVALIDARG;
 
@@ -818,7 +818,7 @@ D3D11Dev_CreateDepthStencilView_Override (
   _In_            ID3D11Device                  *This,
   _In_            ID3D11Resource                *pResource,
   _In_opt_  const D3D11_DEPTH_STENCIL_VIEW_DESC *pDesc_,
-  _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView )
+  _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView ) noexcept
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
@@ -917,7 +917,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   _In_            ID3D11Device                     *This,
   _In_            ID3D11Resource                   *pResource,
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
-  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView )
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView ) noexcept
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
@@ -1076,7 +1076,7 @@ D3D11Dev_CreateUnorderedAccessView1_Override (
   _In_            ID3D11Device3                     *This,
   _In_            ID3D11Resource                    *pResource,
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC1 *pDesc,
-  _Out_opt_       ID3D11UnorderedAccessView1       **ppUAView )
+  _Out_opt_       ID3D11UnorderedAccessView1       **ppUAView ) noexcept
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
@@ -1233,7 +1233,7 @@ STDMETHODCALLTYPE
 D3D11Dev_CreateRasterizerState_Override (
                   ID3D11Device            *This,
   _In_      const D3D11_RASTERIZER_DESC   *pRasterizerDesc,
-  _Out_opt_       ID3D11RasterizerState  **ppRasterizerState )
+  _Out_opt_       ID3D11RasterizerState  **ppRasterizerState ) noexcept
 {
   if (pRasterizerDesc == nullptr)
     return E_INVALIDARG;
@@ -1255,7 +1255,7 @@ D3D11Dev_CreateSamplerState_Override
 (
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-  _Out_opt_       ID3D11SamplerState **ppSamplerState )
+  _Out_opt_       ID3D11SamplerState **ppSamplerState ) noexcept
 {
   if (pSamplerDesc == nullptr)
     return E_INVALIDARG;
@@ -1566,7 +1566,7 @@ D3D11Dev_CreateTexture2D1_Override (
   _In_            ID3D11Device3          *This,
   _In_      const D3D11_TEXTURE2D_DESC1  *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D1       **ppTexture2D )
+  _Out_opt_       ID3D11Texture2D1       **ppTexture2D ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1604,7 +1604,7 @@ D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
   _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D )
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D ) noexcept
 {
   SK_LOG_FIRST_CALL
 
@@ -1643,7 +1643,7 @@ D3D11Dev_CreateRenderTargetView_Override (
   _In_            ID3D11Device                   *This,
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
-  _Out_opt_       ID3D11RenderTargetView        **ppRTView )
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView ) noexcept
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
@@ -1689,7 +1689,7 @@ D3D11Dev_CreateRenderTargetView1_Override (
   _In_            ID3D11Device3                  *This,
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
-  _Out_opt_       ID3D11RenderTargetView1       **ppRTView )
+  _Out_opt_       ID3D11RenderTargetView1       **ppRTView ) noexcept
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
@@ -1730,7 +1730,7 @@ D3D11Dev_CreateVertexShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11VertexShader **ppVertexShader )
+  _Out_opt_       ID3D11VertexShader **ppVertexShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;
@@ -1751,7 +1751,7 @@ D3D11Dev_CreatePixelShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11PixelShader  **ppPixelShader )
+  _Out_opt_       ID3D11PixelShader  **ppPixelShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;
@@ -1772,7 +1772,7 @@ D3D11Dev_CreateGeometryShader_Override (
   _In_      const void                  *pShaderBytecode,
   _In_            SIZE_T                 BytecodeLength,
   _In_opt_        ID3D11ClassLinkage    *pClassLinkage,
-  _Out_opt_       ID3D11GeometryShader **ppGeometryShader )
+  _Out_opt_       ID3D11GeometryShader **ppGeometryShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;
@@ -1798,7 +1798,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_            UINT                       NumStrides,
   _In_            UINT                       RasterizedStream,
   _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
-  _Out_opt_       ID3D11GeometryShader      **ppGeometryShader )
+  _Out_opt_       ID3D11GeometryShader      **ppGeometryShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;
@@ -1865,7 +1865,7 @@ D3D11Dev_CreateHullShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11HullShader   **ppHullShader )
+  _Out_opt_       ID3D11HullShader   **ppHullShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;
@@ -1886,7 +1886,7 @@ D3D11Dev_CreateDomainShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11DomainShader **ppDomainShader )
+  _Out_opt_       ID3D11DomainShader **ppDomainShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;
@@ -1907,7 +1907,7 @@ D3D11Dev_CreateComputeShader_Override (
   _In_      const void                 *pShaderBytecode,
   _In_            SIZE_T                BytecodeLength,
   _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
-  _Out_opt_       ID3D11ComputeShader **ppComputeShader )
+  _Out_opt_       ID3D11ComputeShader **ppComputeShader ) noexcept
 {
   if (pShaderBytecode == nullptr)
     return E_INVALIDARG;

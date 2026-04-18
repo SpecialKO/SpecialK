@@ -1765,7 +1765,7 @@ ImGui_ImplDX11_Shutdown (void)
 #include <SpecialK/window.h>
 
 void
-ImGui_ImplDX11_NewFrame (void)
+ImGui_ImplDX11_NewFrame (void) noexcept
 {
   auto& io =
     ImGui::GetIO ();

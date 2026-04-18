@@ -52,7 +52,7 @@ SK_D3D11_Map_Impl (
   _In_      D3D11_MAP                 MapType,
   _In_      UINT                      MapFlags,
   _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource,
-            BOOL                      bWrapped )
+            BOOL                      bWrapped ) noexcept
 {
   SK_WRAP_AND_HOOK
 
@@ -282,7 +282,7 @@ SK_D3D11_Unmap_Impl (
   _In_ ID3D11DeviceContext *pDevCtx,
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource,
-       BOOL                 bWrapped )
+       BOOL                 bWrapped ) noexcept
 {
   SK_WRAP_AND_HOOK
 

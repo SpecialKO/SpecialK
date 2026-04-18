@@ -505,9 +505,9 @@ SK_D3D11_ResetContextState ( ID3D11DeviceContext *pDevCtx,
                              UINT                  dev_idx = UINT_MAX );
 
 extern std::pair <BOOL*, BOOL>
-SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
+SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx)                                noexcept;
 extern bool
-SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx);
+SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx) noexcept;
 
 extern thread_local bool SK_D3D11_ApplyingStateBlock;
 
@@ -517,13 +517,13 @@ struct shader_stage_s
   using bind_fn =
     void (shader_stage_s::*)(int, int, ID3D11ShaderResourceView*);
 
-  void nulBind (size_t slot, ID3D11ShaderResourceView* pView)
+  void nulBind (size_t slot, ID3D11ShaderResourceView* pView) noexcept
   {
     IUnknown_Set ((IUnknown **)&skipped_bindings [slot],
                   (IUnknown  *)pView);
   };
 
-  void Bind (size_t slot, ID3D11ShaderResourceView* pView)
+  void Bind (size_t slot, ID3D11ShaderResourceView* pView) noexcept
   {
     IUnknown_AtomicRelease ((void **)&skipped_bindings [slot]);
 
@@ -560,7 +560,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
   _Out_opt_       ID3D11RenderTargetView        **ppRTView,
-                  BOOL                            bWrapped );
+                  BOOL                            bWrapped ) noexcept;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -569,7 +569,7 @@ SK_D3D11Dev_CreateRenderTargetView1_Impl (
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
   _Out_opt_       ID3D11RenderTargetView1       **ppRTView,
-                  BOOL                            bWrapped );
+                  BOOL                            bWrapped ) noexcept;
 
 HRESULT
 WINAPI
@@ -581,7 +581,7 @@ D3D11Dev_CreateTexture2DCore_Impl (
   _Out_opt_         ID3D11Texture2D        **ppTexture2D0,
   _Out_opt_         ID3D11Texture2D1       **ppTexture2D1,
                     LPVOID                   lpCallerAddr,
-                    SK_TLS                  *pTLS = nullptr );
+                    SK_TLS                  *pTLS = nullptr ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -593,7 +593,7 @@ SK_D3D11_SetShaderResources_Impl (
    UINT                 StartSlot,
    UINT                 NumViews,
    _In_opt_             ID3D11ShaderResourceView* const *ppShaderResourceViews,
-   UINT                 dev_idx = UINT_MAX );
+   UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -606,7 +606,7 @@ SK_D3D11_UpdateSubresource_Impl (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch,
                  BOOL                 bWrapped,
-                 LPCVOID              pCallerAddr );
+                 LPCVOID              pCallerAddr ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -617,7 +617,7 @@ SK_D3D11_ResolveSubresource_Impl (
     _In_ ID3D11Resource      *pSrcResource,
     _In_ UINT                 SrcSubresource,
     _In_ DXGI_FORMAT          Format,
-         BOOL                 bWrapped );
+         BOOL                 bWrapped ) noexcept;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -628,7 +628,7 @@ SK_D3D11_Map_Impl (
   _In_      D3D11_MAP                 MapType,
   _In_      UINT                      MapFlags,
   _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource,
-            BOOL                      bWrapped );
+            BOOL                      bWrapped ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -636,7 +636,7 @@ SK_D3D11_Unmap_Impl (
   _In_ ID3D11DeviceContext *pDevCtx,
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -650,21 +650,21 @@ SK_D3D11_CopySubresourceRegion_Impl (
   _In_           ID3D11Resource *pSrcResource,
   _In_           UINT            SrcSubresource,
   _In_opt_ const D3D11_BOX      *pSrcBox,
-                 BOOL            bWrapped );
+                 BOOL            bWrapped ) noexcept;
 void
 STDMETHODCALLTYPE
 SK_D3D11_CopyResource_Impl (
        ID3D11DeviceContext *pDevCtx,
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource,
-       BOOL                 bWrapped );
+       BOOL                 bWrapped ) noexcept;
 
 void
 STDMETHODCALLTYPE
 SK_D3D11_DrawAuto_Impl (
   _In_ ID3D11DeviceContext *pDevCtx,
        BOOL                 bWrapped,
-       UINT                 dev_idx = UINT_MAX );
+       UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -673,7 +673,7 @@ SK_D3D11_Draw_Impl (
   UINT                 VertexCount,
   UINT                 StartVertexLocation,
   bool                 Wrapped = false,
-  UINT                 dev_idx = UINT_MAX );
+  UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -683,7 +683,7 @@ SK_D3D11_DrawIndexed_Impl (
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
        BOOL                 bWrapped,
-       UINT                 dev_idx = UINT_MAX );
+       UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -695,7 +695,7 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   _In_ INT                  BaseVertexLocation,
   _In_ UINT                 StartInstanceLocation,
        BOOL                 bWrapped,
-       UINT                 dev_idx = UINT_MAX );
+       UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -704,7 +704,7 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs,
        BOOL                 bWrapped,
-       UINT                 dev_idx = UINT_MAX );
+       UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -715,7 +715,7 @@ SK_D3D11_DrawInstanced_Impl (
   _In_ UINT                 StartVertexLocation,
   _In_ UINT                 StartInstanceLocation,
        BOOL                 bWrapped,
-       UINT                 dev_idx = UINT_MAX );
+       UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -724,7 +724,7 @@ SK_D3D11_DrawInstancedIndirect_Impl (
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs,
        BOOL                 bWrapped,
-       UINT                 dev_idx = UINT_MAX );
+       UINT                 dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -734,7 +734,7 @@ _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
          BOOL                           bWrapped,
-         UINT                           dev_idx = UINT_MAX );
+         UINT                           dev_idx = UINT_MAX ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -748,7 +748,7 @@ SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (
   _In_reads_opt_ (NumUAVs)                    ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
   _In_reads_opt_ (NumUAVs)              const UINT                             *pUAVInitialCounts,
                                               BOOL                              bWrapped,
-                                              UINT                              dev_idx = UINT_MAX );
+                                              UINT                              dev_idx = UINT_MAX ) noexcept;
 
 
 void
@@ -759,7 +759,7 @@ SK_D3D11_Dispatch_Impl (
   _In_ UINT                 ThreadGroupCountY,
   _In_ UINT                 ThreadGroupCountZ,
        BOOL                 bWrapped,
-       UINT                 dev_idx );
+       UINT                 dev_idx ) noexcept;
 
 void
 STDMETHODCALLTYPE
@@ -768,19 +768,19 @@ SK_D3D11_DispatchIndirect_Impl (
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs,
        BOOL                 bWrapped,
-       UINT                 dev_idx );
+       UINT                 dev_idx ) noexcept;
 
 bool
 SK_D3D11_DispatchHandler (
   ID3D11DeviceContext* pDevCtx,
   UINT&                dev_idx,
-  SK_TLS**             ppTLS = nullptr );
+  SK_TLS**             ppTLS = nullptr ) noexcept;
 
 void
 SK_D3D11_PostDispatch (
   ID3D11DeviceContext* pDevCtx,
   UINT&                dev_idx,
-  SK_TLS*              pTLS = SK_TLS_Bottom () );
+  SK_TLS*              pTLS = SK_TLS_Bottom () ) noexcept;
 
 
 
@@ -791,7 +791,7 @@ WINAPI
 D3D11Dev_CreateRasterizerState_Override (
   ID3D11Device            *This,
   const D3D11_RASTERIZER_DESC   *pRasterizerDesc,
-  ID3D11RasterizerState  **ppRasterizerState );
+  ID3D11RasterizerState  **ppRasterizerState ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -800,7 +800,7 @@ D3D11Dev_CreateSamplerState_Override
 (
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-  _Out_opt_       ID3D11SamplerState **ppSamplerState );
+  _Out_opt_       ID3D11SamplerState **ppSamplerState ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -809,7 +809,7 @@ D3D11Dev_CreateBuffer_Override (
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer );
+  _Out_opt_      ID3D11Buffer           **ppBuffer ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -818,7 +818,7 @@ D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
   _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -827,7 +827,7 @@ D3D11Dev_CreateTexture2D1_Override (
   _In_            ID3D11Device3          *This,
   _In_      const D3D11_TEXTURE2D_DESC1  *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D1       **ppTexture2D );
+  _Out_opt_       ID3D11Texture2D1       **ppTexture2D ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -836,7 +836,7 @@ D3D11Dev_CreateRenderTargetView_Override (
   _In_            ID3D11Device                   *This,
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
-  _Out_opt_       ID3D11RenderTargetView        **ppRTView );
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -845,7 +845,7 @@ D3D11Dev_CreateRenderTargetView1_Override (
   _In_            ID3D11Device3                  *This,
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
-  _Out_opt_       ID3D11RenderTargetView1       **ppRTView );
+  _Out_opt_       ID3D11RenderTargetView1       **ppRTView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -854,7 +854,7 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -863,7 +863,7 @@ D3D11Dev_CreateShaderResourceView1_Override (
   _In_           ID3D11Device3                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC1  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView1        **ppSRView );
+  _Out_opt_      ID3D11ShaderResourceView1        **ppSRView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -872,7 +872,7 @@ D3D11Dev_CreateDepthStencilView_Override (
   _In_            ID3D11Device                  *This,
   _In_            ID3D11Resource                *pResource,
   _In_opt_  const D3D11_DEPTH_STENCIL_VIEW_DESC *pDesc,
-  _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView );
+  _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -881,7 +881,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   _In_            ID3D11Device                     *This,
   _In_            ID3D11Resource                   *pResource,
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
-  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView );
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -890,7 +890,7 @@ D3D11Dev_CreateUnorderedAccessView1_Override (
   _In_            ID3D11Device3                    *This,
   _In_            ID3D11Resource                   *pResource,
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC1 *pDesc,
-  _Out_opt_       ID3D11UnorderedAccessView1       **ppUAView );
+  _Out_opt_       ID3D11UnorderedAccessView1       **ppUAView ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -900,7 +900,7 @@ D3D11Dev_CreateVertexShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11VertexShader **ppVertexShader );
+  _Out_opt_       ID3D11VertexShader **ppVertexShader ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -910,7 +910,7 @@ D3D11Dev_CreatePixelShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11PixelShader  **ppPixelShader );
+  _Out_opt_       ID3D11PixelShader  **ppPixelShader ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -920,7 +920,7 @@ D3D11Dev_CreateGeometryShader_Override (
   _In_      const void                  *pShaderBytecode,
   _In_            SIZE_T                 BytecodeLength,
   _In_opt_        ID3D11ClassLinkage    *pClassLinkage,
-  _Out_opt_       ID3D11GeometryShader **ppGeometryShader );
+  _Out_opt_       ID3D11GeometryShader **ppGeometryShader ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -935,7 +935,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_            UINT                       NumStrides,
   _In_            UINT                       RasterizedStream,
   _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
-  _Out_opt_       ID3D11GeometryShader      **ppGeometryShader );
+  _Out_opt_       ID3D11GeometryShader      **ppGeometryShader ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -945,7 +945,7 @@ D3D11Dev_CreateHullShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11HullShader   **ppHullShader );
+  _Out_opt_       ID3D11HullShader   **ppHullShader ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -955,7 +955,7 @@ D3D11Dev_CreateDomainShader_Override (
   _In_      const void                *pShaderBytecode,
   _In_            SIZE_T               BytecodeLength,
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
-  _Out_opt_       ID3D11DomainShader **ppDomainShader );
+  _Out_opt_       ID3D11DomainShader **ppDomainShader ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -965,7 +965,7 @@ D3D11Dev_CreateComputeShader_Override (
   _In_      const void                 *pShaderBytecode,
   _In_            SIZE_T                BytecodeLength,
   _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
-  _Out_opt_       ID3D11ComputeShader **ppComputeShader );
+  _Out_opt_       ID3D11ComputeShader **ppComputeShader ) noexcept;
 
 interface ID3D11Device2;
 interface ID3D11Device3;
@@ -976,7 +976,7 @@ STDMETHODCALLTYPE
 D3D11Dev_CreateDeferredContext_Override (
   _In_            ID3D11Device         *This,
   _In_            UINT                  ContextFlags,
-  _Out_opt_       ID3D11DeviceContext **ppDeferredContext);
+  _Out_opt_       ID3D11DeviceContext **ppDeferredContext) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -984,7 +984,7 @@ STDMETHODCALLTYPE
 D3D11Dev_CreateDeferredContext1_Override (
   _In_            ID3D11Device1         *This,
   _In_            UINT                   ContextFlags,
-  _Out_opt_       ID3D11DeviceContext1 **ppDeferredContext1);
+  _Out_opt_       ID3D11DeviceContext1 **ppDeferredContext1) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -992,7 +992,7 @@ STDMETHODCALLTYPE
 D3D11Dev_CreateDeferredContext2_Override (
   _In_            ID3D11Device2         *This,
   _In_            UINT                   ContextFlags,
-  _Out_opt_       ID3D11DeviceContext2 **ppDeferredContext2);
+  _Out_opt_       ID3D11DeviceContext2 **ppDeferredContext2) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -1000,35 +1000,35 @@ STDMETHODCALLTYPE
 D3D11Dev_CreateDeferredContext3_Override (
   _In_            ID3D11Device3         *This,
   _In_            UINT                   ContextFlags,
-  _Out_opt_       ID3D11DeviceContext3 **ppDeferredContext3);
+  _Out_opt_       ID3D11DeviceContext3 **ppDeferredContext3) noexcept;
 
 _declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11Dev_GetImmediateContext_Override (
   _In_            ID3D11Device         *This,
-  _Out_           ID3D11DeviceContext **ppImmediateContext);
+  _Out_           ID3D11DeviceContext **ppImmediateContext) noexcept;
 
 _declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11Dev_GetImmediateContext1_Override (
   _In_            ID3D11Device1        *This,
-  _Out_           ID3D11DeviceContext1 **ppImmediateContext1);
+  _Out_           ID3D11DeviceContext1 **ppImmediateContext1) noexcept;
 
 _declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11Dev_GetImmediateContext2_Override (
   _In_            ID3D11Device2         *This,
-  _Out_           ID3D11DeviceContext2 **ppImmediateContext2);
+  _Out_           ID3D11DeviceContext2 **ppImmediateContext2) noexcept;
 
 _declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11Dev_GetImmediateContext3_Override (
   _In_            ID3D11Device3         *This,
-  _Out_           ID3D11DeviceContext3 **ppImmediateContext3);
+  _Out_           ID3D11DeviceContext3 **ppImmediateContext3) noexcept;
 
 __declspec (noinline)
 void
@@ -1036,7 +1036,7 @@ STDMETHODCALLTYPE
 D3D11_RSSetScissorRects_Override (
         ID3D11DeviceContext *This,
         UINT                 NumRects,
-  const D3D11_RECT          *pRects);
+  const D3D11_RECT          *pRects) noexcept;
 
 __declspec (noinline)
 void
@@ -1044,7 +1044,7 @@ STDMETHODCALLTYPE
 D3D11_RSSetViewports_Override (
         ID3D11DeviceContext* This,
         UINT                 NumViewports,
-  const D3D11_VIEWPORT*      pViewports );
+  const D3D11_VIEWPORT*      pViewports ) noexcept;
 
 __declspec (noinline)
 void
@@ -1053,7 +1053,7 @@ D3D11_VSSetConstantBuffers_Override (
   ID3D11DeviceContext*  This,
   UINT                  StartSlot,
   UINT                  NumBuffers,
-  ID3D11Buffer *const  *ppConstantBuffers );
+  ID3D11Buffer *const  *ppConstantBuffers ) noexcept;
 
 __declspec (noinline)
 void
@@ -1062,7 +1062,7 @@ D3D11_VSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1071,7 +1071,7 @@ D3D11_PSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1080,7 +1080,7 @@ D3D11_PSSetConstantBuffers_Override (
   ID3D11DeviceContext*  This,
   UINT                  StartSlot,
   UINT                  NumBuffers,
-  ID3D11Buffer *const  *ppConstantBuffers );
+  ID3D11Buffer *const  *ppConstantBuffers ) noexcept;
 
 __declspec (noinline)
 void
@@ -1089,7 +1089,7 @@ D3D11_GSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1098,7 +1098,7 @@ D3D11_HSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1107,7 +1107,7 @@ D3D11_DSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1116,7 +1116,7 @@ D3D11_CSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1126,7 +1126,7 @@ D3D11_CSSetUnorderedAccessViews_Override (
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumUAVs,
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-  _In_opt_ const UINT                             *pUAVInitialCounts );
+  _In_opt_ const UINT                             *pUAVInitialCounts ) noexcept;
 
 __declspec (noinline)
 void
@@ -1138,7 +1138,7 @@ D3D11_UpdateSubresource_Override (
   _In_opt_ const D3D11_BOX           *pDstBox,
   _In_     const void                *pSrcData,
   _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch);
+  _In_           UINT                 SrcDepthPitch) noexcept;
 
 __declspec (noinline)
 void
@@ -1147,7 +1147,7 @@ D3D11_DrawIndexed_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 IndexCount,
   _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation );
+  _In_ INT                  BaseVertexLocation ) noexcept;
 
 __declspec (noinline)
 void
@@ -1155,12 +1155,12 @@ STDMETHODCALLTYPE
 D3D11_Draw_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCount,
-  _In_ UINT                 StartVertexLocation );
+  _In_ UINT                 StartVertexLocation ) noexcept;
 
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
-D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This);
+D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This) noexcept;
 
 __declspec (noinline)
 void
@@ -1171,7 +1171,7 @@ D3D11_DrawIndexedInstanced_Override (
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation );
+  _In_ UINT                 StartInstanceLocation ) noexcept;
 
 __declspec (noinline)
 void
@@ -1179,7 +1179,7 @@ STDMETHODCALLTYPE
 D3D11_DrawIndexedInstancedIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept;
 
 __declspec (noinline)
 void
@@ -1189,7 +1189,7 @@ D3D11_DrawInstanced_Override (
   _In_ UINT                 VertexCountPerInstance,
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation );
+  _In_ UINT                 StartInstanceLocation ) noexcept;
 
 __declspec (noinline)
 void
@@ -1197,7 +1197,7 @@ STDMETHODCALLTYPE
 D3D11_DrawInstancedIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept;
 
 __declspec (noinline)
 void
@@ -1205,7 +1205,7 @@ STDMETHODCALLTYPE
 D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
                           _In_ UINT                 ThreadGroupCountX,
                           _In_ UINT                 ThreadGroupCountY,
-                          _In_ UINT                 ThreadGroupCountZ );
+                          _In_ UINT                 ThreadGroupCountZ ) noexcept;
 
 __declspec (noinline)
 void
@@ -1213,7 +1213,7 @@ STDMETHODCALLTYPE
 D3D11_DispatchIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -1224,7 +1224,7 @@ D3D11_Map_Override (
      _In_ UINT                      Subresource,
      _In_ D3D11_MAP                 MapType,
      _In_ UINT                      MapFlags,
-_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource );
+_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource ) noexcept;
 
 __declspec (noinline)
 void
@@ -1232,7 +1232,7 @@ STDMETHODCALLTYPE
 D3D11_Unmap_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Resource      *pResource,
-  _In_ UINT                 Subresource );
+  _In_ UINT                 Subresource ) noexcept;
 
 __declspec (noinline)
 void
@@ -1241,7 +1241,7 @@ D3D11_OMSetRenderTargets_Override (
   ID3D11DeviceContext           *This,
   _In_     UINT                           NumViews,
   _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
-  _In_opt_ ID3D11DepthStencilView        *pDepthStencilView );
+  _In_opt_ ID3D11DepthStencilView        *pDepthStencilView ) noexcept;
 
 __declspec (noinline)
 void
@@ -1254,7 +1254,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
   _In_           UINT                              UAVStartSlot,
   _In_           UINT                              NumUAVs,
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-  _In_opt_ const UINT                             *pUAVInitialCounts );
+  _In_opt_ const UINT                             *pUAVInitialCounts ) noexcept;
 
 __declspec (noinline)
 void
@@ -1263,7 +1263,7 @@ D3D11_OMGetRenderTargets_Override (
         ID3D11DeviceContext     *This,
   _In_  UINT                     NumViews,
   _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
-  _Out_ ID3D11DepthStencilView **ppDepthStencilView );
+  _Out_ ID3D11DepthStencilView **ppDepthStencilView ) noexcept;
 
 __declspec (noinline)
 void
@@ -1275,7 +1275,7 @@ D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
   _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
   _In_  UINT                        UAVStartSlot,
   _In_  UINT                        NumUAVs,
-  _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews );
+  _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews ) noexcept;
 
 __declspec (noinline)
 void
@@ -1285,7 +1285,7 @@ D3D11_ClearDepthStencilView_Override (
   _In_ ID3D11DepthStencilView *pDepthStencilView,
   _In_ UINT                    ClearFlags,
   _In_ FLOAT                   Depth,
-  _In_ UINT8                   Stencil);
+  _In_ UINT8                   Stencil) noexcept;
 
 __declspec (noinline)
 void
@@ -1293,7 +1293,7 @@ STDMETHODCALLTYPE
 D3D11_ExecuteCommandList_Override (
   _In_  ID3D11DeviceContext *This,
   _In_  ID3D11CommandList   *pCommandList,
-        BOOL                 RestoreContextState );
+        BOOL                 RestoreContextState ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -1301,7 +1301,7 @@ STDMETHODCALLTYPE
 D3D11_FinishCommandList_Override (
             ID3D11DeviceContext  *This,
             BOOL                  RestoreDeferredContextState,
-  _Out_opt_ ID3D11CommandList   **ppCommandList );
+  _Out_opt_ ID3D11CommandList   **ppCommandList ) noexcept;
 
 __declspec (noinline)
 void
@@ -1311,7 +1311,7 @@ D3D11_PSSetSamplers_Override
   _In_     ID3D11DeviceContext        *This,
   _In_     UINT                        StartSlot,
   _In_     UINT                        NumSamplers,
-  _In_opt_ ID3D11SamplerState*/*const*/*ppSamplers);
+  _In_opt_ ID3D11SamplerState*/*const*/*ppSamplers) noexcept;
 
 __declspec (noinline)
 void
@@ -1320,7 +1320,7 @@ D3D11_VSSetShader_Override (
   _In_     ID3D11DeviceContext        *This,
   _In_opt_ ID3D11VertexShader         *pVertexShader,
   _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-           UINT                        NumClassInstances );
+           UINT                        NumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1329,7 +1329,7 @@ D3D11_PSSetShader_Override (
   _In_     ID3D11DeviceContext        *This,
   _In_opt_ ID3D11PixelShader          *pPixelShader,
   _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-           UINT                        NumClassInstances );
+           UINT                        NumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1338,7 +1338,7 @@ D3D11_GSSetShader_Override (
   _In_     ID3D11DeviceContext        *This,
   _In_opt_ ID3D11GeometryShader       *pGeometryShader,
   _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-           UINT                        NumClassInstances );
+           UINT                        NumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1347,7 +1347,7 @@ D3D11_HSSetShader_Override (
   _In_     ID3D11DeviceContext        *This,
   _In_opt_ ID3D11HullShader           *pHullShader,
   _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-           UINT                        NumClassInstances );
+           UINT                        NumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1356,7 +1356,7 @@ D3D11_DSSetShader_Override (
   _In_     ID3D11DeviceContext        *This,
   _In_opt_ ID3D11DomainShader         *pDomainShader,
   _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-           UINT                        NumClassInstances );
+           UINT                        NumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1365,7 +1365,7 @@ D3D11_CSSetShader_Override (
   _In_     ID3D11DeviceContext        *This,
   _In_opt_ ID3D11ComputeShader        *pComputeShader,
   _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
-           UINT                        NumClassInstances );
+           UINT                        NumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1374,7 +1374,7 @@ D3D11_VSGetShader_Override (
   _In_        ID3D11DeviceContext  *This,
   _Out_       ID3D11VertexShader  **ppVertexShader,
   _Out_opt_   ID3D11ClassInstance **ppClassInstances,
-  _Inout_opt_ UINT                 *pNumClassInstances );
+  _Inout_opt_ UINT                 *pNumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1383,7 +1383,7 @@ D3D11_PSGetShader_Override (
   _In_        ID3D11DeviceContext  *This,
   _Out_       ID3D11PixelShader   **ppPixelShader,
   _Out_opt_   ID3D11ClassInstance **ppClassInstances,
-  _Inout_opt_ UINT                 *pNumClassInstances );
+  _Inout_opt_ UINT                 *pNumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1392,7 +1392,7 @@ D3D11_GSGetShader_Override (
   _In_        ID3D11DeviceContext   *This,
   _Out_       ID3D11GeometryShader **ppGeometryShader,
   _Out_opt_   ID3D11ClassInstance  **ppClassInstances,
-  _Inout_opt_ UINT                  *pNumClassInstances );
+  _Inout_opt_ UINT                  *pNumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1401,7 +1401,7 @@ D3D11_HSGetShader_Override (
   _In_        ID3D11DeviceContext  *This,
   _Out_       ID3D11HullShader    **ppHullShader,
   _Out_opt_   ID3D11ClassInstance **ppClassInstances,
-  _Inout_opt_ UINT                 *pNumClassInstances );
+  _Inout_opt_ UINT                 *pNumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1410,7 +1410,7 @@ D3D11_DSGetShader_Override (
   _In_        ID3D11DeviceContext  *This,
   _Out_       ID3D11DomainShader  **ppDomainShader,
   _Out_opt_   ID3D11ClassInstance **ppClassInstances,
-  _Inout_opt_ UINT                 *pNumClassInstances );
+  _Inout_opt_ UINT                 *pNumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
@@ -1419,13 +1419,13 @@ D3D11_CSGetShader_Override (
   _In_        ID3D11DeviceContext  *This,
   _Out_       ID3D11ComputeShader **ppComputeShader,
   _Out_opt_   ID3D11ClassInstance **ppClassInstances,
-  _Inout_opt_ UINT                 *pNumClassInstances );
+  _Inout_opt_ UINT                 *pNumClassInstances ) noexcept;
 
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_ClearState_Override (
-  _In_        ID3D11DeviceContext *This );
+  _In_        ID3D11DeviceContext *This ) noexcept;
 
 __declspec (noinline)
 HRESULT
@@ -1436,7 +1436,7 @@ D3D11_GetData_Override (
   _Out_writes_bytes_opt_   ( DataSize )
         void                *pData,
   _In_  UINT                 DataSize,
-  _In_  UINT                 GetDataFlags );
+  _In_  UINT                 GetDataFlags ) noexcept;
 
 __declspec (noinline)
 void
@@ -1444,7 +1444,7 @@ STDMETHODCALLTYPE
 D3D11_CopyResource_Override (
        ID3D11DeviceContext *This,
   _In_ ID3D11Resource      *pDstResource,
-  _In_ ID3D11Resource      *pSrcResource );
+  _In_ ID3D11Resource      *pSrcResource ) noexcept;
 
 __declspec (noinline)
 void
@@ -1458,7 +1458,7 @@ D3D11_CopySubresourceRegion_Override (
   _In_           UINT                 DstZ,
   _In_           ID3D11Resource      *pSrcResource,
   _In_           UINT                 SrcSubresource,
-  _In_opt_ const D3D11_BOX           *pSrcBox );
+  _In_opt_ const D3D11_BOX           *pSrcBox ) noexcept;
 
 __declspec (noinline)
 void
@@ -1471,7 +1471,7 @@ D3D11_UpdateSubresource1_Override (
   _In_     const void                 *pSrcData,
   _In_           UINT                  SrcRowPitch,
   _In_           UINT                  SrcDepthPitch,
-  _In_           UINT                  CopyFlags);
+  _In_           UINT                  CopyFlags) noexcept;
 
 __declspec (noinline)
 void
@@ -1482,7 +1482,7 @@ D3D11_ResolveSubresource_Override (
   _In_ UINT                 DstSubresource,
   _In_ ID3D11Resource      *pSrcResource,
   _In_ UINT                 SrcSubresource,
-  _In_ DXGI_FORMAT          Format );
+  _In_ DXGI_FORMAT          Format ) noexcept;
 #endif
 
 
@@ -3172,8 +3172,8 @@ struct SK_IMGUI_D3D11StateBlock {
     }
 };
 
-extern std::pair <BOOL*, BOOL> SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
-extern bool                    SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx);
+extern std::pair <BOOL*, BOOL> SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx)                                noexcept;
+extern bool                    SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx) noexcept;
 
 void SK_D3D11_InitMutexes (void);
 BOOL SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,

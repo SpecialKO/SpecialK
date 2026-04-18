@@ -151,11 +151,11 @@ namespace SK
     void Tick        ( bool           wait       =  true,
                        double         dt         =   0.0,
                        LARGE_INTEGER  now        = { 0,0 },
-                       IUnknown*      pSwapChain = nullptr );
+                       IUnknown*      pSwapChain = nullptr ) noexcept;
     void TickEx      ( bool           wait       =  true,
                        double         dt         =   0.0,
                        LARGE_INTEGER  now        = { 0,0 },
-                       IUnknown*      pSwapChain = nullptr );
+                       IUnknown*      pSwapChain = nullptr ) noexcept;
 
     #define MAX_SAMPLES 1000
 
@@ -199,7 +199,7 @@ namespace SK
       uint64_t samples    = 0ULL;
       double   last_delta = 0.0;
 
-      void reset (void)
+      void reset (void) noexcept
       {
         samples    = 0ULL;
         last_delta =  0.0;
@@ -264,7 +264,7 @@ namespace SK
           static_cast <double> (SK_PerfFreq);
       }
 
-         int calcNumSamples         (double seconds  = 1.0);
+         int calcNumSamples         (double seconds  = 1.0) noexcept;
       double calcMean               (double seconds  = 1.0) noexcept;
       double calcSqStdDev           (double mean,
                                      double seconds  = 1.0) noexcept;
@@ -274,8 +274,8 @@ namespace SK
                                      double mean,
                                      double seconds  = 1.0) noexcept;
 
-      double calcOnePercentLow      (double seconds  = 1.0);
-      double calcPointOnePercentLow (double seconds  = 1.0);
+      double calcOnePercentLow      (double seconds  = 1.0) noexcept;
+      double calcPointOnePercentLow (double seconds  = 1.0) noexcept;
 
       double calcMean               (LARGE_INTEGER start) noexcept
       {
@@ -484,7 +484,7 @@ namespace SK
         cached_max,  cached_hitches,
         cached_effective_mean;
 
-      void reset (void);
+      void reset (void) noexcept;
     };
 
     class Limiter {
@@ -493,9 +493,9 @@ namespace SK
      ~Limiter (void) = default;
 
       void            init            (double target, bool tracks_window = true); // Todo, use an opaque handle to denote which window
-      void            wait            (void);
-      bool        try_wait            (void); // No actual wait, just return
-                                              //  whether a wait would have occurred.
+      void            wait            (void) noexcept;
+      bool        try_wait            (void) noexcept; // No actual wait, just return
+                                                       //  whether a wait would have occurred.
 
       void        set_limit           (float& target);
       double      get_limit           (void) noexcept { return fps;  };
@@ -504,7 +504,7 @@ namespace SK
        LONG64     get_next_tick       (void) noexcept { return next; };
       double      get_ms_to_next_tick (float ticks = 1.0f) noexcept;
 
-      double      effective_frametime (void);
+      double      effective_frametime (void) noexcept;
 
       void        set_undershoot      (float percent) noexcept { undershoot_percent = percent; };
       float       get_undershoot      (void)          noexcept {    return undershoot_percent; };
@@ -800,7 +800,7 @@ extern float SK_Framerate_GetSleepWaitMs     (void) noexcept;
 extern HRESULT WINAPI
 SK_DWM_GetCompositionTimingInfo       (DWM_TIMING_INFO *pTimingInfo);
 
-void SK_Framerate_WaitUntilQPC        (LONGLONG llQPC, HANDLE& hTimer);
+void SK_Framerate_WaitUntilQPC        (LONGLONG llQPC, HANDLE& hTimer) noexcept;
 void SK_Framerate_EnergyControlPanel  (void);
 
 bool SK_LatentSync_AllowFrameSkip     (void);
@@ -842,9 +842,9 @@ struct game_pacer_s {
   DWORD   last_paced_time = 0UL;
   HANDLE  event           = 0;
 
-  bool   isSupported (void);
-  bool   wantPacing  (void);
-  void   signalEvent (void);
+  bool   isSupported (void) noexcept;
+  bool   wantPacing  (void) noexcept;
+  void   signalEvent (void) noexcept;
 } game_pace;
 
 

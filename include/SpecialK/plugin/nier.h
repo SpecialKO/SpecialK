@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright 2017  Andon  "Kaldaien" Coleman,
 //                 Niklas "DrDaxxy"  Kielblock,
 //                 Peter  "Durante"  Thoman
@@ -158,7 +158,7 @@ D3D11Dev_CreateBuffer_Override (
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer );
+  _Out_opt_      ID3D11Buffer           **ppBuffer ) noexcept;
 
 extern
 HRESULT
@@ -167,7 +167,7 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView ) noexcept;
 
 extern
 HRESULT
@@ -176,7 +176,7 @@ D3D11Dev_CreateRenderTargetView_Override (
   _In_            ID3D11Device                   *This,
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
-  _Out_opt_       ID3D11RenderTargetView        **ppRTView );
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView ) noexcept;
 
 extern
 HRESULT
@@ -185,7 +185,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   _In_            ID3D11Device                     *This,
   _In_            ID3D11Resource                   *pResource,
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
-  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView );
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView ) noexcept;
 
 extern
 void
@@ -194,7 +194,7 @@ D3D11_PSSetConstantBuffers_Override (
   _In_     ID3D11DeviceContext*  This,
   _In_     UINT                  StartSlot,
   _In_     UINT                  NumBuffers,
-  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers );
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers ) noexcept;
 
 extern
 void
@@ -203,7 +203,7 @@ D3D11_PSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 extern
 void
@@ -212,7 +212,7 @@ D3D11_CSSetShaderResources_Override (
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews ) noexcept;
 
 extern
 void
@@ -222,7 +222,7 @@ D3D11_CSSetUnorderedAccessViews_Override (
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumUAVs,
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-  _In_opt_ const UINT                             *pUAVInitialCounts );
+  _In_opt_ const UINT                             *pUAVInitialCounts ) noexcept;
 
 extern
 void
@@ -231,7 +231,7 @@ D3D11_OMSetRenderTargets_Override (
   _In_     ID3D11DeviceContext           *This,
   _In_     UINT                           NumViews,
   _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
-  _In_opt_ ID3D11DepthStencilView        *pDepthStencilView );
+  _In_opt_ ID3D11DepthStencilView        *pDepthStencilView ) noexcept;
 
 extern
 void
@@ -244,7 +244,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
   _In_           UINT                              UAVStartSlot,
   _In_           UINT                              NumUAVs,
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
-  _In_opt_ const UINT                             *pUAVInitialCounts );
+  _In_opt_ const UINT                             *pUAVInitialCounts ) noexcept;
 
 extern
 void
@@ -255,7 +255,7 @@ D3D11_DrawIndexedInstanced_Override (
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation );
+  _In_ UINT                 StartInstanceLocation ) noexcept;
 
 extern
 void
@@ -263,7 +263,7 @@ WINAPI
 D3D11_DrawIndexedInstancedIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept;
 
 extern
 void
@@ -273,7 +273,7 @@ D3D11_DrawInstanced_Override (
   _In_ UINT                 VertexCountPerInstance,
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation );
+  _In_ UINT                 StartInstanceLocation ) noexcept;
 
 extern
 void
@@ -281,7 +281,7 @@ WINAPI
 D3D11_DrawInstancedIndirect_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
+  _In_ UINT                 AlignedByteOffsetForArgs ) noexcept;
 
 extern
 void
@@ -293,7 +293,7 @@ D3D11_UpdateSubresource_Override (
   _In_opt_ const D3D11_BOX           *pDstBox,
   _In_     const void                *pSrcData,
   _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch);
+  _In_           UINT                 SrcDepthPitch) noexcept;
 
 extern 
 HRESULT
@@ -302,7 +302,7 @@ D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
   _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D ) noexcept;
 
 extern
 void
@@ -311,7 +311,7 @@ D3D11_DrawIndexed_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 IndexCount,
   _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation );
+  _In_ INT                  BaseVertexLocation ) noexcept;
 
 extern
 void
@@ -319,7 +319,7 @@ WINAPI
 D3D11_Draw_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCount,
-  _In_ UINT                 StartVertexLocation );
+  _In_ UINT                 StartVertexLocation ) noexcept;
 
 
 

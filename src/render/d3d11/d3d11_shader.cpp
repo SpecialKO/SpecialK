@@ -735,7 +735,7 @@ SK_D3D11_SetShaderResources_Impl (
    UINT                 StartSlot,
    UINT                 NumViews,
    _In_opt_             ID3D11ShaderResourceView* const *ppShaderResourceViews,
-   UINT                 dev_idx )
+   UINT                 dev_idx ) noexcept
 {
   const bool bWrapped = Wrapper != nullptr;
 

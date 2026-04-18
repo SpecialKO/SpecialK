@@ -595,7 +595,7 @@ sk_window_s::wantBackgroundRender (void) const
 }
 
 bool
-SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
+SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor) noexcept
 {
   if (! SK_GImDefaultContext ())
     return false;
@@ -678,14 +678,14 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor)
 
 
 bool
-SK_ImGui_WantHWCursor (void)
+SK_ImGui_WantHWCursor (void) noexcept
 {
   return
     ( config.input.ui.use_hw_cursor );
 }
 
 bool
-SK_ImGui_WantMouseButtonCapture (void)
+SK_ImGui_WantMouseButtonCapture (void) noexcept
 {
   bool capture = SK_ImGui_WantMouseCapture ();
   if ( capture )
@@ -706,7 +706,7 @@ SK_ImGui_WantMouseButtonCapture (void)
 }
 
 bool
-SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor)
+SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor) noexcept
 {
   SK_PROFILE_SCOPED_TASK (SK_ImGui_WantMouseCapture)
 
@@ -1510,7 +1510,7 @@ SK_Window_DeactivateCursor (bool ignore_imgui)
 };
 
 void
-SK_ImGui_UpdateMouseTracker (void)
+SK_ImGui_UpdateMouseTracker (void) noexcept
 {
   bool bWasInside =
     game_window.mouse.inside;
