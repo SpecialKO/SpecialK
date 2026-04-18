@@ -1148,10 +1148,10 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
 
                           try
                           {
-                            const size_t idx_ =
+                            const size_t friend_idx =
                               idx.fetch_add (1);
 
-                            root_owner ["friends"][idx_]["steamid"] =
+                            root_owner ["friends"][friend_idx]["steamid"] =
                               SK_WideCharToUTF8 (file.data ()).c_str ();
 
                             if (! data.empty ())
@@ -1171,7 +1171,7 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
                                 for ( const auto& achievement : achievements_ )
                                 {
                                   auto& cached_achievement =
-                                    root_owner ["friends"][idx_]["achievements"][achievement ["apiname"].get <std::string_view> ().data ()];
+                                    root_owner ["friends"][friend_idx]["achievements"][achievement ["apiname"].get <std::string_view> ().data ()];
 
                                   if ( ( achievement.contains ("unlocktime") && achievement ["unlocktime"].get <int> () != 0 ) ||
                                        ( achievement.contains ("achieved" )  && achievement ["achieved"  ].get <int> () != 0 )  )
@@ -1191,16 +1191,16 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
                               // (i.e. {"playerstats":{"error":"Profile is not public","success":false}})
                               else
                               {
-                                if (jsonAchieved.contains ("playerstats") && jsonAchieved ["playerstats"].contains ("error"))
-                                  root_owner ["friends"][idx_]["error"] = jsonAchieved ["playerstats"]["error"].get <std::string_view> ().data ();
+                                if (jsonAchieved.contains ("playerstats")   &&  jsonAchieved ["playerstats"].contains ("error"))
+                                  root_owner ["friends"][friend_idx]["error"] = jsonAchieved ["playerstats"]["error"].get <std::string_view> ().data ();
                                 else
-                                  root_owner ["friends"][idx_]["state"] = std::string ((char *)data.data ());
+                                  root_owner ["friends"][friend_idx]["state"] = std::string ((char *)data.data ());
                               }
                             }
 
                             else
                             {
-                              root_owner ["friends"][idx_]["error"] = "Null Steam WebAPI Response";
+                              root_owner ["friends"][friend_idx]["error"] = "Null Steam WebAPI Response";
                               steam_log->Log (L"Unknown Achievement Status for %ws", file.data ());
                             }
                           }
@@ -2111,12 +2111,15 @@ SK_AchievementManager::drawPopups (void)
         ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
       }
 
+      auto pAchievement =
+        it->achievement;
+
       auto text =
-        it->achievement->unlocked_ ? &it->achievement->text_.unlocked
-                                   : &it->achievement->text_.locked;
+        pAchievement->unlocked_ ? &pAchievement->text_.unlocked
+                                : &pAchievement->text_.locked;
 
       char         window_id [64] = { };
-      _snprintf_s (window_id, 63, "%hs##ACHIEVEMENT%d", szPopupName, it->achievement->idx_);
+      _snprintf_s (window_id, 63, "%hs##ACHIEVEMENT%d", szPopupName, pAchievement->idx_);
 
       DWORD        window_flags = ImGuiWindowFlags_AlwaysAutoResize   | ImGuiWindowFlags_NoDecoration          |
                                   ImGuiWindowFlags_NoNav              | ImGuiWindowFlags_NoBringToFrontOnFocus |
@@ -2178,34 +2181,34 @@ SK_AchievementManager::drawPopups (void)
         ImGui::BeginGroup    (  );
         if (bSteam || fGlobalPercent > 0.0f) // Only Steam has unlock percentage stats that can reach 0.0%
         ImGui::TextUnformatted ("Global: ");
-        if (it->achievement->friends_.possible > 0)
+        if (pAchievement->friends_.possible > 0)
         ImGui::TextUnformatted ("Friends: ");
         ImGui::EndGroup      (  );
         ImGui::SameLine      (  );
         ImGui::BeginGroup    (  );
         if (bSteam || fGlobalPercent > 0.0f) // Only Steam has unlock percentage stats that can reach 0.0%
         ImGui::Text          ("%6.2f%%", fGlobalPercent);
-        if (it->achievement->friends_.possible > 0)
+        if (pAchievement->friends_.possible > 0)
         ImGui::Text          ("%6.2f%%",
-             100.0 * ( (double)          it->achievement->friends_.unlocked /
-                       (double)std::max (it->achievement->friends_.possible, 1) ));
+             100.0 * ( (double)          pAchievement->friends_.unlocked /
+                       (double)std::max (pAchievement->friends_.possible, 1) ));
         ImGui::EndGroup      (  );
         
         float height =
-          ImGui::GetFontSize () * ( it->achievement->friends_.possible > 0 ? 2.0f
-                                                                           : 1.0f );
+          ImGui::GetFontSize () * ( pAchievement->friends_.possible > 0 ? 2.0f
+                                                                         : 1.0f );
 
         ImGui::SameLine      (  );
         ImGui::SetCursorPosY (ImGui::GetCursorPosY () + height / 2.0f - ImGui::GetFontSize () / 2.0f);
         ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
-                                it->achievement->unlocked_ ?
+                                pAchievement->unlocked_ ?
                               ICON_FA_UNLOCK : ICON_FA_LOCK);
         ImGui::SameLine      (  );
-        if (it->achievement->unlocked_ && it->achievement->time_ > 0)
+        if (pAchievement->unlocked_ && pAchievement->time_ > 0)
           ImGui::TextColored (ImColor (0.85f, 0.85f, 0.85f, 1.0f),
-                              ":  %s", _ctime64 (&it->achievement->time_));
-        else if (it->achievement->progress_.getPercent () > 0.0f)
-          ImGui::ProgressBar (it->achievement->progress_.getPercent () / 100.0f);
+                              ":  %s", _ctime64 (&pAchievement->time_));
+        else if (             pAchievement->progress_.getPercent () > 0.0f)
+          ImGui::ProgressBar (pAchievement->progress_.getPercent () / 100.0f);
         else
           ImGui::Spacing     (  );
         ImGui::End           (  );
@@ -2232,14 +2235,15 @@ SK_AchievementManager::drawPopups (void)
         columns++;
       }
 
-      displayed.emplace (it->achievement->idx_);
+      displayed.emplace (pAchievement->idx_);
                        ++it;
     }
 
     else
     {
-      if (it->achievement->unlocked_)
-        displayed.emplace (it->achievement->idx_);
+      auto pAchievement = it->achievement;
+      if ( pAchievement->unlocked_ )
+        displayed.emplace (pAchievement->idx_);
 
       if (it->icon_texture != nullptr)
       {

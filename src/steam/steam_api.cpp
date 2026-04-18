@@ -2774,11 +2774,18 @@ public:
         if ( achievement == nullptr   ||
              achievement->name_.empty () )
         {
-          achievement = new
+          // If this fails, we're leaking memory.
+          SK_ReleaseAssert (achievement == nullptr);
+
+          achievement = new (std::nothrow)
             Achievement (i,
               stats->GetAchievementName (i),
               stats
             );
+
+          // Out of memory?!
+          if (achievement == nullptr)
+            continue;
 
           achievements.list       [i] =
                                    achievement;
@@ -3780,6 +3787,9 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
             dwRead     = 0,
             dwSize     =
        GetFileSize (hLibFolders, &dwSizeHigh);
+
+      // A 4 GiB manifest file would be insane, so log it :)
+      SK_ReleaseAssert (dwSizeHigh == 0 && "Manifest Too Large!");
 
       std::unique_ptr <char []>
         local_data;
@@ -6430,12 +6440,14 @@ __stdcall
 SK_SteamOverlay_GoToURL ( const char* szURL,
                                 bool  bUseWindowsShellIfOverlayFails )
 {
-  if ( steam_ctx.Utils () != nullptr        &&
-       steam_ctx.Utils ()->IsOverlayEnabled () )
+  auto utils = steam_ctx.Utils ();
+  if ( utils != nullptr        &&
+       utils->IsOverlayEnabled () )
   {
-    if (steam_ctx.Friends () != nullptr)
+    auto friends = steam_ctx.Friends ();
+    if ( friends != nullptr )
     {
-      steam_ctx.Friends ()->ActivateGameOverlayToWebPage (szURL);
+      friends->ActivateGameOverlayToWebPage (szURL);
       return true;
     }
   }
@@ -6454,12 +6466,14 @@ bool
 __stdcall
 SK_SteamOverlay_GoToFriendProfile (CSteamID friend_sid)
 {
-  if ( steam_ctx.Utils () != nullptr        &&
-       steam_ctx.Utils ()->IsOverlayEnabled () )
+  auto utils = steam_ctx.Utils ();
+  if ( utils != nullptr        &&
+       utils->IsOverlayEnabled () )
   {
-    if (steam_ctx.Friends () != nullptr)
+    auto friends = steam_ctx.Friends ();
+    if ( friends != nullptr )
     {
-      steam_ctx.Friends ()->ActivateGameOverlayToUser (
+      friends->ActivateGameOverlayToUser (
         "steamid", friend_sid
       );
 
@@ -6474,12 +6488,14 @@ bool
 __stdcall
 SK_SteamOverlay_GoToFriendAchievements (CSteamID friend_sid)
 {
-  if ( steam_ctx.Utils () != nullptr        &&
-       steam_ctx.Utils ()->IsOverlayEnabled () )
+  auto utils = steam_ctx.Utils ();
+  if ( utils != nullptr        &&
+       utils->IsOverlayEnabled () )
   {
-    if (steam_ctx.Friends () != nullptr)
+    auto friends = steam_ctx.Friends ();
+    if ( friends != nullptr )
     {
-      steam_ctx.Friends ()->ActivateGameOverlayToUser (
+      friends->ActivateGameOverlayToUser (
         "achievements", friend_sid
       );
 
@@ -6494,12 +6510,14 @@ bool
 __stdcall
 SK_SteamOverlay_GoToFriendStats (CSteamID friend_sid)
 {
-  if ( steam_ctx.Utils () != nullptr        &&
-       steam_ctx.Utils ()->IsOverlayEnabled () )
+  auto utils = steam_ctx.Utils ();
+  if ( utils != nullptr        &&
+       utils->IsOverlayEnabled () )
   {
-    if (steam_ctx.Friends () != nullptr)
+    auto friends = steam_ctx.Friends ();
+    if ( friends != nullptr)
     {
-      steam_ctx.Friends ()->ActivateGameOverlayToUser (
+      friends->ActivateGameOverlayToUser (
         "stats", friend_sid
       );
 

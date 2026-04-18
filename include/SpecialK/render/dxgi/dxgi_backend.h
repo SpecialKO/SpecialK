@@ -512,6 +512,36 @@ HRESULT SK_DXGI_GetDebugInterface (REFIID riid, void** ppDebug);
 HRESULT SK_DXGI_OutputDebugString (const std::string& str, DXGI_INFO_QUEUE_MESSAGE_SEVERITY severity);
 HRESULT SK_DXGI_ReportLiveObjects (IUnknown* pDev = nullptr);
 
+// Account for padding in the structure, and test for equality using this operator
+//   instead of using memcmp (...).
+static inline bool operator== (const DXGI_SWAP_CHAIN_DESC& lhs,
+                               const DXGI_SWAP_CHAIN_DESC& rhs) noexcept
+{
+  // Good lord! C++20 could do this automatically... but we're not using it.
+  return
+    lhs.BufferDesc.Width                   == rhs.BufferDesc.Width                   &&
+    lhs.BufferDesc.Height                  == rhs.BufferDesc.Height                  &&
+    lhs.BufferDesc.RefreshRate.Numerator   == rhs.BufferDesc.RefreshRate.Numerator   &&
+    lhs.BufferDesc.RefreshRate.Denominator == rhs.BufferDesc.RefreshRate.Denominator &&
+    lhs.BufferDesc.Format                  == rhs.BufferDesc.Format                  &&
+    lhs.BufferDesc.Scaling                 == rhs.BufferDesc.Scaling                 &&
+    lhs.BufferDesc.ScanlineOrdering        == rhs.BufferDesc.ScanlineOrdering        &&
+    lhs.SampleDesc.Count                   == rhs.SampleDesc.Count                   &&
+    lhs.SampleDesc.Quality                 == rhs.SampleDesc.Quality                 &&
+    lhs.BufferUsage                        == rhs.BufferUsage                        &&
+    lhs.BufferCount                        == rhs.BufferCount                        &&
+    lhs.OutputWindow                       == rhs.OutputWindow                       &&
+    lhs.Windowed                           == rhs.Windowed                           &&
+    lhs.SwapEffect                         == rhs.SwapEffect                         &&
+    lhs.Flags                              == rhs.Flags;
+}
+
+static inline bool operator!= (const DXGI_SWAP_CHAIN_DESC& lhs,
+                               const DXGI_SWAP_CHAIN_DESC& rhs) noexcept
+{
+  return
+    !(lhs == rhs);
+}
 
 static constexpr
 BOOL

@@ -1204,9 +1204,9 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   if (lpPoint == nullptr)
     return FALSE;
 
-  if ( auto fixed_return = GetCursorPos_GameSpecificFixes (lpPoint);
-            fixed_return.has_value () )
-     return fixed_return.    value ();
+  if ( auto  fixed_return = GetCursorPos_GameSpecificFixes (lpPoint);
+             fixed_return.has_value () )
+     return *fixed_return;
 
   //
   // Allow games running as a background window with Continue Rendering enabled

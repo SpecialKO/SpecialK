@@ -8968,9 +8968,9 @@ SK_ClipCursor (const RECT *lpRect)
   if ((! game_window.active) || (game_window.size_move)) // Or being moved
     lpRect = nullptr;
 
-  if (auto fixup = SK_ClipCursor_GameSpecificFixes (lpRect);
-           fixup.has_value ())
-    return fixup.    value ();
+  if ( auto fixup = SK_ClipCursor_GameSpecificFixes (lpRect);
+            fixup.has_value () )
+    return *fixup;
 
   //
   // Avoid unnecessary OS calls, since we have the base function hooked already
@@ -9181,8 +9181,6 @@ SK_Win32_BringBackgroundWindowToTop (void)
         //   ! EqualRect (&wndRect, &mi.rcMonitor))
        )
     {
-      HWND hWndAfter = hWndGame;
-
       if ( config.display.aspect_ratio_stretch ||
          !(config.display.aspect_ratio_stretch || config.display.focus_mode) )
       {
@@ -9191,9 +9189,7 @@ SK_Win32_BringBackgroundWindowToTop (void)
                             mi.rcMonitor.top,
                               mi.rcMonitor.right  - mi.rcMonitor.left,
                               mi.rcMonitor.bottom - mi.rcMonitor.top,
-        (hWndAfter != hWndGame) ? SWP_NOREPOSITION
-                                : 0x0
-                                | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
+                                SWP_NOSENDCHANGING | SWP_NOACTIVATE |
         
         ( config.display.aspect_ratio_stretch ? SWP_SHOWWINDOW
                                               : SWP_HIDEWINDOW ) );
@@ -9263,9 +9259,7 @@ SK_Win32_BringBackgroundWindowToTop (void)
                             minX, minY,
                             totalWidth,
                             totalHeight,
-        (hWndAfter != hWndGame) ? SWP_NOREPOSITION
-                                : 0x0
-                                | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
+                                SWP_NOSENDCHANGING | SWP_NOACTIVATE |
                                 dwVisibilityFlags );
         }
       }

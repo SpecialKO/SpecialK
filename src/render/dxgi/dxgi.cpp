@@ -2777,7 +2777,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   const bool bDLSS3OnVRRDisplay =
       __SK_IsDLSSGActive && tearing_override.has_value () ?
-                           !tearing_override.    value () : false;
+                          !*tearing_override              : false;
 
   auto _Present = [&](UINT _SyncInterval,
                       UINT _Flags) ->
@@ -2870,8 +2870,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (! bDLSS3OnVRRDisplay)
     {
       // Need tearing override for other reasons...
-      if (  tearing_override.has_value ())
-      { if (tearing_override.    value ())
+      if (   tearing_override.has_value ())
+      { if (*tearing_override)
         {
           _SyncInterval = 0;
           _Flags |= (DXGI_PRESENT_ALLOW_TEARING | DXGI_PRESENT_RESTART);
@@ -5951,7 +5951,7 @@ SK_DXGI_CreateSwapChain_PreInit (
 
   _ORIGINAL_SWAP_CHAIN_DESC = orig_desc;
 
-  if (pDesc != nullptr && memcmp (&orig_desc, pDesc, sizeof (DXGI_SWAP_CHAIN_DESC)) != 0)
+  if (pDesc != nullptr && orig_desc != *pDesc)
   {
     _DescribeSwapChain (L"SPECIAL K OVERRIDES APPLIED");
   }

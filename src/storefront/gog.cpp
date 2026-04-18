@@ -484,9 +484,9 @@ public:
         {
           static std::vector <BYTE> data;
   
-                       fseek (fGlobalStats, 0, SEEK_END);
-          data.resize (ftell (fGlobalStats));
-                      rewind (fGlobalStats);
+                       _fseeki64 (fGlobalStats, 0, SEEK_END);
+          data.resize (_ftelli64 (fGlobalStats));
+                          rewind (fGlobalStats);
 
           if (! data.empty ())
           {
@@ -564,7 +564,7 @@ public:
     int    unlock_count = 0;
     size_t num_achvs    = achievements.list.size ();
 
-    for ( size_t i = 0 ; i < num_achvs ; ++i )
+    for ( uint16_t i = 0 ; i < num_achvs ; ++i )
     {
       auto galaxy_achievement =
         achievements.list [i];

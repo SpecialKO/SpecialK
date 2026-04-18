@@ -33,7 +33,7 @@ extern iSK_INI* osd_ini;
 static
 std::set <std::string>
 tokenize ( const std::wstring& input_wc,
-           const std::string   delim = "|~|" )
+           const std::string&  delim = "|~|" )
 {
   std::string input =
     SK_WideCharToUTF8 (input_wc);
@@ -48,7 +48,9 @@ tokenize ( const std::wstring& input_wc,
     auto substr =
       input.substr (start, delim_pos - start);
 
-    if (strlen (substr.c_str ()))
+    // Use strlen deliberately, the tokenizer splits things by inserting
+    //   a nul-byte. We do not want the length as defined by a C++ string.
+    if (strlen (substr.c_str ())) //-V806
     {
       tokens.emplace (substr);
     }
@@ -60,7 +62,7 @@ tokenize ( const std::wstring& input_wc,
   auto substr =
     input.substr (start);
 
-  if (strlen (substr.c_str ()))
+  if (strlen (substr.c_str ())) //-V806
   {
     // Add the last token (or the whole string if no delimiter was found)
     tokens.emplace (substr);
@@ -81,7 +83,7 @@ tokenize ( const std::wstring& input_wc,
 static
 std::wstring
 serialize ( const std::set <std::string>& input,
-            const           std::string   delim = "|~|" )
+            const           std::string&  delim = "|~|" )
 {
   std::string            serialized;
   std::set <std::string> processed;
@@ -148,15 +150,22 @@ public:
         SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Ignored Achievements")
       );
 
-    show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
-    show_rarity_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",     L"AlwaysShowRarity");
-     search_url_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
-    tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
-    ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
-
-    show_hidden_pref->load (show_hidden);
-    show_rarity_pref->load (show_rarity);
-    search_url_pref->load  (search_url);
+    if (show_hidden_pref) {
+        show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
+        show_hidden_pref->load            (                                                    show_hidden);
+    }
+    if (show_rarity_pref) {
+        show_rarity_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",     L"AlwaysShowRarity");
+        show_rarity_pref->load            (                                                    show_rarity);
+    }
+    if (search_url_pref) {
+        search_url_pref-> register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
+        search_url_pref->load             (                                                     search_url);
+    }
+    if (tracked.ini_pref)
+        tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
+    if (ignored.ini_pref)
+        ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
 
     std::wstring            tracked_str;
     tracked.ini_pref->load (tracked_str);

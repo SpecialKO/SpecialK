@@ -502,7 +502,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
     if (SUCCEEDED (hr) && reading_ != nullptr)
     {
       if (reading != nullptr)
-      {  *reading  = (IGameInputReading *)new SK_IWrapGameInputReading (reading_);
+      {  *reading  = (IGameInputReading *)new (std::nothrow) SK_IWrapGameInputReading (reading_);
         _current_readings [device][inputKind] = *reading;
 
         SK_GameInput_EmulatedPlayStation = false;

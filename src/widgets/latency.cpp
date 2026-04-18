@@ -908,8 +908,8 @@ SK_ImGui_DrawConfig_Latency ()
   if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
     return;
 
-  bool bPartialReflexSupport =
-    sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)       &&
+  bool bPartialReflexSupport = // Tested above
+  //sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)       &&
     SK_Render_GetVulkanInteropSwapChainType      (rb.swapchain) != SK_DXGI_VK_INTEROP_TYPE_AMD;
 
   if (bPartialReflexSupport)

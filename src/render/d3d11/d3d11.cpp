@@ -6415,7 +6415,7 @@ D3D11Dev_CreateTexture2DCore_Impl (
       resample_job_s resample = { };
                      resample.time.preprocess = SK_QueryPerf ().QuadPart;
 
-      auto* image = new DirectX::ScratchImage;
+      auto* image = new (std::nothrow) DirectX::ScratchImage;
             image->Initialize (mdata);
 
       bool error = false;
@@ -6482,7 +6482,7 @@ D3D11Dev_CreateTexture2DCore_Impl (
       if (config.textures.d3d11.uncompressed_mips && compressed)
       {
         auto* decompressed =
-          new DirectX::ScratchImage;
+          new (std::nothrow) DirectX::ScratchImage;
 
         ret =
           DirectX::Decompress (orig_img, 1, image->GetMetadata (), DXGI_FORMAT_UNKNOWN, *decompressed);

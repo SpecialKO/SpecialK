@@ -791,8 +791,12 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
       ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
+      bool disable_cursor_autohide_ui = false;
       if (!cursor_manage || !allow_show_cursor)
-      SK_ImGui_BeginDisabled ();
+      {
+        disable_cursor_autohide_ui = true;
+        SK_ImGui_BeginDisabled ();
+      }
       ImGui::PushItemWidth (button_size.x);
       if ( ImGui::SliderFloat ("###SecondsBeforeHidingCursor",
                                  &seconds, 0.0f, 10.0f, seconds > 0.0 ? "%.2f Second Idle" : "Always Hidden" ) )
@@ -810,7 +814,7 @@ SK::ControlPanel::Input::Draw (void)
                         (
         "Auto-hide the cursor in response to XInput (Xbox) or HID (PlayStation) input activity."
                            );
-      if (!cursor_manage || !allow_show_cursor)
+      if (disable_cursor_autohide_ui)
       SK_ImGui_EndDisabled();
       ImGui::SameLine   (  );
       ImGui::TreePop    (  );

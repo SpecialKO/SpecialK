@@ -316,7 +316,7 @@ NVAPI::FindGPUByDXGIName (const wchar_t* wszName)
   //"NVIDIA "
   // 01234567
 
-  wchar_t* wszFixedName = _wcsdup (wszName + 7);
+  wchar_t* wszFixedName = _wcsdup  (wszName + 7);
   int      fixed_len    = lstrlenW (wszFixedName);
 
   if (wszFixedName != nullptr)
@@ -713,7 +713,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER1)
   {
     NV_HDR_COLOR_DATA_V1    origData =     *((NV_HDR_COLOR_DATA_V1 *)pHdrColorData);
-    memcpy (&expandedData, &origData, sizeof (NV_HDR_COLOR_DATA_V1));
+    memcpy (&expandedData, &origData, sizeof (NV_HDR_COLOR_DATA_V1)); //-V512_UNDERFLOW_OFF
 
     expandedData.version   = NV_HDR_COLOR_DATA_VER2;
     pHdrColorData          = &expandedData;
