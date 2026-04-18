@@ -1440,11 +1440,11 @@ SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
       if (user_info_ != nullptr && UserInfo_QueryUserInfo != nullptr)
       {
         EOS_UserInfo_QueryUserInfoOptions
-          opts = { EOS_USERINFO_QUERYUSERINFO_API_LATEST,
-                   SK::EOS::player.account,
-                   SK::EOS::player.account };
+          query_opts = { EOS_USERINFO_QUERYUSERINFO_API_LATEST,
+                         SK::EOS::player.account,
+                         SK::EOS::player.account };
 
-        UserInfo_QueryUserInfo (user_info_, &opts, this, [](const EOS_UserInfo_QueryUserInfoCallbackInfo* Data)
+        UserInfo_QueryUserInfo (user_info_, &query_opts, this, [](const EOS_UserInfo_QueryUserInfoCallbackInfo* Data)
         {
           if (Data->ResultCode == EOS_EResult::EOS_Success)
           {
@@ -1453,16 +1453,16 @@ SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
             if ( epic->UserInfo_Release      != nullptr &&
                  epic->UserInfo_CopyUserInfo != nullptr )
             {
-              EOS_UserInfo_CopyUserInfoOptions opts =
+              EOS_UserInfo_CopyUserInfoOptions copy_opts =
               {
                 EOS_USERINFO_COPYUSERINFO_API_LATEST,
                 SK::EOS::player.account,
                 SK::EOS::player.account
               };
 
-              EOS_UserInfo*                                             pUserInfo = nullptr;
+              EOS_UserInfo*                                                  pUserInfo = nullptr;
               EOS_EResult result =
-                epic->UserInfo_CopyUserInfo (epic->UserInfo (), &opts, &pUserInfo);
+                epic->UserInfo_CopyUserInfo (epic->UserInfo (), &copy_opts, &pUserInfo);
 
               if (result == EOS_EResult::EOS_Success)
               {
@@ -1591,7 +1591,8 @@ SK::EOS::AppName (void)
                 bool skip       = false;
 
                 char                     szLine [512] = { };
-                while (! mancpn.getline (szLine, 511).eof ())
+                while (! mancpn.getline (szLine, 511).eof () &&
+                       ! mancpn.fail () )
                 {
                   if (StrStrIA (szLine, "\"DisplayName\"") != nullptr)
                   {

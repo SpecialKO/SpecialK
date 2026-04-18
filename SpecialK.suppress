@@ -106,6 +106,14 @@
     <CodeNext>417053355</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>cfg_notifications.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3069629391</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>com_util.cpp</FileName>
     <ErrorCode>V3515</ErrorCode>
     <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
@@ -258,6 +266,70 @@
     <CodeNext>2817</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>control_panel.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>43</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3807662368</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>control_panel.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3337909127</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>921979823</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>3310028455</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>786291604</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>921979388</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>1325168015</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2599437549</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>1794399968</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>core.h</FileName>
     <ErrorCode>V3546</ErrorCode>
     <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) - _'.</Message>
@@ -304,6 +376,22 @@
     <CodePrev>0</CodePrev>
     <CodeCurrent>376639700</CodeCurrent>
     <CodeNext>1807609</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_devctx_wrapped.cpp</FileName>
+    <ErrorCode>V504</ErrorCode>
+    <Message>It is highly probable that the semicolon ';' is missing after 'return' keyword.</Message>
+    <CodePrev>3624236097</CodePrev>
+    <CodeCurrent>2798</CodeCurrent>
+    <CodeNext>272439296</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_devctx_wrapped.cpp</FileName>
+    <ErrorCode>V504</ErrorCode>
+    <Message>It is highly probable that the semicolon ';' is missing after 'return' keyword.</Message>
+    <CodePrev>3624236097</CodePrev>
+    <CodeCurrent>2798</CodeCurrent>
+    <CodeNext>3491963768</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>d3d11_devctx_wrapped.cpp</FileName>
@@ -387,6 +475,14 @@
   </SpecialK>
   <SpecialK>
     <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2264477630</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
     <ErrorCode>V779</ErrorCode>
     <Message>Unreachable code detected. It is possible that an error is present.</Message>
     <CodePrev>0</CodePrev>
@@ -450,6 +546,14 @@
     <CodeNext>959364588</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>dxgi.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dxgi_mem_info' is being utilized as a pointer to single object.</Message>
+    <CodePrev>3934576534</CodePrev>
+    <CodeCurrent>3665007424</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>dxgi_backend.h</FileName>
     <ErrorCode>V202</ErrorCode>
     <Message>Explicit conversion from memsize type to _-bit integer type: static_cast&lt; UINT &gt; (kName.size())</Message>
@@ -474,6 +578,38 @@
     <CodeNext>0</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>framerate.cpp</FileName>
+    <ErrorCode>V612</ErrorCode>
+    <Message>An unconditional 'break' within a loop.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2337</CodeCurrent>
+    <CodeNext>125</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>gog.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>116664388</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>hdr.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3504273794</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>import.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>921979388</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>io_monitor.cpp</FileName>
     <ErrorCode>V126</ErrorCode>
     <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
@@ -488,6 +624,14 @@
     <CodePrev>0</CodePrev>
     <CodeCurrent>148391</CodeCurrent>
     <CodeNext>44145301</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>latency.cpp</FileName>
+    <ErrorCode>V529</ErrorCode>
+    <Message>Odd semicolon ';' after 'for' operator.</Message>
+    <CodePrev>53454829</CodePrev>
+    <CodeCurrent>49184517</CodeCurrent>
+    <CodeNext>196853535</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>lazy_global.h</FileName>
@@ -626,6 +770,14 @@
     <CodeNext>125</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>opengl.cpp</FileName>
+    <ErrorCode>V1051</ErrorCode>
+    <Message>Consider checking for misprints. It's possible that the 'present_interval' should be checked here.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3296217102</CodeCurrent>
+    <CodeNext>2095759395</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>playstation.cpp</FileName>
     <ErrorCode>V512</ErrorCode>
     <Message>A call of the 'memset' function will lead to overflow of the buffer '&amp; pData-&gt;LeftStickX'.</Message>
@@ -640,6 +792,30 @@
     <CodePrev>123</CodePrev>
     <CodeCurrent>3170116418</CodeCurrent>
     <CodeNext>17733</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>playstation.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>2073799503</CodeCurrent>
+    <CodeNext>3820259831</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>render_backend.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2967379288</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>reshade.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>921979824</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>screenshot.cpp</FileName>
@@ -664,6 +840,22 @@
     <CodePrev>123</CodePrev>
     <CodeCurrent>580011500</CodeCurrent>
     <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>sound.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2740881532</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>sound.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3596519569</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>sound.h</FileName>
@@ -706,11 +898,179 @@
     <CodeNext>879</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>window.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2766073312</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>window.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3069704232</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>window.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>3069644344</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>window.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>922000284</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>window.h</FileName>
     <ErrorCode>V3515</ErrorCode>
     <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
     <CodePrev>0</CodePrev>
     <CodeCurrent>76424342</CodeCurrent>
     <CodeNext>3481801062</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>windows.gaming.input.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>1760404365</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2424673080</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_core.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>2197636735</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V512</ErrorCode>
+    <Message>A call of the 'strncpy' function will lead to overflow of the buffer 'dbcc_xbox_a[idx]-&gt;dbcc_name'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>841720298</CodeCurrent>
+    <CodeNext>892051726</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V512</ErrorCode>
+    <Message>A call of the 'strncpy' function will lead to overflow of the buffer 'dbcc_hid_a[idx]-&gt;dbcc_name'.</Message>
+    <CodePrev>841720298</CodePrev>
+    <CodeCurrent>892051726</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'hid_a' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>113262</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'hid_w' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>113262</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'xbox_a' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>113262</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'xbox_w' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>113262</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_xbox_a[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>841720298</CodeCurrent>
+    <CodeNext>892051726</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_hid_a[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>841720298</CodePrev>
+    <CodeCurrent>892051726</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_xbox_a[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2057841112</CodeCurrent>
+    <CodeNext>3104665835</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_xbox_w[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2291648585</CodeCurrent>
+    <CodeNext>2306704329</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_hid_w[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>2291648585</CodePrev>
+    <CodeCurrent>2306704329</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_hid_a[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>2057841112</CodePrev>
+    <CodeCurrent>3104665835</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_hid_w[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>3955991298</CodePrev>
+    <CodeCurrent>3847242121</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>xinput_hotplug.cpp</FileName>
+    <ErrorCode>V619</ErrorCode>
+    <Message>The array 'dbcc_xbox_w[idx]' is being utilized as a pointer to single object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3955991298</CodeCurrent>
+    <CodeNext>3847242121</CodeNext>
   </SpecialK>
 </NewDataSet>

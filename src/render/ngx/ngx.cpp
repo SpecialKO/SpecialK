@@ -1317,7 +1317,7 @@ SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
       StrStrW (    ver_str.c_str (), L"NVIDIA DLSSv2 -"))
   {
     std::swscanf (
-      SK_GetDLLVersionShort (wszDLSS).c_str (), L"%d,%d,%d,%d",
+      SK_GetDLLVersionShort (wszDLSS).c_str (), L"%u,%u,%u,%u",
         &version.major, &version.minor,
         &version.build, &version.revision
     );
@@ -1398,7 +1398,7 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
       SK_GetDLLVersionStr (wszDLSSD);
 
     std::swscanf (
-      SK_GetDLLVersionShort (wszDLSSD).c_str (), L"%d,%d,%d,%d",
+      SK_GetDLLVersionShort (wszDLSSD).c_str (), L"%u,%u,%u,%u",
         &version.major, &version.minor,
         &version.build, &version.revision
     );
@@ -1472,7 +1472,7 @@ SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
       StrStrW (    ver_str.c_str (), L"NVIDIA DLSS-G MFGLW -"))
   {
     std::swscanf (
-      SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%d,%d,%d,%d",
+      SK_GetDLLVersionShort (wszDLSSG).c_str (), L"%u,%u,%u,%u",
         &version.major, &version.minor,
         &version.build, &version.revision
     );

@@ -127,58 +127,58 @@ SK_Unity_PlugInCfg (void)
 
     if (has_fixed_tick)
     {
-      if (SK_Unity_Cfg.fixed_delta_auto_sync) ImGui::BeginDisabled ();
+      if (SK_Unity_Cfg.fixed_delta_auto_sync)
+        ImGui::BeginDisabled ();
+
+      if (SK_Unity_Cfg.time_fixed_delta_time == SK_Unity_OriginalFixedDeltaTime)
       {
-        if (SK_Unity_Cfg.time_fixed_delta_time == SK_Unity_OriginalFixedDeltaTime)
-        {
-          ImGui::TextColored    (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
-          ImGui::SameLine       ();
-          ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
-          ImGui::SameLine       ();
-        }
+        ImGui::TextColored    (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
+        ImGui::SameLine       ();
+        ImGui::SetItemTooltip ("Unity games will run smoother if you match Framerate to Fixed Delta Time.");
+        ImGui::SameLine       ();
+      }
 
-        if (! SK_Unity_FullIl2cppEngineTime)
-        {
-          ImGui::TextColored    (ImVec4 (0.666f, 0.333f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
-          ImGui::SameLine       ();
-          ImGui::SetItemTooltip ("Game uses il2cpp and does not include UnityEngine.Time.set_fixedDeltaTime (...), this setting may have no effect.");
-          ImGui::SameLine       ();
-        }
+      if (! SK_Unity_FullIl2cppEngineTime)
+      {
+        ImGui::TextColored    (ImVec4 (0.666f, 0.333f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+        ImGui::SameLine       ();
+        ImGui::SetItemTooltip ("Game uses il2cpp and does not include UnityEngine.Time.set_fixedDeltaTime (...), this setting may have no effect.");
+        ImGui::SameLine       ();
+      }
 
-        if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
+      if (ImGui::SliderFloat ("Unity Fixed Delta Time", &delta_hz, 1.0f, 240.0f, "%.3f Hz"))
+      {
+        SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f / delta_hz : SK_Unity_OriginalFixedDeltaTime;
+        SK_Unity_Cfg.time_fixed_delta_time.store ();
+
+        config.utility.save_async ();
+
+        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+      }
+      
+      if (SK_ImGui_IsItemRightClicked ())
+      {
+        if (__target_fps_now > 0.0f)
         {
-          SK_Unity_Cfg.time_fixed_delta_time = delta_hz > 0.0f ? 1.0f / delta_hz : SK_Unity_OriginalFixedDeltaTime;
+          SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps_now;
           SK_Unity_Cfg.time_fixed_delta_time.store ();
 
           config.utility.save_async ();
 
           SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
         }
-        
-        if (SK_ImGui_IsItemRightClicked ())
-        {
-          if (__target_fps_now > 0.0f)
-          {
-            SK_Unity_Cfg.time_fixed_delta_time = 1.0f / __target_fps_now;
-            SK_Unity_Cfg.time_fixed_delta_time.store ();
-
-            config.utility.save_async ();
-
-            SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
-          }
-        }
-
-        if (ImGui::BeginItemTooltip ())
-        { ImGui::TextUnformatted    ("Set the animation rate for Unity.");
-          ImGui::Separator          ();
-          ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
-          if (__target_fps_now > 0.0f)
-          { ImGui::Separator        ();
-            ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to Match Framerate Limit");
-          } ImGui::EndTooltip       ();
-        }
-        ImGui::SameLine ();
       }
+
+      if (ImGui::BeginItemTooltip ())
+      { ImGui::TextUnformatted    ("Set the animation rate for Unity.");
+        ImGui::Separator          ();
+        ImGui::BulletText         ("This may cause physics issues in some games if changed, but can be reset easily.");
+        if (__target_fps_now > 0.0f)
+        { ImGui::Separator        ();
+          ImGui::TextUnformatted  (" " ICON_FA_MOUSE " Right-click to Match Framerate Limit");
+        } ImGui::EndTooltip       ();
+      }
+      ImGui::SameLine ();
 
       auto _Reset = [&](void)
       {
@@ -1660,8 +1660,7 @@ SK_Mono_InvokeAndUnbox (MonoMethod* method, MonoObject* obj, void** params, Mono
 void
 SK_Unity_SetInputPollingFreq (float PollingHz)
 {
-  return;
-
+#ifdef HAVE_WORKING_INPUT_POLLING_FREQ
   if (std::exchange (SK_Unity_InputPollingFrequency, PollingHz) == PollingHz)
     return;
 
@@ -1681,6 +1680,9 @@ SK_Unity_SetInputPollingFreq (float PollingHz)
 
   // We don't want garbage collection overhead on this thread just because we called a function once!
   DetachCurrentThreadIfNotNative ();
+#else
+  std::ignore = PollingHz;
+#endif
 }
 
 using UnityEngine_Time_set_fixedDeltaTime_pfn = void (*)(MonoObject*, float deltaTime);
@@ -2065,8 +2067,8 @@ static void SK_Unity_InControl_SetDeviceStyle (MonoObject* device)
   if (SK_Unity_GlyphEnumVal == -1)
     return;
 
-  static auto image = SK_Unity_MonoAssemblies.assemblyInControl;
-
+  static auto
+      image = SK_Unity_MonoAssemblies.assemblyInControl;
   if (image == nullptr)
     return;
 
@@ -2496,7 +2498,8 @@ SK_Unity_SetupInputHooks_il2cpp (void)
       void* pfnInControl_NativeInputDevice_Update  = nullptr;
       void* pfnInControl_InputDevice_OnAttached    = nullptr;
 
-      if (SK_Unity_il2cppClasses.InControl.InputDevice != nullptr &&
+      if (SK_Unity_il2cppClasses.InControl.InputDevice                                                           != nullptr &&
+                                                 assemblyInControl                                               != nullptr &&
                                                  assemblyInControl->get_class ("NativeInputDevice", "InControl") != nullptr)
       {
         pfnInControl_NativeInputDevice_Vibrate = assemblyInControl->get_class ("NativeInputDevice", "InControl")->get_method ("Vibrate",    2);

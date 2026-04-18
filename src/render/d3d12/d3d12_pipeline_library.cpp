@@ -377,8 +377,8 @@ D3D12Device1_CreatePipelineLibrary_Detour (
 void
 SK_D3D12_HookPipelineLibrary (ID3D12Device1* pDevice1)
 {
-  return;
-
+// Answer's probably no
+#ifdef NEED_PIPELINE_LIBRARY_HOOKS
   if (pDevice1 == nullptr)
     return;
 
@@ -403,4 +403,7 @@ SK_D3D12_HookPipelineLibrary (ID3D12Device1* pDevice1)
   // 10 LoadComputePipeline
   // 11 GetSerializedSize
   // 12 Serialize
+#else
+  std::ignore = pDevice1;
+#endif
 }

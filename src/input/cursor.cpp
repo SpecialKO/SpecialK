@@ -736,8 +736,9 @@ SK_ImGui_WantMouseCapture (bool update, POINT* ptCursor) noexcept
 
 HCURSOR GetGameCursor (void)
 {
+#if 1
   return SK_GetCursor ();
-
+#else // This was the original code, but it tends to permanently change the game's cursor
   static HCURSOR sk_imgui_arrow = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_POINTER);
   static HCURSOR sk_imgui_horz  = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_HORZ);
   static HCURSOR sk_imgui_ibeam = LoadCursor (nullptr, IDC_IBEAM);
@@ -754,6 +755,7 @@ HCURSOR GetGameCursor (void)
   }
 
   return hCurLast;
+#endif
 }
 
 bool

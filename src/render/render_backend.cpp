@@ -6621,13 +6621,10 @@ SK_Render_CountVBlanks ()
           InterlockedExchange ( &most_frames,
                                    ullFramesPresented );
         }
-  
+
         InterlockedExchange ( &thread,
                             SK_Thread_GetCurrentId () );
-      }
-  
-      if (render_thread_popularity_based)
-      {
+
         InterlockedExchange ( &last_thread,
                                  SK_Thread_GetCurrentId () );
       }

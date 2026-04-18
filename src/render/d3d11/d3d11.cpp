@@ -5761,13 +5761,13 @@ D3D11Dev_CreateTexture2DCore_Impl (
             if (bpc == 11)
             {
               bytes_added = (void*)(uintptr_t)(4LL * pDesc->Width * pDesc->Height);
-              InterlockedAdd64     (&p11BitTargetManager->BytesAllocated, (uint64_t)bytes_added);
+              InterlockedAdd64     (&p11BitTargetManager->BytesAllocated, (uint64_t)(uintptr_t)bytes_added);
               InterlockedIncrement (&p11BitTargetManager->TargetsUpgraded);
             }
             else if (bpc == 10)
             {
               bytes_added = (void*)(uintptr_t)(4LL * pDesc->Width * pDesc->Height);
-              InterlockedAdd64     (&p10BitTargetManager->BytesAllocated, (uint64_t)bytes_added);
+              InterlockedAdd64     (&p10BitTargetManager->BytesAllocated, (uint64_t)(uintptr_t)bytes_added);
               InterlockedIncrement (&p10BitTargetManager->TargetsUpgraded);
             }
 
@@ -5839,19 +5839,19 @@ D3D11Dev_CreateTexture2DCore_Impl (
                   {
                     bytes_added       = (void*)(uintptr_t)(2LL * pDesc->Width * pDesc->Height);
                     pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
-                    InterlockedAdd64    (&p8BitTargetManager->BytesAllocated, (uint64_t)bytes_added);
+                    InterlockedAdd64    (&p8BitTargetManager->BytesAllocated, (uint64_t)(uintptr_t)bytes_added);
                   }
                   else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
                   {
                     bytes_added       = (void*)(uintptr_t)(1LL * pDesc->Width * pDesc->Height);
                     pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
-                    InterlockedAdd64    (&p8BitTargetManager->BytesAllocated, (uint64_t)bytes_added);
+                    InterlockedAdd64    (&p8BitTargetManager->BytesAllocated, (uint64_t)(uintptr_t)bytes_added);
                   }
                   else
                   {
                     // 32-bit total -> 64-bit
                     bytes_added       = (void*)(uintptr_t)(4LL * pDesc->Width * pDesc->Height);
-                    InterlockedAdd64    (&p8BitTargetManager->BytesAllocated, (uint64_t)bytes_added);
+                    InterlockedAdd64    (&p8BitTargetManager->BytesAllocated, (uint64_t)(uintptr_t)bytes_added);
 
                     //
                     // Sometimes rendering into an FP RenderTarget is going to produce invalid blend results,
@@ -6484,8 +6484,9 @@ D3D11Dev_CreateTexture2DCore_Impl (
         auto* decompressed =
           new (std::nothrow) DirectX::ScratchImage;
 
-        ret =
-          DirectX::Decompress (orig_img, 1, image->GetMetadata (), DXGI_FORMAT_UNKNOWN, *decompressed);
+        ret = image != nullptr && decompressed != nullptr ?
+          DirectX::Decompress (orig_img, 1, image->GetMetadata (), DXGI_FORMAT_UNKNOWN, *decompressed)
+                                                          : E_OUTOFMEMORY;
 
         if (SUCCEEDED (ret))
         {

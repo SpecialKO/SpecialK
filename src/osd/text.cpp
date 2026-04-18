@@ -1021,10 +1021,11 @@ SK_DrawOSD (void)
 
     if (x + y != 0)
     {
-      if (! SK_NGX_IsUsingDLSS_D ())
+      if (! SK_NGX_IsUsingDLSS_D ()) {
         OSD_DLSS_PRINTF "%*hsDLSS   :  %dx%d", left_padding, pad_str, x, y OSD_END
-      else
+      } else {
         OSD_DLSS_PRINTF "%*hsDLSS-RR:  %dx%d", left_padding, pad_str, x, y OSD_END
+      }
 
       if (config.dlss.show_output_res && out_x + out_y != 0)
       {

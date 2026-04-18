@@ -6381,10 +6381,10 @@ auto DeclKeybind =
     (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run) || SK_IsAdmin ();
 
   struct {
-    int          ver     = 0;
-    int          sub_ver = 0;
-    int          build   = 0;
-    int          rev     = 0;
+    unsigned int ver     = 0U;
+    unsigned int sub_ver = 0U;
+    unsigned int build   = 0U;
+    unsigned int rev     = 0U;
     std::wstring str     = L"";
   } static unity_dll;
 
@@ -8360,7 +8360,8 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
                                mancpn.is_open ())
               {
                 char                     szLine [512] = { };
-                while (! mancpn.getline (szLine, 511).eof ())
+                while (! mancpn.getline (szLine, 511).eof () &&
+                       ! mancpn.fail () )
                 {
                   if (StrStrIA (szLine, "\"AppName\"") != nullptr)
                   {
@@ -8700,7 +8701,8 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
                              mancpn.is_open ())
             {
               char                     szLine [512] = { };
-              while (! mancpn.getline (szLine, 511).eof ())
+              while (! mancpn.getline (szLine, 511).eof () &&
+                     ! mancpn.fail () )
               {
                 if (StrStrIA (szLine, "\"AppName\"") != nullptr)
                 {

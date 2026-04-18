@@ -745,10 +745,10 @@ XInputGetStateEx1_4_Detour (
 
     struct timing_s
     {
-      LONGLONG        t0;
-      LONGLONG        tCache;
-      ULONG64         ulFrame0;
-      ULONG64         ulCacheFrame;
+      LONGLONG        t0           = 0LL;
+      LONGLONG        tCache       = 0LL;
+      ULONG64         ulFrame0     = 0ULL;
+      ULONG64         ulCacheFrame = 0ULL;
 
       struct polling_traits_s
       {
@@ -845,7 +845,7 @@ XInputGetStateEx1_4_Detour (
   if (pState == nullptr)
     return ERROR_INVALID_PARAMETER;
 
-  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD)); //-V1086
 
   if (! xinput_enabled)
   {
@@ -937,7 +937,7 @@ XInputGetStateEx1_4_Detour (
         const auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
         const auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
 
-        memcpy (pState, &latest_state, sizeof (XINPUT_STATE));
+        memcpy (pState, &latest_state, sizeof (XINPUT_STATE)); //-V1086
 
         if (                                              timestamp> last_timestamp  &&
              InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
@@ -979,7 +979,7 @@ XInputGetStateEx1_4_Detour (
   if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
   {
     SK_XINPUT_HIDE (dwUserIndex)
-    ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+    ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD)); //-V1086
   }
 
   else

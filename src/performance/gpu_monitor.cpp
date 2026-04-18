@@ -874,6 +874,8 @@ SK_GPUPollingThread (LPVOID user)
 
             if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
             {
+              queryAdapterInfo.PrivateDriverData = nullptr;
+
               if (metaData.NodeData.EngineType == DXGK_ENGINE_TYPE_3D)
               {
                 Engine3DNodeOrdinal  = i;
@@ -881,6 +883,8 @@ SK_GPUPollingThread (LPVOID user)
                 break;
               }
             }
+
+            queryAdapterInfo.PrivateDriverData = nullptr;
           }
         });
 

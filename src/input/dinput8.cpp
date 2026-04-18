@@ -1721,6 +1721,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
          hook_lock (hookMutex);
 
   std::vector <void *> fns_to_hook;
+                       fns_to_hook.reserve (3);
 
   if (SUCCEEDED (hr) &&  lplpDirectInputDevice != nullptr &&
                         *lplpDirectInputDevice != nullptr)
@@ -1866,6 +1867,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
          hook_lock (hookMutex);
 
   std::vector <void *> fns_to_hook;
+                       fns_to_hook.reserve (3);
 
   if (SUCCEEDED (hr) &&  lplpDirectInputDevice != nullptr &&
                         *lplpDirectInputDevice != nullptr)

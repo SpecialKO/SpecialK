@@ -3157,7 +3157,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             header.SeqNo++;
 
-            memcpy (bt_data, &header, sizeof (header));
+            memcpy (bt_data, &header, sizeof (header)); //-V1086
 
             auto* output =
               (SK_HID_DualSense_SetStateData *)&bt_data [3];
@@ -3783,7 +3783,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               uint8_t EnableAudio : 1;
             } static header = { 0xA2, 0x11, 1, 1, 1, 0, 0, 0, 1, 0, 0 };
 
-            memcpy (bt_data, &header, sizeof (header));
+            memcpy (bt_data, &header, sizeof (header)); //-V1086
 
             auto *pOutputRaw =
                    &bt_data [4];
@@ -4312,7 +4312,7 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
               uint8_t* packet = &((uint8_t *)data) [i * 78];
 
               // Prepend 0xA2 before hashing, this isn't included in the actual data being written...
-              uint8_t  data_to_checksum [79] = {  0xA2  };
+              uint8_t  data_to_checksum [79] = {  0xA2  }; //-V1009
               memcpy (&data_to_checksum [ 1], packet, 78);
 
 #if 0

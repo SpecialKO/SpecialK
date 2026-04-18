@@ -1090,9 +1090,10 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
       }
 
       runtime->render_effects (
-        cmd_list, reshade::api::resource_view { (uint64_t) pRTV                      },
+        cmd_list, reshade::api::resource_view { (uint64_t)(uintptr_t)
+                                                           pRTV                          },
                                               { (uint64_t)(pRTV_sRGB != nullptr ?
-                                                           pRTV_sRGB            : 0) }
+                                                (uintptr_t)pRTV_sRGB            : 0ui64) }
       );
 
       cmd_queue->flush_immediate_command_list ();
@@ -1173,10 +1174,10 @@ SK_ReShadeAddOn_RenderEffectsD3D12 ( IDXGISwapChain1             *pSwapChain,
 
     if (has_effects)
     {
-            auto buffer   = reshade::api::resource      { reinterpret_cast <uint64_t> (pResource)     };
-      const auto rtv      = reshade::api::resource_view { static_cast      <uint64_t> (hRTV.     ptr) };
-      const auto rtv_srgb = reshade::api::resource_view { static_cast      <uint64_t> (hRTV_sRGB.ptr) };
-      const auto fence    = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)        };
+            auto buffer   = reshade::api::resource      { static_cast <uint64_t> (reinterpret_cast <uintptr_t> (pResource)   ) };
+      const auto rtv      = reshade::api::resource_view { static_cast <uint64_t> (                              hRTV.     ptr) };
+      const auto rtv_srgb = reshade::api::resource_view { static_cast <uint64_t> (                              hRTV_sRGB.ptr) };
+      const auto fence    = reshade::api::fence         { static_cast <uint64_t> (reinterpret_cast <uintptr_t> (pFence)      ) };
       const auto device   = runtime->get_device ();
 
       if (pResource == nullptr && device != nullptr)

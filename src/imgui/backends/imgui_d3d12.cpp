@@ -2795,7 +2795,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     if (_pReShadeRuntime != nullptr)
     {
       _pReShadeRuntime->get_command_queue ()->wait (
-        reshade::api::fence { (uint64_t)stagingFrame.fence.p },
+        reshade::api::fence { static_cast <uint64_t> (
+                                reinterpret_cast <uintptr_t> (
+                                        stagingFrame.fence.p ) ) },
                                         stagingFrame.fence.value
       );
 

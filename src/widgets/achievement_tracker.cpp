@@ -150,6 +150,8 @@ public:
         SK_Widget_ParameterFactory->create_parameter <std::wstring> (L"Ignored Achievements")
       );
 
+    std::wstring tracked_str;
+
     if (show_hidden_pref) {
         show_hidden_pref->register_to_ini (osd_ini, L"Widget.Achievement Tracker",           L"ShowHidden");
         show_hidden_pref->load            (                                                    show_hidden);
@@ -162,13 +164,12 @@ public:
         search_url_pref-> register_to_ini (osd_ini, L"Widget.Achievement Tracker", L"AchievementSearchURL");
         search_url_pref->load             (                                                     search_url);
     }
-    if (tracked.ini_pref)
+    if (tracked.ini_pref) {
         tracked.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"TrackedAchievements");
+        tracked.ini_pref->load (tracked_str);
+    }
     if (ignored.ini_pref)
         ignored.ini_pref->register_to_ini (dll_ini,        L"Achievement.Tracker",  L"IgnoredAchievements");
-
-    std::wstring            tracked_str;
-    tracked.ini_pref->load (tracked_str);
 
     auto tokenized_trackers =
       tokenize (tracked_str);

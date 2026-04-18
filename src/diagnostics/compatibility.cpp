@@ -1008,7 +1008,8 @@ SK_COMPAT_WarnIfRTSSIsIncompatible (void)
   auto is_compatible =
     SK_COMPAT_IsRTSSUsingDetoursHooking ();
 
-  if (is_compatible.has_value () && is_compatible.value () == false)
+  if ( is_compatible.has_value () &&
+      *is_compatible == false )
   {
     // User only needs 1 warning :)
     SK_RunOnce (

@@ -1000,7 +1000,7 @@ SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
   SK_RunOnce (
     SK_GetCommandProcessor ()->AddVariable (
       "Scheduler.PreciseShortSleep",
-        new SK_IVarStub <bool> (&config.render.framerate.precise_short_sleep)
+        new (std::nothrow) SK_IVarStub <bool> (&config.render.framerate.precise_short_sleep)
     )
   ); 
 

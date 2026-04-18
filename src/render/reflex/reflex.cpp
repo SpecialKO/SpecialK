@@ -286,6 +286,25 @@ SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
     NvAPI_D3D_SetReflexSync_Original (pDev, pSetReflexSyncParams);
 }
 
+static inline bool operator== (const NV_SET_SLEEP_MODE_PARAMS_V1& lhs,
+                               const NV_SET_SLEEP_MODE_PARAMS_V1& rhs) noexcept
+{
+  return
+    lhs.version               == rhs.version               &&
+    lhs.bLowLatencyMode       == rhs.bLowLatencyMode       &&
+    lhs.bLowLatencyBoost      == rhs.bLowLatencyBoost      &&
+    lhs.minimumIntervalUs     == rhs.minimumIntervalUs     &&
+    lhs.bUseMarkersToOptimize == rhs.bUseMarkersToOptimize &&
+    0 == memcmp (lhs.rsvd, rhs.rsvd, sizeof (lhs.rsvd));
+}
+
+static inline bool operator!= (const NV_SET_SLEEP_MODE_PARAMS_V1& lhs,
+                               const NV_SET_SLEEP_MODE_PARAMS_V1& rhs) noexcept
+{
+  return
+    !(lhs == rhs);
+}
+
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
                             __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams ) noexcept
@@ -302,7 +321,7 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
 
   if (oldDevice == pDev)
   {
-    if (! memcmp (&oldParams, pSetSleepModeParams, sizeof (NV_SET_SLEEP_MODE_PARAMS)))
+    if (oldParams == *pSetSleepModeParams)
       return NVAPI_OK;
   }
 
@@ -507,8 +526,8 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
     const auto fixup =
     SK_Reflex_GameSpecificLatencyMarkerFixups (pDev, pSetLatencyMarkerParams);
 
-    if ( fixup.has_value ())
-      return fixup.value ();
+    if (      fixup.has_value ())
+      return *fixup;
 
     // Shutdown our own Reflex implementation
     if (! std::exchange (config.nvidia.reflex.native, true))
@@ -861,8 +880,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const no
     // Vulkan Early-Out
     if (config.nvidia.reflex.vulkan)
     {
-      if (marker == INPUT_SAMPLE &&  config.nvidia.reflex.vulkan
-                                 && !config.nvidia.reflex.native)
+      if (marker == INPUT_SAMPLE && !config.nvidia.reflex.native)
       {
         VkSetLatencyMarkerInfoNV
           vk_marker           = {                                          };
@@ -1583,8 +1601,7 @@ NvLL_VK_SetLatencyMarker_Detour (VkDevice vkDevice, NVLL_VK_LATENCY_MARKER_PARAM
 
   if (pSetLatencyMarkerParams != nullptr)
   {
-    if ( pSetLatencyMarkerParams != nullptr  &&
-         pSetLatencyMarkerParams->markerType == VK_SIMULATION_START )
+    if (pSetLatencyMarkerParams->markerType == VK_SIMULATION_START)
     {
       SK_Reflex_LastFrameId = pSetLatencyMarkerParams->frameID;
     }
@@ -2165,8 +2182,8 @@ bool SK_Reflex_SetupReflexSync (IUnknown* pDev)
   NV_SET_REFLEX_SYNC_PARAMS
   rsync_params                    = {                           };
   rsync_params.version            = NV_SET_REFLEX_SYNC_PARAMS_VER;
-  rsync_params.bEnable            = (!__SK_IsDLSSGActive && config.render.framerate.enforcement_policy == 2) ||
-                                     (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ()) && __target_fps_now > 0.0f;
+  rsync_params.bEnable            = ((!__SK_IsDLSSGActive && config.render.framerate.enforcement_policy == 2) ||
+                                      (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())) && __target_fps_now > 0.0f;
   rsync_params.bDisable            = !rsync_params.bEnable;
   rsync_params.timeInQueueUs       = 0;
   rsync_params.timeInQueueUsTarget = 0;
