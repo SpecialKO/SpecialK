@@ -1781,6 +1781,13 @@ void SK_VK_HookReflex (void)
                                 NvLL_VK_Sleep_Detour,
                                 static_cast_p2p <void>(&NvLL_VK_Sleep_Original));
     }
+    else
+    {
+      NvLL_VK_Sleep_Original =
+        reinterpret_cast<NvLL_VK_Sleep_pfn> (
+          SK_GetProcAddress (L"NvLowLatencyVk.dll", "NvLL_VK_Sleep")
+          );
+    }
 
     SK_CreateDLLHook2 (      L"NvLowLatencyVk.dll",
                               "NvLL_VK_SetLatencyMarker",
