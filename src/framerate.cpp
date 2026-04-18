@@ -4510,7 +4510,7 @@ SK::Framerate::TickEx ( bool     /*wait*/,
 
 
   // Prevent inserting infinity into the dataset
-  //if ( std::isnormal (dt) )
+  if ( std::isnormal (dt) )
   {
     if (snapshots->frame_history.addSample (1000.0 * dt, now))
     {
@@ -4605,7 +4605,7 @@ SK::Framerate::TickEx ( bool     /*wait*/,
       } break;
     }
 
-    if (/*std::isnormal(sample) &&*/ now.QuadPart > 0)
+    if (now.QuadPart > 0 && std::isnormal (sample))
     {
       container->addSample (
         sample, now
@@ -4874,7 +4874,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     {
       if (datum.when.QuadPart >= 0)
       {
-        //if (isnormal (datum.val))
+        if (isnormal (datum.val))
         {
           kWriteBuffer.second.emplace_back (datum.val);
         }

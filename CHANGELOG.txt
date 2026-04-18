@@ -1,4 +1,10 @@
-﻿26.4.18.3
+﻿26.4.18.4
+=========
+ + Various optimizations to per-frame work when SK's overlay is not drawing.
+ + Gave Unity Game Thread Pacing a thread-local timer to ensure it does not
+     use the wrong timer if the primary thread changes.
+
+26.4.18.3
 =========
 + Block gamepad input to games while the Windows/Xbox Game Bar is active,
     since it cannot do so itself.
