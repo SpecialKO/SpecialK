@@ -2022,17 +2022,28 @@ static const ImU32 GCrc32LookupTable[256] =
     0xBDBDF21C,0xCABAC28A,0x53B39330,0x24B4A3A6,0xBAD03605,0xCDD70693,0x54DE5729,0x23D967BF,0xB3667A2E,0xC4614AB8,0x5D681B02,0x2A6F2B94,0xB40BBE37,0xC30C8EA1,0x5A05DF1B,0x2D02EF8D,
 };
 
+extern "C"
+uint32_t __cdecl
+crc32c (        uint32_t crc,
+_Notnull_ const void    *input,
+                size_t   length ) noexcept;
+
 // Known size hash
 // It is ok to call ImHashData on a string with known length but the ### operator won't be supported.
 // FIXME-OPT: Replace with e.g. FNV1a hash? CRC32 pretty much randomly access 1KB. Need to do proper measurements.
-ImGuiID ImHashData(const void* data_p, size_t data_size, ImGuiID seed)
+ImGuiID ImHashData(const void* data_p, size_t data_size, ImGuiID seed) noexcept
 {
     ImU32 crc = ~seed;
     const unsigned char* data = (const unsigned char*)data_p;
+#ifdef USE_ORIGINAL_IMHASH
     const ImU32* crc32_lut = GCrc32LookupTable;
     while (data_size-- != 0)
         crc = (crc >> 8) ^ crc32_lut[(crc & 0xFF) ^ *data++];
     return ~crc;
+#else
+    crc32c (crc, data, static_cast <unsigned int> (data_size));
+    return ~crc;
+#endif
 }
 
 // Zero-terminated string hash, with support for ### to reset back to seed value
@@ -2041,11 +2052,12 @@ ImGuiID ImHashData(const void* data_p, size_t data_size, ImGuiID seed)
 // - If we reach ### in the string we discard the hash so far and reset to the seed.
 // - We don't do 'current += 2; continue;' after handling ### to keep the code smaller/faster (measured ~10% diff in Debug build)
 // FIXME-OPT: Replace with e.g. FNV1a hash? CRC32 pretty much randomly access 1KB. Need to do proper measurements.
-ImGuiID ImHashStr(const char* data_p, size_t data_size, ImGuiID seed)
+ImGuiID ImHashStr(const char* data_p, size_t data_size, ImGuiID seed) noexcept
 {
     seed = ~seed;
     ImU32 crc = seed;
     const unsigned char* data = (const unsigned char*)data_p;
+#ifdef USE_ORIGINAL_IMHASH
     const ImU32* crc32_lut = GCrc32LookupTable;
     if (data_size != 0)
     {
@@ -2066,6 +2078,39 @@ ImGuiID ImHashStr(const char* data_p, size_t data_size, ImGuiID seed)
             crc = (crc >> 8) ^ crc32_lut[(crc & 0xFF) ^ c];
         }
     }
+#else
+    size_t               unparsed_size = data_size;
+    const unsigned char* start_of_data = data;
+
+    if (data_size != 0)
+    {
+        while (data_size-- != 0)
+        {
+            if (*data++ == '#' && data_size >= 2 && data[0] == '#' && data[1] == '#')
+                start_of_data = &data[2]; // Skip "###" in the hash
+        }
+    }
+    else
+    {
+        size_t str_size = 0;
+        while (unsigned char c = *data++)
+        {
+            str_size++;
+
+            if (c == '#' && data[0] == '#' && data[1] == '#') {
+                start_of_data = &data[2]; // Skip "###" in the hash
+                str_size      = 0;
+            }
+        }
+        unparsed_size = str_size;
+    }
+
+    if (start_of_data <= data + unparsed_size)
+    {
+      crc =
+        crc32c (crc, start_of_data, static_cast <unsigned int> (data + unparsed_size - start_of_data));
+    }
+#endif
     return ~crc;
 }
 

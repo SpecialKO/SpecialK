@@ -97,7 +97,7 @@ std::unique_ptr <InstructionSet::InstructionSet_Internal> InstructionSet::CPU_Re
 extern "C"
 uint32_t
 __cdecl
-crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size)
+crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size) noexcept
 {
   const auto *p =
        static_cast <const uint8_t *> (buf);
@@ -155,7 +155,7 @@ static uint32_t short_shifts [ 4][256];
 
 static bool _tableInitialized = false;
 
-extern "C" void __cdecl calculate_table (void) ;
+extern "C" void __cdecl calculate_table (void) noexcept;
 
 /* Table-driven software version as a fall-back.  This is about 15 times slower
    than using the hardware instructions.  This assumes little-endian integers,
@@ -163,7 +163,7 @@ extern "C" void __cdecl calculate_table (void) ;
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_sw (uint32_t crci, const void *input, size_t length)
+crc32c_append_sw (uint32_t crci, const void *input, size_t length) noexcept
 {
   auto next =
     static_cast <buffer> (input);
@@ -247,7 +247,7 @@ crc32c_append_sw (uint32_t crci, const void *input, size_t length)
 static
 inline
 uint32_t
-shift_crc ( const uint32_t shift_table[][256], uint32_t crc )
+shift_crc ( const uint32_t shift_table[][256], uint32_t crc ) noexcept
 {
   return shift_table [0][ crc        & 0xff]
        ^ shift_table [1][(crc >> 8)  & 0xff]
@@ -259,7 +259,7 @@ shift_crc ( const uint32_t shift_table[][256], uint32_t crc )
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
+crc32c_append_hw (uint32_t crc, const void *buf, size_t len) noexcept
 {
   if (buf == nullptr || len < 1)
     return crc;
@@ -432,7 +432,7 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
 extern "C"
 int
 __cdecl
-crc32c_hw_available (void)
+crc32c_hw_available (void) noexcept
 {
   int              info [4] = { 0 };
 #ifndef SK_BUILT_BY_CLANG
@@ -447,7 +447,7 @@ crc32c_hw_available (void)
 extern "C"
 void
 __cdecl
-calculate_table (void)
+calculate_table (void) noexcept
 {
   for (int i = 0; i < 256; i++)
   {
@@ -469,7 +469,7 @@ calculate_table (void)
 extern "C"
 void
 __cdecl
-calculate_table_hw (void)
+calculate_table_hw (void) noexcept
 {
   for (unsigned int i = 0; i < 256UL; i++)
   {
@@ -520,7 +520,7 @@ volatile LONG
 
 extern "C"
 void __cdecl
-__crc32_init (void)
+__crc32_init (void) noexcept
 {
   typedef
     uint32_t (__cdecl *appendfunc_pfn)(       uint32_t,
@@ -565,25 +565,8 @@ extern "C"
 uint32_t __cdecl
 crc32c (        uint32_t crc,
 _Notnull_ const void    *input,
-                size_t   length )
+                size_t   length ) noexcept
 {
-  if (append_func == nullptr)
-  {
-    static volatile LONG __init = 0;
-
-    if (InterlockedCompareExchange (&__init, 1, 0) == 0)
-    {
-      __crc32_init ();
-
-      InterlockedIncrement (&__init);
-    }
-
-    else
-    {
-      SK_Thread_SpinUntilAtomicMin (&__init, 2);
-    }
-  }
-
   if ( input       != nullptr &&
        length      >  0       &&
        append_func != nullptr )

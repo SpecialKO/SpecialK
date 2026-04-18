@@ -1603,7 +1603,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 
 uint32_t
 __cdecl
-safe_crc32c (uint32_t seed, _Notnull_ const void *buf, size_t size)
+safe_crc32c (uint32_t seed, _Notnull_ const void *buf, size_t size) noexcept
 {
   // Current limit == 2 GiB
   if (size > (1024ULL * 1024ULL * 1024ULL * 2) || buf == nullptr)

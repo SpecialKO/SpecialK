@@ -1695,6 +1695,8 @@ SK_Attach (DLL_ROLE role)
 
       if (SK_DLL_IsAttached ())
       {
+        __crc32_init ();
+
         SK_MinHook_Init ();
 
         return TRUE;
