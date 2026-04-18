@@ -986,6 +986,8 @@ SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
   if (ReadAcquire (&__sleep_init) == FALSE)
     return SleepEx (dwMilliseconds, bAlertable);
 
+  // Crashes 32-bit versions of GOG Galaxy, so leave this OFF.
+#if 0
   // Experimental stuff; no practical application beyond testing an alternate
   //   higher-precision implementation of Sleep (...) that wastes A LOT of CPU
   //     time for short waits...
@@ -1015,6 +1017,7 @@ SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
 
     return 0;
   }
+#endif
 
   return
     SleepEx_Original != nullptr                   ?

@@ -1,4 +1,10 @@
-﻿26.4.18.1
+﻿26.4.18.2
+=========
+ + Fixed weird problem with Galaxy's DRM (not an April Fool's joke this time);
+     gog_1_112::UnauthorizedAccessError would continuously throw exceptions if
+       SK's hook on SleepEx (...) was enabled.
+
+26.4.18.1
 =========
  + Switch ImGui's ImHash (...) function to use Special K's SSE4.2 crc32c
      algorithm instead of its slower lookup table.
