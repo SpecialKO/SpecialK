@@ -30,7 +30,11 @@
 #endif
 #define __SK_SUBSYSTEM__ L"   Xbox   "
 
+#include <wrl/client.h>
+#include <wrl/event.h>
+#include <wrl/wrappers/corewrappers.h>
 #include <windows.gaming.ui.h>
+#include <EventToken.h>
 
 ABI::Windows::Gaming::UI::IGameBarStatics* SK_GameBar_Statics = nullptr;
 
@@ -61,13 +65,86 @@ SK::Xbox::Init (void)
   }
 }
 
+static boolean                visible          = false;
+static EventRegistrationToken visibility_event;
+static boolean                input_redirected = false;
+static EventRegistrationToken input_event;
+
 void
 SK::Xbox::Shutdown (void)
 {
   if (SK_GameBar_Statics != nullptr)
   {
+    SK_GameBar_Statics->remove_IsInputRedirectedChanged (input_event);
+    SK_GameBar_Statics->remove_VisibilityChanged        (visibility_event);
+
     std::exchange (SK_GameBar_Statics, nullptr)->Release ();
   }
+}
+
+boolean
+SK_Xbox_GetOverlayState_WithCaching (void)
+{
+  if (! SK_GameBar_Statics)
+    return false;
+
+  SK_RunOnce (
+    SK_LOGi0 (L"SK_Xbox_GetOverlayState: Falling back to slow codepath!")
+  );
+
+  static bool   last_state = false;
+  static UINT64 last_frame =     0;
+
+  // Slow your horses! You can have a cached value instead.
+  if (last_frame > SK_GetFramesDrawn () - 10)
+    return last_state;
+
+  boolean redirected = false;
+
+  SK_GameBar_Statics->get_IsInputRedirected (&redirected);
+
+  // If redirected, but not visible, assume something is wrong and ignore.
+  if (redirected != false)
+    SK_GameBar_Statics->get_Visible         (&redirected);
+
+  last_state = redirected != false;
+  last_frame = SK_GetFramesDrawn ();
+
+  return redirected != false;
+}
+
+boolean
+SK_Xbox_GetOverlayState_UsingCallbacks (void)
+{
+  if (! SK_GameBar_Statics)
+    return false;
+
+  static auto visibility_callback =
+    Microsoft::WRL::Callback <ABI::Windows::Foundation::IEventHandler <IInspectable *>> (
+      [](IInspectable*, IInspectable*)
+      {
+        SK_GameBar_Statics->get_Visible (&visible);
+        return S_OK;
+      }
+    );
+
+  static auto input_callback =
+    Microsoft::WRL::Callback <ABI::Windows::Foundation::IEventHandler <IInspectable *>> (
+      [](IInspectable*, IInspectable*) {
+        SK_GameBar_Statics->get_IsInputRedirected (&input_redirected);
+        return S_OK;
+      }
+    );
+
+  SK_RunOnce (
+    SK_GameBar_Statics->get_Visible                  (                                     &visible);
+    SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
+    SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
+    SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
+  );
+
+  return
+    (visible && input_redirected);
 }
 
 bool
@@ -78,32 +155,19 @@ SK_Xbox_GetOverlayState (bool real)
 
   std::ignore = real;
 
-  // This is a heavy API that requires IPC, ensure this is done at most
-  //   a single time per-frame...
-  static bool   last_state = false;
-  static UINT64 last_frame =     0;
+  SK_RunOnce (SK_Xbox_GetOverlayState_UsingCallbacks ());
 
-  // Actually, throttle it even more... once every 10 frames.
-  //  - It's not cheap, and a callback would be better.
-  if (last_frame > SK_GetFramesDrawn () - 10)
-    return last_state;
+  static boolean has_callbacks =
+    (visibility_event.value != 0);
 
-  if (SK_GameBar_Statics != nullptr)
-  {
-    boolean redirected = false;
+  //
+  // Fast Codepath: Does not query state unnecessarily.
+  //
+  if (has_callbacks)
+    return SK_Xbox_GetOverlayState_UsingCallbacks ();
 
-    // This whole thing is flaky, we should be using the callback to listen for activation instead...
-    SK_GameBar_Statics->get_IsInputRedirected (&redirected);
-
-    // If redirected, but not visible, assume something is wrong and ignore the status.
-    if (redirected != false)
-      SK_GameBar_Statics->get_Visible         (&redirected);
-
-    last_state = redirected != false;
-    last_frame = SK_GetFramesDrawn ();
-
-    return redirected != false;
-  }
-
-  return false;
+  //
+  // Slow Codepath: preserved in case the callback system breaks again.
+  //    
+  return SK_Xbox_GetOverlayState_WithCaching ();
 }
