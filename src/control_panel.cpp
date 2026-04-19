@@ -2854,14 +2854,14 @@ DisplayModeMenu (bool windowed)
 
         SK_ComPtr <IDXGIOutput> pContainer;
 
-        if (SUCCEEDED (pSwapChain->GetContainingOutput (&pContainer)))
+        if ( SUCCEEDED ( pSwapChain->GetContainingOutput (&pContainer) ) )
         {
-          pContainer->GetDisplayModeList ( swapDesc1.Format, 0x0,
+          SK_DXGI_GetDisplayModeList ( pContainer, swapDesc1.Format, 0x0,
                                            &num_modes, nullptr );
 
           dxgi_modes.resize (num_modes);
 
-          if ( SUCCEEDED ( pContainer->GetDisplayModeList ( swapDesc1.Format, 0x0,
+          if ( SUCCEEDED ( SK_DXGI_GetDisplayModeList ( pContainer, swapDesc1.Format, 0x0,
                                                             &num_modes, dxgi_modes.data () ) ) )
           {
             int idx = 1;
@@ -5500,11 +5500,20 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         if ( display.vrr.max_refresh > 1 &&
              display.vrr.min_refresh != display.vrr.max_refresh )
         {
-          ImGui::Text ( "%hs Range:  %d-%d Hz",
-            display.vrr.type, display.vrr.min_refresh,
-                   std::min ( display.vrr.max_refresh,
-                      sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
-          );
+          if (display.vrr.max_refresh > sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)))
+          {
+            ImGui::Text ( "Active %hs Range:  %d-%d Hz,  Max: %d Hz",
+              display.vrr.type, display.vrr.min_refresh,
+                sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)),
+                                display.vrr.max_refresh );
+          }
+
+          else
+          {
+            ImGui::Text ( "%hs Range:  %d-%d Hz",
+              display.vrr.type, display.vrr.min_refresh,
+                                display.vrr.max_refresh );
+          }
 
           ImGui::Separator ();
         }
@@ -5520,7 +5529,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             ImGui::Separator ();
             ImGui::BulletText (
               "Presentation Model Tracking is not working, %hs status in D3D12 is "
-              "unknown without it.", display.vrr.type
+              "unknown without it."
             );
           }
 
@@ -5539,7 +5548,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "The active framerate is too high for %hs; cap to %5.2f FPS "
+              "The active framerate is not optimal for %hs; cap to %5.2f FPS "
               "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
             );
           }
@@ -5595,11 +5604,21 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           if ( display.vrr.min_refresh > 1 &&
                display.vrr.min_refresh != display.vrr.max_refresh )
           {
-            ImGui::Text ( "%hs Range:  %d-%d Hz",
-              display.vrr.type, display.vrr.min_refresh,
-                     std::min ( display.vrr.max_refresh,
-                        sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)) )
-            );
+            if (display.vrr.max_refresh > sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)))
+            {
+              ImGui::Text ( "Active %hs Range:  %d-%d Hz,  Max: %d Hz",
+                display.vrr.type, display.vrr.min_refresh,
+                  sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)),
+                                  display.vrr.max_refresh );
+            }
+
+            else
+            {
+              ImGui::Text ( "%hs Range:  %d-%d Hz",
+                display.vrr.type, display.vrr.min_refresh,
+                                  display.vrr.max_refresh );
+            }
+
             ImGui::Separator ();
           }
 
@@ -5633,7 +5652,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             {
               ImGui::Separator ();
               ImGui::BulletText (
-                "The active framerate is too high for %hs; cap to %5.2f FPS "
+                "The active framerate is not optimal for %hs; cap to %5.2f FPS "
                 "or lower for minimum latency.", display.vrr.type, fMaxHzForVRR
               );
               ImGui::Separator ();

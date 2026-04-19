@@ -4039,6 +4039,21 @@ auto
   };
 
 
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_GetDisplayModeList ( IDXGIOutput *pOutput,
+                       _In_  DXGI_FORMAT  EnumFormat,
+                       _In_  UINT         Flags,
+                    _Inout_  UINT        *pNumModes,
+     _Out_writes_to_opt_ (*pNumModes,*pNumModes)
+                          DXGI_MODE_DESC *pDesc )
+{
+  return
+    (GetDisplayModeList_Original != nullptr)                                    ?
+     GetDisplayModeList_Original (pOutput, EnumFormat, Flags, pNumModes, pDesc) :
+     pOutput->GetDisplayModeList (         EnumFormat, Flags, pNumModes, pDesc);
+}
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -4060,15 +4075,15 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   else if (pDesc != nullptr)
           *pDesc = { };
 
-  auto _LogCall = [&](void)
-  { DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ",
-                     L"%08" _L(PRIxPTR) L"h, %hs, %hs, %u, %08"
-                              _L(PRIxPTR) L"h",
-            (uintptr_t)This,
-                       SK_DXGI_FormatToStr (EnumFormat).data  (),
-                           _EnumFlagsToStr (     Flags).c_str (),
-                             pNumModes != nullptr ?
-                            *pNumModes            : -1,
+  #define _LogCall()                                                      \
+  { DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ", \
+                     L"%08" _L(PRIxPTR) L"h, %hs, %hs, %u, %08"           \
+                              _L(PRIxPTR) L"h",                           \
+            (uintptr_t)This,                                              \
+                       SK_DXGI_FormatToStr (EnumFormat).data  (),         \
+                           _EnumFlagsToStr (     Flags).c_str (),         \
+                             pNumModes != nullptr ?                       \
+                            *pNumModes            : -1,                   \
                                 (uintptr_t)pDesc ); };
 
   uint32_t tag = 0;

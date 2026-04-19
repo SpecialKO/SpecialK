@@ -192,6 +192,14 @@ CreateDXGIFactory2 (              UINT     Flags,
                      _COM_Outptr_ void   **ppFactory );
 
 
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_GetDisplayModeList ( IDXGIOutput *pOutput,
+                       _In_  DXGI_FORMAT  EnumFormat,
+                       _In_  UINT         Flags,
+                    _Inout_  UINT        *pNumModes,
+     _Out_writes_to_opt_ (*pNumModes,*pNumModes)
+                          DXGI_MODE_DESC *pDesc );
 
 HRESULT
 STDMETHODCALLTYPE

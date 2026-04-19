@@ -5319,6 +5319,43 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             }
           }
         }
+
+        constexpr auto                                      fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+        UINT                                                           num_modes = 0U;
+        if (SUCCEEDED (SK_DXGI_GetDisplayModeList (pOutput, fmt, 0x0, &num_modes, nullptr)))
+        {
+          std::vector <DXGI_MODE_DESC> dxgi_modes;
+                                       dxgi_modes.resize (num_modes);
+
+          if (SUCCEEDED (SK_DXGI_GetDisplayModeList (pOutput, fmt, 0x0,
+                                       &num_modes, dxgi_modes.data ())))
+          {
+            DXGI_RATIONAL max_exact_rate  = { 0, 0 };
+            double        dMaxRefreshRate =   0.0;
+
+            for (auto& mode : dxgi_modes)
+            {
+              const double dRefreshRate =
+                static_cast <double> (mode.RefreshRate.Numerator) /
+                static_cast <double> (mode.RefreshRate.Denominator);
+
+              if (dMaxRefreshRate < dRefreshRate)
+              {   dMaxRefreshRate = dRefreshRate;
+                  max_exact_rate  = mode.RefreshRate;
+              }
+            }
+
+            if (max_exact_rate.Denominator != 0)
+            {
+              display.native.refresh  = max_exact_rate;
+              display.vrr.max_refresh =
+                static_cast <uint16_t> (
+                  ceil (static_cast <double> (max_exact_rate.Numerator)/
+                        static_cast <double> (max_exact_rate.Denominator))
+                );
+            }
+          }
+        }
       }
 
       pOutput.Release ();
@@ -5588,10 +5625,11 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             display.native.width   = getPreferredMode.width;
             display.native.height  = getPreferredMode.height;
 
-            display.native.refresh = {
-              getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
-              getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
-            };
+            //  This is -NOT- native, it is not clear why the OS uses this as default...
+            /*display.native.refresh = {
+                getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
+                getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
+              };*/
           }
 
           DISPLAYCONFIG_TARGET_DEVICE_NAME
@@ -5751,7 +5789,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
           display.gdi_name, display.monitor,
-          display.vrr.min_refresh, display.vrr.max_refresh,
+          display.vrr.min_refresh, (int)ceil ((double)display.native.refresh.Numerator/
+                                              (double)display.native.refresh.Denominator),// display.vrr.max_refresh,
           display.vrr.type,
           display.attached ? L"Yes"                : L"No",
           display.primary  ? L" (Primary Display)" : L"",
