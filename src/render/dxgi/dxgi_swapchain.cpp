@@ -2962,7 +2962,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
         else
         {
           new_new_params.RefreshRate.Numerator   =
-            sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate));
+            sk::narrow_cast <UINT> (roundf (config.render.framerate.refresh_rate));
           new_new_params.RefreshRate.Denominator = 1;
         }
       }

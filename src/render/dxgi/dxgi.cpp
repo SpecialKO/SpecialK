@@ -4408,10 +4408,10 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
 
       else if (config.render.framerate.refresh_rate != -1.0f &&
                 mode_to_match.RefreshRate.Numerator !=
-         sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate)))
+         sk::narrow_cast <UINT> (roundf (config.render.framerate.refresh_rate)))
       {
         mode_to_match.RefreshRate.Numerator   =
-          sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate));
+          sk::narrow_cast <UINT> (roundf (config.render.framerate.refresh_rate));
         mode_to_match.RefreshRate.Denominator = 1;
       }
 
@@ -4497,7 +4497,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
                                   ||
          ( config.render.framerate.refresh_rate          != -1.0f &&
              pNewTargetParameters->RefreshRate.Numerator !=
-               sk::narrow_cast <UINT> ( ceilf (config.render.framerate.refresh_rate ) )
+               sk::narrow_cast <UINT> ( roundf (config.render.framerate.refresh_rate ) )
          )
       )
     {
@@ -4519,7 +4519,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       if ( config.render.framerate.rescan_.Denom          !=  1    ||
            (config.render.framerate.refresh_rate          != -1.0f &&
                      new_new_params.RefreshRate.Numerator != sk::narrow_cast <UINT>
-    (ceilf (config.render.framerate.refresh_rate) ) )
+   (roundf (config.render.framerate.refresh_rate) ) )
          )
       {
         DXGI_MODE_DESC modeDesc  = { };
@@ -4542,7 +4542,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
         else
         {
           modeDesc.RefreshRate.Numerator   =
-            sk::narrow_cast <UINT> (ceilf (config.render.framerate.refresh_rate));
+            sk::narrow_cast <UINT> (roundf (config.render.framerate.refresh_rate));
           modeDesc.RefreshRate.Denominator = 1;
         }
 
@@ -4690,7 +4690,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
   if (  config.render.framerate.rescan_.Denom !=  1 ||
        (config.render.framerate.refresh_rate   > 0.0f &&
          mode_to_match.RefreshRate.Numerator  != sk::narrow_cast <UINT>
-(ceilf (config.render.framerate.refresh_rate))) )
+(roundf (config.render.framerate.refresh_rate))) )
   {
     if ( ( config.render.framerate.rescan_.Denom     > 0   &&
            config.render.framerate.rescan_.Numerator > 0 ) &&
@@ -4717,7 +4717,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
       else
       {
         mode_to_match.RefreshRate.Numerator = sk::narrow_cast <UINT> (
-             ceilf (config.render.framerate.refresh_rate) );
+            roundf (config.render.framerate.refresh_rate) );
         mode_to_match.RefreshRate.Denominator = 1;
       }
     }
@@ -5764,7 +5764,7 @@ SK_DXGI_CreateSwapChain_PreInit (
       if ( config.render.framerate.rescan_.Denom   !=  1 ||
           (config.render.framerate.refresh_rate    > 0.0f &&
            pDesc->BufferDesc.RefreshRate.Numerator != sk::narrow_cast <UINT> (
-    ceilf (config.render.framerate.refresh_rate)                             )
+   roundf (config.render.framerate.refresh_rate)                             )
           )
         )
       {
@@ -5792,7 +5792,7 @@ SK_DXGI_CreateSwapChain_PreInit (
           {
             pDesc->BufferDesc.RefreshRate.Numerator   =
               sk::narrow_cast <UINT> (
-                std::ceilf (config.render.framerate.refresh_rate)
+                std::roundf (config.render.framerate.refresh_rate)
               );
             pDesc->BufferDesc.RefreshRate.Denominator = 1;
           }

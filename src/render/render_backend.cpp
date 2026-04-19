@@ -4403,6 +4403,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
               if (  fEDID != nullptr)
               {
                 fwrite (EDID_Data.get (), sizeofEDID, 1, fEDID);
+                fclose (fEDID);
               }
             }
           }
@@ -5350,8 +5351,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
               display.native.refresh  = max_exact_rate;
               display.vrr.max_refresh =
                 static_cast <uint16_t> (
-                  ceil (static_cast <double> (max_exact_rate.Numerator)/
-                        static_cast <double> (max_exact_rate.Denominator))
+                  round (static_cast <double> (max_exact_rate.Numerator)/
+                         static_cast <double> (max_exact_rate.Denominator))
                 );
             }
           }
@@ -5789,8 +5790,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
           display.gdi_name, display.monitor,
-          display.vrr.min_refresh, (int)ceil ((double)display.native.refresh.Numerator/
-                                              (double)display.native.refresh.Denominator),// display.vrr.max_refresh,
+          display.vrr.min_refresh, display.vrr.max_refresh,
           display.vrr.type,
           display.attached ? L"Yes"                : L"No",
           display.primary  ? L" (Primary Display)" : L"",
@@ -6376,7 +6376,7 @@ SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
     {
       devmode.dmFields           |= DM_DISPLAYFREQUENCY;
       devmode.dmDisplayFrequency  =
-        static_cast <DWORD> (std::ceilf (config.display.refresh_rate));
+        static_cast <DWORD> (std::roundf (config.display.refresh_rate));
     }
 
     if ( DISP_CHANGE_SUCCESSFUL ==

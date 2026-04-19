@@ -2885,7 +2885,7 @@ DisplayModeMenu (bool windowed)
 
                 UINT integer_refresh =
                   sk::narrow_cast <UINT> (
-                    std::ceil (
+                    std::round (
                         sk::narrow_cast <long double> (dxgi_mode.RefreshRate.Numerator) /
                         sk::narrow_cast <long double> (dxgi_mode.RefreshRate.Denominator)
                                           )
@@ -2917,7 +2917,7 @@ DisplayModeMenu (bool windowed)
 
             // No Exact Match, but we can probably find something close...
             if ( -1 == current_item &&
-                 -1 != sk::narrow_cast <INT> (ceilf (config.render.framerate.refresh_rate)) )
+                 -1 != sk::narrow_cast <INT> (roundf (config.render.framerate.refresh_rate)) )
             {
               int lvl2_idx = 1;
 
@@ -5500,11 +5500,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         if ( display.vrr.max_refresh > 1 &&
              display.vrr.min_refresh != display.vrr.max_refresh )
         {
-          if (display.vrr.max_refresh > sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)))
+          if (display.vrr.max_refresh > sk::narrow_cast <uint16_t> (roundf (fFixedRefreshHz)))
           {
             ImGui::Text ( "Active %hs Range:  %d-%d Hz,  Max: %d Hz",
               display.vrr.type, display.vrr.min_refresh,
-                sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)),
+                sk::narrow_cast <uint16_t> (roundf (fFixedRefreshHz)),
                                 display.vrr.max_refresh );
           }
 
@@ -5604,11 +5604,11 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           if ( display.vrr.min_refresh > 1 &&
                display.vrr.min_refresh != display.vrr.max_refresh )
           {
-            if (display.vrr.max_refresh > sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)))
+            if (display.vrr.max_refresh > sk::narrow_cast <uint16_t> (roundf (fFixedRefreshHz)))
             {
               ImGui::Text ( "Active %hs Range:  %d-%d Hz,  Max: %d Hz",
                 display.vrr.type, display.vrr.min_refresh,
-                  sk::narrow_cast <uint16_t> (ceilf (fFixedRefreshHz)),
+                  sk::narrow_cast <uint16_t> (roundf (fFixedRefreshHz)),
                                   display.vrr.max_refresh );
             }
 
