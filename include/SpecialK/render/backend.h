@@ -307,6 +307,7 @@ public:
     struct signal_info_s {
       char                type [32]            = { };
       UINT                connector_idx        =  0;
+      DWORD               padding              =  0;
 
       struct timing_s {
         UINT64            pixel_clock          =   0ULL;
