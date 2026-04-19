@@ -855,6 +855,7 @@ struct sk_config_t
       bool   ignore_env_vars       = false;
       bool   pace_game_thread      = true;
       bool   precise_short_sleep   = false;
+      bool   boost_composite_clock = false;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;
@@ -1015,6 +1016,7 @@ struct sk_config_t
     bool      confirm_mode_changes =  true;
     bool      save_monitor_prefs   =  true;
     bool      warn_no_mpo_planes   = false;
+    bool      dump_raw_edid        = false;
     struct resolution_s {
       bool           save          =  true;
       bool           applied       = false;

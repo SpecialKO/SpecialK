@@ -982,6 +982,7 @@ struct {
     sk::ParameterBool*    apply_streamline_pacing = nullptr;
     sk::ParameterInt*     streamline_pacing_mode  = nullptr;
     sk::ParameterBool*    ignore_environment_vars = nullptr;
+    sk::ParameterBool*    boost_compositor_clock  = nullptr;
     sk::ParameterBool*    force_vk_mailbox        = nullptr;
     sk::ParameterBool*    force_vk_adaptive       = nullptr;
     sk::ParameterBool*    max_timer_resolution    = nullptr;
@@ -1103,6 +1104,7 @@ struct {
   sk::ParameterFloat*     override_refresh        = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
   sk::ParameterBool*      aspect_ratio_stretch    = nullptr;
+  sk::ParameterBool*      dump_raw_edid           = nullptr;
 } display;
 
 struct {
@@ -2092,6 +2094,7 @@ auto DeclKeybind =
     ConfigEntry (display.multimonitor_focus_mode,        L"Displays black background on all except the game's monitor",dll_ini,         L"Display.Output",        L"MultiMonitorADHDRelief"),
     ConfigEntry (display.multimonitor_focus_is_focused,  L"Whenever the game loses input focus, ADHD mode turns off",  osd_ini,         L"Display.Monitor",       L"MultiMonitorFocusIsFocused"),
     ConfigEntry (display.allow_refresh_change,           L"Allow Current Game to change Refresh Rate",                 dll_ini,         L"Display.Output",        L"AllowRefreshRateChanges"),
+    ConfigEntry (display.dump_raw_edid,                  L"Dump Raw EDID data from NVAPI if supported",                dll_ini,         L"Display.Output",        L"DumpRawEDID"),
 
 
     // Framerate Limiter
@@ -2125,6 +2128,7 @@ auto DeclKeybind =
                                 streamline_pacing_mode,  L"Level of DLSS Frame Gen pacing latency reduction.",         dll_ini,         L"Render.FrameRate",      L"StreamlinePacingMode"),
     ConfigEntry (render.framerate.
                                 ignore_environment_vars, L"Ignore environment variable-defined framerate limits.",     dll_ini,         L"Render.FrameRate",      L"IgnoreEnvironmentVars"),
+    ConfigEntry (render.framerate.boost_compositor_clock,L"Boost Compositor Clock on Windows 11+ (Dynamic Refresh)",   dll_ini,         L"Render.FrameRate",      L"BoostCompositorClock"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Engine",      L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.engine.
@@ -4874,6 +4878,7 @@ auto DeclKeybind =
 
     display.override_refresh->load          (config.display.refresh_rate);
   } display.allow_refresh_change->load      (config.display.allow_refresh_change);
+    display.dump_raw_edid->load             (config.display.dump_raw_edid);
 
   if (config.apis.NvAPI.vulkan_bridge)
   {
@@ -4940,6 +4945,8 @@ auto DeclKeybind =
                                          load (config.render.framerate.streamline.pacing_mode);
   render.framerate.ignore_environment_vars->
                                          load (config.render.framerate.ignore_env_vars);
+  render.framerate.boost_compositor_clock->
+                                         load (config.render.framerate.boost_composite_clock);
 
   // Non-native pacing codepath is broken / being phased-out,
   //   better to just force-enable native limit if pacing mode is not 0.
@@ -7306,6 +7313,7 @@ SK_SaveConfig ( std::wstring name,
   display.save_resolution->store               (config.display.resolution.save);
   display.warn_no_mpo_planes->store            (config.display.warn_no_mpo_planes);
   display.allow_refresh_change->store          (config.display.allow_refresh_change);
+  display.dump_raw_edid->store                 (config.display.dump_raw_edid);
 
   if ((! config.display.resolution.override.isZero ()) || config.display.resolution.save)
   {
@@ -7345,6 +7353,8 @@ SK_SaveConfig ( std::wstring name,
                                        store (config.render.framerate.streamline.pacing_mode);
   render.framerate.ignore_environment_vars->
                                        store (config.render.framerate.ignore_env_vars);
+  render.framerate.boost_compositor_clock->
+                                       store (config.render.framerate.boost_composite_clock);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->

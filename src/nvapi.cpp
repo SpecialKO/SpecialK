@@ -1326,9 +1326,48 @@ SK_RenderBackend_V2::output_s::statistics_s::vblank_history_s::resetStats (void)
   last_polled_time       = 0;
 }
 
+void
+SK_DComp_UpdateStats (const SK_RenderBackend_V2& rb) noexcept
+{
+  if (rb.d3d11.composition != nullptr)
+  {   rb.d3d11.composition->Commit ();
+
+    COMPOSITION_FRAME_ID                                     frameId = 0;
+    DCompositionGetFrameId (COMPOSITION_FRAME_ID_COMPLETED, &frameId);
+
+    UINT                                 targetCount =  0;
+    COMPOSITION_FRAME_STATS              frameStats  = { };
+    DCompositionGetStatistics (frameId, &frameStats, 0, nullptr, &targetCount);
+
+#if 0
+    float fLastFrameRate =
+                  1000.0f /
+      static_cast <float> (
+        static_cast <double> (frameStats.framePeriod) /
+        static_cast <double> (SK_QpcTicksPerMs)
+      );
+
+    DCOMPOSITION_FRAME_STATISTICS                             frameStatistics = {};
+    if (SUCCEEDED (rb.d3d11.composition->GetFrameStatistics (&frameStatistics)))
+    {
+      return
+        static_cast <float> (
+          static_cast <double> (frameStatistics.currentCompositionRate.Numerator) /
+          static_cast <double> (frameStatistics.currentCompositionRate.Denominator)
+        );
+    }
+#endif
+  }
+}
+
 float
 SK_RenderBackend_V2::output_s::statistics_s::vblank_history_s::getVBlankHz (NvU64 tNow) noexcept
 {
+  const auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_DComp_UpdateStats (rb);
+
   NvU32 num_vblanks_in_period = 0;
 
   NvU64 vblank_count_min = UINT64_MAX,
@@ -1381,9 +1420,6 @@ SK_RenderBackend_V2::output_s::statistics_s::vblank_history_s::getVBlankHz (NvU6
   // Keep imaginary numbers out of the data set...
   if (vblank_n - vblank_t0 == 0)
     new_average = 0.0f;
-
-  const auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   const auto& signal_timing =
     rb.displays [rb.active_display].signal.timing;

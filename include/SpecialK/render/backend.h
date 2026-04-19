@@ -32,6 +32,7 @@
 
 // For NVDX_ObjectHandle to emerge as a definition, include this
 #include <d3d9.h>
+#include <dcomp.h>
 
 #include <../depends/include/nvapi/nvapi_lite_common.h>
 #include <../depends/include/nvapi/nvapi.h>
@@ -614,21 +615,11 @@ public:
     SK_ComPtr <ID3D11Device>        device        = nullptr;
                ID3D11DeviceContext* immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
+    SK_ComPtr <IDCompositionDevice> composition   = nullptr;
 
     // Call to forcefully unbind Flip Model resources, as required
     // during SwapChain cleanup.
-    void clearState (void)
-    {
-      // We may have cached textures preventing the destruction of the original
-      //   D3D11 device associated with this SwapChain, so clear those now.
-      SK_D3D11_ResetTexCache ();
-
-      if (immediate_ctx != nullptr)
-      {
-        immediate_ctx->Flush      ();
-        immediate_ctx->ClearState ();
-      }
-    }
+    void clearState (void) noexcept;
   } d3d11;
 
   struct d3d12_s
@@ -649,42 +640,42 @@ public:
   } active_traits;
 
 
-          HRESULT       setDevice (IUnknown* pDevice);
+  HRESULT               setDevice (IUnknown* pDevice);
   template <typename Q>
-          SK_ComPtr <Q> getDevice (void) const
-          {
-            REFIID riid =
-              __uuidof (Q);
+  SK_ComPtr         <Q> getDevice (void) const noexcept
+  {
+    REFIID riid =
+      __uuidof (Q);
 
-            if ( riid == IID_IDirect3DDevice9
-            ||   riid == IID_IDirect3DDevice9Ex
-            ||   riid == IID_ID3D10Device
-            ||   riid == IID_ID3D11Device
-            ||   riid == IID_ID3D12Device      )
-            {
-              Q* pRet = nullptr;
+    if ( riid == IID_IDirect3DDevice9
+    ||   riid == IID_IDirect3DDevice9Ex
+    ||   riid == IID_ID3D10Device
+    ||   riid == IID_ID3D11Device
+    ||   riid == IID_ID3D12Device      )
+    {
+      Q* pRet = nullptr;
 
-              if (device.p != nullptr)
-              {
-                if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet)))
-                {
-                  return pRet;
-                }
-              }
+      if (device.p != nullptr)
+      {
+        if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet)))
+        {
+          return pRet;
+        }
+      }
 
-              return nullptr;
-            }
+      return nullptr;
+    }
 
-            else MessageBeep (0xFFFFFFFF);
+    else MessageBeep (0xFFFFFFFF);
 
-            ///static_assert ( riid == __uuidof (IDirect3DDevice9)   ||
-            ///                riid == __uuidof (IDirect3DDevice9Ex) ||
-            ///                riid == __uuidof (ID3D11Device)       ||
-            ///                riid == __uuidof (ID3D12Device),
-            ///  "Unknown Render Device Class Requested" );
+    ///static_assert ( riid == __uuidof (IDirect3DDevice9)   ||
+    ///                riid == __uuidof (IDirect3DDevice9Ex) ||
+    ///                riid == __uuidof (ID3D11Device)       ||
+    ///                riid == __uuidof (ID3D12Device),
+    ///  "Unknown Render Device Class Requested" );
 
-            return nullptr;
-          }
+    return nullptr;
+  }
 
   struct gsync_s
   { void update (bool force = false);

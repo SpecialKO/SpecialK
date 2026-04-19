@@ -39,6 +39,8 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
 
+#pragma comment (lib, "DComp.lib")
+
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
 
 double
@@ -2395,17 +2397,8 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     SK_HDR_ReleaseResources       ();
     SK_DXGI_ReleaseSRGBLinearizer ();
 
-///#define _USE_FLUSH
-
-    // Flushing at shutdown may cause deadlocks
-#ifdef _USE_FLUSH
-    if (d3d11.immediate_ctx != nullptr) {
-        d3d11.immediate_ctx->Flush      ();
-        d3d11.immediate_ctx->ClearState ();
-    }
-#endif
-    swapchain = nullptr;//.Reset();
-    device    = nullptr;//.Reset();
+    swapchain = nullptr;
+    device    = nullptr;
     factory   = nullptr;
 
     if (surface.d3d9 != nullptr)
@@ -2420,6 +2413,8 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
       surface.nvapi = nullptr;
     }
 
+    d3d11.clearState ();
+    d3d11.composition   = nullptr;
     d3d11.immediate_ctx = nullptr;
     d3d12.command_queue = nullptr;
 
@@ -3661,6 +3656,15 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
         //d3d11.device = pDevice11;
                 device = pDevice;//pDevice11;
                 api    = SK_RenderAPI::D3D11;
+
+          SK_ComQIPtr <IDXGIDevice>
+                       pDXGIDevice (pDevice);
+          if (         pDXGIDevice != nullptr)
+          {
+            DCompositionCreateDevice (pDXGIDevice,
+                    __uuidof (IDCompositionDevice),
+                (void **)&d3d11.composition.p);
+          }
         }
       }
 
@@ -4376,8 +4380,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           }
 
           edid_name =
-            rb.decodeEDIDForName (EDID_Data.get (), sizeofEDID);
-
+            rb.decodeEDIDForName      (EDID_Data.get (), sizeofEDID);
           auto nativeRes =
             rb.decodeEDIDForNativeRes (EDID_Data.get (), sizeofEDID);
 
@@ -4387,18 +4390,22 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             display.native.height = nativeRes.y;
           }
 
-#if 0
-          if (! edid_name.empty ())
+          if (config.display.dump_raw_edid)
           {
-            nvSuppliedEDID = true;
-
-            FILE* fEDID = _wfopen (L"edid_nvapi.dat", L"wb");
-            if (  fEDID != nullptr)
+            if (! edid_name.empty ())
             {
-              fwrite (EDID_Data.get (), sizeofEDID, 1, fEDID);
+              nvSuppliedEDID = true;
+
+              std::wstring fname =
+                SK_FormatStringW (LR"(%ws\edid_%hs_nvapi.dat)", SK_GetConfigPath (),
+                                 edid_name.c_str ());
+              FILE* fEDID = _wfopen (fname.c_str (), L"wb");
+              if (  fEDID != nullptr)
+              {
+                fwrite (EDID_Data.get (), sizeofEDID, 1, fEDID);
+              }
             }
           }
-#endif
         }
       }
     }
@@ -6477,6 +6484,18 @@ SK_Render_CountVBlanks ()
       HANDLE                            vrr_events [] = { __SK_DLL_TeardownEvent, hVRREvent };
       while (WaitForMultipleObjects (2, vrr_events, FALSE, 500UL) != WAIT_OBJECT_0)
       {
+        if (config.render.framerate.boost_composite_clock)
+        {
+          using  DCompositionBoostCompositorClock_pfn = HRESULT (WINAPI *)(BOOL);
+          static DCompositionBoostCompositorClock_pfn
+                _DCompositionBoostCompositorClock = (DCompositionBoostCompositorClock_pfn)
+              SK_GetProcAddress (SK_LoadLibraryW (L"dcomp.dll"),
+                "DCompositionBoostCompositorClock");
+
+          if (_DCompositionBoostCompositorClock != nullptr)
+              _DCompositionBoostCompositorClock (TRUE);
+        }
+
         DXGI_FRAME_STATISTICS
              frameStats = {};
 
@@ -6596,62 +6615,83 @@ SK_Render_CountVBlanks ()
   SetEvent (hVRREvent);
 }
 
-  void
-  SK_RenderBackend_V2::postNewFrameOnThread (SK_TLS *pTLS, bool designated_thread_may_change) noexcept
+void
+SK_RenderBackend_V2::postNewFrameOnThread (SK_TLS *pTLS, bool designated_thread_may_change) noexcept
+{
+  ULONG64 ullFramesPresented =
+    InterlockedIncrement (&pTLS->render->frames_presented);
+
+  static DWORD last_render_thread_ = 0U;
+
+  // D3D11 should always use the most recently active thread
+  //   as the "render thread," D3D12 should use the thread
+  //     that has presented the most frames.
+  const bool render_thread_popularity_based =
+                  nullptr != d3d11.immediate_ctx ||
+    SK_API_IsLayeredOnD3D11 (api);
+
+
+  if (designated_thread_may_change)
   {
-    ULONG64 ullFramesPresented =
-      InterlockedIncrement (&pTLS->render->frames_presented);
-
-    static DWORD last_render_thread_ = 0U;
-  
-    // D3D11 should always use the most recently active thread
-    //   as the "render thread," D3D12 should use the thread
-    //     that has presented the most frames.
-    const bool render_thread_popularity_based =
-                    nullptr != d3d11.immediate_ctx ||
-      SK_API_IsLayeredOnD3D11 (api);
-  
-
-    if (designated_thread_may_change)
+    if (render_thread_popularity_based)
     {
-      if (render_thread_popularity_based)
+      if (ullFramesPresented > most_frames)
       {
-        if (ullFramesPresented > most_frames)
-        {
-          InterlockedExchange ( &most_frames,
-                                   ullFramesPresented );
-        }
-
-        InterlockedExchange ( &thread,
-                            SK_Thread_GetCurrentId () );
-
-        InterlockedExchange ( &last_thread,
-                                 SK_Thread_GetCurrentId () );
+        InterlockedExchange ( &most_frames,
+                                 ullFramesPresented );
       }
-    }
 
-    // One and done, this thread designation is never allowed to change
-    //   after we establish it on the first frame presented...
-    else if (! ReadULongAcquire (&thread))
-    {
       InterlockedExchange ( &thread,
                           SK_Thread_GetCurrentId () );
-    }
 
-    if (thread != last_render_thread_)
+      InterlockedExchange ( &last_thread,
+                               SK_Thread_GetCurrentId () );
+    }
+  }
+
+  // One and done, this thread designation is never allowed to change
+  //   after we establish it on the first frame presented...
+  else if (! ReadULongAcquire (&thread))
+  {
+    InterlockedExchange ( &thread,
+                        SK_Thread_GetCurrentId () );
+  }
+
+  if (thread != last_render_thread_)
+  {
+    static            int render_thread_changes = 0;
+    static auto constexpr MaxThreadChangesToLog = 5;
+
+    if (last_render_thread_ != 0 &&
+             render_thread_changes++ < MaxThreadChangesToLog)
     {
-      static            int render_thread_changes = 0;
-      static auto constexpr MaxThreadChangesToLog = 5;
-
-      if (last_render_thread_ != 0 &&
-               render_thread_changes++ < MaxThreadChangesToLog)
-      {
-        SK_LOGi0 (L"Render thread has changed to %zu", thread);
-      }
-
-      last_render_thread_ = thread;
+      SK_LOGi0 (L"Render thread has changed to %zu", thread);
     }
 
-    // Unused on various codepaths
-    std::ignore = ullFramesPresented;
-  };
+    last_render_thread_ = thread;
+  }
+
+  // Unused on various codepaths
+  std::ignore = ullFramesPresented;
+};
+
+// Call to forcefully unbind Flip Model resources, as required
+// during SwapChain cleanup.
+void
+SK_RenderBackend_V2::d3d11_s::clearState (void) noexcept
+{
+  // We may have cached textures preventing the destruction of the original
+  //   D3D11 device associated with this SwapChain, so clear those now.
+  SK_D3D11_ResetTexCache ();
+
+  const auto& parent =
+    SK_GetCurrentRenderBackend ();
+
+  // Only attempt this on the thread actively presenting frames.
+  if (immediate_ctx != nullptr &&
+      parent.thread == SK_GetCurrentThreadId ())
+  {
+    immediate_ctx->ClearState ();
+    immediate_ctx->Flush      ();
+  }
+}
