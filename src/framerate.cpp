@@ -2711,8 +2711,9 @@ SK::Framerate::Limiter::wait (void)
         }
       } static latency_avg;
 
-      latency_avg.input_min [latency_avg.frames   % _MIN_FRAMES] =
-      latency_avg.input_max [latency_avg.frames++ % _MAX_FRAMES] =
+      // Assignments are evaluated right to left!
+      latency_avg.input_min [latency_avg.frames++ % _MIN_FRAMES] =
+      latency_avg.input_max [latency_avg.frames   % _MAX_FRAMES] =
         (1000.0 / get_limit           ()) -
                   effective_frametime ();
 
