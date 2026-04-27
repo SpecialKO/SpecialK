@@ -991,15 +991,39 @@ SK_ImGui_DrawConfig_Latency ()
     }
   }
 
+  static const bool smooth_motion =
+    SK_RunLHIfBitness (64, SK_IsModuleLoaded (L"NvPresent64.dll"),
+                           SK_IsModuleLoaded (L"NvPresent.dll"));
+
+  if (bPartialReflexSupport && smooth_motion)
+  {
+    ImGui::BeginGroup  ();
+    ImGui::TextColored (ImVec4 (0.95f, .1f, .1f, 1.f),
+      "Reflex Low Latency Mode is Unavilable");
+
+    ImGui::BulletText  (
+      "Game is using NVIDIA Smooth Motion and incompatible with Reflex.");
+    ImGui::EndGroup    ();
+
+    show_mode_select = false;
+  }
+
   if (show_mode_select)
   {
-    if (bPartialReflexSupport && config.nvidia.reflex.vulkan_supported != true)
+    if (bPartialReflexSupport)
     {
       ImGui::BeginGroup  ();
       ImGui::TextColored (ImVec4 (0.95f, .1f, .1f, 1.f),
         "Reflex Low Latency Mode is Unavilable");
-      ImGui::BulletText  (
-        "Game is not using vkCreateSwapchainKHR and/or lacks support for VK_NV_low_latency2");
+
+      static const bool vulkan =
+        SK_IsModuleLoaded (L"vulkan-1.dll");
+
+      if (vulkan && config.nvidia.reflex.vulkan_supported != true)
+      {
+        ImGui::BulletText  (
+          "Game is not using vkCreateSwapchainKHR and/or lacks support for VK_NV_low_latency2");
+      }
       ImGui::EndGroup    ();
     }
 

@@ -1,4 +1,8 @@
-﻿26.4.25
+﻿26.4.26
+=======
+ + Hide NVIDIA Reflex settings when NVIDIA Smooth Motion is active in D3D11.
+
+26.4.25
 =======
  + Improved support for NVIDIA Smooth Motion in D3D11 games.
 

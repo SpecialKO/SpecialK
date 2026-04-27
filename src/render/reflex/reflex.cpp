@@ -782,7 +782,11 @@ SK_RenderBackend_V2::isReflexSupported (void) const noexcept
       return (_supported != 0 || config.nvidia.reflex.vulkan);
   }
 
-  bool supported =
+  static const bool is_smooth_motion =
+    SK_RunLHIfBitness (64, SK_IsModuleLoaded (L"NvPresent64.dll"),
+                           SK_IsModuleLoaded (L"NvPresent.dll"));
+
+  const bool supported = ((! is_smooth_motion) || SK_API_IsLayeredOnD3D12 (api)) &&
     sk::NVAPI::nv_hardware && ( ( SK_API_IsDXGIBased (api) && SK_GL_OnD3D11 )                      ||
                                 ( SK_API_IsDXGIBased (api) &&
         SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE ) ||
