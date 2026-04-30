@@ -1,4 +1,9 @@
-﻿26.4.26
+﻿26.4.30
+=======
+ + Avoid sending empty search queries to PCGW when searching for equivalent Steam
+     app for a given named title.
+
+26.4.26
 =======
  + Hide NVIDIA Reflex settings when NVIDIA Smooth Motion is active in D3D11.
 

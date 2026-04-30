@@ -1660,11 +1660,15 @@ SK::EOS::AppName (void)
 
       if (config.platform.equivalent_steam_app == -1)
       {
+        std::wstring search_string =
+          SK_Network_MakeEscapeSequencedURL (SK_Platform_RemoveTrademarkSymbols (SK_UTF8ToWideChar (szDisplayName)));
+
         std::wstring url =
           SK_FormatStringW (
-            LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", SK_Network_MakeEscapeSequencedURL (SK_Platform_RemoveTrademarkSymbols (SK_UTF8ToWideChar (szDisplayName))).c_str ()
+            LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", search_string.c_str ()
           );
 
+        if (! search_string.empty ())
         SK_Network_EnqueueDownload (
           sk_download_request_s (L"pcgw_entry.html", url.data (),
             []( const std::vector <uint8_t>&& data,
