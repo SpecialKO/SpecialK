@@ -1,4 +1,8 @@
-﻿26.4.30
+﻿26.4.30.1
+=========
+ + Add Special K's version number to the user agent for HTTPS requests.
+
+26.4.30
 =======
  + Avoid sending empty search queries to PCGW when searching for equivalent Steam
      app for a given named title.

@@ -296,7 +296,7 @@ SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
                     hInetHost        = nullptr,
           hInetRoot                  =
             InternetOpen (
-              L"Special K - Asset Crawler",
+              SK_FormatStringW (L"Special K - Asset Crawler/%ws", SK_VersionStrW).c_str (),
                 INTERNET_OPEN_TYPE_DIRECT,
                   nullptr, nullptr,
                     0x00
