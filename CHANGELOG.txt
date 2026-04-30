@@ -1,4 +1,11 @@
-﻿26.4.30.2
+﻿26.4.31
+=======
+ + Remove SK version number from HTTPS user agent string for all non-PCGW requests, because
+     various existing services do not expect that additional info in the string.
+ + Use gamesdb.gog.com instead of PCGW to resolve Steam AppIDs for Epic games.
+ + Use a more complicated PCGW query for non-Epic/non-GOG games to avoid HTTP 500.
+
+26.4.30.2
 =========
  + Added support for NVIDIA's undocumented NvAPI_DRS_SetSettingEx and
      NvAPI_DRS_GetSettingEx functions.

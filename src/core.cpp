@@ -54,6 +54,7 @@
 #include <imgui/font_awesome.h>
 
 #include <filesystem>
+#include <json/json.hpp>
 
 
 #ifdef _WIN64
@@ -3732,38 +3733,107 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
         if (config.platform.equivalent_steam_app == -1)
         {
-          SK_RunOnce (
-            auto appname =
-              SK_GetFriendlyAppName ();
+          auto appname =
+            SK_GetFriendlyAppName ();
 
+          // Holy crap this is a mess; would use gamesdb.gog.com, but it is unclear how it
+          //   generates "xboxone" (Microsoft Store) ids.
+          if (! appname.empty ())
+          SK_RunOnce (
             std::wstring search_string =
               SK_Network_MakeEscapeSequencedURL (SK_Platform_RemoveTrademarkSymbols (SK_UTF8ToWideChar (appname)));
 
-            std::wstring url =
+            std::wstring url0 =
               SK_FormatStringW (
-                LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", search_string.c_str ()
+                LR"(https://www.pcgamingwiki.com/w/api.php?action=opensearch&format=json&redirects=resolve&search=%ws)", search_string.c_str ()
               );
 
             if (! search_string.empty ())
             SK_Network_EnqueueDownload (
-              sk_download_request_s (L"pcgw_entry.html", url.data (),
+              sk_download_request_s (L"api.php", url0.data (),
                 []( const std::vector <uint8_t>&& data,
-                    const std::wstring_view       file )
+                    const std::wstring_view )
                 {
                   if (data.empty ())
                     return true;
 
-                  std::ignore = file;
+                  static SK_LazyGlobal <nlohmann::json> json;
 
-                  auto steamdb_appid =
-                    StrStrIA ((const char *)data.data (), "https://steamdb.info/app/");
+                  static std::wstring redirected_url = L"";
 
-                  if (steamdb_appid != nullptr)
-                  {
-                    if (1 != sscanf (steamdb_appid, "https://steamdb.info/app/%d/", &config.platform.equivalent_steam_app))
+                  try {
+                    json.get () = std::move
+                      ( nlohmann::json::parse
+                        ( data.cbegin (),
+                            data.cend (),
+                                 nullptr,
+                                 true   )  );
+
+                    for (const auto& text : json.get ())
                     {
-                      config.platform.equivalent_steam_app = 0;
+                      if (text.is_array ())
+                      {
+                        for (const auto& entry : text)
+                        {
+                          if (entry.is_string ())
+                          {
+                            redirected_url =
+                              SK_FormatStringW (
+                                LR"(https://www.pcgamingwiki.com/w/api.php?action=parse&format=xml&redirects=1&prop=wikitext&page=%hs)",
+                                  entry.get <std::string> ().c_str ()
+                              );
+
+                            break;
+                          }
+                        }
+
+                        break;
+                      }
                     }
+                  }
+
+                  catch (const std::exception& e)
+                  {
+                    SK_LOGi0 (L"JSON Parse Failure: %hs", e.what ());
+                  }
+
+                  if (! redirected_url.empty ())
+                  {
+                    SK_Network_EnqueueDownload (
+                      sk_download_request_s (L"api.php", redirected_url.data (),
+                        []( const std::vector <uint8_t>&& data,
+                            const std::wstring_view )
+                        {
+                          if (data.empty ())
+                            return true;
+
+                          std::string data_str (
+                                      data.begin (), data.end () );
+
+                          SK_LOGi1 (L"PCGW Query Response for URL %ws: %hs", redirected_url.c_str (),
+                                                                                   data_str.c_str ());
+
+                          auto steam_appid =
+                            StrStrIA (data_str.c_str (), "|steam appid ");
+
+                          steam_appid = steam_appid == nullptr ?
+                                                       nullptr :
+                              StrStrIA (steam_appid, "= ");
+
+                          if (steam_appid != nullptr)
+                          {
+                            if (1 != sscanf (steam_appid + 1, "%d", &config.platform.equivalent_steam_app))
+                            {
+                              config.platform.equivalent_steam_app = 0;
+                            }
+                          }
+
+                          config.utility.save_async ();
+
+                          return true;
+                        } ),
+                      false
+                    );
                   }
 
                   return true;
