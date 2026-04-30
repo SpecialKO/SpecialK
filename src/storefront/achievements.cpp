@@ -296,7 +296,12 @@ SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
                     hInetHost        = nullptr,
           hInetRoot                  =
             InternetOpen (
-              SK_FormatStringW (L"Special K - Asset Crawler/%ws", SK_VersionStrW).c_str (),
+              // Add the version number to the agent for PCGW queries, but leave it out
+              //   for others since the exact agent string is used for filtering on
+              //     some servers.
+              StrStrIW (download.wszHostName, L"www.pcgamingwiki.com") ?
+              SK_FormatStringW (L"Special K - Asset Crawler/%ws", SK_VersionStrW).c_str () :
+                                L"Special K - Asset Crawler",
                 INTERNET_OPEN_TYPE_DIRECT,
                   nullptr, nullptr,
                     0x00
