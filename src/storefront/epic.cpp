@@ -25,6 +25,8 @@
 #include <storefront/epic.h>
 #include <storefront/achievements.h>
 
+#include <json/json.hpp>
+
 #include "EOS/eos_auth.h"
 
 #ifdef  __SK_SUBSYSTEM__
@@ -1660,17 +1662,13 @@ SK::EOS::AppName (void)
 
       if (config.platform.equivalent_steam_app == -1)
       {
-        std::wstring search_string =
-          SK_Network_MakeEscapeSequencedURL (SK_Platform_RemoveTrademarkSymbols (SK_UTF8ToWideChar (szDisplayName)));
-
         std::wstring url =
           SK_FormatStringW (
-            LR"(https://www.pcgamingwiki.com/w/index.php?search=%ws)", search_string.c_str ()
+            LR"(https://gamesdb.gog.com/platforms/epic/external_releases/%hs)", szEpicApp
           );
 
-        if (! search_string.empty ())
         SK_Network_EnqueueDownload (
-          sk_download_request_s (L"pcgw_entry.html", url.data (),
+          sk_download_request_s (L"api.php", url.data (),
             []( const std::vector <uint8_t>&& data,
                 const std::wstring_view       file )
             {
@@ -1679,16 +1677,46 @@ SK::EOS::AppName (void)
 
               std::ignore = file;
 
-              auto steamdb_appid =
-                StrStrIA ((const char *)data.data (), "https://steamdb.info/app/");
+              static SK_LazyGlobal <nlohmann::json> json;
 
-              if (steamdb_appid != nullptr)
-              {
-                if (1 != sscanf (steamdb_appid, "https://steamdb.info/app/%d/", &config.platform.equivalent_steam_app))
+              int32_t appid = 0;
+
+              try {
+                json.get () = std::move
+                  ( nlohmann::json::parse
+                    ( data.cbegin (),
+                        data.cend (),
+                             nullptr,
+                             true   )  );
+
+                const auto& game_ =
+                  json.get ()["game"];
+
+                for (const auto& release : game_ ["releases"])
                 {
-                  config.platform.equivalent_steam_app = 0;
+                  if (release.count ("platform_id"))
+                  {
+                    if (release ["platform_id"].get <std::string>() == "steam")
+                    {
+                      if (release.count ("external_id"))
+                      {
+                        if (1 == sscanf (release ["external_id"].get <std::string> ().c_str (), "%d", &appid))
+                        {
+                          config.platform.equivalent_steam_app = appid;
+                          break;
+                        }
+                      }
+                    }
+                  }
                 }
               }
+
+              catch (const std::exception& e)
+              {
+                SK_LOGi0 (L"JSON Parse Failure: %hs", e.what ());
+              }
+
+              config.utility.save_async ();
 
               return true;
             } ),
