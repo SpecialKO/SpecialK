@@ -74,6 +74,14 @@ struct NVAPI_ThreadSafety {
 SK_LazyGlobal <NVAPI_ThreadSafety> SK_NvAPI_Threading;
 
 
+//NvAPI_DRS_SetSetting
+//
+using NvAPI_DRS_SetSettingEx_pfn = NvAPI_Status (__cdecl *)(NvDRSSessionHandle hSession, NvDRSProfileHandle hProfile,                  NVDRS_SETTING *pSetting, uintptr_t unknown0, uintptr_t unknown1);
+using NvAPI_DRS_GetSettingEx_pfn = NvAPI_Status (__cdecl *)(NvDRSSessionHandle hSession, NvDRSProfileHandle hProfile, NvU32 settingId, NVDRS_SETTING *pSetting, uintptr_t unknown0);
+
+static NvAPI_DRS_SetSettingEx_pfn NvAPI_DRS_SetSettingEx = nullptr;
+static NvAPI_DRS_GetSettingEx_pfn NvAPI_DRS_GetSettingEx = nullptr;
+
 using namespace sk;
 using namespace sk::NVAPI;
 
@@ -446,6 +454,13 @@ __cdecl
 NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                                          NV_HDR_CAPABILITIES *pHdrCapabilities )
 {
+  // Don't want to deal with this before SK is fully initialized.
+  if (! __SK_Init)
+  {
+    return
+      NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
+  }
+
   SK_LOG_FIRST_CALL
 
   SK_PROFILE_SCOPED_TASK (HOOKED_API__NvAPI_Disp_GetHdrCapabilities)
@@ -2134,6 +2149,11 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
           SK_GetProcAddress (hLib, "nvapi_QueryInterface")
         );
 
+      NvAPI_DRS_SetSettingEx =
+        (NvAPI_DRS_SetSettingEx_pfn)NvAPI_QueryInterface          (0x8A2CF5F5u);
+      NvAPI_DRS_GetSettingEx =                                    
+        (NvAPI_DRS_GetSettingEx_pfn)NvAPI_QueryInterface          (0xEA99498Du);
+
       NvAPI_GPU_GetRamType =
         (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAACu);
       NvAPI_GPU_GetFBWidthAndLocation =
@@ -2856,16 +2876,175 @@ sk::NVAPI::SetFramerateLimit (uint32_t limit)
 
 BOOL SK_NvAPI_IsSmoothingMotion (void)
 {
-  if (SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"NvPresent64.dll",
-                                                  L"NvPresent.dll")) != 0)
+  if (SK_IsModuleLoaded (SK_RunLHIfBitness (64, L"NvPresent64.dll",
+                                                L"NvPresent.dll")) != 0)
   {
     return TRUE;
   }
 
-  else
-  {
+  SK_RunOnce (sk::NVAPI::InitializeLibrary (SK_GetFullyQualifiedApp ()));
+
+  if ((! nv_hardware) || NvAPI_DRS_GetSettingEx == nullptr)
     return FALSE;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // This is a status check only, if no profile exists, do not create one.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVAPI_CALL (DRS_GetBaseProfile (hSession, &hProfile));
+
+    if (ret != NVAPI_OK)
+    {
+      NVAPI_CALL (DRS_DestroySession (hSession));
+      return FALSE;
+    }
   }
+
+  NVDRS_SETTING smooth_motion_enable         = {               };
+                smooth_motion_enable.version = NVDRS_SETTING_VER;
+
+  static constexpr auto SMOOTH_MOTION_ENABLE_ID = 0xB0D384C0;
+
+  NvU32 unknown = 0;
+  //// These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_GetSettingEx (hSession, hProfile, SMOOTH_MOTION_ENABLE_ID, &smooth_motion_enable, (uintptr_t)&unknown));
+  NVAPI_VERBOSE ();
+
+  //SK_LOGi0 (L"Smooth Motion: %x", smooth_motion_enable.u32CurrentValue);
+
+  BOOL bRet =
+   ( smooth_motion_enable.u32CurrentValue != 0 )
+                                          ? TRUE
+                                          : FALSE;
+
+  if (bRet)
+  {
+    // Smooth Motion requires this
+    config.nvidia.dlss.allow_flip_metering = true;
+  }
+
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return bRet;
+}
+
+BOOL SK_NvAPI_SetSmoothMotion (BOOL bEnable)
+{
+  if (! nv_hardware)
+    return -2;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession),                 ret);
+    }
+  }
+
+  NVDRS_SETTING smooth_motion_enable         = {               };
+                smooth_motion_enable.version = NVDRS_SETTING_VER;
+
+  static constexpr auto                  SMOOTH_MOTION_ENABLE_ID = 0xB0D384C0;
+  smooth_motion_enable.settingId       = SMOOTH_MOTION_ENABLE_ID;
+  smooth_motion_enable.u32CurrentValue = bEnable ? 1 : 0;
+
+  //// These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_SetSettingEx (hSession, hProfile, &smooth_motion_enable, (uintptr_t)0, (uintptr_t)0));
+  NVAPI_VERBOSE ();
+
+  BOOL bRet =
+   ( smooth_motion_enable.u32CurrentValue != 0 ?
+                                          TRUE : FALSE );
+
+  NVAPI_CALL (DRS_SaveSettings   (hSession));
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return bRet;
 }
 
 BOOL SK_NvAPI_GetVRREnablement (void)

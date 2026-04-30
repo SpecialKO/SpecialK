@@ -279,6 +279,9 @@ SK_NvAPI_D3D_SetReflexSync ( __in IUnknown                  *pDev,
 
 bool SK_Reflex_SetupReflexSync (IUnknown* pDev);
 
+BOOL SK_NvAPI_IsSmoothingMotion (void);
+BOOL SK_NvAPI_SetSmoothMotion   (BOOL bEnable);
+
 SK_NvAPI_DeclareOrdinal (NvAPI_D3D_GetSleepStatus,             0xaef96ca1)
 SK_NvAPI_DeclareOrdinal (NvAPI_D3D_SetSleepMode,               0xac1ca9e0)
 SK_NvAPI_DeclareOrdinal (NvAPI_D3D_Sleep,                      0x852cd1d2)

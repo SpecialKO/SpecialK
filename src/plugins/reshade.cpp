@@ -23,6 +23,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/plugin/reshade.h>
+#include <SpecialK/nvapi.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
 BOOL SK_Framerate_ValidateSwapChain (IUnknown *pSwapChain_);
@@ -244,7 +245,7 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
   if (ReadAcquire (&__SK_DLL_Ending) || runtime == nullptr)
     return;
 
-  bool bSmoothMotion =
+  bool bSmoothMotion = SK_NvAPI_IsSmoothingMotion () ||
     SK_RunLHIfBitness (64, SK_IsModuleLoaded (L"NvPresent64.dll"),
                            SK_IsModuleLoaded (L"NvPresent.dll"));
   if (bSmoothMotion){
@@ -1518,6 +1519,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
       reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
 
       bool bSmoothMotion =
+        SK_NvAPI_IsSmoothingMotion () ||
         SK_RunLHIfBitness (64, SK_IsModuleLoaded (L"NvPresent64.dll"),
                                SK_IsModuleLoaded (L"NvPresent.dll"));
 
