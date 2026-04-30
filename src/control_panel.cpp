@@ -3297,6 +3297,9 @@ SK_NV_GSYNCControlPanel ()
       static bool bEnableFastSync =
              SK_NvAPI_GetFastSync ();
 
+      static bool bEnableSmoothMotion =
+             SK_NvAPI_IsSmoothingMotion ();
+
       bool bEnableGSync =
         (! rb.gsync_state.disabled.for_app);
 
@@ -3317,6 +3320,15 @@ SK_NV_GSYNCControlPanel ()
       if (ImGui::Checkbox ("Enable NVIDIA FastSync in this Game", &bEnableFastSync))
       {
         SK_NvAPI_SetFastSync (bEnableFastSync);
+
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::SetItemTooltip ("Requires a Game Restart");
+
+      if (ImGui::Checkbox ("Enable NVIDIA Smooth Motion in this Game", &bEnableSmoothMotion))
+      {
+        SK_NvAPI_SetSmoothMotion (bEnableSmoothMotion);
 
         ImGui::CloseCurrentPopup ();
       }

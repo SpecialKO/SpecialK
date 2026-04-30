@@ -1,4 +1,12 @@
-﻿26.4.30.1
+﻿26.4.30.2
+=========
+ + Added support for NVIDIA's undocumented NvAPI_DRS_SetSettingEx and
+     NvAPI_DRS_GetSettingEx functions.
+ + Added option to enable/disable Smooth Motion in a game by right-clicking the
+     section of the control panel dedicated to VRR/FastSync.
+    * Sorry, no idea where else to put this setting, lol.
+
+26.4.30.1
 =========
  + Add Special K's version number to the user agent for HTTPS requests.
 
