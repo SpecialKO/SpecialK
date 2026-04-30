@@ -583,7 +583,8 @@ bool WaitForInitDXGI (DWORD dwTimeout)
     return true;
 
   // Waiting while Streamline has plugins loaded would deadlock us in local injection
-  if (SK_IsModuleLoaded (L"sl.common.dll") || SK_NvAPI_IsSmoothingMotion ())
+  if (SK_IsModuleLoaded (L"sl.common.dll") || SK_RunLHIfBitness (64, SK_IsModuleLoaded (L"NvPresent64.dll"),
+                                                                     SK_IsModuleLoaded (L"NvPresent.dll")))
   {
     SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready, 250UL);
   }
@@ -6069,11 +6070,8 @@ SK_DXGI_CreateSwapChain_PostInit (
                              SK_IsModuleLoaded (L"NvPresent.dll")))
   {
     // Fixes Kingdom Come: Deliverance support, but breaks almost everything else.
-    if (SK_IsCurrentGame (SK_GAME_ID::KingdomComeDeliverance))
-    {
-      dummy_window |=
-        (_wcsicmp (wszClass, L"InvisibleWindowClassNvPresent") == 0);
-    }
+    //dummy_window |=
+    //  (_wcsicmp (wszClass, L"InvisibleWindowClassNvPresent") == 0);
   }
 
   if (! dummy_window)
@@ -8913,7 +8911,11 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   {
     SK_RunOnce (
       SK_ImGui_WarningWithTitle (
-        L"Smooth Motion support is experimental in the current version of Special K",
+        //SK_ReShade_IsLocalDLLPresent () && config.reshade.allow_runtime_tracking &&
+        //                                  !config.reshade.allow_unsafe_addons     ?
+        //  L"Smooth Motion support is experimental in the current version of Special K\n\n"
+        //    L"You may need to set AllowRuntimeTracking=false in [ReShade.System]" :
+          L"Smooth Motion support is experimental in the current version of Special K",
         L"NVIDIA Smooth Motion Detected"
       );
     );
@@ -10017,8 +10019,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   if (ReadAcquire (&hooked) != FALSE)
     return;
 
-  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll") ||
-                              SK_NvAPI_IsSmoothingMotion ();
+  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <IDXGISwapChain> pSwapChain;
 
@@ -10231,8 +10232,7 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
   if (ReadAcquire (&hooked) != FALSE)
     return;
 
-  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll") ||
-                              SK_NvAPI_IsSmoothingMotion ();
+  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <IDXGIDevice1> pDevice;
 
@@ -10388,8 +10388,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
 
   SK_GetDXGIFactoryInterfaceVer (pProxyFactory);
 
-  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll") ||
-                              SK_NvAPI_IsSmoothingMotion ();
+  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <IDXGIFactory> pFactory;
 
@@ -10730,8 +10729,7 @@ HookDXGI (LPVOID user)
 
 
     bool    bHookSuccess   = false;
-    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll") ||
-                             SK_NvAPI_IsSmoothingMotion ();
+    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
     HRESULT hr             = E_NOTIMPL;
 
     SK_ComPtr <IDXGIAdapter>
@@ -10818,7 +10816,7 @@ HookDXGI (LPVOID user)
 
     // Probably better named Nixxes mode, what a pain :(
     const bool bStreamlineMode =
-      config.compatibility.init_sync_for_streamline || SK_NvAPI_IsSmoothingMotion ();
+      config.compatibility.init_sync_for_streamline;
 
     const bool bReShadeMode =
       (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
@@ -10844,7 +10842,7 @@ HookDXGI (LPVOID user)
       //// Favor this codepath because it bypasses many things like ReShade, but
       ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
       if (D3D11CoreCreateDevice != nullptr && ((! ( SK_IsModuleLoaded (L"vulkan-1.dll") ||
-                                                   (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded ((L"EOSOVH-Win64-Shipping.dll"))))) || SK_NvAPI_IsSmoothingMotion ()))
+                                                   (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded ((L"EOSOVH-Win64-Shipping.dll")))))))
       {
         hr =
           D3D11CoreCreateDevice (
@@ -11977,7 +11975,8 @@ SK_DXGI_QuickHook (void)
       __SK_DisableQuickHook = TRUE;
     }
 
-    if ( SK_IsModuleLoaded (L"sl.interposer.dll") || SK_NvAPI_IsSmoothingMotion () )
+    if ( SK_IsModuleLoaded (L"sl.interposer.dll") ||  SK_RunLHIfBitness (64, SK_IsModuleLoaded (L"NvPresent64.dll"),
+                                                                             SK_IsModuleLoaded (L"NvPresent.dll")) )
     {
       SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");
 
