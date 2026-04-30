@@ -4053,9 +4053,20 @@ RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
 
       if (! bClearSetting)
       {
-        NVAPI_CALL    (DRS_GetSetting   (hSession, hProfile, dwSettingID, &setting));
-        NVAPI_SET_DWORD (setting,                            dwSettingID, dwSettingVal);
-        NVAPI_CALL    (DRS_SetSetting   (hSession, hProfile,              &setting));
+        if (NvAPI_DRS_SetSettingEx != nullptr)
+        {
+          uintptr_t x;
+          NVAPI_CALL    (DRS_GetSettingEx   (hSession, hProfile, dwSettingID, &setting, (uintptr_t)&x));
+          NVAPI_SET_DWORD (setting,                            dwSettingID, dwSettingVal);
+          NVAPI_CALL    (DRS_SetSettingEx   (hSession, hProfile,              &setting, 0, 0));
+        }
+
+        else
+        {
+          NVAPI_CALL    (DRS_GetSetting   (hSession, hProfile, dwSettingID, &setting));
+          NVAPI_SET_DWORD (setting,                            dwSettingID, dwSettingVal);
+          NVAPI_CALL    (DRS_SetSetting   (hSession, hProfile,              &setting));
+        }
       }
 
       else
