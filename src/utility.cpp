@@ -6114,3 +6114,59 @@ InstructionSet::deferredInit  (void)
     CPU_Rep = std::make_unique <InstructionSet_Internal> ()
   );
 }
+
+
+std::optional <wchar_t*>
+SK_AppX_GetCurrentPackageFamilyName (void)
+{
+  static wchar_t wszPackageFamilyName [512] = {};
+
+  SK_RunOnce (
+    // (Windows 8+)
+    using GetCurrentPackageId_pfn =
+      LONG (WINAPI *)(IN OUT UINT32*, OUT OPTIONAL BYTE*);
+    using PackageFamilyNameFromId_pfn =
+      LONG (WINAPI *)(const PACKAGE_ID*, UINT32*, PWSTR);
+
+    static GetCurrentPackageId_pfn
+        SK_GetCurrentPackageId =
+          (GetCurrentPackageId_pfn)GetProcAddress (LoadLibraryEx (L"kernel32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+          "GetCurrentPackageId");
+
+    static PackageFamilyNameFromId_pfn
+        SK_PackageFamilyNameFromId =
+          (PackageFamilyNameFromId_pfn)GetProcAddress (LoadLibraryEx (L"kernel32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+          "PackageFamilyNameFromId");
+
+    if (SK_GetCurrentPackageId != nullptr && SK_PackageFamilyNameFromId != nullptr)
+    {
+      std::vector <uint8_t>    pkg_id_buffer (sizeof (PACKAGE_ID));
+      UINT32                   pkg_id_size =  sizeof (PACKAGE_ID);
+      SK_GetCurrentPackageId (&pkg_id_size, nullptr);
+
+      pkg_id_size = std::max (pkg_id_size, (UINT32)256);
+      do {
+        pkg_id_buffer.resize (pkg_id_size);
+
+        if ( ERROR_INSUFFICIENT_BUFFER !=
+               SK_GetCurrentPackageId (&pkg_id_size, pkg_id_buffer.data ()) )
+        {
+          break;
+        }
+
+        pkg_id_size *= 2;
+      } while (pkg_id_size < 8192);
+
+      UINT32  uiPackageFamilyNameSize = 511;
+
+      SK_PackageFamilyNameFromId (
+        (PACKAGE_ID *)pkg_id_buffer.data (),
+          &uiPackageFamilyNameSize,
+            wszPackageFamilyName
+      );
+    }
+  );
+
+  return wszPackageFamilyName [0] != L'\0'    ?
+    std::make_optional (wszPackageFamilyName) : std::nullopt;
+}

@@ -25,6 +25,7 @@
 #define __SK__UTILITY_H__
 
 #include <SpecialK/log.h>
+#include <optional>
 
 BOOL SK_IsHandleValid   (HANDLE hHandle);
 BOOL SK_SafeCloseHandle (HANDLE hHandle) noexcept;
@@ -343,6 +344,8 @@ extern BOOL WINAPI  SK_TerminateProcesses ( const wchar_t*  wszProcName,
 extern void __cdecl SK__endthreadex       ( _In_  unsigned _ReturnCode ) noexcept;
  
 char* SK_CharNextA (const char *szInput, int n = 1);
+
+std::optional <wchar_t *> SK_AppX_GetCurrentPackageFamilyName (void);
 
 static inline wchar_t*
 SK_CharNextW (const wchar_t *wszInput, size_t n = 1) noexcept
