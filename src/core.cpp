@@ -3421,6 +3421,18 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     case 0:
     {
+      // By the first frame drawn, we probably have a friendlier
+      //   app name to report to NVAPI, so set it now if we can.
+      //
+      // This helps make any necessary driver profiles easier for
+      //   users to find using other tools.
+      SK_NvAPI_SetAppFriendlyName (
+        SK_UTF8ToWideChar (SK_GetFriendlyAppName ()).c_str ()
+      );
+
+      //void SK_NVAPI_DumpProfileSettings (void);
+      //     SK_NVAPI_DumpProfileSettings ();
+
       ActivateWindow (game_window.hWnd, SK_GetForegroundWindow () == game_window.hWnd);
 
       // Notify anything that was waiting for injection into this game
@@ -3733,7 +3745,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
         if (config.platform.equivalent_steam_app == -1)
         {
-          auto appname =
+          static auto appname =
             SK_GetFriendlyAppName ();
 
           // Holy crap this is a mess; would use gamesdb.gog.com, but it is unclear how it

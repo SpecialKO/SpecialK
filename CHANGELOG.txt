@@ -1,7 +1,18 @@
-﻿26.4.31
+﻿26.5.3
+======
+ + Added support for NVIDIA driver profile creation for Microsoft Store games.
+ + Remove orphaned applications assigned to the 'Base Profile' driver profile
+     that otherwise makes it impossible to set driver settings using NVIDIA
+       Profile Inspector or NVIDIA's own apps in Microsoft Store games.
+
+   * To have SK generate driver profiles for Microsoft Store games, it is easiest
+       to right-click the VRR status text in SK's control panel and toggle
+         one of the options (i.e. turn Smooth Motion on and back off)...
+
+26.4.31
 =======
- + Remove SK version number from HTTPS user agent string for all non-PCGW requests, because
-     various existing services do not expect that additional info in the string.
+ + Remove SK version number from HTTPS user agent string for all non-PCGW requests,
+     because various existing services do not expect that additional info.
  + Use gamesdb.gog.com instead of PCGW to resolve Steam AppIDs for Epic games.
  + Use a more complicated PCGW query for non-Epic/non-GOG games to avoid HTTP 500.
 
