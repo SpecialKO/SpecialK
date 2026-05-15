@@ -132,11 +132,11 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
     wcsncpy_s ( wszDevicePath, MAX_PATH,
                 wszPath,       _TRUNCATE );
 
-    wcsncpy_s (            wszProductName,      127,
+    wcsncpy_s (            wszProductName,      2047,
                 known_path.wszProductName,           _TRUNCATE );
-    wcsncpy_s (            wszManufacturerName, 127,
+    wcsncpy_s (            wszManufacturerName, 2047,
                 known_path.wszManufacturerName,      _TRUNCATE );
-    wcsncpy_s (            wszSerialNumber,     127,
+    wcsncpy_s (            wszSerialNumber,     2047,
                 known_path.wszSerialNumber,          _TRUNCATE );
 
     device_type         = known_path.device_type;
@@ -185,17 +185,17 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
             {
               SK_DeviceIoControl (
                 hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
-                wszProductName, 256, &dwBytesRead, nullptr
+                wszProductName, 4093, &dwBytesRead, nullptr
               );
 
               SK_DeviceIoControl (
                 hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
-                wszManufacturerName, 256, &dwBytesRead, nullptr
+                wszManufacturerName, 4093, &dwBytesRead, nullptr
               );
 
               SK_DeviceIoControl (
                 hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                wszSerialNumber, 256, &dwBytesRead, nullptr
+                wszSerialNumber, 4093, &dwBytesRead, nullptr
               );
 
               setPollingFrequency (0);

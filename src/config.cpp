@@ -214,6 +214,7 @@ SK_GetCurrentGameID (void) noexcept
           { L"cemu.exe",                               SK_GAME_ID::cemu                         },
           { L"rpcs3.exe",                              SK_GAME_ID::RPCS3                        },
           { L"ForzaHorizon5.exe",                      SK_GAME_ID::ForzaHorizon5                },
+          { L"ForzaHorizon6.exe",                      SK_GAME_ID::ForzaHorizon5                },
           { L"forza_gaming.desktop.x64_release_final"
             L".exe",                                   SK_GAME_ID::ForzaMotorsport              },
           { L"HaloInfinite.exe",                       SK_GAME_ID::HaloInfinite                 },

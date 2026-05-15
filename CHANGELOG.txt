@@ -1,4 +1,8 @@
-﻿26.5.3
+﻿26.5.15
+=======
+ + Add various anti-cheat workarounds from Forza Horizon 5 to Forza Horizon 6.
+
+26.5.3
 ======
  + Added support for NVIDIA driver profile creation for Microsoft Store games.
  + Remove orphaned applications assigned to the 'Base Profile' driver profile
