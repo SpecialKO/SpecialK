@@ -1741,6 +1741,16 @@ SK::EOS::AppName (void)
     }
   }
 
+  // The manifest may be for DLC rather than the game...
+  //   fallback to SKIF's defined name for the executable path if neeeded.
+  if (name.empty ()) SK_RunOnce
+  (
+    name =
+      SK_WideCharToUTF8 (
+        app_cache_mgr->getAppNameFromPath (SK_GetFullyQualifiedApp ())
+      );
+  );
+
   return
     name;
 }
