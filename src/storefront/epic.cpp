@@ -1661,6 +1661,10 @@ SK::EOS::AppName (void)
       }
 
       if (config.platform.equivalent_steam_app == -1)
+        SK_RunOnce (SK_LoadConfig ());
+
+      if (config.platform.equivalent_steam_app == -1)
+      SK_RunOnce(
       {
         std::wstring url =
           SK_FormatStringW (
@@ -1722,7 +1726,7 @@ SK::EOS::AppName (void)
             } ),
           true
         );
-      }
+      });
 
       app_cache_mgr->saveAppCache       ();
       app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());

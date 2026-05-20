@@ -1,4 +1,9 @@
-﻿26.5.15
+﻿26.5.20
+=======
+ + Avoid unnecessary GOG gamesdb queries for unreleased Epic games.
+ + Ensure that a failed GOG gamesdb query only occurs once per game launch.
+
+26.5.15
 =======
  + Add various anti-cheat workarounds from Forza Horizon 5 to Forza Horizon 6.
 
