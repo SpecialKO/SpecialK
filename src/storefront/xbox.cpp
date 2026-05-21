@@ -65,10 +65,11 @@ SK::Xbox::Init (void)
   }
 }
 
-static boolean                visible          = false;
+static boolean                visible              = false;
 static EventRegistrationToken visibility_event;
-static boolean                input_redirected = false;
+static boolean                input_redirected     = false;
 static EventRegistrationToken input_event;
+static boolean                callbacks_registered = false;
 
 void
 SK::Xbox::Shutdown (void)
@@ -136,12 +137,27 @@ SK_Xbox_GetOverlayState_UsingCallbacks (void)
       }
     );
 
-  SK_RunOnce (
-    SK_GameBar_Statics->get_Visible                  (                                     &visible);
-    SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
-    SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
-    SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
-  );
+  if (!callbacks_registered)
+  {
+    //
+    // Delay callback registration briefly after startup to avoid
+    // potential initialization ordering issues during early game
+    // startup. Some systems appear to freeze during event
+    // registration if this occurs too early.
+    //
+    if (SK_GetFramesDrawn() <= 180)
+      return false;
+
+    SK_RunOnce(
+      SK_GameBar_Statics->get_Visible                  (                                     &visible);
+      SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
+      SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
+      SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
+
+      callbacks_registered = true;
+      SK_LOGi0(L"SK_Xbox_GetOverlayState_UsingCallbacks: GameBar Callbacks registered")
+    );
+  }
 
   return
     (visible && input_redirected);
@@ -155,7 +171,7 @@ SK_Xbox_GetOverlayState (bool real)
 
   std::ignore = real;
 
-  SK_RunOnce (SK_Xbox_GetOverlayState_UsingCallbacks ());
+  SK_Xbox_GetOverlayState_UsingCallbacks ();
 
   static boolean has_callbacks =
     (visibility_event.value != 0);
