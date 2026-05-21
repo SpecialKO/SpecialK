@@ -114,11 +114,11 @@ SK_Xbox_GetOverlayState_WithCaching (void)
   return redirected != false;
 }
 
-boolean
-SK_Xbox_GetOverlayState_UsingCallbacks (void)
+void
+SK_Xbox_RegisterCallbacks (void)
 {
-  if (! SK_GameBar_Statics)
-    return false;
+  if (! SK_GameBar_Statics || callbacks_registered)
+    return;
 
   static auto visibility_callback =
     Microsoft::WRL::Callback <ABI::Windows::Foundation::IEventHandler <IInspectable *>> (
@@ -137,27 +137,23 @@ SK_Xbox_GetOverlayState_UsingCallbacks (void)
       }
     );
 
-  if (!callbacks_registered)
-  {
-    //
-    // Delay callback registration briefly after startup to avoid
-    // potential initialization ordering issues during early game
-    // startup. Some systems appear to freeze during event
-    // registration if this occurs too early.
-    //
-    if (SK_GetFramesDrawn() <= 180)
-      return false;
+  SK_RunOnce (
+    SK_GameBar_Statics->get_Visible                  (                                     &visible);
+    SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
+    SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
+    SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
 
-    SK_RunOnce(
-      SK_GameBar_Statics->get_Visible                  (                                     &visible);
-      SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
-      SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
-      SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
+    callbacks_registered = true;
 
-      callbacks_registered = true;
-      SK_LOGi0(L"SK_Xbox_GetOverlayState_UsingCallbacks: GameBar Callbacks registered")
-    );
-  }
+    SK_LOGi0 (L"SK_Xbox_RegisterCallbacks: GameBar callbacks registered");
+  );
+}
+
+boolean
+SK_Xbox_GetOverlayState_UsingCallbacks (void)
+{
+  if (! SK_GameBar_Statics)
+    return false;
 
   return
     (visible && input_redirected);
@@ -171,9 +167,19 @@ SK_Xbox_GetOverlayState (bool real)
 
   std::ignore = real;
 
-  SK_Xbox_GetOverlayState_UsingCallbacks ();
+  //
+  // Delay callback registration briefly after startup to avoid
+  // potential initialization ordering issues during early game
+  // startup. Some systems appear to freeze during event
+  // registration if this occurs too early.
+  //
+  if (! callbacks_registered &&
+      SK_GetFramesDrawn () > 100)
+  {
+    SK_Xbox_RegisterCallbacks ();
+  }
 
-  static boolean has_callbacks =
+  boolean has_callbacks =
     (visibility_event.value != 0);
 
   //
