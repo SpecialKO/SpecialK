@@ -120,6 +120,12 @@ SK_Xbox_RegisterCallbacks (void)
   if (! SK_GameBar_Statics || callbacks_registered)
     return;
 
+  SK_LOGi0 (
+    L"SK_Xbox_RegisterCallbacks: attempting registration "
+    L"(frame=%llu)",
+    SK_GetFramesDrawn()
+  );
+
   static auto visibility_callback =
     Microsoft::WRL::Callback <ABI::Windows::Foundation::IEventHandler <IInspectable *>> (
       [](IInspectable*, IInspectable*)
@@ -168,13 +174,15 @@ SK_Xbox_GetOverlayState (bool real)
   std::ignore = real;
 
   //
-  // Delay callback registration briefly after startup to avoid
-  // potential initialization ordering issues during early game
-  // startup. Some systems appear to freeze during event
-  // registration if this occurs too early.
+  // Wait until the first frame has been rendered before registering
+  // Xbox/Game Bar callbacks. Some games create temporary startup or
+  // splash windows before the real render loop begins, and this
+  // function may be called during frame 0 before rendering is active.
+  // Registering callbacks that early has been observed to cause
+  // initialization ordering issues or freezes on some systems.
   //
   if (! callbacks_registered &&
-      SK_GetFramesDrawn () > 100)
+      SK_GetFramesDrawn () > 0)
   {
     SK_Xbox_RegisterCallbacks ();
   }
