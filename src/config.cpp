@@ -971,7 +971,6 @@ struct {
     sk::ParameterBool*    sleepless_window        = nullptr;
     sk::ParameterBool*    sleepless_render        = nullptr;
     sk::ParameterBool*    enable_mmcss            = nullptr;
-    sk::ParameterInt*     override_cpu_count      = nullptr;
     sk::ParameterInt*     enforcement_policy      = nullptr;
     sk::ParameterBool*    drop_late_frames        = nullptr;
     sk::ParameterBool*    auto_low_latency        = nullptr;
@@ -1313,6 +1312,9 @@ struct {
     sk::ParameterInt*     min_render_priority     = nullptr;
     sk::ParameterInt64*   cpu_affinity_mask       = nullptr;
     sk::ParameterBool*    perf_cores_only         = nullptr;
+    sk::ParameterBool*    cpu_spoof_enable        = nullptr;
+    sk::ParameterInt*     cpu_spoof_logical       = nullptr;
+    sk::ParameterInt*     cpu_spoof_physical      = nullptr;
   } priority;
 } scheduling;
 
@@ -2135,7 +2137,6 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Engine",      L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.engine.
                                       allow_latency_wait,L"Allow the game to use a Latency Waitable SwapChain.",       dll_ini,         L"FrameRate.Engine",      L"AllowDXGILatencyWait"),
-    ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Engine",      L"OverrideCPUCoreCount"),
     ConfigEntry (render.framerate.max_timer_resolution,  L"Set the process timer resolution to the maximum supported", dll_ini,         L"FrameRate.Engine",      L"UseMaxTimerResolution"),
     ConfigEntry (render.framerate.force_high_res_timers, L"Force Waitable Timer code to use Win10 High-Res Timers",    dll_ini,         L"FrameRate.Engine",      L"ForceHighResTimers"),
     ConfigEntry (render.framerate.pace_game_thread,      L"Pace the game thread in supported engines (i.e. Unity)",    dll_ini,         L"FrameRate.Engine",      L"PaceGameThread"),
@@ -2354,6 +2355,9 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
     ConfigEntry (scheduling.priority.cpu_affinity_mask,  L"Mask of CPU cores the process is eligible for scheduling.", dll_ini,         L"Scheduler.System",      L"ProcessorAffinityMask"),
     ConfigEntry (scheduling.priority.perf_cores_only,    L"Limit the scheduler to Intel P-Cores",                      dll_ini,         L"Scheduler.System",      L"PerformanceCoresOnly"),
+    ConfigEntry (scheduling.priority.cpu_spoof_enable,   L"Spoof Win32 CPU topology APIs for the current process",     dll_ini,         L"Scheduler.CPUSpoof",    L"Enable"),
+    ConfigEntry (scheduling.priority.cpu_spoof_logical,  L"Logical processor count exposed to the game",               dll_ini,         L"Scheduler.CPUSpoof",    L"LogicalProcessors"),
+    ConfigEntry (scheduling.priority.cpu_spoof_physical, L"Physical core count exposed to the game",                   dll_ini,         L"Scheduler.CPUSpoof",    L"PhysicalCores"),
 
     ConfigEntry (sound.minimize_latency,                 L"Minimize Audio Latency while Game is Running",              dll_ini,         L"Sound.Mixing",          L"MinimizeLatency"),
 
@@ -4968,7 +4972,6 @@ auto DeclKeybind =
 //                  render_ahead->load        (config.render.framerate.max_render_ahead);
   render.framerate.engine.allow_latency_wait
                                      ->load   (config.render.framerate.engine_overrides.allow_latency_wait);
-  render.framerate.override_cpu_count->load   (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->load (config.render.framerate.max_timer_resolution);
   render.framerate.force_high_res_timers->load(config.render.framerate.force_high_res_timers);
   render.framerate.pace_game_thread->load     (config.render.framerate.pace_game_thread);
@@ -5107,6 +5110,9 @@ auto DeclKeybind =
   }
 
   scheduling.priority.perf_cores_only->load     (config.priority.perf_cores_only);
+  scheduling.priority.cpu_spoof_enable->load    (config.priority.cpu_spoof_enable);
+  scheduling.priority.cpu_spoof_logical->load   (config.priority.cpu_spoof_logical);
+  scheduling.priority.cpu_spoof_physical->load  (config.priority.cpu_spoof_physical);
 
   if (config.priority.raise_always)
     SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
@@ -7360,7 +7366,6 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.boost_compositor_clock->
                                        store (config.render.framerate.boost_composite_clock);
 
-  render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->
                                        store (config.render.framerate.max_timer_resolution);
   render.framerate.force_high_res_timers->
@@ -7388,6 +7393,9 @@ SK_SaveConfig ( std::wstring name,
     scheduling.priority.min_render_priority->store (config.priority.minimum_render_prio);
     scheduling.priority.cpu_affinity_mask->store   (config.priority.cpu_affinity_mask);
     scheduling.priority.perf_cores_only->store     (config.priority.perf_cores_only);
+    scheduling.priority.cpu_spoof_enable->store    (config.priority.cpu_spoof_enable);
+    scheduling.priority.cpu_spoof_logical->store   (config.priority.cpu_spoof_logical);
+    scheduling.priority.cpu_spoof_physical->store  (config.priority.cpu_spoof_physical);
 
     if (render.framerate.rescan_ratio != nullptr)
     {

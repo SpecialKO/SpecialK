@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <string>
 
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void);
@@ -75,7 +76,18 @@ bool                 SK_Power_InitEffectiveModeCallbacks (void);
 bool                 SK_Power_StopEffectiveModeCallbacks (void);
 
 void                 SK_CPU_InstallHooks                 (void);
+void                 SK_CPU_EarlyTopologySpoof_Install   (void);
 bool                 SK_CPU_IsZen                        (void);
 bool                 SK_CPU_TestForMWAITX                (void);
+
+std::wstring         SK_CPU_AppCompatSDB_GetPath         (void);
+bool                 SK_CPU_AppCompatSDB_WriteProcessorCountLie
+                                                            (const wchar_t* exe_name,
+                                                             const wchar_t* app_name,
+                                                             int            processor_count,
+                                                             std::wstring*  out_path = nullptr);
+bool                 SK_CPU_AppCompatSDB_RunInstaller    (const wchar_t* sdb_path,
+                                                             bool           uninstall,
+                                                             bool           update = false);
 
 #endif /* __SK__CPU_H__ */

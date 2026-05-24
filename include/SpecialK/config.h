@@ -1550,7 +1550,10 @@ struct sk_config_t
     bool    highest_priority    = false;
     bool    deny_foreign_change =  true;
     bool    perf_cores_only     = false;
+    bool    cpu_spoof_enable    = false;
     int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
+    int     cpu_spoof_logical   = 0;
+    int     cpu_spoof_physical  = 0;
     DWORD   available_cpu_cores =   1UL;
     int64_t cpu_affinity_mask   = 0xFFFFFFFFFFFFFFFFULL;
   } priority;

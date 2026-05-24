@@ -1125,6 +1125,17 @@ void BasicInit (void)
   // Setup unhooked function pointers
   SK_PreInitLoadLibrary ();
 
+  SK_CPU_InstallHooks ();
+  {
+    const bool apply_queued_was_enabled =
+      SK_EnableApplyQueuedHooks ();
+
+    SK_ApplyQueuedHooks ();
+
+    if (! apply_queued_was_enabled)
+      SK_DisableApplyQueuedHooks ();
+  }
+
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init   ();
   SK::Diagnostics::CrashHandler::InitSyms ();
@@ -2204,6 +2215,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                    (&SK_RenderBackend::frames_drawn, 0);
 
     dll_log->LogEx (false, L"done!\n");
+  }
+
+  SK_CPU_InstallHooks ();
+  {
+    const bool apply_queued_was_enabled =
+      SK_EnableApplyQueuedHooks ();
+
+    SK_ApplyQueuedHooks ();
+
+    if (! apply_queued_was_enabled)
+      SK_DisableApplyQueuedHooks ();
   }
 
   // As of ReShade 6.6.0, ReShade will poop the bed if it is dxgi.dll and not loaded before SK is,
