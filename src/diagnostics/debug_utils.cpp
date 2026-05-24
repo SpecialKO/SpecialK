@@ -1677,6 +1677,85 @@ NtCreateThreadEx_pfn         ZwCreateThreadEx_Original       = nullptr;
 NtSetInformationThread_pfn   NtSetInformationThread_Original = nullptr;
 ZwSetInformationThread_pfn   ZwSetInformationThread_Original = nullptr;
 
+using CreateThread_pfn =
+  HANDLE (WINAPI *)( LPSECURITY_ATTRIBUTES   lpThreadAttributes,
+                     SIZE_T                  dwStackSize,
+                     LPTHREAD_START_ROUTINE  lpStartAddress,
+                     LPVOID                  lpParameter,
+                     DWORD                   dwCreationFlags,
+                     LPDWORD                 lpThreadId );
+
+using CreateRemoteThreadEx_pfn =
+  HANDLE (WINAPI *)( HANDLE                       hProcess,
+                     LPSECURITY_ATTRIBUTES       lpThreadAttributes,
+                     SIZE_T                      dwStackSize,
+                     LPTHREAD_START_ROUTINE      lpStartAddress,
+                     LPVOID                      lpParameter,
+                     DWORD                       dwCreationFlags,
+                     LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList,
+                     LPDWORD                     lpThreadId );
+
+static CreateThread_pfn         CreateThread_Original         = nullptr;
+static CreateRemoteThreadEx_pfn CreateRemoteThreadEx_Original = nullptr;
+
+struct SK_CPU_Spoof_ThreadCreateInfo
+{
+  DWORD order = 0;
+  PVOID start = nullptr;
+  PVOID argument = nullptr;
+  wchar_t api      [32]  = { };
+  wchar_t start_mod[64]  = { };
+  wchar_t arg_name [64]  = { };
+  wchar_t caller   [256] = { };
+};
+
+static SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <DWORD, SK_CPU_Spoof_ThreadCreateInfo>
+> SK_CPU_Spoof_ThreadCreates;
+
+static volatile LONG SK_CPU_Spoof_ThreadCreateOrder = 0;
+
+void
+SK_CPU_Spoof_OnThreadNameObserved ( DWORD          dwTid,
+                                    const wchar_t* name,
+                                    const wchar_t* source,
+                                    LPVOID         caller );
+
+static bool
+SK_CPU_Spoof_CopyThreadNameInformation ( const UNICODE_STRING_SK* thread_name,
+                                         wchar_t*                 name,
+                                         size_t                   name_cch )
+{
+  if (thread_name == nullptr || name == nullptr || name_cch == 0)
+    return false;
+
+  *name = L'\0';
+
+  __try
+  {
+    if ( thread_name->Buffer == nullptr ||
+         thread_name->Length < sizeof (wchar_t) )
+      return false;
+
+    const size_t cch =
+      std::min <size_t> (
+        thread_name->Length / sizeof (wchar_t),
+        name_cch - 1
+      );
+
+    wcsncpy_s (name, name_cch, thread_name->Buffer, cch);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    *name = L'\0';
+    return false;
+  }
+
+  return
+    *name != L'\0';
+}
+
 static RtlAcquirePebLock_pfn RtlAcquirePebLock_Original      = nullptr;
 static RtlReleasePebLock_pfn RtlReleasePebLock_Original      = nullptr;
 
@@ -1952,6 +2031,53 @@ ZwSetInformationThread_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  if ( config.priority.cpu_spoof_enable &&
+       ThreadInformationClass == ThreadNameInformation_ &&
+       ThreadInformation != nullptr &&
+       ThreadInformationLength >= sizeof (UNICODE_STRING_SK) )
+  {
+    SK_AutoHandle hDuplicate (INVALID_HANDLE_VALUE);
+
+    HANDLE hNameThread =
+      ThreadHandle;
+
+    if ((LONG_PTR)hNameThread == -2)
+    {
+      if (
+        DuplicateHandle ( SK_GetCurrentProcess (),
+                          SK_GetCurrentThread  (),
+                          SK_GetCurrentProcess (),
+                            &hDuplicate.m_h,
+                              THREAD_QUERY_LIMITED_INFORMATION, FALSE,
+                          0 )
+         )
+      {
+        hNameThread = hDuplicate.m_h;
+      }
+    }
+
+    const DWORD dwTid =
+      hNameThread != nullptr ? GetThreadId (hNameThread) : 0;
+
+    wchar_t name [SK_MAX_THREAD_NAME_LEN] = { };
+
+    if ( dwTid != 0 &&
+         SK_CPU_Spoof_CopyThreadNameInformation (
+           static_cast <const UNICODE_STRING_SK *> (ThreadInformation),
+           name,
+           std::size (name)
+         )
+       )
+    {
+      SK_CPU_Spoof_OnThreadNameObserved (
+        dwTid,
+        name,
+        L"ZwSetInformationThread(ThreadNameInformation)",
+        _ReturnAddress ()
+      );
+    }
+  }
+
   if ( ThreadInformationClass == ThreadZeroTlsCell ||
        ThreadInformationClass == ThreadSetTlsArrayAddress )
   {
@@ -2082,6 +2208,446 @@ SK_Thread_NotifyCreation (HANDLE  ThreadHandle,
   }
 }
 
+static bool
+SK_CPU_Spoof_CopyAsciiThreadArgName ( const char* s,
+                                      wchar_t*    out,
+                                      size_t      out_cch )
+{
+  if (s == nullptr || out == nullptr || out_cch == 0)
+    return false;
+
+  char narrow [64] = { };
+
+  __try
+  {
+    size_t i = 0;
+
+    for ( ; i < std::min <size_t> (std::size (narrow) - 1, out_cch - 1); ++i)
+    {
+      const char ch = s [i];
+
+      if (ch == '\0')
+        break;
+
+      if (static_cast <unsigned char> (ch) < 0x20 ||
+          static_cast <unsigned char> (ch) > 0x7e)
+        return false;
+
+      narrow [i] = ch;
+    }
+
+    if (i == 0)
+      return false;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return false;
+  }
+
+  MultiByteToWideChar (
+    CP_UTF8, 0, narrow, -1, out,
+    gsl::narrow_cast <int> (out_cch)
+  );
+
+  return true;
+}
+
+static bool
+SK_CPU_Spoof_CopyWideThreadArgName ( const wchar_t* s,
+                                     wchar_t*       out,
+                                     size_t         out_cch )
+{
+  if (s == nullptr || out == nullptr || out_cch == 0)
+    return false;
+
+  __try
+  {
+    size_t i = 0;
+
+    for ( ; i < out_cch - 1; ++i)
+    {
+      const wchar_t ch = s [i];
+
+      if (ch == L'\0')
+        break;
+
+      if (ch < 0x20 || ch > 0x7e)
+        return false;
+
+      out [i] = ch;
+    }
+
+    if (i == 0)
+      return false;
+
+    out [i] = L'\0';
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+static bool
+SK_CPU_Spoof_FindThreadArgName ( PVOID    Argument,
+                                 wchar_t* out,
+                                 size_t   out_cch )
+{
+  if (Argument == nullptr || out == nullptr || out_cch == 0)
+    return false;
+
+  *out = L'\0';
+
+  auto has_ascii_prefix = [](const char* s, const char* prefix) -> bool
+  {
+    __try
+    {
+      for (size_t i = 0; prefix [i] != '\0'; ++i)
+        if (s [i] != prefix [i])
+          return false;
+
+      return true;
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      return false;
+    }
+  };
+
+  auto has_wide_prefix = [](const wchar_t* s, const wchar_t* prefix) -> bool
+  {
+    __try
+    {
+      for (size_t i = 0; prefix [i] != L'\0'; ++i)
+        if (s [i] != prefix [i])
+          return false;
+
+      return true;
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      return false;
+    }
+  };
+
+  const auto* bytes =
+    static_cast <const uint8_t *> (Argument);
+
+  for (size_t offset = 0; offset < 0x400; ++offset)
+  {
+    const char* s =
+      reinterpret_cast <const char *> (bytes + offset);
+
+    if (has_ascii_prefix (s, "Worker ") ||
+        has_ascii_prefix (s, "SystemFileDevice"))
+    {
+      return
+        SK_CPU_Spoof_CopyAsciiThreadArgName (s, out, out_cch);
+    }
+
+    const wchar_t* ws =
+      reinterpret_cast <const wchar_t *> (bytes + offset);
+
+    if (has_wide_prefix (ws, L"Worker ") ||
+        has_wide_prefix (ws, L"SystemFileDevice"))
+    {
+      return
+        SK_CPU_Spoof_CopyWideThreadArgName (ws, out, out_cch);
+    }
+  }
+
+  return false;
+}
+
+static DWORD
+SK_CPU_Spoof_WorkerCap (void)
+{
+  int cap =
+    config.priority.cpu_spoof_logical;
+
+  if (cap <= 0)
+    return 0;
+
+  return
+    static_cast <DWORD> (std::clamp (cap, 1, 64));
+}
+
+static bool
+SK_CPU_Spoof_ParseWorkerName ( const wchar_t* name,
+                               DWORD*         worker_num )
+{
+  if (name == nullptr || worker_num == nullptr)
+    return false;
+
+  DWORD num = 0;
+
+  if (swscanf_s (name, L"Worker %lu", &num) != 1)
+    return false;
+
+  *worker_num = num;
+
+  return true;
+}
+
+static void
+SK_CPU_Spoof_LogThreadCreation ( const wchar_t* api,
+                                 HANDLE         ThreadHandle,
+                                 DWORD          ThreadId,
+                                 PVOID          StartRoutine,
+                                 PVOID          Argument,
+                                 HMODULE        hModStart,
+                                 LPVOID         Caller,
+                                 ULONG          CreateFlagsIn,
+                                 ULONG          CreateFlagsOut,
+                                 SIZE_T         StackSize,
+                                 SIZE_T         MaximumStackSize )
+{
+  if (! config.priority.cpu_spoof_enable)
+    return;
+
+  const HMODULE hCaller =
+    SK_GetCallingDLL (Caller);
+
+  if (hCaller == nullptr || hCaller == SK_GetDLL ())
+    return;
+
+  const HMODULE hHost =
+    SK_GetModuleHandle (nullptr);
+
+  const bool start_valid =
+    hModStart != nullptr && hModStart != INVALID_HANDLE_VALUE;
+
+  const std::wstring caller_name =
+    SK_GetModuleName (hCaller);
+
+  const std::wstring start_name =
+    start_valid ? SK_GetModuleName (hModStart) : L"#Invalid.dll#";
+
+  wchar_t arg_name [64] = { };
+
+  SK_CPU_Spoof_FindThreadArgName (Argument, arg_name, std::size (arg_name));
+
+  const bool interesting =
+    hCaller   == hHost ||
+    hModStart == hHost ||
+    arg_name [0] != L'\0';
+
+  if (! interesting)
+    return;
+
+  if (ThreadId != 0)
+  {
+    SK_CPU_Spoof_ThreadCreateInfo info = { };
+
+    info.order =
+      static_cast <DWORD> (InterlockedIncrement (&SK_CPU_Spoof_ThreadCreateOrder));
+    info.start    = StartRoutine;
+    info.argument = Argument;
+
+    wcsncpy_s (info.api,       api,                _TRUNCATE);
+    wcsncpy_s (info.start_mod, start_name.c_str (), _TRUNCATE);
+    wcsncpy_s (info.arg_name,  arg_name,            _TRUNCATE);
+    wcsncpy_s (info.caller,    SK_SummarizeCaller (Caller).c_str (), _TRUNCATE);
+
+    SK_CPU_Spoof_ThreadCreates.get ()[ThreadId] = info;
+  }
+
+  static volatile LONG thread_create_logs = 0;
+
+  if (InterlockedIncrement (&thread_create_logs) > 256)
+    return;
+
+  SK_LOGi0 (
+    L"CPU topology spoof: %ws created thread => tid=0x%04x, handle=%p, start=%p (%ws), arg=%p%ws%ws%ws, flags_in=0x%08x, flags_out=0x%08x, stack=%llu/%llu [caller=%ws]",
+    api,
+    ThreadId,
+    ThreadHandle,
+    StartRoutine,
+    start_name.c_str (),
+    Argument,
+    arg_name [0] != L'\0' ? L", arg_name=\"" : L"",
+    arg_name [0] != L'\0' ? arg_name         : L"",
+    arg_name [0] != L'\0' ? L"\""            : L"",
+    CreateFlagsIn,
+    CreateFlagsOut,
+    static_cast <unsigned long long> (StackSize),
+    static_cast <unsigned long long> (MaximumStackSize),
+    SK_SummarizeCaller (Caller).c_str ()
+  );
+}
+
+void
+SK_CPU_Spoof_OnThreadNameObserved ( DWORD          dwTid,
+                                    const wchar_t* name,
+                                    const wchar_t* source,
+                                    LPVOID         caller )
+{
+  if (! config.priority.cpu_spoof_enable)
+    return;
+
+  DWORD worker_num = 0;
+
+  if (! SK_CPU_Spoof_ParseWorkerName (name, &worker_num))
+    return;
+
+  static volatile LONG worker_name_logs = 0;
+
+  if (InterlockedIncrement (&worker_name_logs) > 512)
+    return;
+
+  auto& creates =
+    SK_CPU_Spoof_ThreadCreates.get ();
+
+  auto it =
+    creates.find (dwTid);
+
+  const DWORD cap =
+    SK_CPU_Spoof_WorkerCap ();
+
+  const wchar_t* source_name =
+    source != nullptr ? source : L"unknown";
+
+  if (it != creates.cend ())
+  {
+    const auto& create =
+      it->second;
+
+    SK_LOGi0 (
+      L"CPU topology spoof: worker name observed via %ws => worker=%lu, cap=%lu, tid=0x%04x, create_order=%lu, start=%p (%ws), arg=%p%ws%ws%ws [create_api=%ws, create_caller=%ws, name_caller=%ws]",
+      source_name,
+      worker_num,
+      cap,
+      dwTid,
+      create.order,
+      create.start,
+      create.start_mod,
+      create.argument,
+      create.arg_name [0] != L'\0' ? L", arg_name=\"" : L"",
+      create.arg_name [0] != L'\0' ? create.arg_name  : L"",
+      create.arg_name [0] != L'\0' ? L"\""            : L"",
+      create.api,
+      create.caller,
+      caller != nullptr ? SK_SummarizeCaller (caller).c_str () : L"<unknown>"
+    );
+  }
+
+  else
+  {
+    SK_LOGi0 (
+      L"CPU topology spoof: worker name observed via %ws => worker=%lu, cap=%lu, tid=0x%04x, no create record [name_caller=%ws]",
+      source_name,
+      worker_num,
+      cap,
+      dwTid,
+      caller != nullptr ? SK_SummarizeCaller (caller).c_str () : L"<unknown>"
+    );
+  }
+}
+
+HANDLE
+WINAPI
+CreateThread_Detour ( LPSECURITY_ATTRIBUTES  lpThreadAttributes,
+                      SIZE_T                 dwStackSize,
+                      LPTHREAD_START_ROUTINE lpStartAddress,
+                      LPVOID                 lpParameter,
+                      DWORD                  dwCreationFlags,
+                      LPDWORD                lpThreadId )
+{
+  SK_LOG_FIRST_CALL
+
+  LPVOID caller =
+    _ReturnAddress ();
+
+  HANDLE hThread =
+    CreateThread_Original (
+      lpThreadAttributes,
+      dwStackSize,
+      lpStartAddress,
+      lpParameter,
+      dwCreationFlags,
+      lpThreadId
+    );
+
+  if (hThread != nullptr)
+  {
+    const DWORD tid =
+      lpThreadId != nullptr ? *lpThreadId : GetThreadId (hThread);
+
+    SK_CPU_Spoof_LogThreadCreation (
+      L"CreateThread",
+      hThread,
+      tid,
+      reinterpret_cast <PVOID> (lpStartAddress),
+      lpParameter,
+      SK_GetModuleFromAddr (reinterpret_cast <PVOID> (lpStartAddress)),
+      caller,
+      dwCreationFlags,
+      dwCreationFlags,
+      dwStackSize,
+      0
+    );
+  }
+
+  return hThread;
+}
+
+HANDLE
+WINAPI
+CreateRemoteThreadEx_Detour ( HANDLE                       hProcess,
+                              LPSECURITY_ATTRIBUTES       lpThreadAttributes,
+                              SIZE_T                      dwStackSize,
+                              LPTHREAD_START_ROUTINE      lpStartAddress,
+                              LPVOID                      lpParameter,
+                              DWORD                       dwCreationFlags,
+                              LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList,
+                              LPDWORD                     lpThreadId )
+{
+  SK_LOG_FIRST_CALL
+
+  LPVOID caller =
+    _ReturnAddress ();
+
+  HANDLE hThread =
+    CreateRemoteThreadEx_Original (
+      hProcess,
+      lpThreadAttributes,
+      dwStackSize,
+      lpStartAddress,
+      lpParameter,
+      dwCreationFlags,
+      lpAttributeList,
+      lpThreadId
+    );
+
+  if (hThread != nullptr)
+  {
+    const DWORD tid =
+      lpThreadId != nullptr ? *lpThreadId : GetThreadId (hThread);
+
+    SK_CPU_Spoof_LogThreadCreation (
+      L"CreateRemoteThreadEx",
+      hThread,
+      tid,
+      reinterpret_cast <PVOID> (lpStartAddress),
+      lpParameter,
+      SK_GetModuleFromAddr (reinterpret_cast <PVOID> (lpStartAddress)),
+      caller,
+      dwCreationFlags,
+      dwCreationFlags,
+      dwStackSize,
+      0
+    );
+  }
+
+  return hThread;
+}
+
 
 NTSTATUS
 NTAPI
@@ -2099,6 +2665,12 @@ ZwCreateThreadEx_Detour (
   _In_opt_ PVOID              AttributeList )
 {
   SK_LOG_FIRST_CALL
+
+  const ULONG create_flags_in =
+    CreateFlags;
+
+  LPVOID caller =
+    _ReturnAddress ();
 
   ULONG ulLen = 0;
 
@@ -2254,6 +2826,20 @@ ZwCreateThreadEx_Detour (
       ResumeThread (*ThreadHandle);
     }
 
+    SK_CPU_Spoof_LogThreadCreation (
+      L"ZwCreateThreadEx",
+      *ThreadHandle,
+      tid,
+      StartRoutine,
+      Argument,
+      hModStart,
+      caller,
+      create_flags_in,
+      CreateFlags,
+      StackSize,
+      MaximumStackSize
+    );
+
     SK_Thread_NotifyCreation (*ThreadHandle, tid, StartRoutine, hModStart);
   }
 
@@ -2276,6 +2862,12 @@ NtCreateThreadEx_Detour (
   _In_opt_ PVOID                AttributeList )
 {
   SK_LOG_FIRST_CALL
+
+  const ULONG create_flags_in =
+    CreateFlags;
+
+  LPVOID caller =
+    _ReturnAddress ();
 
   ULONG ulLen = 0;
 
@@ -2432,6 +3024,20 @@ NtCreateThreadEx_Detour (
     {
       ResumeThread (*ThreadHandle);
     }
+
+    SK_CPU_Spoof_LogThreadCreation (
+      L"NtCreateThreadEx",
+      *ThreadHandle,
+      tid,
+      StartRoutine,
+      Argument,
+      hModStart,
+      caller,
+      create_flags_in,
+      CreateFlags,
+      StackSize,
+      MaximumStackSize
+    );
   }
 
   return ret;
@@ -2888,6 +3494,58 @@ SK_Exception_HandleThreadName (
       std::wstring wide_name (
         SK_UTF8ToWideChar (info->szName).c_str ()
       );
+
+      DWORD worker_num = 0;
+
+      if ( config.priority.cpu_spoof_enable &&
+           SK_CPU_Spoof_ParseWorkerName (wide_name.c_str (), &worker_num) )
+      {
+        static volatile LONG worker_name_logs = 0;
+
+        if (InterlockedIncrement (&worker_name_logs) <= 256)
+        {
+          auto& creates =
+            SK_CPU_Spoof_ThreadCreates.get ();
+
+          auto it =
+            creates.find (dwTid);
+
+          const DWORD cap =
+            SK_CPU_Spoof_WorkerCap ();
+
+          if (it != creates.cend ())
+          {
+            const auto& create =
+              it->second;
+
+            SK_LOGi0 (
+              L"CPU topology spoof: worker name exception => worker=%lu, cap=%lu, tid=0x%04x, create_order=%lu, start=%p (%ws), arg=%p%ws%ws%ws [create_api=%ws, create_caller=%ws]",
+              worker_num,
+              cap,
+              dwTid,
+              create.order,
+              create.start,
+              create.start_mod,
+              create.argument,
+              create.arg_name [0] != L'\0' ? L", arg_name=\"" : L"",
+              create.arg_name [0] != L'\0' ? create.arg_name  : L"",
+              create.arg_name [0] != L'\0' ? L"\""            : L"",
+              create.api,
+              create.caller
+            );
+          }
+
+          else
+          {
+            SK_LOGi0 (
+              L"CPU topology spoof: worker name exception => worker=%lu, cap=%lu, tid=0x%04x, no create record",
+              worker_num,
+              cap,
+              dwTid
+            );
+          }
+        }
+      }
 
       if (pTLS != nullptr)
       {
@@ -4003,6 +4661,16 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                ZwCreateThreadEx_Detour,
       static_cast_p2p <void> (&ZwCreateThreadEx_Original) );
 #endif
+
+    SK_CreateDLLHook2 (      L"Kernel32",
+                              "CreateThread",
+                               CreateThread_Detour,
+      static_cast_p2p <void> (&CreateThread_Original) );
+
+    SK_CreateDLLHook2 (      L"KernelBase",
+                              "CreateRemoteThreadEx",
+                               CreateRemoteThreadEx_Detour,
+      static_cast_p2p <void> (&CreateRemoteThreadEx_Original) );
 
     SK_CreateDLLHook2 (      L"NtDll",
                               "ZwSetInformationThread",

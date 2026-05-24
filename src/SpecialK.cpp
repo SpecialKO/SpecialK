@@ -26,6 +26,7 @@
 
 #include <Aux_ulib.h>
 
+#include <SpecialK/diagnostics/cpu.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 
@@ -592,6 +593,7 @@ DllMain ( HMODULE hModule,
       SK_TLS_Acquire         ();
       SK_EstablishRootPath   ();
       SK_CreateTeardownEvent ();
+      SK_CPU_EarlyTopologySpoof_Install ();
 
       SK_TLS_Bottom ()->debug.in_DllMain = true;
 

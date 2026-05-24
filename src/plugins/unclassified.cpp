@@ -754,15 +754,28 @@ SK_POE2_PlugInCfg (void)
 
     ImGui::Separator ();
 
-    static int orig =
-      config.render.framerate.override_num_cpus;
+    static bool orig_spoof =
+      config.priority.cpu_spoof_enable;
 
-    bool spoof = (config.render.framerate.override_num_cpus != SK_NoPreference);
+    static int orig_logical =
+      config.priority.cpu_spoof_logical;
+
+    static int orig_physical =
+      config.priority.cpu_spoof_physical;
+
+    bool spoof =
+      config.priority.cpu_spoof_enable;
 
     static SYSTEM_INFO             si = { };
     SK_RunOnce (SK_GetSystemInfo (&si));
 
-    if ((! spoof) || sk::narrow_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
+    const int max_spoofed_processors =
+      static_cast <int> (std::max (1UL, si.dwNumberOfProcessors));
+
+    const int suggested_processors =
+      std::max (1, max_spoofed_processors / 2);
+
+    if ((! spoof) || config.priority.cpu_spoof_logical > suggested_processors)
     {
       ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.14f, .8f, .9f));
       ImGui::BulletText     ("It is strongly suggested that you reduce worker threads to 1/2 max. or lower");
@@ -771,19 +784,42 @@ SK_POE2_PlugInCfg (void)
 
     if ( ImGui::Checkbox   ("Reduce Worker Threads", &spoof) )
     {
-      config.render.framerate.override_num_cpus =
-        ( spoof ? si.dwNumberOfProcessors : -1 );
+      config.priority.cpu_spoof_enable = spoof;
+
+      if (spoof)
+      {
+        if (config.priority.cpu_spoof_logical <= 0)
+          config.priority.cpu_spoof_logical =
+            suggested_processors;
+
+        if (config.priority.cpu_spoof_physical <= 0)
+          config.priority.cpu_spoof_physical =
+            std::max (1, config.priority.cpu_spoof_logical / 2);
+      }
     }
 
     if (spoof)
     {
-      ImGui::SameLine  (                                             );
-      ImGui::SliderInt ( "Number of Worker Threads",
-                        &config.render.framerate.override_num_cpus,
-                        1, si.dwNumberOfProcessors              );
+      config.priority.cpu_spoof_logical =
+        std::clamp ( config.priority.cpu_spoof_logical,
+          1, max_spoofed_processors );
+
+      config.priority.cpu_spoof_physical =
+        std::clamp ( config.priority.cpu_spoof_physical,
+          1, config.priority.cpu_spoof_logical );
+
+      ImGui::SliderInt ( "Logical Processors",
+                        &config.priority.cpu_spoof_logical,
+                        1, max_spoofed_processors );
+
+      ImGui::SliderInt ( "Physical Cores",
+                        &config.priority.cpu_spoof_physical,
+                        1, config.priority.cpu_spoof_logical );
     }
 
-    if (config.render.framerate.override_num_cpus != orig)
+    if ( config.priority.cpu_spoof_enable  != orig_spoof  ||
+         config.priority.cpu_spoof_logical != orig_logical ||
+         config.priority.cpu_spoof_physical != orig_physical )
     {
       ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
       ImGui::BulletText     ("Game Restart Required");

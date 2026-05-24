@@ -44,6 +44,8 @@
 #include <SpecialK/control_panel/platform.h>
 #include <SpecialK/control_panel/window.h>
 
+#include <SpecialK/diagnostics/cpu.h>
+
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/storefront/gog.h>
 
@@ -7484,19 +7486,39 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
           }
 #endif
 
-          bool spoof =
-            ( config.render.framerate.override_num_cpus != SK_NoPreference );
-
           static SYSTEM_INFO             si = { };
           SK_RunOnce (SK_GetSystemInfo (&si));
 
-          if ( ImGui::Checkbox ("Reduce CPUs", &spoof) )
+          const int max_spoofed_processors =
+            static_cast <int> (std::max (1UL, si.dwNumberOfProcessors));
+
+          bool cpu_spoof =
+            config.priority.cpu_spoof_enable;
+
+          static bool cpu_spoof_orig =
+            config.priority.cpu_spoof_enable;
+          static int  cpu_logical_orig =
+            config.priority.cpu_spoof_logical;
+          static int  cpu_physical_orig =
+            config.priority.cpu_spoof_physical;
+
+          if ( ImGui::Checkbox ("Spoof CPU Topology", &cpu_spoof) )
           {
-            config.render.framerate.override_num_cpus =
-              ( spoof ? si.dwNumberOfProcessors : -1 );
+            config.priority.cpu_spoof_enable = cpu_spoof;
+
+            if (cpu_spoof)
+            {
+              if (config.priority.cpu_spoof_logical <= 0)
+                config.priority.cpu_spoof_logical =
+                  max_spoofed_processors;
+
+              if (config.priority.cpu_spoof_physical <= 0)
+                config.priority.cpu_spoof_physical =
+                  std::max (1, config.priority.cpu_spoof_logical / 2);
+            }
           }
 
-          ImGui::SetItemTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
+          ImGui::SetItemTooltip ("Overrides Win32 CPU topology APIs for games that size worker pools from CPU count.");
 
           ImGui::SameLine ();
           ImGui::Checkbox ("Upgrade Low-Res Timers", &config.render.framerate.force_high_res_timers);
@@ -7514,14 +7536,117 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
           ImGui::EndGroup ();
 
-          if (spoof)
+          static std::string appcompat_sdb_status;
+
+          if (config.priority.cpu_spoof_enable)
           {
+            config.priority.cpu_spoof_logical =
+              std::clamp ( config.priority.cpu_spoof_logical,
+                1, max_spoofed_processors );
+
+            config.priority.cpu_spoof_physical =
+              std::clamp ( config.priority.cpu_spoof_physical,
+                1, config.priority.cpu_spoof_logical );
+
             ImGui::BeginGroup ();
-            ImGui::SliderInt  ( "###SPOOF_CPU_COUNT",
-                                &config.render.framerate.override_num_cpus,
-                                  1, si.dwNumberOfProcessors,
-                                    "Number of CPUs: %d" );
+            ImGui::SliderInt  ( "###SPOOF_CPU_LOGICAL",
+                                &config.priority.cpu_spoof_logical,
+                                  1, max_spoofed_processors,
+                                    "Logical Processors: %d" );
+            ImGui::SliderInt  ( "###SPOOF_CPU_PHYSICAL",
+                                &config.priority.cpu_spoof_physical,
+                                  1, config.priority.cpu_spoof_logical,
+                                    "Physical Cores: %d" );
             ImGui::EndGroup   ();
+
+            if ( cpu_spoof_orig != config.priority.cpu_spoof_enable ||
+                 cpu_logical_orig != config.priority.cpu_spoof_logical ||
+                 cpu_physical_orig != config.priority.cpu_spoof_physical )
+            {
+              ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+              ImGui::BulletText     ("Game Restart Required");
+              ImGui::PopStyleColor  ();
+            }
+          }
+
+          const int appcompat_sdb_logical =
+            std::clamp ( config.priority.cpu_spoof_logical > 0 ?
+                           config.priority.cpu_spoof_logical :
+                           max_spoofed_processors,
+                         1, max_spoofed_processors );
+
+          ImGui::Separator ();
+
+          if (ImGui::Button ("Install / Update AMD AppCompat SDB"))
+          {
+            std::wstring sdb_path;
+
+            const bool wrote_sdb =
+              SK_CPU_AppCompatSDB_WriteProcessorCountLie (
+                SK_GetHostApp (),
+                nullptr,
+                appcompat_sdb_logical,
+                &sdb_path
+              );
+
+            const bool launched_installer =
+              wrote_sdb &&
+                SK_CPU_AppCompatSDB_RunInstaller (
+                  sdb_path.c_str (), false, true
+                );
+
+            appcompat_sdb_status =
+              launched_installer ?
+                "SDB install/update command launched" :
+                "SDB install/update failed";
+          }
+
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::Text       ("Installs Windows AppCompat ProcessorCountLie for this game.");
+            ImGui::Separator  ();
+            ImGui::BulletText ("Logical Processors: %d", appcompat_sdb_logical);
+            ImGui::BulletText ("Requires UAC approval and a full game restart.");
+            ImGui::EndTooltip ();
+          }
+
+          ImGui::SameLine ();
+
+          if (ImGui::Button ("Uninstall AMD AppCompat SDB"))
+          {
+            std::wstring sdb_path;
+
+            const bool wrote_sdb =
+              SK_CPU_AppCompatSDB_WriteProcessorCountLie (
+                SK_GetHostApp (),
+                nullptr,
+                appcompat_sdb_logical,
+                &sdb_path
+              );
+
+            const bool launched_installer =
+              wrote_sdb &&
+                SK_CPU_AppCompatSDB_RunInstaller (
+                  sdb_path.c_str (), true, false
+                );
+
+            appcompat_sdb_status =
+              launched_installer ?
+                "SDB uninstall command launched" :
+                "SDB uninstall failed";
+          }
+
+          if (ImGui::BeginItemTooltip ())
+          {
+            ImGui::Text       ("Removes this game's Special K ProcessorCountLie database.");
+            ImGui::Separator  ();
+            ImGui::BulletText ("Requires UAC approval and a full game restart.");
+            ImGui::EndTooltip ();
+          }
+
+          if (! appcompat_sdb_status.empty ())
+          {
+            ImGui::BulletText ("%s", appcompat_sdb_status.c_str ());
           }
 
           // Only show these for debug purposes, normal users never need to see

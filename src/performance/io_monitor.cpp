@@ -427,7 +427,8 @@ SK_MonitorCPU (LPVOID user_param)
   SK_GetSystemInfo (&si);
 
   cpu.num_cpus =
-    si.dwNumberOfProcessors;
+    std::min <DWORD> ( si.dwNumberOfProcessors,
+      static_cast <DWORD> (_countof (cpu.cpus) - 1) );
 
   static ULONG ulAllocatedPerfBytes =
       cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK);
@@ -471,12 +472,18 @@ SK_MonitorCPU (LPVOID user_param)
       bool needs_idle_fixup = false;
 
       const int count =
-        ( ulAllocatedPerfBytes / sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK) );
+        std::min <int> (
+          ( ulAllocatedPerfBytes / sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK) ),
+          static_cast <int> (_countof (cpu.cpus) - 1)
+        );
 
       PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK pCPU    =  pPerformance,
                                                     pEndCPU = &pCPU [count];
 
-      assert (count < 64);
+      assert (count <= static_cast <int> (_countof (cpu.cpus) - 1));
+
+      cpu.num_cpus =
+        static_cast <DWORD> (count);
 
       cpu.beginNewAggregate ();
       {

@@ -1720,27 +1720,75 @@ public:
       static SYSTEM_INFO             sinfo = { };
       SK_RunOnce (SK_GetSystemInfo (&sinfo));
 
+      constexpr DWORD max_cpu_records =
+        static_cast <DWORD> (_countof (cpu_stats.cpus) - 1);
+
+      DWORD pwi_count =
+        std::min <DWORD> (
+          std::max <DWORD> ( 1UL,
+            std::max <DWORD> (sinfo.dwNumberOfProcessors, cpu_stats.num_cpus)
+          ),
+          max_cpu_records
+        );
+
+      const DWORD active_processors =
+        GetActiveProcessorCount (ALL_PROCESSOR_GROUPS);
+
+      if (active_processors > 0)
+      {
+        pwi_count =
+          std::min <DWORD> (
+            std::max <DWORD> (pwi_count, active_processors),
+            max_cpu_records
+          );
+      }
+
+      auto alloc_power_info =
+        [&](DWORD count) -> PPROCESSOR_POWER_INFORMATION
+        {
+          return reinterpret_cast <PPROCESSOR_POWER_INFORMATION> (
+            pTLS != nullptr ?
+            pTLS->scratch_memory->cpu_info.alloc (
+              sizeof (PROCESSOR_POWER_INFORMATION) * count )
+                            : nullptr                     );
+        };
+
       PPROCESSOR_POWER_INFORMATION pwi =
-        reinterpret_cast <PPROCESSOR_POWER_INFORMATION> (
-          pTLS != nullptr ?
-          pTLS->scratch_memory->cpu_info.alloc (
-            sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors )
-                          : nullptr                     );
+        alloc_power_info (pwi_count);
 
       if (pwi == nullptr) return; // Ohnoes, I No Can Haz RAM (!!)
+
+      bool pwi_valid = false;
 
       static bool bUseNtPower = true;
       if (        bUseNtPower)
       {
-        const NTSTATUS ntStatus =
+        NTSTATUS ntStatus =
           CallNtPowerInformation ( ProcessorInformation,
-                                   nullptr, 0,
-                                   pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors );
+                                    nullptr, 0,
+                                    pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * pwi_count );
 
-        bUseNtPower =
+        if (ntStatus == STATUS_BUFFER_TOO_SMALL && pwi_count < max_cpu_records)
+        {
+          pwi_count = max_cpu_records;
+          pwi       = alloc_power_info (pwi_count);
+
+          if (pwi == nullptr)
+            return;
+
+          ntStatus =
+            CallNtPowerInformation ( ProcessorInformation,
+                                      nullptr, 0,
+                                      pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * pwi_count );
+        }
+
+        pwi_valid =
           NT_SUCCESS (ntStatus);
 
-        if (! bUseNtPower)
+        bUseNtPower =
+          pwi_valid;
+
+        if (! pwi_valid)
         {
           SK_LOG0 ( ( L"Disabling CallNtPowerInformation (...) due to failed result: %x", ntStatus ),
                       L"CPUMonitor" );
@@ -1750,19 +1798,44 @@ public:
       if (   cpu_records.size () < ( static_cast <size_t> (cpu_stats.num_cpus) + 1 )
          ) { cpu_records.resize    ( static_cast <size_t> (cpu_stats.num_cpus) + 1 ); }
 
-      for (unsigned int i = 1; i < cpu_stats.num_cpus + 1 ; i++)
+      const DWORD sample_count =
+        std::min <DWORD> (cpu_stats.num_cpus, max_cpu_records);
+
+      if (pwi_valid)
       {
-        auto& stat_cpu =
-          cpu_stats.cpus [pwi [i-1].Number];
+        const DWORD pwi_sample_count =
+          std::min <DWORD> (sample_count, pwi_count);
 
-        cpu_records [i].addValue (
-          stat_cpu.getPercentLoad ()
-        );
+        for (DWORD i = 1; i < pwi_sample_count + 1 ; i++)
+        {
+          const DWORD cpu_number =
+            pwi [i-1].Number;
 
-        stat_cpu.CurrentMhz =
-          pwi [i-1].CurrentMhz;
-        stat_cpu.MaximumMhz =
-          pwi [i-1].MaxMhz;
+          if (cpu_number >= max_cpu_records)
+            continue;
+
+          auto& stat_cpu =
+            cpu_stats.cpus [cpu_number];
+
+          cpu_records [i].addValue (
+            stat_cpu.getPercentLoad ()
+          );
+
+          stat_cpu.CurrentMhz =
+            pwi [i-1].CurrentMhz;
+          stat_cpu.MaximumMhz =
+            pwi [i-1].MaxMhz;
+        }
+      }
+
+      else
+      {
+        for (DWORD i = 1; i < sample_count + 1 ; i++)
+        {
+          cpu_records [i].addValue (
+            cpu_stats.cpus [i-1].getPercentLoad ()
+          );
+        }
       }
 
       cpu_records [0].addValue (

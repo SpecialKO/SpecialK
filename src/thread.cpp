@@ -52,6 +52,12 @@ SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>                   
 
 void __make_self_titled (DWORD dwTid);
 
+void
+SK_CPU_Spoof_OnThreadNameObserved ( DWORD          dwTid,
+                                    const wchar_t* name,
+                                    const wchar_t* source,
+                                    LPVOID         caller );
+
 // Game has given this thread a custom name, it's special :)
 bool
 SK_Thread_HasCustomName (DWORD dwTid) noexcept
@@ -119,6 +125,13 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
         {
           auto name =
             _SK_ThreadNames.get()[dwTid].data();
+
+          SK_CPU_Spoof_OnThreadNameObserved (
+            dwTid,
+            wszThreadName,
+            L"GetThreadDescription",
+            _ReturnAddress ()
+          );
 
           __make_self_titled (dwTid);
           wcsncpy_s (name, SK_MAX_THREAD_NAME_LEN, wszThreadName, _TRUNCATE);
@@ -422,6 +435,25 @@ WINAPI
 SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
 {
   SK_LOG_FIRST_CALL
+
+  if ( config.priority.cpu_spoof_enable                       &&
+       lpThreadDescription != nullptr                         &&
+       SK_ValidatePointer ((void *)lpThreadDescription, true) &&
+       StrStrIW (lpThreadDescription, L"Worker") != nullptr )
+  {
+    static volatile LONG worker_name_logs = 0;
+
+    if (InterlockedIncrement (&worker_name_logs) <= 128)
+    {
+      SK_LOGi0 (
+        L"CPU topology spoof: worker thread named => tid=0x%04x, handle=%p, desc=\"%ws\" [caller=%ws]",
+        GetThreadId (hThread),
+        hThread,
+        lpThreadDescription,
+        SK_SummarizeCaller (_ReturnAddress ()).c_str ()
+      );
+    }
+  }
 
   // Only do this if we have a hook on RaiseException
   extern RaiseException_pfn
