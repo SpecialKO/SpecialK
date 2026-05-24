@@ -3917,8 +3917,8 @@ auto DeclKeybind =
 #else
             if (IDOK ==
                 SK_MessageBox (
-                  L"Special K has Compatibility Issues with this Game\r\n\r\n"
-                  L"   * Please use Local Injection or SKinny\r\n\r\n" 
+                  L"Special K has DLSS Compatibility Issues with this Game\r\n\r\n"
+                  L"   * Please use Local Injection for best results\r\n\r\n" 
                     L"Click OK to switch to Local Injection.", L"Special K Incompatibility",
                     MB_OKCANCEL|MB_ICONWARNING))
             {
@@ -3950,6 +3950,7 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;
         config.input.gamepad.xinput.placehold [3]   = false;
+        config.window.background_render             =  true; // Avoids problems in the Steam version.
       } break;
 
       case SK_GAME_ID::ClairObscur_Expedition33:
