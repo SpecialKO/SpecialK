@@ -2,6 +2,12 @@
 =======
  + Default Forza Horizon 5/6 to use "Continue Rendering Mode", because the
      Steam version has stability issues when alt-tab'd out.
+ + Merge pull request #352 from kisenaa:fix/akef-use-SK-NvLL_VK_Sleep_Detour
+    * Use NvLL_VK_Sleep detour from reflex.cpp inside slDLSSGSetOptions hook.
+ + Merge pull request #361 from HarukaMa:fix-32bit-cpu-info
+    * Use correct CPU count in CPU widget to prevent a crash in 32-bit.
+ + Merge pull request #362 from darklinkpower:xbox_gamebar_delay_callbacks
+    * Delay Xbox Game Bar callback registration during startup.
 
 26.5.20
 =======
