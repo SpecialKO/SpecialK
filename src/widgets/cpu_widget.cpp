@@ -27,6 +27,23 @@
 
 extern iSK_INI* osd_ini;
 
+
+typedef enum _SYSTEM_INFORMATION_CLASS {
+  SystemProcessorPerformanceInformation = 8,
+} SYSTEM_INFORMATION_CLASS;
+
+typedef NTSTATUS(WINAPI* NtQuerySystemInformation_pfn)(
+  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
+  _Inout_   PVOID                    SystemInformation,
+  _In_      ULONG                    SystemInformationLength,
+  _Out_opt_ PULONG                   ReturnLength
+  );
+
+static NtQuerySystemInformation_pfn NtQuerySystemInformation =
+  (NtQuerySystemInformation_pfn)SK_GetProcAddress(L"NtDll",
+    "NtQuerySystemInformation");
+
+
 ULONG
 CALLBACK
 SK_CPU_DeviceNotifyCallback (
@@ -1717,6 +1734,13 @@ public:
             SK_TLS_Bottom ();
 
       // Processor count is not going to change at run-time or I will eat my hat
+      static const unsigned int cpu_count = []() -> unsigned int {
+        unsigned long len = 0;
+        NtQuerySystemInformation(SystemProcessorPerformanceInformation,
+          nullptr, 0, &len);
+        return len / sizeof(_SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK);
+      }();
+
       static SYSTEM_INFO             sinfo = { };
       SK_RunOnce (SK_GetSystemInfo (&sinfo));
 
@@ -1724,7 +1748,7 @@ public:
         reinterpret_cast <PPROCESSOR_POWER_INFORMATION> (
           pTLS != nullptr ?
           pTLS->scratch_memory->cpu_info.alloc (
-            sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors )
+            sizeof (PROCESSOR_POWER_INFORMATION) * cpu_count)
                           : nullptr                     );
 
       if (pwi == nullptr) return; // Ohnoes, I No Can Haz RAM (!!)
@@ -1735,7 +1759,7 @@ public:
         const NTSTATUS ntStatus =
           CallNtPowerInformation ( ProcessorInformation,
                                    nullptr, 0,
-                                   pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors );
+                                   pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * cpu_count );
 
         bUseNtPower =
           NT_SUCCESS (ntStatus);
