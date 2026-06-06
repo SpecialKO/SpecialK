@@ -1958,6 +1958,7 @@ enum class SK_GAME_ID
   AgeOfEmpires4,                // RelicCardinal.exe
   ArknightsEndfield,            // Endfield.exe, PlatformProcess.exe (if injected too late)
   CrimsonDesert,                // CrimsonDesert.exe
+  MinaTheHollower,              // MinaTheHollower.exe
 
   UNKNOWN_GAME               = 0xffff
 };

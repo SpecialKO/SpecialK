@@ -333,7 +333,8 @@ SK_GetCurrentGameID (void) noexcept
           { L"RelicCardinal.exe",                      SK_GAME_ID::AgeOfEmpires4                },
           { L"Endfield.exe",                           SK_GAME_ID::ArknightsEndfield            },
           { L"PlatformProcess.exe",                    SK_GAME_ID::ArknightsEndfield            },
-          { L"CrimsonDesert.exe",                      SK_GAME_ID::CrimsonDesert                }
+          { L"CrimsonDesert.exe",                      SK_GAME_ID::CrimsonDesert                },
+          { L"MinaTheHollower.exe",                    SK_GAME_ID::MinaTheHollower              },
         };
 
     first_check  = false;
@@ -3883,6 +3884,12 @@ auto DeclKeybind =
       case SK_GAME_ID::SeriousSamFusion2017:
         // Prevent crash on launch due to 'Signature verification of executable failed.'
         config.window.dont_hook_wndproc = true;
+        break;
+
+      // Game can not run correctly above 120 FPS without microstutter, so set SK's
+      //   limiter on its behalf.
+      case SK_GAME_ID::MinaTheHollower:
+        config.render.framerate.target_fps = 120.0f;
         break;
 
       case SK_GAME_ID::ForzaHorizon5:
