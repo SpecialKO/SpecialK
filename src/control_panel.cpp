@@ -4584,7 +4584,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         {
 #if 0
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discourse Forums", &selected, true))
-            SK_PlatformOverlay_GoToURL ("https://discourse.differentk.fyi/", true);
+            SK_PlatformOverlay_GoToURL ("https://discourse.special-k.info/", true);
 #else
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discord Server", &selected, true))
             SK_PlatformOverlay_GoToURL ("https://discord.special-k.info", true);
