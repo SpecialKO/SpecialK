@@ -4587,7 +4587,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
             SK_PlatformOverlay_GoToURL ("https://discourse.differentk.fyi/", true);
 #else
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discord Server", &selected, true))
-            SK_PlatformOverlay_GoToURL ("https://discord.gg/SpecialK", true);
+            SK_PlatformOverlay_GoToURL ("https://discord.special-k.info", true);
 #endif
         }
         ImGui::TreePop ();
@@ -4651,7 +4651,7 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
                              )
            )
         {
-          SK_PlatformOverlay_GoToURL ("https://discord.gg/specialk",
+          SK_PlatformOverlay_GoToURL ("https://discord.special-k.info",
               true
           );
         }
