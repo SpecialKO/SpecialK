@@ -1,4 +1,14 @@
-﻿26.6.6
+﻿26.6.10
+=======
+ + Processes that have been running for more than 5 seconds by the time SK
+     applies DPI scaling fixes will no longer restart themselves to apply the
+       fix.
+
+   * Warning dialog informing users not to use late injection unless they are
+       prepared to lose data is planned but will take time because it needs to
+         be implemented as a Win32 dialog rather than ImGui popup.
+
+26.6.6
 ======
  + Default Mina The Hollower to 120 FPS cap in SK to avoid microstutter from
      duplicated frames beyond the hard-coded internal limit the engine uses.

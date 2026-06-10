@@ -3572,7 +3572,45 @@ SK_Display_DisableDPIScaling (void)
 
     if ((! bWasAppCompatAware) && SK_Display_IsDPIAwarenessUsingAppCompat ())
     {
-      SK_RestartGame (nullptr, L"A one-time game restart is required to fix DPI Scaling issues in this game.");
+      FILETIME ftCreation {}, ftExit {},
+               ftKernel   {}, ftUser {};
+
+      if (GetProcessTimes (GetCurrentProcess (), &ftCreation, &ftExit, &ftKernel, &ftUser))
+      {
+        FILETIME                  ftNow = {};
+        GetSystemTimeAsFileTime (&ftNow);
+
+        ULARGE_INTEGER uliCreation, uliNow;
+
+        uliCreation.LowPart  = ftCreation.dwLowDateTime;
+        uliNow     .LowPart  = ftNow.     dwLowDateTime;
+
+        uliNow     .HighPart = ftNow.     dwHighDateTime;
+        uliCreation.HighPart = ftCreation.dwHighDateTime;
+
+        ULONGLONG timeSinceCreation =
+          (uliNow.QuadPart > uliCreation.QuadPart) ?
+          (uliNow.QuadPart - uliCreation.QuadPart) : 0ULL;
+
+        // If process started more than 5 seconds ago, let DPI scaling stay broken.
+        //
+        if (static_cast <double> (timeSinceCreation) / 10000000.0 < 5.0)
+        {
+          SK_RestartGame (nullptr,
+            L"A one-time game restart is required to fix DPI Scaling issues in this game."
+          );
+        }
+
+        else
+        {
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Auto-fix for DPI Scaling incompatibility not applied because process"
+              L"has been running too long."
+            );
+          );
+        }
+      }
     }
   }
 
