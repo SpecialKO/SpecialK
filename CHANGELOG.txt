@@ -1,4 +1,9 @@
-﻿26.6.10.1
+﻿26.6.10.2
+=========
+ + Change Forza Horizon 5/6 DLSS warning to only display if the NVIDIA driver has
+     loaded sl.interposer.dll; should make things simpler for AMD users :)
+
+26.6.10.1
 =========
  + Added workaround for dbghelp deadlock in GOG version of Gothic 1 Remake;
      DLL symbol names may be less accurate for DLLs loaded before SK's DllMain

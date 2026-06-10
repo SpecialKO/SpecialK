@@ -3922,9 +3922,9 @@ auto DeclKeybind =
               }
             }
 #else
-            if (IDOK ==
+            if (SK_IsModuleLoaded (L"sl.interposer.dll") && IDOK ==
                 SK_MessageBox (
-                  L"Special K has DLSS Compatibility Issues with this Game\r\n\r\n"
+                  L"Special K has Frame Gen Compatibility Issues in this Game\r\n\r\n"
                   L"   * Please use Local Injection for best results\r\n\r\n" 
                     L"Click OK to switch to Local Injection.", L"Special K Incompatibility",
                     MB_OKCANCEL|MB_ICONWARNING))
