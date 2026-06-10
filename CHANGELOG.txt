@@ -1,4 +1,10 @@
-﻿26.6.10
+﻿26.6.10.1
+=========
+ + Added workaround for dbghelp deadlock in GOG version of Gothic 1 Remake;
+     DLL symbol names may be less accurate for DLLs loaded before SK's DllMain
+       function returns.
+
+26.6.10
 =======
  + Processes that have been running for more than 5 seconds by the time SK
      applies DPI scaling fixes will no longer restart themselves to apply the

@@ -1772,6 +1772,11 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
     }
   }
 
+  // This causes deadlocks in Gothic 1 Remake (GOG version) when called from DllMain,
+  //   so skip it if necessary. The exact reason for this behavior is unknown.
+  const bool bAllowSymFromAddr = SK_TLS_Bottom () != nullptr &&
+                                !SK_TLS_Bottom ()->debug.in_DllMain;
+
   HANDLE hProc =
     SK_GetCurrentProcess ();
 
@@ -1785,13 +1790,14 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
   DWORD64 Displacement = 0;
 
-  if ( SymFromAddr ( hProc,
-                       ip,
-                         &Displacement,
-                           &sip.si ) )
+  if ( bAllowSymFromAddr &&
+             SymFromAddr ( hProc,
+                             ip,
+                               &Displacement,
+                                 &sip.si ) )
   {
     pszOut [0] = '\0';
-
+  
     strncat             ( pszOut.data (), sip.si.Name,
                             std::min (ulLen, sip.si.NameLen) );
     ret =
