@@ -195,7 +195,10 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
             SK_HidD_GetProductString (hDeviceFile.m_h, wszDeviceName, 254);
             SK_HidD_GetAttributes    (hDeviceFile.m_h, &hidAttribs);
 
-            playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
+            const bool bDualSenseCompatible =
+              SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID, hidAttribs.ProductID);
+
+            playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY || bDualSenseCompatible );
           }
         }
 
@@ -335,7 +338,8 @@ SK_HID_DeviceNotifyProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
               controller.bDualSense =
                 (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
-                (controller.pid == SK_HID_PID_DUALSENSE);
+                (controller.pid == SK_HID_PID_DUALSENSE)      ||
+                  SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID, hidAttribs.ProductID);
 
               controller.bDualSenseEdge =
                 controller.pid == SK_HID_PID_DUALSENSE_EDGE;

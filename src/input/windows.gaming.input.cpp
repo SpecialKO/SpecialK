@@ -950,10 +950,15 @@ WGI_GamepadStatics2_FromGameController_Override (ABI::Windows::Gaming::Input::IG
         pRawGameController (gameController);
     if (pRawGameController.p != nullptr)
     {
-      UINT16                                     controller_vid = 0;
-      pRawGameController->get_HardwareVendorId (&controller_vid);
+      UINT16                                      controller_vid = 0;
+      pRawGameController->get_HardwareVendorId  (&controller_vid);
+      UINT16                                      controller_pid = 0;
+      pRawGameController->get_HardwareProductId (&controller_pid);
 
-      if (controller_vid == SK_HID_VID_SONY)
+      const bool bDualSenseCompatible =
+        SK_HID_IsDeviceDualSenseCompatible (controller_vid, controller_pid);
+
+      if (controller_vid == SK_HID_VID_SONY || bDualSenseCompatible)
       {
         SK_LOGi0 (
           L"Mapping Raw Windows.Gaming.Input Controller to %ws PlayStation Gamepad",
@@ -970,9 +975,6 @@ WGI_GamepadStatics2_FromGameController_Override (ABI::Windows::Gaming::Input::IG
 
       else if (controller_vid != SK_HID_VID_MICROSOFT)
       {
-        UINT16                                     controller_pid = 0;
-        pRawGameController->get_HardwareVendorId (&controller_pid);
-
         SK_LOGi0 (L"non-SONY/Microsoft HID Controller: VID=%04x, PID=%04x",
                   controller_vid, controller_pid);
       }

@@ -1,8 +1,7 @@
-﻿26.6.11.2
-=========
- + Refactor GameConfigStore code, and apply "Rember this is a Game" after
-     SK loads a config file rather than on the first frame drawn to help games
-       that use SDL not confuse Windows.
+﻿26.6.12
+=======
+ + Added support for generic DualSense controllers from Nacon and Razer.
+ + Allows using these controllers in Unity Engine games also.
 
 26.6.11.1
 =========

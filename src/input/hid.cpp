@@ -532,7 +532,10 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
 
   if (ret)
   {
-    if (Attributes->VendorID == SK_HID_VID_SONY)
+    const bool bGenericPS5 =
+      SK_HID_IsDeviceDualSenseCompatible (Attributes->VendorID, Attributes->ProductID);
+
+    if (Attributes->VendorID  == SK_HID_VID_SONY || bGenericPS5)
     {
       if (config.input.gamepad.scepad.show_ds4_v1_as_v2 == SK_Enabled)
       {
@@ -561,6 +564,15 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
         {   Attributes->ProductID  = SK_HID_PID_DUALSENSE;
             SK_RunOnce (SK_LOGi0 (L"Identifying DualSense Edge controller as DualSense to game."));
         }
+      }
+
+      if (bGenericPS5 && Attributes->ProductID != SK_HID_PID_DUALSENSE_EDGE &&
+                         Attributes->ProductID != SK_HID_PID_DUALSENSE)
+      {
+        SK_RunOnce (SK_LOGi0 (L"Identifying Generic DualSense controller as DualSense to game."));
+
+        Attributes->ProductID = SK_HID_PID_DUALSENSE;
+        Attributes->VendorID  = SK_HID_VID_SONY;
       }
     }
   }
@@ -1051,7 +1063,13 @@ ReadFile_Detour (HANDLE       hFile,
                  lpNumberOfBytesRead, lpOverlapped );
         }
 
-        if (((SK_HID_DeviceFile *)dev_ptr)->device_vid == SK_HID_VID_SONY)
+        const bool bGenericPS5 =
+          SK_HID_IsDeviceDualSenseCompatible (
+            ((SK_HID_DeviceFile *)dev_ptr)->device_vid,
+            ((SK_HID_DeviceFile *)dev_ptr)->device_pid
+          );
+
+        if (((SK_HID_DeviceFile *)dev_ptr)->device_vid == SK_HID_VID_SONY || bGenericPS5)
         {
           config.input.gamepad.scepad.pollig_thread_tid =
             SK_GetCurrentThreadId ();
@@ -2891,7 +2909,18 @@ SK_Input_EnumOpenHIDFiles (void)
               SK_AutoHandle hRemoteFile (file);
               if (SK_HidD_GetAttributes (file, &hidAttribs))
               {
-                if (hidAttribs.VendorID == SK_HID_VID_SONY)
+                const bool bGenericPS5 =
+                  ( hidAttribs.VendorID  == SK_HID_VID_NACON &&
+                   (hidAttribs.ProductID == SK_HID_PID_REVOLUTION_5_PRO_DONGLE ||
+                    hidAttribs.ProductID == SK_HID_PID_REVOLUTION_5_PRO_WIRED) ) ||
+                  ( hidAttribs.VendorID  == SK_HID_VID_RAZER &&
+                   (hidAttribs.ProductID == SK_HID_PID_PS5_WOLVERINE_V2_PRO_WIRED    ||
+                    hidAttribs.ProductID == SK_HID_PID_PS5_WOLVERINE_V2_PRO_WIRELESS ||
+                    hidAttribs.ProductID == SK_HID_PID_PS5_KITSUNE                   ||
+                    hidAttribs.ProductID == SK_HID_PID_RAIJU_V5_PRO_DONGLE           ||
+                    hidAttribs.ProductID == SK_HID_PID_RAIJU_V5_PRO_WIRED) );
+
+                if (hidAttribs.VendorID == SK_HID_VID_SONY || bGenericPS5)
                 {
                   SK_LOGi0 (
                     L"The Steam Client has a HID Device File Open ( vid=%04x, pid=%04x )",
@@ -3536,4 +3565,49 @@ SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active) noexcept
   }
 
   return pNewestInputDevice;
+}
+
+bool
+SK_HID_IsDeviceDualSenseCompatible (USHORT vid, USHORT pid)
+{
+  switch (vid)
+  {
+    case SK_HID_VID_NACON:
+    {
+      switch (pid)
+      {
+        case SK_HID_PID_REVOLUTION_5_PRO_DONGLE:
+        case SK_HID_PID_REVOLUTION_5_PRO_WIRED:
+          return true;
+      }
+    } break;
+
+    case SK_HID_VID_RAZER:
+    {
+      switch (pid)
+      {
+        case SK_HID_PID_PS5_WOLVERINE_V2_PRO_WIRED:
+        case SK_HID_PID_PS5_WOLVERINE_V2_PRO_WIRELESS:
+        case SK_HID_PID_PS5_KITSUNE:
+        case SK_HID_PID_RAIJU_V5_PRO_DONGLE:
+        case SK_HID_PID_RAIJU_V5_PRO_WIRED:
+          return true;
+      }
+    } break;
+
+    case SK_HID_VID_SONY:
+    {
+      switch (pid)
+      {
+        case SK_HID_PID_DUALSENSE:
+        case SK_HID_PID_DUALSENSE_EDGE:
+          return true;
+      }
+    } break;
+
+    default:
+      return false;
+  }
+
+  return false;
 }

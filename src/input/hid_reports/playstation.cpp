@@ -233,8 +233,8 @@ void SK_HID_SetupPlayStationControllers (void)
             continue;
           }
 
-          const bool bSONY = 
-            hidAttribs.VendorID == SK_HID_VID_SONY;
+          const bool bSONY =                    hidAttribs.VendorID == SK_HID_VID_SONY ||
+            SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID, hidAttribs.ProductID);
 
             // (*) 0x2054c - (Too large for 16-bit VID);
 
@@ -251,7 +251,9 @@ void SK_HID_SetupPlayStationControllers (void)
               hidAttribs.ProductID == SK_HID_PID_DUALSHOCK4        ||
               hidAttribs.ProductID == SK_HID_PID_DUALSHOCK4_REV2   ||
               hidAttribs.ProductID == SK_HID_PID_DUALSHOCK4_DONGLE ||
-              hidAttribs.ProductID == SK_HID_PID_DUALSHOCK3;
+              hidAttribs.ProductID == SK_HID_PID_DUALSHOCK3        ||
+              SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID,
+                                                  hidAttribs.ProductID);
 
             if (! bKnownSONY)
             {
@@ -293,7 +295,9 @@ void SK_HID_SetupPlayStationControllers (void)
 
           controller.bDualSense =
             (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
-            (controller.pid == SK_HID_PID_DUALSENSE);
+            (controller.pid == SK_HID_PID_DUALSENSE)      ||
+            SK_HID_IsDeviceDualSenseCompatible ( hidAttribs.VendorID,
+                                                 hidAttribs.ProductID );
 
           controller.bDualSenseEdge =
             controller.pid == SK_HID_PID_DUALSENSE_EDGE;
@@ -4134,11 +4138,23 @@ bool SK_HID_DeviceFile::filterHidInput (uint8_t report_id, DWORD dwSize, LPVOID 
     return data_changed;
   }
 
-  switch (device_vid)
+  const bool bDualSenseCompatible =
+    SK_HID_IsDeviceDualSenseCompatible (device_vid, device_pid);
+
+  auto vid = device_vid;
+  auto pid = device_pid;
+
+  if (bDualSenseCompatible)
+  {
+    vid = SK_HID_VID_SONY;
+    pid = SK_HID_PID_DUALSENSE;
+  }
+
+  switch (vid)
   {
     case SK_HID_VID_SONY:
     {
-      switch (device_pid)
+      switch (pid)
       {
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
@@ -4271,11 +4287,23 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
   if (data_changed)
     return data_changed;
 
-  switch (device_vid)
+  const bool bDualSenseCompatible =
+    SK_HID_IsDeviceDualSenseCompatible (device_vid, device_pid);
+
+  auto vid = device_vid;
+  auto pid = device_pid;
+
+  if (bDualSenseCompatible)
+  {
+    vid = SK_HID_VID_SONY;
+    pid = SK_HID_PID_DUALSENSE;
+  }
+
+  switch (vid)
   {
     case SK_HID_VID_SONY:
     {
-      switch (device_pid)
+      switch (pid)
       {
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
@@ -4367,11 +4395,23 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
 
 bool SK_HID_DeviceFile::canNeutralizeInput (uint8_t report_id, DWORD dwSize)
 {
-  switch (device_vid)
+  const bool bDualSenseCompatible =
+    SK_HID_IsDeviceDualSenseCompatible (device_vid, device_pid);
+
+  auto vid = device_vid;
+  auto pid = device_pid;
+
+  if (bDualSenseCompatible)
+  {
+    vid = SK_HID_VID_SONY;
+    pid = SK_HID_PID_DUALSENSE;
+  }
+
+  switch (vid)
   {
     case SK_HID_VID_SONY:
     {
-      switch (device_pid)
+      switch (pid)
       {
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
@@ -4481,11 +4521,23 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
 
   int modified_bytes = 0;
 
-  switch (device_vid)
+  const bool bDualSenseCompatible =
+    SK_HID_IsDeviceDualSenseCompatible (device_vid, device_pid);
+
+  auto vid = device_vid;
+  auto pid = device_pid;
+
+  if (bDualSenseCompatible)
+  {
+    vid = SK_HID_VID_SONY;
+    pid = SK_HID_PID_DUALSENSE;
+  }
+
+  switch (vid)
   {
     case SK_HID_VID_SONY:
     {
-      switch (device_pid)
+      switch (pid)
       {
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
