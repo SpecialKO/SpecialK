@@ -3606,35 +3606,73 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         SK_UTF8ToWideChar (SK_GetFriendlyAppName ()).c_str ()
       );
 
+      CRegKey              hkGameConfigParentsRoot;
       CRegKey              hkGameConfigChildRoot;
-      if (ERROR_SUCCESS == hkGameConfigChildRoot.Open (HKEY_CURRENT_USER, LR"(System\GameConfigStore\Children)"))
+      if (ERROR_SUCCESS == hkGameConfigChildRoot.  Open (HKEY_CURRENT_USER, LR"(System\GameConfigStore\Children)") &&
+          ERROR_SUCCESS == hkGameConfigParentsRoot.Open (HKEY_CURRENT_USER, LR"(System\GameConfigStore\Parents)"))
       {
         bool is_a_game = false;
 
-        auto child_keys =
-          SK_GameConfigStore_GetAllChildKeys (hkGameConfigChildRoot);
+        const auto wszHostAppLower =
+          SK_Win32_ToLowerInvariant (SK_GetHostApp ());
 
-        // nb: This is the wrong way to do this, hash the exe name and then look through
-        //       the multi-string key for children instead.
-        for ( auto& child_key : child_keys )
+        const std::wstring parentKeyName =
+          GetSha1Utf16Le (wszHostAppLower.c_str ());
+
+        CRegKey              hkParentKey;
+        if (ERROR_SUCCESS == hkParentKey.Open (hkGameConfigParentsRoot, parentKeyName.c_str ()))
         {
-          CRegKey hkChildKey;
-                  hkChildKey.Open (hkGameConfigChildRoot, child_key.c_str ());
+          SK_LOGi0 (L"Parent Key: %ws opened", parentKeyName.c_str ());
 
-          ULONG    ulMatchedExeFullPathLen = MAX_PATH;
-          wchar_t wszMatchedExeFullPath     [MAX_PATH] = {};
+          std::vector <std::wstring> child_key_names;
+          ULONG                      children_key_size = 0;
 
-          if (hkChildKey.QueryStringValue (L"MatchedExeFullPath",
-                                          wszMatchedExeFullPath,
-                                          &ulMatchedExeFullPathLen) == ERROR_SUCCESS)
+          // MultiString values are double-null terminated, so a size of 2 means an empty list. Only proceed if there's something there.
+          if (hkParentKey.QueryMultiStringValue (L"Children", NULL, &children_key_size) == ERROR_SUCCESS &&
+                                                                     children_key_size > 2)
           {
-            if (StrStrIW (wszMatchedExeFullPath, SK_GetHostApp ()))
-            {
-              if (config.system.log_level > 0)
-                SK_ImGui_Warning (L"This is a game!");
+            SK_LOGi0 (L"Children Key Size: %d characters", children_key_size);
 
-              is_a_game = true;
-              break;
+            children_key_size += 2;
+
+            std::vector <wchar_t> buffer (children_key_size);
+
+            if (hkParentKey.QueryMultiStringValue (L"Children", buffer.data (), &children_key_size) == ERROR_SUCCESS)
+            {
+              wchar_t* p = buffer.data ();
+              while (*p)
+              {
+                std::wstring child_str (p);
+
+                SK_LOGi0 (L"Child Key: %ws", child_str.c_str ());
+
+                child_key_names.push_back (child_str);
+
+                p += child_str.length () + 1;
+              }
+            }
+          }
+
+          for ( auto& child_key_name : child_key_names )
+          {
+            ULONG    ulMatchedExeFullPathLen = MAX_PATH;
+            wchar_t wszMatchedExeFullPath     [MAX_PATH] = {};
+
+            CRegKey
+                hkChildKey;
+            if (hkChildKey.Open (hkGameConfigChildRoot, child_key_name.c_str ()) == ERROR_SUCCESS &&
+                hkChildKey.QueryStringValue (L"MatchedExeFullPath",
+                                            wszMatchedExeFullPath,
+                                            &ulMatchedExeFullPathLen)            == ERROR_SUCCESS)
+            {
+              if (StrStrIW (wszMatchedExeFullPath, SK_GetHostApp ()))
+              {
+                if (config.system.log_level > 0)
+                  SK_ImGui_Warning (L"Game Detection: This is a game!");
+
+                is_a_game = true;
+                break;
+              }
             }
           }
         }
@@ -3661,9 +3699,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           PathRemoveFileSpec (wszExeParentDir);
 
           {
-            auto wszHostAppLower =
-              SK_Win32_ToLowerInvariant (SK_GetHostApp ());
-
             std::vector <BYTE> parentBlob =
               ProtectLocalMachineUtf16Le (wszHostAppLower.c_str ());
 
@@ -3678,17 +3713,11 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
             ULONGLONG lastAccessedTime = uli.QuadPart;
 
-            CRegKey hkGameConfigParentsRoot;
-                    hkGameConfigParentsRoot.Open (HKEY_CURRENT_USER, LR"(System\GameConfigStore\Parents)");
-
-            std::wstring parentKeyName =
-              GetSha1Utf16Le (wszHostAppLower.c_str ());
-
             auto childGuid = CreateGuidString ();
             auto gameGuid  = CreateGuidString ();
 
             if (config.system.log_level > 0)
-              SK_ImGui_Warning (SK_FormatStringW (L"GUID: %ws", childGuid.c_str ()).c_str ());
+              SK_ImGui_Warning (SK_FormatStringW (L"New Game GUID: %ws", childGuid.c_str ()).c_str ());
 
             // Create subkeys inside Children and Parents path trees
             CRegKey parentSubKey, childSubKey;
@@ -3707,43 +3736,51 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               childSubKey.SetQWORDValue  (L"LastAccessed",       lastAccessedTime);
 
               // Update parent's 'Children' MultiString properties
-              std::vector <std::wstring> childrenArray;
-              ULONG multiSize = 0;
+              std::vector <std::wstring> children_array;
+              ULONG                      multi_str_size = 0;
 
               // Query existing MultiString buffer sizing requirement
-              if (parentSubKey.QueryMultiStringValue (L"Children", NULL, &multiSize) == ERROR_SUCCESS && multiSize > 2)
-              { std::vector <wchar_t>                                buffer          (multiSize);
-                if (parentSubKey.QueryMultiStringValue (L"Children", buffer.data (), &multiSize) == ERROR_SUCCESS)
+              if(parentSubKey.QueryMultiStringValue (L"Children", NULL, &multi_str_size) == ERROR_SUCCESS &&
+                                                                         multi_str_size > 2)
+              {
+                std::vector <wchar_t>                                buffer          (multi_str_size);
+                if (parentSubKey.QueryMultiStringValue (L"Children", buffer.data (), &multi_str_size) == ERROR_SUCCESS)
                 {
                   wchar_t* p = buffer.data ();
                   while (*p)
                   {
-                    std::wstring standardStr (p);
+                    std::wstring child_str (p);
 
-                    if (! standardStr.empty () && std::wcsspn (standardStr.c_str (), L" \t\n\r") != standardStr.length ())
-                    {
-                      childrenArray.push_back (standardStr);
-                    }
+                    children_array.push_back (child_str);
 
-                    p += standardStr.length () + 1;
+                    p += child_str.length () + 1;
                   }
                 }
               }
 
               // Ensure uniqueness and avoid array duplicates before adding
-              if (std::find (childrenArray.begin (), childrenArray.end (), childGuid) == childrenArray.end ())
+              if (std::find (children_array.begin (), children_array.end (), childGuid) == children_array.end ())
               {
-                childrenArray.push_back (childGuid);
+                children_array.push_back (childGuid);
               }
 
               // Reconstruct MultiString structure bytes block (sequences ending with double null bytes)
               std::vector <wchar_t> multiStringBuffer;
 
-              for (const auto& str : childrenArray)
+              for (const auto& str : children_array)
               {
-                multiStringBuffer.insert    (multiStringBuffer.end (),
-                                             str.begin (), str.end ());
-                multiStringBuffer.push_back (L'\0');
+                // If there is no matching Child record, then remove this from Parents in order
+                //   to prevent Windows from ignoring ALL of the children.
+                CRegKey
+                    hkChildKey;
+                if (hkChildKey.Open (hkGameConfigChildRoot, str.c_str ()) == ERROR_SUCCESS)
+                {
+                  multiStringBuffer.insert    (multiStringBuffer.end (),
+                                               str.begin (), str.end ());
+                  multiStringBuffer.push_back (L'\0');
+
+                  // XXX: It may be a good idea to verify the EXE file in this child actually exists.
+                }
               }
 
               multiStringBuffer.push_back (L'\0'); // Double null terminator

@@ -1,4 +1,15 @@
-﻿26.6.11
+﻿26.6.11.1
+=========
+ + Reduce number of lookups needed to detect if a game is in GameConfigStore
+     database from O(n) to O(1).
+ + Correctly handle GameConfigStore database "Parent" records that point to
+     Children that do not exist, and remove orphaned Children when adding new
+       entries to the database.
+
+    * Should resolve many games that could previously never be persistently
+        enabled using Game Bar.
+
+26.6.11
 =======
  + Added initial implementation of automagic "Remember this is a Game"
      functionality to make using Game Bar to screw with that setting obsolete.
