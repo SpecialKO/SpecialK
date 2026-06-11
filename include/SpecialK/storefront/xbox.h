@@ -46,5 +46,8 @@ bool
 __stdcall
 SK_Xbox_GetOverlayState (bool real);
 
+void
+SK_WindowsGameConfig_AddGameIfNeeded (void);
+
 
 #endif /* __SK__XBOX_H__ */

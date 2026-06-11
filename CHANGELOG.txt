@@ -1,4 +1,10 @@
-﻿26.6.11.1
+﻿26.6.11.2
+=========
+ + Refactor GameConfigStore code, and apply "Rember this is a Game" after
+     SK loads a config file rather than on the first frame drawn to help games
+       that use SDL not confuse Windows.
+
+26.6.11.1
 =========
  + Reduce number of lookups needed to detect if a game is in GameConfigStore
      database from O(n) to O(1).
