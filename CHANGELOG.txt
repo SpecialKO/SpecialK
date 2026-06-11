@@ -1,4 +1,14 @@
-﻿26.6.10.2
+﻿26.6.11
+=======
+ + Added initial implementation of automagic "Remember this is a Game"
+     functionality to make using Game Bar to screw with that setting obsolete.
+
+   * Currently for any game launched with Special K, if it is not in Game Bar's
+       game database (HKEY_CURRENT_USER\System\GameConfigStore\), it will be added.
+
+    Non-automatic behavior may be added in the future.
+
+26.6.10.2
 =========
  + Change Forza Horizon 5/6 DLSS warning to only display if the NVIDIA driver has
      loaded sl.interposer.dll; should make things simpler for AMD users :)

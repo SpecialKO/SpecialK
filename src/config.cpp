@@ -3926,7 +3926,7 @@ auto DeclKeybind =
                 SK_MessageBox (
                   L"Special K has Frame Gen Compatibility Issues in this Game\r\n\r\n"
                   L"   * Please use Local Injection for best results\r\n\r\n" 
-                    L"Click OK to switch to Local Injection.", L"Special K Incompatibility",
+                    L"Click OK to switch to Local Injection (game restart required).", L"Special K Incompatibility",
                     MB_OKCANCEL|MB_ICONWARNING))
             {
               SK_File_FullCopy (

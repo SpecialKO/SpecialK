@@ -3403,6 +3403,182 @@ SK_ShutdownCore (const wchar_t* backend)
   return true;
 }
 
+std::vector <std::wstring>
+SK_GameConfigStore_GetAllChildKeys (CRegKey& parent_key)
+{
+  std::vector <std::wstring> sub_keys;
+
+  DWORD   idx = 0;
+  wchar_t wszKeyName [MAX_PATH];
+  DWORD   capacity = _countof (wszKeyName);
+
+  while (parent_key.EnumKey (idx++, wszKeyName, &capacity) == ERROR_SUCCESS)
+  {
+    sub_keys.push_back  (wszKeyName);
+    capacity = _countof (wszKeyName);
+  }
+
+  return sub_keys;
+}
+
+#include <windows.h>
+#include <atlbase.h>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <wincrypt.h>
+#include <combaseapi.h>
+#include <shlwapi.h>
+
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "ole32.lib")
+
+// Helper to convert lowercase string to SHA1 Hex string
+std::wstring
+GetSha1Utf16Le (const std::wstring& text)
+{
+  HCRYPTPROV hProv = 0;
+  HCRYPTHASH hHash = 0;
+  
+  std::wstring hexResult = L"";
+  
+  if (CryptAcquireContext (&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+  {
+    if (CryptCreateHash (hProv, CALG_SHA1, 0, 0, &hHash))
+    {
+      // Hash the UTF-16LE bytes directly
+      DWORD cbData =
+        static_cast <DWORD> (text.length () * sizeof (wchar_t));
+
+      if (CryptHashData (hHash, reinterpret_cast <const BYTE *>(text.c_str ()), cbData, 0))
+      {
+        BYTE rgbHash [20] = {};
+        DWORD cbHash      = sizeof (rgbHash);
+
+        if (CryptGetHashParam (hHash, HP_HASHVAL, rgbHash, &cbHash, 0))
+        {
+          wchar_t hex [3];
+
+          for (DWORD i = 0; i < cbHash; i++)
+          {
+            swprintf_s (hex, 3, L"%02x", rgbHash [i]);
+
+            hexResult += hex;
+          }
+        }
+      }
+
+      CryptDestroyHash (hHash);
+    }
+
+    CryptReleaseContext (hProv, 0);
+  }
+
+  return hexResult;
+}
+
+// Helper for DPAPI CryptProtectData using LocalMachine scope
+std::vector<BYTE>
+ProtectLocalMachineUtf16Le (const std::wstring& text)
+{
+  DATA_BLOB dataIn;
+  DATA_BLOB dataOut;
+  
+  std::vector <BYTE> encryptedBlob;
+  
+  dataIn.pbData = reinterpret_cast <BYTE *>(const_cast <wchar_t *> (text.c_str ()));
+  dataIn.cbData = static_cast      <DWORD> (text.length () * sizeof (wchar_t));
+  
+  // CRYPTPROTECT_LOCAL_MACHINE matches the PowerShell DataProtectionScope::LocalMachine
+  if (CryptProtectData (&dataIn, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &dataOut))
+  {
+    encryptedBlob.assign (dataOut.pbData, dataOut.pbData + dataOut.cbData);
+    LocalFree            (dataOut.pbData);
+  }
+
+  return encryptedBlob;
+}
+
+// Helper to generate an upper/lowercase GUID string via COM API
+std::wstring
+CreateGuidString (void)
+{
+  GUID         guid;
+  std::wstring guidStr = L"";
+
+  if (SUCCEEDED (CoCreateGuid (&guid)))
+  {
+    wchar_t wszGuid [40];
+
+    // StringFromGUID2 includes braces; we can manually format to match PowerShell's GUID string
+    swprintf_s (wszGuid, 40, L"%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+        guid.Data1, guid.Data2, guid.Data3,
+        guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
+        guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+
+    guidStr = wszGuid;
+  }
+
+  return guidStr;
+}
+
+// Scans target key children for an existing absolute path match
+bool
+CheckDuplicate (CRegKey& parentRootKey, const std::wstring& exePath)
+{
+  wchar_t                      child_name [256];
+  DWORD   capacity = _countof (child_name);
+  DWORD   idx      = 0;
+
+  while (parentRootKey.EnumKey (idx, child_name, &capacity) == ERROR_SUCCESS)
+  {
+    CRegKey childKey;
+
+    if (childKey.Open (parentRootKey, child_name, KEY_READ) == ERROR_SUCCESS)
+    {
+      wchar_t                 matched_path [MAX_PATH];
+      ULONG chars = _countof (matched_path);
+
+      if (childKey.QueryStringValue (L"MatchedExeFullPath", matched_path, &chars) == ERROR_SUCCESS)
+      {
+        if (! _wcsicmp (matched_path, exePath.c_str ()))
+        {
+          return true;
+        }
+      }
+    }
+
+    idx++;
+
+    capacity = _countof (child_name);
+  }
+  return false;
+}
+
+std::wstring
+SK_Win32_ToLowerInvariant (const std::wstring& input)
+{
+  if (input.empty ())
+    return L"";
+
+  // Determine the required buffer size
+  int size = LCMapStringEx (LOCALE_NAME_INVARIANT, LCMAP_LOWERCASE, 
+                            input.c_str(), -1, nullptr, 0, nullptr, nullptr, 0);
+
+  std::wstring output (size, 0);
+
+  // Map the string to lowercase
+  LCMapStringEx (LOCALE_NAME_INVARIANT, LCMAP_LOWERCASE, 
+                 input.c_str(), -1, &output[0], size, nullptr, nullptr, 0);
+
+  // Remove the trailing null terminator that LCMapStringEx includes
+  output.resize (size - 1);
+
+  return output;
+}
+
 void
 SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
@@ -3429,6 +3605,157 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       SK_NvAPI_SetAppFriendlyName (
         SK_UTF8ToWideChar (SK_GetFriendlyAppName ()).c_str ()
       );
+
+      CRegKey              hkGameConfigChildRoot;
+      if (ERROR_SUCCESS == hkGameConfigChildRoot.Open (HKEY_CURRENT_USER, LR"(System\GameConfigStore\Children)"))
+      {
+        bool is_a_game = false;
+
+        auto child_keys =
+          SK_GameConfigStore_GetAllChildKeys (hkGameConfigChildRoot);
+
+        // nb: This is the wrong way to do this, hash the exe name and then look through
+        //       the multi-string key for children instead.
+        for ( auto& child_key : child_keys )
+        {
+          CRegKey hkChildKey;
+                  hkChildKey.Open (hkGameConfigChildRoot, child_key.c_str ());
+
+          ULONG    ulMatchedExeFullPathLen = MAX_PATH;
+          wchar_t wszMatchedExeFullPath     [MAX_PATH] = {};
+
+          if (hkChildKey.QueryStringValue (L"MatchedExeFullPath",
+                                          wszMatchedExeFullPath,
+                                          &ulMatchedExeFullPathLen) == ERROR_SUCCESS)
+          {
+            if (StrStrIW (wszMatchedExeFullPath, SK_GetHostApp ()))
+            {
+              if (config.system.log_level > 0)
+                SK_ImGui_Warning (L"This is a game!");
+
+              is_a_game = true;
+              break;
+            }
+          }
+        }
+
+        if (! is_a_game)
+        {
+          wchar_t wszTargetExePath [MAX_PATH * 2] = { };
+          wchar_t wszExeParentDir  [MAX_PATH * 2] = { };
+
+          HANDLE hFile =
+            CreateFileW (SK_GetFullyQualifiedApp (), GENERIC_READ, FILE_SHARE_READ, nullptr,
+                                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+          if (hFile != INVALID_HANDLE_VALUE)
+          {
+            SK_File_GetNameFromHandle (hFile, wszTargetExePath, MAX_PATH);
+            CloseHandle               (hFile);
+          }
+
+          PathResolve        (wszTargetExePath, nullptr, PRF_VERIFYEXISTS | PRF_REQUIREABSOLUTE);
+                              wszTargetExePath [0] = SK_GetHostPath ()[0]; // Ensure drive letter case matches host path
+
+          wcsncpy_s          (wszExeParentDir, MAX_PATH, wszTargetExePath, _TRUNCATE);
+          PathRemoveFileSpec (wszExeParentDir);
+
+          {
+            auto wszHostAppLower =
+              SK_Win32_ToLowerInvariant (SK_GetHostApp ());
+
+            std::vector <BYTE> parentBlob =
+              ProtectLocalMachineUtf16Le (wszHostAppLower.c_str ());
+
+            // Calculate current 64-bit UTC file time
+            FILETIME                  ft = {};
+            GetSystemTimeAsFileTime (&ft);
+
+            ULARGE_INTEGER
+              uli          = {};
+              uli.LowPart  = ft.dwLowDateTime;
+              uli.HighPart = ft.dwHighDateTime;
+
+            ULONGLONG lastAccessedTime = uli.QuadPart;
+
+            CRegKey hkGameConfigParentsRoot;
+                    hkGameConfigParentsRoot.Open (HKEY_CURRENT_USER, LR"(System\GameConfigStore\Parents)");
+
+            std::wstring parentKeyName =
+              GetSha1Utf16Le (wszHostAppLower.c_str ());
+
+            auto childGuid = CreateGuidString ();
+            auto gameGuid  = CreateGuidString ();
+
+            if (config.system.log_level > 0)
+              SK_ImGui_Warning (SK_FormatStringW (L"GUID: %ws", childGuid.c_str ()).c_str ());
+
+            // Create subkeys inside Children and Parents path trees
+            CRegKey parentSubKey, childSubKey;
+            if (parentSubKey.Create (hkGameConfigParentsRoot, parentKeyName.c_str (), REG_NONE, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE) == ERROR_SUCCESS &&
+                childSubKey.Create  (hkGameConfigChildRoot,   childGuid.c_str     (), REG_NONE, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE) == ERROR_SUCCESS)
+            {
+              // Write properties to the Child GUID target path
+              childSubKey.SetStringValue (L"ExeParentDirectory", wszExeParentDir);
+              childSubKey.SetDWORDValue  (L"Type",     0x1);
+              childSubKey.SetDWORDValue  (L"Revision", 0x1);
+              childSubKey.SetDWORDValue  (L"Flags",   0x11);
+              childSubKey.SetBinaryValue (L"Parent", parentBlob.data (),
+                                static_cast <ULONG> (parentBlob.size ()));
+              childSubKey.SetStringValue (L"GameDVR_GameGUID",   gameGuid.c_str ());
+              childSubKey.SetStringValue (L"MatchedExeFullPath", wszTargetExePath);
+              childSubKey.SetQWORDValue  (L"LastAccessed",       lastAccessedTime);
+
+              // Update parent's 'Children' MultiString properties
+              std::vector <std::wstring> childrenArray;
+              ULONG multiSize = 0;
+
+              // Query existing MultiString buffer sizing requirement
+              if (parentSubKey.QueryMultiStringValue (L"Children", NULL, &multiSize) == ERROR_SUCCESS && multiSize > 2)
+              { std::vector <wchar_t>                                buffer          (multiSize);
+                if (parentSubKey.QueryMultiStringValue (L"Children", buffer.data (), &multiSize) == ERROR_SUCCESS)
+                {
+                  wchar_t* p = buffer.data ();
+                  while (*p)
+                  {
+                    std::wstring standardStr (p);
+
+                    if (! standardStr.empty () && std::wcsspn (standardStr.c_str (), L" \t\n\r") != standardStr.length ())
+                    {
+                      childrenArray.push_back (standardStr);
+                    }
+
+                    p += standardStr.length () + 1;
+                  }
+                }
+              }
+
+              // Ensure uniqueness and avoid array duplicates before adding
+              if (std::find (childrenArray.begin (), childrenArray.end (), childGuid) == childrenArray.end ())
+              {
+                childrenArray.push_back (childGuid);
+              }
+
+              // Reconstruct MultiString structure bytes block (sequences ending with double null bytes)
+              std::vector <wchar_t> multiStringBuffer;
+
+              for (const auto& str : childrenArray)
+              {
+                multiStringBuffer.insert    (multiStringBuffer.end (),
+                                             str.begin (), str.end ());
+                multiStringBuffer.push_back (L'\0');
+              }
+
+              multiStringBuffer.push_back (L'\0'); // Double null terminator
+
+              // Finalize update inside parent multi-string table
+              RegSetValueExW (parentSubKey.m_hKey, L"Children", 0, REG_MULTI_SZ,
+                  reinterpret_cast <const BYTE *> (multiStringBuffer.data ()), 
+                       static_cast <DWORD>        (multiStringBuffer.size () * sizeof (wchar_t)));
+            }
+          }
+        }
+      }
 
       //void SK_NVAPI_DumpProfileSettings (void);
       //     SK_NVAPI_DumpProfileSettings ();
