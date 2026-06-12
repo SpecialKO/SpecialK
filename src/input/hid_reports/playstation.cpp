@@ -122,6 +122,46 @@ void SK_HID_FlushPlayStationForceFeedback (void)
   }
 }
 
+void
+SK_HID_DumpDescriptor (const wchar_t* devicePath)
+{
+  HANDLE hDevice =
+    CreateFile ( devicePath, 
+                 0, // 0 allows opening even if already opened by system
+                 FILE_SHARE_READ |
+                 FILE_SHARE_WRITE, nullptr,
+                 OPEN_EXISTING, 0, nullptr );
+  
+  if (hDevice == INVALID_HANDLE_VALUE)
+    return;
+  
+  PHIDP_PREPARSED_DATA preparsed_data = nullptr;
+  
+  // Get the internal parsed descriptor data
+  if (SK_HidD_GetPreparsedData (hDevice, &preparsed_data))
+  {   HIDP_CAPS caps;
+
+    // Extract the capabilities from the preparsed data
+    if (SK_HidP_GetCaps (preparsed_data, &caps) == HIDP_STATUS_SUCCESS)
+    {
+      SK_LOGi0 (L"--- HID Device Descriptor Caps ---");
+      SK_LOGi0 (L"");
+      SK_LOGi0 (L"Usage Page......................: 0x%x", caps.UsagePage);
+      SK_LOGi0 (L"Usage...........................: 0x%x", caps.Usage);
+      SK_LOGi0 (L"Input Report Byte Length........: 0x%x", caps.InputReportByteLength);
+      SK_LOGi0 (L"Output Report Byte Length.......: 0x%x", caps.OutputReportByteLength);
+      SK_LOGi0 (L"Feature Report Byte Length......: 0x%x", caps.FeatureReportByteLength);
+      SK_LOGi0 (L"Number of Link Collection Nodes.: 0x%x", caps.NumberLinkCollectionNodes);
+      SK_LOGi0 (L"Number of Input Button Caps.....: 0x%x", caps.NumberInputButtonCaps);
+      SK_LOGi0 (L"Number of Input Value Caps......: 0x%x", caps.NumberInputValueCaps);
+    }
+
+    SK_HidD_FreePreparsedData (preparsed_data);
+  }
+
+  CloseHandle (hDevice);
+}
+
 void SK_HID_SetupPlayStationControllers (void)
 {
   // Only do this once, and make all other threads trying to do it wait
@@ -232,6 +272,8 @@ void SK_HID_SetupPlayStationControllers (void)
             CloseHandle (hDeviceFile);
             continue;
           }
+
+          //SK_HID_DumpDescriptor (wszFileName);
 
           const bool bSONY =                    hidAttribs.VendorID == SK_HID_VID_SONY ||
             SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID, hidAttribs.ProductID);

@@ -2012,7 +2012,7 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
       return "Unknown/Invalid";
   }
 
-  unsigned int preset;
+  unsigned int preset       = 0;
   unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
 
   NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
@@ -2035,6 +2035,11 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
     }
     
     NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+    if (preset == 2147483659)
+    {   preset  = NVSDK_NGX_DLSS_Hint_Render_Preset_Default;
+      NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, preset);
+    }
 
     switch (preset)
     {
@@ -2074,8 +2079,14 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
       default:
         break;
     }
-    
+
+    preset = 0;
     NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+    if (preset == 2147483659)
+    {   preset = NVSDK_NGX_RayReconstruction_Hint_Render_Preset_Default;
+      NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, preset);
+    }
 
     switch (preset)
     {

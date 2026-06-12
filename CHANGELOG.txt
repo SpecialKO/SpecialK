@@ -1,4 +1,9 @@
-﻿26.6.12.2
+﻿26.6.12.3
+=========
+ + Fixed DLSS preset reporting 2147483659 instead of a valid preset ID.
+    * Would report "Unknown" before, now it reads "Default".
+
+26.6.12.2
 =========
  + Revert Pull Request #362 (Delay Xbox Game Bar callback registration),
      because it was preventing SK from detecting Game Bar open/close state.
