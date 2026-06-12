@@ -131,14 +131,14 @@ SK_HID_DumpDescriptor (const wchar_t* devicePath)
                  FILE_SHARE_READ |
                  FILE_SHARE_WRITE, nullptr,
                  OPEN_EXISTING, 0, nullptr );
-  
+
   if (hDevice == INVALID_HANDLE_VALUE)
     return;
-  
+
   PHIDP_PREPARSED_DATA preparsed_data = nullptr;
-  
+
   // Get the internal parsed descriptor data
-  if (SK_HidD_GetPreparsedData (hDevice, &preparsed_data))
+  if (SK_HidD_GetPreparsedData (hDevice, &preparsed_data) && preparsed_data != nullptr)
   {   HIDP_CAPS caps;
 
     // Extract the capabilities from the preparsed data
@@ -273,10 +273,8 @@ void SK_HID_SetupPlayStationControllers (void)
             continue;
           }
 
-          //SK_HID_DumpDescriptor (wszFileName);
-
-          const bool bSONY =                    hidAttribs.VendorID == SK_HID_VID_SONY ||
-            SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID, hidAttribs.ProductID);
+          const bool bSONY = hidAttribs.VendorID == SK_HID_VID_SONY ||
+            SK_HID_IsDeviceDualSense (wszFileName);
 
             // (*) 0x2054c - (Too large for 16-bit VID);
 
@@ -294,8 +292,9 @@ void SK_HID_SetupPlayStationControllers (void)
               hidAttribs.ProductID == SK_HID_PID_DUALSHOCK4_REV2   ||
               hidAttribs.ProductID == SK_HID_PID_DUALSHOCK4_DONGLE ||
               hidAttribs.ProductID == SK_HID_PID_DUALSHOCK3        ||
-              SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID,
-                                                  hidAttribs.ProductID);
+              SK_HID_IsDeviceDualSense (wszFileName);
+              //SK_HID_IsDeviceDualSenseCompatible (hidAttribs.VendorID,
+              //                                    hidAttribs.ProductID);
 
             if (! bKnownSONY)
             {
@@ -338,8 +337,7 @@ void SK_HID_SetupPlayStationControllers (void)
           controller.bDualSense =
             (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
             (controller.pid == SK_HID_PID_DUALSENSE)      ||
-            SK_HID_IsDeviceDualSenseCompatible ( hidAttribs.VendorID,
-                                                 hidAttribs.ProductID );
+            (controller.vid != SK_HID_VID_SONY && SK_HID_IsDeviceDualSense (wszFileName));
 
           controller.bDualSenseEdge =
             controller.pid == SK_HID_PID_DUALSENSE_EDGE;
@@ -696,6 +694,42 @@ struct SK_HID_DualSense_SetStateData // 47
 
   void setTriggerEffectL (playstation_trigger_effect effect, float param0 = -1.0f, float param1 = -1.0f, float param2 = -1.0f);
   void setTriggerEffectR (playstation_trigger_effect effect, float param0 = -1.0f, float param1 = -1.0f, float param2 = -1.0f);
+};
+
+struct SK_HID_DualSense_GetFirmwareInfo // Feature Report 0x20
+{
+  union
+  {
+    BTCRC <64> CRC;
+    struct
+    {
+      uint8_t  ReportID;       // 0x20
+      char     BuildDate [11]; // string
+      char     BuildTime [ 8]; // string
+      uint16_t FwType;
+      uint16_t SwSeries;
+      uint32_t HardwareInfo; // 0x00FF0000 - Variation
+                             // 0x0000FF00 - Generation
+                             // 0x0000003F - Trial?
+                             // ^ Values tied to enumerations
+      uint32_t FirmwareVersion; // 0xAABBCCCC AA.BB.CCCC
+      char     DeviceInfo [12];
+      ////
+      uint16_t UpdateVersion;
+      char     UpdateImageInfo;
+      char     UpdateUnk;
+      ////
+      uint32_t FwVersion1; // AKA SblFwVersion
+                           // 0xAABBCCCC AA.BB.CCCC
+                           // Ignored for FwType 0
+                           // HardwareVersion used for FwType 1
+                           // Unknown behavior if HardwareVersion < 0.1.38 for FwType 2 & 3
+                           // If HardwareVersion >= 0.1.38 for FwType 2 & 3
+      uint32_t FwVersion2; // AKA VenomFwVersion
+      uint32_t FwVersion3; // AKA SpiderDspFwVersion AKA BettyFwVer
+                           // May be Memory Control Unit for Non Volatile Storage
+    };
+  };
 };
 #pragma pack(pop)
 
@@ -4563,7 +4597,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize, LPVO
 
   int modified_bytes = 0;
 
-  const bool bDualSenseCompatible =
+  const bool bDualSenseCompatible =     device_vid != SK_HID_VID_SONY &&
     SK_HID_IsDeviceDualSenseCompatible (device_vid, device_pid);
 
   auto vid = device_vid;
@@ -5049,4 +5083,60 @@ void
 SK_HID_DualSense_SetStateData::setTriggerEffectR (playstation_trigger_effect effect, float param0, float param1, float param2)
 {
   return SK_HID_DualSense_SetStateDataImpl (this, false, effect, param0, param1, param2);
+}
+
+bool
+SK_HID_IsDeviceDualSense (const wchar_t* wszDevicePath)
+{
+  bool bDualSense = false;
+  HANDLE  hDevice =
+    CreateFile ( wszDevicePath, 
+                 0, // 0 allows opening even if already opened by system
+                 FILE_SHARE_READ |
+                 FILE_SHARE_WRITE, nullptr,
+                 OPEN_EXISTING, 0, nullptr );
+
+  if (hDevice == INVALID_HANDLE_VALUE)
+    return false;
+
+  PHIDP_PREPARSED_DATA preparsed_data = nullptr;
+
+  // Get the internal parsed descriptor data
+  if (SK_HidD_GetPreparsedData (hDevice, &preparsed_data) && preparsed_data != nullptr)
+  {
+    HIDP_CAPS caps;
+
+    // Extract the capabilities from the preparsed data
+    if (SK_HidP_GetCaps (preparsed_data, &caps) == HIDP_STATUS_SUCCESS &&
+                                          caps.FeatureReportByteLength > 1)
+    {
+      std::vector <uint8_t> feature_buffer (caps.FeatureReportByteLength);
+                            feature_buffer [0] = 0x20; // Get Firmware Version
+
+      if (SK_HidD_GetFeature (hDevice, feature_buffer.data (), caps.FeatureReportByteLength))
+      {
+        auto pFeatureReport =
+          (SK_HID_DualSense_GetFirmwareInfo *)feature_buffer.data ();
+
+        if (pFeatureReport->FirmwareVersion > 0)
+        {
+          bDualSense = true;
+
+          if (config.system.log_level > 1)
+          {
+            SK_ImGui_Warning (
+              SK_FormatStringW (L"Firmware Version: %x", pFeatureReport->FirmwareVersion).c_str ()
+            );
+          }
+        }
+      }
+    }
+
+    SK_HidD_FreePreparsedData (preparsed_data);
+  }
+
+  CloseHandle (hDevice);
+
+  return
+    bDualSense;
 }

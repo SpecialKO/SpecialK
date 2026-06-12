@@ -974,6 +974,8 @@ struct SK_HID_PlayStationDevice
 
   USHORT               vid                      =     0x0;
   USHORT               pid                      =     0x0;
+  USHORT               equivalent_pid           =     0x0; // For third-party controllers, this is the PID of the model most closely resembled.
+                                                           // For official SONY controllers, this will be 0.
 
   volatile UINT        output_requests          =       0;
   volatile UINT        input_requests           =       0;
@@ -1474,5 +1476,6 @@ extern HidD_GetProductString_pfn SK_HidD_GetProductString;
 extern void SK_Bluetooth_InitPowerMgmt (void);
 
 bool SK_HID_IsDeviceDualSenseCompatible (USHORT vid, USHORT pid);
+bool SK_HID_IsDeviceDualSense           (const wchar_t* wszDevicePath);
 
 #endif /* __SK__INPUT_H__ */

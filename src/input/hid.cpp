@@ -315,6 +315,9 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
 
   setPollingFrequency (0);
   setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+
+  bool SK_HID_IsDeviceDualSense (const wchar_t* wszDevicePath);
+       SK_HID_IsDeviceDualSense (wszPath);
 }
 
 bool
@@ -3566,6 +3569,9 @@ SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active) noexcept
 
   return pNewestInputDevice;
 }
+
+bool
+SK_HID_IsDeviceDualSense (const wchar_t* wszDevicePath);
 
 bool
 SK_HID_IsDeviceDualSenseCompatible (USHORT vid, USHORT pid)
