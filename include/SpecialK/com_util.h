@@ -28,7 +28,6 @@ SK_INCLUDE_START_CPP (COM_UTIL)
 #include <Wbemidl.h>
 #include <objbase.h>
 #include <cstdlib>
-#include <atlcomcli.h>
 #include <comdef.h>
 
 #include <SpecialK/thread.h>
