@@ -1268,6 +1268,8 @@ SK::EOS::Init (bool pre_load)
 
     epic->Platform_GetAchievementsInterface           = (EOS_Platform_GetAchievementsInterface_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetAchievementsInterface");
+    epic->Platform_GetPresenceInterface               = (EOS_Platform_GetPresenceInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetPresenceInterface");
     epic->Platform_GetAuthInterface                   = (EOS_Platform_GetAuthInterface_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetAuthInterface");
     epic->Platform_GetFriendsInterface                = (EOS_Platform_GetFriendsInterface_pfn)
@@ -1297,6 +1299,19 @@ SK::EOS::Init (bool pre_load)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_ProductUserId_FromString");
     epic->Connect_GetLoggedInUserByIndex              = (EOS_Connect_GetLoggedInUserByIndex_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Connect_GetLoggedInUserByIndex");
+
+    epic->Presence_QueryPresence                      = (EOS_Presence_QueryPresence_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Presence_QueryPresence");
+    epic->Presence_CopyPresence                       = (EOS_Presence_CopyPresence_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Presence_CopyPresence");
+    epic->Presence_Info_Release                       = (EOS_Presence_Info_Release_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Presence_Info_Release");
+    epic->Presence_SetPresence                        = (EOS_Presence_SetPresence_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Presence_SetPresence");
+    epic->Presence_CreatePresenceModification         = (EOS_Presence_CreatePresenceModification_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Presence_CreatePresenceModification");
+    epic->PresenceModification_Release                = (EOS_PresenceModification_Release_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_PresenceModification_Release");
 
     epic->UI_SetDisplayPreference                     = (EOS_UI_SetDisplayPreference_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_UI_SetDisplayPreference");
@@ -1430,6 +1445,9 @@ SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
       if (Platform_GetAchievementsInterface != nullptr) achievements_ =
           Platform_GetAchievementsInterface (platform_);
 
+      if (Platform_GetPresenceInterface != nullptr)  presence_   =
+          Platform_GetPresenceInterface (platform_);
+
       if (Platform_GetFriendsInterface  != nullptr)  friends_   =
           Platform_GetFriendsInterface  (platform_);
       if (Platform_GetStatsInterface    != nullptr)  stats_     =
@@ -1545,6 +1563,82 @@ SK::EOS::UserID (void)
 std::string&
 SK::EOS::AppName (void)
 {
+#if 0
+  auto user_id = UserID ();
+  if ( user_id != nullptr )
+  {
+    auto presence  = epic->Presence ();
+    if ( presence                                  != nullptr &&
+         epic->Presence_QueryPresence              != nullptr &&
+         epic->Presence_CopyPresence               != nullptr &&
+         epic->Presence_Info_Release               != nullptr &&
+         epic->Presence_SetPresence                != nullptr &&
+         epic->Presence_CreatePresenceModification != nullptr &&
+         epic->PresenceModification_Release        != nullptr )
+    {
+      EOS_Presence_CreatePresenceModificationOptions create_opts = {
+        .ApiVersion  = EOS_PRESENCE_CREATEPRESENCEMODIFICATION_API_LATEST,
+        .LocalUserId = user_id
+      };
+
+      EOS_HPresenceModification                                                    presence_mod = nullptr;
+      epic->Presence_CreatePresenceModification (epic->Presence (), &create_opts, &presence_mod);
+
+      if (presence_mod != nullptr)
+      {
+        EOS_Presence_SetPresenceOptions set_opts = {
+          .ApiVersion                 = EOS_PRESENCE_SETPRESENCE_API_LATEST,
+          .LocalUserId                = user_id,
+          .PresenceModificationHandle = presence_mod
+        };
+
+        epic->Presence_SetPresence (epic->Presence (), &set_opts, presence_mod,
+         [ ](const EOS_Presence_SetPresenceCallbackInfo* Data) -> void
+          {
+            auto user_id = UserID ();
+
+            EOS_Presence_QueryPresenceOptions query_opts = {
+              .ApiVersion   = EOS_PRESENCE_QUERYPRESENCE_API_LATEST,
+              .LocalUserId  = user_id,
+              .TargetUserId = user_id
+            };
+
+            epic->Presence_QueryPresence (epic->Presence (), &query_opts, nullptr,
+             [ ](const EOS_Presence_QueryPresenceCallbackInfo* Data) -> void
+              {
+                if (Data->ResultCode == EOS_EResult::EOS_Success)
+                {
+                  EOS_Presence_CopyPresenceOptions copy_opts = {
+                    .ApiVersion   = EOS_PRESENCE_COPYPRESENCE_API_LATEST,
+                    .LocalUserId  = Data->LocalUserId,
+                    .TargetUserId = Data->TargetUserId
+                  };
+
+                  EOS_Presence_Info* pPresenceInfo = nullptr;
+
+                  if ( EOS_EResult::EOS_Success ==
+                         epic->Presence_CopyPresence (epic->Presence (), &copy_opts, &pPresenceInfo) )
+                  {
+                    epic_log->Log (
+                          L"Present Product - Name: %hs, Id: %hs, Version: %hs",
+                        pPresenceInfo->ProductName,
+                                   pPresenceInfo->ProductId,
+                                            pPresenceInfo->ProductVersion );
+
+                    epic->Presence_Info_Release (pPresenceInfo);
+                  }
+                }
+              }
+            );
+
+            epic->PresenceModification_Release ((EOS_HPresenceModification)Data->ClientData);
+          }
+        );
+      }
+    }
+  }
+#endif
+
   static std::string name = "";
 
   if (                                                          name.empty ()/*&&
@@ -1556,6 +1650,9 @@ SK::EOS::AppName (void)
     char szDisplayName [65] = { };
     char szEpicApp     [65] = { };
 
+    std::wstring base_path =
+      SK_GetHostPath ();
+
     try
     {
       while (! std::filesystem::equivalent ( path.parent_path    (),
@@ -1566,6 +1663,8 @@ SK::EOS::AppName (void)
 
         if (std::filesystem::is_directory (path / L".egstore"))
         {
+          base_path = path.wstring ();
+
           for ( const auto& file : std::filesystem::directory_iterator (path / L".egstore") )
           {
             if (! file.is_regular_file ())
@@ -1604,7 +1703,7 @@ SK::EOS::AppName (void)
                     continue;
                   }
 
-                  else if (StrStrIA (szLine, "\"AppName\"") != nullptr)
+                  else if (StrStrIA (szLine, "\"MainGameAppName\"") != nullptr)
                   {
                     const char      *substr = StrStrIA (szLine, ":");
                     strncpy_s (szEpicApp, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
@@ -1659,6 +1758,38 @@ SK::EOS::AppName (void)
         path =
           path.parent_path ().lexically_normal ();
       }
+
+      if (name.empty () && !base_path.empty ())
+      SK_RunOnce
+      (
+        CRegKey hkProfile;
+                hkProfile.Open (HKEY_CURRENT_USER, LR"(Software\Kaldaien\Special K\Profiles)");
+
+        wchar_t wszProfileName      [128] = { };
+        ULONG    ulProfileNameSize = 128;
+
+        if (ERROR_SUCCESS == hkProfile.QueryStringValue (base_path.c_str (), wszProfileName, &ulProfileNameSize))
+        {
+          name =
+            SK_WideCharToUTF8 (wszProfileName);
+        }
+      );
+
+      if (config.platform.equivalent_steam_app == -1 && !base_path.empty ())
+      SK_RunOnce
+      (
+        CRegKey hkAppId;
+                hkAppId.Open (HKEY_CURRENT_USER, LR"(Software\Kaldaien\Special K\AppIds)");
+
+        wchar_t wszAppId      [65] = { };
+        ULONG    ulAppIdSize = 65;
+
+        if (ERROR_SUCCESS == hkAppId.QueryStringValue (base_path.c_str (), wszAppId, &ulAppIdSize))
+        {
+          strncpy_s (       szEpicApp,             65,
+            SK_WideCharToUTF8 (wszAppId).c_str (), _TRUNCATE );
+        }
+      );
 
       if (config.platform.equivalent_steam_app == -1)
         SK_RunOnce (SK_LoadConfig ());
@@ -1777,23 +1908,31 @@ SK_EOS_SetNotifyCorner (void)
 SK::EOS::player_s
 SK::EOS::player = { };
 
-EOS_Platform_GetAchievementsInterface_pfn SK_EOSContext::Platform_GetAchievementsInterface = nullptr;
-EOS_Platform_GetAuthInterface_pfn         SK_EOSContext::Platform_GetAuthInterface         = nullptr;
-EOS_Platform_GetFriendsInterface_pfn      SK_EOSContext::Platform_GetFriendsInterface      = nullptr;
-EOS_Platform_GetStatsInterface_pfn        SK_EOSContext::Platform_GetStatsInterface        = nullptr;
-EOS_Platform_GetUIInterface_pfn           SK_EOSContext::Platform_GetUIInterface           = nullptr;
-EOS_Platform_GetUserInfoInterface_pfn     SK_EOSContext::Platform_GetUserInfoInterface     = nullptr;
-EOS_Platform_GetConnectInterface_pfn      SK_EOSContext::Platform_GetConnectInterface      = nullptr;
+EOS_Platform_GetAchievementsInterface_pfn   SK_EOSContext::Platform_GetAchievementsInterface   = nullptr;
+EOS_Platform_GetPresenceInterface_pfn       SK_EOSContext::Platform_GetPresenceInterface       = nullptr;
+EOS_Platform_GetAuthInterface_pfn           SK_EOSContext::Platform_GetAuthInterface           = nullptr;
+EOS_Platform_GetFriendsInterface_pfn        SK_EOSContext::Platform_GetFriendsInterface        = nullptr;
+EOS_Platform_GetStatsInterface_pfn          SK_EOSContext::Platform_GetStatsInterface          = nullptr;
+EOS_Platform_GetUIInterface_pfn             SK_EOSContext::Platform_GetUIInterface             = nullptr;
+EOS_Platform_GetUserInfoInterface_pfn       SK_EOSContext::Platform_GetUserInfoInterface       = nullptr;
+EOS_Platform_GetConnectInterface_pfn        SK_EOSContext::Platform_GetConnectInterface        = nullptr;
 
-EOS_Auth_GetLoggedInAccountsCount_pfn     SK_EOSContext::Auth_GetLoggedInAccountsCount     = nullptr;
-EOS_Auth_GetLoggedInAccountByIndex_pfn    SK_EOSContext::Auth_GetLoggedInAccountByIndex    = nullptr;
+EOS_Presence_QueryPresence_pfn              SK_EOSContext::Presence_QueryPresence              = nullptr;
+EOS_Presence_CopyPresence_pfn               SK_EOSContext::Presence_CopyPresence               = nullptr;
+EOS_Presence_Info_Release_pfn               SK_EOSContext::Presence_Info_Release               = nullptr;
+EOS_Presence_SetPresence_pfn                SK_EOSContext::Presence_SetPresence                = nullptr;
+EOS_Presence_CreatePresenceModification_pfn SK_EOSContext::Presence_CreatePresenceModification = nullptr;
+EOS_PresenceModification_Release_pfn        SK_EOSContext::PresenceModification_Release        = nullptr;
 
-EOS_UserInfo_QueryUserInfo_pfn            SK_EOSContext::UserInfo_QueryUserInfo            = nullptr;
-EOS_UserInfo_CopyUserInfo_pfn             SK_EOSContext::UserInfo_CopyUserInfo             = nullptr;
-EOS_UserInfo_Release_pfn                  SK_EOSContext::UserInfo_Release                  = nullptr;
+EOS_Auth_GetLoggedInAccountsCount_pfn       SK_EOSContext::Auth_GetLoggedInAccountsCount       = nullptr;
+EOS_Auth_GetLoggedInAccountByIndex_pfn      SK_EOSContext::Auth_GetLoggedInAccountByIndex      = nullptr;
 
-EOS_ProductUserId_FromString_pfn          SK_EOSContext::ProductUserId_FromString          = nullptr;
-EOS_Connect_GetLoggedInUserByIndex_pfn    SK_EOSContext::Connect_GetLoggedInUserByIndex    = nullptr;
+EOS_UserInfo_QueryUserInfo_pfn              SK_EOSContext::UserInfo_QueryUserInfo              = nullptr;
+EOS_UserInfo_CopyUserInfo_pfn               SK_EOSContext::UserInfo_CopyUserInfo               = nullptr;
+EOS_UserInfo_Release_pfn                    SK_EOSContext::UserInfo_Release                    = nullptr;
+
+EOS_ProductUserId_FromString_pfn            SK_EOSContext::ProductUserId_FromString            = nullptr;
+EOS_Connect_GetLoggedInUserByIndex_pfn      SK_EOSContext::Connect_GetLoggedInUserByIndex      = nullptr;
 
 // Move to overlay manager
-EOS_UI_SetDisplayPreference_pfn           SK_EOSContext::UI_SetDisplayPreference           = nullptr;
+EOS_UI_SetDisplayPreference_pfn             SK_EOSContext::UI_SetDisplayPreference             = nullptr;

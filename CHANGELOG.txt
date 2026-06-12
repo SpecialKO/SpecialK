@@ -1,4 +1,10 @@
-﻿26.6.12
+﻿26.6.12.1
+=========
+ + Added support for Epic App Name resolution using a registry key that SKIF
+     writes for all Epic games, in order to avoid issues with unparseable Epic
+       manifests in some games.
+
+26.6.12
 =======
  + Added support for generic DualSense controllers from Nacon and Razer.
  + Allows using these controllers in Unity Engine games also.

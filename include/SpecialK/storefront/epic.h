@@ -175,6 +175,7 @@ void                  SK_HookEOS                                (void);
 
 EOS_HAchievements     SK_EOS_Achievements                       (void);
 EOS_HFriends          SK_EOS_Friends                            (void);
+EOS_HPresence         SK_EOS_Presence                           (void);
 
 #include <SpecialK/hooks.h>
 
@@ -199,6 +200,7 @@ using EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn        = void               
                                                                                              EOS_NotificationId                                                  Id);
 
 using EOS_Platform_GetAchievementsInterface_pfn            = EOS_HAchievements  (EOS_CALL *)(EOS_HPlatform                                                       Handle);
+using EOS_Platform_GetPresenceInterface_pfn                = EOS_HPresence      (EOS_CALL *)(EOS_HPlatform                                                       Handle);
 using EOS_Platform_GetUIInterface_pfn                      = EOS_HUI            (EOS_CALL *)(EOS_HPlatform                                                       Handle);
 using EOS_Platform_GetAuthInterface_pfn                    = EOS_HAuth          (EOS_CALL *)(EOS_HPlatform                                                       Handle);
 using EOS_Platform_GetFriendsInterface_pfn                 = EOS_HFriends       (EOS_CALL *)(EOS_HPlatform                                                       Handle);
@@ -216,6 +218,22 @@ using EOS_UserInfo_Release_pfn                             = void               
 using EOS_UserInfo_CopyUserInfo_pfn                        = EOS_EResult        (EOS_CALL *)(EOS_HUserInfo                                                       Handle,
                                                                                        const EOS_UserInfo_CopyUserInfoOptions*                                   Options,
                                                                                              EOS_UserInfo**                                                      OutUserInfo);
+using EOS_Presence_QueryPresence_pfn                       = void               (EOS_CALL *)(EOS_HPresence                                                       Handle,
+                                                                                       const EOS_Presence_QueryPresenceOptions*                                  Options,
+                                                                                             void*                                                               ClientData,
+                                                                                       const EOS_Presence_OnQueryPresenceCompleteCallback                        CompletionDelegate);
+using EOS_Presence_CopyPresence_pfn                        = EOS_EResult        (EOS_CALL *)(EOS_HPresence                                                       Handle,
+                                                                                       const EOS_Presence_CopyPresenceOptions*                                   Options,
+                                                                                             EOS_Presence_Info**                                                 OutPresence);
+using EOS_Presence_Info_Release_pfn                        = void               (EOS_CALL *)(EOS_Presence_Info*                                                  PresenceInfo);
+using EOS_Presence_SetPresence_pfn                         = void               (EOS_CALL *)(EOS_HPresence                                                       Handle,
+                                                                                       const EOS_Presence_SetPresenceOptions*                                    Options,
+                                                                                             void*                                                               ClientData,
+                                                                                       const EOS_Presence_SetPresenceCompleteCallback                            CompletionDelegate);
+using EOS_Presence_CreatePresenceModification_pfn          = EOS_EResult        (EOS_CALL *)(EOS_HPresence                                                       Handle,
+                                                                                       const EOS_Presence_CreatePresenceModificationOptions*                     Options,
+                                                                                             EOS_HPresenceModification*                                          OutPresenceModificationHandle);
+using EOS_PresenceModification_Release_pfn                 = void               (EOS_CALL *)(EOS_HPresenceModification                                           PresenceModificationHandle);
 using EOS_Achievements_AddNotifyAchievementsUnlockedV2_pfn = EOS_NotificationId (EOS_CALL *)(EOS_HAchievements                                                   Handle,
                                                                                        const EOS_Achievements_AddNotifyAchievementsUnlockedV2Options*            Options,
                                                                                              void*                                                               ClientData,
@@ -279,6 +297,7 @@ public:
   void Shutdown (bool bGameRequested = false);
 
   EOS_HAchievements    Achievements         (void) noexcept { return achievements_;       }
+  EOS_HPresence        Presence             (void) noexcept { return presence_;           }
   EOS_HUserInfo        UserInfo             (void) noexcept { return user_info_;          }
   EOS_HStats           Stats                (void) noexcept { return stats_;              }
   EOS_HFriends         Friends              (void) noexcept { return friends_;            }
@@ -310,6 +329,7 @@ public:
 
 
   static EOS_Platform_GetAchievementsInterface_pfn            Platform_GetAchievementsInterface;
+  static EOS_Platform_GetPresenceInterface_pfn                Platform_GetPresenceInterface;
   static EOS_Platform_GetAuthInterface_pfn                    Platform_GetAuthInterface;
   static EOS_Platform_GetFriendsInterface_pfn                 Platform_GetFriendsInterface;
   static EOS_Platform_GetStatsInterface_pfn                   Platform_GetStatsInterface;
@@ -323,6 +343,13 @@ public:
   static EOS_UserInfo_QueryUserInfo_pfn                       UserInfo_QueryUserInfo;
   static EOS_UserInfo_CopyUserInfo_pfn                        UserInfo_CopyUserInfo;
   static EOS_UserInfo_Release_pfn                             UserInfo_Release;
+
+  static EOS_Presence_QueryPresence_pfn                       Presence_QueryPresence;
+  static EOS_Presence_CopyPresence_pfn                        Presence_CopyPresence;
+  static EOS_Presence_Info_Release_pfn                        Presence_Info_Release;
+  static EOS_Presence_SetPresence_pfn                         Presence_SetPresence;
+  static EOS_Presence_CreatePresenceModification_pfn          Presence_CreatePresenceModification; 
+  static EOS_PresenceModification_Release_pfn                 PresenceModification_Release;
 
   static EOS_ProductUserId_FromString_pfn                     ProductUserId_FromString;
   static EOS_Connect_GetLoggedInUserByIndex_pfn               Connect_GetLoggedInUserByIndex;
@@ -340,6 +367,7 @@ private:
   EOS_HPlatform        platform_        = nullptr;
 
   EOS_HAchievements    achievements_    = nullptr;
+  EOS_HPresence        presence_        = nullptr;
   EOS_HUserInfo        user_info_       = nullptr;
   EOS_HStats           stats_           = nullptr;
   EOS_HFriends         friends_         = nullptr;
