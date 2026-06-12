@@ -114,7 +114,7 @@ public:
     {
       __try
       {
-        CloseHandle (m_h);
+        SK_SafeCloseHandle (m_h);
       }
 
       __finally
