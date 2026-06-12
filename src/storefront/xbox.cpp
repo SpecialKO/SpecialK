@@ -85,6 +85,9 @@ SK::Xbox::Shutdown (void)
 boolean
 SK_Xbox_GetOverlayState_WithCaching (void)
 {
+  if (SK_GetFramesDrawn () < 9)
+    return false;
+
   if (! SK_GameBar_Statics)
     return false;
 
@@ -116,6 +119,9 @@ SK_Xbox_GetOverlayState_WithCaching (void)
 boolean
 SK_Xbox_GetOverlayState_UsingCallbacks (void)
 {
+  if (SK_GetFramesDrawn () < 9)
+    return false;
+
   if (! SK_GameBar_Statics)
     return false;
 
@@ -160,7 +166,7 @@ SK_Xbox_GetOverlayState (bool real)
 
   SK_RunOnce (SK_Xbox_GetOverlayState_UsingCallbacks ());
 
-  static boolean has_callbacks =
+  const boolean has_callbacks =
     (visibility_event.value != 0);
 
   //
