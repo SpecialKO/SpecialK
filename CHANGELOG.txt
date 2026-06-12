@@ -1,4 +1,12 @@
-﻿26.6.12.1
+﻿26.6.12.2
+=========
+ + Revert Pull Request #362 (Delay Xbox Game Bar callback registration),
+     because it was preventing SK from detecting Game Bar open/close state.
+
+   * A simpler approach that waits 10 frames before registering for GameBar
+       callbacks is used now instead.
+
+26.6.12.1
 =========
  + Added support for Epic App Name resolution using a registry key that SKIF
      writes for all Epic games, in order to avoid issues with unparseable Epic

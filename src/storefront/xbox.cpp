@@ -65,11 +65,10 @@ SK::Xbox::Init (void)
   }
 }
 
-static boolean                visible              = false;
+static boolean                visible          = false;
 static EventRegistrationToken visibility_event;
-static boolean                input_redirected     = false;
+static boolean                input_redirected = false;
 static EventRegistrationToken input_event;
-static boolean                callbacks_registered = false;
 
 void
 SK::Xbox::Shutdown (void)
@@ -114,17 +113,11 @@ SK_Xbox_GetOverlayState_WithCaching (void)
   return redirected != false;
 }
 
-void
-SK_Xbox_RegisterCallbacks (void)
+boolean
+SK_Xbox_GetOverlayState_UsingCallbacks (void)
 {
-  if (! SK_GameBar_Statics || callbacks_registered)
-    return;
-
-  SK_LOGi0 (
-    L"SK_Xbox_RegisterCallbacks: attempting registration "
-    L"(frame=%llu)",
-    SK_GetFramesDrawn()
-  );
+  if (! SK_GameBar_Statics)
+    return false;
 
   static auto visibility_callback =
     Microsoft::WRL::Callback <ABI::Windows::Foundation::IEventHandler <IInspectable *>> (
@@ -148,18 +141,7 @@ SK_Xbox_RegisterCallbacks (void)
     SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
     SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
     SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
-
-    callbacks_registered = true;
-
-    SK_LOGi0 (L"SK_Xbox_RegisterCallbacks: GameBar callbacks registered");
   );
-}
-
-boolean
-SK_Xbox_GetOverlayState_UsingCallbacks (void)
-{
-  if (! SK_GameBar_Statics)
-    return false;
 
   return
     (visible && input_redirected);
@@ -171,23 +153,14 @@ SK_Xbox_GetOverlayState (bool real)
 {
   SK_PROFILE_SCOPED_TASK (SK_Xbox_GetOverlayState)
 
+  if (SK_GetFramesDrawn () < 10)
+    return false;
+
   std::ignore = real;
 
-  //
-  // Wait until the first frame has been rendered before registering
-  // Xbox/Game Bar callbacks. Some games create temporary startup or
-  // splash windows before the real render loop begins, and this
-  // function may be called during frame 0 before rendering is active.
-  // Registering callbacks that early has been observed to cause
-  // initialization ordering issues or freezes on some systems.
-  //
-  if (! callbacks_registered &&
-      SK_GetFramesDrawn () > 0)
-  {
-    SK_Xbox_RegisterCallbacks ();
-  }
+  SK_RunOnce (SK_Xbox_GetOverlayState_UsingCallbacks ());
 
-  boolean has_callbacks =
+  static boolean has_callbacks =
     (visibility_event.value != 0);
 
   //
