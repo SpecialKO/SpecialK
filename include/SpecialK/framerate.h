@@ -172,6 +172,17 @@ namespace SK
           SignalObjectAndWait ( worker.hSignalShutdown,
                                 worker.hThread, 2500UL, TRUE );
         }
+
+        extern volatile LONG __SK_DLL_Ending;
+
+        // Let these things leak to avoid problems during shutdown
+        if (ReadAcquire (&__SK_DLL_Ending))
+        {
+          worker.hSignalProduce.m_h  = 0;
+          worker.hSignalConsume.m_h  = 0;
+          worker.hSignalShutdown.m_h = 0;
+          worker.hThread.m_h         = 0;
+        }
       }
 
       std::vector <double>&
@@ -188,9 +199,9 @@ namespace SK
         SK_AutoHandle hSignalConsume;
         SK_AutoHandle hSignalShutdown;
         SK_AutoHandle hThread;
-                ULONG ulLastFrame    = 0;
-        volatile LONG work_idx       = 0;
-        volatile LONG _init          = 0;
+                ULONG ulLastFrame     = 0;
+        volatile LONG work_idx        = 0;
+        volatile LONG _init           = 0;
 
         std::pair <ULONG, std::vector <double> >
                       sorted_frame_history [2];

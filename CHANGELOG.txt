@@ -1,4 +1,10 @@
-﻿26.6.12.4
+﻿26.6.12.5
+=========
+ + Allow framerate limiter stats memory leak during shutdown to prevent worse.
+ + Check DualSense Firmware Feature Report (0x20) to detect DualSense
+     compatible controllers without hardcoded VID/PID pairs.
+
+26.6.12.4
 =========
  + Reduced overhead of screensaver check in ImGui's backup input thread.
 
