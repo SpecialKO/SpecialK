@@ -1063,6 +1063,43 @@ timeEndPeriod_Detour (_In_ UINT uPeriod)
   return TIMERR_NOERROR;
 }
 
+bool
+SK_Scheduler_IsSleepSkippable (void)
+{
+  static bool     skippable        = false;
+  static FILETIME ftCreation {}, ftExit {},
+                  ftKernel   {}, ftUser {};
+
+  if (!skippable &&
+      GetProcessTimes (GetCurrentProcess (), &ftCreation, &ftExit,
+                                             &ftKernel,   &ftUser))
+  {
+    FILETIME                  ftNow = {};
+    GetSystemTimeAsFileTime (&ftNow);
+
+    ULARGE_INTEGER uliCreation, uliNow;
+
+    uliCreation.LowPart  = ftCreation.dwLowDateTime;
+    uliNow     .LowPart  = ftNow.     dwLowDateTime;
+
+    uliNow     .HighPart = ftNow.     dwHighDateTime;
+    uliCreation.HighPart = ftCreation.dwHighDateTime;
+
+    ULONGLONG timeSinceCreation =
+      (uliNow.QuadPart > uliCreation.QuadPart) ?
+      (uliNow.QuadPart - uliCreation.QuadPart) : 0ULL;
+
+    // If process started less than 10 seconds ago, honor all Sleep calls as usual.
+    //
+    if (static_cast <double> (timeSinceCreation) / 10000000.0 >= 10.0)
+    {
+      skippable = true;
+    }
+  }
+
+  return skippable;
+}
+
 DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
@@ -1071,6 +1108,13 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       (! ReadAcquire (&__SK_DLL_Attached) ) )
   {
     return 0;
+  }
+
+  if (! SK_Scheduler_IsSleepSkippable ())
+  {
+    return SleepEx_Original != nullptr                   ?
+           SleepEx_Original (dwMilliseconds, bAlertable) :
+           SleepEx          (dwMilliseconds, bAlertable);
   }
 
   if (dwMilliseconds == (DWORD)-1)

@@ -1431,7 +1431,7 @@ SK_VK_CreateInstance (
   auto result =
     vkCreateInstance_Original (pCreateInfo, pAllocator, pInstance);
 
-  if ( VK_SUCCESS == result )
+  if (VK_SUCCESS == result && pInstance != nullptr)
   {
     SK_Reflex_VkInstance = *pInstance;
   }
