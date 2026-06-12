@@ -3656,7 +3656,7 @@ SK_ImGui_BackupInputThread (LPVOID)
       if ((! config.window.screensaver_active) && (! game_window.active))
       {
         if (static DWORD dwLastExhaustiveCheck = 0;
-                         dwLastExhaustiveCheck < SK_timeGetTime () - 25UL)
+                         dwLastExhaustiveCheck < SK_timeGetTime () - 333UL)
         {
           static auto constexpr RECHECK_TIME_IN_MS = 125UL;
 

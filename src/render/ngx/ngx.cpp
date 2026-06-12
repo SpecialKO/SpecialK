@@ -453,7 +453,9 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
       if (! SK_DLSS_Context::dlss_s::hasPresetsAThroughE ())
       {
         if (config.nvidia.dlss.forced_preset >= NVSDK_NGX_DLSS_Hint_Render_Preset_A &&
-            config.nvidia.dlss.forced_preset <= NVSDK_NGX_DLSS_Hint_Render_Preset_E)
+            config.nvidia.dlss.forced_preset <= (SK_DLSS_Context::dlss_s::hasPresetE () ?
+                                                    NVSDK_NGX_DLSS_Hint_Render_Preset_F :
+                                                    NVSDK_NGX_DLSS_Hint_Render_Preset_E))
         {
           config.nvidia.dlss.forced_preset = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
         }

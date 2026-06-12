@@ -1,4 +1,8 @@
-﻿26.6.12.3
+﻿26.6.12.4
+=========
+ + Reduced overhead of screensaver check in ImGui's backup input thread.
+
+26.6.12.3
 =========
  + Fixed DLSS preset reporting 2147483659 instead of a valid preset ID.
     * Would report "Unknown" before, now it reads "Default".
