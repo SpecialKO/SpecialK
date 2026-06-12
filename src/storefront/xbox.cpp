@@ -166,7 +166,11 @@ SK_Xbox_GetOverlayState (bool real)
 
   SK_RunOnce (SK_Xbox_GetOverlayState_UsingCallbacks ());
 
+<<<<<<< HEAD
   const boolean has_callbacks =
+=======
+  boolean has_callbacks =
+>>>>>>> 279faa5e67a64ae607064abb62ea09c0d26df79c
     (visibility_event.value != 0);
 
   //
