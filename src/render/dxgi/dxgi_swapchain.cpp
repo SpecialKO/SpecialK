@@ -774,9 +774,9 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
              texDesc.Width  == swapDesc.BufferDesc.Width  &&
              texDesc.Height == swapDesc.BufferDesc.Height &&
              DirectX::MakeTypeless (            texDesc.Format) ==
-             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) && !rb.active_traits.bOriginallysRGB )
-             //std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) ==
-             //                                          config.render.dxgi.srgb_behavior )
+             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) &&
+             std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) ==
+                                                       config.render.dxgi.srgb_behavior )
       {
         return
           _backbuffers [Buffer]->QueryInterface (riid, ppSurface);
