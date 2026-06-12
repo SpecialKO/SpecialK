@@ -1,4 +1,9 @@
-﻿26.6.12.6
+﻿26.6.13
+=======
+ + Merge pull request #368 from MapleHinata:mgsv-fix
+    * Make MGSV work again.
+
+26.6.12.6
 =========
  + Add 10-second period during startup where Sleepless Render/Window Thread is
      ignored if the user requests it; helps with Oodle decompression failures.

@@ -37,7 +37,6 @@ extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid) noexcept;
 #define NOGDI
 #include <comdef.h>
 #include <Unknwnbase.h>
-#include <atlcomcli.h>
 
 #include <stack>
 #include <unordered_map>
