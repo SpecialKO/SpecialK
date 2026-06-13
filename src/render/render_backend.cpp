@@ -1963,7 +1963,9 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
               vrr_info.bIsVRREnabled;
 
             rb.gsync_state.capable = display.nvapi.vrr_enabled;
-            rb.gsync_state.active  = false;
+
+            if (! rb.gsync_state.capable)
+                  rb.gsync_state.active = false;
           }
 
           else

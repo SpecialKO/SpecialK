@@ -977,6 +977,22 @@ WGI_GamepadStatics2_FromGameController_Override (ABI::Windows::Gaming::Input::IG
       {
         SK_LOGi0 (L"non-SONY/Microsoft HID Controller: VID=%04x, PID=%04x",
                   controller_vid, controller_pid);
+
+        if (controller_vid == SK_HID_VID_VALVE &&
+            controller_pid == SK_HID_PID_STEAM_VIRTUAL)
+        {
+          SK_LOGi0 (L"Steam Input is enabled and conflicts with Special K !!");
+
+          SK_RunOnce (
+            SK_ImGui_WarningWithTitle (
+              L"Special K's Xbox Controller Emulation is more Feature Complete and Compliant than Steam Input.\r\n\r\n"
+              L"Steam Input will prevent SK from providing advanced Xbox functionality and may even lead to crashes.\r\n\r\n"
+              L" * Please disable Steam Input (preferred) or turn off Xbox Mode in SK's Control Panel.",
+
+              L"Steam Input is Enabled and Injecting Virtual Controllers to the Game (crash imminent?)"
+            )
+          );
+        }
       }
     }
   }

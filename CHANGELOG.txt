@@ -1,4 +1,14 @@
-﻿26.6.13.3
+﻿26.6.13.4
+=========
+ + Add warning message if Steam Input is active and adding virtual controllers
+     to a game that uses Windows.Gaming.Input while SK's Xbox mode is enabled.
+
+    * Special K is more feature-complete in XInput, Windows.Gaming.Input and
+        GameInput than Steam Input is. Leaving Steam Input enabled will cause
+          a loss of advanced Xbox input functionality in WGI and GameInput,
+            and more importantly will likely crash the game.
+
+26.6.13.3
 =========
  + Detect and ignore mods loaded as XInput1_3.dll, 1_2, 1_1, 9_1_0 or UAP.
 
