@@ -6577,6 +6577,46 @@ SK_DComp_SetupCompositorClock (void)
 }
 
 void
+SK_Display_UpdateVRRStatusUsingVBlankTimestamps (void)
+{
+  SK_PROFILE_SCOPED_TASK (SK_Display_UpdateVRRStatusUsingVBlankTimestamps)
+
+  if (config.apis.NvAPI.gsync_status)
+  {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    auto& display =
+      rb.displays [rb.active_display];
+
+    auto& stats =
+      display.statistics;
+
+    const float fVBlankHz =
+      stats.vblank_counter.getVBlankHz (
+              SK_QueryPerf ().QuadPart );
+
+    const auto& vsync_freq =
+      display.signal.timing.vsync_freq;
+
+    const float fFixedRefreshHz = vsync_freq.Denominator <= 0.0f ? 0.0f :
+             static_cast <float> (vsync_freq.Numerator) /
+             static_cast <float> (vsync_freq.Denominator);
+
+    // NVAPI status checks are heavily throttled, there are cases where
+    //   the official driver's status is not accurate and we must use the
+    //     VBLANK counter rate instead.
+    if (  fVBlankHz > 0.0f &&
+          fVBlankHz <= fFixedRefreshHz - (fFixedRefreshHz * fFixedRefreshHz) /3600.0f )
+    {
+      // If the VBLANK counter rate is lower than Reflex's limit, then we can infer that
+      //   VRR is actually active.
+      rb.gsync_state.active = true;
+    }
+  }
+}
+
+void
 SK_Render_CountVBlanks ()
 {
   SK_PROFILE_SCOPED_TASK (SK_Render_CountVBlanks)
@@ -6595,6 +6635,8 @@ SK_Render_CountVBlanks ()
       HANDLE                            vrr_events [] = { __SK_DLL_TeardownEvent, hVRREvent };
       while (WaitForMultipleObjects (2, vrr_events, FALSE, 500UL) != WAIT_OBJECT_0)
       {
+        SK_Display_UpdateVRRStatusUsingVBlankTimestamps ();
+
         DXGI_FRAME_STATISTICS
              frameStats = {};
 

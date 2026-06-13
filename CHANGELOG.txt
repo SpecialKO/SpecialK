@@ -1,4 +1,12 @@
-﻿26.6.13.4
+﻿26.6.13.5
+=========
+ + Hide "Show VRR Status" option in the Display menu unless it is already
+     disabled; it is not meant to be disabled and can be done manually.
+ + Perform implicit VRR active/inactive status check during each VBlank
+     statistics update to compensate for misbehaving NVAPI GSYNC status.
+    * Primarily affects D3D12 software.
+
+26.6.13.4
 =========
  + Add warning message if Steam Input is active and adding virtual controllers
      to a game that uses Windows.Gaming.Input while SK's Xbox mode is enabled.

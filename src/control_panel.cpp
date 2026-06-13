@@ -3404,7 +3404,12 @@ SK_ImGui_ControlPanel (void)
       config.imgui.show_input_apis = true;
 #endif
 
-      ImGui::MenuItem ("Display VRR Status",            "", &config.apis.NvAPI.gsync_status);
+      // This setting really needs to be hidden from users, but show it here if they happened
+      //   to have turned it off in the past (since it's intended to always be on now).
+      if (! config.apis.NvAPI.gsync_status)
+      {
+        ImGui::MenuItem ("Display VRR Status",            "", &config.apis.NvAPI.gsync_status);
+      }
     };
 
 
