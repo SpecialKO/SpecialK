@@ -136,6 +136,43 @@ protected:
 };
 
 
+#include <shared_mutex>
+
+class SK_Thread_SharedRecursiveMutex : public std::shared_mutex
+{
+public:
+  void lock (void)
+  {
+    std::thread::id tid = std::this_thread::get_id ();
+    if (  owner_ == tid )
+        ++count_;
+    else
+    {
+      shared_mutex::lock ();
+
+      owner_ = tid;
+      count_ = 1;
+    }
+  }
+
+  void unlock (void)
+  {
+    if (count_ > 1)
+        count_--;
+    else
+    {
+      owner_ = std::thread::id ();
+      count_ = 0;
+
+      shared_mutex::unlock ();
+    }
+  }
+
+private:
+  std::atomic <std::thread::id> owner_;
+  int                           count_;
+};
+
 class SK_Thread_CriticalSection //: public std::recursive_mutex
 {
 public:
@@ -168,13 +205,14 @@ protected:
   CRITICAL_SECTION* cs_;
 };
 
-#if 1
+#if 0
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
 {
 public:
   SK_Thread_HybridSpinlock (DWORD spin_count = 3000) noexcept : SK_Thread_CriticalSection (&impl_cs_)
   {
     InitializeCriticalSectionEx (cs_, spin_count, RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+                                                  RTL_CRITICAL_SECTION_FLAG_STATIC_INIT  |
                                                    SK_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO );
   }
 
@@ -859,42 +897,5 @@ void SK_Widget_InvokeThreadProfiler (void);
 void SK_ImGui_RebalanceThreadButton (void);
 
 extern float __SK_Thread_RebalanceEveryNSeconds;
-
-#include <shared_mutex>
-
-class SK_Thread_SharedRecursiveMutex : public std::shared_mutex
-{
-public:
-  void lock (void)
-  {
-    std::thread::id tid = std::this_thread::get_id ();
-    if (  owner_ == tid )
-        ++count_;
-    else
-    {
-      shared_mutex::lock ();
-
-      owner_ = tid;
-      count_ = 1;
-    }
-  }
-
-  void unlock (void)
-  {
-    if (count_ > 1)
-        count_--;
-    else
-    {
-      owner_ = std::thread::id ();
-      count_ = 0;
-
-      shared_mutex::unlock ();
-    }
-  }
-
-private:
-  std::atomic <std::thread::id> owner_;
-  int                           count_;
-};
 
 #endif /* __SK__THREAD_H__ */
