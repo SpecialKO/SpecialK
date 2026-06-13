@@ -1,4 +1,13 @@
-﻿26.6.13.2
+﻿26.6.13.3
+=========
+ + Detect and ignore mods loaded as XInput1_3.dll, 1_2, 1_1, 9_1_0 or UAP.
+
+    * Normally if SK sees one of these DLLs it will copy them to XInput1_4.dll
+        so that input mapping software works reliably. But many mods are not
+          smart enough to prevent initializing themselves twice if two copies
+            of the same DLL are present (i.e. things like FFVIIHook).
+
+26.6.13.2
 =========
  + Add check if Xbox Game Bar even exists for doofuses who uninstalled it.
 

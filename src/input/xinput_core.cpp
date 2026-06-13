@@ -3588,7 +3588,7 @@ SK_Input_PreHookXInput (void)
   //
   if (! std::filesystem::exists (path_to_exe_dir / L"XInput1_4.dll", ec))
   {
-    for ( auto&& version :
+    for ( auto&& versioned_dll :
             { ( path_to_exe_dir / L"XInput1_3.dll"   ),
               ( path_to_exe_dir / L"XInput1_2.dll"   ),
               ( path_to_exe_dir / L"XInput1_1.dll"   ),
@@ -3596,9 +3596,51 @@ SK_Input_PreHookXInput (void)
               ( path_to_exe_dir / L"XInputUap.dll" )
             } )
     {
-      if (std::filesystem::exists (version, ec))
+      if (std::filesystem::exists (versioned_dll, ec))
       {
-        if (std::filesystem::copy_file (version, path_to_exe_dir / L"XInput1_4.dll", ec))
+        const auto dll_str =
+          versioned_dll.filename ().string ();
+
+        sk_import_test_s import_test = {
+          dll_str.c_str (), false
+        };
+
+        SK_TestImports (
+          skModuleRegistry::HostApp (),
+            &import_test, 1 );
+
+        if (! import_test.used)
+          continue;
+
+        bool valid_input_remap_dll = true;
+
+        // Check for signatures that indicate this is not actually
+        //   an input remapping DLL, and leave it alone.
+        for ( auto&& fishy_signature :
+                { "CreateDXGIFactory",
+                  "X3DAudioInitialize",
+                  "DllMain_stub" } )
+        // Set of signatures used currently comes from emoose's mods,
+        //   which are commonly distributed as XInput1_3.dll.
+        {
+          if (SK_GetProcAddress (versioned_dll.wstring ().c_str (), fishy_signature))
+          {
+            SK_LOGi0 (
+              L"Ignoring XInput DLL '%ws' because it exports a function"
+              L" (%hs) that is unrelated to input mapping.",
+                versioned_dll.wstring ().c_str (),
+                fishy_signature
+            );
+
+            valid_input_remap_dll = false;
+            break;
+          }
+        }
+
+        if (! valid_input_remap_dll)
+          continue;
+
+        if (std::filesystem::copy_file (versioned_dll, path_to_exe_dir / L"XInput1_4.dll", ec))
         {
           break;
         }
@@ -3608,7 +3650,7 @@ SK_Input_PreHookXInput (void)
 
   static const auto *pSystemDirectory =
     SK_GetSystemDirectory ();
-  
+
   for ( auto&& version :
           { ( std::filesystem::path (pSystemDirectory) / L"XInput1_4.dll"   ),
             ( std::filesystem::path (pSystemDirectory) / L"XInput1_3.dll"   ),
@@ -3686,7 +3728,6 @@ SK_Input_PreHookXInput (void)
       if (tests [1].used) { /*SK_Input_HookXInput1_3   ();*/ SK_XInput_LinkedVersion = L"XInput1_3.dll";   }
       if (tests [0].used) { /*SK_Input_HookXInput1_4   ();*/ SK_XInput_LinkedVersion = L"XInput1_4.dll";   }
 
-
 #else
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
                   L"  Input   " );
@@ -3697,8 +3738,6 @@ SK_Input_PreHookXInput (void)
       if (tests [2].used) { SK_Input_HookXInput1_2   (); }
       if (tests [1].used) { SK_Input_HookXInput1_3   (); }
       if (tests [0].used) { SK_Input_HookXInput1_4   (); }
-      
-      
 
 #endif
     }
