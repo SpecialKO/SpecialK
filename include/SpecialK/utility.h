@@ -110,11 +110,17 @@ public:
   // Close the handle.
   void Close (void) noexcept
   {
+    if (! isValid ())
+    {
+      m_h = nullptr;
+      return;
+    }
+
     __try
     {
       __try
       {
-        SK_CloseHandle (m_h);
+        CloseHandle (m_h);
       }
 
       __finally
@@ -135,7 +141,7 @@ public:
   bool isValid (void) const noexcept
   {
     return
-      (reinterpret_cast <intptr_t> (m_h) > 0);
+      (reinterpret_cast <intptr_t> (m_h) > 0) && SK_IsHandleValid (m_h);
   }
 
 public:

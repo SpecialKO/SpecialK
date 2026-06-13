@@ -2143,17 +2143,21 @@ ZwCreateThreadEx_Detour (
 
     PathStripPathA (pszShortName);
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-    if ( dbghelp_callers.find (hModStart) ==
-         dbghelp_callers.cend (         )  )
+    // Gothic 1 Remake would deadlock if we did not check this.
+    if (! SK_TLS_Bottom ()->debug.in_DllMain)
     {
-      SK_SymLoadModule ( GetCurrentProcess (),
-                         nullptr, pszShortName,
-                         nullptr, BaseAddr,
-                         mod_info.SizeOfImage );
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-      dbghelp_callers.insert (hModStart);
+      if ( dbghelp_callers.find (hModStart) ==
+           dbghelp_callers.cend (         )  )
+      {
+        SK_SymLoadModule ( GetCurrentProcess (),
+                           nullptr, pszShortName,
+                           nullptr, BaseAddr,
+                           mod_info.SizeOfImage );
+
+        dbghelp_callers.insert (hModStart);
+      }
     }
   }
 
