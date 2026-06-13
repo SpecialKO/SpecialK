@@ -3933,7 +3933,7 @@ auto DeclKeybind =
                 SK_GetModuleFullName (SK_GetDLL ()).c_str (),
                 L"dxgi.dll"
               );
-              SK_RestartGame ();
+              SK_TerminateProcess (SK_GetCurrentProcess (), 0);
             }
 #endif
           }
