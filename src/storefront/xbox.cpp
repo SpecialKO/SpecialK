@@ -192,12 +192,25 @@ SK_Xbox_GetOverlayState_UsingCallbacks (void)
 }
 
 bool
+SK_Xbox_IsGameBarInstalled (void)
+{
+  return
+    SK_IsProcessRunning (L"GameBar.exe");
+}
+
+bool
 __stdcall
 SK_Xbox_GetOverlayState (bool real)
 {
   SK_PROFILE_SCOPED_TASK (SK_Xbox_GetOverlayState)
 
   std::ignore = real;
+
+  static bool bHasGameBar =
+    SK_Xbox_IsGameBarInstalled ();
+
+  if (! bHasGameBar)
+    return false;
 
   //
   // Wait until the first frame has been rendered before registering
@@ -224,7 +237,7 @@ SK_Xbox_GetOverlayState (bool real)
 
   //
   // Slow Codepath: preserved in case the callback system breaks again.
-  //    
+  //
   return SK_Xbox_GetOverlayState_WithCaching ();
 }
 

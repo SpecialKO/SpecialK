@@ -1,4 +1,8 @@
-﻿26.6.13.1
+﻿26.6.13.2
+=========
+ + Add check if Xbox Game Bar even exists for doofuses who uninstalled it.
+
+26.6.13.1
 =========
  + Adjusted Xbox Game Bar Overlay callback code for compatibility with Unity.
  + Refactored CloseHandle (...) anti-tamper mitigation in SK_AutoHandle.
