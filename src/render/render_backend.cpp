@@ -1853,12 +1853,14 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
             "\tRight-click the AutoVRR checkbox in Framerate Limiter | "
             "Advanced to configure this feature.",
                                 dVRROptimalFPS).c_str (),
-                                "Auto Low-Latency (VRR) Mode Activated",
+                                config.render.framerate.auto_low_latency.triggered && __target_fps > dVRROptimalFPS      ?
+                                     "Low-Latency (VRR) Mode Reactivated:\tFramerate Limit Exceeded Display's VRR Range" :
+                                "Auto Low-Latency (VRR) Mode Triggered",
                         6666, SK_ImGui_Toast::UseDuration |
                               SK_ImGui_Toast::ShowNewest  |
                               SK_ImGui_Toast::ShowCaption |
                               SK_ImGui_Toast::ShowTitle );
-    
+
           config.render.framerate.target_fps = static_cast <float> (dVRROptimalFPS);
           __target_fps                       = static_cast <float> (dVRROptimalFPS);
         }

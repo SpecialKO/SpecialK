@@ -226,6 +226,13 @@ SK_Xbox_GetOverlayState (bool real)
     SK_Xbox_RegisterCallbacks ();
   }
 
+  // nb: The above description is likely inaccurate, the actual source
+  //       of the problem appears to be failure to register callbacks on
+  //         systems with gamebar not installed.
+  //
+  //   However, there is no known harm in a 120 frame delay at the moment,
+  //     so might as well keep it as is.
+
   boolean has_callbacks =
     (visibility_event.value != 0);
 

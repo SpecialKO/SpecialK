@@ -1,4 +1,9 @@
-﻿26.6.13.5
+﻿26.6.13.6
+=========
+ + Change wording of AutoVRR notification when it is being triggered due to
+     a user-configured framerate limit that is too high for the active display.
+
+26.6.13.5
 =========
  + Hide "Show VRR Status" option in the Display menu unless it is already
      disabled; it is not meant to be disabled and can be done manually.
