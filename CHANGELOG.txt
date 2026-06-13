@@ -1,4 +1,9 @@
-﻿26.6.13
+﻿26.6.13.1
+=========
+ + Adjusted Xbox Game Bar Overlay callback code for compatibility with Unity.
+ + Refactored CloseHandle (...) anti-tamper mitigation in SK_AutoHandle.
+
+26.6.13
 =======
  + Merge pull request #368 from MapleHinata:mgsv-fix
     * Make MGSV work again.

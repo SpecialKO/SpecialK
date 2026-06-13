@@ -65,10 +65,11 @@ SK::Xbox::Init (void)
   }
 }
 
-static boolean                visible          = false;
+static boolean                visible              = false;
 static EventRegistrationToken visibility_event;
-static boolean                input_redirected = false;
+static boolean                input_redirected     = false;
 static EventRegistrationToken input_event;
+static boolean                callbacks_registered = false;
 
 void
 SK::Xbox::Shutdown (void)
@@ -85,22 +86,19 @@ SK::Xbox::Shutdown (void)
 boolean
 SK_Xbox_GetOverlayState_WithCaching (void)
 {
-  if (SK_GetFramesDrawn () < 9)
-    return false;
-
   if (! SK_GameBar_Statics)
     return false;
-
-  SK_RunOnce (
-    SK_LOGi0 (L"SK_Xbox_GetOverlayState: Falling back to slow codepath!")
-  );
 
   static bool   last_state = false;
   static UINT64 last_frame =     0;
 
   // Slow your horses! You can have a cached value instead.
-  if (last_frame > SK_GetFramesDrawn () - 10)
+  if (last_frame + 10 > SK_GetFramesDrawn ())
     return last_state;
+
+  SK_RunOnce (
+    SK_LOGi0 (L"SK_Xbox_GetOverlayState: Falling back to slow codepath!")
+  );
 
   boolean redirected = false;
 
@@ -116,14 +114,35 @@ SK_Xbox_GetOverlayState_WithCaching (void)
   return redirected != false;
 }
 
-boolean
-SK_Xbox_GetOverlayState_UsingCallbacks (void)
+void
+SK_Xbox_RegisterCallbacks (void)
 {
-  if (SK_GetFramesDrawn () < 9)
-    return false;
+  if (! SK_GameBar_Statics || callbacks_registered)
+    return;
 
-  if (! SK_GameBar_Statics)
-    return false;
+  if (callbacks_registered)
+    return;
+
+  static int
+      failure_count =  0;
+  if (failure_count > 10)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"SK_Xbox_RegisterCallbacks: too many failures, aborting!")
+    );
+    return;
+  }
+
+  static      std::mutex        registrar_mutex;
+  auto lock = std::scoped_lock (registrar_mutex);
+
+  if (callbacks_registered)
+    return;
+
+  SK_LOGi0 (
+    L"SK_Xbox_RegisterCallbacks: attempting registration (frame=%llu)",
+      SK_GetFramesDrawn ()
+  );
 
   static auto visibility_callback =
     Microsoft::WRL::Callback <ABI::Windows::Foundation::IEventHandler <IInspectable *>> (
@@ -142,12 +161,31 @@ SK_Xbox_GetOverlayState_UsingCallbacks (void)
       }
     );
 
-  SK_RunOnce (
-    SK_GameBar_Statics->get_Visible                  (                                     &visible);
+  SK_GameBar_Statics->get_Visible           (         &visible);
+  SK_GameBar_Statics->get_IsInputRedirected (&input_redirected);
+
+  if (input_event.value      == 0)
+    SK_GameBar_Statics->add_IsInputRedirectedChanged (input_callback.Get (),           &input_event);
+  if (visibility_event.value == 0)
     SK_GameBar_Statics->add_VisibilityChanged        (visibility_callback.Get (), &visibility_event);
-    SK_GameBar_Statics->get_IsInputRedirected        (                            &input_redirected);
-    SK_GameBar_Statics->add_IsInputRedirectedChanged (     input_callback.Get (),      &input_event);
-  );
+
+  if (input_event     .value != 0 &&
+      visibility_event.value != 0)
+  {
+    callbacks_registered = true;
+
+    SK_LOGi0 (L"SK_Xbox_RegisterCallbacks: GameBar callbacks registered");
+  }
+
+  else
+    ++failure_count;
+}
+
+boolean
+SK_Xbox_GetOverlayState_UsingCallbacks (void)
+{
+  if (! SK_GameBar_Statics)
+    return false;
 
   return
     (visible && input_redirected);
@@ -159,14 +197,23 @@ SK_Xbox_GetOverlayState (bool real)
 {
   SK_PROFILE_SCOPED_TASK (SK_Xbox_GetOverlayState)
 
-  if (SK_GetFramesDrawn () < 10)
-    return false;
-
   std::ignore = real;
 
-  SK_RunOnce (SK_Xbox_GetOverlayState_UsingCallbacks ());
+  //
+  // Wait until the first frame has been rendered before registering
+  // Xbox/Game Bar callbacks. Some games create temporary startup or
+  // splash windows before the real render loop begins, and this
+  // function may be called during frame 0 before rendering is active.
+  // Registering callbacks that early has been observed to cause
+  // initialization ordering issues or freezes on some systems.
+  //
+  if (! callbacks_registered &&
+      SK_GetFramesDrawn () >= 120)
+  {
+    SK_Xbox_RegisterCallbacks ();
+  }
 
-  const boolean has_callbacks =
+  boolean has_callbacks =
     (visibility_event.value != 0);
 
   //
