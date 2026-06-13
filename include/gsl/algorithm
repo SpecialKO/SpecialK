@@ -17,8 +17,8 @@
 #ifndef GSL_ALGORITHM_H
 #define GSL_ALGORITHM_H
 
-#include <gsl/gsl_assert> // for Expects
-#include <gsl/span>       // for dynamic_extent, span
+#include "./assert" // for Expects
+#include "./span"   // for dynamic_extent, span
 
 #include <algorithm>   // for copy_n
 #include <cstddef>     // for ptrdiff_t
@@ -37,8 +37,8 @@ namespace gsl
 {
 // Note: this will generate faster code than std::copy using span iterator in older msvc+stl
 // not necessary for msvc since VS2017 15.8 (_MSC_VER >= 1915)
-template <class SrcElementType, std::ptrdiff_t SrcExtent, class DestElementType,
-          std::ptrdiff_t DestExtent>
+template <class SrcElementType, std::size_t SrcExtent, class DestElementType,
+          std::size_t DestExtent>
 void copy(span<SrcElementType, SrcExtent> src, span<DestElementType, DestExtent> dest)
 {
     static_assert(std::is_assignable<decltype(*dest.data()), decltype(*src.data())>::value,
@@ -48,7 +48,7 @@ void copy(span<SrcElementType, SrcExtent> src, span<DestElementType, DestExtent>
                   "Source range is longer than target range");
 
     Expects(dest.size() >= src.size());
-    GSL_SUPPRESS(stl.1) // NO-FORMAT: attribute
+    GSL_SUPPRESS(stl.1)
     std::copy_n(src.data(), src.size(), dest.data());
 }
 

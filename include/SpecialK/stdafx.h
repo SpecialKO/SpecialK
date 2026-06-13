@@ -128,8 +128,7 @@
 #include <gsl/gsl>
 #include <gsl/span>
 #include <gsl/pointers>
-#include <gsl/gsl_util>
-#include <gsl/string_span>
+#include <gsl/util>
 
 #include <eh.h>
 #include <io.h>
