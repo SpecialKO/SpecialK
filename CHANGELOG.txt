@@ -1,4 +1,9 @@
-﻿26.6.13.7
+﻿26.6.14
+=======
+ + More accurately emulate the vibration frequency of Xbox Impulse Triggers on
+     DualSense controllers.
+
+26.6.13.7
 =========
  + Replace SK_Thread_HybridSpinlock with std::recursive_mutex because SK's
      own implementation causes deadlock during startup in Gothic 1 Remake.

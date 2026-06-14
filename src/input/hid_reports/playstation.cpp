@@ -1056,7 +1056,7 @@ SK_HID_PlayStationDevice::setVibration (
       static_cast <ULONG> (
         std::clamp (static_cast <double> (low_freq)/
                     static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
-  
+
   WriteULongRelease (&_vibration.right,
     std::min (255UL,
       static_cast <ULONG> (
@@ -1064,16 +1064,16 @@ SK_HID_PlayStationDevice::setVibration (
                     static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
 
   WriteULongRelease (&_vibration.trigger.left,
-    std::min (255UL,
+    std::min (65535UL,
       static_cast <ULONG> (
         std::clamp (static_cast <double> (left_trigger)/
-                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
-  
+                    static_cast <double> (max_val), 0.0, 1.0) * 65536.0)));
+
   WriteULongRelease (&_vibration.trigger.right,
-    std::min (255UL,
+    std::min (65535UL,
       static_cast <ULONG> (
         std::clamp (static_cast <double> (right_trigger)/
-                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
+                    static_cast <double> (max_val), 0.0, 1.0) * 65536.0)));
 
   WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
   WriteRelease      (&bNeedOutput, TRUE);
@@ -3081,7 +3081,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               if (dwLeftTrigger != 0)
               {
-                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.025f);
+                output->setTriggerEffectL (effect, 0.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 65535.0f, 0.025f);
               }
 
               else
@@ -3100,7 +3100,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               if (dwRightTrigger != 0)
               {
-                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.025f);
+                output->setTriggerEffectR (effect, 0.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 65535.0f, 0.025f);
               }
               
               else
@@ -3326,7 +3326,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               if (dwLeftTrigger != 0)
               {
-                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.025f);
+                output->setTriggerEffectL (effect, 0.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 65535.0f, 0.025f);
               }
 
               else
@@ -3345,7 +3345,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
               if (dwRightTrigger != 0)
               {
-                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.025f);
+                output->setTriggerEffectR (effect, 0.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 65535.0f, 0.025f);
               }
 
               else
@@ -4401,6 +4401,37 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
               pSetState =
                 (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [i * 48 + 1]);
 
+#if 0
+              //
+              // Dump Trigger Force Feedback data for debugging
+              //
+              if (pSetState->AllowLeftTriggerFFB)
+              {
+                SK_LOGi0 (L"Left Trigger FFB: Type=%02x, %d %d %d %d %d %d %d %d %d %d",
+                          pSetState->LeftTriggerFFB[0], pSetState->LeftTriggerFFB[1], pSetState->LeftTriggerFFB[2],
+                          pSetState->LeftTriggerFFB[3], pSetState->LeftTriggerFFB[4], pSetState->LeftTriggerFFB[5],
+                          pSetState->LeftTriggerFFB[6], pSetState->LeftTriggerFFB[7], pSetState->LeftTriggerFFB[8],
+                          pSetState->LeftTriggerFFB[9], pSetState->LeftTriggerFFB[10]);
+              }
+
+              if (pSetState->AllowRightTriggerFFB)
+              {
+                SK_LOGi0 (L"Right Trigger FFB: Type=%02x, %d %d %d %d %d %d %d %d %d %d",
+                          pSetState->RightTriggerFFB[0], pSetState->RightTriggerFFB[1], pSetState->RightTriggerFFB[2],
+                          pSetState->RightTriggerFFB[3], pSetState->RightTriggerFFB[4], pSetState->RightTriggerFFB[5],
+                          pSetState->RightTriggerFFB[6], pSetState->RightTriggerFFB[7], pSetState->RightTriggerFFB[8],
+                          pSetState->RightTriggerFFB[9], pSetState->RightTriggerFFB[10]);
+              }
+
+              if (pSetState->AllowLeftTriggerFFB || pSetState->AllowRightTriggerFFB)
+              {
+                SK_LOGi0 (L"Trigger Motor Power Reduction: %d [Allowed: %s]",
+                  pSetState->TriggerMotorPowerReduction,
+                    pSetState->AllowMotorPowerLevel ? L"Yes"
+                                                    : L"No");
+              }
+#endif
+
               data_changed |=
                 SK_DualSense_ApplyOutputReportFilter (pSetState);
             }
@@ -5048,10 +5079,10 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
   else      report->AllowRightTriggerFFB = true;
 
   uint8_t effects [][11] = {
-    { 0x05, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Off
-    { 0x01, 0, 63, 0, 0, 0, 0, 0, 0, 0, 0 }, // Feedback
-    { 0x00, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 }, // ...
-    { 0x06, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Vibration
+    { 0x05,   0,  0, 0,   0,  0, 0, 0, 0,   0, 0 }, // Off
+    { 0x01,   0, 63, 0,   0,  0, 0, 0, 0,   0, 0 }, // Feedback
+    { 0x00,   0,  0, 0,   0,  0, 0, 0, 0,   0, 0 }, // ...
+    { 0x26, 255,  3, 0, 128, 32, 9, 0, 0, 104, 0 }, // Vibration
   };
 
   if (effect >= playstation_trigger_effect::Invalid)
@@ -5067,9 +5098,43 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
 
   if (effect != playstation_trigger_effect::Off)
   {
-    if (param0 != -1.0f) data [1] = static_cast <uint8_t> (std::clamp (param0 * 255.0f, 0.0f, 255.0f));
-    if (param1 != -1.0f) data [2] = static_cast <uint8_t> (std::clamp (param1 * 255.0f, 0.0f, 255.0f));
-    if (param2 != -1.0f) data [3] = static_cast <uint8_t> (std::clamp (param2 * 255.0f, 0.0f, 255.0f));
+    // Derived from John "Nielk1" Klein's work.
+    // https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db
+    if (effect == playstation_trigger_effect::Vibration)
+    {
+      const uint8_t position  = 0;
+      const uint8_t amplitude = static_cast <uint8_t> (std::clamp (param1 * 8.0f, 0.0f, 8.0f));
+      {
+        byte   strengthValue  = (byte)((amplitude - 1) & 0x07);
+        UInt64 amplitudeZones = 0;
+        UInt16 activeZones    = 0;
+
+        for (int i = position; i < 10; i++)
+        {
+          amplitudeZones |= (UInt64)(strengthValue << (4 * i));
+          activeZones    |= (UInt16)(1 << i);
+        }
+
+        data [ 0] = (byte)0x26;
+        data [ 1] = (byte)((activeZones    >>  0) & 0xff);
+        data [ 2] = (byte)((activeZones    >>  8) & 0xff);
+        data [ 3] = (byte)((amplitudeZones >>  0) & 0xff);
+        data [ 4] = (byte)((amplitudeZones >>  8) & 0xff);
+        data [ 5] = (byte)((amplitudeZones >> 16) & 0xff);
+        data [ 6] = (byte)((amplitudeZones >> 24) & 0xff);
+        data [ 7] = (byte)((amplitudeZones >> 32) & 0xff);
+        data [ 8] = (byte)((amplitudeZones >> 40) & 0xff);
+        data [ 9] = 25;
+        data [10] = 0x00;
+      }
+    }
+
+    else
+    {
+      if (param0 != -1.0f) data [1] = static_cast <uint8_t> (std::clamp (param0 * 255.0f, 0.0f, 255.0f));
+      if (param1 != -1.0f) data [2] = static_cast <uint8_t> (std::clamp (param1 * 255.0f, 0.0f, 255.0f));
+      if (param2 != -1.0f) data [3] = static_cast <uint8_t> (std::clamp (param2 * 255.0f, 0.0f, 255.0f));
+    }
   }
 }
 
