@@ -1,4 +1,13 @@
-﻿26.6.14
+﻿26.6.15
+=======
+ + Only use the keybd_event (...) function to send a DualSense Edge's extra
+     button bindings to a game if the game has keyboard focus.
+
+   * When a game does not have focus, WM_KEYDOWN/UP messages wil be used
+       instead, allow you to play games in the background and still use
+         SK's keyboard bindings for Fn Left/Right and Paddle Left/Right.
+
+26.6.14
 =======
  + More accurately emulate the vibration frequency of Xbox Impulse Triggers on
      DualSense controllers.

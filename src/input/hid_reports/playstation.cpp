@@ -1244,24 +1244,36 @@ SK_HID_ProcessGamepadButtonBindings (void)
             frames_drawn + 40
         );
 
+        HWND hWndFocus =
+          SK_GetFocus ();
+
+        DWORD                                   dwFocusPid = 0;
+        SK_GetWindowThreadProcessId(hWndFocus, &dwFocusPid);
+
         const UINT bScancode =
           MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
 
-        const DWORD dwFlags =
-           ( ( bScancode & 0xE100 ) != 0                  ?
-              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) :
-              static_cast <DWORD> (0x0) )                 |
-                                   KEYEVENTF_SCANCODE     |
-                     ( bReleased ? KEYEVENTF_KEYUP
-                                 : 0x0 );
+        static auto game_pid =
+          GetProcessId (GetCurrentProcess ());
 
-        SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
-                        sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
+        // Simplest and most reliable if the process already has focus
+        if (game_window.active || dwFocusPid == game_pid)
+        {
+          const DWORD dwFlags =
+             ( ( bScancode & 0xE100 ) != 0                  ?
+                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) :
+                static_cast <DWORD> (0x0) )                 |
+                                     KEYEVENTF_SCANCODE     |
+                       ( bReleased ? KEYEVENTF_KEYUP
+                                   : 0x0 );
 
-        // This hack is no longer necessary, since the scancode is included
-        //   in SK_keybd_event now.
-#if 0
-        if (SK_GetCurrentRenderBackend ().windows.sdl)
+          SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
+                          sk::narrow_cast <BYTE> (bScancode), dwFlags, 0);
+        }
+
+        // Post a keyboard message to the window, since the process does not
+        //   have keyboard focus.
+        else
         {
           int key_state_flags  = {};
               key_state_flags |= sk::narrow_cast <BYTE> (bScancode) << 16;
@@ -1273,7 +1285,6 @@ SK_HID_ProcessGamepadButtonBindings (void)
             bReleased ? WM_KEYUP : WM_KEYDOWN,
               VirtualKey, key_state_flags );
         }
-#endif
 
         binding.lastFrame = binding.thisFrame;
       }
@@ -5124,7 +5135,7 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
         data [ 6] = (byte)((amplitudeZones >> 24) & 0xff);
         data [ 7] = (byte)((amplitudeZones >> 32) & 0xff);
         data [ 8] = (byte)((amplitudeZones >> 40) & 0xff);
-        data [ 9] = 25;
+        data [ 9] = 35;
         data [10] = 0x00;
       }
     }
