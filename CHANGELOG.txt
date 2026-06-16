@@ -4,7 +4,7 @@
      button bindings to a game if the game has keyboard focus.
 
    * When a game does not have focus, WM_KEYDOWN/UP messages wil be used
-       instead, allow you to play games in the background and still use
+       instead, allowing you to play games in the background and still use
          SK's keyboard bindings for Fn Left/Right and Paddle Left/Right.
 
 26.6.14

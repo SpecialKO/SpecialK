@@ -48,6 +48,8 @@
 #include <SpecialK/adl.h>
 #include <SpecialK/popups/popup.h>
 
+#include <SpecialK/wgc/wgc_registrar.h>
+
 
 #include <SpecialK/commands/mem.inl>
 #include <SpecialK/commands/update.inl>
@@ -2321,7 +2323,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     L"---------------------\n");
 
 
-  SK_WindowsGameConfig_AddGameIfNeeded ();
+  SK_WGC_AddGameIfNeeded (SK_GetFullyQualifiedApp ());
 
   if (! __SK_bypass)
   {

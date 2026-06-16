@@ -3345,6 +3345,9 @@
     <ClInclude Include="depends\include\aetherim\wrapper.hpp">
       <Filter>Header Files\External Libraries\Aetherim</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\wgc\wgc_registrar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3994,6 +3997,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\arknights_endfield.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\wgc\wgc_registrar.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
