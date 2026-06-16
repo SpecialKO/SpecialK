@@ -24,6 +24,8 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/com_util.h>
 
+#define __SK_SUBSYSTEM__ " COM Util "
+
 namespace COM
 {
   Base base = { };
@@ -57,6 +59,15 @@ DEFINE_GUID(CLSID_DxDiagProvider,     0xA65B8071,0x3BFE,0x4213,0x9A,0x5B,0x49,0x
 CoCreateInstance_pfn   CoCreateInstance_Original   = nullptr;
 CoCreateInstanceEx_pfn CoCreateInstanceEx_Original = nullptr;
 
+HRESULT
+WINAPI
+SK_CoCreateInstance (REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, REFIID riid, LPVOID *ppv)
+{
+  return
+    CoCreateInstance_Original != nullptr ?
+    CoCreateInstance_Original (rclsid, pUnkOuter, dwClsContext, riid, ppv) :
+    CoCreateInstance          (rclsid, pUnkOuter, dwClsContext, riid, ppv);
+}
 
 extern
 HRESULT
@@ -87,6 +98,8 @@ CoCreateInstance_Detour (
   _In_  REFIID    riid,
   _Out_ LPVOID   *ppv )
 {
+  SK_LOG_FIRST_CALL
+
   if (ppv == nullptr)
     return E_POINTER;
 
@@ -111,6 +124,18 @@ CoCreateInstance_Detour (
   {
     //extern void SK_BootDDraw (void);
     //SK_BootDDraw ();
+  }
+
+  if (rclsid == __uuidof (MMDeviceEnumerator))
+  {
+    // Do not give SK its own virtual enumerator
+    if (SK_GetCallingDLL () != SK_GetDLL ())
+    {
+      HRESULT SK_MMDevAPI_CreateVirtualEnumerator (IMMDeviceEnumerator** ppEnum);
+
+      return
+        SK_MMDevAPI_CreateVirtualEnumerator ((IMMDeviceEnumerator **)ppv);
+    }
   }
 
   if (rclsid == CLSID_DxDiagProvider)

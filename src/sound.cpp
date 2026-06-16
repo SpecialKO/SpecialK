@@ -59,7 +59,7 @@ SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
         SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
         ThrowIfFailed (
-          pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+          SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
         if (pDevEnum == nullptr)
           return nullptr;
@@ -169,7 +169,7 @@ SK_WASAPI_GetSpatialAudioClient (SK_IMMDevice pDevice, bool uncached)
         SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
         ThrowIfFailed (
-          pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+          SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
         if (pDevEnum == nullptr)
           return nullptr;
@@ -287,7 +287,7 @@ SK_WASAPI_GetAudioMeterInfo (SK_IMMDevice pDevice)
       SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
       ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+        SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
       if (pDevEnum == nullptr)
         return nullptr;
@@ -588,7 +588,7 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
   try
   {
     ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+      SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
     ThrowIfFailed (
       pDevEnum->GetDefaultAudioEndpoint (eRender,
@@ -703,7 +703,7 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow     data_flow     = eRender,
     if (pDevice == nullptr)
     {
       ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+        SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
       ThrowIfFailed (
         pDevEnum->GetDefaultAudioEndpoint ( data_flow,
@@ -879,7 +879,7 @@ SK_MMDev_GetEndpointVolumeControl (SK_IMMDevice pDevice)
       SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
       ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+        SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
       ThrowIfFailed (
         pDevEnum->GetDefaultAudioEndpoint (eRender,
@@ -924,7 +924,7 @@ SK_MMDev_GetLoudness (SK_IMMDevice pDevice)
       SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
       ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+        SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
       ThrowIfFailed (
         pDevEnum->GetDefaultAudioEndpoint (eRender,
@@ -970,7 +970,7 @@ SK_MMDev_GetAutoGainControl (SK_IMMDevice pDevice)
       SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
       ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+        SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
 
       ThrowIfFailed (
         pDevEnum->GetDefaultAudioEndpoint (eRender,
@@ -1585,7 +1585,8 @@ SK_WASAPI_SessionManager::getMeterInfo (void)
       pDevEnum;
   if (pDevEnum == nullptr)
   {
-    if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+
+    if (FAILED (SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p))))
       return nullptr;
   }
 
@@ -1612,42 +1613,42 @@ void
 SK_WASAPI_EndPointManager::Activate (void)
 {
   std::scoped_lock <SK_Thread_HybridSpinlock> lock0 (activation_lock_);
-  
+
   try
   {
     SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
-  
+
     ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
-  
+      SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p)));
+
     SK_RunOnce (
       pDevEnum->RegisterEndpointNotificationCallback (this)
     );
-  
+
     SK_ComPtr <IMMDeviceCollection>                                dev_collection;
     ThrowIfFailed (
       pDevEnum->EnumAudioEndpoints (eRender, DEVICE_STATE_ACTIVE, &dev_collection.p));
-  
+
     if (dev_collection.p != nullptr)
     {
       UINT                         uiDevices = 0;
       ThrowIfFailed (
         dev_collection->GetCount (&uiDevices));
-  
+
       for ( UINT i = 0 ; i < uiDevices ; ++i )
       {
         SK_MMDev_Endpoint endpoint;
-  
+
         SK_ComPtr <IMMDevice>       pDevice;
         ThrowIfFailed (
           dev_collection->Item (i, &pDevice.p));
-  
+
         if (pDevice.p != nullptr)
         {
           wchar_t*           wszId = nullptr;
           ThrowIfFailed (
             pDevice->GetId (&wszId));
-  
+
           auto _FindRenderDevice = [&](const wchar_t *device_id) -> SK_MMDev_Endpoint *
           {
             for ( auto& device : render_devices_ )
@@ -1655,56 +1656,56 @@ SK_WASAPI_EndPointManager::Activate (void)
               if (device.id_._Equal (device_id))
                 return &device;
             }
-  
+
             return nullptr;
           };
-  
+
           if (wszId != nullptr && !_FindRenderDevice (wszId))
           {
             SK_ComPtr <IPropertyStore>                props;
             ThrowIfFailed (
               pDevice->OpenPropertyStore (STGM_READ, &props.p));
-  
+
             if (props.p != nullptr)
             {
               PROPVARIANT       propvarName;
               PropVariantInit (&propvarName);
-  
+
               ThrowIfFailed (
                 props->GetValue (PKEY_Device_FriendlyName, &propvarName));
-  
+
               endpoint.flow_   = eRender;
               endpoint.id_     = wszId;
               endpoint.name_   = SK_WideCharToUTF8 (propvarName.pwszVal);
               endpoint.device_ = pDevice;
-  
+
               ThrowIfFailed (
                 pDevice->GetState (&endpoint.state_));
-  
+
               PropVariantClear (&propvarName);
-  
+
               if (FAILED (pDevice->Activate (
                   __uuidof (IAudioSessionManager2),
                     CLSCTX_ALL,
                       nullptr,
                         reinterpret_cast <void **>(&endpoint.control_.sessions)
                  )       )                  ) return;
-  
+
               endpoint.control_.meter.Attach (
                 SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
               );
-  
+
               endpoint.control_.volume.Attach         (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
               endpoint.control_.auto_gain.Attach      (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
               endpoint.control_.loudness.    Attach   (SK_MMDev_GetLoudness              (pDevice).Detach ());
               endpoint.control_.audio_client.Attach   (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
               endpoint.control_.spatial_client.Attach (SK_WASAPI_GetSpatialAudioClient   (pDevice).Detach ());
-  
+
               endpoint.control_.sessions->RegisterSessionNotification (&endpoint);
-  
+
               render_devices_.emplace_back (endpoint);
             }
-  
+
             CoTaskMemFree (wszId);
           }
         }
@@ -1712,13 +1713,13 @@ SK_WASAPI_EndPointManager::Activate (void)
     }
     //pDevEnum->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &dev_collection.p);
   }
-  
+
   catch (const std::exception& e)
   {
     SK_LOG0 ( ( L"%ws (...) Failed "
                 L"During Endpoint Enumeration : %hs", __FUNCTIONW__, e.what ()
               ),L"  WASAPI  " );
-  
+
     return;
   }
 }
@@ -1747,4 +1748,393 @@ SK_WASAPI_SessionManager::RemoveSession (SK_WASAPI_AudioSession *pSession)
     sessions_.erase   (pSession);
     pSession->Release ();
   }
+}
+
+
+
+
+
+
+
+
+#include <devpkey.h>
+
+class SK_IVirtualPropertyStore : public IPropertyStore
+{
+public:
+  SK_IVirtualPropertyStore (IPropertyStore* real_property_store) : pReal (real_property_store), refs_ (1) {}
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr =
+      pReal->QueryInterface (riid, ppvObject);
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+     if (ref == 0)
+       delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetCount (__RPC__out DWORD *cProps)
+  {
+    return
+      pReal->GetCount (cProps);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetAt (DWORD iProp, __RPC__out PROPERTYKEY* pkey)
+  {
+    return
+      pReal->GetAt (iProp, pkey);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetValue (__RPC__in REFPROPERTYKEY key, __RPC__out PROPVARIANT* pv)
+  {
+    OLECHAR                     wszPropertyKeyName [128] = { };
+    StringFromGUID2 (key.fmtid, wszPropertyKeyName, 127);
+
+    //DEVPKEY_Device_FriendlyName
+
+    SK_LOGi0 (
+      L"SK_IVirtualPropertyStore::GetValue (...) called for key %ws.%u",
+        wszPropertyKeyName, key.pid
+    );
+
+    HRESULT hr =
+      pReal->GetValue (key, pv);
+
+    if (SUCCEEDED (hr))
+    {
+      if (key.fmtid == PKEY_AudioEngine_DeviceFormat.fmtid &&
+          key.pid   == PKEY_AudioEngine_DeviceFormat.pid)
+      {
+        if (pv->blob.cbSize == 40)
+        {
+          static const unsigned char rawData [40] = {
+            0xFE, 0xFF, 0x04, 0x00, 0x80, 0xBB, 0x00, 0x00, 0x00, 0xDC, 0x05, 0x00,
+            0x08, 0x00, 0x10, 0x00, 0x16, 0x00, 0x10, 0x00, 0x33, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA,
+            0x00, 0x38, 0x9B, 0x71
+          };
+
+          SK_ReleaseAssert (! memcmp (rawData, pv->blob.pBlobData, 40));
+        }
+      }
+    }
+
+    return hr;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetValue (__RPC__in REFPROPERTYKEY key, __RPC__in REFPROPVARIANT propvar)
+  {
+    return
+      pReal->SetValue (key, propvar);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Commit (void)
+  {
+    return
+      pReal->Commit ();
+  }
+
+protected:
+  IPropertyStore* pReal;
+  ULONG           refs_;
+};
+
+class SK_IVirtualMMDevice : public IMMDevice
+{
+public:
+  SK_IVirtualMMDevice (IMMDevice* real_device) : pReal (real_device), refs_(1) {}
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr =
+      pReal->QueryInterface (riid, ppvObject);
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+     if (ref == 0)
+       delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Activate (REFIID iid, DWORD dwClsCtx, PROPVARIANT *pActivationParams, void **ppInterface)
+  {
+    return
+      pReal->Activate (iid, dwClsCtx, pActivationParams, ppInterface);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE OpenPropertyStore (DWORD stgmAccess, IPropertyStore** ppProperties)
+  {
+    IPropertyStore* pPropertyStore = nullptr;
+
+    HRESULT hr =
+      pReal->OpenPropertyStore (stgmAccess, &pPropertyStore); 
+
+    if (SUCCEEDED (hr))
+    {
+      *ppProperties =
+        new SK_IVirtualPropertyStore (pPropertyStore);
+    }
+
+    return hr;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetId (LPWSTR* ppstrId)
+  {
+    return
+      pReal->GetId (ppstrId);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetState (DWORD* pdwState)
+  {
+    return
+      pReal->GetState (pdwState);
+  }
+
+protected:
+  IMMDevice* pReal;
+  ULONG      refs_;
+};
+
+class SK_IVirtualMMDeviceCollection : public IMMDeviceCollection
+{
+public:
+  SK_IVirtualMMDeviceCollection (IMMDeviceCollection* real_collection) : pReal (real_collection), refs_ (1) {}
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr =
+      pReal->QueryInterface (riid, ppvObject);
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+     if (ref == 0)
+       delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetCount (UINT *pcDevices)
+  {
+    UINT count = 0;
+
+    HRESULT hr =
+      pReal->GetCount (&count);
+
+    if (SUCCEEDED (hr))
+    {
+      count++;
+    }
+
+    if (pcDevices != nullptr)
+       *pcDevices = count;
+
+    return hr;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Item (UINT nDevice, IMMDevice** ppDevice)
+  {
+    UINT              real_count = 0;
+    pReal->GetCount (&real_count);
+
+    // This is our virtual device
+    if (nDevice == real_count || nDevice == real_count-1)
+    {
+      SK_LOGi0 (L"SK_IVirtualMMDeviceCollection::Item (...) returning virtual device for index %u", nDevice);
+
+      IMMDevice* pDevice = nullptr;
+
+      // Not implemented yet, just return a wrapper around the last device.
+      HRESULT hr =
+        pReal->Item (real_count-1, &pDevice);
+
+      if (SUCCEEDED (hr))
+      {
+        *ppDevice =
+          new SK_IVirtualMMDevice (pDevice);
+      }
+
+      return
+        hr;
+    }
+
+    return
+      pReal->Item (nDevice, ppDevice);
+  }
+
+protected:
+  IMMDeviceCollection* pReal;
+  ULONG                refs_;
+};
+
+class SK_IVirtualMMDeviceEnumerator : public IMMDeviceEnumerator
+{
+public:
+  SK_IVirtualMMDeviceEnumerator (IMMDeviceEnumerator* real_enumerator) : pReal (real_enumerator), refs_ (1) {}
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr =
+      pReal->QueryInterface (riid, ppvObject);
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+     if (ref == 0)
+       delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE EnumAudioEndpoints (EDataFlow dataFlow, DWORD dwStateMask, IMMDeviceCollection **ppDevices)
+  {
+    // SK has no interest in adding a virtual microphone or disconnected devices...
+    if ((dataFlow != eRender && dataFlow != eAll) || (dwStateMask & DEVICE_STATE_ACTIVE) == 0)
+    {
+      return
+        pReal->EnumAudioEndpoints (dataFlow, dwStateMask, ppDevices);
+    }
+
+    IMMDeviceCollection* pRealCollection = nullptr;
+
+    HRESULT hr =
+      pReal->EnumAudioEndpoints (dataFlow, dwStateMask, &pRealCollection);
+
+    if (SUCCEEDED (hr))
+    {
+      if (ppDevices != nullptr)
+      {
+        *ppDevices =
+          new SK_IVirtualMMDeviceCollection (pRealCollection);
+
+        return hr;
+      }
+    }
+
+    if (ppDevices != nullptr)
+       *ppDevices = pRealCollection;
+
+    return hr;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetDefaultAudioEndpoint (EDataFlow dataFlow, ERole role, IMMDevice **ppEndpoint)
+  {
+    return
+      pReal->GetDefaultAudioEndpoint (dataFlow, role, ppEndpoint);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetDevice (LPCWSTR pwstrId, IMMDevice **ppDevice)
+  {
+    SK_LOGi0 (L"SK_IVirtualMMDeviceEnumerator::GetDevice (%ws, %p)", pwstrId, ppDevice);
+
+    return
+      pReal->GetDevice (pwstrId, ppDevice);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE RegisterEndpointNotificationCallback (IMMNotificationClient* pClient)
+  {
+    return
+      pReal->RegisterEndpointNotificationCallback (pClient);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE UnregisterEndpointNotificationCallback (IMMNotificationClient *pClient)
+  {
+    return
+      pReal->UnregisterEndpointNotificationCallback (pClient);
+  }
+
+protected:
+  IMMDeviceEnumerator* pReal;
+  ULONG                refs_;
+};
+
+HRESULT
+SK_MMDevAPI_CreateVirtualEnumerator (IMMDeviceEnumerator** ppEnum)
+{
+  IMMDeviceEnumerator* pRealEnum = nullptr;
+
+  HRESULT hr =
+    SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pRealEnum));
+
+  // Not ready for primetime
+#if 0
+  if (SUCCEEDED (hr))
+  {
+    *ppEnum =
+      new SK_IVirtualMMDeviceEnumerator (pRealEnum);
+
+    return hr;
+  }
+#endif
+
+  *ppEnum = pRealEnum;
+
+  return hr;
 }

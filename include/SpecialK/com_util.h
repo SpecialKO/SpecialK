@@ -116,7 +116,7 @@ using CoCreateInstanceEx_pfn = HRESULT (STDAPICALLTYPE *)(
 extern CoCreateInstance_pfn   CoCreateInstance_Original;
 extern CoCreateInstanceEx_pfn CoCreateInstanceEx_Original;
 
-
+HRESULT WINAPI SK_CoCreateInstance (REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, REFIID riid, LPVOID *ppv);
 
 bool SK_WMI_Init     (void);
 void SK_WMI_Shutdown (void);
