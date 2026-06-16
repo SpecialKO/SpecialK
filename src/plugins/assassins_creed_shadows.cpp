@@ -1,7 +1,7 @@
 ﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 //
-// Copyright 2025 Andon "Kaldaien" Coleman
+// Copyright 2025-2026 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -834,7 +834,14 @@ SK_ACS_InitPlugin (void)
               // 1.1.7
               0x0000000003E8EE6D, 0x0000000003E8FB7A, 0x000000000067674A, 0x0000000000676750,
               0x0000000000676767, 0x000000000067670B, 0x000000000067670F, 0x0000000000676713,
-              0x0000000003E95B45, 0x0000000003E95B4C
+              0x0000000003E95B45, 0x0000000003E95B4C,
+
+              // 1.1.11
+              0x0000000004554F53, 0x0000000004555CCE, 0x00000000006B0A04, 0x00000000006B0A0A,
+              0x00000000006B0A21, 0x00000000006B09C3, 0x00000000006B09C7, 0x00000000006B09CB,
+              0x00000000006B002C, 0x00000000006B0031, 0x00000000006B0035, 0x00000000006B01CF,
+              0x00000000006B01D3, 0x00000000006B01D7, 0x000000000455BEB5, 0x000000000455BEBC,
+              0x00000000021B353B
 
               } )
     {

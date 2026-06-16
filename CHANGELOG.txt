@@ -1,4 +1,8 @@
-﻿26.6.15
+﻿26.6.16
+=======
+ + Disable Assassin's Creed: Shadows Plug-In because Reflex is broken in 1.1.11
+
+26.6.15
 =======
  + Only use the keybd_event (...) function to send a DualSense Edge's extra
      button bindings to a game if the game has keyboard focus.
