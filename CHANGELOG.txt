@@ -1,4 +1,8 @@
-﻿26.6.17
+﻿26.6.17.1
+=========
+ + Removed debug popup when SK finds an audio device for DualSense.
+
+26.6.17
 =======
  + Re-enabled Assassin's Creed: Shadows Plug-In.
  + Added new INI setting for compatibility with broken games that use

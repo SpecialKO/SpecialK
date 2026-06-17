@@ -382,7 +382,7 @@ void SK_HID_SetupPlayStationControllers (void)
                       {
                         controller.audio_endpoint = pAudioDevice;
 
-                        SK_ImGui_Warning (L"Found a matching device!");
+                        //SK_ImGui_Warning (L"Found a matching device!");
 
                         PropVariantClear (&container_id);
                         break;
