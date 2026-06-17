@@ -166,8 +166,11 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     auto pLimiter =
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
+    const bool ignore_sleep_frame_id =
+      config.nvidia.bugs.reflex_never_sleeps;
+
     static volatile UINT64    lastSleepFrameId = MAXUINT64;
-    if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId))
+    if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId) || ignore_sleep_frame_id)
     {   WriteULong64Release (&lastSleepFrameId,    ReadULong64Acquire (&SK_Reflex_LastFrameId));
       if (pLimiter != nullptr)
           pLimiter->wait ();
@@ -484,6 +487,16 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
        pSetLatencyMarkerParams->markerType == SIMULATION_START )
   {
     WriteULong64Release (&SK_Reflex_LastFrameId, pSetLatencyMarkerParams->frameID);
+
+    // For non-compliant games (i.e. Assasin's Creed: Shadows and Final Fantasy 7),
+    //   we need to make this call on the game's behalf or frame generation will not
+    //     work correctly.
+    if (config.nvidia.bugs.reflex_never_sleeps)
+    {
+      NVAPI_INTERFACE
+      NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev);
+      NvAPI_D3D_Sleep_Detour (SK_GetCurrentRenderBackend ().device.p);
+    }
   }
 
   if ( SK_Streamline_ProxyChain != nullptr                          &&

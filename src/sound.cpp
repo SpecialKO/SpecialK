@@ -2159,7 +2159,7 @@ SK_MMDevAPI_CreateVirtualEnumerator (IMMDeviceEnumerator** ppEnum)
     SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pRealEnum));
 
   // Not ready for primetime
-#if 1
+#if 0
   if (SUCCEEDED (hr))
   {
     *ppEnum =

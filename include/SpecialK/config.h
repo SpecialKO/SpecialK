@@ -1101,6 +1101,7 @@ struct sk_config_t
       bool    kill_hdr            = false;
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
+      bool    reflex_never_sleeps = false; // Game never calls Reflex Sleep
     } bugs;
     struct reflex_s {
       int     enforcement_site    =      1;
@@ -1868,6 +1869,7 @@ enum class SK_GAME_ID
   HaloInfinite,                 // HaloInfinite.exe
   FinalFantasy7,                // ff7_en.exe, ff7_fr.exe, ... ff7_*.exe
   FinalFantasy7Remake,          // ff7remake*.exe
+  FinalFantasy7Rebirth,         // ff7rebirth*.exe
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   EasyAntiCheat,                // start_protected_game.exe
   EldenRing,                    // eldenring.exe

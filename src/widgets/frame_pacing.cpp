@@ -1467,9 +1467,10 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   float target_avg_frametime = 2.0f * target_frametime + 0.1f;
 
-  if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing () && SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+  if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing () && config.nvidia.bugs.reflex_never_sleeps)
   {
-    target_avg_frametime /= 2.0f;
+    extern int SK_NGX_DLSSG_GetMultiFrameCount (void);
+    target_avg_frametime /= (float)(SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f);
   }
 
   // We don't want a second background dimming things even more...

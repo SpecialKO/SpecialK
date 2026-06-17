@@ -298,8 +298,8 @@ SK_GetCurrentGameID (void) noexcept
           { L"EnderLiliesEOS-Win64-Shipping.exe",      SK_GAME_ID::EnderLilies                  },
           { L"Avowed-WinGDK-Shipping.exe",             SK_GAME_ID::Avowed                       }, // Microsoft Store Version
           { L"Avowed-Win64-Shipping.exe",              SK_GAME_ID::Avowed                       }, // Steam Version
-        //{ L"ACShadows.exe",                          SK_GAME_ID::AssassinsCreed_Shadows       }, // Normal version
-        //{ L"ACShadows_Plus.exe",                     SK_GAME_ID::AssassinsCreed_Shadows       }, // Ubisoft+ version
+          { L"ACShadows.exe",                          SK_GAME_ID::AssassinsCreed_Shadows       }, // Normal version
+          { L"ACShadows_Plus.exe",                     SK_GAME_ID::AssassinsCreed_Shadows       }, // Ubisoft+ version
           { L"Ronin.exe",                              SK_GAME_ID::RiseOfRonin                  },
           { L"SandFallEos-Win64-Shipping.exe",         SK_GAME_ID::ClairObscur_Expedition33     }, // Epic Version
           { L"SandFall-Win64-Shipping.exe",            SK_GAME_ID::ClairObscur_Expedition33     }, // Steam Version
@@ -381,6 +381,11 @@ SK_GetCurrentGameID (void) noexcept
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
       {
         current_game = SK_GAME_ID::FinalFantasy7Remake;
+      }
+
+      else if ( StrStrIW ( SK_GetHostApp (), L"ff7rebirth" ) )
+      {
+        current_game = SK_GAME_ID::FinalFantasy7Rebirth;
       }
 
       else if ( StrStrW ( SK_GetHostApp (), L"GoW" ) )
@@ -863,6 +868,7 @@ struct {
     sk::ParameterBool*    snuffed_ansel           = nullptr;
     sk::ParameterBool*    bypass_ansel            = nullptr;
     sk::ParameterBool*    streamline_compat       = nullptr;
+    sk::ParameterBool*    reflex_never_sleeps     = nullptr;
   } bugs;
 
   struct
@@ -2314,6 +2320,7 @@ auto DeclKeybind =
                                                          L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
     ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
     ConfigEntry (nvidia.bugs.streamline_compat,          L"Alternate DXGI/D3D11/D3D12 Hook Implementation for NV BUG", dll_ini,         L"NVIDIA.Bugs",           L"StreamlineCompatibilityMode"),
+    ConfigEntry (nvidia.bugs.reflex_never_sleeps,        L"Compat hack for games that use DLSS FrameGen without Sleep",dll_ini,         L"NVIDIA.Bugs",           L"ReflexNeverSleeps"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
@@ -3530,6 +3537,12 @@ auto DeclKeybind =
         config.steam.disable_overlay               = true;
         break;
 
+      case SK_GAME_ID::FinalFantasy7Rebirth:
+        // Framerate limiting with DLSS Frame Generation enabled
+        //   would not work, because the game never calls Sleep.
+        config.nvidia.bugs.reflex_never_sleeps     =  true;
+        break;
+
       case SK_GAME_ID::AssassinsCreed_Shadows:
         config.apis.d3d9.hook                      = false;
         config.apis.d3d9ex.hook                    = false;
@@ -3548,6 +3561,8 @@ auto DeclKeybind =
         config.nvidia.reflex.low_latency_boost     =  true;
         config.nvidia.reflex.enable                =  true;
         config.nvidia.reflex.override              =  true;
+        // Engine is using DLSS Frame Generation incorrectly
+        config.nvidia.bugs.reflex_never_sleeps     =  true;
         //// This is permissable if native pacing is enabled.
         config.nvidia.dlss.allow_flip_metering     =  true;
         config.compatibility.disallow_ll_keyhook   =  true;
@@ -4847,6 +4862,8 @@ auto DeclKeybind =
   nvidia.bugs.bypass_ansel->load  (config.nvidia.bugs.bypass_ansel);
   nvidia.bugs.streamline_compat
                            ->load (config.compatibility.reshade_mode);
+  nvidia.bugs.reflex_never_sleeps
+                           ->load (config.nvidia.bugs.reflex_never_sleeps);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -7049,6 +7066,7 @@ SK_SaveConfig ( std::wstring name,
   nvidia.api.vulkan_bridge->store             (config.apis.NvAPI.vulkan_bridge);
   nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
+  nvidia.bugs.reflex_never_sleeps->store      (config.nvidia.bugs.reflex_never_sleeps);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->store         (config.input.keyboard.override_alt_f4);

@@ -2558,22 +2558,18 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
       -abs (config.render.framerate.streamline.target_fps);
   }
 
+  auto& rb = SK_GetCurrentRenderBackend ();
+
   //
   // Serious bug in Assassin's Creed Shadows that prevents Frame Generation from working correctly
   //
-  if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows) && config.render.framerate.streamline.wantNativePacing ())
+  if (config.nvidia.bugs.reflex_never_sleeps && config.render.framerate.streamline.wantNativePacing ())
   {
     if (__SK_IsDLSSGActive)
     {
-      auto& rb = SK_GetCurrentRenderBackend ();
-
       NVAPI_INTERFACE
       NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                           __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams );
-
-      NVAPI_INTERFACE
-      NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev);
-      NvAPI_D3D_Sleep_Detour (rb.device.p);
 
       extern volatile NvU64 SK_Reflex_LastNativeFramePresented;
 
@@ -2610,9 +2606,9 @@ SK_StreamlinePresent ( IDXGISwapChain *This,
 
   float limit_to_set = config.render.framerate.streamline.target_fps;
 
-  if (SK_IsCurrentGame (SK_GAME_ID::AssassinsCreed_Shadows))
+  if (config.nvidia.bugs.reflex_never_sleeps)
   {
-    limit_to_set *= 2.0f;
+    limit_to_set *= (SK_NGX_DLSSG_GetMultiFrameCount () + 1);
 
 #if 0
     __SK_FramerateScale =

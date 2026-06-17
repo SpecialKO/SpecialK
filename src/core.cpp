@@ -4808,6 +4808,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
                                                           (__target_fps_now > 0.0f || config.nvidia.reflex.vulkan)) ?
                                                                   std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f) : 1.0f;
 
+  if (config.nvidia.bugs.reflex_never_sleeps)
+    __SK_FramerateScale = 1.0f;
+
   SK_StartPerfMonThreads ();
 
   if (int32_t hooks_queued = (int32_t)ReadULongAcquire (&SK_MinHook_HooksQueuedButNotApplied);

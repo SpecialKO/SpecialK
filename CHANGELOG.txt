@@ -1,4 +1,19 @@
-﻿26.6.16
+﻿26.6.17
+=======
+ + Re-enabled Assassin's Creed: Shadows Plug-In.
+ + Added new INI setting for compatibility with broken games that use
+     DLSS Frame Generation without ever calling Reflex Sleep.
+
+    * Reflex will be applied on their behalf after they call Present;
+        this is not correct behavior but it is lower latency than
+          applying a framerate limit the traditional way.
+
+     [NVIDIA.Bugs]
+     ReflexNeverSleeps={true|false}  Default: false
+
+   >> Auto-enabled in Assasin's Creed: Shadows and Final Fantasy VII Rebirth
+
+26.6.16
 =======
  + Disable Assassin's Creed: Shadows Plug-In because Reflex is broken in 1.1.11
 
