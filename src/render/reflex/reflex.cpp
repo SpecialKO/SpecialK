@@ -167,7 +167,7 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
       SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
 
     const bool ignore_sleep_frame_id =
-      config.nvidia.bugs.reflex_never_sleeps;
+      config.nvidia.bugs.reflex_never_sleeps || config.nvidia.bugs.reflex_non_monotonic;
 
     static volatile UINT64    lastSleepFrameId = MAXUINT64;
     if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId) || ignore_sleep_frame_id)
@@ -198,8 +198,11 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
 
     if (! config.nvidia.reflex.use_limiter)
     {
+      const bool ignore_sleep_frame_id =
+        config.nvidia.bugs.reflex_non_monotonic;
+
       static volatile UINT64    lastSleepFrameId = MAXUINT64;
-      if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId))
+      if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId) || ignore_sleep_frame_id)
       {   WriteULong64Release (&lastSleepFrameId,    ReadULong64Acquire (&SK_Reflex_LastFrameId));
         if (pLimiter != nullptr)
             pLimiter->wait ();

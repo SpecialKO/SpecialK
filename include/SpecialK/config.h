@@ -1102,6 +1102,7 @@ struct sk_config_t
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
       bool    reflex_never_sleeps = false; // Game never calls Reflex Sleep
+      bool    reflex_non_monotonic= false; // Game's Reflex latency marker frame IDs are invalid
     } bugs;
     struct reflex_s {
       int     enforcement_site    =      1;

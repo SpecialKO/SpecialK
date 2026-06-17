@@ -1,4 +1,9 @@
-﻿26.6.17.1
+﻿26.6.17.2
+=========
+ + Added workaround for non-monotonic Reflex frame IDs for stupid games
+     like Final Fantasy 7 Rebirth.
+
+26.6.17.1
 =========
  + Removed debug popup when SK finds an audio device for DualSense.
 

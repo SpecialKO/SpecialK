@@ -3538,9 +3538,9 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::FinalFantasy7Rebirth:
-        // Framerate limiting with DLSS Frame Generation enabled
-        //   would not work, because the game never calls Sleep.
-        config.nvidia.bugs.reflex_never_sleeps     =  true;
+        // Framerate limiting would not work because the game's
+        //   latency markers are invalid.
+        config.nvidia.bugs.reflex_non_monotonic    =  true;
         break;
 
       case SK_GAME_ID::AssassinsCreed_Shadows:
