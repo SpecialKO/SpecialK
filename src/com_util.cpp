@@ -126,6 +126,7 @@ CoCreateInstance_Detour (
     //SK_BootDDraw ();
   }
 
+#if 0
   if (rclsid == __uuidof (MMDeviceEnumerator))
   {
     // Do not give SK its own virtual enumerator
@@ -137,6 +138,7 @@ CoCreateInstance_Detour (
         SK_MMDevAPI_CreateVirtualEnumerator ((IMMDeviceEnumerator **)ppv);
     }
   }
+#endif
 
   if (rclsid == CLSID_DxDiagProvider)
   {

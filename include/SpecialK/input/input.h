@@ -29,6 +29,7 @@
 #include <Windows.h>
 #include <joystickapi.h>
 #include <SetupAPI.h>
+#include <mmdeviceapi.h>
 
 #include <SpecialK/input/xinput.h>
 
@@ -970,6 +971,8 @@ struct SK_HID_PlayStationDevice
 
   wchar_t              wszProduct      [128]    = {     };
   wchar_t              wszSerialNumber [128]    = {     };
+  wchar_t              wszInstanceId   [128]    = {     };
+  GUID                 container_id             = {     };
   ULONG64              ullHWAddr                =       0;
 
   USHORT               vid                      =     0x0;
@@ -1080,6 +1083,7 @@ struct SK_HID_PlayStationDevice
   std::vector <BYTE>            output_report;
   std::vector <BYTE>            feature_report;
   HIDP_CAPS                     hid_caps;
+  SK_ComPtr <IMMDevice>         audio_endpoint;
 
   struct output_s {
              uint32_t           last_crc32c      = 0; // Avoid unnecessary output reports

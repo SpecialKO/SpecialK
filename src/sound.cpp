@@ -28,7 +28,10 @@
 #endif
 #define __SK_SUBSYSTEM__ L"  WASAPI  "
 
-const IID IID_IAudioClient3 = __uuidof(IAudioClient3);
+const PROPERTYKEY PKEY_AudioEngine_DeviceFormat = { { 0xf19f064d, 0x082c, 0x4e27,{ 0xbc, 0x73, 0x68, 0x82, 0xa1, 0xbb, 0x8e, 0x4c, } }, 0 };
+const PROPERTYKEY PKEY_AudioEndpoint_GUID       = { { 0x1da5d803, 0xd492, 0x4edd,{ 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e, } }, 4 };
+
+const IID IID_IAudioClient3 = __uuidof (IAudioClient3);
 
 SK_IAudioClient3
 __stdcall
@@ -2002,6 +2005,38 @@ public:
 
       if (SUCCEEDED (hr))
       {
+        SK_ComPtr <IPropertyStore>              pPropertyStore = nullptr;
+        pDevice->OpenPropertyStore (STGM_READ, &pPropertyStore.p);
+
+        if (pPropertyStore.p != nullptr)
+        {
+          PROPVARIANT       friendly_name = {};
+          PropVariantInit (&friendly_name);
+
+          pPropertyStore->GetValue (PKEY_Device_FriendlyName, &friendly_name);
+
+          PROPVARIANT       container_id = {};
+          PropVariantInit (&container_id);
+
+          if (SUCCEEDED (pPropertyStore->GetValue (PKEY_Device_ContainerId, &container_id)))
+          {
+            if (container_id.vt == VT_CLSID)
+            {
+              for (auto& controller : SK_HID_PlayStationControllers)
+              {
+                if (IsEqualGUID (*container_id.puuid, controller.container_id))
+                {
+                  SK_ImGui_Warning (friendly_name.pwszVal);
+                  break;
+                }
+              }
+            }
+          }
+
+          PropVariantClear (&container_id);
+          PropVariantClear (&friendly_name);
+        }
+
         *ppDevice =
           new SK_IVirtualMMDevice (pDevice);
       }
@@ -2124,7 +2159,7 @@ SK_MMDevAPI_CreateVirtualEnumerator (IMMDeviceEnumerator** ppEnum)
     SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pRealEnum));
 
   // Not ready for primetime
-#if 0
+#if 1
   if (SUCCEEDED (hr))
   {
     *ppEnum =

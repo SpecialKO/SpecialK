@@ -29,7 +29,14 @@
 #include <bthdef.h>
 #include <bthioctl.h>
 
+#include <Setupapi.h>
+#include <initguid.h>
+#include <devpkey.h>
+#include <devguid.h>
+
 #pragma comment (lib, "bthprops.lib")
+#pragma comment (lib, "uuid.lib")
+#pragma comment (lib, "mmdevapi.lib")
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -328,6 +335,67 @@ void SK_HID_SetupPlayStationControllers (void)
           controller.pid            = hidAttribs.ProductID;
           controller.vid            = hidAttribs.VendorID;
 
+          DWORD prop_type = 0,
+                prop_size = 0;
+
+          SetupDiGetDeviceInstanceId (hid_device_set, &devInfoData, controller.wszInstanceId, 127, nullptr);
+          SetupDiGetDevicePropertyW  (hid_device_set, &devInfoData, &DEVPKEY_Device_ContainerId,
+                         &prop_type, nullptr, 0, &prop_size, 0 );
+
+          if (prop_size == sizeof (GUID))
+          {
+            SetupDiGetDevicePropertyW ( hid_device_set, &devInfoData, &DEVPKEY_Device_ContainerId,
+                         &prop_type, (PBYTE)&controller.container_id, sizeof(GUID), nullptr, 0 );
+
+            SK_ComPtr                     <IMMDeviceEnumerator>                                     pDevEnum;
+            SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p));
+
+            if (pDevEnum.p != nullptr)
+            {
+              SK_ComPtr <IMMDeviceCollection>                              pAudioDeviceCollection;
+              pDevEnum->EnumAudioEndpoints (eRender, DEVICE_STATE_ACTIVE, &pAudioDeviceCollection);
+
+              if (pAudioDeviceCollection != nullptr)
+              {
+                UINT                               device_count = 0;
+                pAudioDeviceCollection->GetCount (&device_count);
+
+                for (UINT i = 0; i < device_count; ++i)
+                {
+                  SK_ComPtr <IMMDevice>             pAudioDevice;
+                  pAudioDeviceCollection->Item (i, &pAudioDevice.p);
+
+                  if (pAudioDevice != nullptr)
+                  {
+                    SK_ComPtr <IPropertyStore>                   pAudioDeviceProperties;
+                    pAudioDevice->OpenPropertyStore (STGM_READ, &pAudioDeviceProperties.p);
+
+                    if (pAudioDeviceProperties != nullptr)
+                    {
+                      PROPVARIANT       container_id = {};
+                      PropVariantInit (&container_id);
+
+                      pAudioDeviceProperties->GetValue (PKEY_Device_ContainerId, &container_id);
+
+                      if ( container_id.vt == VT_CLSID &&
+                           IsEqualGUID (controller.container_id, *reinterpret_cast <GUID*> (container_id.puuid)) )
+                      {
+                        controller.audio_endpoint = pAudioDevice;
+
+                        SK_ImGui_Warning (L"Found a matching device!");
+
+                        PropVariantClear (&container_id);
+                        break;
+                      }
+
+                      PropVariantClear (&container_id);
+                    }
+                  }
+                }
+              }
+            }
+          }
+
           controller.bBluetooth =
             StrStrNIW (
               wszFileName, //Bluetooth_Base_UUID
@@ -349,6 +417,14 @@ void SK_HID_SetupPlayStationControllers (void)
 
           controller.bDualShock3 =
             (controller.pid == SK_HID_PID_DUALSHOCK3);
+
+          // Setup Audio Endpoints
+          if (controller.bDualSense)
+          {
+            // We should have found a USB Audio Device with a matching Container ID,
+            //   unless this is Bluetooth, in which case create a virtual device.
+            SK_ReleaseAssert (controller.bBluetooth || controller.audio_endpoint != nullptr);
+          }
 
           if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
           {
