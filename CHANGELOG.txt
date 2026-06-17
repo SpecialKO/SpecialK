@@ -2,6 +2,8 @@
 =========
  + Added workaround for non-monotonic Reflex frame IDs for stupid games
      like Final Fantasy 7 Rebirth.
+ + Add 30 frame grace period before declaring Reflex broken for calling
+     Sleep multiple times in one frame.
 
 26.6.17.1
 =========
