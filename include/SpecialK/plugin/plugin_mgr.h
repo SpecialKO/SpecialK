@@ -67,6 +67,8 @@ using SK_ReadFile_pfn                  = void   (__stdcall *)( HANDLE
                                                                hFile       );
 using SK_WriteFile_pfn                 = void   (__stdcall *)( HANDLE
                                                                hFile       );
+using SK_LoadLibrary_pfn               = void   (__stdcall *)( LPCWSTR
+                                                               wszFileName );
 using SK_ExitGame_pfn                  = void   (__stdcall *)( void        );
 using SK_BeginFrame_pfn                = void   (__stdcall *)( void        );
 using SK_ReleaseGfx_pfn                = void   (__stdcall *)( void        );
@@ -106,6 +108,7 @@ struct SK_PluginRegistry
   std::set <SK_ReadFile_pfn>                   read_file_fns;
   std::set <SK_WriteFile_pfn>                 write_file_fns; // Not implemented
   std::set <SK_OpenFileW_pfn>                open_file_w_fns;
+  std::set <SK_LoadLibrary_pfn>             load_library_fns;
   // Avoid; a translation from ANSI to wide char should be
   //   used instead if a plug-in ever needs this callback.
   std::set <SK_OpenFileA_pfn>                open_file_a_fns;

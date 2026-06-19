@@ -639,6 +639,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       }
     }
 #endif
+
+    for (const auto& callback : plugin_mgr->load_library_fns)
+    {
+      if (typeid (_T) == typeid (char))
+           callback (SK_UTF8ToWideChar ((const char   *)lpFileName).c_str ());
+      else callback (                  (const wchar_t *)lpFileName);
+    }
   }
 
   if (SK_LoadLibrary_IsPinnable (lpFileName))
