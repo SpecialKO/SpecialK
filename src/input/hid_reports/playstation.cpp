@@ -398,7 +398,7 @@ void SK_HID_SetupPlayStationControllers (void)
               }
             }
 
-#if 0
+#ifdef SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
             if (controller.audio_endpoint.p == nullptr)
             {
               IMMDevice* SK_VirtualAudio_CreateVirtualDevice (GUID container_id, const wchar_t* wszDeviceName);

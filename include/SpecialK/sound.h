@@ -1027,4 +1027,6 @@ SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLat
 
 bool SK_WASAPI_IsProcessUsingSpatialAudio (void);
 
+//#define SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
+
 #endif /* __SK__SOUND_H__ */

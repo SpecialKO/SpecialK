@@ -3600,7 +3600,7 @@ SK_MMDevAPI_CreateVirtualEnumerator (IMMDeviceEnumerator** ppEnum)
     SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pRealEnum));
 
   // Not ready for primetime
-#if 0
+#ifdef SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
   if (SUCCEEDED (hr))
   {
     *ppEnum =

@@ -3574,6 +3574,7 @@ void
 __stdcall
 SK_Input_OnLoadLibrary ( LPCWSTR wszFileName )
 {
+#ifdef SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
   if (StrStrIW (wszFileName, L"AkMotion.dll"))
   {
     SK_Input_HookAkMotion (wszFileName);
@@ -3583,6 +3584,9 @@ SK_Input_OnLoadLibrary ( LPCWSTR wszFileName )
   {
     SK_Input_HookAkMotion (wszFileName);
   }
+#else
+  std::ignore = wszFileName;
+#endif
 }
 
 bool

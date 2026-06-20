@@ -1,4 +1,8 @@
-﻿26.6.20
+﻿26.6.20.1
+=========
+ + Remove unintentional log spam for games that use DualSense haptics.
+
+26.6.20
 =======
  + Changed AutoVRR framerate to Reflex - 0.5% instead of Reflex - 1.0%.
  + Only show warning for games that are reading PlayStation controllers
