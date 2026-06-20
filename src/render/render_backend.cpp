@@ -1839,7 +1839,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       double dVRROptimalFPS =
         (dRefreshRate - (dRefreshRate * dRefreshRate) / (3600.0));
 
-      dVRROptimalFPS -= 0.01 * dVRROptimalFPS;
+      dVRROptimalFPS =
+        dVRROptimalFPS - 0.005 * dVRROptimalFPS - 0.0015f;
 
       if (config.render.framerate.auto_low_latency.waiting)
       {

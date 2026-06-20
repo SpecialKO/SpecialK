@@ -1,4 +1,11 @@
-﻿26.6.17.2
+﻿26.6.20
+=======
+ + Changed AutoVRR framerate to Reflex - 0.5% instead of Reflex - 1.0%.
+ + Only show warning for games that are reading PlayStation controllers
+     directly using HID while SK's Xbox mode is active a single time per-game.
+ + Remove assertion for DualSense controllers with invalid serial numbers.
+
+26.6.17.2
 =========
  + Added workaround for non-monotonic Reflex frame IDs for stupid games
      like Final Fantasy 7 Rebirth.
