@@ -1000,7 +1000,7 @@ WriteFile_Detour (HANDLE       hFile,
                 SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                    hid_file->wszProductName, hid_file->device_vid,
                                              hid_file->device_pid ).c_str (),
-              "Native (HID class) Gamepad Protocol In Use By Game", 10000
+              "Native (HID class) Gamepad Protocol In Use By Game", 15000
             );
           }
 #endif
@@ -1170,7 +1170,7 @@ ReadFile_Detour (HANDLE       hFile,
               SK_ImGui_HasPlayStationController () && (config.input.gamepad.xinput.emulate || SK_XInput_PollController (0));
 
             if (config.input.gamepad.hid.always_show_attach || harmful)
-            {
+            SK_RunOnce (
               auto format_str = (! harmful) ?
                     "%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x" :
                     "%ws: %ws\r\n\r\n\tXInput emulation (i.e. Steam Input, DS4Windows, etc.) software"
@@ -1186,9 +1186,9 @@ ReadFile_Detour (HANDLE       hFile,
                 SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                   hid_file->wszProductName, hid_file->device_vid,
                                             hid_file->device_pid ).c_str (),
-              "Native (HID class) Gamepad Protocol In Use By Game", 10000
+              "Native (HID class) Gamepad Protocol In Use By Game", 15000
             );
-          }
+          );
           }
 
           hid_file->bytes_read += nNumberOfBytesToRead;
@@ -1500,7 +1500,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
           SK_ImGui_HasPlayStationController () && (config.input.gamepad.xinput.emulate || SK_XInput_PollController (0));
 
         if (config.input.gamepad.hid.always_show_attach || harmful)
-        {
+        SK_RunOnce (
           auto format_str = (! harmful) ?
                 "%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x" :
                 "%ws: %ws\r\n\r\n\tXInput emulation (i.e. Steam Input, DS4Windows, etc.) software"
@@ -1516,9 +1516,9 @@ ReadFileEx_Detour (HANDLE                          hFile,
               SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
                 hid_file->wszProductName, hid_file->device_vid,
                                           hid_file->device_pid ).c_str (),
-            "Native (HID class) Gamepad Protocol In Use By Game", 10000
+            "Native (HID class) Gamepad Protocol In Use By Game", 15000
           );
-        }
+        );
       }
 
       hid_file->bytes_read += nNumberOfBytesToRead;
@@ -3232,6 +3232,359 @@ SK_Input_HookHID (void)
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
+using SetupDiGetDeviceRegistryPropertyW_pfn = BOOL (WINAPI *)(HDEVINFO DeviceInfoSet, PSP_DEVINFO_DATA DeviceInfoData, DWORD Property, PDWORD PropertyRegDataType, PBYTE PropertyBuffer, DWORD PropertyBufferSize, PDWORD RequiredSize);
+      SetupDiGetDeviceRegistryPropertyW_pfn
+      SetupDiGetDeviceRegistryPropertyW_Original = nullptr;
+
+BOOL
+WINAPI
+SetupDiGetDeviceRegistryPropertyW_Detour (
+  HDEVINFO         DeviceInfoSet,
+  PSP_DEVINFO_DATA DeviceInfoData,
+  DWORD            Property,
+  PDWORD           PropertyRegDataType,
+  PBYTE            PropertyBuffer,
+  DWORD            PropertyBufferSize,
+  PDWORD           RequiredSize )
+{
+  SK_LOG_FIRST_CALL
+
+  auto ret =
+    SetupDiGetDeviceRegistryPropertyW_Original (
+      DeviceInfoSet, DeviceInfoData, Property, PropertyRegDataType,
+      PropertyBuffer, PropertyBufferSize, RequiredSize );
+
+#if 1
+  return ret;
+#else
+  if (! ret)
+  {
+    if ( Property           == SPDRP_BASE_CONTAINERID &&
+         PropertyBufferSize >= sizeof (GUID)          &&
+         PropertyBuffer     != nullptr )
+    {
+      // Not even remotely the correct behavior, this just uses the first Bluetooth
+      //   DualSense controller found...
+      for (auto& ps_controller : SK_HID_PlayStationControllers)
+      {
+        if (ps_controller.bBluetooth && ps_controller.bDualSense)
+        {
+          ret = TRUE;
+
+          SK_LOGi0 (L"Substituting Container ID for Bluetooth Controller Without One...");
+
+          memcpy (PropertyBuffer, &ps_controller.container_id, sizeof (GUID));
+          break;
+        }
+      }
+    }
+  }
+
+  else
+  {
+    if (Property == SPDRP_BASE_CONTAINERID)
+    {
+#if 0
+      // Not even remotely the correct behavior, this just uses the first Bluetooth
+      //   DualSense controller found...
+      for (auto& ps_controller : SK_HID_PlayStationControllers)
+      {
+        if (ps_controller.bBluetooth && ps_controller.bDualSense)
+        {
+          ret = TRUE;
+
+          SK_LOGi0 (L"Substituting Container ID for Bluetooth Controller Without One...");
+
+          memcpy (PropertyBuffer, &ps_controller.container_id, sizeof (GUID));
+          break;
+        }
+      }
+#endif
+
+      SK_LOGi0 (L"GetDeviceRegistryPropertyW for Container ID...");
+    }
+  }
+
+  return ret;
+#endif
+}
+
+#define SCE_OK 0
+
+#define SCE_PAD_HAPTICS_MODE 0x01
+#define SCE_PAD_RUMBLE_MODE  0x02
+
+#define SCE_PAD_BUSTYPE_USB 1
+#define SCE_PAD_BUSTYPE_BT  2
+
+#define SCE_PAD_ERROR_DEVICE_NOT_CONNECTED 0x80920007
+
+using ScePadVibrationMode = int;
+
+struct ScePadContainerIdInfo {
+  uint32_t size;
+  wchar_t  id [0x1000];
+};
+
+typedef int(* AK_akmotionPadGetHandle)                (int userId, int type, int index);
+typedef int(* AK_akmotionPadSetVibrationMode)         (int handle, ScePadVibrationMode    mode);
+typedef int(* AK_akmotionPadGetContainerIdInformation)(int handle, ScePadContainerIdInfo *pInfo);
+typedef int(* AK_akmotionPadSetVibration)             (int handle, const void            *pParam);
+typedef int(* AK_akmotionPadGetControllerBusType)     (int handle, void                  *pBusType);
+typedef int(* AK_akmotionPadGetControllerType)        (int handle, void                  *pControllerType);
+
+using AkMotionInitializeScePadFunctions_pfn = void (*)(
+  AK_akmotionPadGetHandle                 in_pPadGetHandle,
+  AK_akmotionPadGetContainerIdInformation in_pPadGetContainerIdInformation,
+  AK_akmotionPadGetControllerType         in_pPadGetControllerType,
+  AK_akmotionPadSetVibrationMode          in_pPadSetVibrationMode,
+  AK_akmotionPadSetVibration              in_pPadSetVibration,
+  AK_akmotionPadGetControllerBusType      in_pPadGetControllerBusType );
+
+AkMotionInitializeScePadFunctions_pfn
+AkMotionInitializeScePadFunctions_Original = nullptr;
+
+AK_akmotionPadGetControllerBusType      scePadGetControllerBusType_Original;
+AK_akmotionPadGetContainerIdInformation scePadGetContainerIdInformation_Original;
+
+int
+scePadGetContainerIdInformation_Detour (int handle, ScePadContainerIdInfo* pInfo)
+{
+  SK_LOG_FIRST_CALL
+
+  auto ret =
+    scePadGetContainerIdInformation_Original (handle, pInfo);
+
+  if (ret == SCE_PAD_ERROR_DEVICE_NOT_CONNECTED)
+  {
+    // Not even remotely the correct behavior, this just uses the first Bluetooth
+    //   DualSense controller found...
+    for (auto& ps_controller : SK_HID_PlayStationControllers)
+    {
+      if (ps_controller.bBluetooth && ps_controller.bDualSense)
+      {
+        ret = S_OK;
+
+                                                                pInfo->size = 40;
+        StringFromGUID2 (ps_controller.container_id, pInfo->id, pInfo->size);
+        break;
+      }
+    }
+  }
+
+  if (ret == SCE_OK)
+  {
+    SK_LOGi0 (L"scePadGetContainerIdInformation for Controller %d: %ws", handle, pInfo->id);
+  }
+
+  else
+  {
+    SK_LOGi0 (L"scePadGetContainerIdInformation failed for Controller %d with error code 0x%08x", handle, ret);
+  }
+
+  return ret;
+}
+
+int
+scePadGetControllerBusType_Detour (int handle, void *pBusType)
+{
+  SK_LOG_FIRST_CALL
+
+  auto ret =
+    scePadGetControllerBusType_Original (handle, pBusType);
+
+  SK_LOGi0 (
+    L"scePad Bus Type for Controller %d: %ws",
+      handle, *(int *)pBusType == SCE_PAD_BUSTYPE_USB ? L"USB" :
+              *(int *)pBusType == SCE_PAD_BUSTYPE_BT  ? L"Bluetooth" :
+                                                        L"Unknown"
+  );
+
+  *(int *)pBusType = SCE_PAD_BUSTYPE_USB;
+
+  return ret;
+}
+
+void
+AkMotionInitializeScePadFunctions_Detour (
+  AK_akmotionPadGetHandle                 in_pPadGetHandle,
+  AK_akmotionPadGetContainerIdInformation in_pPadGetContainerIdInformation,
+  AK_akmotionPadGetControllerType         in_pPadGetControllerType,
+  AK_akmotionPadSetVibrationMode          in_pPadSetVibrationMode,
+  AK_akmotionPadSetVibration              in_pPadSetVibration,
+  AK_akmotionPadGetControllerBusType      in_pPadGetControllerBusType )
+{
+  SK_LOG_FIRST_CALL
+
+  int hooks_to_install = 0;
+
+  if (in_pPadGetControllerBusType != nullptr)
+  {
+    SK_CreateFuncHook (  L"scePadGetControllerBusType",
+                         *in_pPadGetControllerBusType,
+                           scePadGetControllerBusType_Detour,
+                 (void **)&scePadGetControllerBusType_Original  );
+    SK_QueueEnableHook  (*in_pPadGetControllerBusType);
+
+    ++hooks_to_install;
+  }
+
+  if (in_pPadGetContainerIdInformation != nullptr)
+  {
+    SK_CreateFuncHook ( L"scePadGetContainerIdInformation",
+                         in_pPadGetContainerIdInformation,
+                          scePadGetContainerIdInformation_Detour,
+                (void **)&scePadGetContainerIdInformation_Original );
+    SK_QueueEnableHook  (in_pPadGetContainerIdInformation);
+
+    ++hooks_to_install;
+  }
+
+  if (hooks_to_install > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  }
+
+  SK_LOGi0 (L"AkMotionInitializeScePadFunctions called, hooks installed for: %hs%hs%hs%hs%hs%hs",
+    in_pPadGetHandle                 != nullptr ? "PadGetHandle "                 : "",
+    in_pPadGetContainerIdInformation != nullptr ? "PadGetContainerIdInformation " : "",
+    in_pPadGetControllerType         != nullptr ? "PadGetControllerType "         : "",
+    in_pPadSetVibrationMode          != nullptr ? "PadSetVibrationMode "          : "",
+    in_pPadSetVibration              != nullptr ? "PadSetVibration "              : "",
+    in_pPadGetControllerBusType      != nullptr ? "PadGetControllerBusType "      : ""
+  );
+
+  AkMotionInitializeScePadFunctions_Original (
+    in_pPadGetHandle,
+    in_pPadGetContainerIdInformation,
+    in_pPadGetControllerType,
+    in_pPadSetVibrationMode,
+    in_pPadSetVibration,
+    in_pPadGetControllerBusType
+  );
+}
+
+using AK_GetDeviceIDFromName_pfn = uint32_t (WINAPI *)(const wchar_t* wszName);
+      AK_GetDeviceIDFromName_pfn
+      AK_GetDeviceIDFromName_Original = nullptr;
+
+uint32_t
+SK_AK_GetDeviceIDFromName_Detour (const wchar_t* wszName)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_LOGi0 (L"AK::GetDeviceIDFromName (%ws)", wszName);
+
+  auto ret =
+    AK_GetDeviceIDFromName_Original (wszName);
+
+  SK_LOGi0 (L" * %d", ret);
+
+  return ret;
+}
+
+void
+SK_Input_HookAkMotion (const wchar_t* wszFileName = nullptr)
+{
+  // Statically linked games (Unreal usually)
+  if (wszFileName == nullptr)
+  {
+    auto GetDeviceIDFromName_Proc =
+      SK_Modules->HostApp ().GetProcAddress <AK_GetDeviceIDFromName_pfn>
+                                             ("?GetDeviceIDFromName@AK@@YAIPEA_W@Z");
+
+    if (GetDeviceIDFromName_Proc != nullptr)
+    {
+      SK_CreateFuncHook   (L"?GetDeviceIDFromName@AK@@YAIPEA_W@Z",
+                              GetDeviceIDFromName_Proc,
+                        SK_AK_GetDeviceIDFromName_Detour,
+                 (void **)&AK_GetDeviceIDFromName_Original);
+      SK_QueueEnableHook     (GetDeviceIDFromName_Proc);
+    }
+
+    auto AkMotionInitializeScePadFunctions_Proc =
+      SK_Modules->HostApp ().GetProcAddress <AkMotionInitializeScePadFunctions_pfn>
+                                           ("AkMotionInitializeScePadFunctions");
+
+    if (AkMotionInitializeScePadFunctions_Proc != nullptr)
+    {
+      SK_CreateFuncHook   (L"AkMotionInitializeScePadFunctions",
+                             AkMotionInitializeScePadFunctions_Proc,
+                             AkMotionInitializeScePadFunctions_Detour,
+                   (void **)&AkMotionInitializeScePadFunctions_Original);
+      SK_QueueEnableHook    (AkMotionInitializeScePadFunctions_Proc);
+    }
+
+    if (AkMotionInitializeScePadFunctions_Proc != nullptr ||
+                      GetDeviceIDFromName_Proc != nullptr)
+    {
+      SK_ApplyQueuedHooks ();
+    }
+  }
+
+  // Dynamically linked games (Unity usually)
+  else
+  {
+    void* AkMotionInitializeScePadFunctions_Proc = nullptr;
+    void* GetDeviceIDFromName_Proc               = nullptr;
+
+    if (StrStrIW (wszFileName, L"AkSoundEngine.dll"))
+    {
+      SK_LOGi0 (L"AkSoundEngine.dll loaded, installing hooks...");
+
+      GetDeviceIDFromName_Proc =
+        SK_GetProcAddress (L"AkSoundEngine.dll", "?GetDeviceIDFromName@AK@@YAIPEA_W@Z");
+
+      if (GetDeviceIDFromName_Proc != nullptr)
+      {
+        SK_CreateFuncHook   (L"?GetDeviceIDFromName@AK@@YAIPEA_W@Z",
+                                GetDeviceIDFromName_Proc,
+                          SK_AK_GetDeviceIDFromName_Detour,
+                   (void **)&AK_GetDeviceIDFromName_Original);
+        SK_QueueEnableHook     (GetDeviceIDFromName_Proc);
+      }
+    }
+
+    if (StrStrIW (wszFileName, L"AkMotion.dll"))
+    {
+      SK_LOGi0 (L"AkMotion.dll loaded, installing hooks...");
+
+      AkMotionInitializeScePadFunctions_Proc =
+        SK_GetProcAddress (L"AkMotion.dll", "AkMotionInitializeScePadFunctions");
+
+      if (AkMotionInitializeScePadFunctions_Proc != nullptr)
+      {
+        SK_CreateFuncHook   (L"AkMotionInitializeScePadFunctions",
+                               AkMotionInitializeScePadFunctions_Proc,
+                               AkMotionInitializeScePadFunctions_Detour,
+                     (void **)&AkMotionInitializeScePadFunctions_Original);
+        SK_QueueEnableHook    (AkMotionInitializeScePadFunctions_Proc);
+      }
+    }
+
+    if (AkMotionInitializeScePadFunctions_Proc != nullptr ||
+                      GetDeviceIDFromName_Proc != nullptr)
+    {
+      SK_ApplyQueuedHooks ();
+    }
+  }
+}
+
+void
+__stdcall
+SK_Input_OnLoadLibrary ( LPCWSTR wszFileName )
+{
+  if (StrStrIW (wszFileName, L"AkMotion.dll"))
+  {
+    SK_Input_HookAkMotion (wszFileName);
+  }
+
+  else if (StrStrIW (wszFileName, L"AkSoundEngine.dll"))
+  {
+    SK_Input_HookAkMotion (wszFileName);
+  }
+}
+
 bool
 SK_Input_PreHookHID (void)
 {
@@ -3475,6 +3828,14 @@ SK_Input_PreHookHID (void)
     SK_SetupDiDestroyDeviceInfoList =
       (SetupDiDestroyDeviceInfoList_pfn)SK_GetProcAddress (hModSetupAPI,
       "SetupDiDestroyDeviceInfoList");
+
+    SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceRegistryPropertyW",
+                                         SetupDiGetDeviceRegistryPropertyW_Detour,
+                static_cast_p2p <void> (&SetupDiGetDeviceRegistryPropertyW_Original));
+
+    plugin_mgr->load_library_fns.insert (SK_Input_OnLoadLibrary);
+
+    SK_Input_HookAkMotion ();
 
     if (config.input.gamepad.steam.disabled_to_game)
     {

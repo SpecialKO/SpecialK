@@ -1759,18 +1759,142 @@ SK_WASAPI_SessionManager::RemoveSession (SK_WASAPI_AudioSession *pSession)
 
 
 
+#include <concurrent_unordered_map.h>
+
+class SK_IVirtualMMDevice;
+class SK_IVirtualMMDeviceCollection;
+class SK_IVirtualMMDeviceEnumerator;
+
+class SK_VirtualAudio_Registrar
+{
+friend class SK_IVirtualMMDeviceCollection;
+friend class SK_IVirtualMMDeviceEnumerator;
+public:
+  void addNotificationClient (IMMNotificationClient* pClient)
+  {
+    if (pClient != nullptr)
+    {
+      if ( clients_.count (pClient) == 0 ||
+           clients_       [pClient] == false )
+           clients_       [pClient]  = true;
+    }
+  }
+
+  void removeNotificationClient (IMMNotificationClient* pClient)
+  {
+    if (pClient != nullptr)
+    {
+      if ( clients_.count (pClient) != 0 &&
+           clients_       [pClient] == true )
+           clients_       [pClient]  = false;
+    }
+  }
+
+  int broadcastDeviceAdded (LPCWSTR pwstrDeviceId)
+  {
+    int notified = 0;
+
+    for (auto& [client, active] : clients_)
+    {
+      if (active)
+      {
+        SK_LOGi0 (L"Broadcasting Device Added: %ws", pwstrDeviceId);
+
+        client->OnDeviceAdded (pwstrDeviceId);
+        ++notified;
+      }
+    }
+
+    return notified;
+  }
+
+  int broadcastDeviceRemoved (LPCWSTR pwstrDeviceId)
+  {
+    int notified = 0;
+
+    for (auto& [client, active] : clients_)
+    {
+      if (active)
+      {
+        client->OnDeviceRemoved (pwstrDeviceId);
+        ++notified;
+      }
+    }
+
+    return notified;
+  }
+
+  void addDevice (SK_IVirtualMMDevice* pDevice)
+  {
+    ((IMMDevice *)pDevice)->AddRef ();
+    virtual_devices_.push_back (pDevice);
+
+    wchar_t*                        wszDevicePath = nullptr;
+    ((IMMDevice *)pDevice)->GetId (&wszDevicePath);
+
+    if (wszDevicePath != nullptr)
+    {
+      broadcastDeviceAdded (wszDevicePath);
+      CoTaskMemFree        (wszDevicePath);
+    }
+  }
+
+protected:
+  Concurrency::concurrent_vector        <SK_ComPtr <SK_IVirtualMMDevice>>         virtual_devices_;
+  Concurrency::concurrent_unordered_map <SK_ComPtr <IMMNotificationClient>, bool> clients_;
+};
+
+SK_LazyGlobal <SK_VirtualAudio_Registrar> virtual_audio_registrar;
 
 #include <devpkey.h>
 
 class SK_IVirtualPropertyStore : public IPropertyStore
 {
 public:
+  SK_IVirtualPropertyStore (SK_IVirtualMMDevice* pDevice);
   SK_IVirtualPropertyStore (IPropertyStore* real_property_store) : pReal (real_property_store), refs_ (1) {}
 
   virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
   {
-    HRESULT hr =
-      pReal->QueryInterface (riid, ppvObject);
+    HRESULT hr = E_NOTIMPL;
+
+    if (pReal == nullptr)
+    {
+      if (ppvObject != nullptr)
+      {
+        if ( riid == __uuidof (IUnknown) ||
+             riid == __uuidof (IPropertyStore) )
+        {
+          hr = S_OK;
+          *ppvObject = this;
+        }
+
+        else
+        {
+          static concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+          wchar_t                wszGUID [41] = { };
+          StringFromGUID2 (riid, wszGUID, 40);
+
+          const bool once =
+            reported_guids.count (wszGUID) > 0;
+
+          if (! once)
+          {
+            reported_guids.insert (wszGUID);
+
+            SK_LOG0 ( ( L"QueryInterface on virtual IPropertyStore for Mystery UUID: %s",
+                            wszGUID ), L"VirtualSnd" );
+          }
+        }
+      }
+    }
+
+    else
+    {
+      hr =
+        pReal->QueryInterface (riid, ppvObject);
+    }
 
     if (SUCCEEDED (hr))
       AddRef ();
@@ -1790,37 +1914,174 @@ public:
     ULONG ref =
       InterlockedDecrement (&refs_);
 
-     if (ref == 0)
-       delete this;
+    if (ref == 0)
+      delete this;
 
     return ref;
   }
 
   virtual HRESULT STDMETHODCALLTYPE GetCount (__RPC__out DWORD *cProps)
   {
+    if (pReal == nullptr)
+    {
+      if (cProps != nullptr)
+      {
+        *cProps =
+          static_cast <DWORD> (virtual_properties_.size ());
+      }
+
+      return E_POINTER;
+    }
+
     return
       pReal->GetCount (cProps);
   }
 
   virtual HRESULT STDMETHODCALLTYPE GetAt (DWORD iProp, __RPC__out PROPERTYKEY* pkey)
   {
+    if (pReal == nullptr)
+    {
+      if (iProp < virtual_properties_.size ())
+      {
+        if (pkey != nullptr)
+        {
+          *pkey = virtual_properties_ [iProp].first;
+          return S_OK;
+        }
+
+        return E_POINTER;
+      }
+
+      return E_INVALIDARG;
+    }
+
     return
       pReal->GetAt (iProp, pkey);
   }
 
   virtual HRESULT STDMETHODCALLTYPE GetValue (__RPC__in REFPROPERTYKEY key, __RPC__out PROPVARIANT* pv)
   {
+    SK_LOG_FIRST_CALL
+
     OLECHAR                     wszPropertyKeyName [128] = { };
     StringFromGUID2 (key.fmtid, wszPropertyKeyName, 127);
 
-    //DEVPKEY_Device_FriendlyName
+    HRESULT hr = E_INVALIDARG;
+
+    struct haptics_format_s {
+      union {
+        WAVEFORMATEXTENSIBLE format;
+        unsigned char        rawData [40] = {
+          0xFE, 0xFF, 0x04, 0x00, 0x80, 0xBB, 0x00, 0x00, 0x00, 0xDC, 0x05, 0x00,
+          0x08, 0x00, 0x10, 0x00, 0x16, 0x00, 0x10, 0x00, 0x33, 0x00, 0x00, 0x00,
+          0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA,
+          0x00, 0x38, 0x9B, 0x71
+        };
+      };
+    };
+
+    static constexpr haptics_format_s format;
+
+#if 0
+    const WAVEFORMATEXTENSIBLE* pWaveFormat =
+      reinterpret_cast <const WAVEFORMATEXTENSIBLE *> (&format.format);
+
+    SK_LOGi0 (
+      L"Format: %u Hz, %u Channels, %d bits per-sample, %u Samples per-block",
+        pWaveFormat->Format.nSamplesPerSec, pWaveFormat->Format.nChannels,
+        pWaveFormat->Format.wBitsPerSample, /*pWaveFormat->Samples.wValidBitsPerSample,*/
+        pWaveFormat->Samples.wSamplesPerBlock );
+
+    SK_LOGi0 (
+      L"nAvgBytesPerSec: %u, nBlockAlign: %u, cbSize: %u",
+        pWaveFormat->Format.nAvgBytesPerSec,
+        pWaveFormat->Format.nBlockAlign,
+        pWaveFormat->Format.cbSize
+    );
+
+    wchar_t                              wszChannels [33] = {};
+    _itow_s (pWaveFormat->dwChannelMask, wszChannels, sizeof (wszChannels) / sizeof (wchar_t), 2);
+
+
+    SK_LOGi0 (
+      L"Channels: [%ws], Format Tag: %u, SubFormat: {%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}",
+        wszChannels, pWaveFormat->Format.wFormatTag, // KSDATAFORMAT_SUBTYPE_PCM
+                     pWaveFormat->SubFormat.Data1, pWaveFormat->SubFormat.Data2,
+                     pWaveFormat->SubFormat.Data3, pWaveFormat->SubFormat.Data4 [0],
+                     pWaveFormat->SubFormat.Data4 [1], pWaveFormat->SubFormat.Data4 [2],
+                     pWaveFormat->SubFormat.Data4 [3], pWaveFormat->SubFormat.Data4 [4],
+                     pWaveFormat->SubFormat.Data4 [5], pWaveFormat->SubFormat.Data4 [6],
+                     pWaveFormat->SubFormat.Data4 [7] );
+#endif
+
+    if (pReal == nullptr)
+    {
+      for (auto& [virtual_key, virtual_value] : virtual_properties_)
+      {
+        if (IsEqualPropertyKey (virtual_key, key))
+        {
+          if (pv != nullptr)
+          {
+            SK_LOGi1 (
+              L"SK_IVirtualPropertyStore::GetValue (...) - Returning Virtual Property for Key: %ws.%u",
+              wszPropertyKeyName, key.pid
+            );
+
+            size_t size = 0;
+
+            pv->vt = virtual_value.vt;
+            hr     = S_OK;
+
+            switch (pv->vt)
+            {
+              case VT_LPWSTR:
+                size        = (wcslen (virtual_value.pwszVal) + 1) * sizeof (wchar_t);
+                pv->pwszVal = (wchar_t *)CoTaskMemAlloc (size);
+                memcpy (pv->pwszVal, virtual_value.pwszVal, size);
+
+                SK_LOGi0 (L"SK_IVirtualPropertyStore::GetValue (...) - Returning Virtual String: %ws", pv->pwszVal);
+                break;
+              case VT_BLOB:
+                size               = virtual_value.blob.cbSize;
+                pv->blob.pBlobData = (BYTE *)CoTaskMemAlloc (size);
+                memcpy (pv->blob.pBlobData, virtual_value.blob.pBlobData, size);
+                break;
+              case VT_CLSID:
+                size      = sizeof (GUID);
+                pv->puuid = (GUID *)CoTaskMemAlloc (size);
+                memcpy (pv->puuid, virtual_value.puuid, size);
+                break;
+              default:
+                hr = E_NOTIMPL;
+                SK_ReleaseAssert (! L"Unsupported Variant Type in Virtual Property Store");
+                break;
+            }
+          }
+
+          else
+            hr = E_POINTER;
+
+          break;
+        }
+      }
+
+      if (hr == E_INVALIDARG)
+      {
+        SK_LOGi0 (
+          L"SK_IVirtualPropertyStore::GetValue (...) - Unrecognized Property Key: %ws.%u",
+          wszPropertyKeyName, key.pid
+        );
+      }
+
+      return hr;
+    }
 
     SK_LOGi0 (
       L"SK_IVirtualPropertyStore::GetValue (...) called for key %ws.%u",
         wszPropertyKeyName, key.pid
     );
 
-    HRESULT hr =
+    hr =
       pReal->GetValue (key, pv);
 
     if (SUCCEEDED (hr))
@@ -1830,14 +2091,7 @@ public:
       {
         if (pv->blob.cbSize == 40)
         {
-          static const unsigned char rawData [40] = {
-            0xFE, 0xFF, 0x04, 0x00, 0x80, 0xBB, 0x00, 0x00, 0x00, 0xDC, 0x05, 0x00,
-            0x08, 0x00, 0x10, 0x00, 0x16, 0x00, 0x10, 0x00, 0x33, 0x00, 0x00, 0x00,
-            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA,
-            0x00, 0x38, 0x9B, 0x71
-          };
-
-          SK_ReleaseAssert (! memcmp (rawData, pv->blob.pBlobData, 40));
+          //SK_ReleaseAssert (! memcmp (pWaveFormat, pv->blob.pBlobData, 40));
         }
       }
     }
@@ -1847,30 +2101,77 @@ public:
 
   virtual HRESULT STDMETHODCALLTYPE SetValue (__RPC__in REFPROPERTYKEY key, __RPC__in REFPROPVARIANT propvar)
   {
+    if (pReal == nullptr)
+    {
+      SK_LOGi0 (L"SK_IVirtualPropertyStore::SetValue (...) - Unimplemented Stub Called!");
+
+      return S_OK;
+    }
+
     return
       pReal->SetValue (key, propvar);
   }
 
   virtual HRESULT STDMETHODCALLTYPE Commit (void)
   {
+    if (pReal == nullptr)
+    {
+      SK_LOG_FIRST_CALL
+      return S_OK;
+    }
+
     return
       pReal->Commit ();
   }
 
 protected:
-  IPropertyStore* pReal;
-  ULONG           refs_;
+           IPropertyStore* pReal;
+  // Ordering is important, so avoid std::map
+  std::vector <std::pair <PROPERTYKEY, PROPVARIANT>>
+                           virtual_properties_;
+  volatile ULONG           refs_;
 };
 
-class SK_IVirtualMMDevice : public IMMDevice
+#pragma warning (push)
+#pragma warning (disable : 4100) // unreferenced formal parameter)
+class SK_IVirtualAudioClient2;
+class SK_IVirtualAudioRenderClient : public IAudioRenderClient
 {
 public:
-  SK_IVirtualMMDevice (IMMDevice* real_device) : pReal (real_device), refs_(1) {}
+  SK_IVirtualAudioRenderClient (SK_IVirtualAudioClient2* parent) : refs_ (1), parent_ (parent) {};
 
   virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
   {
-    HRESULT hr =
-      pReal->QueryInterface (riid, ppvObject);
+    HRESULT hr = E_NOTIMPL;
+
+    if (ppvObject != nullptr)
+    {
+      if ( riid == __uuidof (IUnknown) ||
+           riid == __uuidof (IAudioRenderClient) )
+      {
+        hr = S_OK;
+        *ppvObject = this;
+      }
+
+      else
+      {
+        static concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+        wchar_t                wszGUID [41] = { };
+        StringFromGUID2 (riid, wszGUID, 40);
+
+        const bool once =
+          reported_guids.count (wszGUID) > 0;
+
+        if (! once)
+        {
+          reported_guids.insert (wszGUID);
+
+          SK_LOG0 ( ( L"QueryInterface on virtual IAudioRenderClient for Mystery UUID: %s",
+                          wszGUID ), L"VirtualSnd" );
+        }
+      }
+    }
 
     if (SUCCEEDED (hr))
       AddRef ();
@@ -1890,14 +2191,975 @@ public:
     ULONG ref =
       InterlockedDecrement (&refs_);
 
-     if (ref == 0)
-       delete this;
+    if (ref == 0)
+      delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetBuffer     (UINT32 NumFramesRequested, BYTE **ppData);
+  virtual HRESULT STDMETHODCALLTYPE ReleaseBuffer (UINT32 NumFramesWritten, DWORD dwFlags);
+
+protected:
+  volatile ULONG                    refs_;
+           SK_IVirtualAudioClient2* parent_;
+           UINT32                   acquired_frames_ = 0;
+};
+
+class SK_IVirtualAudioSessionControl2 : public IAudioSessionControl2
+{
+public:
+  SK_IVirtualAudioSessionControl2 (void) : refs_ (1) {};
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr = E_NOTIMPL;
+
+    if (ppvObject != nullptr)
+    {
+      if ( riid == __uuidof (IUnknown)             ||
+           riid == __uuidof (IAudioSessionControl) ||
+           riid == __uuidof (IAudioSessionControl2) )
+      {
+        hr = S_OK;
+        *ppvObject = this;
+      }
+
+      else
+      {
+        static concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+        wchar_t                wszGUID [41] = { };
+        StringFromGUID2 (riid, wszGUID, 40);
+
+        const bool once =
+          reported_guids.count (wszGUID) > 0;
+
+        if (! once)
+        {
+          reported_guids.insert (wszGUID);
+
+          SK_LOG0 ( ( L"QueryInterface on virtual IAudioSessionControl2 for Mystery UUID: %s",
+                          wszGUID ), L"VirtualSnd" );
+        }
+      }
+    }
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+    if (ref == 0)
+      delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetState (AudioSessionState *pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetDisplayName (LPWSTR *pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetDisplayName (LPCWSTR Value, LPCGUID EventContext)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetIconPath (LPWSTR* pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetIconPath (LPCWSTR Value, LPCGUID EventContext)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetGroupingParam (GUID *pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetGroupingParam (LPCGUID Override, LPCGUID EventContext)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE RegisterAudioSessionNotification (IAudioSessionEvents* NewNotifications)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE UnregisterAudioSessionNotification (IAudioSessionEvents *NewNotifications)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetSessionIdentifier (LPWSTR *pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetSessionInstanceIdentifier (LPWSTR* pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetProcessId (DWORD* pRetVal)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (pRetVal != nullptr)
+    {
+      *pRetVal = GetCurrentProcessId ();
+
+      return S_OK;
+    }
+
+    return E_INVALIDARG;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE IsSystemSoundsSession (void)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetDuckingPreference (BOOL optOut)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+protected:
+  volatile ULONG refs_;
+};
+
+class SK_IVirtualAudioSessionManager2 : public IAudioSessionManager2
+{
+public:
+  SK_IVirtualAudioSessionManager2 (void) : refs_ (1) {};
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr = E_NOTIMPL;
+
+    if (ppvObject != nullptr)
+    {
+      if ( riid == __uuidof (IUnknown)             ||
+           riid == __uuidof (IAudioSessionManager) ||
+           riid == __uuidof (IAudioSessionManager2) )
+      {
+        hr = S_OK;
+        *ppvObject = this;
+      }
+
+      else
+      {
+        static concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+        wchar_t                wszGUID [41] = { };
+        StringFromGUID2 (riid, wszGUID, 40);
+
+        const bool once =
+          reported_guids.count (wszGUID) > 0;
+
+        if (! once)
+        {
+          reported_guids.insert (wszGUID);
+
+          SK_LOG0 ( ( L"QueryInterface on virtual IAudioSessionManager2 for Mystery UUID: %s",
+                          wszGUID ), L"VirtualSnd" );
+        }
+      }
+    }
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+    if (ref == 0)
+      delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetAudioSessionControl (LPCGUID AudioSessionGuid, DWORD StreamFlags, IAudioSessionControl **SessionControl)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (SessionControl != nullptr)
+    {
+      *SessionControl =
+        new SK_IVirtualAudioSessionControl2 ();
+
+      return S_OK;
+    }
+
+    return E_POINTER;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetSimpleAudioVolume (LPCGUID AudioSessionGuid, DWORD StreamFlags, ISimpleAudioVolume **AudioVolume)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetSessionEnumerator (IAudioSessionEnumerator **SessionEnum)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE RegisterSessionNotification (IAudioSessionNotification *SessionNotification)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE UnregisterSessionNotification (IAudioSessionNotification *SessionNotification)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE RegisterDuckNotification (LPCWSTR sessionID, IAudioVolumeDuckNotification *duckNotification)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE UnregisterDuckNotification (IAudioVolumeDuckNotification *duckNotification)
+  {
+    SK_LOG_FIRST_CALL
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+protected:
+  volatile ULONG refs_;
+};
+
+class SK_IVirtualAudioClient2 : public IAudioClient2
+{
+friend class SK_IVirtualAudioRenderClient;
+public:
+  SK_IVirtualAudioClient2 (void) : refs_ (1) {
+    for (auto& ps_controller : SK_HID_PlayStationControllers)
+    {
+      if (ps_controller.bConnected && ps_controller.bDualSense && ps_controller.audio_endpoint.p)
+      {
+        // This will leak, we're only querying it to get the appropriate buffer size, etc. for a real DualSense controller.
+        ps_controller.audio_endpoint.p->QueryInterface (__uuidof (IAudioClient2), reinterpret_cast<void**> (&pReal.p));
+        break;
+      }
+    }
+  };
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    HRESULT hr = E_NOTIMPL;
+
+    if (ppvObject != nullptr)
+    {
+      if ( riid == __uuidof (IUnknown)     ||
+           riid == __uuidof (IAudioClient) ||
+           riid == __uuidof (IAudioClient2) )
+      {
+        hr = S_OK;
+        *ppvObject = this;
+      }
+
+      else
+      {
+        static concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+        wchar_t                wszGUID [41] = { };
+        StringFromGUID2 (riid, wszGUID, 40);
+
+        const bool once =
+          reported_guids.count (wszGUID) > 0;
+
+        if (! once)
+        {
+          reported_guids.insert (wszGUID);
+
+          SK_LOG0 ( ( L"QueryInterface on virtual IAudioClient for Mystery UUID: %s",
+                          wszGUID ), L"VirtualSnd" );
+        }
+      }
+    }
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+    if (ref == 0)
+      delete this;
+
+    return ref;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Initialize (AUDCLNT_SHAREMODE ShareMode, DWORD StreamFlags, REFERENCE_TIME hnsBufferDuration, REFERENCE_TIME hnsPeriodicity, const WAVEFORMATEX* pFormat, LPCGUID AudioSessionGuid)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (StreamFlags != 0 && StreamFlags != AUDCLNT_STREAMFLAGS_EVENTCALLBACK)
+    {
+      SK_LOGi0 (L"SK_IVirtualAudioClient2::Initialize (...) - Unimplemented Stream Flags: 0x%08X", StreamFlags);
+    }
+
+    if (StreamFlags & AUDCLNT_STREAMFLAGS_EVENTCALLBACK)
+    {
+      event_driven = true;
+
+      const WAVEFORMATEXTENSIBLE* pWaveFormat =
+        (WAVEFORMATEXTENSIBLE *)pFormat;
+
+      SK_LOGi0 (
+        L"Format: %u Hz, %u Channels, %d bits per-sample, %u Samples per-block",
+          pWaveFormat->Format.nSamplesPerSec, pWaveFormat->Format.nChannels,
+          pWaveFormat->Format.wBitsPerSample, /*pWaveFormat->Samples.wValidBitsPerSample,*/
+          pWaveFormat->Samples.wSamplesPerBlock );
+
+      SK_LOGi0 (
+        L"nAvgBytesPerSec: %u, nBlockAlign: %u, cbSize: %u",
+          pWaveFormat->Format.nAvgBytesPerSec,
+          pWaveFormat->Format.nBlockAlign,
+          pWaveFormat->Format.cbSize
+      );
+
+      wchar_t                              wszChannels [33] = {};
+      _itow_s (pWaveFormat->dwChannelMask, wszChannels, sizeof (wszChannels) / sizeof (wchar_t), 2);
+
+
+      SK_LOGi0 (
+        L"Channels: [%ws], Format Tag: %u, SubFormat: {%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}",
+          wszChannels, pWaveFormat->Format.wFormatTag, // KSDATAFORMAT_SUBTYPE_PCM
+                       pWaveFormat->SubFormat.Data1, pWaveFormat->SubFormat.Data2,
+                       pWaveFormat->SubFormat.Data3, pWaveFormat->SubFormat.Data4 [0],
+                       pWaveFormat->SubFormat.Data4 [1], pWaveFormat->SubFormat.Data4 [2],
+                       pWaveFormat->SubFormat.Data4 [3], pWaveFormat->SubFormat.Data4 [4],
+                       pWaveFormat->SubFormat.Data4 [5], pWaveFormat->SubFormat.Data4 [6],
+                       pWaveFormat->SubFormat.Data4 [7] );
+    }
+
+    SK_ReleaseAssert (pFormat != nullptr && pFormat->nChannels == 4);
+
+    SK_ReleaseAssert (ShareMode == AUDCLNT_SHAREMODE_SHARED && hnsPeriodicity == 0);
+
+    if (AudioSessionGuid != nullptr)
+    {
+      wchar_t guid_str [41] = {};
+
+      StringFromGUID2 (*AudioSessionGuid, guid_str, 40);
+
+      SK_LOGi0 (L"Initializing Audio Client with Audio Session GUID: %ws", guid_str);
+    }
+
+    buffer_duration_ = hnsBufferDuration;
+
+    // TODO: Calculate the proper size of this.
+    buffer_frame_count_ = 1920;
+    buffer_.resize (buffer_frame_count_ * pFormat->nChannels * (pFormat->wBitsPerSample / 8));
+
+    initialized = true;
+
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetBufferSize (UINT32* pNumBufferFrames)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (pReal != nullptr) {
+        pReal->GetBufferSize (pNumBufferFrames);
+
+    //SK_LOGi0 (L"SK_IVirtualAudioClient2::GetBufferSize (...) - Returning Buffer Size: %u frames", *pNumBufferFrames);
+    }
+
+    *pNumBufferFrames = buffer_frame_count_;
+
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetStreamLatency (REFERENCE_TIME *phnsLatency)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetCurrentPadding (UINT32 *pNumPaddingFrames)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (pNumPaddingFrames == nullptr)
+      return E_POINTER;
+
+    // ?
+    *pNumPaddingFrames = 0;
+
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE IsFormatSupported (AUDCLNT_SHAREMODE ShareMode, const WAVEFORMATEX *pFormat, WAVEFORMATEX **ppClosestMatch)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetMixFormat (WAVEFORMATEX** ppDeviceFormat)
+  {
+    SK_LOG_FIRST_CALL
+
+    static unsigned char virtual_format_blob [40] = {
+      0xFE, 0xFF, 0x04, 0x00, 0x80, 0xBB, 0x00, 0x00, 0x00, 0xDC, 0x05, 0x00,
+      0x08, 0x00, 0x10, 0x00, 0x16, 0x00, 0x10, 0x00, 0x33, 0x00, 0x00, 0x00,
+      0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA,
+      0x00, 0x38, 0x9B, 0x71
+    };
+
+    if (ppDeviceFormat != nullptr)
+    {
+      WAVEFORMATEX* pFormat =
+        (WAVEFORMATEX*)CoTaskMemAlloc (sizeof (WAVEFORMATEX) + 22);
+
+      memcpy (pFormat, virtual_format_blob, sizeof (virtual_format_blob));
+
+      *ppDeviceFormat = pFormat;
+
+      return S_OK;
+    }
+
+    return E_POINTER;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetDevicePeriod (REFERENCE_TIME* phnsDefaultDevicePeriod, REFERENCE_TIME* phnsMinimumDevicePeriod)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (phnsDefaultDevicePeriod == nullptr ||
+        phnsMinimumDevicePeriod == nullptr)
+    {
+      return E_INVALIDARG;
+    }
+
+    *phnsDefaultDevicePeriod = 100000;
+    *phnsMinimumDevicePeriod = 30000;
+
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Start (void)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (! initialized)
+      return AUDCLNT_E_NOT_INITIALIZED;
+
+    if (started)
+      return AUDCLNT_E_NOT_STOPPED;
+
+    if (event_driven && event_handle == nullptr)
+      return AUDCLNT_E_EVENTHANDLE_NOT_SET;
+
+    started = true;
+
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Stop (void)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (started)
+    {
+      started = false;
+
+      return S_OK;
+    }
+
+    return S_FALSE;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE Reset (void)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetEventHandle (HANDLE eventHandle)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (pReal != nullptr)
+        pReal->SetEventHandle (eventHandle);
+
+    SK_ReleaseAssert (event_driven || eventHandle == 0);
+
+    const bool first_set =
+      (event_handle == 0);
+
+    event_handle = eventHandle;
+
+    if (first_set)
+    SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
+    {
+      auto pThis = (SK_IVirtualAudioClient2 *)pUser;
+
+      SK_LOGi0 (L"Audio Client Event Thread Started");
+
+      while (WaitForSingleObject (pThis->event_handle, INFINITE) == WAIT_OBJECT_0)
+      {
+        if (pThis->frame_count_ != pThis->last_frame_count_)
+        {
+          SK_LOGi0 (L"Audio Client Event Signaled");
+          pThis->last_frame_count_ = pThis->frame_count_;
+
+                    //static std::vector <BYTE> samples (384000);
+          static std::vector <BYTE> samples (192000);
+          static int                frames = 0;
+
+          UINT j = frames * 960 * 4;
+
+          //memcpy (samples.data () + frames * 7680, pThis->buffer_.data (), 7680);
+
+          // Remove the front two channels
+          for (UINT i = 0 ; i < 960; ++i)
+          {
+            samples [j  ] = pThis->buffer_ [i * 8 + 4];
+            samples [j+1] = pThis->buffer_ [i * 8 + 4 + 1];
+                                           
+            samples [j+2] = pThis->buffer_ [i * 8 + 6];
+            samples [j+3] = pThis->buffer_ [i * 8 + 6 + 1];
+
+            j += 4;
+          }
+          //memcpy (samples.data () + frames * 3840, pThis->buffer_.data () + 3840, 3840);
+
+          struct SK_WAV_FileHeader
+          {
+            // RIFF Chunk Descriptor
+            uint8_t  riff_id  [4]    = {'R', 'I', 'F', 'F'}; // Marks file as riff file
+            uint32_t riff_size       =      0;               // Size of overall file minus 8 bytes
+            uint8_t  wave_fmt [4]    = {'W', 'A', 'V', 'E'}; // RIFF type
+
+            // fmt Sub-chunk
+            uint8_t  fmt_id   [4]    = {'f', 'm', 't', ' '}; // Format chunk marker
+            uint32_t fmt_size        =     16;               // Size of an uncompressed PCM sub-chunk (16 bytes)
+            uint16_t audio_format    =      1;               // Type of format (1 = PCM Integer)
+            uint16_t num_channels    =      2;//4;               // Number of channels (1 = Mono, 2 = Stereo)
+            uint32_t sample_rate     =  48000;               // Sample rate (e.g., 44100)
+            uint32_t byte_rate       = 192000;//384000;               // sample_rate * num_channels * (bits_per_sample / 8)
+            uint16_t block_align     =      4;//8;               // num_channels * (bits_per_sample / 8)
+            uint16_t bits_per_sample =     16;               // Bits per sample (e.g., 16-bit)
+
+            // data Sub-chunk
+            uint8_t  data_id [4]     = {'d', 'a', 't', 'a'}; // Data chunk header marker
+            uint32_t data_size       =      0;               // Number of bytes in the raw audio data
+          } header;
+
+          header.riff_size = sizeof (header) - 8 +
+                             static_cast <uint32_t> (samples.size ());
+          header.data_size = static_cast <uint32_t> (samples.size ());
+
+          static int file_num = 0;
+
+          if (++frames == 50)
+          {
+            bool silent = true;
+
+            for (auto& sample : samples)
+            {
+              if (sample != 0)
+              {
+                silent = false;
+                break;
+              }
+            }
+
+            if (! silent)
+            {
+              std::filesystem::path out_path (SK_GetConfigPath ());
+                                    out_path /= L"haptics";
+
+              std::error_code                                ec;
+              std::filesystem::create_directories (out_path, ec);
+
+              FILE* fHaptics = _wfopen (
+                SK_FormatStringW (L"%ws\\haptics_%d.wav", out_path.c_str (), file_num++).c_str (), L"wb"
+              );
+
+              fwrite (&header,         1, sizeof (header), fHaptics);
+              fwrite (samples.data (), 1, samples.size (), fHaptics);
+              fclose (                                     fHaptics);
+            }
+
+            frames = 0;
+          }
+        }
+      }
+
+      return 0;
+    }, L"[SK] Haptics Audio Thread", (LPVOID)this);
+
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetService (REFIID riid, void** ppv)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (IsEqualGUID (riid, __uuidof (IAudioRenderClient)))
+    {
+      if (ppv != nullptr)
+      {
+        *ppv =
+          new SK_IVirtualAudioRenderClient (this);
+
+        return S_OK;
+      }
+
+      return E_POINTER;
+    }
+
+    wchar_t                wszGUID [41] = { };
+    StringFromGUID2 (riid, wszGUID, 40);
+
+    SK_LOGi0 (L"SK_IVirtualAudioClient2::GetService (%ws, %p)", wszGUID, ppv);
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE IsOffloadCapable (AUDIO_STREAM_CATEGORY Category, BOOL *pbOffloadCapable)
+  {
+    SK_LOG_FIRST_CALL
+
+    if (pbOffloadCapable != nullptr)
+    {
+      // Don't know what this is...?
+      *pbOffloadCapable = TRUE;
+
+      return S_OK;
+    }
+
+    return E_INVALIDARG;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE SetClientProperties (const AudioClientProperties* pProperties)
+  {
+    SK_LOG_FIRST_CALL
+
+    // Ignore client properties for now
+
+    return S_OK;//E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetBufferSizeLimits (const WAVEFORMATEX *pFormat, BOOL bEventDriven, REFERENCE_TIME *phnsMinBufferDuration, REFERENCE_TIME *phnsMaxBufferDuration)
+  {
+    SK_LOG_FIRST_CALL
+
+    return E_NOTIMPL;
+  }
+
+protected:
+  volatile ULONG refs_;
+  REFERENCE_TIME buffer_duration_ = 0;
+            bool event_driven     = false;
+          HANDLE event_handle     = 0;
+            bool started          = false;
+            bool initialized      = false;
+
+          UINT32 buffer_frame_count_ = 1024; // 20 ms of 4-channel PCM
+     std::vector <BYTE>
+                 buffer_;
+
+          UINT64 last_frame_count_ = 0;
+          UINT64      frame_count_ = 0;
+
+  SK_ComPtr <IAudioClient2> pReal;
+};
+
+HRESULT STDMETHODCALLTYPE SK_IVirtualAudioRenderClient::GetBuffer (UINT32 NumFramesRequested, BYTE **ppData)
+{
+  SK_LOG_FIRST_CALL
+
+  if (ppData == nullptr)
+    return E_POINTER;
+
+  if (NumFramesRequested > parent_->buffer_frame_count_)
+    return AUDCLNT_E_BUFFER_TOO_LARGE;
+
+  if (acquired_frames_ != 0)
+    return AUDCLNT_E_OUT_OF_ORDER;
+
+  acquired_frames_ = NumFramesRequested;
+  *ppData          = parent_->buffer_.data ();
+
+  return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE SK_IVirtualAudioRenderClient::ReleaseBuffer (UINT32 NumFramesWritten, DWORD dwFlags)
+{
+  SK_LOG_FIRST_CALL
+
+  if (NumFramesWritten != acquired_frames_)
+  {
+    acquired_frames_ = 0;
+    return AUDCLNT_E_INVALID_SIZE;
+  }
+
+  static size_t frames_written_total = 0;
+                frames_written_total += NumFramesWritten;
+
+  parent_->frame_count_ += NumFramesWritten;
+
+  SK_LOGi0 (L"Audio Render Client: Frames Written = %zu", frames_written_total);
+
+  acquired_frames_ = 0;
+
+  // For now, just ignore the data that's been written to the buffer, but in the future we may want to actually do something with it.
+  return S_OK;
+}
+
+#pragma warning (pop)
+
+class SK_IVirtualMMDevice : public IMMDevice
+{
+friend class SK_IVirtualPropertyStore;
+public:
+  static volatile ULONG NumberOfVirtualDevices;
+
+  SK_IVirtualMMDevice (GUID container_id, const wchar_t* wszDeviceName) : pReal (nullptr), refs_ (1)
+  {
+    virtual_container_id_ = container_id;
+    virtual_device_name_  = wszDeviceName;
+
+    GUID    guid;
+    wchar_t guid_str [41] = {};
+
+    if (SUCCEEDED (CoCreateGuid (&guid)))
+    {
+      StringFromGUID2 (guid, guid_str, 40);
+    }
+
+    wnsprintfW (wszVirtualPath, 63, L"{0.0.0.00000000}.{%ws}", guid_str);
+
+    InterlockedIncrement (&NumberOfVirtualDevices);
+
+    virtual_property_store_.p =
+      new SK_IVirtualPropertyStore (this);
+  }
+
+  SK_IVirtualMMDevice (IMMDevice* real_device) : pReal (real_device), refs_ (1) {}
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+  {
+    if (ppvObject == nullptr)
+      return E_POINTER;
+
+    HRESULT hr = E_NOTIMPL;
+
+    if (pReal == nullptr)
+    {
+      if (ppvObject != nullptr)
+      {
+        if ( riid == __uuidof (IUnknown) ||
+             riid == __uuidof (IMMDevice) )
+        {
+          hr = S_OK;
+          *ppvObject = this;
+        }
+
+        else if ( ( riid == __uuidof (IAudioClient) ||
+                    riid == __uuidof (IAudioClient2) ) && client_ != nullptr )
+        {
+          hr = S_OK;
+
+          client_.p->AddRef ();
+          *ppvObject = client_;
+
+          return hr;
+        }
+
+        else
+        {
+          static concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+          wchar_t                wszGUID [41] = { };
+          StringFromGUID2 (riid, wszGUID, 40);
+
+          const bool once =
+            reported_guids.count (wszGUID) > 0;
+
+          if (! once)
+          {
+            reported_guids.insert (wszGUID);
+
+            SK_LOG0 ( ( L"QueryInterface on virtual IMMDevice for Mystery UUID: %s",
+                            wszGUID ), L"VirtualSnd" );
+          }
+        }
+      }
+    }
+
+    else
+    {
+      hr =
+        pReal->QueryInterface (riid, ppvObject);
+    }
+
+    if (SUCCEEDED (hr))
+      AddRef ();
+
+    return hr;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    InterlockedIncrement (&refs_);
+
+    return refs_;
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ref =
+      InterlockedDecrement (&refs_);
+
+    if (ref == 0)
+      delete this;
 
     return ref;
   }
 
   virtual HRESULT STDMETHODCALLTYPE Activate (REFIID iid, DWORD dwClsCtx, PROPVARIANT *pActivationParams, void **ppInterface)
   {
+    SK_LOG_FIRST_CALL
+
+    if (pReal == nullptr)
+    {
+      if (IsEqualGUID (iid, __uuidof (IAudioClient)) ||
+          IsEqualGUID (iid, __uuidof (IAudioClient2)))
+      {
+        if (ppInterface != nullptr)
+        {
+          if (client_ == nullptr)
+          {
+            client_ =
+              new SK_IVirtualAudioClient2 ();
+          }
+
+                         client_.p->AddRef ();
+          *ppInterface = client_;
+
+          return S_OK;
+        }
+
+        return E_POINTER;
+      }
+
+      if (IsEqualGUID (iid, __uuidof (IAudioSessionManager)) ||
+          IsEqualGUID (iid, __uuidof (IAudioSessionManager2)))
+      {
+        if (ppInterface != nullptr)
+        {
+          *ppInterface =
+            new SK_IVirtualAudioSessionManager2 ();
+
+          return S_OK;
+        }
+
+        return E_POINTER;
+      }
+
+      wchar_t               wszGUID [41] = { };
+      StringFromGUID2 (iid, wszGUID, 40);
+
+      SK_LOGi0 (L"SK_IVirtualMMDevice::Activate (%ws,...) - Unimplemented Stub Called!", wszGUID);
+
+      return E_NOTIMPL;
+    }
+
     return
       pReal->Activate (iid, dwClsCtx, pActivationParams, ppInterface);
   }
@@ -1906,8 +3168,22 @@ public:
   {
     IPropertyStore* pPropertyStore = nullptr;
 
-    HRESULT hr =
-      pReal->OpenPropertyStore (stgmAccess, &pPropertyStore); 
+    HRESULT hr = E_POINTER;
+
+    if (pReal == nullptr)
+    {
+      if (ppProperties != nullptr)
+      {
+                        virtual_property_store_.p->AddRef ();
+        *ppProperties = virtual_property_store_;
+
+        return S_OK;
+      }
+
+      return hr;
+    }
+
+    pReal->OpenPropertyStore (stgmAccess, &pPropertyStore); 
 
     if (SUCCEEDED (hr))
     {
@@ -1920,20 +3196,99 @@ public:
 
   virtual HRESULT STDMETHODCALLTYPE GetId (LPWSTR* ppstrId)
   {
+    if (pReal == nullptr)
+    {
+      if (ppstrId != nullptr)
+      {
+        SK_LOG_FIRST_CALL
+
+                *ppstrId = (LPWSTR)CoTaskMemAlloc (sizeof (wchar_t) * (wcslen (wszVirtualPath) + 1));
+        memcpy (*ppstrId,          wszVirtualPath, sizeof (wchar_t) * (wcslen (wszVirtualPath) + 1));
+
+        return S_OK;
+      }
+
+      return E_POINTER;
+    }
+
     return
       pReal->GetId (ppstrId);
   }
 
   virtual HRESULT STDMETHODCALLTYPE GetState (DWORD* pdwState)
   {
+    if (pReal == nullptr)
+    {
+      if (pdwState != nullptr)
+         *pdwState = DEVICE_STATE_ACTIVE;
+
+      return S_OK;
+    }
+
     return
       pReal->GetState (pdwState);
   }
 
 protected:
-  IMMDevice* pReal;
-  ULONG      refs_;
+           IMMDevice*    pReal;
+           wchar_t       wszVirtualPath [64]     = {};
+           SK_ComPtr <SK_IVirtualPropertyStore>
+                         virtual_property_store_ = nullptr;
+           GUID          virtual_container_id_;
+           std::wstring  virtual_device_name_;
+           unsigned char virtual_format_blob_ [40] = {
+              0xFE, 0xFF, 0x04, 0x00, 0x80, 0xBB, 0x00, 0x00, 0x00, 0xDC, 0x05, 0x00,
+              0x08, 0x00, 0x10, 0x00, 0x16, 0x00, 0x10, 0x00, 0x33, 0x00, 0x00, 0x00,
+              0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA,
+              0x00, 0x38, 0x9B, 0x71
+           };
+           SK_ComPtr <SK_IVirtualAudioClient2>
+                         client_;
+  volatile ULONG         refs_;
 };
+
+volatile ULONG SK_IVirtualMMDevice::NumberOfVirtualDevices = 0;
+
+SK_IVirtualPropertyStore::SK_IVirtualPropertyStore (SK_IVirtualMMDevice* pDevice)
+{
+  pReal = nullptr;
+  refs_ = 1;
+  PROPVARIANT
+    propvarName;
+    propvarName.vt      = VT_LPWSTR;
+    propvarName.pwszVal = (wchar_t *)pDevice->virtual_device_name_.c_str ();
+
+  PROPVARIANT
+    propvarFormat;
+    propvarFormat.vt             = VT_BLOB;
+    propvarFormat.blob.cbSize    = 40;
+    propvarFormat.blob.pBlobData = pDevice->virtual_format_blob_;
+
+  PROPVARIANT
+    propvarContainer;
+    propvarContainer.vt    = VT_CLSID;
+    propvarContainer.puuid = &pDevice->virtual_container_id_;
+
+  virtual_properties_.push_back ( { PKEY_Device_FriendlyName,      propvarName      } );
+  virtual_properties_.push_back ( { PKEY_AudioEngine_DeviceFormat, propvarFormat    } );
+  virtual_properties_.push_back ( { PKEY_Device_ContainerId,       propvarContainer } );
+}
+
+IMMDevice*
+SK_VirtualAudio_CreateVirtualDevice (GUID container_id, const wchar_t* wszDeviceName)
+{
+  wchar_t                        wszGUID [41] = { };
+  StringFromGUID2 (container_id, wszGUID, 40);
+
+  SK_LOGi0 (L"Created Virtual Audio Device: %ws [%ws]", wszDeviceName, wszGUID);
+
+  SK_IVirtualMMDevice* pDevice =
+    new SK_IVirtualMMDevice (container_id, wszDeviceName);
+
+  virtual_audio_registrar->addDevice (pDevice);
+
+  return pDevice;
+}
 
 class SK_IVirtualMMDeviceCollection : public IMMDeviceCollection
 {
@@ -1963,8 +3318,8 @@ public:
     ULONG ref =
       InterlockedDecrement (&refs_);
 
-     if (ref == 0)
-       delete this;
+    if (ref == 0)
+      delete this;
 
     return ref;
   }
@@ -1978,7 +3333,8 @@ public:
 
     if (SUCCEEDED (hr))
     {
-      count++;
+      count +=
+        (UINT)virtual_audio_registrar->virtual_devices_.size ();
     }
 
     if (pcDevices != nullptr)
@@ -1993,15 +3349,35 @@ public:
     pReal->GetCount (&real_count);
 
     // This is our virtual device
-    if (nDevice == real_count || nDevice == real_count-1)
+    if ((nDevice < real_count + virtual_audio_registrar->virtual_devices_.size () && (real_count == 0 || nDevice > real_count - 1)) || nDevice == real_count-1)
     {
-      SK_LOGi0 (L"SK_IVirtualMMDeviceCollection::Item (...) returning virtual device for index %u", nDevice);
-
       IMMDevice* pDevice = nullptr;
 
       // Not implemented yet, just return a wrapper around the last device.
-      HRESULT hr =
-        pReal->Item (real_count-1, &pDevice);
+      HRESULT hr = E_INVALIDARG;
+
+      static int reported_count = 0;
+
+      if (nDevice < real_count)
+      {
+        if (++reported_count < 10)
+          SK_LOGi0 (L"SK_IVirtualMMDeviceCollection::Item (...) returning wrapped device for index %u", nDevice);
+
+        hr = pReal->Item (nDevice, &pDevice);
+      }
+      else if (nDevice < real_count + virtual_audio_registrar->virtual_devices_.size ())
+      {
+        if (++reported_count < 10)
+          SK_LOGi0 (L"SK_IVirtualMMDeviceCollection::Item (...) returning virtual device for index %u", nDevice);
+
+        pDevice =
+          virtual_audio_registrar->virtual_devices_ [nDevice - real_count];
+        pDevice->AddRef ();
+
+        *ppDevice = pDevice;
+
+        return S_OK;
+      }
 
       if (SUCCEEDED (hr))
       {
@@ -2027,6 +3403,8 @@ public:
                 if (IsEqualGUID (*container_id.puuid, controller.container_id))
                 {
                   SK_ImGui_Warning (friendly_name.pwszVal);
+
+                  SK_LOGi0 (L"Controller Name: %ws", friendly_name.pwszVal);
                   break;
                 }
               }
@@ -2050,8 +3428,8 @@ public:
   }
 
 protected:
-  IMMDeviceCollection* pReal;
-  ULONG                refs_;
+           IMMDeviceCollection* pReal;
+  volatile ULONG                refs_;
 };
 
 class SK_IVirtualMMDeviceEnumerator : public IMMDeviceEnumerator
@@ -2082,8 +3460,8 @@ public:
     ULONG ref =
       InterlockedDecrement (&refs_);
 
-     if (ref == 0)
-       delete this;
+    if (ref == 0)
+      delete this;
 
     return ref;
   }
@@ -2129,25 +3507,88 @@ public:
   {
     SK_LOGi0 (L"SK_IVirtualMMDeviceEnumerator::GetDevice (%ws, %p)", pwstrId, ppDevice);
 
-    return
+    HRESULT hr =
       pReal->GetDevice (pwstrId, ppDevice);
+
+    if (FAILED (hr))
+    {
+      UINT device_count =
+        static_cast <UINT> (virtual_audio_registrar->virtual_devices_.size ());
+
+      for ( UINT dev_idx = 0 ; dev_idx < device_count ; dev_idx++ )
+      {
+        auto device =
+          virtual_audio_registrar->virtual_devices_ [dev_idx];
+
+        wchar_t*        wszId = nullptr;
+        device->GetId (&wszId);
+
+        if (wszId != nullptr && 0 == wcscmp (pwstrId, wszId))
+        {
+          CoTaskMemFree (wszId);
+
+          SK_LOGi0 (L"SK_IVirtualMMDeviceEnumerator::GetDevice (...) - Returning Virtual Device for ID %ws", pwstrId);
+
+           *ppDevice = device;
+          (*ppDevice)->AddRef ();
+
+          return S_OK;
+        }
+      }
+    }
+
+    return hr;
   }
 
   virtual HRESULT STDMETHODCALLTYPE RegisterEndpointNotificationCallback (IMMNotificationClient* pClient)
   {
+    SK_LOG_FIRST_CALL
+
+    SK_LOGi0 (L"RegisterEndpointNotificationCallback (%p) [%ws]", pClient, SK_GetCallerName ().c_str ());
+
+    if (pClient != nullptr)
+    {
+      virtual_audio_registrar->addNotificationClient (pClient);
+
+      UINT device_count =
+        static_cast <UINT> (virtual_audio_registrar->virtual_devices_.size ());
+
+      for ( UINT dev_idx = 0 ; dev_idx < device_count ; ++dev_idx )
+      {
+        auto& device =
+          virtual_audio_registrar->virtual_devices_ [dev_idx];
+
+        wchar_t*        wszId = nullptr;
+        device->GetId (&wszId);
+
+        if (wszId != nullptr)
+        {
+          virtual_audio_registrar->broadcastDeviceAdded (wszId);
+          CoTaskMemFree                                 (wszId);
+        }
+      }
+    }
+
     return
       pReal->RegisterEndpointNotificationCallback (pClient);
   }
 
   virtual HRESULT STDMETHODCALLTYPE UnregisterEndpointNotificationCallback (IMMNotificationClient *pClient)
   {
+    SK_LOG_FIRST_CALL
+
+    SK_LOGi0 (L"UnregisterEndpointNotificationCallback (%p) [%ws]", pClient, SK_GetCallerName ().c_str ());
+
+    if (pClient != nullptr)
+      virtual_audio_registrar->removeNotificationClient (pClient);
+
     return
       pReal->UnregisterEndpointNotificationCallback (pClient);
   }
 
 protected:
-  IMMDeviceEnumerator* pReal;
-  ULONG                refs_;
+           IMMDeviceEnumerator* pReal;
+  volatile ULONG                refs_;
 };
 
 HRESULT

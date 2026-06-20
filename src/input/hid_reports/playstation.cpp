@@ -347,7 +347,12 @@ void SK_HID_SetupPlayStationControllers (void)
             SetupDiGetDevicePropertyW ( hid_device_set, &devInfoData, &DEVPKEY_Device_ContainerId,
                          &prop_type, (PBYTE)&controller.container_id, sizeof(GUID), nullptr, 0 );
 
-            SK_ComPtr                     <IMMDeviceEnumerator>                                     pDevEnum;
+            wchar_t                                   wszGUID [41] = { };
+            StringFromGUID2 (controller.container_id, wszGUID, 40);
+
+            SK_LOGi0 (L"Found Container ID for Device=%ws - %ws", wszFileName, wszGUID);
+
+            SK_ComPtr                    <IMMDeviceEnumerator>                                      pDevEnum;
             SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p));
 
             if (pDevEnum.p != nullptr)
@@ -382,8 +387,6 @@ void SK_HID_SetupPlayStationControllers (void)
                       {
                         controller.audio_endpoint = pAudioDevice;
 
-                        //SK_ImGui_Warning (L"Found a matching device!");
-
                         PropVariantClear (&container_id);
                         break;
                       }
@@ -394,6 +397,18 @@ void SK_HID_SetupPlayStationControllers (void)
                 }
               }
             }
+
+#if 0
+            if (controller.audio_endpoint.p == nullptr)
+            {
+              IMMDevice* SK_VirtualAudio_CreateVirtualDevice (GUID container_id, const wchar_t* wszDeviceName);
+
+              controller.audio_endpoint =
+                SK_VirtualAudio_CreateVirtualDevice (controller.container_id,
+                  controller.bDualSenseEdge ? L"Speakers (6- DualSense Edge Wireless Controller)"
+                                            : L"Speakers (2- DualSense Wireless Controller)");
+            }
+#endif
           }
 
           controller.bBluetooth =
@@ -419,11 +434,11 @@ void SK_HID_SetupPlayStationControllers (void)
             (controller.pid == SK_HID_PID_DUALSHOCK3);
 
           // Setup Audio Endpoints
-          if (controller.bDualSense)
+          if (controller.bDualSense && controller.vid == SK_HID_VID_SONY)
           {
             // We should have found a USB Audio Device with a matching Container ID,
             //   unless this is Bluetooth, in which case create a virtual device.
-            SK_ReleaseAssert (controller.bBluetooth || controller.audio_endpoint != nullptr);
+            SK_ReleaseAssert ((! controller.bConnected) || controller.bBluetooth || controller.audio_endpoint != nullptr);
           }
 
           if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
@@ -5004,10 +5019,13 @@ SK_HID_PlayStationDevice::initialize_serial (void)
       const auto *pGetHWAddr =
         (SK_HID_DualSense_GetHWAddr *)&feature_report.data ()[1];
 
+      // This fails for unofficial controllers
+#if 0
       // If this fails, what the hell did we just read?
       SK_ReleaseAssert ( pGetHWAddr->Hard00 == 0x00 &&
                          pGetHWAddr->Hard08 == 0x08 &&
                          pGetHWAddr->Hard25 == 0x25 );
+#endif
 
       swprintf (
         wszSerialNumber, L"%02x%02x%02x%02x%02x%02x",
@@ -5211,7 +5229,7 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
         data [ 6] = (byte)((amplitudeZones >> 24) & 0xff);
         data [ 7] = (byte)((amplitudeZones >> 32) & 0xff);
         data [ 8] = (byte)((amplitudeZones >> 40) & 0xff);
-        data [ 9] = 35;
+        data [ 9] = 33;
         data [10] = 0x00;
       }
     }
