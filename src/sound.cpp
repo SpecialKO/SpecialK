@@ -1665,52 +1665,57 @@ SK_WASAPI_EndPointManager::Activate (void)
 
           if (wszId != nullptr && !_FindRenderDevice (wszId))
           {
-            SK_ComPtr <IPropertyStore>                props;
-            ThrowIfFailed (
-              pDevice->OpenPropertyStore (STGM_READ, &props.p));
-
-            if (props.p != nullptr)
+            SK_ComPtr                 <IPropertyStore>             props;
+            if (SUCCEEDED (pDevice->OpenPropertyStore (STGM_READ, &props.p)))
             {
-              PROPVARIANT       propvarName;
-              PropVariantInit (&propvarName);
+              if (props.p != nullptr)
+              {
+                PROPVARIANT       propvarName;
+                PropVariantInit (&propvarName);
 
-              ThrowIfFailed (
-                props->GetValue (PKEY_Device_FriendlyName, &propvarName));
+                if (SUCCEEDED (props->GetValue (PKEY_Device_FriendlyName, &propvarName)))
+                {
+                  endpoint.flow_   = eRender;
+                  endpoint.id_     = wszId;
+                  endpoint.name_   = SK_WideCharToUTF8 (propvarName.pwszVal);
+                  endpoint.device_ = pDevice;
+                }
 
-              endpoint.flow_   = eRender;
-              endpoint.id_     = wszId;
-              endpoint.name_   = SK_WideCharToUTF8 (propvarName.pwszVal);
-              endpoint.device_ = pDevice;
+                PropVariantClear (&propvarName);
 
-              ThrowIfFailed (
-                pDevice->GetState (&endpoint.state_));
+                if (SUCCEEDED (pDevice->GetState (&endpoint.state_)))
+                {
+                  if (FAILED (pDevice->Activate (
+                      __uuidof (IAudioSessionManager2),
+                        CLSCTX_ALL,
+                          nullptr,
+                            reinterpret_cast <void **>(&endpoint.control_.sessions)
+                     )       )                  )
+                  {
+                    CoTaskMemFree (wszId);
+                    return;
+                  }
 
-              PropVariantClear (&propvarName);
+                  endpoint.control_.meter.Attach (
+                    SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
+                  );
 
-              if (FAILED (pDevice->Activate (
-                  __uuidof (IAudioSessionManager2),
-                    CLSCTX_ALL,
-                      nullptr,
-                        reinterpret_cast <void **>(&endpoint.control_.sessions)
-                 )       )                  ) return;
+                  endpoint.control_.volume.Attach         (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
+                  endpoint.control_.auto_gain.Attach      (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
+                  endpoint.control_.loudness.    Attach   (SK_MMDev_GetLoudness              (pDevice).Detach ());
+                  endpoint.control_.audio_client.Attach   (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
+                  endpoint.control_.spatial_client.Attach (SK_WASAPI_GetSpatialAudioClient   (pDevice).Detach ());
 
-              endpoint.control_.meter.Attach (
-                SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
-              );
+                  endpoint.control_.sessions->RegisterSessionNotification (&endpoint);
 
-              endpoint.control_.volume.Attach         (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
-              endpoint.control_.auto_gain.Attach      (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
-              endpoint.control_.loudness.    Attach   (SK_MMDev_GetLoudness              (pDevice).Detach ());
-              endpoint.control_.audio_client.Attach   (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
-              endpoint.control_.spatial_client.Attach (SK_WASAPI_GetSpatialAudioClient   (pDevice).Detach ());
-
-              endpoint.control_.sessions->RegisterSessionNotification (&endpoint);
-
-              render_devices_.emplace_back (endpoint);
+                  render_devices_.emplace_back (endpoint);
+                }
+              }
             }
-
-            CoTaskMemFree (wszId);
           }
+
+          if (wszId != nullptr)
+            CoTaskMemFree (wszId);
         }
       }
     }
