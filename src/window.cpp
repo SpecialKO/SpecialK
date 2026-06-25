@@ -8071,10 +8071,19 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     int                                 version = 0;
     swscanf (dll_ver.c_str (), L"%d.", &version);
 
-    // Auto-enable this for Unity Engine games
-    if (config.input.gamepad.scepad.hide_ds_edge_pid == SK_NoPreference) {
-        config.input.gamepad.scepad.hide_ds_edge_pid =  SK_Enabled;
-        changed = true;
+    const bool bLibDualSense =
+      SK_IsModuleLoaded (L"lib_dualsense_win.dll") ||
+      SK_LoadLibraryW   (L"AkSoundEngine.dll");
+
+    // Game supports native haptics, and spoofing controller ID would
+    //   result in no haptics.
+    if (! bLibDualSense)
+    {
+      // Auto-enable this for Unity Engine games
+      if (config.input.gamepad.scepad.hide_ds_edge_pid == SK_NoPreference) {
+          config.input.gamepad.scepad.hide_ds_edge_pid =  SK_Enabled;
+          changed = true;
+      }
     }
 
     if (version < 2018)
