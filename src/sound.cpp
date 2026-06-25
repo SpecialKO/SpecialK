@@ -22,6 +22,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <deque>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -2599,6 +2600,14 @@ void processAudio (const InputFrame* input, std::vector <OutputFrame>& output)
   }
 }
 
+struct OutputHapticsFrame {
+  uint16_t channels [2];
+};
+
+struct OutputHapticsPeriod {
+  OutputHapticsFrame frames [480]; // 480 frames for 1/10th of a second at 4800 Hz
+};
+
 class SK_IVirtualAudioClient2 : public IAudioClient2
 {
 friend class SK_IVirtualAudioRenderClient;
@@ -2891,58 +2900,19 @@ public:
 
       while (WaitForSingleObject (pThis->event_handle, INFINITE) == WAIT_OBJECT_0)
       {
-        if (pThis->buffer_padding_ != 0)//pThis->frame_count_ != pThis->last_frame_count_)
+        if (! pThis->haptics_buffer_.empty ())
         {
-          if (! pThis->silent_)
+          auto haptics_frame = pThis->haptics_buffer_.front     ();
+                               pThis->haptics_buffer_.pop_front ();
+
+          //if (! pThis->silent_)
           {
-            SK_LOGi0 (L"Audio Client Event Signaled (%d samples removed)", pThis->buffer_padding_);
+            SK_LOGi0 (L"Audio Client Event Signaled (%d frames still buffered)", pThis->buffer_padding_);
           }
 
           pThis->last_frame_count_ = pThis->frame_count_;
 
-                    //static std::vector <BYTE> samples (384000);
-          static std::vector <BYTE> samples (192000);
-          static int                frames           = 0;
-          static int                samples_rendered = 0;
-
-          // Example usage
-          InputFrame* inputBuffer = (InputFrame *)pThis->buffer_.data ();
-
-          static
-          std::vector <OutputFrame>  outputBuffer;
-          processAudio (inputBuffer, outputBuffer);
-
-          //UINT j = std::min (samples_rendered, 48000) * 4;
-
-          //memcpy (samples.data () + frames * 7680, pThis->buffer_.data (), 7680);
-
-          ////uint16_t* out_buf = (uint16_t *)samples.       data ();
-          ////uint16_t* in_buf  = (uint16_t *)pThis->buffer_.data ();
-          ////
-          ////static int frame = 0;
-          ////static int frame_offset = 0;
-          ////
-          ////for (UINT32 i = 0; i < pThis->buffer_padding_; ++i)
-          ////{
-          ////  if (out_buf + (i * 2) + 1 >= (uint16_t *)samples.data () + samples.size () / 2)
-          ////  {
-          ////    SK_LOGi0 (L"Output buffer overflow during copy, resetting pointer");
-          ////    out_buf = (uint16_t *)samples.data ();
-          ////    break;
-          ////  }
-          ////
-          ////  // Source offsets for this frame
-          ////  int in_off  = i * 4;
-          ////  int out_off = i * 2;
-          ////
-          ////  // Copy Channel 3 and Channel 4 (indices 2 and 3)
-          ////  out_buf [(frame   % 48000) + out_off]     = in_buf [in_off + 2];
-          ////  out_buf [(frame++ % 48000) + out_off + 1] = in_buf [in_off + 3];
-          ////
-          ////  frame_offset++;
-          ////}
-
-          if (! pThis->silent_)
+          //if (! pThis->silent_)
           {
             static const SK_HID_DualSense_HapticsPacket_t packet_0x11 = {
               .pid    = 0x11,
@@ -2996,36 +2966,24 @@ public:
                      data [11] = 0x13 | 0 << 6 | 1 << 7;
                      data [12] = (byte)200;
 #endif
-
-            for (int i = 13,offset = 0; i < SAMPLE_SIZE + 13; i += 2,offset += 8)
-            {
-              data [i  ] = outputBuffer [offset / 8].channels [0] & 0xFF;
-              data [i+2] = outputBuffer [offset / 8].channels [1] & 0xFF;
-            //data [i  ] = rand () % 255;
-            //data [i+1] = rand () % 255;
-            }
+            uint16_t* outputBuffer = &haptics_frame.frames->channels [0];
 
             #define OPUS_APPLICATION_AUDIO                 2049
+            #define OPUS_APPLICATION_RESTRICTED_LOWDELAY   2051
             #define OPUS_SET_BITRATE_REQUEST               4002
             #define OPUS_SET_VBR_REQUEST                   4006
+            #define OPUS_SET_COMPLEXITY_REQUEST            4010
             #define OPUS_SET_EXPERT_FRAME_DURATION_REQUEST 4040
 
             #define OPUS_FRAMESIZE_ARG                   5000 /**< Select frame size from the argument (default) */
-            #define OPUS_FRAMESIZE_2_5_MS                5001 /**< Use 2.5 ms frames */
-            #define OPUS_FRAMESIZE_5_MS                  5002 /**< Use 5 ms frames */
             #define OPUS_FRAMESIZE_10_MS                 5003 /**< Use 10 ms frames */
-            #define OPUS_FRAMESIZE_20_MS                 5004 /**< Use 20 ms frames */
-            #define OPUS_FRAMESIZE_40_MS                 5005 /**< Use 40 ms frames */
-            #define OPUS_FRAMESIZE_60_MS                 5006 /**< Use 60 ms frames */
-            #define OPUS_FRAMESIZE_80_MS                 5007 /**< Use 80 ms frames */
-            #define OPUS_FRAMESIZE_100_MS                5008 /**< Use 100 ms frames */
-            #define OPUS_FRAMESIZE_120_MS                5009 /**< Use 120 ms frames */
             
             #define opus_check_int(x) (((void)((x) == (opus_int32)0)), (opus_int32)(x))
 
             #define OPUS_SET_BITRATE(x)               OPUS_SET_BITRATE_REQUEST,               opus_check_int(x)
             #define OPUS_SET_EXPERT_FRAME_DURATION(x) OPUS_SET_EXPERT_FRAME_DURATION_REQUEST, opus_check_int(x)
             #define OPUS_SET_VBR(x)                   OPUS_SET_VBR_REQUEST,                   opus_check_int(x)
+            #define OPUS_SET_COMPLEXITY(x)            OPUS_SET_COMPLEXITY_REQUEST,            opus_check_int(x)
 
             typedef struct OpusEncoder OpusEncoder;
 
@@ -3046,22 +3004,51 @@ public:
                  opus_encoder_ctl    &&
                  opus_encode )
             {
+              auto opus_strerror = [](int error) -> const char*
+              {
+                static const char * const error_strings[8] = {
+                   "success",
+                   "invalid argument",
+                   "buffer too small",
+                   "internal error",
+                   "corrupted stream",
+                   "request not implemented",
+                   "invalid state",
+                   "memory allocation failed"
+                };
+                if (error > 0 || error < -7)
+                   return "unknown error";
+                else
+                   return error_strings [-error];
+              };
+
               static int error = 0;
 
               static OpusEncoder* encoder =
-                opus_encoder_create (SAMPLE_RATE, 2, OPUS_APPLICATION_AUDIO, &error);
+                opus_encoder_create (48000, 2, OPUS_APPLICATION_RESTRICTED_LOWDELAY, &error);
 
               if (error >= 0)
               {
                 SK_RunOnce (
-                  opus_encoder_ctl (encoder, OPUS_SET_BITRATE               (SAMPLE_SIZE * 8 * 100));
-                  opus_encoder_ctl (encoder, OPUS_SET_EXPERT_FRAME_DURATION (OPUS_FRAMESIZE_10_MS));
-                  opus_encoder_ctl (encoder, OPUS_SET_VBR                   (0));
+                  auto x = opus_encoder_ctl (encoder, OPUS_SET_BITRATE               (SAMPLE_SIZE * 8 * 100));
+                  auto y = opus_encoder_ctl (encoder, OPUS_SET_EXPERT_FRAME_DURATION (OPUS_FRAMESIZE_10_MS));
+                  auto z = opus_encoder_ctl (encoder, OPUS_SET_VBR                   (0));
+                  auto w = opus_encoder_ctl (encoder, OPUS_SET_COMPLEXITY            (0));
+
+                  SK_LOGi0 (L"Opus Encoder Config: Bitrate: %d, Frame Duration: %d, VBR: %d, Complexity: %d", x, y, z, w);
                 );
 
-                SK_LOGi0 (L"Encoded %d bytes of Opus",
-                  opus_encode (encoder, (opus_int16*)outputBuffer.data (), SAMPLE_RATE / 100, &data [13], SAMPLE_SIZE)
-                );
+                auto bytes_encoded =
+                  opus_encode (encoder, (opus_int16 *)outputBuffer, 480, &data [13], 64);
+
+                if (bytes_encoded > 0) {
+                  SK_LOGi0 (L"Encoded %d bytes of Opus", bytes_encoded);
+                }
+              }
+
+              else
+              {
+                SK_LOGi0 (L"Opus Encoder Creation Failed: %d", error);
               }
             }
 
@@ -3149,32 +3136,6 @@ public:
               }
             }
           }
-
-          //out_buf += pThis->buffer_padding_ * 2;
-          //
-          //if (out_buf >= (uint16_t *)samples.data () + samples.size () / 2)
-          //{
-          //  SK_LOGi0 (L"Output buffer overflow, resetting pointer");
-          //  out_buf = (uint16_t *)samples.data ();
-          //}
-
-          //// Remove the front two channels
-          //for (UINT i = 0 ; i < pThis->buffer_padding_; ++i)
-          //{
-          //  if (j > samples.size () - 4)
-          //    break;
-          //
-          //  samples [j  ] = pThis->buffer_ [i * 8 + 4];
-          //  samples [j+1] = pThis->buffer_ [i * 8 + 4 + 1];
-          //                                 
-          //  samples [j+2] = pThis->buffer_ [i * 8 + 6];
-          //  samples [j+3] = pThis->buffer_ [i * 8 + 6 + 1];
-          //
-          //  j += 4;
-          //}
-
-          samples_rendered += pThis->buffer_padding_;
-                              pThis->buffer_padding_ = 0;
         }
       }
 
@@ -3249,10 +3210,15 @@ protected:
             bool initialized      = false;
 
             bool silent_          = false;
+          UINT32 buffer_head_        = 0;
+          UINT32 buffer_tail_        = 0;
           UINT32 buffer_padding_     = 0;
           UINT32 buffer_frame_count_ = 3840;
      std::vector <BYTE>
                  buffer_;
+     std::deque <OutputHapticsPeriod>
+                 haptics_buffer_;
+          UINT32 haptics_frame_count_ = 0;
 
           UINT64 last_frame_count_ = 0;
           UINT64      frame_count_ = 0;
@@ -3274,7 +3240,7 @@ HRESULT STDMETHODCALLTYPE SK_IVirtualAudioRenderClient::GetBuffer (UINT32 NumFra
     return AUDCLNT_E_OUT_OF_ORDER;
 
   acquired_frames_ = NumFramesRequested;
-  *ppData          = parent_->buffer_.data ();
+  *ppData          = &parent_->buffer_.data ()[parent_->buffer_padding_ * 8];
 
   return S_OK;
 }
@@ -3289,12 +3255,10 @@ HRESULT STDMETHODCALLTYPE SK_IVirtualAudioRenderClient::ReleaseBuffer (UINT32 Nu
     return AUDCLNT_E_INVALID_SIZE;
   }
 
-  parent_->buffer_padding_ += NumFramesWritten;
-
   if (dwFlags & AUDCLNT_BUFFERFLAGS_SILENT)
   {
     parent_->silent_ = true;
-    memset (parent_->buffer_.data (), 0, NumFramesWritten * 8); // 4 channels * 16 bits per sample = 8 bytes per frame
+    memset (parent_->buffer_.data () + parent_->buffer_padding_ * 8, 0, NumFramesWritten * 8); // 4 channels * 16 bits per sample = 8 bytes per frame
   }
 
   else
@@ -3302,13 +3266,39 @@ HRESULT STDMETHODCALLTYPE SK_IVirtualAudioRenderClient::ReleaseBuffer (UINT32 Nu
     parent_->silent_ = false;
   }
 
+  parent_->buffer_padding_ += NumFramesWritten;
+
   static size_t frames_written_total = 0;
                 frames_written_total += NumFramesWritten;
 
   parent_->frame_count_ += NumFramesWritten;
 
-  if (! parent_->silent_)
+  //if (! parent_->silent_)
+  {
+    int complete_10ms_periods =
+      parent_->buffer_padding_ / 480;
+
+    for (int i = 0; i < complete_10ms_periods; ++i)
+    {
+      parent_->buffer_padding_ -= 480;
+
+      OutputHapticsPeriod buffered_10ms = {};
+
+      for (int j = 0; j < 480; j++)
+      {
+        OutputHapticsFrame& outFrame = buffered_10ms.frames [j];
+        InputFrame*         inFrame  = (InputFrame *)&parent_->buffer_ [(i * 480 * 8) + j * 8];
+
+        // Keep only channel 3 (index 2) and channel 4 (index 3)
+        outFrame.channels [0] = inFrame->channels [2];
+        outFrame.channels [1] = inFrame->channels [3];
+      }
+
+      this->parent_->haptics_buffer_.push_back (buffered_10ms);
+    }
+
     SK_LOGi0 (L"Audio Render Client: Frames Written = %zu", frames_written_total);
+  }
 
   acquired_frames_ = 0;
 
