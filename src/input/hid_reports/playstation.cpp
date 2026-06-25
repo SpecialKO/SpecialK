@@ -1449,6 +1449,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
           SK_CreateEvent ( nullptr, FALSE, FALSE,
             SK_FormatStringW (L"[SK] HID IO Resume %p", hDeviceFile).c_str ());
 
+    if (hHeadphoneEvent == nullptr)
+        hHeadphoneEvent =
+          SK_CreateEvent ( nullptr, FALSE, FALSE,
+            SK_FormatStringW (L"[SK] HID Headphone %p", hDeviceFile).c_str ());
+
     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
     {
       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
@@ -1808,6 +1813,17 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                 if (! pDevice->bDualShock4)
                 {
+                  if (/*std::exchange(pDevice->bHeadphones, pDualSense->PluggedHeadphones) !=
+                                                            pDualSense->PluggedHeadphones || */!std::exchange (pDevice->bAudioInit, true))
+                  {
+                    pDevice->bHeadphones = pDualSense->PluggedHeadphones;
+
+                    pDevice->dwLastHeadphoneHotplug =
+                      SK_timeGetTime ();
+
+                    SetEvent (pDevice->hHeadphoneEvent);
+                  }
+
                   pDevice->battery.state =
                     (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pDualSense)[52] & 0xF0) >> 4);
 
@@ -2907,8 +2923,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
   if (! bConnected)
     return false;
 
-  if (! config.input.gamepad.hook_hid)
-    return false;
+//if (! config.input.gamepad.hook_hid)
+//  return false;
 
   if (bBluetooth)
   {
@@ -3097,6 +3113,65 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             auto* output =
               (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
+
+            // This audio routing function is only necessary over USB,
+            //   nobody can use the headphone jack over Bluetooth.
+            if (WaitForSingleObject (pDevice->hHeadphoneEvent, 0) == WAIT_OBJECT_0)
+            {
+              pDevice->bHeadphones = false;
+
+              if (pDevice->audio_endpoint != nullptr)
+              {
+                SK_IMMDeviceEnumerator pDevEnum  = nullptr;
+                SK_IMMDevice           pAudioDev = nullptr;
+
+                if (SUCCEEDED (SK_CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS (&pDevEnum.p))))
+                {
+                  pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                                       eConsole,
+                                                         &pAudioDev);
+
+                  if (pAudioDev != nullptr)
+                  {
+                    PROPVARIANT       friendly_name_dev = {};
+                    PropVariantInit (&friendly_name_dev);
+
+                    SK_ComPtr <IPropertyStore>                                             pPropertyStoreDev;
+                    if (SUCCEEDED (pDevice->audio_endpoint->OpenPropertyStore (STGM_READ, &pPropertyStoreDev.p)) &&
+                        SUCCEEDED (pPropertyStoreDev->GetValue (PKEY_Device_FriendlyName, &friendly_name_dev)))
+                    {
+                      PROPVARIANT       friendly_name_default = {};
+                      PropVariantInit (&friendly_name_default);
+
+                      SK_ComPtr <IPropertyStore>                               pPropertyStoreDefault;
+                      if (SUCCEEDED (pAudioDev->OpenPropertyStore (STGM_READ, &pPropertyStoreDefault.p)) &&
+                          SUCCEEDED (pPropertyStoreDev->GetValue (PKEY_Device_FriendlyName, &friendly_name_default)))
+                      {
+                        // Ensure that audio comes out of the headphone jack if user is
+                        //   running the gamepad as the default audio device.
+                        if (! _wcsicmp (friendly_name_dev.pwszVal, friendly_name_default.pwszVal))
+                        {
+                          pDevice->bHeadphones = true;
+                        }
+                      }
+
+                      PropVariantClear (&friendly_name_default);
+                    }
+
+                    PropVariantClear (&friendly_name_dev);
+                  }
+                }
+              }
+
+              output->AllowAudioControl = 1;
+              output->OutputPathSelect  = pDevice->bHeadphones ? 0 : 3;
+
+              output->AllowHeadphoneVolume = 1;
+              output->VolumeHeadphones     = 0x7f;
+
+              output->AllowSpeakerVolume   = 1;
+              output->VolumeSpeaker        = 0x64;
+            }
 
             const ULONG dwRightMotor   = ReadULongAcquire (&pDevice->_vibration.right);
             const ULONG dwLeftMotor    = ReadULongAcquire (&pDevice->_vibration.left);
@@ -4502,7 +4577,6 @@ bool SK_HID_DeviceFile::filterHidOutput (uint8_t report_id, DWORD dwSize, LPVOID
             {
               pSetState =
                 (SK_HID_DualSense_SetStateData *)(&((uint8_t *)data) [i * 48 + 1]);
-
 #if 0
               //
               // Dump Trigger Force Feedback data for debugging
@@ -5159,8 +5233,9 @@ SK_HID_PlayStationDevice::reset_device (void)
   dwLastTimeOutput  = 0;
   ulLastFrameOutput = 0;
 
-  WriteRelease (&bNeedOutput, TRUE);
   bSimpleMode = true;
+  bAudioInit  = false;
+  bHeadphones = false;
 
   for ( auto& button : buttons )
   {
@@ -5175,6 +5250,8 @@ SK_HID_PlayStationDevice::reset_device (void)
   //   it will not still be reading stale input until the user pushes a button.
   extern XINPUT_STATE hid_to_xi;
                       hid_to_xi.Gamepad = {};
+
+  WriteRelease (&bNeedOutput, TRUE);
 }
 
 void
@@ -5274,6 +5351,7 @@ SK_HID_IsDeviceDualSense (const wchar_t* wszDevicePath)
   // Get the internal parsed descriptor data
   if (SK_HidD_GetPreparsedData (hDevice, &preparsed_data) && preparsed_data != nullptr)
   {
+#if 0
     HIDP_CAPS caps;
 
     // Extract the capabilities from the preparsed data
@@ -5301,6 +5379,7 @@ SK_HID_IsDeviceDualSense (const wchar_t* wszDevicePath)
         }
       }
     }
+#endif
 
     SK_HidD_FreePreparsedData (preparsed_data);
   }
@@ -5309,4 +5388,29 @@ SK_HID_IsDeviceDualSense (const wchar_t* wszDevicePath)
 
   return
     bDualSense;
+}
+
+void
+SK_HID_PlayStationDevice::initialize_audio (SK_HID_DualSense_SetStateData* pReport)
+{
+  SK_ReleaseAssert (bDualSense && pReport != nullptr);
+
+  if (! bDualSense)
+    return;
+
+  if (! pReport)
+    return;
+
+  pReport->AllowAudioControl = 1;
+  pReport->OutputPathSelect  = 0;
+
+  pReport->AllowAudioMute  = 1;
+  pReport->TouchPowerSave  = 0;
+  pReport->MotionPowerSave = 0;
+  pReport->HapticPowerSave = 0;
+  pReport->AudioPowerSave  = 0;
+  pReport->MicMute         = 0;
+  pReport->SpeakerMute     = 0;
+  pReport->HeadphoneMute   = 0;
+  pReport->HapticMute      = 0;
 }

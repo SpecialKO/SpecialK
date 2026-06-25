@@ -1,4 +1,12 @@
-﻿26.6.20.1
+﻿26.6.24
+=======
+ + Do not enable DualSense Edge PID spoofing if lib_dualsense_win.dll
+     or AkSoundEngine.dll are loaded.
+ + Remove detection of generic DualSense controllers using the HID
+     report that returns firmware version; only official controllers
+       and those that use known VID/PID pairs will be supported now.
+
+26.6.20.1
 =========
  + Remove unintentional log spam for games that use DualSense haptics.
 

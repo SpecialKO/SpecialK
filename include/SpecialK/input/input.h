@@ -942,6 +942,8 @@ struct model##_Buttons                  { enum : size_t {
 struct model##_Buttons : prev##_Buttons { enum : size_t {
 #define SK_HID_EndModelSpecificButtons  };              };
 
+struct SK_HID_DualSense_SetStateData;
+
 struct SK_HID_PlayStationDevice
 {
    SK_HID_PlayStationDevice (HANDLE file);
@@ -964,9 +966,11 @@ struct SK_HID_PlayStationDevice
   HANDLE               hOutputEnqueued          = nullptr;
   HANDLE               hReconnectEvent          = nullptr;
   HANDLE               hDisconnectEvent         = nullptr;
+  HANDLE               hHeadphoneEvent          = nullptr;
 
   ULONG64              ulLastFrameOutput        =       0;
   DWORD                dwLastTimeOutput         =       0;
+  DWORD                dwLastHeadphoneHotplug   =       0;
   wchar_t              wszDevicePath [MAX_PATH] = {     };
 
   wchar_t              wszProduct      [128]    = {     };
@@ -995,6 +999,8 @@ struct SK_HID_PlayStationDevice
   bool                 bDualShock3              =   false;
   bool                 bSimpleMode              =    true;
   bool                 bTerminating             =   false;
+  bool                 bAudioInit               =   false;
+  bool                 bHeadphones              =   false;
   volatile LONG        bNeedOutput              =    TRUE;
 
   struct battery_s {
@@ -1096,7 +1102,7 @@ struct SK_HID_PlayStationDevice
         static_cast <float> (
           static_cast <double> (ReadULong64Acquire (&writes_retired)) /
           static_cast <double> (ReadULong64Acquire (&writes_attempted))
-        );      
+        );
     }
   } output;
 
@@ -1209,6 +1215,7 @@ struct SK_HID_PlayStationDevice
 
   void reset_force_feedback (void) noexcept;
 
+  void initialize_audio     (SK_HID_DualSense_SetStateData* pReport);
   bool initialize_serial    (void);
   void reset_device         (void);
 

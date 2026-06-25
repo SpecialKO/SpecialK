@@ -1992,9 +1992,9 @@ public:
       reinterpret_cast <const WAVEFORMATEXTENSIBLE *> (&format.format);
 
     SK_LOGi0 (
-      L"Format: %u Hz, %u Channels, %d bits per-sample, %u Samples per-block",
+      L"Format: %u Hz, %u Channels, %d bits per-sample, %d valid bits per-sample, %u Samples per-block",
         pWaveFormat->Format.nSamplesPerSec, pWaveFormat->Format.nChannels,
-        pWaveFormat->Format.wBitsPerSample, /*pWaveFormat->Samples.wValidBitsPerSample,*/
+        pWaveFormat->Format.wBitsPerSample, pWaveFormat->Samples.wValidBitsPerSample,
         pWaveFormat->Samples.wSamplesPerBlock );
 
     SK_LOGi0 (
@@ -2507,6 +2507,98 @@ protected:
   volatile ULONG refs_;
 };
 
+#pragma pack (push, 1)
+#if 1
+#define REPORT_SIZE 141
+#define REPORT_ID   0x32
+#define SAMPLE_SIZE 64
+#define SAMPLE_RATE 3000
+#else
+#define REPORT_SIZE 333
+#define REPORT_ID   0x35
+#define SAMPLE_SIZE 200
+#define SAMPLE_RATE 48000
+#endif
+
+typedef struct SK_HID_DualSense_HapticsPacket {
+  uint8_t pid   : 6;
+  bool    unk   : 1,
+          sized : 1;
+  uint8_t length;
+  uint8_t data [SAMPLE_SIZE];
+} SK_HID_DualSense_HapticsPacket_t;
+
+struct SK_HID_DualSense_HapticsReport {
+  uint8_t report_id;
+  union {
+    struct {
+      uint8_t tag : 4,
+              seq : 4;
+      uint8_t data [1];
+    };
+    struct {
+      uint8_t  payload [REPORT_SIZE - sizeof (uint32_t)];
+      uint32_t crc;
+    };
+  };
+};
+#pragma pack (pop)
+
+uint32_t playstation_crc32 (uint8_t* data, uint32_t size)
+{
+  uint32_t crc = ~0xEADA2D49; // 0xA2 CRC seed
+
+  for (uint32_t i = 0; i < size; i++)
+  {
+    crc ^= data [i];
+    for (int j = 0; j < 8; j++)
+    {
+      crc = ((crc >> 1) ^ (0xEDB88320 & (uint32_t)-((int32_t)crc & 1)));
+    }
+  }
+
+  return ~crc;
+}
+
+// Structure representing a single 4-channel input frame
+struct InputFrame {
+  int16_t channels [4];
+};
+
+// Structure representing a single 2-channel output frame
+struct OutputFrame {
+  int16_t channels [2];
+};
+
+/**
+ * Resamples 4-channel 48kHz audio to 2-channel 3kHz audio.
+ * Removes the first two channels and keeps the last two.
+ * 
+ * @param input Pointer to the array of 1024 input frames.
+ * @param output Vector to store the resulting 64 output frames.
+ */
+void processAudio (const InputFrame* input, std::vector <OutputFrame>& output)
+{
+  const int INPUT_FRAMES      = 1024;
+  const int DOWNSAMPLE_FACTOR = 16; // 48000 Hz / 3000 Hz
+
+  output.clear ();
+
+  // 1024 / 16 = 64 output frames
+  output.reserve (INPUT_FRAMES / DOWNSAMPLE_FACTOR); 
+
+  for (int i = 0; i < INPUT_FRAMES; i += DOWNSAMPLE_FACTOR)
+  {
+    OutputFrame outFrame;
+
+    // Keep only channel 3 (index 2) and channel 4 (index 3)
+    outFrame.channels [0] = input [i].channels [2];
+    outFrame.channels [1] = input [i].channels [3];
+
+    output.push_back (outFrame);
+  }
+}
+
 class SK_IVirtualAudioClient2 : public IAudioClient2
 {
 friend class SK_IVirtualAudioRenderClient;
@@ -2590,6 +2682,8 @@ public:
       SK_LOGi0 (L"SK_IVirtualAudioClient2::Initialize (...) - Unimplemented Stream Flags: 0x%08X", StreamFlags);
     }
 
+    SK_LOGi0 (L"Buffer Duration: %lld hns, Periodicity: %lld hns", hnsBufferDuration, hnsPeriodicity);
+
     if (StreamFlags & AUDCLNT_STREAMFLAGS_EVENTCALLBACK)
     {
       event_driven = true;
@@ -2598,9 +2692,9 @@ public:
         (WAVEFORMATEXTENSIBLE *)pFormat;
 
       SK_LOGi0 (
-        L"Format: %u Hz, %u Channels, %d bits per-sample, %u Samples per-block",
+        L"Format: %u Hz, %u Channels, %d bits per-sample, %d valid bits per-sample, %u Samples per-block",
           pWaveFormat->Format.nSamplesPerSec, pWaveFormat->Format.nChannels,
-          pWaveFormat->Format.wBitsPerSample, /*pWaveFormat->Samples.wValidBitsPerSample,*/
+          pWaveFormat->Format.wBitsPerSample, pWaveFormat->Samples.wValidBitsPerSample,
           pWaveFormat->Samples.wSamplesPerBlock );
 
       SK_LOGi0 (
@@ -2641,8 +2735,10 @@ public:
     buffer_duration_ = hnsBufferDuration;
 
     // TODO: Calculate the proper size of this.
-    buffer_frame_count_ = 1920;
+                    buffer_frame_count_ = (int)ceil (((double)hnsBufferDuration / 10000000.0) * (double)pFormat->nSamplesPerSec);
     buffer_.resize (buffer_frame_count_ * pFormat->nChannels * (pFormat->wBitsPerSample / 8));
+
+    SK_LOGi0 (L"Calculated Buffer Size: %u frames (%d bytes)", buffer_frame_count_, buffer_.size ());
 
     initialized = true;
 
@@ -2679,7 +2775,7 @@ public:
       return E_POINTER;
 
     // ?
-    *pNumPaddingFrames = 0;
+    *pNumPaddingFrames = buffer_padding_;// += NumFramesWritten;
 
     return S_OK;
   }
@@ -2795,92 +2891,290 @@ public:
 
       while (WaitForSingleObject (pThis->event_handle, INFINITE) == WAIT_OBJECT_0)
       {
-        if (pThis->frame_count_ != pThis->last_frame_count_)
+        if (pThis->buffer_padding_ != 0)//pThis->frame_count_ != pThis->last_frame_count_)
         {
-          SK_LOGi0 (L"Audio Client Event Signaled");
+          if (! pThis->silent_)
+          {
+            SK_LOGi0 (L"Audio Client Event Signaled (%d samples removed)", pThis->buffer_padding_);
+          }
+
           pThis->last_frame_count_ = pThis->frame_count_;
 
                     //static std::vector <BYTE> samples (384000);
           static std::vector <BYTE> samples (192000);
-          static int                frames = 0;
+          static int                frames           = 0;
+          static int                samples_rendered = 0;
 
-          UINT j = frames * 960 * 4;
+          // Example usage
+          InputFrame* inputBuffer = (InputFrame *)pThis->buffer_.data ();
+
+          static
+          std::vector <OutputFrame>  outputBuffer;
+          processAudio (inputBuffer, outputBuffer);
+
+          //UINT j = std::min (samples_rendered, 48000) * 4;
 
           //memcpy (samples.data () + frames * 7680, pThis->buffer_.data (), 7680);
 
-          // Remove the front two channels
-          for (UINT i = 0 ; i < 960; ++i)
+          ////uint16_t* out_buf = (uint16_t *)samples.       data ();
+          ////uint16_t* in_buf  = (uint16_t *)pThis->buffer_.data ();
+          ////
+          ////static int frame = 0;
+          ////static int frame_offset = 0;
+          ////
+          ////for (UINT32 i = 0; i < pThis->buffer_padding_; ++i)
+          ////{
+          ////  if (out_buf + (i * 2) + 1 >= (uint16_t *)samples.data () + samples.size () / 2)
+          ////  {
+          ////    SK_LOGi0 (L"Output buffer overflow during copy, resetting pointer");
+          ////    out_buf = (uint16_t *)samples.data ();
+          ////    break;
+          ////  }
+          ////
+          ////  // Source offsets for this frame
+          ////  int in_off  = i * 4;
+          ////  int out_off = i * 2;
+          ////
+          ////  // Copy Channel 3 and Channel 4 (indices 2 and 3)
+          ////  out_buf [(frame   % 48000) + out_off]     = in_buf [in_off + 2];
+          ////  out_buf [(frame++ % 48000) + out_off + 1] = in_buf [in_off + 3];
+          ////
+          ////  frame_offset++;
+          ////}
+
+          if (! pThis->silent_)
           {
-            samples [j  ] = pThis->buffer_ [i * 8 + 4];
-            samples [j+1] = pThis->buffer_ [i * 8 + 4 + 1];
-                                           
-            samples [j+2] = pThis->buffer_ [i * 8 + 6];
-            samples [j+3] = pThis->buffer_ [i * 8 + 6 + 1];
+            static const SK_HID_DualSense_HapticsPacket_t packet_0x11 = {
+              .pid    = 0x11,
+              .sized  = true,
+              .length = 7,
+              .data   = {0b11111110, 0, 0, 0, 0, 0xFF, 0},
+            }, packet_0x12 = {
+              .pid    = 0x12,
+              .sized  = true,
+              .length = SAMPLE_SIZE,
+              .data   = {},
+            };
 
-            j += 4;
-          }
-          //memcpy (samples.data () + frames * 3840, pThis->buffer_.data () + 3840, 3840);
+            static SK_HID_DualSense_HapticsReport report { .report_id = REPORT_ID };
 
-          struct SK_WAV_FileHeader
-          {
-            // RIFF Chunk Descriptor
-            uint8_t  riff_id  [4]    = {'R', 'I', 'F', 'F'}; // Marks file as riff file
-            uint32_t riff_size       =      0;               // Size of overall file minus 8 bytes
-            uint8_t  wave_fmt [4]    = {'W', 'A', 'V', 'E'}; // RIFF type
+            report.tag = 0;
 
-            // fmt Sub-chunk
-            uint8_t  fmt_id   [4]    = {'f', 'm', 't', ' '}; // Format chunk marker
-            uint32_t fmt_size        =     16;               // Size of an uncompressed PCM sub-chunk (16 bytes)
-            uint16_t audio_format    =      1;               // Type of format (1 = PCM Integer)
-            uint16_t num_channels    =      2;//4;               // Number of channels (1 = Mono, 2 = Stereo)
-            uint32_t sample_rate     =  48000;               // Sample rate (e.g., 44100)
-            uint32_t byte_rate       = 192000;//384000;               // sample_rate * num_channels * (bits_per_sample / 8)
-            uint16_t block_align     =      4;//8;               // num_channels * (bits_per_sample / 8)
-            uint16_t bits_per_sample =     16;               // Bits per sample (e.g., 16-bit)
+            ////SK_HID_DualSense_HapticsPacket_t* packets [] = {
+            ////  (SK_HID_DualSense_HapticsPacket_t *)(report.data + 0),
+            ////  (SK_HID_DualSense_HapticsPacket_t *)(report.data + sizeof (packet_0x11) + packet_0x11.length),
+            ////};
+            ////
+            ////memcpy (packets [0], &packet_0x11, sizeof (packet_0x11) + packet_0x11.length);
+            ////memcpy (packets [1], &packet_0x12, sizeof (packet_0x12));
 
-            // data Sub-chunk
-            uint8_t  data_id [4]     = {'d', 'a', 't', 'a'}; // Data chunk header marker
-            uint32_t data_size       =      0;               // Number of bytes in the raw audio data
-          } header;
+            static uint8_t reportSeqCounter = 0;
+            static uint8_t packetCounter    = 0;
 
-          header.riff_size = sizeof (header) - 8 +
-                             static_cast <uint32_t> (samples.size ());
-          header.data_size = static_cast <uint32_t> (samples.size ());
+            uint8_t* data      = (uint8_t *)&report;
+                     data [ 0] = (uint8_t)(REPORT_ID);
+                     data [ 1] = (uint8_t)( reportSeqCounter << 4);
+          reportSeqCounter     = (uint8_t)((reportSeqCounter + 1) & 0x0F);
 
-          static int file_num = 0;
+                   // Packet 0x11
+                     data [ 2] = 0x11 | 0 << 6 | 1 << 7; // pid(0x11) unk(false) sized(true)
+                     data [ 3] = 7;
+                     data [ 4] = 0b11111110;
+                     data [ 5] = 0;
+                     data [ 6] = 0;
+                     data [ 7] = 0;
+                     data [ 8] = 0;
+                     data [ 9] = 0xFF;
+                     data [10] = packetCounter++;
 
-          if (++frames == 50)
-          {
-            bool silent = true;
+#if 1
+                     // Packet 0x12
+                     data [11] = 0x12 | 0 << 6 | 1 << 7;
+                     data [12] = (byte)SAMPLE_SIZE;
+#else
+                     // Packet 0x16
+                     data [11] = 0x13 | 0 << 6 | 1 << 7;
+                     data [12] = (byte)200;
+#endif
 
-            for (auto& sample : samples)
+            for (int i = 13,offset = 0; i < SAMPLE_SIZE + 13; i += 2,offset += 8)
             {
-              if (sample != 0)
+              data [i  ] = outputBuffer [offset / 8].channels [0] & 0xFF;
+              data [i+2] = outputBuffer [offset / 8].channels [1] & 0xFF;
+            //data [i  ] = rand () % 255;
+            //data [i+1] = rand () % 255;
+            }
+
+            #define OPUS_APPLICATION_AUDIO                 2049
+            #define OPUS_SET_BITRATE_REQUEST               4002
+            #define OPUS_SET_VBR_REQUEST                   4006
+            #define OPUS_SET_EXPERT_FRAME_DURATION_REQUEST 4040
+
+            #define OPUS_FRAMESIZE_ARG                   5000 /**< Select frame size from the argument (default) */
+            #define OPUS_FRAMESIZE_2_5_MS                5001 /**< Use 2.5 ms frames */
+            #define OPUS_FRAMESIZE_5_MS                  5002 /**< Use 5 ms frames */
+            #define OPUS_FRAMESIZE_10_MS                 5003 /**< Use 10 ms frames */
+            #define OPUS_FRAMESIZE_20_MS                 5004 /**< Use 20 ms frames */
+            #define OPUS_FRAMESIZE_40_MS                 5005 /**< Use 40 ms frames */
+            #define OPUS_FRAMESIZE_60_MS                 5006 /**< Use 60 ms frames */
+            #define OPUS_FRAMESIZE_80_MS                 5007 /**< Use 80 ms frames */
+            #define OPUS_FRAMESIZE_100_MS                5008 /**< Use 100 ms frames */
+            #define OPUS_FRAMESIZE_120_MS                5009 /**< Use 120 ms frames */
+            
+            #define opus_check_int(x) (((void)((x) == (opus_int32)0)), (opus_int32)(x))
+
+            #define OPUS_SET_BITRATE(x)               OPUS_SET_BITRATE_REQUEST,               opus_check_int(x)
+            #define OPUS_SET_EXPERT_FRAME_DURATION(x) OPUS_SET_EXPERT_FRAME_DURATION_REQUEST, opus_check_int(x)
+            #define OPUS_SET_VBR(x)                   OPUS_SET_VBR_REQUEST,                   opus_check_int(x)
+
+            typedef struct OpusEncoder OpusEncoder;
+
+            typedef          __int32 opus_int32;
+            typedef unsigned __int32 opus_uint32;
+            typedef          __int16 opus_int16;
+            typedef unsigned __int16 opus_uint16;
+
+            using opus_encoder_create_pfn = OpusEncoder* (*)(opus_int32 Fs, int channels, int application, int *error);
+            using opus_encoder_ctl_pfn    = int          (*)(OpusEncoder *st, int request, ...);
+            using opus_encode_pfn         = opus_int32   (*)(OpusEncoder *st, const opus_int16 *pcm, int analysis_frame_size, unsigned char *data, opus_int32 max_data_bytes);
+
+            static opus_encoder_create_pfn opus_encoder_create = (opus_encoder_create_pfn)SK_GetProcAddress (SK_LoadLibraryW ((std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) / L"Audio Codecs/opus/opus_x64.dll").c_str ()), "opus_encoder_create");
+            static opus_encoder_ctl_pfn    opus_encoder_ctl    = (opus_encoder_ctl_pfn)   SK_GetProcAddress (SK_LoadLibraryW ((std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) / L"Audio Codecs/opus/opus_x64.dll").c_str ()), "opus_encoder_ctl");
+            static opus_encode_pfn         opus_encode         = (opus_encode_pfn)        SK_GetProcAddress (SK_LoadLibraryW ((std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) / L"Audio Codecs/opus/opus_x64.dll").c_str ()), "opus_encode");
+
+            if ( opus_encoder_create &&
+                 opus_encoder_ctl    &&
+                 opus_encode )
+            {
+              static int error = 0;
+
+              static OpusEncoder* encoder =
+                opus_encoder_create (SAMPLE_RATE, 2, OPUS_APPLICATION_AUDIO, &error);
+
+              if (error >= 0)
               {
-                silent = false;
-                break;
+                SK_RunOnce (
+                  opus_encoder_ctl (encoder, OPUS_SET_BITRATE               (SAMPLE_SIZE * 8 * 100));
+                  opus_encoder_ctl (encoder, OPUS_SET_EXPERT_FRAME_DURATION (OPUS_FRAMESIZE_10_MS));
+                  opus_encoder_ctl (encoder, OPUS_SET_VBR                   (0));
+                );
+
+                SK_LOGi0 (L"Encoded %d bytes of Opus",
+                  opus_encode (encoder, (opus_int16*)outputBuffer.data (), SAMPLE_RATE / 100, &data [13], SAMPLE_SIZE)
+                );
               }
             }
 
-            if (! silent)
+            for (auto& ps_controller : SK_HID_PlayStationControllers)
             {
-              std::filesystem::path out_path (SK_GetConfigPath ());
-                                    out_path /= L"haptics";
+              if (ps_controller.bBluetooth && ps_controller.bConnected && ps_controller.bDualSense)
+              {
+                SK_AutoHandle hSyncFile (
+                  CreateFile (ps_controller.wszDevicePath, GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0x0, nullptr)
+                );
 
-              std::error_code                                ec;
-              std::filesystem::create_directories (out_path, ec);
+                *((uint32_t *)&data [REPORT_SIZE-3]) =
+                  playstation_crc32 (data, REPORT_SIZE-3);
 
-              FILE* fHaptics = _wfopen (
-                SK_FormatStringW (L"%ws\\haptics_%d.wav", out_path.c_str (), file_num++).c_str (), L"wb"
-              );
+                uint8_t report32 [142] = {};
+                        report32 [0] = 0x32;
+                        report32 [1] = 0x10;
 
-              fwrite (&header,         1, sizeof (header), fHaptics);
-              fwrite (samples.data (), 1, samples.size (), fHaptics);
-              fclose (                                     fHaptics);
+                uint8_t packet_0x10 [] =
+                {
+                  0x90, // Packet: 0x10
+                  0x3f, // 63
+                  // Length: 47 ⬇️
+                  // SetStateData 
+                  0xfd, 0xf7, 0x00, 0x00, 0x7f, 0x7f,
+                  0xff, 0x09, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa0,
+                  0x07, 0x00, 0x00, 0x02, 0x01,
+                  0x00,
+                  0xff,0xd7,0x00 // RGB LED: R, G, B
+                };
+
+                memcpy       (&report32 [  2], packet_0x10, sizeof (packet_0x10));
+                *((uint32_t *)&report32 [138]) = playstation_crc32 (report32, 138);
+
+                SK_AutoHandle hOutputEvent (
+                  CreateEvent (nullptr, FALSE, FALSE, nullptr)
+                );
+
+                SK_RunOnce (
+                  SK_AutoHandle hOutputEvent2 (
+                    CreateEvent (nullptr, FALSE, FALSE, nullptr)
+                  );
+
+                  OVERLAPPED async_output_request2        = { };
+                             async_output_request2.hEvent = hOutputEvent2;
+
+                  SK_WriteFile (ps_controller.hDeviceFile, report32, 142, nullptr, &async_output_request2);
+
+                  //GetOverlappedResult (ps_controller.hDeviceFile, &async_output_request2, nullptr, TRUE);
+                );
+
+                OVERLAPPED async_output_request        = { };
+                           async_output_request.hEvent = hOutputEvent;
+
+                async_output_request.hEvent = hOutputEvent;
+
+                const BOOL bWriteAsync =
+                  SK_WriteFile ( ps_controller.hDeviceFile, &report, sizeof (report), nullptr, &async_output_request);
+
+                if (bWriteAsync)
+                {
+                  //WaitForSingleObject (async_output_request.hEvent, 20);
+                  GetOverlappedResult (ps_controller.hDeviceFile, &async_output_request, nullptr, FALSE);
+                }
+                
+                else
+                {
+                  DWORD dwLastErr = GetLastError ();
+                
+                  _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+                
+                  if (dwLastErr != ERROR_IO_PENDING && dwLastErr != ERROR_INVALID_HANDLE)
+                  {
+                    SK_CancelIoEx (ps_controller.hDeviceFile, &async_output_request);
+                
+                    SK_LOGi0 (L"Haptics Write Failed: 0x%04X (%ws",
+                      err.WCode (), err.ErrorMessage ()
+                    );
+                  }
+                }
+                break;
+              }
             }
-
-            frames = 0;
           }
+
+          //out_buf += pThis->buffer_padding_ * 2;
+          //
+          //if (out_buf >= (uint16_t *)samples.data () + samples.size () / 2)
+          //{
+          //  SK_LOGi0 (L"Output buffer overflow, resetting pointer");
+          //  out_buf = (uint16_t *)samples.data ();
+          //}
+
+          //// Remove the front two channels
+          //for (UINT i = 0 ; i < pThis->buffer_padding_; ++i)
+          //{
+          //  if (j > samples.size () - 4)
+          //    break;
+          //
+          //  samples [j  ] = pThis->buffer_ [i * 8 + 4];
+          //  samples [j+1] = pThis->buffer_ [i * 8 + 4 + 1];
+          //                                 
+          //  samples [j+2] = pThis->buffer_ [i * 8 + 6];
+          //  samples [j+3] = pThis->buffer_ [i * 8 + 6 + 1];
+          //
+          //  j += 4;
+          //}
+
+          samples_rendered += pThis->buffer_padding_;
+                              pThis->buffer_padding_ = 0;
         }
       }
 
@@ -2954,7 +3248,9 @@ protected:
             bool started          = false;
             bool initialized      = false;
 
-          UINT32 buffer_frame_count_ = 1024; // 20 ms of 4-channel PCM
+            bool silent_          = false;
+          UINT32 buffer_padding_     = 0;
+          UINT32 buffer_frame_count_ = 3840;
      std::vector <BYTE>
                  buffer_;
 
@@ -2993,12 +3289,26 @@ HRESULT STDMETHODCALLTYPE SK_IVirtualAudioRenderClient::ReleaseBuffer (UINT32 Nu
     return AUDCLNT_E_INVALID_SIZE;
   }
 
+  parent_->buffer_padding_ += NumFramesWritten;
+
+  if (dwFlags & AUDCLNT_BUFFERFLAGS_SILENT)
+  {
+    parent_->silent_ = true;
+    memset (parent_->buffer_.data (), 0, NumFramesWritten * 8); // 4 channels * 16 bits per sample = 8 bytes per frame
+  }
+
+  else
+  {
+    parent_->silent_ = false;
+  }
+
   static size_t frames_written_total = 0;
                 frames_written_total += NumFramesWritten;
 
   parent_->frame_count_ += NumFramesWritten;
 
-  SK_LOGi0 (L"Audio Render Client: Frames Written = %zu", frames_written_total);
+  if (! parent_->silent_)
+    SK_LOGi0 (L"Audio Render Client: Frames Written = %zu", frames_written_total);
 
   acquired_frames_ = 0;
 
@@ -3267,6 +3577,7 @@ SK_IVirtualPropertyStore::SK_IVirtualPropertyStore (SK_IVirtualMMDevice* pDevice
     propvarFormat;
     propvarFormat.vt             = VT_BLOB;
     propvarFormat.blob.cbSize    = 40;
+  //propvarFormat.blob.pBlobData = (uint8_t *)&pDevice->virtual_format_;
     propvarFormat.blob.pBlobData = pDevice->virtual_format_blob_;
 
   PROPVARIANT
@@ -3353,8 +3664,11 @@ public:
     UINT              real_count = 0;
     pReal->GetCount (&real_count);
 
+    // Logic to wrap the real device is kept here in case it is necessary to examine
+    //   the API behavior of a real DualSense controller.
+    //
     // This is our virtual device
-    if ((nDevice < real_count + virtual_audio_registrar->virtual_devices_.size () && (real_count == 0 || nDevice > real_count - 1)) || nDevice == real_count-1)
+    if ((nDevice < real_count + virtual_audio_registrar->virtual_devices_.size () && (real_count == 0 || nDevice > real_count - 1))/* || nDevice == real_count - 1)*/)
     {
       IMMDevice* pDevice = nullptr;
 
