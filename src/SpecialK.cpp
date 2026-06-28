@@ -1725,7 +1725,7 @@ SK_Detach (DLL_ROLE role)
   // Hide game while exiting to make it appear snappier.
   if (game_window.hWnd != 0)
   {
-    ShowWindow (game_window.hWnd, SW_HIDE);
+    SK_ShowWindowAsync (game_window.hWnd, SW_HIDE);
   }
 
   ULONG local_refs =
