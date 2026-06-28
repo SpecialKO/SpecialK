@@ -1848,11 +1848,13 @@ SK_Unity_SetTargetFrameRate (void)
     static HANDLE hThread =
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
       AttachThread ();
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, 250))
           break;
 
         void* params [1] = { &target_fps };
@@ -1875,11 +1877,13 @@ SK_Unity_SetTargetFrameRate (void)
     static HANDLE hThread =
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
       Il2cpp::thread_attach (Il2cpp::get_domain ());
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, 250))
           break;
 
         void* params [1] = { &target_fps };
