@@ -1,4 +1,10 @@
-﻿26.6.24
+﻿26.6.28
+=======
+ + Added Unity Engine override for Application.targetFrameRate if SK's
+     framerate limiter is active; allows SK to define the framerate cap
+       in many stubborn games such as Dave the Diver.
+
+26.6.24
 =======
  + Do not enable DualSense Edge PID spoofing if lib_dualsense_win.dll
      or AkSoundEngine.dll are loaded.

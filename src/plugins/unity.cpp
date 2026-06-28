@@ -1714,6 +1714,86 @@ UnityEngine_Time_set_timeScale_Detour (MonoObject* __this, float timeScale)
   UnityEngine_Time_set_timeScale_Original (__this, timeScale);
 }
 
+using UnityEngine_Application_set_targetFrameRate_pfn = void (*)(MonoObject*, int frameRate);
+using UnityEngine_Application_get_targetFrameRate_pfn = int  (*)(MonoObject*);
+
+static UnityEngine_Application_set_targetFrameRate_pfn UnityEngine_Application_set_targetFrameRate_Original = nullptr;
+static UnityEngine_Application_get_targetFrameRate_pfn UnityEngine_Application_get_targetFrameRate_Original = nullptr;
+
+int
+UnityEngine_Application_get_targetFrameRate_Detour (MonoObject* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  int original_target_framerate =
+    UnityEngine_Application_get_targetFrameRate_Original (__this);
+
+  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != original_target_framerate)
+  {
+    return
+      (int)__target_fps;
+  }
+
+  return
+    original_target_framerate;
+}
+
+void
+UnityEngine_Application_set_targetFrameRate_Detour (MonoObject* __this, int targetFrameRate)
+{
+  SK_LOG_FIRST_CALL
+
+  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != targetFrameRate)
+  {
+    UnityEngine_Application_set_targetFrameRate_Original (__this, (int)ceilf (__target_fps));
+    return;
+  }
+
+  return
+    UnityEngine_Application_set_targetFrameRate_Original (__this, targetFrameRate);
+}
+
+using  UnityEngine_Application_get_targetFrameRate_il2cpp_pfn = int (__fastcall *)(void*);
+static UnityEngine_Application_get_targetFrameRate_il2cpp_pfn
+       UnityEngine_Application_get_targetFrameRate_il2cpp_Original = nullptr;
+
+using  UnityEngine_Application_set_targetFrameRate_il2cpp_pfn = void (__fastcall *)(void*, int);
+static UnityEngine_Application_set_targetFrameRate_il2cpp_pfn
+       UnityEngine_Application_set_targetFrameRate_il2cpp_Original = nullptr;
+
+int
+UnityEngine_Application_get_targetFrameRate_il2cpp_Detour (void* __this)
+{
+  SK_LOG_FIRST_CALL
+
+  int original_target_framerate =
+    UnityEngine_Application_get_targetFrameRate_il2cpp_Original (__this);
+
+  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != original_target_framerate)
+  {
+    return
+      (int)ceilf (__target_fps);
+  }
+
+  return
+    original_target_framerate;
+}
+
+void
+UnityEngine_Application_set_targetFrameRate_il2cpp_Detour (void* __this, int targetFrameRate)
+{
+  SK_LOG_FIRST_CALL
+
+  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != targetFrameRate)
+  {
+    return
+      UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, (int)ceilf (__target_fps));
+  }
+
+  return
+    UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, targetFrameRate);
+}
+
 using  UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn = float (__fastcall *)(void*);
 static UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn
        UnityEngine_Time_get_fixedDeltaTime_il2cpp_Original = nullptr;
@@ -1803,6 +1883,101 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
         );
       }
 
+      static auto klass2 = SK_mono_class_from_name (core_module, "UnityEngine", "Application");
+
+      static MonoMethod* set_targetFrameRate = klass2 != nullptr ? SK_mono_class_get_method_from_name (klass2, "set_targetFrameRate", 1) : nullptr;
+      static MonoMethod* get_targetFrameRate = klass2 != nullptr ? SK_mono_class_get_method_from_name (klass2, "get_targetFrameRate", 0) : nullptr;
+
+      if (set_targetFrameRate != nullptr ||
+          get_targetFrameRate != nullptr)
+      {
+        SK_RunOnce (
+          void* pfnUnityEngine_Application_get_targetFrameRate = nullptr;
+          void* pfnUnityEngine_Application_set_targetFrameRate = nullptr;
+
+          pfnUnityEngine_Application_set_targetFrameRate =
+            CompileMethod ("UnityEngine", "Application", "set_targetFrameRate", 1, core_module_file);
+          pfnUnityEngine_Application_get_targetFrameRate =
+            CompileMethod ("UnityEngine", "Application", "get_targetFrameRate", 0, core_module_file);
+
+          if (pfnUnityEngine_Application_set_targetFrameRate != nullptr)
+          {
+            SK_CreateFuncHook (      L"UnityEngine.Application.set_targetFrameRate",
+                                    pfnUnityEngine_Application_set_targetFrameRate,
+                                       UnityEngine_Application_set_targetFrameRate_Detour,
+              static_cast_p2p <void> (&UnityEngine_Application_set_targetFrameRate_Original) );
+          }
+
+          if (pfnUnityEngine_Application_get_targetFrameRate != nullptr)
+          {
+            SK_CreateFuncHook (      L"UnityEngine.Application.get_targetFrameRate",
+                                    pfnUnityEngine_Application_get_targetFrameRate,
+                                       UnityEngine_Application_get_targetFrameRate_Detour,
+              static_cast_p2p <void> (&UnityEngine_Application_get_targetFrameRate_Original) );
+          }
+
+          if (         pfnUnityEngine_Application_set_targetFrameRate != nullptr &&
+              *(void**)pfnUnityEngine_Application_set_targetFrameRate != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Application_set_targetFrameRate);
+          if (         pfnUnityEngine_Application_get_targetFrameRate != nullptr &&
+              *(void**)pfnUnityEngine_Application_get_targetFrameRate != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Application_get_targetFrameRate);
+
+          SK_ApplyQueuedHooks ();
+        );
+      }
+
+#if 0
+      static auto klass3 = SK_mono_class_from_name (core_module, "UnityEngine", "QualitySettings");
+
+      static MonoMethod* set_vSyncCount = klass3 != nullptr ? SK_mono_class_get_method_from_name (klass3, "set_vSyncCount", 1) : nullptr;
+      static MonoMethod* get_vSyncCount = klass3 != nullptr ? SK_mono_class_get_method_from_name (klass3, "get_vSyncCount", 0) : nullptr;
+
+      if (set_vSyncCount != nullptr ||
+          get_vSyncCount != nullptr)
+      {
+        SK_RunOnce (
+          void* pfnUnityEngine_QualitySettings_get_vSyncCount = nullptr;
+          void* pfnUnityEngine_QualitySettings_set_vSyncCount = nullptr;
+
+          pfnUnityEngine_QualitySettings_set_vSyncCount =
+            CompileMethod ("UnityEngine", "QualitySettings", "set_vSyncCount", 1, core_module_file);
+          pfnUnityEngine_QualitySettings_get_vSyncCount =
+            CompileMethod ("UnityEngine", "QualitySettings", "get_vSyncCount", 0, core_module_file);
+
+          if (pfnUnityEngine_QualitySettings_set_vSyncCount != nullptr)
+          {
+            SK_CreateFuncHook (      L"UnityEngine.QualitySettings.set_vSyncCount",
+                                    pfnUnityEngine_QualitySettings_set_vSyncCount,
+                                       UnityEngine_QualitySettings_set_vSyncCount_Detour,
+              static_cast_p2p <void> (&UnityEngine_QualitySettings_set_vSyncCount_Original) );
+          }
+
+          if (pfnUnityEngine_QualitySettings_get_vSyncCount != nullptr)
+          {
+            SK_CreateFuncHook (      L"UnityEngine.QualitySettings.get_vSyncCount",
+                                    pfnUnityEngine_QualitySettings_get_vSyncCount,
+                                       UnityEngine_QualitySettings_get_vSyncCount_Detour,
+              static_cast_p2p <void> (&UnityEngine_QualitySettings_get_vSyncCount_Original) );
+          }
+
+          if (         pfnUnityEngine_QualitySettings_set_vSyncCount != nullptr &&
+              *(void**)pfnUnityEngine_QualitySettings_set_vSyncCount != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_QualitySettings_set_vSyncCount);
+          if (         pfnUnityEngine_QualitySettings_get_vSyncCount != nullptr &&
+              *(void**)pfnUnityEngine_QualitySettings_get_vSyncCount != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_QualitySettings_get_vSyncCount);
+
+          SK_ApplyQueuedHooks ();
+        );
+      }
+#endif
+
+      if (set_targetFrameRate != nullptr && __target_fps > 0.0f)
+      {
+        int target_fps = (int)ceilf (__target_fps);
+
+        void* params [1] = { &target_fps };
+
+        SK_mono_runtime_invoke (set_targetFrameRate, nullptr, params, nullptr);
+      }
+
       if (set_fixedDeltaTime != nullptr &&
           get_fixedDeltaTime != nullptr)
       {
@@ -1878,7 +2053,18 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       static Method* set_fixedDeltaTime = klass != nullptr ? klass->get_method ("set_fixedDeltaTime", 1) : nullptr;
       static Method* get_fixedDeltaTime = klass != nullptr ? klass->get_method ("get_fixedDeltaTime", 0) : nullptr;
 
+      static auto klass2 = image != nullptr ? image->get_class ("Application",     "UnityEngine") : nullptr;
+      static auto klass3 = image != nullptr ? image->get_class ("QualitySettings", "UnityEngine") : nullptr;
+
+      static Method* set_targetFrameRate = klass2 != nullptr ? klass2->get_method ("set_targetFrameRate", 1) : nullptr;
+      static Method* get_targetFrameRate = klass2 != nullptr ? klass2->get_method ("get_targetFrameRate", 0) : nullptr;
+
+      static Method* set_vSyncCount = klass3 != nullptr ? klass3->get_method ("set_vSyncCount", 1) : nullptr;
+      static Method* get_vSyncCount = klass3 != nullptr ? klass3->get_method ("get_vSyncCount", 0) : nullptr;
+
       SK_RunOnce (
+        bool hooks = false;
+
         void* pfnUnityEngine_Time_get_fixedDeltaTime = nullptr;
               pfnUnityEngine_Time_get_fixedDeltaTime = get_fixedDeltaTime;
 
@@ -1891,10 +2077,83 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
           if (*(void**)pfnUnityEngine_Time_get_fixedDeltaTime != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Time_get_fixedDeltaTime);
 
-          SK_ApplyQueuedHooks ();
+          hooks = true;
         }
+
+        void* pfnUnityEngine_Application_get_targetFrameRate = nullptr;
+              pfnUnityEngine_Application_get_targetFrameRate = get_targetFrameRate;
+
+        if (pfnUnityEngine_Application_get_targetFrameRate != nullptr && *(void**)pfnUnityEngine_Application_get_targetFrameRate != nullptr)
+        {
+          SK_CreateFuncHook (      L"UnityEngine.Application.get_targetFrameRate",
+                         *(void**)pfnUnityEngine_Application_get_targetFrameRate,
+                                     UnityEngine_Application_get_targetFrameRate_il2cpp_Detour,
+            static_cast_p2p <void> (&UnityEngine_Application_get_targetFrameRate_il2cpp_Original) );
+
+          if (*(void**)pfnUnityEngine_Application_get_targetFrameRate != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Application_get_targetFrameRate);
+
+          hooks = true;
+        }
+
+        void* pfnUnityEngine_Application_set_targetFrameRate = nullptr;
+              pfnUnityEngine_Application_set_targetFrameRate = set_targetFrameRate;
+
+        if (pfnUnityEngine_Application_set_targetFrameRate != nullptr && *(void**)pfnUnityEngine_Application_set_targetFrameRate != nullptr)
+        {
+          SK_CreateFuncHook (      L"UnityEngine.Application.set_targetFrameRate",
+                         *(void**)pfnUnityEngine_Application_set_targetFrameRate,
+                                     UnityEngine_Application_set_targetFrameRate_il2cpp_Detour,
+            static_cast_p2p <void> (&UnityEngine_Application_set_targetFrameRate_il2cpp_Original) );
+
+          if (*(void**)pfnUnityEngine_Application_set_targetFrameRate != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Application_set_targetFrameRate);
+
+          hooks = true;
+        }
+
+/*
+        void* pfnUnityEngine_QualitySettings_get_vSyncCount = nullptr;
+              pfnUnityEngine_QualitySettings_get_vSyncCount = get_vSyncCount;
+
+        if (pfnUnityEngine_QualitySettings_get_vSyncCount != nullptr && *(void**)pfnUnityEngine_QualitySettings_get_vSyncCount != nullptr)
+        {
+          SK_CreateFuncHook (      L"UnityEngine.QualitySettings.get_vSyncCount",
+                         *(void**)pfnUnityEngine_QualitySettings_get_vSyncCount,
+                                     UnityEngine_QualitySettings_get_vSyncCount_il2cpp_Detour,
+            static_cast_p2p <void> (&UnityEngine_QualitySettings_get_vSyncCount_il2cpp_Original) );
+
+          if (*(void**)pfnUnityEngine_QualitySettings_get_vSyncCount != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_QualitySettings_get_vSyncCount);
+
+          hooks = true;
+        }
+
+        void* pfnUnityEngine_QualitySettings_set_vSyncCount = nullptr;
+              pfnUnityEngine_QualitySettings_set_vSyncCount = get_vSyncCount;
+
+        if (pfnUnityEngine_QualitySettings_set_vSyncCount != nullptr && *(void**)pfnUnityEngine_QualitySettings_set_vSyncCount != nullptr)
+        {
+          SK_CreateFuncHook (      L"UnityEngine.QualitySettings.set_vSyncCount",
+                         *(void**)pfnUnityEngine_QualitySettings_set_vSyncCount,
+                                     UnityEngine_QualitySettings_set_vSyncCount_il2cpp_Detour,
+            static_cast_p2p <void> (&UnityEngine_QualitySettings_set_vSyncCount_il2cpp_Original) );
+
+          if (*(void**)pfnUnityEngine_QualitySettings_set_vSyncCount != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_QualitySettings_set_vSyncCount);
+
+          hooks = true;
+        }
+*/
+
+        if (hooks)
+          SK_ApplyQueuedHooks ();
       );
 
+      if (set_targetFrameRate != nullptr && __target_fps > 0.0f)
+      {
+        int target_fps = (int)ceilf (__target_fps);
+
+        void* params [1] = { &target_fps };
+
+        Il2cpp::method_call (set_targetFrameRate, nullptr, params, nullptr);
+      }
 
       if (get_fixedDeltaTime != nullptr)
       {
