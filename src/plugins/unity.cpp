@@ -1851,17 +1851,17 @@ SK_Unity_SetTargetFrameRate (void)
     static HANDLE hThread =
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      __try
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
+      while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-
-        while (! ReadAcquire (&__SK_DLL_Ending))
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
         {
-          if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
-          {
-            break;
-          }
+          break;
+        }
 
+        __try
+        {
           if (set_targetFrameRate_il2cpp != nullptr)
           {
             Il2cpp::thread_attach (Il2cpp::get_domain     ());
@@ -1875,10 +1875,11 @@ SK_Unity_SetTargetFrameRate (void)
             SK_mono_runtime_invoke         (set_targetFrameRate_mono, nullptr, params, nullptr);
             DetachCurrentThreadIfNotNative ();
           }
-
-          SK_SleepEx (100UL, FALSE);
         }
-      } __except (EXCEPTION_EXECUTE_HANDLER) { };
+        __except (EXCEPTION_EXECUTE_HANDLER) { };
+
+        SK_SleepEx (100UL, FALSE);
+      }
 
       SK_Thread_CloseSelf ();
 
