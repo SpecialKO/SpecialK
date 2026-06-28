@@ -1859,13 +1859,11 @@ SK_Unity_SetTargetFrameRate (void)
           break;
         }
 
-        SK_SleepEx (100UL, FALSE);
-
-        AttachThread ();
-
-        SK_mono_runtime_invoke (set_targetFrameRate_mono, nullptr, params, nullptr);
-
+        AttachThread                   ();
+        SK_mono_runtime_invoke         (set_targetFrameRate_mono, nullptr, params, nullptr);
         DetachCurrentThreadIfNotNative ();
+
+        SK_SleepEx (100UL, FALSE);
       }
 
       SK_Thread_CloseSelf ();
@@ -1890,11 +1888,11 @@ SK_Unity_SetTargetFrameRate (void)
           break;
         }
 
-        SK_SleepEx (100UL, FALSE);
-
         Il2cpp::thread_attach (Il2cpp::get_domain     ());
         Il2cpp::method_call   (set_targetFrameRate_il2cpp, nullptr, params, nullptr);
         Il2cpp::thread_detach (Il2cpp::thread_current ());
+
+        SK_SleepEx (100UL, FALSE);
       }
 
       SK_Thread_CloseSelf ();
