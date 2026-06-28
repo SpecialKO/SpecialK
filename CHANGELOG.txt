@@ -1,4 +1,9 @@
-﻿26.6.28.2
+﻿26.6.28.3
+=========
+ + Implement per-frame Unity fixed delta time override, again, for
+     Dave the Diver...
+
+26.6.28.2
 =========
  + Add a signal to kill 26.6.28.1's new dedicated thread at game exit,
      because the thread would otherwise keep running and prevent games
