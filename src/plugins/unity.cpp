@@ -1028,6 +1028,12 @@ SK_Unity_EndFrame (void)
   bool forced_update =
     (SK_Unity_Cfg.fixed_delta_auto_sync) && last_fps != __target_fps_now && __target_fps_now > 0.0f;
 
+  if (__target_fps_now > 0.0f)
+  {
+    void SK_Unity_SetTargetFrameRate (void);
+         SK_Unity_SetTargetFrameRate (    );
+  }
+
   // Stupid hack to ensure this is applied initially; may take many frames.
   if (SK_GetFramesDrawn () >= 15 && (forced_update || SK_GetFramesDrawn () < 1500))
   {
@@ -1728,10 +1734,10 @@ UnityEngine_Application_get_targetFrameRate_Detour (MonoObject* __this)
   int original_target_framerate =
     UnityEngine_Application_get_targetFrameRate_Original (__this);
 
-  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != original_target_framerate)
+  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != original_target_framerate)
   {
     return
-      (int)__target_fps;
+      (int)__target_fps_now;
   }
 
   return
@@ -1743,9 +1749,9 @@ UnityEngine_Application_set_targetFrameRate_Detour (MonoObject* __this, int targ
 {
   SK_LOG_FIRST_CALL
 
-  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != targetFrameRate)
+  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != targetFrameRate)
   {
-    UnityEngine_Application_set_targetFrameRate_Original (__this, (int)ceilf (__target_fps));
+    UnityEngine_Application_set_targetFrameRate_Original (__this, (int)ceilf (__target_fps_now));
     return;
   }
 
@@ -1769,10 +1775,10 @@ UnityEngine_Application_get_targetFrameRate_il2cpp_Detour (void* __this)
   int original_target_framerate =
     UnityEngine_Application_get_targetFrameRate_il2cpp_Original (__this);
 
-  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != original_target_framerate)
+  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != original_target_framerate)
   {
     return
-      (int)ceilf (__target_fps);
+      (int)ceilf (__target_fps_now);
   }
 
   return
@@ -1784,10 +1790,10 @@ UnityEngine_Application_set_targetFrameRate_il2cpp_Detour (void* __this, int tar
 {
   SK_LOG_FIRST_CALL
 
-  if (__target_fps > 0.0f && (int)ceilf (__target_fps) != targetFrameRate)
+  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != targetFrameRate)
   {
     return
-      UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, (int)ceilf (__target_fps));
+      UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, (int)ceilf (__target_fps_now));
   }
 
   return
@@ -1815,6 +1821,71 @@ UnityEngine_Time_get_fixedDeltaTime_il2cpp_Detour (void* __this)
 
   return
     original_fixed_delta_time;
+}
+
+static MonoMethod* set_targetFrameRate_mono   = nullptr;
+static Method*     set_targetFrameRate_il2cpp = nullptr;
+
+void
+SK_Unity_SetTargetFrameRate (void)
+{
+  static HANDLE hSetTargetFramerateSignal =
+    SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+
+  static int target_fps;
+             target_fps = (int)ceilf (__target_fps_now);
+
+  if (set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
+  {
+    SetEvent (hSetTargetFramerateSignal);
+
+    static HANDLE hThread =
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      AttachThread ();
+
+      while (! ReadAcquire (&__SK_DLL_Ending))
+      {
+        WaitForSingleObject (hSetTargetFramerateSignal, INFINITE);
+
+        void* params [1] = { &target_fps };
+
+        SK_mono_runtime_invoke (set_targetFrameRate_mono, nullptr, params, nullptr);
+      }
+
+      DetachCurrentThreadIfNotNative ();
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Unity Framerate Override");
+  }
+
+  if (set_targetFrameRate_il2cpp != nullptr && __target_fps_now > 0.0f)
+  {
+    SetEvent (hSetTargetFramerateSignal);
+
+    static HANDLE hThread =
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      Il2cpp::thread_attach (Il2cpp::get_domain ());
+
+      while (! ReadAcquire (&__SK_DLL_Ending))
+      {
+        WaitForSingleObject (hSetTargetFramerateSignal, INFINITE);
+
+        void* params [1] = { &target_fps };
+
+        Il2cpp::method_call (set_targetFrameRate_il2cpp, nullptr, params, nullptr);
+      }
+
+      Il2cpp::thread_detach (Il2cpp::thread_current ());
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Unity Framerate Override");
+  }
 }
 
 void
@@ -1885,11 +1956,11 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
       static auto klass2 = SK_mono_class_from_name (core_module, "UnityEngine", "Application");
 
-      static MonoMethod* set_targetFrameRate = klass2 != nullptr ? SK_mono_class_get_method_from_name (klass2, "set_targetFrameRate", 1) : nullptr;
-      static MonoMethod* get_targetFrameRate = klass2 != nullptr ? SK_mono_class_get_method_from_name (klass2, "get_targetFrameRate", 0) : nullptr;
+                         set_targetFrameRate_mono = klass2 != nullptr ? SK_mono_class_get_method_from_name (klass2, "set_targetFrameRate", 1) : nullptr;
+      static MonoMethod* get_targetFrameRate      = klass2 != nullptr ? SK_mono_class_get_method_from_name (klass2, "get_targetFrameRate", 0) : nullptr;
 
-      if (set_targetFrameRate != nullptr ||
-          get_targetFrameRate != nullptr)
+      if (set_targetFrameRate_mono != nullptr ||
+          get_targetFrameRate      != nullptr)
       {
         SK_RunOnce (
           void* pfnUnityEngine_Application_get_targetFrameRate = nullptr;
@@ -1923,6 +1994,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
           SK_ApplyQueuedHooks ();
         );
+
+        SK_Unity_SetTargetFrameRate ();
       }
 
 #if 0
@@ -1968,15 +2041,6 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
         );
       }
 #endif
-
-      if (set_targetFrameRate != nullptr && __target_fps > 0.0f)
-      {
-        int target_fps = (int)ceilf (__target_fps);
-
-        void* params [1] = { &target_fps };
-
-        SK_mono_runtime_invoke (set_targetFrameRate, nullptr, params, nullptr);
-      }
 
       if (set_fixedDeltaTime != nullptr &&
           get_fixedDeltaTime != nullptr)
@@ -2056,8 +2120,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       static auto klass2 = image != nullptr ? image->get_class ("Application",     "UnityEngine") : nullptr;
       static auto klass3 = image != nullptr ? image->get_class ("QualitySettings", "UnityEngine") : nullptr;
 
-      static Method* set_targetFrameRate = klass2 != nullptr ? klass2->get_method ("set_targetFrameRate", 1) : nullptr;
-      static Method* get_targetFrameRate = klass2 != nullptr ? klass2->get_method ("get_targetFrameRate", 0) : nullptr;
+                     set_targetFrameRate_il2cpp = klass2 != nullptr ? klass2->get_method ("set_targetFrameRate", 1) : nullptr;
+      static Method* get_targetFrameRate        = klass2 != nullptr ? klass2->get_method ("get_targetFrameRate", 0) : nullptr;
 
       static Method* set_vSyncCount = klass3 != nullptr ? klass3->get_method ("set_vSyncCount", 1) : nullptr;
       static Method* get_vSyncCount = klass3 != nullptr ? klass3->get_method ("get_vSyncCount", 0) : nullptr;
@@ -2096,7 +2160,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
         }
 
         void* pfnUnityEngine_Application_set_targetFrameRate = nullptr;
-              pfnUnityEngine_Application_set_targetFrameRate = set_targetFrameRate;
+              pfnUnityEngine_Application_set_targetFrameRate = set_targetFrameRate_il2cpp;
 
         if (pfnUnityEngine_Application_set_targetFrameRate != nullptr && *(void**)pfnUnityEngine_Application_set_targetFrameRate != nullptr)
         {
@@ -2146,14 +2210,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           SK_ApplyQueuedHooks ();
       );
 
-      if (set_targetFrameRate != nullptr && __target_fps > 0.0f)
-      {
-        int target_fps = (int)ceilf (__target_fps);
-
-        void* params [1] = { &target_fps };
-
-        Il2cpp::method_call (set_targetFrameRate, nullptr, params, nullptr);
-      }
+      SK_Unity_SetTargetFrameRate ();
 
       if (get_fixedDeltaTime != nullptr)
       {
