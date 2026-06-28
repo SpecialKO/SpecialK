@@ -335,6 +335,7 @@ SK_GetCurrentGameID (void) noexcept
           { L"PlatformProcess.exe",                    SK_GAME_ID::ArknightsEndfield            },
           { L"CrimsonDesert.exe",                      SK_GAME_ID::CrimsonDesert                },
           { L"MinaTheHollower.exe",                    SK_GAME_ID::MinaTheHollower              },
+          { L"DaveTheDiver.exe",                       SK_GAME_ID::DaveTheDiver                 },
         };
 
     first_check  = false;

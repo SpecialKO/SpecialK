@@ -1962,6 +1962,7 @@ enum class SK_GAME_ID
   ArknightsEndfield,            // Endfield.exe, PlatformProcess.exe (if injected too late)
   CrimsonDesert,                // CrimsonDesert.exe
   MinaTheHollower,              // MinaTheHollower.exe
+  DaveTheDiver,                 // DaveTheDiver.exe
 
   UNKNOWN_GAME               = 0xffff
 };
