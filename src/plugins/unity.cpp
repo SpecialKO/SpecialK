@@ -1832,6 +1832,12 @@ SK_Unity_SetTargetFrameRate (void)
   static HANDLE hSetTargetFramerateSignal =
     SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
+  static HANDLE
+    signals [] = {
+      __SK_DLL_TeardownEvent,
+      hSetTargetFramerateSignal
+    };
+
   static int target_fps;
              target_fps = (int)ceilf (__target_fps_now);
 
@@ -1846,7 +1852,8 @@ SK_Unity_SetTargetFrameRate (void)
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        WaitForSingleObject (hSetTargetFramerateSignal, INFINITE);
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+          break;
 
         void* params [1] = { &target_fps };
 
@@ -1872,7 +1879,8 @@ SK_Unity_SetTargetFrameRate (void)
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        WaitForSingleObject (hSetTargetFramerateSignal, INFINITE);
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+          break;
 
         void* params [1] = { &target_fps };
 

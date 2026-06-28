@@ -1,4 +1,10 @@
-﻿26.6.28.1
+﻿26.6.28.2
+=========
+ + Add a signal to kill 26.6.28.1's new dedicated thread at game exit,
+     because the thread would otherwise keep running and prevent games
+       from exiting...
+
+26.6.28.1
 =========
  + Apply Unity Framerate Limit override once per-frame if necessary,
      using a dedicated Mono-managed thread rather than a game's
