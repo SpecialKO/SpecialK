@@ -1841,6 +1841,8 @@ SK_Unity_SetTargetFrameRate (void)
   static int target_fps;
              target_fps = (int)ceilf (__target_fps_now);
 
+  static void* params [1] = { &target_fps };
+
   if (set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
   {
     SetEvent (hSetTargetFramerateSignal);
@@ -1850,19 +1852,21 @@ SK_Unity_SetTargetFrameRate (void)
     {
       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
-      AttachThread ();
-
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, 250))
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+        {
           break;
+        }
 
-        void* params [1] = { &target_fps };
+        SK_SleepEx (100UL, FALSE);
+
+        AttachThread ();
 
         SK_mono_runtime_invoke (set_targetFrameRate_mono, nullptr, params, nullptr);
-      }
 
-      DetachCurrentThreadIfNotNative ();
+        DetachCurrentThreadIfNotNative ();
+      }
 
       SK_Thread_CloseSelf ();
 
@@ -1879,19 +1883,19 @@ SK_Unity_SetTargetFrameRate (void)
     {
       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
-      Il2cpp::thread_attach (Il2cpp::get_domain ());
-
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, 250))
+        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+        {
           break;
+        }
 
-        void* params [1] = { &target_fps };
+        SK_SleepEx (100UL, FALSE);
 
-        Il2cpp::method_call (set_targetFrameRate_il2cpp, nullptr, params, nullptr);
+        Il2cpp::thread_attach (Il2cpp::get_domain     ());
+        Il2cpp::method_call   (set_targetFrameRate_il2cpp, nullptr, params, nullptr);
+        Il2cpp::thread_detach (Il2cpp::thread_current ());
       }
-
-      Il2cpp::thread_detach (Il2cpp::thread_current ());
 
       SK_Thread_CloseSelf ();
 
