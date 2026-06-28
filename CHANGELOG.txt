@@ -1,4 +1,10 @@
-﻿26.6.28
+﻿26.6.28.1
+=========
+ + Apply Unity Framerate Limit override once per-frame if necessary,
+     using a dedicated Mono-managed thread rather than a game's
+       render thread.
+
+26.6.28
 =======
  + Added Unity Engine override for Application.targetFrameRate if SK's
      framerate limiter is active; allows SK to define the framerate cap
