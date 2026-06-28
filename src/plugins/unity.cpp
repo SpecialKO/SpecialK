@@ -1843,57 +1843,42 @@ SK_Unity_SetTargetFrameRate (void)
 
   static void* params [1] = { &target_fps };
 
-  if (set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
+  if (__target_fps_now > 0.0f)
   {
-    SetEvent (hSetTargetFramerateSignal);
+    if (! ReadAcquire (&__SK_DLL_Ending))
+      SetEvent (hSetTargetFramerateSignal);
 
     static HANDLE hThread =
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-
-      while (! ReadAcquire (&__SK_DLL_Ending))
+      __try
       {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
+        while (! ReadAcquire (&__SK_DLL_Ending))
         {
-          break;
+          if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
+          {
+            break;
+          }
+
+          if (set_targetFrameRate_il2cpp != nullptr)
+          {
+            Il2cpp::thread_attach (Il2cpp::get_domain     ());
+            Il2cpp::method_call   (set_targetFrameRate_il2cpp, nullptr, params, nullptr);
+            Il2cpp::thread_detach (Il2cpp::thread_current ());
+          }
+
+          else
+          {
+            AttachThread                   ();
+            SK_mono_runtime_invoke         (set_targetFrameRate_mono, nullptr, params, nullptr);
+            DetachCurrentThreadIfNotNative ();
+          }
+
+          SK_SleepEx (100UL, FALSE);
         }
-
-        AttachThread                   ();
-        SK_mono_runtime_invoke         (set_targetFrameRate_mono, nullptr, params, nullptr);
-        DetachCurrentThreadIfNotNative ();
-
-        SK_SleepEx (100UL, FALSE);
-      }
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }, L"[SK] Unity Framerate Override");
-  }
-
-  if (set_targetFrameRate_il2cpp != nullptr && __target_fps_now > 0.0f)
-  {
-    SetEvent (hSetTargetFramerateSignal);
-
-    static HANDLE hThread =
-    SK_Thread_CreateEx ([](LPVOID)->DWORD
-    {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-
-      while (! ReadAcquire (&__SK_DLL_Ending))
-      {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
-        {
-          break;
-        }
-
-        Il2cpp::thread_attach (Il2cpp::get_domain     ());
-        Il2cpp::method_call   (set_targetFrameRate_il2cpp, nullptr, params, nullptr);
-        Il2cpp::thread_detach (Il2cpp::thread_current ());
-
-        SK_SleepEx (100UL, FALSE);
-      }
+      } __except (EXCEPTION_EXECUTE_HANDLER) { };
 
       SK_Thread_CloseSelf ();
 
