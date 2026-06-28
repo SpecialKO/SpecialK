@@ -1,4 +1,9 @@
-﻿26.6.28.3
+﻿26.6.28.4
+=========
+ + Use ShowWindowAsync (...) instead of ShowWindow (...) during DLL
+     detach to prevent possible deadlock in Unity games.
+
+26.6.28.3
 =========
  + Implement per-frame Unity fixed delta time override, again, for
      Dave the Diver...

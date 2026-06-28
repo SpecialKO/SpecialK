@@ -1722,12 +1722,6 @@ BOOL
 __stdcall
 SK_Detach (DLL_ROLE role)
 {
-  // Hide game while exiting to make it appear snappier.
-  if (game_window.hWnd != 0)
-  {
-    SK_ShowWindowAsync (game_window.hWnd, SW_HIDE);
-  }
-
   ULONG local_refs =
     InterlockedDecrementRelease (&__SK_DLL_Refs);
 
@@ -1738,6 +1732,12 @@ SK_Detach (DLL_ROLE role)
      )
   {
     SK_ReleaseAssert (local_refs == 0);
+
+    // Hide game while exiting to make it appear snappier.
+    if (game_window.hWnd != 0)
+    {
+      SK_ShowWindowAsync (game_window.hWnd, SW_HIDE);
+    }
 
 #ifdef _SK_NO_ATOMIC_SHARED_PTR
     SK_CleanupMutex (&budget_mutex);     SK_CleanupMutex (&init_mutex);
