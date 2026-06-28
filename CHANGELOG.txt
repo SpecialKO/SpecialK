@@ -1,5 +1,6 @@
 ﻿26.6.28.4
 =========
+ + Enable SK's Unity framepacing fixes by default in Dave the Diver.
  + Use ShowWindowAsync (...) instead of ShowWindow (...) during DLL
      detach to prevent possible deadlock in Unity games.
 

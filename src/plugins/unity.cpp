@@ -458,7 +458,8 @@ SK_Unity_InitPlugin (void)
 */
 
     // Needs this setting or judder is out of control.
-    if (SK_IsCurrentGame (SK_GAME_ID::PrinceOfPersia_TheLostCrown))
+    if (SK_IsCurrentGame (SK_GAME_ID::PrinceOfPersia_TheLostCrown) ||
+        SK_ISCurrentGame (SK_GAME_ID::DaveTheDiver))
       SK_Unity_Cfg.fixed_delta_auto_sync = true;
 
     SK_Unity_Cfg.gamepad_fix_playstation.bind_to_ini (
