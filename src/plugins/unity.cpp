@@ -1856,49 +1856,92 @@ SK_Unity_SetTargetFrameRate (void)
     if (! ReadAcquire (&__SK_DLL_Ending))
       SetEvent (hSetTargetFramerateSignal);
 
-    static HANDLE hThread =
-    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    static volatile LONG             fps_thread  =  0;
+    if (InterlockedCompareExchange (&fps_thread, 1, 0) == 0)
     {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-
-      while (! ReadAcquire (&__SK_DLL_Ending))
+      // This thread is full of awful hacks because SK does not know when
+      //   Unity is shutting down and the Managed runtime waits for all
+      //     attached threads to terminate during a clean exit.
+      //
+      //   It could all be a lot simpler, but we must avoid attaching
+      //     the managed runtime to the thread that signals this code.
+      SK_Thread_CreateEx ([](LPVOID)->DWORD
       {
-        if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, INFINITE))
-        {
-          break;
-        }
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
-        __try
+        while (! ReadAcquire (&__SK_DLL_Ending))
         {
-          if (set_targetFrameRate_il2cpp != nullptr ||
-              set_fixedDeltaTime_il2cpp  != nullptr)
+          const auto last_frame =
+            SK_GetFramesDrawn ();
+
+          if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, 1500) || ReadAcquire (&__SK_DLL_Ending))
           {
-            Il2cpp::thread_attach (Il2cpp::get_domain     ());
-            if (                   set_targetFrameRate_il2cpp != nullptr && __target_fps_now > 0.0f)
-              Il2cpp::method_call (set_targetFrameRate_il2cpp,   nullptr,     params_fps, nullptr);
-            if (                   set_fixedDeltaTime_il2cpp  != nullptr && fixed_delta_time_static != 0.0f)
-              Il2cpp::method_call (set_fixedDeltaTime_il2cpp,    nullptr,  params_delta,  nullptr);
-            Il2cpp::thread_detach (Il2cpp::thread_current ());
+            SK_LOGi0 (L"Unity Framerate Override: DLL Unloading");
+            // DLL Unloading
+            break;
           }
 
-          else if (set_targetFrameRate_mono != nullptr ||
-                   set_fixedDeltaTime_mono  != nullptr)
+          else
           {
-            AttachThread                   ();
-            if (                            set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
-              SK_mono_runtime_invoke       (set_targetFrameRate_mono,   nullptr,     params_fps, nullptr);
-            if (                            set_fixedDeltaTime_mono  != nullptr && fixed_delta_time_static != 0.0f)
-              SK_mono_runtime_invoke       (set_fixedDeltaTime_mono,    nullptr,  params_delta,  nullptr);
-            DetachCurrentThreadIfNotNative ();
+            SK_SleepEx (1500UL, FALSE);
+
+            if (last_frame == SK_GetFramesDrawn ())
+            {
+              SK_LOGi0 (L"Unity Framerate Override: Stalled for 2500 ms... game exiting?");
+              // No frames drawn between waits; game is probably exiting.
+              break;
+            }
           }
+
+          __try
+          {
+            if (set_targetFrameRate_il2cpp != nullptr ||
+                set_fixedDeltaTime_il2cpp  != nullptr)
+            {
+              Il2cpp::thread_attach (Il2cpp::get_domain     ());
+              if (                   set_targetFrameRate_il2cpp != nullptr && __target_fps_now > 0.0f)
+                Il2cpp::method_call (set_targetFrameRate_il2cpp,   nullptr,     params_fps, nullptr);
+              if (                   set_fixedDeltaTime_il2cpp  != nullptr && fixed_delta_time_static != 0.0f)
+                Il2cpp::method_call (set_fixedDeltaTime_il2cpp,    nullptr,  params_delta,  nullptr);
+              Il2cpp::thread_detach (Il2cpp::thread_current ());
+            }
+
+            else if (set_targetFrameRate_mono != nullptr ||
+                     set_fixedDeltaTime_mono  != nullptr)
+            {
+              AttachThread                   ();
+              if (                            set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
+                SK_mono_runtime_invoke       (set_targetFrameRate_mono,   nullptr,     params_fps, nullptr);
+              if (                            set_fixedDeltaTime_mono  != nullptr && fixed_delta_time_static != 0.0f)
+                SK_mono_runtime_invoke       (set_fixedDeltaTime_mono,    nullptr,  params_delta,  nullptr);
+              DetachCurrentThreadIfNotNative ();
+            }
+          }
+          __except (EXCEPTION_EXECUTE_HANDLER) {
+            SK_LOGi0 (L"Unity Framerate Override: Exception occurred");
+
+            __try {
+              if (set_targetFrameRate_il2cpp != nullptr ||
+                  set_fixedDeltaTime_il2cpp  != nullptr)
+                Il2cpp::thread_detach (Il2cpp::thread_current ());
+              else
+                DetachCurrentThreadIfNotNative ();
+            }
+
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+            }
+
+            break;
+          };
         }
-        __except (EXCEPTION_EXECUTE_HANDLER) { };
-      }
 
-      SK_Thread_CloseSelf ();
+        SK_Thread_CloseSelf ();
 
-      return 0;
-    }, L"[SK] Unity Framerate Override");
+        WriteRelease (&fps_thread, 0);
+
+        return 0;
+      }, L"[SK] Unity Framerate Override");
+    }
   }
 }
 
