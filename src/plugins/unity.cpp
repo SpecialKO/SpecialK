@@ -1836,13 +1836,16 @@ static float fixed_delta_time_static = 0.0f;
 void
 SK_Unity_SetTargetFrameRate (void)
 {
+  // The Mono/il2cpp runtime is in a weird state, assume game is shutting down...
+  static bool exception_raised = false;
+
   static HANDLE hSetTargetFramerateSignal =
     SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
   static HANDLE
     signals [] = {
-      __SK_DLL_TeardownEvent,
-      hSetTargetFramerateSignal
+      hSetTargetFramerateSignal,
+      __SK_DLL_TeardownEvent
     };
 
   static int target_fps;
@@ -1871,10 +1874,16 @@ SK_Unity_SetTargetFrameRate (void)
 
         while (! ReadAcquire (&__SK_DLL_Ending))
         {
+          if (exception_raised)
+            break;
+
           const auto last_frame =
             SK_GetFramesDrawn ();
 
-          if (WAIT_OBJECT_0 == WaitForMultipleObjects (2, signals, FALSE, 1500) || ReadAcquire (&__SK_DLL_Ending))
+          DWORD dwWaitState =
+            WaitForMultipleObjects (2, signals, FALSE, 666);
+
+          if (WAIT_OBJECT_0 + 1 == dwWaitState || ReadAcquire (&__SK_DLL_Ending))
           {
             SK_LOGi0 (L"Unity Framerate Override: DLL Unloading");
             // DLL Unloading
@@ -1883,11 +1892,14 @@ SK_Unity_SetTargetFrameRate (void)
 
           else
           {
-            SK_SleepEx (1500UL, FALSE);
+            SK_SleepEx (333UL, FALSE);
+
+            if (ReadAcquire (&__SK_DLL_Ending))
+              break;
 
             if (last_frame == SK_GetFramesDrawn ())
             {
-              SK_LOGi0 (L"Unity Framerate Override: Stalled for 2500 ms... game exiting?");
+              SK_LOGi1 (L"Unity Framerate Override: Stalled for 1000 ms... game exiting?");
               // No frames drawn between waits; game is probably exiting.
               break;
             }
@@ -1918,6 +1930,8 @@ SK_Unity_SetTargetFrameRate (void)
             }
           }
           __except (EXCEPTION_EXECUTE_HANDLER) {
+            exception_raised = true;
+
             SK_LOGi0 (L"Unity Framerate Override: Exception occurred");
 
             __try {
@@ -2157,7 +2171,7 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
     }, L"[SK] SetFixedDeltaTime_mono");
   }
 
-  else
+  else if (Il2cpp::get_domain != nullptr)
   {
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {

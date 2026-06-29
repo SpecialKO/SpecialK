@@ -1,4 +1,9 @@
-﻿26.6.29
+﻿26.6.29.1
+=========
+ + Add initialization check before attempting to call il2cpp functions
+     to set fixed delta time.
+
+26.6.29
 =======
  + Add 1.5 second deadman's switch to Unity framerate thread to prevent
      the thread from running forever if the Managed runtime is trying to
