@@ -156,7 +156,7 @@ SK_Unity_PlugInCfg (void)
 
         SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
       }
-      
+
       if (SK_ImGui_IsItemRightClicked ())
       {
         if (__target_fps_now > 0.0f)
@@ -1030,12 +1030,6 @@ SK_Unity_EndFrame (void)
   bool forced_update =
     (SK_Unity_Cfg.fixed_delta_auto_sync) && last_fps != __target_fps_now && __target_fps_now > 0.0f;
 
-  if (__target_fps_now > 0.0f)
-  {
-    void SK_Unity_SetTargetFrameRate (void);
-         SK_Unity_SetTargetFrameRate (    );
-  }
-
   // Stupid hack to ensure this is applied initially; may take many frames.
   if (SK_GetFramesDrawn () >= 15 && (forced_update || SK_GetFramesDrawn () < 1500))
   {
@@ -1054,7 +1048,7 @@ SK_Unity_EndFrame (void)
           SK_Unity_Cfg.time_fixed_delta_time != SK_Unity_OriginalFixedDeltaTime)
       {
         if (SK_Unity_Cfg.fixed_delta_auto_sync) last_fps = __target_fps_now;
-        SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+          SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
       }
 
       if (SK_Unity_Cfg.gamepad_polling_hz != 60.0f)
@@ -1062,6 +1056,12 @@ SK_Unity_EndFrame (void)
         SK_Unity_SetInputPollingFreq (SK_Unity_Cfg.gamepad_polling_hz);
       }
     }
+  }
+
+  if (__target_fps_now > 0.0f)
+  {
+    void SK_Unity_UpdateTimingOverrides (void);
+         SK_Unity_UpdateTimingOverrides (    );
   }
 }
 
@@ -1112,13 +1112,13 @@ bool LoadMonoAssembly (const char* assemblyName)
   }
 
   AttachThread ();
- 
+
   MonoAssembly* pAssembly =
     SK_mono_domain_assembly_open (pDomain, assemblyName);
 
   if (pAssembly == nullptr)
     return false;
- 
+
   pImage =
     SK_mono_assembly_get_image (pAssembly);
 
@@ -1139,32 +1139,32 @@ void* GetCompiledMethod (const char* nameSpace, const char* className, const cha
 
     if (pDomain == nullptr)
       return nullptr;
- 
+
     MonoAssembly* pAssembly =
       SK_mono_domain_assembly_open (pDomain, assemblyName);
 
     if (pAssembly == nullptr)
       return nullptr;
- 
+
     pImage =
       SK_mono_assembly_get_image (pAssembly);
 
     if (pImage == nullptr)
       return nullptr;
   }
- 
+
   MonoClass* pKlass =
     SK_mono_class_from_name (pImage, nameSpace != nullptr ? nameSpace : "", className);
 
   if (pKlass == nullptr)
     return nullptr;
- 
+
   MonoMethod* pMethod =
     SK_mono_class_get_method_from_name (pKlass, methodName, param_count);
 
   if (pMethod == nullptr)
     return nullptr;
- 
+
   return
     SK_mono_compile_method (pMethod);
 }
@@ -1182,26 +1182,26 @@ MonoMethod* GetMethod (const char* className, const char* methodName, int param_
 
     if (pDomain == nullptr)
       return nullptr;
- 
+
     MonoAssembly* pAssembly =
       SK_mono_domain_assembly_open (pDomain, assemblyName);
 
     if (pAssembly == nullptr)
       return nullptr;
- 
+
     pImage =
       SK_mono_assembly_get_image (pAssembly);
 
     if (pImage == nullptr)
       return nullptr;
   }
- 
+
   MonoClass* pKlass =
     SK_mono_class_from_name (pImage, nameSpace, className);
 
   if (pKlass == nullptr)
     return nullptr;
- 
+
   return
     SK_mono_class_get_method_from_name (pKlass, methodName, param_count);
 }
@@ -1219,20 +1219,20 @@ MonoClass* GetClass (const char* className, const char* assemblyName = "Assembly
 
     if (pDomain == nullptr)
       return nullptr;
- 
+
     MonoAssembly* pAssembly =
       SK_mono_domain_assembly_open (pDomain, assemblyName);
 
     if (pAssembly == nullptr)
       return nullptr;
- 
+
     pImage =
       SK_mono_assembly_get_image (pAssembly);
 
     if (pImage == nullptr)
       return nullptr;
   }
- 
+
   MonoClass* pKlass =
     SK_mono_class_from_name (pImage, nameSpace, className);
 
@@ -1262,26 +1262,26 @@ MonoClassField* GetField (const char* className, const char* fieldName, const ch
 
     if (pDomain == nullptr)
       return nullptr;
- 
+
     MonoAssembly* pAssembly =
       SK_mono_domain_assembly_open (pDomain, assemblyName);
 
     if (pAssembly == nullptr)
       return nullptr;
- 
+
     pImage =
       SK_mono_assembly_get_image (pAssembly);
 
     if (pImage == nullptr)
       return nullptr;
   }
- 
+
   MonoClass* pKlass =
     SK_mono_class_from_name (pImage, nameSpace, className);
 
   if (pKlass == nullptr)
     return nullptr;
- 
+
   MonoClassField* pField =
     SK_mono_class_get_field_from_name (pKlass, fieldName);
 
@@ -1359,7 +1359,7 @@ void* GetStaticFieldData (MonoClass* pKlass)
 
   if (pVTable == nullptr)
     return nullptr;
- 
+
   return
     SK_mono_vtable_get_static_field_data (pVTable);
 }
@@ -1372,16 +1372,16 @@ void* GetStaticFieldValue (const char* className, const char* fieldName, const c
 
   if (pKlass == nullptr)
     return nullptr;
- 
+
   MonoClassField* pField =
     GetField (pKlass, fieldName);
 
   if (pField == nullptr)
     return nullptr;
- 
+
   DWORD_PTR addr   = (DWORD_PTR)GetStaticFieldData (pKlass);
   uint32_t  offset =            GetFieldOffset     (pField);
- 
+
   void* value = (void *)(addr + offset);
 
   return value;
@@ -1554,7 +1554,7 @@ MonoObject* Invoke (MonoMethod* method, void* obj, void** params)
     return nullptr;
 
   SK_mono_thread_attach (SK_Unity_MonoDomain);
- 
+
   MonoObject* exc;
 
   return
@@ -1863,7 +1863,7 @@ static float fixed_delta_time_static = 0.0f;
 
 // Combined Mono and il2cpp support for setting target framerate and fixed delta time in Unity.
 void
-SK_Unity_SetTargetFrameRate (void)
+SK_Unity_UpdateTimingOverrides (void)
 {
   // The Mono/il2cpp runtime is in a weird state, assume game is shutting down...
   static bool exception_raised = false;
@@ -1877,9 +1877,7 @@ SK_Unity_SetTargetFrameRate (void)
       __SK_DLL_TeardownEvent
     };
 
-  static int target_fps;
-             target_fps = -1;//(int)ceilf (__target_fps_now);
-
+  static int                         target_fps = -1; // Disable Unity limiter
   static void* params_fps   [1] = { &target_fps };
   static void* params_delta [1] = { &fixed_delta_time_static };
 
@@ -1888,8 +1886,8 @@ SK_Unity_SetTargetFrameRate (void)
     if (! ReadAcquire (&__SK_DLL_Ending))
       SetEvent (hSetTargetFramerateSignal);
 
-    static volatile LONG             fps_thread  =  0;
-    if (InterlockedCompareExchange (&fps_thread, 1, 0) == 0)
+    static volatile LONG             timing_thread  =  0;
+    if (InterlockedCompareExchange (&timing_thread, 1, 0) == 0)
     {
       // This thread is full of awful hacks because SK does not know when
       //   Unity is shutting down and the Managed runtime waits for all
@@ -1901,10 +1899,20 @@ SK_Unity_SetTargetFrameRate (void)
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
+        bool attached = false;
+        bool il2cpp   = false;
+        bool mono     = false;
+
         while (! ReadAcquire (&__SK_DLL_Ending))
         {
           if (exception_raised)
             break;
+
+          il2cpp = (set_targetFrameRate_il2cpp != nullptr||
+                    set_fixedDeltaTime_il2cpp  != nullptr);
+
+          mono   = (set_targetFrameRate_mono != nullptr||
+                    set_fixedDeltaTime_mono  != nullptr);
 
           const auto last_frame =
             SK_GetFramesDrawn ();
@@ -1936,54 +1944,89 @@ SK_Unity_SetTargetFrameRate (void)
 
           __try
           {
-            if (set_targetFrameRate_il2cpp != nullptr ||
-                set_fixedDeltaTime_il2cpp  != nullptr)
+            if (il2cpp)
             {
-              Il2cpp::thread_attach (Il2cpp::get_domain     ());
-              if (                   set_targetFrameRate_il2cpp != nullptr && __target_fps_now > 0.0f)
-                Il2cpp::method_call (set_targetFrameRate_il2cpp,   nullptr,     params_fps, nullptr);
-              if (                   set_fixedDeltaTime_il2cpp  != nullptr && fixed_delta_time_static != 0.0f)
-                Il2cpp::method_call (set_fixedDeltaTime_il2cpp,    nullptr,  params_delta,  nullptr);
-              Il2cpp::thread_detach (Il2cpp::thread_current ());
+              if (! attached)
+              {
+                Il2cpp::thread_attach (Il2cpp::get_domain ());
+
+                attached = true;
+              }
+
+              if (attached)
+              {
+                if (                   set_targetFrameRate_il2cpp != nullptr && __target_fps_now > 0.0f)
+                  Il2cpp::method_call (set_targetFrameRate_il2cpp,   nullptr,     params_fps, nullptr);
+                if (                   set_fixedDeltaTime_il2cpp  != nullptr && fixed_delta_time_static != 0.0f)
+                  Il2cpp::method_call (set_fixedDeltaTime_il2cpp,    nullptr,  params_delta,  nullptr);
+
+                Il2cpp::thread_detach (Il2cpp::thread_current ());
+
+                attached = false;
+              }
             }
 
-            else if (set_targetFrameRate_mono != nullptr ||
-                     set_fixedDeltaTime_mono  != nullptr)
+            else if (mono)
             {
-              AttachThread                   ();
-              if (                            set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
-                SK_mono_runtime_invoke       (set_targetFrameRate_mono,   nullptr,     params_fps, nullptr);
-              if (                            set_fixedDeltaTime_mono  != nullptr && fixed_delta_time_static != 0.0f)
-                SK_mono_runtime_invoke       (set_fixedDeltaTime_mono,    nullptr,  params_delta,  nullptr);
-              DetachCurrentThreadIfNotNative ();
+              if (! attached)
+              {
+                AttachThread ();
+
+                attached = true;
+              }
+
+              if (attached)
+              {
+                if (                      set_targetFrameRate_mono != nullptr && __target_fps_now > 0.0f)
+                  SK_mono_runtime_invoke (set_targetFrameRate_mono,   nullptr,     params_fps, nullptr);
+                if (                      set_fixedDeltaTime_mono  != nullptr && fixed_delta_time_static != 0.0f)
+                  SK_mono_runtime_invoke (set_fixedDeltaTime_mono,    nullptr,  params_delta,  nullptr);
+
+                DetachCurrentThreadIfNotNative ();
+
+                attached = false;
+              }
             }
           }
-          __except (EXCEPTION_EXECUTE_HANDLER) {
+
+          __except (EXCEPTION_EXECUTE_HANDLER)
+          {
             exception_raised = true;
 
             SK_LOGi0 (L"Unity Framerate Override: Exception occurred");
 
-            __try {
-              if (set_targetFrameRate_il2cpp != nullptr ||
-                  set_fixedDeltaTime_il2cpp  != nullptr)
-                Il2cpp::thread_detach (Il2cpp::thread_current ());
-              else
-                DetachCurrentThreadIfNotNative ();
-            }
+            if (attached)
+            {
+              __try
+              {
+                if (   il2cpp) Il2cpp::thread_detach (Il2cpp::thread_current ());
+                else if (mono) DetachCurrentThreadIfNotNative ();
 
-            __except (EXCEPTION_EXECUTE_HANDLER) {
+                attached = false;
+              }
+              __except (EXCEPTION_EXECUTE_HANDLER) {}
             }
 
             break;
           };
         }
 
+        if (attached)
+        {
+          __try
+          {
+            if (   il2cpp) Il2cpp::thread_detach (Il2cpp::thread_current ());
+            else if (mono) DetachCurrentThreadIfNotNative ();
+          }
+          __except (EXCEPTION_EXECUTE_HANDLER) {}
+        }
+
         SK_Thread_CloseSelf ();
 
-        WriteRelease (&fps_thread, 0);
+        WriteRelease (&timing_thread, 0);
 
         return 0;
-      }, L"[SK] Unity Framerate Override");
+      }, L"[SK] Unity Timing Override");
     }
   }
 }
@@ -2097,8 +2140,6 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
           SK_ApplyQueuedHooks ();
         );
-
-        SK_Unity_SetTargetFrameRate ();
       }
 
 #if 0
@@ -2195,6 +2236,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           SK_mono_runtime_invoke (set_fixedDeltaTime_mono, nullptr, params, nullptr);
         }
       }
+
+      SK_Unity_UpdateTimingOverrides ();
 
       DetachCurrentThreadIfNotNative ();
 
@@ -2332,8 +2375,6 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           SK_ApplyQueuedHooks ();
       );
 
-      SK_Unity_SetTargetFrameRate ();
-
       if (get_fixedDeltaTime != nullptr)
       {
         if (set_fixedDeltaTime_il2cpp == nullptr)
@@ -2366,6 +2407,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           Il2cpp::method_call (set_fixedDeltaTime_il2cpp, nullptr, params, nullptr);
         }
       }
+
+      SK_Unity_UpdateTimingOverrides ();
 
       Il2cpp::thread_detach (Il2cpp::thread_current ());
 

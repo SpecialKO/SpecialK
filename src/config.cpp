@@ -353,7 +353,7 @@ SK_GetCurrentGameID (void) noexcept
 
       if (app_id == 1382330)
         current_game = SK_GAME_ID::Persona5Strikers;
-         
+
 
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) ==
                       SK_GetHostApp () )
@@ -3928,7 +3928,7 @@ auto DeclKeybind =
             wchar_t      wszProfileSKinny [MAX_PATH] = {};
             PathAppendW (wszProfileSKinny, SK_GetConfigPath ());
             PathAppendW (wszProfileSKinny,    L"SKinny.ignore");
-          
+
             if (! (PathFileExists (L"SKinny.ignore") ||
                    PathFileExists (wszProfileSKinny)))
             {
@@ -4688,7 +4688,7 @@ auto DeclKeybind =
         {
           SK_LOGi1 ("Existing Endfield.exe process found with PID %u\n", injectedPid);
           TerminateRemainingPid (injectedPid);
-          
+
           if (_wcsicmp (SK_GetHostApp (), L"Endfield.exe") == 0)
             SK_RunOnce (plugin_mgr->init_fns.insert (SK_AKEF_InitPlugin));
           else
@@ -4762,7 +4762,7 @@ auto DeclKeybind =
   compatibility.rehook_loadlibrary->load    (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->load            (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->load         (config.compatibility.allow_dxdiagn);
-                                             
+
   compatibility.sdl.allow_wgi->load         (config.compatibility.sdl.allow_wgi);
   compatibility.sdl.allow_raw_input->load   (config.compatibility.sdl.allow_raw_input); 
   compatibility.sdl.allow_direct_input->load(config.compatibility.sdl.allow_direct_input);
@@ -8812,7 +8812,7 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 
           // ret should never be empty
           SK_ReleaseAssert (! ret.empty ());
-          
+
           if (! ret.empty ())
             return ret;
 
