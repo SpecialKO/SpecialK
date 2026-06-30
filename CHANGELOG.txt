@@ -1,4 +1,11 @@
-﻿26.6.29.1
+﻿26.6.30
+=======
+ + Disable Unity's framerate limiter altogether if SK's framerate limiter
+     is active.
+ + Enable VSYNC by default in Dave the Diver, since its internal setting
+     doesn't work correctly.
+
+26.6.29.1
 =========
  + Add initialization check before attempting to call il2cpp functions
      to set fixed delta time.

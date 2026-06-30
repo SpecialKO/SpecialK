@@ -1701,9 +1701,16 @@ static UnityEngine_Time_set_timeScale_pfn      UnityEngine_Time_set_timeScale_Or
 void
 UnityEngine_Time_set_fixedDeltaTime_Detour (MonoObject* __this, float fixedDeltaTime)
 {
-  SK_LOG_FIRST_CALL
+  SK_LOG_FIRST_EXTERNAL_CALL
 
-  UnityEngine_Time_set_fixedDeltaTime_Original (__this, fixedDeltaTime);
+  if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
+      SK_Unity_Cfg.time_fixed_delta_time != fixedDeltaTime)
+  {
+    fixedDeltaTime = SK_Unity_Cfg.time_fixed_delta_time;
+  }
+
+  return
+    UnityEngine_Time_set_fixedDeltaTime_Original (__this, fixedDeltaTime);
 }
 
 void
@@ -1735,10 +1742,9 @@ UnityEngine_Application_get_targetFrameRate_Detour (MonoObject* __this)
   int original_target_framerate =
     UnityEngine_Application_get_targetFrameRate_Original (__this);
 
-  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != original_target_framerate)
+  if (__target_fps_now > 0.0f)
   {
-    return
-      (int)__target_fps_now;
+    return -1;
   }
 
   return
@@ -1748,12 +1754,12 @@ UnityEngine_Application_get_targetFrameRate_Detour (MonoObject* __this)
 void
 UnityEngine_Application_set_targetFrameRate_Detour (MonoObject* __this, int targetFrameRate)
 {
-  SK_LOG_FIRST_CALL
+  SK_LOG_FIRST_EXTERNAL_CALL
 
-  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != targetFrameRate)
+  if (__target_fps_now > 0.0f)
   {
-    UnityEngine_Application_set_targetFrameRate_Original (__this, (int)ceilf (__target_fps_now));
-    return;
+    return
+      UnityEngine_Application_set_targetFrameRate_Original (__this, -1);
   }
 
   return
@@ -1776,10 +1782,9 @@ UnityEngine_Application_get_targetFrameRate_il2cpp_Detour (void* __this)
   int original_target_framerate =
     UnityEngine_Application_get_targetFrameRate_il2cpp_Original (__this);
 
-  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != original_target_framerate)
+  if (__target_fps_now > 0.0f)
   {
-    return
-      (int)ceilf (__target_fps_now);
+    return -1;
   }
 
   return
@@ -1789,12 +1794,12 @@ UnityEngine_Application_get_targetFrameRate_il2cpp_Detour (void* __this)
 void
 UnityEngine_Application_set_targetFrameRate_il2cpp_Detour (void* __this, int targetFrameRate)
 {
-  SK_LOG_FIRST_CALL
+  SK_LOG_FIRST_EXTERNAL_CALL
 
-  if (__target_fps_now > 0.0f && (int)ceilf (__target_fps_now) != targetFrameRate)
+  if (__target_fps_now > 0.0f)
   {
     return
-      UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, (int)ceilf (__target_fps_now));
+      UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, -1);
   }
 
   return
@@ -1822,6 +1827,26 @@ UnityEngine_Time_get_fixedDeltaTime_il2cpp_Detour (void* __this)
 
   return
     original_fixed_delta_time;
+}
+
+using  UnityEngine_Time_set_fixedDeltaTime_il2cpp_pfn = void (__fastcall *)(void*, float deltaTime);
+static UnityEngine_Time_set_fixedDeltaTime_il2cpp_pfn
+       UnityEngine_Time_set_fixedDeltaTime_il2cpp_Original = nullptr;
+
+void
+__fastcall
+UnityEngine_Time_set_fixedDeltaTime_il2cpp_Detour (void* __this, float fixedDeltaTime)
+{
+  SK_LOG_FIRST_EXTERNAL_CALL
+
+  if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
+      SK_Unity_Cfg.time_fixed_delta_time != fixedDeltaTime)
+  {
+    fixedDeltaTime = SK_Unity_Cfg.time_fixed_delta_time;
+  }
+
+  return
+    UnityEngine_Time_set_fixedDeltaTime_il2cpp_Original (__this, fixedDeltaTime);
 }
 
 static MonoMethod* set_targetFrameRate_mono   = nullptr;
@@ -2210,6 +2235,21 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
             static_cast_p2p <void> (&UnityEngine_Time_get_fixedDeltaTime_il2cpp_Original) );
 
           if (*(void**)pfnUnityEngine_Time_get_fixedDeltaTime != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Time_get_fixedDeltaTime);
+
+          hooks = true;
+        }
+
+        void* pfnUnityEngine_Time_set_fixedDeltaTime = nullptr;
+              pfnUnityEngine_Time_set_fixedDeltaTime = set_fixedDeltaTime_il2cpp;
+
+        if (pfnUnityEngine_Time_set_fixedDeltaTime != nullptr && *(void**)pfnUnityEngine_Time_set_fixedDeltaTime != nullptr)
+        {
+          SK_CreateFuncHook (      L"UnityEngine.Time.set_fixedDeltaTime",
+                         *(void**)pfnUnityEngine_Time_set_fixedDeltaTime,
+                                     UnityEngine_Time_set_fixedDeltaTime_il2cpp_Detour,
+            static_cast_p2p <void> (&UnityEngine_Time_set_fixedDeltaTime_il2cpp_Original) );
+
+          if (*(void**)pfnUnityEngine_Time_set_fixedDeltaTime != nullptr) SK_QueueEnableHook (*(void**)pfnUnityEngine_Time_set_fixedDeltaTime);
 
           hooks = true;
         }
