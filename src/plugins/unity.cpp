@@ -85,11 +85,12 @@ float SK_Unity_LatencyDelayPercent      =0.025f;
 
 bool  SK_Unity_FullIl2cppEngineTime     = true; // Il2cpp may strip out setter functions from UnityEngine.Time
 
-bool SK_Unity_HookMonoInit        (void);
-void SK_Unity_SetInputPollingFreq (float PollingHz);
-bool SK_Unity_SetupInputHooks     (void);
-void SK_Unity_UpdateGlyphOverride (void);
-void SK_Unity_SetFixedDeltaTime   (float fixed_delta_time);
+bool SK_Unity_HookMonoInit               (void);
+void SK_Unity_SetInputPollingFreq        (float PollingHz);
+bool SK_Unity_SetupInputHooks            (void);
+void SK_Unity_UpdateGlyphOverride        (void);
+void SK_Unity_SetFixedDeltaTime          (float fixed_delta_time);
+void SK_Unity_InitFixedDeltaTimeOverride (void);
 
 bool
 SK_Unity_PlugInCfg (void)
@@ -102,7 +103,7 @@ SK_Unity_PlugInCfg (void)
   if (! (SK_ImGui_HasPlayStationController () || SK_XInput_PollController (0)))
     show_controller_cfg = false;
 
-  SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
+  SK_RunOnce (SK_Unity_InitFixedDeltaTimeOverride ());
 
   const bool has_fixed_tick  = SK_Unity_OriginalFixedDeltaTime != 0.0f;
   const bool has_game_pacing = game_pace.isSupported ();
@@ -121,7 +122,7 @@ SK_Unity_PlugInCfg (void)
 
     if (SK_Unity_Cfg.time_fixed_delta_time == 0.0f && SK_Unity_OriginalFixedDeltaTime != 0.0f)
     {   SK_Unity_Cfg.time_fixed_delta_time =          SK_Unity_OriginalFixedDeltaTime;       }
-    
+
     float delta_hz =
       (1.0f / SK_Unity_Cfg.time_fixed_delta_time);
 
@@ -1024,7 +1025,7 @@ void
 __stdcall
 SK_Unity_EndFrame (void)
 {
-  static float last_fps = 0;
+  static float last_fps = 0.0f;
 
   bool forced_update =
     (SK_Unity_Cfg.fixed_delta_auto_sync) && last_fps != __target_fps_now && __target_fps_now > 0.0f;
@@ -1042,7 +1043,7 @@ SK_Unity_EndFrame (void)
         dwLastForced = 0;
     if (dwLastForced < SK::ControlPanel::current_time - 2500UL || forced_update)
     {   dwLastForced = SK::ControlPanel::current_time;
-      SK_RunOnce (SK_Unity_SetFixedDeltaTime (0.0f));
+      SK_RunOnce (SK_Unity_InitFixedDeltaTimeOverride ());
 
       if (forced_update)
       {
@@ -2373,6 +2374,17 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
       return 0;
     }, L"[SK] SetFixedDeltaTime_il2cpp");
   }
+}
+
+void
+SK_Unity_InitFixedDeltaTimeOverride (void)
+{
+  SK_RunOnce (
+    SK_Unity_SetFixedDeltaTime (0.0f);
+
+    if (                          SK_Unity_Cfg.time_fixed_delta_time != 0.0f)
+      SK_Unity_SetFixedDeltaTime (SK_Unity_Cfg.time_fixed_delta_time);
+  );
 }
 
 using InControl_InputDevice_OnAttached_pfn    = void (*)(MonoObject*);
