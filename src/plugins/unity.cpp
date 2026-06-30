@@ -1706,7 +1706,8 @@ UnityEngine_Time_set_fixedDeltaTime_Detour (MonoObject* __this, float fixedDelta
   if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
       SK_Unity_Cfg.time_fixed_delta_time != fixedDeltaTime)
   {
-    fixedDeltaTime = SK_Unity_Cfg.time_fixed_delta_time;
+    return
+      UnityEngine_Time_set_fixedDeltaTime_Original (__this, SK_Unity_Cfg.time_fixed_delta_time);
   }
 
   return
@@ -1766,11 +1767,11 @@ UnityEngine_Application_set_targetFrameRate_Detour (MonoObject* __this, int targ
     UnityEngine_Application_set_targetFrameRate_Original (__this, targetFrameRate);
 }
 
-using  UnityEngine_Application_get_targetFrameRate_il2cpp_pfn = int (__fastcall *)(void*);
+using  UnityEngine_Application_get_targetFrameRate_il2cpp_pfn = int (*)(void*);
 static UnityEngine_Application_get_targetFrameRate_il2cpp_pfn
        UnityEngine_Application_get_targetFrameRate_il2cpp_Original = nullptr;
 
-using  UnityEngine_Application_set_targetFrameRate_il2cpp_pfn = void (__fastcall *)(void*, int);
+using  UnityEngine_Application_set_targetFrameRate_il2cpp_pfn = void (*)(void*, int);
 static UnityEngine_Application_set_targetFrameRate_il2cpp_pfn
        UnityEngine_Application_set_targetFrameRate_il2cpp_Original = nullptr;
 
@@ -1806,7 +1807,7 @@ UnityEngine_Application_set_targetFrameRate_il2cpp_Detour (void* __this, int tar
     UnityEngine_Application_set_targetFrameRate_il2cpp_Original (__this, targetFrameRate);
 }
 
-using  UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn = float (__fastcall *)(void*);
+using  UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn = float (*)(void*);
 static UnityEngine_Time_get_fixedDeltaTime_il2cpp_pfn
        UnityEngine_Time_get_fixedDeltaTime_il2cpp_Original = nullptr;
 
@@ -1829,12 +1830,12 @@ UnityEngine_Time_get_fixedDeltaTime_il2cpp_Detour (void* __this)
     original_fixed_delta_time;
 }
 
-using  UnityEngine_Time_set_fixedDeltaTime_il2cpp_pfn = void (__fastcall *)(void*, float deltaTime);
+#ifdef SK_UNITY_SET_FIXEDDELTATIME_HOOK_DOES_NOT_KILL_PERFORMANCE_IN_PRINCE_OF_PERSIA
+using  UnityEngine_Time_set_fixedDeltaTime_il2cpp_pfn = void (*)(void*, float deltaTime);
 static UnityEngine_Time_set_fixedDeltaTime_il2cpp_pfn
        UnityEngine_Time_set_fixedDeltaTime_il2cpp_Original = nullptr;
 
 void
-__fastcall
 UnityEngine_Time_set_fixedDeltaTime_il2cpp_Detour (void* __this, float fixedDeltaTime)
 {
   SK_LOG_FIRST_EXTERNAL_CALL
@@ -1842,12 +1843,14 @@ UnityEngine_Time_set_fixedDeltaTime_il2cpp_Detour (void* __this, float fixedDelt
   if (SK_Unity_Cfg.time_fixed_delta_time != 0.0f &&
       SK_Unity_Cfg.time_fixed_delta_time != fixedDeltaTime)
   {
-    fixedDeltaTime = SK_Unity_Cfg.time_fixed_delta_time;
+    return
+      UnityEngine_Time_set_fixedDeltaTime_il2cpp_Original (__this, SK_Unity_Cfg.time_fixed_delta_time);
   }
 
   return
     UnityEngine_Time_set_fixedDeltaTime_il2cpp_Original (__this, fixedDeltaTime);
 }
+#endif
 
 static MonoMethod* set_targetFrameRate_mono   = nullptr;
 static Method*     set_targetFrameRate_il2cpp = nullptr;
@@ -2024,6 +2027,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           pfnUnityEngine_Time_set_timeScale =
             CompileMethod ("UnityEngine", "Time", "set_timeScale",      1, core_module_file);
 
+/*
+#ifdef SK_UNITY_SET_FIXEDDELTATIME_HOOK_DOES_NOT_KILL_PERFORMANCE_IN_PRINCE_OF_PERSIA
           if (pfnUnityEngine_Time_set_fixedDeltaTime != nullptr)
           {
             SK_CreateFuncHook (      L"UnityEngine.Time.set_fixedDeltaTime",
@@ -2031,6 +2036,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
                                        UnityEngine_Time_set_fixedDeltaTime_Detour,
               static_cast_p2p <void> (&UnityEngine_Time_set_fixedDeltaTime_Original) );
           }
+#endif
+*/
 
           if (pfnUnityEngine_Time_set_timeScale != nullptr)
           {
@@ -2239,6 +2246,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
           hooks = true;
         }
 
+/*
+#ifdef SK_UNITY_SET_FIXEDDELTATIME_HOOK_DOES_NOT_KILL_PERFORMANCE_IN_PRINCE_OF_PERSIA
         void* pfnUnityEngine_Time_set_fixedDeltaTime = nullptr;
               pfnUnityEngine_Time_set_fixedDeltaTime = set_fixedDeltaTime_il2cpp;
 
@@ -2253,6 +2262,8 @@ SK_Unity_SetFixedDeltaTime (float fixed_delta_time)
 
           hooks = true;
         }
+#endif
+*/
 
         void* pfnUnityEngine_Application_get_targetFrameRate = nullptr;
               pfnUnityEngine_Application_get_targetFrameRate = get_targetFrameRate;
