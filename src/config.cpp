@@ -3908,6 +3908,11 @@ auto DeclKeybind =
         config.render.framerate.target_fps = 120.0f;
         break;
 
+      case SK_GAME_ID::DaveTheDiver:
+        // Game's VSYNC setting does not work correctly, turn it on by default.
+        config.render.dxgi.present_interval = 1;
+        break;
+
       case SK_GAME_ID::ForzaHorizon5:
       case SK_GAME_ID::ForzaMotorsport:
       {
