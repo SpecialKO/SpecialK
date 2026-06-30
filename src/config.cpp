@@ -3910,7 +3910,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::DaveTheDiver:
         // Game's VSYNC setting does not work correctly, turn it on by default.
-        config.render.dxgi.present_interval = 1;
+        config.render.framerate.present_interval = 1;
         break;
 
       case SK_GAME_ID::ForzaHorizon5:

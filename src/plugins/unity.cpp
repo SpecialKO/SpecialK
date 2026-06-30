@@ -1849,7 +1849,7 @@ SK_Unity_SetTargetFrameRate (void)
     };
 
   static int target_fps;
-             target_fps = (int)ceilf (__target_fps_now);
+             target_fps = -1;//(int)ceilf (__target_fps_now);
 
   static void* params_fps   [1] = { &target_fps };
   static void* params_delta [1] = { &fixed_delta_time_static };
