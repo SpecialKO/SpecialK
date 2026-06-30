@@ -1,4 +1,10 @@
-﻿26.6.30.2
+﻿26.6.30.3
+=========
+ + Do not restart games after disabling SteamAPI in Unity engine games if
+     global injection is used, because SKIF will have stopped the injection
+       service and SK wouldn't inject when the game restarts.
+
+26.6.30.2
 =========
  + Fixed potential race to initialize Unity fixedDeltaTime overrides resulting
      in no override being applied automatically at game start.

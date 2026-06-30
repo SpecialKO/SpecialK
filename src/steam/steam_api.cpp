@@ -4188,7 +4188,10 @@ SK_SteamAPI_TerminateIfManualDispatchIsActiveAndSKHasHookedSteamAPI (void)
       L"Please Restart Game for Compatibility Mode", MB_ICONWARNING | MB_OK |
                                     MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST );
 
-    SK_RestartGame ();
+    // SKIF stops global injection after 1 frame, so restarting isn't always
+    //   possible without causing SK to not inject in the restarted process.
+    if (! (SK_GetFramesDrawn () && SK_IsInjected ()))
+      SK_RestartGame ();
 
     TerminateProcess (
       GetCurrentProcess (), 0x0
