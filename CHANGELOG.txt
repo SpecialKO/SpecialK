@@ -1,4 +1,12 @@
-﻿26.7.22
+﻿26.8.1
+======
+ + Rename chunks in HDR PNG from cLLi and mDCv to cLLI and mDCV to make them
+     compliant with the finalized PNG specification as now used by various
+       browsers.
+    * Very bright HDR screenshots may not be "display mapped" by browsers that
+        implement the final spec. without this change.
+
+26.7.22
 =======
  + Added EmuMenu.exe to internal injection blacklist to keep SK from injecting
      into Microsoft's Xbox Emulator's frontend rather than the actual game.
