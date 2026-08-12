@@ -1963,6 +1963,7 @@ enum class SK_GAME_ID
   CrimsonDesert,                // CrimsonDesert.exe
   MinaTheHollower,              // MinaTheHollower.exe
   DaveTheDiver,                 // DaveTheDiver.exe
+  PRAGMATA,                     // PRAGMATA.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -336,6 +336,7 @@ SK_GetCurrentGameID (void) noexcept
           { L"CrimsonDesert.exe",                      SK_GAME_ID::CrimsonDesert                },
           { L"MinaTheHollower.exe",                    SK_GAME_ID::MinaTheHollower              },
           { L"DaveTheDiver.exe",                       SK_GAME_ID::DaveTheDiver                 },
+          { L"PRAGMATA.exe",                           SK_GAME_ID::PRAGMATA                     },
         };
 
     first_check  = false;
@@ -3906,6 +3907,11 @@ auto DeclKeybind =
       //   limiter on its behalf.
       case SK_GAME_ID::MinaTheHollower:
         config.render.framerate.target_fps = 120.0f;
+        break;
+
+      case SK_GAME_ID::PRAGMATA:
+        // Game likes to make users keyboards useless, with no setting to not do that!
+        config.input.keyboard.prevent_no_hotkeys = true;
         break;
 
       case SK_GAME_ID::DaveTheDiver:

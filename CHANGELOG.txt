@@ -1,4 +1,8 @@
-﻿26.8.1
+﻿26.8.12
+=======
+ + Prevent PRAGMATA from blocking the Windows key and other system hotkeys.
+
+26.8.1
 ======
  + Rename chunks in HDR PNG from cLLi and mDCv to cLLI and mDCV to make them
      compliant with the finalized PNG specification as now used by various
