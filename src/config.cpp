@@ -337,6 +337,8 @@ SK_GetCurrentGameID (void) noexcept
           { L"MinaTheHollower.exe",                    SK_GAME_ID::MinaTheHollower              },
           { L"DaveTheDiver.exe",                       SK_GAME_ID::DaveTheDiver                 },
           { L"PRAGMATA.exe",                           SK_GAME_ID::PRAGMATA                     },
+          { L"Hearthstone.exe",                        SK_GAME_ID::Hearthstone                  },
+          { L"Hearthstone Beta Launcher.exe",          SK_GAME_ID::Hearthstone                  },
         };
 
     first_check  = false;
@@ -3909,6 +3911,15 @@ auto DeclKeybind =
         config.render.framerate.target_fps = 120.0f;
         break;
 
+      case SK_GAME_ID::Hearthstone:
+      {
+        // Anti-debug stuff
+        config.compatibility.disable_debug_features  =  true;
+        config.window.dont_hook_wndproc              =  true;
+        config.platform.silent                       =  true;
+        config.compatibility.init_on_separate_thread = false;
+      } break;
+
       case SK_GAME_ID::PRAGMATA:
         // Game likes to make users keyboards useless, with no setting to not do that!
         config.input.keyboard.prevent_no_hotkeys = true;
@@ -4609,6 +4620,7 @@ auto DeclKeybind =
       {
         SK_EnderLilies_InitPlugIn ();
       } break;
+
       case SK_GAME_ID::ArknightsEndfield:
       {
         // Hook Arknights: Endfield Launcher to set up SpecialK before the game starts

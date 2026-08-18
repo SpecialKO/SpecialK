@@ -449,6 +449,12 @@ bool SK_Unity_SetupInputHooks_il2cpp (void);
 void
 SK_Unity_InitPlugin (void)
 {
+  if (! config.platform.allow_unity_scripting)
+  {
+    SK_LOGi0 (L"Unity Scripting Hooks: Disabled!");
+    return;
+  }
+
   SK_RunOnce (
 /*
     SK_Unity_Cfg.gamepad_polling_hz.bind_to_ini (

@@ -1,4 +1,9 @@
-﻿26.8.12
+﻿26.8.18
+=======
+ + Various Hearthstone compatibility improvements; always launch Hearthstone
+     from Battle.net rather than SKIF or things get weird.
+
+26.8.12
 =======
  + Prevent PRAGMATA from blocking the Windows key and other system hotkeys.
 
@@ -2430,26 +2435,26 @@
      workaround window management bugs merged from Indiana Jones' idTech code.
  + Added proper handling of Ray Reconstruction in Vulkan games.
 
-26.6.12.1
+25.6.12.1
 =========
  + Prevent AutoVRR mode from forcing Boost Using Latency Markers off in
      Stellar Blade if "Ultra Low Latency" AutoVRR option is disabled.
 
-26.6.12
+25.6.12
 =======
  + When a game turns Reflex Low Latency + Boost mode on and enables Boost using
      Latency Markers, SK will now use that as the default override setting.
  + Default Stellar Blade to Reflex Low Latency + Boost + Boost using Latency
      Markers, because it is not correctly applying Reflex modes on some systems.
 
-26.6.11
+25.6.11
 =======
  + Remove repeated libScePad scePadGetHandle (...) log spam.
  + Uncap internal controller polling rate limit (500 Hz) in libScePad games
      (that use libScePad.dll, as opposed to static linking) in order to correctly
        support DualSense Edge's full capabiilities (1 kHz native).
 
-26.6.8
+25.6.8
 ======
  + Disable texture caching in Valheim and Rimworld by default.
 

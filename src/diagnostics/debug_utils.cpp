@@ -1124,6 +1124,17 @@ TerminateProcess_Detour ( HANDLE hProcess,
 
     if (! abnormal_dll_state)
     {
+      if (config.compatibility.suppress_term_proc)
+      {
+        SK_RunOnce (
+          SK_ImGui_Warning (
+            L"Process Termination Suppressed, use Alt+F4 if you wish to exit manually..."
+          )
+        );
+
+        return 0;
+      }
+
       SK_LOG0 ( ( L"Software Is Terminating Itself With Exit Code (%x)",
                     uExitCode ), __SK_SUBSYSTEM__ );
 
@@ -1416,6 +1427,17 @@ void
 WINAPI
 ExitProcess_Detour (UINT uExitCode)
 {
+  if (config.compatibility.suppress_exit_proc)
+  {
+    SK_RunOnce (
+      SK_ImGui_Warning (
+        L"Process Exit Suppressed, use Alt+F4 if you wish to exit manually..."
+      )
+    );
+
+    return;
+  }
+
   SK_LOG0 ( ( L"Software Is Ending With Exit Code (%x)",
                     uExitCode ), __SK_SUBSYSTEM__ );
 
@@ -3878,21 +3900,43 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     bool enable_hooks_;
   } finish_init_on_return;
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::ForzaHorizon5)
-  {
-    // We do not set this early enough apparently
-    config.compatibility.disable_debug_features = true;
+  static const std::unordered_set <SK_GAME_ID>
+    non_debuggable_games =
+    {
+      SK_GAME_ID::Hearthstone,
+      SK_GAME_ID::ForzaHorizon5,
+      SK_GAME_ID::ForzaMotorsport,
+      SK_GAME_ID::EverQuest,
+      SK_GAME_ID::WutheringWaves,
+      SK_GAME_ID::GenshinImpact,
+      SK_GAME_ID::ZenlessZoneZero,
+      SK_GAME_ID::HonkaiStarRail,
+      SK_GAME_ID::MonsterHunterWilds,
+      SK_GAME_ID::NedForSpeedTheRun,
+      SK_GAME_ID::NinjaGaiden4,
+      SK_GAME_ID::FEAR_Perseus_Mandate,
+      SK_GAME_ID::AgeOfEmpires4,
+      SK_GAME_ID::ArknightsEndfield
+    };
 
+  // TODO: Less stupid way of this; hash table or something.
+  static bool bCanUseDebug =
+    non_debuggable_games.count (SK_GetCurrentGameID ()) == 0;
+
+  if (! bCanUseDebug)
+  {
+    config.compatibility.disable_debug_features = true;
+  }
+
+  if (config.compatibility.disable_debug_features)
+  {
     SK_RunOnce (
     SK_CreateDLLHook2 (      L"NtDll",
                               "ZwCreateThreadEx",
                                ZwCreateThreadEx_Detour,
       static_cast_p2p <void> (&ZwCreateThreadEx_Original) )
     );
-  }
 
-  if (config.compatibility.disable_debug_features)
-  {
     return false;
   }
 

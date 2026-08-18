@@ -1389,7 +1389,7 @@ SK_Inject_SpawnUnloadListener (void)
             }
           }, nullptr, &app_state_cookie);
 
-          const DWORD dwTimeout   = 1500UL;
+          const DWORD dwTimeout   = 3333UL;
           const DWORD dwWaitState =
             WaitForMultipleObjects ( sizeof (signals) /
                                      sizeof (signals [0]),

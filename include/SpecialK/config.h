@@ -531,6 +531,7 @@ struct sk_config_t
     int         equivalent_steam_app  = -1;    // For non-Steam games, the AppID of the same game on Steam.
     std::wstring
                 type                  =  SK_Platform_Unknown;
+    bool        allow_unity_scripting = true;
   } platform;
 
   struct epic_s {
@@ -1458,6 +1459,8 @@ struct sk_config_t
     bool     allow_fake_displaychange =  true;
     bool     allow_fake_size          =  true;
     bool     disallow_ll_keyhook      = false;
+    bool     suppress_exit_proc       = false;
+    bool     suppress_term_proc       = false;
   } compatibility;
 
   struct apis_s {
@@ -1964,6 +1967,7 @@ enum class SK_GAME_ID
   MinaTheHollower,              // MinaTheHollower.exe
   DaveTheDiver,                 // DaveTheDiver.exe
   PRAGMATA,                     // PRAGMATA.exe
+  Hearthstone,                  // Hearthstone.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -229,6 +229,9 @@ bool  SK_Inject_IsHookActive               (void);
 float SK_Inject_GetInjectionDelayInSeconds (void);
 void  SK_Inject_SetFocusWindow             (HWND hWndFocus);
 HWND  SK_Inject_GetFocusWindow             (void);
+void  SK_Inject_ReturnToSKIF               (void);
+void  SK_Inject_PostHeartbeatToSKIF        (void);
+bool  SK_Inject_IsWindowSKIF               (HWND hWnd);
 
 BOOL NTAPI RtlpWaitCouldDeadlock (void);
 
