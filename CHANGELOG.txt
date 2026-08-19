@@ -1,4 +1,8 @@
-﻿26.8.19.1
+﻿26.8.19.2
+=========
+ + Handle multi-frame generation correctly for ReShade frame pacing workaround.
+
+26.8.19.1
 =========
  + Optimized DLSS Frame Generation pacing to also pace the interpolated frames,
      to make up for overhead caused by ReShade post-processing fake frames.
