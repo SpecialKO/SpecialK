@@ -4097,6 +4097,25 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
     if (rb.swapchain.p != nullptr)
       SK::Framerate::Tick ( bWaitOnFail && should_wait, 0.0, { 0,0 }, rb.swapchain.p );
   }
+
+  if (__SK_IsDLSSGActive && __target_fps_now > 0.0f)
+  {
+    static auto
+        limiter = SK::Framerate::GetLimiter ((IUnknown *)-69);
+    if (limiter != nullptr)
+    {
+      const float framerate_scale =
+        std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f);
+
+      float limit =
+        __target_fps_now * framerate_scale /
+         (float)(std::max (limit, 1024.0f));
+
+      limiter->standalone = true;
+      limiter->set_limit (limit);
+      limiter->wait      ();
+    }
+  }
 }
 
 __declspec (noinline)

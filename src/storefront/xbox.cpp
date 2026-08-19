@@ -120,9 +120,6 @@ SK_Xbox_RegisterCallbacks (void)
   if (! SK_GameBar_Statics || callbacks_registered)
     return;
 
-  if (callbacks_registered)
-    return;
-
   static int
       failure_count =  0;
   if (failure_count > 10)

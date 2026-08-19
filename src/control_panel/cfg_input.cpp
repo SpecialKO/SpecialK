@@ -3237,7 +3237,7 @@ extern float SK_ImGui_PulseNav_Strength;
             flags.emplace_back ("RIDEV_DEVNOTIFY");
             descs.emplace_back ("Receive RawInput Data if Foreground App is Not using RawInput");
           }
-        };
+        
 
       std::vector <RAWINPUTDEVICE> mice      = SK_RawInput_GetMice      ();
       std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards ();
