@@ -1,4 +1,9 @@
-﻿26.8.19
+﻿26.8.19.1
+=========
+ + Optimized DLSS Frame Generation pacing to also pace the interpolated frames,
+     to make up for overhead caused by ReShade post-processing fake frames.
+
+26.8.19
 =======
  + Static analysis cleanup; nothing should change (famous last words).
 
