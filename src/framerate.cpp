@@ -1163,7 +1163,7 @@ SK_ImGui_LatentSyncConfig (void)
           {
             break;
           }
-        }
+        } [[fallthrough]];
 
         case SK_TearingMode::AlwaysOff_LowLatency:
         {
@@ -2714,10 +2714,12 @@ SK::Framerate::Limiter::wait (void) noexcept
         }
       } static latency_avg;
 
-      latency_avg.input_min [latency_avg.frames   % _MIN_FRAMES] =
-      latency_avg.input_max [latency_avg.frames++ % _MAX_FRAMES] =
+      const double dVal =
         (1000.0 / get_limit           ()) -
                   effective_frametime ();
+      latency_avg.input_min [latency_avg.frames   % _MIN_FRAMES] = dVal;
+      latency_avg.input_max [latency_avg.frames++ % _MAX_FRAMES] = dVal;
+
 
       bool bIsUnstableFPS =
         latency_avg.getMaxInput () < 0.0;

@@ -1692,8 +1692,8 @@ SK::EOS::AppName (void)
                 bool skip       = false;
 
                 char                     szLine [512] = { };
-                while (! mancpn.getline (szLine, 511).eof () &&
-                       ! mancpn.fail () )
+                while (! mancpn.fail                      () &&
+                       ! mancpn.getline (szLine, 511).eof ())
                 {
                   if (StrStrIA (szLine, "\"DisplayName\"") != nullptr)
                   {

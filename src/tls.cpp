@@ -431,7 +431,7 @@ SK_TLS_BottomEx (DWORD dwTid) noexcept
     }
   }
 
-  catch (const SK_SEH_IgnoredException&)
+  catch (SK_SEH_IgnoredException&)
   {
     OutputDebugStringW (L"Bad TLS");
   }

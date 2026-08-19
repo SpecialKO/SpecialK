@@ -464,7 +464,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
           if (1 == ToAsciiEx ( vkCode,
                                 scanCode,
                                 keys_,
-   reinterpret_cast <LPWORD> (key_str),
+   reinterpret_cast <LPWORD> ((uintptr_t *)&(key_str [0])),
                                 0x04,
                                 keyboard_layout ) &&
                isprint ( *key_str ) )

@@ -1624,7 +1624,7 @@ SK_ITrackD3D12Resource final : IUnknown
     this->iBufferIdx = iBufferIdx;
   }
 
-  virtual ~SK_ITrackD3D12Resource (void)
+  ~SK_ITrackD3D12Resource (void)
   {
   }
 
@@ -2637,68 +2637,68 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   reshade::UnwrapObject (&pDev12);
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandQueue",
-                            *(void ***)*(&pDev12), 8,
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 8,
                              D3D12Device_CreateCommandQueue_Detour,
                    (void **)&D3D12Device_CreateCommandQueue_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandAllocator",
-                            *(void ***)*(&pDev12), 9,
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 9,
                              D3D12Device_CreateCommandAllocator_Detour,
                    (void **)&D3D12Device_CreateCommandAllocator_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateGraphicsPipelineState",
-                            *(void ***)*(&pDev12), 10,
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 10,
                              D3D12Device_CreateGraphicsPipelineState_Detour,
                    (void **)&D3D12Device_CreateGraphicsPipelineState_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CheckFeatureSupport",
-                            *(void ***)*(&pDev12), 13,
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 13,
                              D3D12Device_CheckFeatureSupport_Detour,
                    (void **)&D3D12Device_CheckFeatureSupport_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateShaderResourceView",
-                           *(void ***)*(&pDev12), 18,
-                            D3D12Device_CreateShaderResourceView_Detour,
-                  (void **)&D3D12Device_CreateShaderResourceView_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 18,
+                             D3D12Device_CreateShaderResourceView_Detour,
+                   (void **)&D3D12Device_CreateShaderResourceView_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateUnorderedAccessView",
-                           *(void ***)*(&pDev12), 19,
-                            D3D12Device_CreateUnorderedAccessView_Detour,
-                  (void **)&D3D12Device_CreateUnorderedAccessView_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 19,
+                             D3D12Device_CreateUnorderedAccessView_Detour,
+                   (void **)&D3D12Device_CreateUnorderedAccessView_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateRenderTargetView",
-                           *(void ***)*(&pDev12), 20,
-                            D3D12Device_CreateRenderTargetView_Detour,
-                  (void **)&D3D12Device_CreateRenderTargetView_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 20,
+                             D3D12Device_CreateRenderTargetView_Detour,
+                   (void **)&D3D12Device_CreateRenderTargetView_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateSampler",
-                           *(void ***)*(&pDev12), 22,
-                            D3D12Device_CreateSampler_Detour,
-                  (void **)&D3D12Device_CreateSampler_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 22,
+                             D3D12Device_CreateSampler_Detour,
+                   (void **)&D3D12Device_CreateSampler_Original );
 
   ////
   // Hooking this causes crashes, it needs to be wrapped...
   //
 
   //SK_CreateVFTableHook2 ( L"ID3D12Device::GetResourceAllocationInfo",
-  //                         *(void ***)*(&pDev12), 25,
-  //                          D3D12Device_GetResourceAllocationInfo_Detour,
-  //                (void **)&D3D12Device_GetResourceAllocationInfo_Original );
+  //               *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 25,
+  //                           D3D12Device_GetResourceAllocationInfo_Detour,
+  //                 (void **)&D3D12Device_GetResourceAllocationInfo_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommittedResource",
-                           *(void ***)*(&pDev12), 27,
-                            D3D12Device_CreateCommittedResource_Detour,
-                  (void **)&D3D12Device_CreateCommittedResource_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 27,
+                             D3D12Device_CreateCommittedResource_Detour,
+                   (void **)&D3D12Device_CreateCommittedResource_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateHeap",
-                           *(void ***)*(&pDev12), 28,
-                            D3D12Device_CreateHeap_Detour,
-                  (void **)&D3D12Device_CreateHeap_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 28,
+                             D3D12Device_CreateHeap_Detour,
+                   (void **)&D3D12Device_CreateHeap_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreatePlacedResource",
-                           *(void ***)*(&pDev12), 29,
-                            D3D12Device_CreatePlacedResource_Detour,
-                  (void **)&D3D12Device_CreatePlacedResource_Original );
+                 *(void ***)*IID_PPV_ARGS_Helper (&pDev12), 29,
+                             D3D12Device_CreatePlacedResource_Detour,
+                   (void **)&D3D12Device_CreatePlacedResource_Original );
 
   // 7  UINT    STDMETHODCALLTYPE GetNodeCount
   // 8  HRESULT STDMETHODCALLTYPE CreateCommandQueue
@@ -2759,9 +2759,9 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   {
 #if 0
     SK_CreateVFTableHook2 ( L"ID3D12Device2::CreatePipelineState",
-                             *(void ***)*(&pDevice2.p), 47,
-                              D3D12Device2_CreatePipelineState_Detour,
-                    (void **)&D3D12Device2_CreatePipelineState_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pDevice2), 47,
+                               D3D12Device2_CreatePipelineState_Detour,
+                     (void **)&D3D12Device2_CreatePipelineState_Original );
 #endif
   }
 
@@ -2785,9 +2785,9 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   if (pDevice4.p != nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12Device4::CreateCommittedResource1",
-                           *(void ***)*(&pDevice4.p), 53,
-                            D3D12Device4_CreateCommittedResource1_Detour,
-                  (void **)&D3D12Device4_CreateCommittedResource1_Original );
+                               *(void ***)*IID_PPV_ARGS_Helper (&pDevice4.p), 53,
+                               D3D12Device4_CreateCommittedResource1_Detour,
+                     (void **)&D3D12Device4_CreateCommittedResource1_Original );
   }
 
   // ID3D12Device5
@@ -2835,9 +2835,9 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   if (pDevice8.p != nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12Device8::CreateCommittedResource2",
-                           *(void ***)*(&pDevice8.p), 69,
-                            D3D12Device8_CreateCommittedResource2_Detour,
-                  (void **)&D3D12Device8_CreateCommittedResource2_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pDevice8), 69,
+                               D3D12Device8_CreateCommittedResource2_Detour,
+                     (void **)&D3D12Device8_CreateCommittedResource2_Original );
   }
 
   // ID3D12Device9
@@ -2851,14 +2851,14 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   if (pDevice9.p != nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12Device9::CreateShaderCacheSession",
-                           *(void ***)*(&pDevice9), 73,
-                            D3D12Device9_CreateShaderCacheSession_Detour,
-                  (void **)&D3D12Device9_CreateShaderCacheSession_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pDevice9), 73,
+                               D3D12Device9_CreateShaderCacheSession_Detour,
+                     (void **)&D3D12Device9_CreateShaderCacheSession_Original );
 
     SK_CreateVFTableHook2 ( L"ID3D12Device9::ShaderCacheControl",
-                           *(void ***)*(&pDevice9), 74,
-                            D3D12Device9_ShaderCacheControl_Detour,
-                  (void **)&D3D12Device9_ShaderCacheControl_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pDevice9), 74,
+                               D3D12Device9_ShaderCacheControl_Detour,
+                     (void **)&D3D12Device9_ShaderCacheControl_Original );
   }
 
   // ID3D12Device10
@@ -2878,9 +2878,9 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   if (pDevice11.p != nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12Device11::CreateSampler2",
-                             *(void ***)*(&pDevice11.p), 79,
-                              D3D12Device11_CreateSampler2_Detour,
-                    (void **)&D3D12Device11_CreateSampler2_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pDevice11), 79,
+                               D3D12Device11_CreateSampler2_Detour,
+                     (void **)&D3D12Device11_CreateSampler2_Original );
   }
 #endif
 

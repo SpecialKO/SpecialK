@@ -263,7 +263,7 @@ _InstallCommandQueueHooksImpl (ID3D12Device* pDevice12)
                     IID_PPV_ARGS (&p12Queue.p))))
   {
     SK_CreateVFTableHook2 ( L"ID3D12CommandQueue::ExecuteCommandLists",
-                             *(void ***)*(&p12Queue.p), 10,
+                              *(void ***)*IID_PPV_ARGS_Helper (&p12Queue.p), 10,
                               D3D12CommandQueue_ExecuteCommandLists_Detour,
                     (void **)&D3D12CommandQueue_ExecuteCommandLists_Original );
   }

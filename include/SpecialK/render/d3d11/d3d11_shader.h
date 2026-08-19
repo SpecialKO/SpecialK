@@ -33,9 +33,7 @@ enum class sk_shader_class : DWORD {
   Geometry = 0x04,
   Hull     = 0x08,
   Domain   = 0x10,
-  Compute  = 0x20,
-
-  _PADDING = DWORD_MAX
+  Compute  = 0x20
 };
 
 struct shader_disasm_s {

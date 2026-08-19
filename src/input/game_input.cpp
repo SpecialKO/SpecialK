@@ -355,12 +355,12 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
   if (device != nullptr && device != s_virtual_gameinput_device)
   {
     SK_RunOnce (
-      GI_VIRTUAL_HOOK ( &device, 9,
+      GI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&device), 9,
                           "IGameInputDevice::SetHapticMotorState",
                            IGameInputDevice_SetHapticMotorState_Override,
                            IGameInputDevice_SetHapticMotorState_Original,
                            IGameInputDevice_SetHapticMotorState_pfn );
-      GI_VIRTUAL_HOOK ( &device, 10,
+      GI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&device), 10,
                           "IGameInputDevice::SetRumbleState",
                            IGameInputDevice_SetRumbleState_Override,
                            IGameInputDevice_SetRumbleState_Original,

@@ -154,7 +154,7 @@ iSK_INI::reload (const wchar_t *fname)
   // Avoid reloading when it would make no sense to do so
   if (! _wcsicmp (fname, name.c_str ()))
   {
-    FILETIME                ftLastWrite =    file_stamp;
+    alignas (8) FILETIME    ftLastWrite =    file_stamp;
     if (SK_File_GetModificationTime (fname, &file_stamp) &&
           CompareFileTime (&ftLastWrite,    &file_stamp) <= 0)
     {

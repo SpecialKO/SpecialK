@@ -342,8 +342,8 @@ SK_AVIF_CopyToClipboard (const wchar_t *wszPathToImage)
   HDROP hdrop =
     (HDROP)GlobalAlloc (GHND, clpSize);
 
-  DROPFILES* df =
-    (DROPFILES *)GlobalLock (hdrop);
+  alignas (wchar_t *)DROPFILES* df =
+                    (DROPFILES *)GlobalLock (hdrop);
 
   if (df != nullptr)
   {
@@ -402,8 +402,8 @@ SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t d
   HDROP hdrop =
     (HDROP)GlobalAlloc (GHND, clpSize);
 
-  DROPFILES* df =
-    (DROPFILES *)GlobalLock (hdrop);
+  alignas (wchar_t *) DROPFILES* df =
+                     (DROPFILES *)GlobalLock (hdrop);
 
   if (df != nullptr)
   {

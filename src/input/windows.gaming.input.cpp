@@ -1082,19 +1082,19 @@ static void hook_wgi_gamepad_vtable (ABI::Windows::Gaming::Input::IGamepad** ppG
      *ppGamepad != &SK_HID_WGI_VirtualGamepad_Wireless)
   {
     SK_RunOnce ({
-      WGI_VIRTUAL_HOOK ( ppGamepad, 8,
+      WGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (ppGamepad), 8,
                 "ABI::Windows::Gaming::Input::IGamepad::GetCurrentReading",
                  WGI_Gamepad_GetCurrentReading_Override,
                  WGI_Gamepad_GetCurrentReading_Original,
                  WGI_Gamepad_GetCurrentReading_pfn );
     
-      WGI_VIRTUAL_HOOK ( ppGamepad, 6,
+      WGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (ppGamepad), 6,
                   "ABI::Windows::Gaming::Input::IGamepad::get_Vibration",
                    WGI_Gamepad_get_Vibration_Override,
                    WGI_Gamepad_get_Vibration_Original,
                    WGI_Gamepad_get_Vibration_pfn );
     
-      WGI_VIRTUAL_HOOK ( ppGamepad, 7,
+      WGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (ppGamepad), 7,
                   "ABI::Windows::Gaming::Input::IGamepad::put_Vibration",
                    WGI_Gamepad_put_Vibration_Override,
                    WGI_Gamepad_put_Vibration_Original,
@@ -1477,7 +1477,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
 
           SK_RunOnce ({
             // One and done, don't use hook queuing
-            WGI_VIRTUAL_HOOK_IMM ( &pGamepadStats2Factory.p, 6,
+            WGI_VIRTUAL_HOOK_IMM ( IID_PPV_ARGS_Helper (&pGamepadStats2Factory.p), 6,
                       "ABI::Windows::Gaming::Input::IGamepadStatics2::FromGameController",
                        WGI_GamepadStatics2_FromGameController_Override,
                        WGI_GamepadStatics2_FromGameController_Original,
@@ -1539,19 +1539,19 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
         //   -real- Xbox controllers.
         SK_RunOnce (
         {
-          WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 6,
+          WGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pGamepadStatsFactory), 6,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::add_GamepadAdded",
                      WGI_GamepadStatics_add_GamepadAdded_Override,
                      WGI_GamepadStatics_add_GamepadAdded_Original,
                      WGI_GamepadStatics_add_ChangeEvent_pfn );
 
-          WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 7,
+          WGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pGamepadStatsFactory.p), 7,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::remove_GamepadAdded",
                      WGI_GamepadStatics_remove_GamepadAdded_Override,
                      WGI_GamepadStatics_remove_GamepadAdded_Original,
                      WGI_GamepadStatics_remove_ChangeEvent_pfn );
 
-          WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory.p, 8,
+          WGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pGamepadStatsFactory.p), 8,
                     "ABI::Windows::Gaming::Input::IGamepadStatics::add_GamepadRemoved",
                      WGI_GamepadStatics_add_GamepadRemoved_Override,
                      WGI_GamepadStatics_add_GamepadRemoved_Original,
@@ -1608,7 +1608,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
               if (std::exchange (hooked, true) == false)
               {
                 // One and done, don't use hook queuing
-                WGI_VIRTUAL_HOOK_IMM ( &future_stats_factory.p, 10,
+                WGI_VIRTUAL_HOOK_IMM ( IID_PPV_ARGS_Helper (&future_stats_factory.p), 10,
                           "ABI::Windows::Gaming::Input::IGamepadStatics::get_Gamepads",
                            WGI_GamepadStatics_get_Gamepads_Override,
                            WGI_GamepadStatics_get_Gamepads_Original,

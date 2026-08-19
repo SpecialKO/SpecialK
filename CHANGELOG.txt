@@ -1,7 +1,14 @@
-﻿26.8.18
+﻿26.8.19
+=======
+ + Static analysis cleanup; nothing should change (famous last words).
+
+26.8.18
 =======
  + Various Hearthstone compatibility improvements; always launch Hearthstone
      from Battle.net rather than SKIF or things get weird.
+
+   * Changes to anti-cheat protection may also help with some of the predatory
+       Asian Gambling Games that like to crash at the login screen.
 
 26.8.12
 =======

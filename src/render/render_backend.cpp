@@ -6291,7 +6291,7 @@ DisplayConfigSetDeviceInfo_Detour (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *setPac
   if (setPacket != nullptr)
   {
     // Nope, can't let OpenGL or Vulkan do this.
-    if (setPacket->type == DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL)
+    if ((UINT32)setPacket->type == DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL)
     {
       SK_LOGi0 (L"*** Blocked attempt by application to change SDR White Level!");
 
@@ -6520,8 +6520,9 @@ SK_RenderBackend_V2::output_s::setSDRWhiteLevel (float fNits)
 
     DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
       setSdrWhiteLevel                  = { };
-      setSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL;
-      setSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SET_SDR_WHITE_LEVEL);
+      (UINT32 &)
+      setSdrWhiteLevel.header.type      = (UINT32)DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL;
+      setSdrWhiteLevel.header.size      = sizeof (DISPLAYCONFIG_SET_SDR_WHITE_LEVEL);
       setSdrWhiteLevel.header.adapterId = vidpn.targetInfo.adapterId;
       setSdrWhiteLevel.header.id        = vidpn.targetInfo.id;
 

@@ -2732,7 +2732,7 @@ SK_Streamline_SetupNativeLimiter (void)
       {
         //SK_ImGui_Warning (L"Hooking Streamline Proxy Present...");
 
-        DXGI_VIRTUAL_HOOK ( &pSwapChain.p, 8,
+        DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pSwapChain.p), 8,
                           "IStreamlineSwapChain::Present",
                            SK_StreamlinePresent,
                            StreamlinePresent_Original,
@@ -8200,7 +8200,8 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
             pAdapter2 (*ppAdapter);
         if (pAdapter2 != nullptr)
         {
-          DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
+          DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pAdapter2.p), 11,
+                "(*pAdapter2)->GetDesc2",
             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
         }
       }
@@ -8214,7 +8215,8 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
             pAdapter1 (*ppAdapter);
         if (pAdapter1 != nullptr)
         {
-          DXGI_VIRTUAL_HOOK (&pAdapter1.p, 10, "(*pAdapter1)->GetDesc1",
+          DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pAdapter1.p), 10,
+                "(*pAdapter1)->GetDesc1",
             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
         }
       }
@@ -8224,7 +8226,8 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
     {
       if (! GetDesc_Original)
       {
-        DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
+        DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (ppAdapter), 8,
+             "(*ppAdapter)->GetDesc",
           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
       }
 
@@ -9364,7 +9367,7 @@ SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain)
 
   if (! LocalHook_IDXGISwapChain_Present.active)
   {
-    DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
+    DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pSwapChain), 8,
                         "IDXGISwapChain::Present",
                          PresentCallback,
                          Present_Original,
@@ -9967,7 +9970,7 @@ SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1)
 
   if (! LocalHook_IDXGISwapChain1_Present1.active)
   {
-    DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
+    DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pSwapChain1), 22,
                         "IDXGISwapChain1::Present1",
                          Present1Callback,
                          Present1_Original,
@@ -10112,7 +10115,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     if ( pSwapChain3                                 != nullptr &&
      IDXGISwapChain3_CheckColorSpaceSupport_Original == nullptr )
     {
-      DXGI_VIRTUAL_HOOK ( &pSwapChain3.p, 37,
+      DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pSwapChain3.p), 37,
                           "IDXGISwapChain3::CheckColorSpaceSupport",
                            IDXGISwapChain3_CheckColorSpaceSupport_Override,
                            IDXGISwapChain3_CheckColorSpaceSupport_Original,
@@ -10136,7 +10139,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     if ( pSwapChain4                         != nullptr &&
      IDXGISwapChain4_SetHDRMetaData_Original == nullptr )
     {
-      DXGI_VIRTUAL_HOOK ( &pSwapChain4.p, 40,
+      DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pSwapChain4.p), 40,
                        //&pSwapChain, 40,
                           "IDXGISwapChain4::SetHDRMetaData",
                            IDXGISwapChain4_SetHDRMetaData,
@@ -10149,13 +10152,13 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     {
       if (pOutput != nullptr)
       {
-        DXGI_VIRTUAL_HOOK ( &pOutput.p, 8,
+        DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pOutput.p), 8,
                                "IDXGIOutput::GetDisplayModeList",
                                   DXGIOutput_GetDisplayModeList_Override,
                                              GetDisplayModeList_Original,
                                              GetDisplayModeList_pfn );
 
-        DXGI_VIRTUAL_HOOK ( &pOutput.p, 9,
+        DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pOutput.p), 9,
                                "IDXGIOutput::FindClosestMatchingMode",
                                   DXGIOutput_FindClosestMatchingMode_Override,
                                              FindClosestMatchingMode_Original,
@@ -10163,7 +10166,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
 
         // Don't hook this unless you want nvspcap to crash the game.
 
-        DXGI_VIRTUAL_HOOK ( &pOutput.p, 10,
+        DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pOutput.p), 10,
                               "IDXGIOutput::WaitForVBlank",
                                  DXGIOutput_WaitForVBlank_Override,
                                             WaitForVBlank_Original,
@@ -10191,7 +10194,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
             pOutput6 (pOutput);
         if (pOutput6 != nullptr)
         {
-          DXGI_VIRTUAL_HOOK ( &pOutput6.p, 27,
+          DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pOutput6.p), 27,
                                "IDXGIOutput6::GetDesc1",
                                  IDXGIOutput6_GetDesc1_Override,
                                  IDXGIOutput6_GetDesc1_Original,
@@ -10266,7 +10269,7 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
 
     if (DXGIDevice1_SetMaximumFrameLatency_Original == nullptr)
     {
-      DXGI_VIRTUAL_HOOK ( &pDevice, 12,
+      DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pDevice), 12,
                           "IDXGIDevice1::SetMaximumFrameLatency",
                              DXGIDevice1_SetMaximumFrameLatency_Override,
                              DXGIDevice1_SetMaximumFrameLatency_Original,
@@ -10275,7 +10278,7 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
 
     if (DXGIDevice1_GetMaximumFrameLatency_Original == nullptr)
     {
-      DXGI_VIRTUAL_HOOK ( &pDevice, 13,
+      DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pDevice), 13,
                           "IDXGIDevice1::GetMaximumFrameLatency",
                              DXGIDevice1_GetMaximumFrameLatency_Override,
                              DXGIDevice1_GetMaximumFrameLatency_Original,
@@ -10361,7 +10364,7 @@ SK_DXGI_HookAdapter (IDXGIAdapter* pAdapter)
                    pAdapter3 (pAdapter);
   if (nullptr  !=  pAdapter3)
   {
-    DXGI_VIRTUAL_HOOK ( &pAdapter3.p, 14,
+    DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pAdapter3.p), 14,
                         "IDXGIAdapter3::QueryVideoMemoryInfo",
                          IDXGIAdapter3_QueryVideoMemoryInfo_Detour,
                          IDXGIAdapter3_QueryVideoMemoryInfo_Original,

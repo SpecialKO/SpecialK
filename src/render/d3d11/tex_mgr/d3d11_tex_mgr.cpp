@@ -1309,7 +1309,7 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
       mipmaps =
         new DirectX::ScratchImage;
     }
-    catch (...)
+    catch (SK_SEH_IgnoredException&)
     {
       return E_OUTOFMEMORY;
     }
@@ -2808,11 +2808,11 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   if (FALSE == InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    DXGI_VIRTUAL_HOOK ( &pTex, 2, "IUnknown::Release",
+    DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pTex), 2, "IUnknown::Release",
                         IUnknown_Release,
                         IUnknown_Release_Original,
                         IUnknown_Release_pfn );
-    DXGI_VIRTUAL_HOOK ( &pTex, 1, "IUnknown::AddRef",
+    DXGI_VIRTUAL_HOOK ( IID_PPV_ARGS_Helper (&pTex), 1, "IUnknown::AddRef",
                         IUnknown_AddRef,
                         IUnknown_AddRef_Original,
                         IUnknown_AddRef_pfn );

@@ -2310,7 +2310,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
 
   if (! LocalHook_D3D9Reset.active)
   {
-    D3D9_INTERCEPT ( &pDev, 16,
+    D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (&pDev), 16,
                      "IDirect3DDevice9::Reset",
                       D3D9Reset_Override,
                       D3D9Device_Reset_Original,
@@ -2338,7 +2338,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   {
     if (! LocalHook_D3D9ResetEx.active)
     {
-      D3D9_INTERCEPT ( &pDevEx.p, 132,
+      D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (&pDevEx.p), 132,
                        "IDirect3DDevice9Ex::ResetEx",
                         D3D9ResetEx,
                         D3D9ExDevice_ResetEx_Original,
@@ -2363,7 +2363,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
   if (! LocalHook_D3D9Present.active)
   {
-    D3D9_INTERCEPT ( &pDev, 17,
+    D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (&pDev), 17,
                      "IDirect3DDevice9::Present",
                       D3D9Device_Present,
                       D3D9Device_Present_Original,
@@ -2420,7 +2420,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
         //
         // D3D9Ex Specific Stuff
         //
-        D3D9_INTERCEPT ( &pDevEx.p, 121,
+        D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (&pDevEx.p), 121,
                            "IDirect3DDevice9Ex::PresentEx",
                             D3D9ExDevice_PresentEx,
                             D3D9ExDevice_PresentEx_Original,
@@ -3296,14 +3296,14 @@ D3D9CreateVertexBuffer_Override
     std::scoped_lock <SK_Thread_HybridSpinlock>
           scope_lock (*lock_vb);
 
-    if (Length >= 10240)
+    if (Length >= 10240 && ppVertexBuffer != nullptr)
     {
       *ppVertexBuffer = nullptr;
 
       static bool          hooked = false;
       if (! std::exchange (hooked,  true))
       {
-        D3D9_INTERCEPT ( ppVertexBuffer, 11,
+        D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (ppVertexBuffer), 11,
                          "IDirect3DVertexBuffer9::Lock",
                           D3D9VertexBuffer_Lock_Override,
                           D3D9VertexBuffer_Lock_Original,
@@ -4320,7 +4320,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
     
       else
       {
-        if (0x0 != (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP))
+        if (nullptr !=  pparams &&
+                0x0 != (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP))
           SK_ImGui_Warning (L"D3D9 Game is not Compatible With FlipEx (Device Clip)");
       }
     }
@@ -6614,7 +6615,7 @@ HookD3D9 (LPVOID user)
           {
             if (! config.render.d3d9.force_d3d9ex)
             {
-              D3D9_INTERCEPT ( &pD3D9.p, 16,
+              D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (&pD3D9.p), 16,
                               "IDirect3D9::CreateDevice",
                                 D3D9CreateDevice_Override,
                                 D3D9_CreateDevice_Original,
@@ -6721,7 +6722,7 @@ HookD3D9 (LPVOID user)
             {
               if (config.render.d3d9.force_d3d9ex)
               {
-                D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
+                D3D9_INTERCEPT ( IID_PPV_ARGS_Helper (&pD3D9Ex.p), 16,
                                  "IDirect3D9Ex::CreateDevice",
                                   D3D9ExCreateDevice_Override,
                                   D3D9Ex_CreateDevice_Original,

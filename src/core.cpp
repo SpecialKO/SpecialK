@@ -4667,7 +4667,7 @@ void SK_RandomCrapThatShouldBeInPlugIns (void)
         }
       }
 
-      catch (...)
+      catch (SK_SEH_IgnoredException&)
       {
       }
       SK_SEH_RemoveTranslator (orig_se);

@@ -1613,7 +1613,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_DrawInstanced_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::DrawInstanced",
-                            *(void***)*(&pCmdList), 12,
+                  *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 12,
                               D3D12GraphicsCommandList_DrawInstanced_Detour,
                     (void **)&D3D12GraphicsCommandList_DrawInstanced_Original );
   }
@@ -1621,16 +1621,16 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_DrawIndexedInstanced_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::DrawIndexedInstanced",
-                            *(void***)*(&pCmdList), 13,
-                              D3D12GraphicsCommandList_DrawIndexedInstanced_Detour,
-                    (void **)&D3D12GraphicsCommandList_DrawIndexedInstanced_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 13,
+                               D3D12GraphicsCommandList_DrawIndexedInstanced_Detour,
+                     (void **)&D3D12GraphicsCommandList_DrawIndexedInstanced_Original );
   }
 
 #ifdef D3D12_STATE_TRACK
   if (D3D12GraphicsCommandList_SetPipelineState_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::SetPipelineState",
-                            *(void***)*(&pCmdList), 25,
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 25,
                                D3D12GraphicsCommandList_SetPipelineState_Detour,
                      (void **)&D3D12GraphicsCommandList_SetPipelineState_Original );
   }
@@ -1639,7 +1639,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_ResourceBarrier_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ResourceBarrier",
-                            *(void***)*(&pCmdList), 26,
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 26,
                                D3D12GraphicsCommandList_ResourceBarrier_Detour,
                      (void **)&D3D12GraphicsCommandList_ResourceBarrier_Original );
   }
@@ -1683,7 +1683,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_OMSetRenderTargets_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::OMSetRenderTargets",
-                            *(void***)*(&pCmdList), 46,
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 46,
                                D3D12GraphicsCommandList_OMSetRenderTargets_Detour,
                      (void **)&D3D12GraphicsCommandList_OMSetRenderTargets_Original );
   }
@@ -1693,7 +1693,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_ExecuteIndirect_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ExecuteIndirect",
-                            *(void***)*(&pCmdList), 59,
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 59,
                                D3D12GraphicsCommandList_ExecuteIndirect_Detour,
                      (void **)&D3D12GraphicsCommandList_ExecuteIndirect_Original );
   }
@@ -1703,9 +1703,9 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_ClearRenderTargetView_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ClearRenderTargetView",
-                        *(void***)*(&pCmdList), 48,
-                           D3D12GraphicsCommandList_ClearRenderTargetView_Detour,
-                 (void **)&D3D12GraphicsCommandList_ClearRenderTargetView_Original );
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 48,
+                               D3D12GraphicsCommandList_ClearRenderTargetView_Detour,
+                     (void **)&D3D12GraphicsCommandList_ClearRenderTargetView_Original );
   }
 #endif
 
@@ -2159,7 +2159,7 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_CopyTextureRegion_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::CopyTextureRegion",
-                            *(void***)*(&pCmdList), 16,
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 16,
                                D3D12GraphicsCommandList_CopyTextureRegion_Detour,
                      (void **)&D3D12GraphicsCommandList_CopyTextureRegion_Original );
   }
@@ -2167,7 +2167,7 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
   if (D3D12GraphicsCommandList_CopyResource_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::CopyResource",
-                            *(void***)*(&pCmdList), 17,
+                   *(void ***)*IID_PPV_ARGS_Helper (&pCmdList), 17,
                                D3D12GraphicsCommandList_CopyResource_Detour,
                      (void **)&D3D12GraphicsCommandList_CopyResource_Original );
   }
