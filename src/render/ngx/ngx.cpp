@@ -3231,6 +3231,20 @@ SK_NGX_DLSS_ControlPanel (void)
 
       if (__SK_IsDLSSGActive)
       {
+        if (config.reshade.is_addon)
+        {
+          if (ImGui::Checkbox ("Fix ReShade Frame Pacing", &config.reshade.require_fg_pacing_fix))
+          {
+            config.utility.save_async ();
+          }
+
+          ImGui::SetItemTooltip (
+            "ReShade adds CPU overhead to generated frames that will destabilize display timing in some games.\r\n\r\n"
+            " * This will add an additional framerate limiter, but can add additional latency.\r\n\r\n"
+            "Disable Flip Metering if you use this."
+          );
+        }
+
         if (ImGui::Checkbox ("Allow Flip Metering", &config.nvidia.dlss.allow_flip_metering))
         {
           flip_restart_required = true;

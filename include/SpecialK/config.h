@@ -565,13 +565,14 @@ struct sk_config_t
   } rtss;
 
   struct reshade_s {
-    bool        draw_first            = true;
+    bool        draw_first            =  true;
     bool        is_addon              = false;  // True if ReShade AddOn registration succeeded
     bool        is_addon_hookless     = false;  // True if ReShade has no hooked effect runtimes
     bool        has_local_ini         = false;  // Using local ReShade.ini instead of SK's
     bool        allow_unsafe_addons   = false;
-    bool        allow_addon_with_reno = true;   // Deprecated
-    bool        allow_runtime_tracking= true;   // Required for the draw_first setting to work
+    bool        allow_addon_with_reno =  true;  // Deprecated
+    bool        allow_runtime_tracking=  true;  // Required for the draw_first setting to work
+    bool        require_fg_pacing_fix = false;  // ReShade does bad things to Frame Gen pacing...
     SK_ConfigSerializedKeybind
                 toggle_overlay_keybind= {
                     SK_Keybind {

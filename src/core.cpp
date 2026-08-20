@@ -4099,23 +4099,26 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   }
 
   // Pace the generated output of DLSSFG because ReShade destroys frame pacing otherwise.
-  if (__SK_IsDLSSGActive && __target_fps_now > 0.0f && __SK_DLSSGMultiFrameCount > 0)
+  if (config.reshade.is_addon && config.reshade.require_fg_pacing_fix)
   {
-    static auto
-        limiter = SK::Framerate::GetLimiter ((IUnknown *)-69);
-    if (limiter != nullptr)
+    if (__SK_IsDLSSGActive && __target_fps_now > 0.0f && __SK_DLSSGMultiFrameCount > 0)
     {
-      const float framerate_scale = 1.0f;
-        //std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f);
+      static auto
+          limiter = SK::Framerate::GetLimiter ((IUnknown *)-69);
+      if (limiter != nullptr)
+      {
+        const float framerate_scale = 1.0f;
+          //std::max (2.0f, __SK_DLSSGMultiFrameCount + 1.0f);
 
-      float limit =
-        __target_fps_now * framerate_scale;
+        float limit =
+          __target_fps_now * framerate_scale;
 
-      SK_LOGi2 (L"DLSSFG: Limiting framerate to %.2f fps (%.2f x %.2f)", limit, __target_fps_now, framerate_scale);
+        SK_LOGi2 (L"DLSSFG: Limiting framerate to %.2f fps (%.2f x %.2f)", limit, __target_fps_now, framerate_scale);
 
-      limiter->standalone = true;
-      limiter->set_limit (limit);
-      limiter->wait      ();
+        limiter->standalone = true;
+        limiter->set_limit (limit);
+        limiter->wait      ();
+      }
     }
   }
 }

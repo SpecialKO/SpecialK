@@ -1,4 +1,12 @@
-﻿26.8.19.2
+﻿26.8.20
+=======
+ + Added config setting (disabled by default) to control ReShade frame pacing fix,
+     it is only shown in the control panel when DLSS Frame Generation is active and
+       ReShade is loaded w/ addon support.
+
+   * Turn flip metering off if you intend to use this!
+
+26.8.19.2
 =========
  + Handle multi-frame generation correctly for ReShade frame pacing workaround.
 
