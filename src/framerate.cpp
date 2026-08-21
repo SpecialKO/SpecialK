@@ -82,7 +82,7 @@ enum class SK_LimitApplicationSite {
   EndOfFrame // = 4 (Default)
 };
 
-float fSwapWaitRatio = 1.125f;
+float fSwapWaitRatio = 3.33f;
 float fSwapWaitFract = 0.66f;
 
 float
@@ -2553,9 +2553,14 @@ SK::Framerate::Limiter::wait (void) noexcept
       LARGE_INTEGER
         liDelay
           { .QuadPart =
+              std::min (
                 static_cast <LONGLONG> (
                   to_next_in_secs * 1000.0 - timer_res_ms * fSwapWaitRatio
+                                       ),
+                static_cast <LONGLONG> (
+                  to_next_in_secs * 1000.0 * fSwapWaitFract
                                        )
+                       )
           };
 
         liDelay.QuadPart =
@@ -2600,7 +2605,7 @@ SK::Framerate::Limiter::wait (void) noexcept
           to_next_in_secs =
             std::max (0.0, SK_RecalcTimeToNextFrame ());
 
-          if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > timer_res_ms * 1.333)
+          if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > timer_res_ms * 2.0)
             hWaitObjs [iWaitObjs++] = timer_wait.m_h;
 
           if (iWaitObjs == 0)
@@ -4935,9 +4940,14 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer) noexcept
     LARGE_INTEGER
       liDelay
         { .QuadPart =
+            std::min (
               static_cast <LONGLONG> (
                 to_next_in_secs * 1000.0 - SK::Framerate::Limiter::timer_res_ms * fSwapWaitRatio
+                                     ),
+              static_cast <LONGLONG> (
+                to_next_in_secs * 1000.0 * fSwapWaitFract
                                      )
+                     )
         };
 
       liDelay.QuadPart =
@@ -4953,7 +4963,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer) noexcept
                                           0, nullptr, nullptr,
                                              FALSE ) )
     { 
-      if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > SK::Framerate::Limiter::timer_res_ms * 1.333)
+      if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > SK::Framerate::Limiter::timer_res_ms * 2.0)
       {
         to_next_in_secs =
           static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /

@@ -1,4 +1,9 @@
-﻿26.8.21.1
+﻿26.8.21.2
+=========
+ + Revert to 26.4.17.1 busy-wait timing rules for framerate limiting for
+     better consistency on typical refresh rate systems.
+
+26.8.21.1
 =========
  + Cleaned up various log spam and misformatted log messages...
 
