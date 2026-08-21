@@ -225,6 +225,10 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"steamless.exe",            // Steam DRM workaround needed to mod some games
 
   L"zfgamebrowser.exe",        // Genshin Impact Launcher
+  L"nteglobalbrowser.exe",     // Neverness To Everness Launcher
+  L"ntegloballauncher.exe",    // Neverness To Everness Launcher
+  L"nteglobalupdate.exe",      // Neverness To Everness Launcher
+  L"nteglobalgame.exe",        // Neverness To Everness Launcher
   L"dsx.exe",                  // Dual Sense X
 
   L"beamng.drive.exe",         // BeamNG's 32-bit launcher

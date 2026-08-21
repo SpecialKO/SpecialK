@@ -1969,6 +1969,7 @@ enum class SK_GAME_ID
   DaveTheDiver,                 // DaveTheDiver.exe
   PRAGMATA,                     // PRAGMATA.exe
   Hearthstone,                  // Hearthstone.exe
+  NevernessToEverness,          // NTEGlobalGame.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -339,6 +339,7 @@ SK_GetCurrentGameID (void) noexcept
           { L"PRAGMATA.exe",                           SK_GAME_ID::PRAGMATA                     },
           { L"Hearthstone.exe",                        SK_GAME_ID::Hearthstone                  },
           { L"Hearthstone Beta Launcher.exe",          SK_GAME_ID::Hearthstone                  },
+          { L"htgame.exe",                             SK_GAME_ID::NevernessToEverness          },
         };
 
     first_check  = false;
@@ -3299,6 +3300,7 @@ auto DeclKeybind =
         config.system.handle_crashes                = false;
       } break;
 
+      case SK_GAME_ID::NevernessToEverness:
       case SK_GAME_ID::GenshinImpact:
       {
         // Work-around anti-cheat

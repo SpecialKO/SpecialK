@@ -8251,7 +8251,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       if (bUndesirableDriver)
       {
         SK_LOGi0 ( L"==> D3D11CreateDeviceAndSwapChain: Ignoring D3D11 device with an undesirable"
-                   L" driver(WARP, Reference, or Microsoft Basic Render Driver)" );
+                   L" driver (WARP, Reference, or Microsoft Basic Render Driver)" );
       }
 
       return

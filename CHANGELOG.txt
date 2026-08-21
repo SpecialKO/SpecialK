@@ -1,4 +1,9 @@
-﻿26.8.20
+﻿26.8.21
+=======
+ + Added support for non-Steam versions of Neverness To Everness; make sure to
+     enable "Elevated Service" in SKIF's properties for this game.
+
+26.8.20
 =======
  + Added config setting (disabled by default) to control ReShade frame pacing fix,
      it is only shown in the control panel when DLSS Frame Generation is active and

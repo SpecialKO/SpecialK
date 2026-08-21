@@ -2526,12 +2526,16 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
   if (StrStrNIW (wszExecutable, L"SteamApps", MAX_PATH) != nullptr)
     return true;
 
-  // Sort of a temporary hack for important games that I support that are
+  // Sort of a temporary hack for important games that we support that are
   //   sold on alternative stores to Steam.
-  if (     StrStrNIW (wszExecutable, L"ffxv",      MAX_PATH) != nullptr)
+  if (     StrStrNIW (wszExecutable, L"ffxv",       MAX_PATH) != nullptr)
     return true;
 
-  else if (StrStrNIW (wszExecutable, L"ff7remake", MAX_PATH) != nullptr)
+  else if (StrStrNIW (wszExecutable, L"ff7remake",  MAX_PATH) != nullptr)
+    return true;
+
+  // SKIF whitelists the launcher, but not the client for Neverness To Everness.
+  else if (StrStrNIW (wszExecutable, L"htgame.exe", MAX_PATH) != nullptr)
     return true;
 
   return
