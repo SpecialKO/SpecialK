@@ -82,8 +82,11 @@ enum class SK_LimitApplicationSite {
   EndOfFrame // = 4 (Default)
 };
 
-float fSwapWaitRatio = 3.33f;
-float fSwapWaitFract = 0.66f;
+#define SK_FRAMERATE_DEFAULT_BUSY_WAIT_FRACT_MIN_INV 0.66f
+#define SK_FRAMERATE_DEFAULT_BUSY_WAIT_BIAS          3.33f
+
+float fSwapWaitRatio = SK_FRAMERATE_DEFAULT_BUSY_WAIT_BIAS;
+float fSwapWaitFract = SK_FRAMERATE_DEFAULT_BUSY_WAIT_FRACT_MIN_INV;
 
 float
 SK::Framerate::Limiter::undershoot_percent = 7.5f;
@@ -5017,76 +5020,191 @@ SK::Framerate::Limiter::get_ms_to_next_tick (float ticks) noexcept
 void
 SK_Framerate_EnergyControlPanel (void)
 {
-  if (! SK_CPU_IsZen ())
-    return;
-
-  if (! SK_CPU_HasMWAITX)
-    return;
-
   ImGui::Separator  ();
 
   const bool bNodeOpen =
-    ImGui::TreeNodeEx ("Energy Efficiency", ImGuiTreeNodeFlags_None/*ImGuiTreeNodeFlags_DefaultOpen*/);
+    ImGui::TreeNodeEx ("Energy Efficiency", ImGuiTreeNodeFlags_DefaultOpen);
 
   if (bNodeOpen)
   {
-    bool bUseAMDWAITX =
-      config.render.framerate.use_amd_mwaitx;
+    struct energy_preset_s {
+      float minimum;
+      float bias;
+    };
 
-    if (ImGui::Checkbox ("Use AMD MWAITX Instructions", &bUseAMDWAITX))
+    static std::map <int, energy_preset_s> presets = {
+      { 0, { -1.00f, -1.00f } },
+      { 1, {  0.91f,  0.32f } },
+      { 2, {  0.00f,  10.0f } }
+    };
+
+    int iEnergyProfile = 0;
+
+    if (config.render.framerate.busy_wait_minimum != -1.0f ||
+        config.render.framerate.busy_wait_bias    != -1.0f)
     {
-      config.render.framerate.use_amd_mwaitx = bUseAMDWAITX;
-    }
+      iEnergyProfile = 3;
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::BeginTooltip ();
-      ImGui::Text         ("Power Saving Feature For AMD CPUs");
-      ImGui::Separator    ();
-      ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
-      ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
-      ImGui::Separator    ();
-      ImGui::Text         (ICON_FA_INFO_CIRCLE " For best results, install Special K's Sensor Driver using SKIF.");
-      ImGui::EndTooltip   ();
-    }
-
-    // Run the CPU statistics
-    SK_ImGui_Widgets->cpu_monitor->setActive (true);
-    SK_RunOnce (SK_ImGui_Widgets->cpu_monitor->draw ());
-
-    extern void SK_ImGui_DrawCPUTemperature (void);
-    extern void SK_ImGui_DrawCPUPower       (void);
-
-    SK_ImGui_DrawCPUTemperature ();
-    SK_ImGui_DrawCPUPower       ();
-
-#if 0
-    bool bAdvanced =
-      ImGui::CollapsingHeader ("Advanced");
-
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("None of these settings are saved, they are all for temporary testing.");
-
-    if (bAdvanced)
-    {
-      if (ImGui::Button ("Traditional Busy-Wait"))
+      for ( auto& [idx, preset] : presets )
       {
-        fSwapWaitRatio = 3.33f;
-        fSwapWaitFract = 0.66f;
+        if (1.0f - (config.render.framerate.busy_wait_minimum / 100.0f) == preset.minimum &&
+                    config.render.framerate.busy_wait_bias              == preset.bias)
+        {
+          iEnergyProfile = idx;
+          break;
+        }
+      }
+    }
+
+    ImGui::BeginGroup ();
+    ImGui::BeginGroup ();
+
+    if (ImGui::RadioButton ("Default", &iEnergyProfile, 0))
+    {
+      fSwapWaitRatio = SK_FRAMERATE_DEFAULT_BUSY_WAIT_BIAS;
+      fSwapWaitFract = SK_FRAMERATE_DEFAULT_BUSY_WAIT_FRACT_MIN_INV;
+
+      config.render.framerate.busy_wait_minimum = -1.0f;
+      config.render.framerate.busy_wait_bias    = -1.0f;
+
+      config.utility.save_async ();
+    }
+
+    ImGui::SameLine ();
+
+    bool preset_changed = false;
+
+    preset_changed |=
+      ImGui::RadioButton ("Power Saving",  &iEnergyProfile, 1);
+      ImGui::SameLine    ();
+
+    preset_changed |=
+      ImGui::RadioButton ("Max. Accuracy", &iEnergyProfile, 2);
+      ImGui::SameLine    ();
+
+    if (preset_changed)
+    {
+      fSwapWaitRatio = presets [iEnergyProfile].bias;
+      fSwapWaitFract = presets [iEnergyProfile].minimum;
+    }
+
+    ImGui::EndGroup ();
+
+    const float preset_radio_list_width =
+      ImGui::GetItemRectSize ().x;
+
+    ImGui::SameLine ();
+
+    bool custom_changed = false;
+
+    if (ImGui::RadioButton ("Custom", &iEnergyProfile, 3))
+    {
+      custom_changed = true;
+
+      if (config.render.framerate.busy_wait_minimum == -1.0f)
+          config.render.framerate.busy_wait_minimum = (1.0f - fSwapWaitFract) * 100.0f;
+      else
+          config.render.framerate.busy_wait_minimum += 0.0001f;
+
+      if (config.render.framerate.busy_wait_bias == -1.0f)
+          config.render.framerate.busy_wait_bias = fSwapWaitRatio;
+      else
+          config.render.framerate.busy_wait_bias += 0.0001f;
+
+      fSwapWaitFract = 1.0f - (config.render.framerate.busy_wait_minimum / 100.0f);
+      fSwapWaitRatio =         config.render.framerate.busy_wait_bias;
+
+      config.utility.save_async ();
+    }
+
+    // Custom sliders for Busy Wait Bias and Minimum
+    {
+      ImGui::Spacing    ();
+      ImGui::BeginGroup ();
+
+      ImGui::PushItemWidth (preset_radio_list_width - ImGui::GetStyle ().ItemSpacing.x * 2.0f);
+
+      float busy_wait_minimum = (1.0f - fSwapWaitFract) * 100.0f;
+      float busy_wait_bias    =         fSwapWaitRatio;
+
+      ImGui::Spacing    ();
+      ImGui::SameLine   ();
+
+      custom_changed |= ImGui::SliderFloat ("Busy-Wait %",    &busy_wait_minimum, 0.0f, 100.0f);
+
+      ImGui::SetItemTooltip (
+        "Minimum percentage of time spent busy-waiting between frames.\n"
+        "Lower values reduce power consumption but will increase frametime variance, especially at high framerates."
+      );
+
+      ImGui::Spacing    ();
+      ImGui::SameLine   ();
+
+      custom_changed |= ImGui::SliderFloat ("Busy-Wait Bias", &busy_wait_bias,    0.0f,  10.0f);
+
+      ImGui::SetItemTooltip (
+        "Cushioning to protect against CPU scheduler overload at high framerates.\n"
+        "SK will doubt the OS scheduler's reported timing capabilities and favor busy-wait more often."
+      );
+
+      if (custom_changed)
+      {
+        fSwapWaitFract = 1.0f - (busy_wait_minimum / 100.0f);
+        fSwapWaitRatio =         busy_wait_bias;
+
+        preset_changed = true;
       }
 
-      ImGui::SameLine ();
+      ImGui::PopItemWidth ();
+      ImGui::EndGroup     ();
+    }
 
-      if (ImGui::Button ("Relaxed Busy-Wait"))
+    if (preset_changed)
+    {
+      config.render.framerate.busy_wait_minimum = (1.0f - fSwapWaitFract) * 100.0f;
+      config.render.framerate.busy_wait_bias    =         fSwapWaitRatio;
+
+      config.utility.save_async ();
+    }
+
+    ImGui::EndGroup ();
+
+    if (SK_CPU_IsZen () && SK_CPU_HasMWAITX)
+    {
+      ImGui::SameLine    ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
+
+      bool bUseAMDWAITX =
+        config.render.framerate.use_amd_mwaitx;
+
+      if (ImGui::Checkbox ("Use AMD MWAITX Instructions", &bUseAMDWAITX))
       {
-        fSwapWaitRatio = 0.32f;
-        fSwapWaitFract = 0.91f;
+        config.render.framerate.use_amd_mwaitx = bUseAMDWAITX;
       }
 
-      ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);
-      ImGui::SliderFloat ("Sleep Threshold",       &fSwapWaitFract, 0.0f, 1.0f);
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Power Saving Feature For AMD CPUs");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
+        ImGui::BulletText   ("Only affects busy-wait power consumption and has no impact on OS reported CPU load%.");
+      //ImGui::Separator    ();
+      //ImGui::Text         (ICON_FA_INFO_CIRCLE " For best results, install Special K's Sensor Driver using SKIF.");
+        ImGui::EndTooltip   ();
+      }
+
+      // Run the CPU statistics
+      SK_ImGui_Widgets->cpu_monitor->setActive (true);
+      SK_RunOnce (SK_ImGui_Widgets->cpu_monitor->draw ());
+
+      extern void SK_ImGui_DrawCPUTemperature (void);
+      extern void SK_ImGui_DrawCPUPower       (void);
+
+      SK_ImGui_DrawCPUTemperature ();
+      SK_ImGui_DrawCPUPower       ();
     }
-#endif
 
     ImGui::TreePop    ();
   }

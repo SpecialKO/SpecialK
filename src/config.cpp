@@ -998,6 +998,8 @@ struct {
     sk::ParameterInt*     streamline_pacing_mode  = nullptr;
     sk::ParameterBool*    ignore_environment_vars = nullptr;
     sk::ParameterBool*    boost_compositor_clock  = nullptr;
+    sk::ParameterFloat*   busy_wait_minimum       = nullptr;
+    sk::ParameterFloat*   busy_wait_bias          = nullptr;
     sk::ParameterBool*    force_vk_mailbox        = nullptr;
     sk::ParameterBool*    force_vk_adaptive       = nullptr;
     sk::ParameterBool*    max_timer_resolution    = nullptr;
@@ -2144,6 +2146,9 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.
                                 ignore_environment_vars, L"Ignore environment variable-defined framerate limits.",     dll_ini,         L"Render.FrameRate",      L"IgnoreEnvironmentVars"),
     ConfigEntry (render.framerate.boost_compositor_clock,L"Boost Compositor Clock on Windows 11+ (Dynamic Refresh)",   dll_ini,         L"Render.FrameRate",      L"BoostCompositorClock"),
+    ConfigEntry (render.framerate.busy_wait_minimum,     L"Minimum percentage of limiter time spent busy-waiting.",    dll_ini,         L"Render.FrameRate",      L"BusyWaitPercent"),
+    ConfigEntry (render.framerate.busy_wait_bias,        L"How aggressively (scale of 0-10) to switch to busy-wait"
+                                                         L" for wait durations exceeding the scheduler's resolution.", dll_ini,         L"Render.FrameRate",      L"BusyWaitBias"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Engine",      L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.engine.
@@ -5006,6 +5011,24 @@ auto DeclKeybind =
   render.framerate.boost_compositor_clock->
                                          load (config.render.framerate.boost_composite_clock);
 
+  if (render.framerate.busy_wait_minimum->load(config.render.framerate.busy_wait_minimum))
+  {
+    if (config.render.framerate.busy_wait_minimum != -1.0f)
+    {
+      extern float fSwapWaitFract;
+                   fSwapWaitFract = 1.0f - config.render.framerate.busy_wait_minimum / 100.0f;
+    }
+  }
+
+  if (render.framerate.busy_wait_bias->  load (config.render.framerate.busy_wait_bias))
+  {
+    if (config.render.framerate.busy_wait_bias != -1.0f)
+    {
+      extern float fSwapWaitRatio;
+                   fSwapWaitRatio = config.render.framerate.busy_wait_bias;
+    }
+  }
+
   // Non-native pacing codepath is broken / being phased-out,
   //   better to just force-enable native limit if pacing mode is not 0.
   if (config.render.framerate.streamline.pacing_mode != 0)
@@ -7414,6 +7437,9 @@ SK_SaveConfig ( std::wstring name,
                                        store (config.render.framerate.ignore_env_vars);
   render.framerate.boost_compositor_clock->
                                        store (config.render.framerate.boost_composite_clock);
+
+  render.framerate.busy_wait_minimum->store  (config.render.framerate.busy_wait_minimum);
+  render.framerate.busy_wait_bias->store     (config.render.framerate.busy_wait_bias);
 
   render.framerate.override_cpu_count->store (config.render.framerate.override_num_cpus);
   render.framerate.max_timer_resolution->

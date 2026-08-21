@@ -853,12 +853,14 @@ struct sk_config_t
         int  allow_latency_wait    = -1;
         int  allow_wait_for_vblank = -1;
       } engine_overrides;
-      bool   max_timer_resolution  = true;
-      bool   force_high_res_timers = true;
+      bool   max_timer_resolution  =  true;
+      bool   force_high_res_timers =  true;
       bool   ignore_env_vars       = false;
-      bool   pace_game_thread      = true;
+      bool   pace_game_thread      =  true;
       bool   precise_short_sleep   = false;
       bool   boost_composite_clock = false;
+      float  busy_wait_minimum     = -1.0f;
+      float  busy_wait_bias        = -1.0f;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;
