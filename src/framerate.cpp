@@ -525,7 +525,7 @@ CreateWaitableTimerExA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
     SK_LOG_FIRST_CALL
 
     SK_LOGi0 (
-      L"%ws%wsWaitable Timer {%hs} Created by CreateWaitableTimerExA (...) -- [ %ws, tid=%04x ]",
+      L"%ws %wsWaitable Timer {%ws} Created by CreateWaitableTimerExA (...) -- [ %ws, tid=%04x ]",
                      lpTimerName != nullptr ?
                      lpTimerName : "Unnamed",
         (dwFlags & CREATE_WAITABLE_TIMER_HIGH_RESOLUTION) != 0 ? L"High Resolution " : L"",
@@ -554,7 +554,7 @@ CreateWaitableTimerExW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
     SK_LOG_FIRST_CALL
 
     SK_LOGi0 (
-      L"%ws%wsWaitable Timer {%ws} Created by CreateWaitableTimerExW (...) -- [ %ws, tid=%04x ]",
+      L"%ws %wsWaitable Timer {%ws} Created by CreateWaitableTimerExA (...) -- [ %ws, tid=%04x ]",
                      lpTimerName != nullptr ?
                      lpTimerName : L"Unnamed",
         (dwFlags & CREATE_WAITABLE_TIMER_HIGH_RESOLUTION) != 0 ? L"High Resolution " : L"",

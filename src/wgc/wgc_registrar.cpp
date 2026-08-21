@@ -230,7 +230,7 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
             std::wstring child_str (p);
 
 #ifdef SK_BUILTIN
-            SK_LOGi0 (L"Child Key: %ws", child_str.c_str ());
+            SK_LOGi1 (L"Child Key: %ws", child_str.c_str ());
 #endif
 
             child_key_names.push_back (child_str);

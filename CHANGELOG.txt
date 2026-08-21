@@ -1,4 +1,8 @@
-﻿26.8.21
+﻿26.8.21.1
+=========
+ + Cleaned up various log spam and misformatted log messages...
+
+26.8.21
 =======
  + Added support for non-Steam versions of Neverness To Everness; make sure to
      enable "Elevated Service" in SKIF's properties for this game.

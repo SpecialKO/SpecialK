@@ -228,7 +228,7 @@ void SK_HID_SetupPlayStationControllers (void)
           continue;
         }
 
-        static wchar_t devInterfaceDetailData [MAX_PATH + 2];
+        static alignas (SP_DEVICE_INTERFACE_DETAIL_DATA) wchar_t devInterfaceDetailData [MAX_PATH + 2];
 
         ULONG ulMinimumSize = 0;
 
@@ -265,7 +265,7 @@ void SK_HID_SetupPlayStationControllers (void)
 
           if (hDeviceFile == 0 || hDeviceFile == INVALID_HANDLE_VALUE)
           {
-            SK_LOGi0 (L"Failed to Open File for: %ws", wszFileName);
+            SK_LOGi1 (L"Failed to Open File for: %ws", wszFileName);
             continue;
           }
 
@@ -1338,8 +1338,8 @@ SK_HID_ProcessGamepadButtonBindings (void)
         HWND hWndFocus =
           SK_GetFocus ();
 
-        DWORD                                   dwFocusPid = 0;
-        SK_GetWindowThreadProcessId(hWndFocus, &dwFocusPid);
+        DWORD                                    dwFocusPid = 0;
+        SK_GetWindowThreadProcessId (hWndFocus, &dwFocusPid);
 
         const UINT bScancode =
           MapVirtualKey (VirtualKey, MAPVK_VK_TO_VSC);
@@ -1347,8 +1347,11 @@ SK_HID_ProcessGamepadButtonBindings (void)
         static auto game_pid =
           GetProcessId (GetCurrentProcess ());
 
+        static const bool unity =
+          SK_GetCurrentRenderBackend ().windows.unity;
+
         // Simplest and most reliable if the process already has focus
-        if (game_window.active || dwFocusPid == game_pid)
+        if ((! unity) && (game_window.active || dwFocusPid == game_pid))
         {
           const DWORD dwFlags =
              ( ( bScancode & 0xE100 ) != 0                  ?
@@ -1451,7 +1454,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
     if (hHeadphoneEvent == nullptr)
         hHeadphoneEvent =
-          SK_CreateEvent ( nullptr, FALSE, FALSE,
+          SK_CreateEvent ( nullptr, FALSE, TRUE,
             SK_FormatStringW (L"[SK] HID Headphone %p", hDeviceFile).c_str ());
 
     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
@@ -3118,6 +3121,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             //   nobody can use the headphone jack over Bluetooth.
             if (WaitForSingleObject (pDevice->hHeadphoneEvent, 0) == WAIT_OBJECT_0)
             {
+              SK_LOGi0 (L"Headphone Hotplug Event");
+
               pDevice->bHeadphones = false;
 
               if (pDevice->audio_endpoint != nullptr)
@@ -3145,7 +3150,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
                       SK_ComPtr <IPropertyStore>                               pPropertyStoreDefault;
                       if (SUCCEEDED (pAudioDev->OpenPropertyStore (STGM_READ, &pPropertyStoreDefault.p)) &&
-                          SUCCEEDED (pPropertyStoreDev->GetValue (PKEY_Device_FriendlyName, &friendly_name_default)))
+                          SUCCEEDED (pPropertyStoreDefault->GetValue (PKEY_Device_FriendlyName, &friendly_name_default)))
                       {
                         // Ensure that audio comes out of the headphone jack if user is
                         //   running the gamepad as the default audio device.
@@ -3163,14 +3168,21 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 }
               }
 
-              output->AllowAudioControl = 1;
-              output->OutputPathSelect  = pDevice->bHeadphones ? 0 : 3;
+              output->AllowAudioControl    = 1;
+              output->AllowAudioControl2   = 1;
+              output->OutputPathSelect     = pDevice->bHeadphones ? 0 : 3;
 
               output->AllowHeadphoneVolume = 1;
               output->VolumeHeadphones     = 0x7f;
 
               output->AllowSpeakerVolume   = 1;
-              output->VolumeSpeaker        = 0x64;
+              output->VolumeSpeaker        = 0xff;
+              output->SpeakerCompPreGain   = 0x4;
+
+              SK_LOGi0 ( L"Headphone Status: %hs",
+                 pDevice->bHeadphones  ?
+                          "Headphones" :
+                          "Speakers" );
             }
 
             const ULONG dwRightMotor   = ReadULongAcquire (&pDevice->_vibration.right);
@@ -3310,11 +3322,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             output->HapticPowerSave          = false;
             output->AudioPowerSave           = false;
 
-            output->HapticLowPassFilter      = 0;
-            output->AllowHapticLowPassFilter = 1;
-
-            output->AllowSpeakerVolume       = 1;
-            output->VolumeSpeaker            = 0x64;
+          //output->HapticLowPassFilter      = 1;
+          //output->AllowHapticLowPassFilter = 1;
 
               //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
               //                                                         :
@@ -3555,7 +3564,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             output->HapticPowerSave          = false;
             output->AudioPowerSave           = false;
 
-            output->HapticLowPassFilter      = 0;
+            output->HapticLowPassFilter      = 1;
             output->AllowHapticLowPassFilter = 1;
 
             output->AllowSpeakerVolume       = 1;
@@ -5251,6 +5260,8 @@ SK_HID_PlayStationDevice::reset_device (void)
   extern XINPUT_STATE hid_to_xi;
                       hid_to_xi.Gamepad = {};
 
+  SetEvent (hHeadphoneEvent);
+
   WriteRelease (&bNeedOutput, TRUE);
 }
 
@@ -5293,8 +5304,8 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
 
         for (int i = position; i < 10; i++)
         {
-          amplitudeZones |= (UInt64)(strengthValue << (4 * i));
-          activeZones    |= (UInt16)(1 << i);
+          amplitudeZones |= ((UInt64)strengthValue << (4ui64 * (UInt64)i));
+          activeZones    |= ((UInt16)1             <<          (UInt16)i);
         }
 
         data [ 0] = (byte)0x26;
@@ -5400,9 +5411,6 @@ SK_HID_PlayStationDevice::initialize_audio (SK_HID_DualSense_SetStateData* pRepo
 
   if (! pReport)
     return;
-
-  pReport->AllowAudioControl = 1;
-  pReport->OutputPathSelect  = 0;
 
   pReport->AllowAudioMute  = 1;
   pReport->TouchPowerSave  = 0;
