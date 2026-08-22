@@ -1,4 +1,9 @@
-﻿26.8.22
+﻿26.8.22.1
+=========
+ + Avoid static initialization on do_win_verify_trust in SK_LoadConfigEx (...) to
+     avoid deadlock in latest MSVC toolchain.
+
+26.8.22
 =======
  + Added framerate limiter OS scheduler / busy-wait tuning to the Control Panel
      (see: Framerate Limiter > Advanced > Energy Efficiency).

@@ -6465,8 +6465,12 @@ auto DeclKeybind =
 
   // This is slow as hell thanks to the Steam overlay, so it
   //   should only ever be done on the first launch...
-  static bool do_win_verify_trust =
-    (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run) || SK_IsAdmin ();
+  bool do_win_verify_trust = false;
+
+  SK_RunOnce (
+    do_win_verify_trust =
+      (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run) || SK_IsAdmin ();
+  );
 
   struct {
     unsigned int ver     = 0U;
