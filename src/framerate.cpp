@@ -418,7 +418,9 @@ CreateWaitableTimerW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
   SK_LOG_FIRST_EXTERNAL_CALL
 
   static DWORD high_res_flag =
-    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
+    config.render.framerate.force_high_res_timers
+    ? CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+    : 0x0;
 
   SK_RunOnce (sk::NVAPI::nvwgf2umx = // 32-bit and 64-bit versions
    (HMODULE)((uintptr_t)SK_GetModuleHandle (L"nvwgf2umx.dll") |
@@ -472,7 +474,9 @@ CreateWaitableTimerA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
   SK_LOG_FIRST_EXTERNAL_CALL
 
   static DWORD high_res_flag =
-    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
+    config.render.framerate.force_high_res_timers
+    ? CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+    : 0x0;
 
   SK_RunOnce (sk::NVAPI::nvwgf2umx = // 32-bit and 64-bit versions
    (HMODULE)((uintptr_t)SK_GetModuleHandle (L"nvwgf2umx.dll") |
