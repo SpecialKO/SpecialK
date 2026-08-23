@@ -1002,6 +1002,7 @@ struct SK_HID_PlayStationDevice
   bool                 bAudioInit               =   false;
   bool                 bHeadphones              =   false;
   volatile LONG        bNeedOutput              =    TRUE;
+  volatile LONG        bOutputEnqueued          =   FALSE;
 
   struct battery_s {
     float      percentage = 100.0f;

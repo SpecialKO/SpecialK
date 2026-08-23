@@ -47,17 +47,17 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 //static bool bLastF3   = false;
   static bool bLastHome = false;
 
-  const bool bTab   = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeySteam  )) & 0x8000) != 0;
-//const bool bF3    = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyEpic   )) & 0x8000) != 0;
-  const bool bShift = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyShift  )) & 0x8000) != 0;
-  const bool bHome  = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade)) & 0x8000) != 0;
-
   static const auto& io =
     ImGui::GetIO ();
 
   // Is SK's UI itself currently using the keyboard exclusively?
   const bool is_keyboard_exclusive =
     (nav_usable || io.WantCaptureKeyboard || io.WantTextInput || SK_IsConsoleVisible ());
+
+  const bool bTab   = is_keyboard_exclusive && (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeySteam  )) & 0x8000) != 0;
+//const bool bF3    = is_keyboard_exclusive && (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyEpic   )) & 0x8000) != 0;
+  const bool bShift = is_keyboard_exclusive && (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyShift  )) & 0x8000) != 0;
+  const bool bHome  = is_keyboard_exclusive && (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade)) & 0x8000) != 0;
 
   if ( is_keyboard_exclusive || ( bHome == bLastHome &&
                                  (bTab  == bLastTab ||

@@ -573,6 +573,9 @@ SK_ImGui_UnsilenceNotifications (void)
 void
 SK_ImGui_DrawNotifications (void)
 {
+  if (SK_ImGui_Notifications.empty ())
+    return;
+
   //if (ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId))
   //  return;
 

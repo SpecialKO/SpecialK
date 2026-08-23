@@ -1,4 +1,9 @@
-﻿26.8.22.1
+﻿26.8.23
+=======
+ + Slightly optimize per-frame input processing, especially when the game window is
+     in the background.
+
+26.8.22.1
 =========
  + Avoid static initialization on do_win_verify_trust in SK_LoadConfigEx (...) to
      avoid deadlock in latest MSVC toolchain.

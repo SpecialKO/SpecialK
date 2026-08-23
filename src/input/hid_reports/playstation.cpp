@@ -2965,7 +2965,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       std::scoped_lock _initlock(*xinput.lock_report);
 
       hOutputEnqueued =
-        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+        SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
       hOutputFinished =
         SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
@@ -3029,7 +3029,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
           if (dwWaitState == (WAIT_OBJECT_0 + 2))
           {
-            ResetEvent (pDevice->hOutputEnqueued);
+            WriteRelease (&pDevice->bOutputEnqueued, FALSE);
             bEnqueued = true;
           }
 
@@ -3812,7 +3812,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       }, L"[SK] HID Output Report Producer", this);
     }
 
-    else if (ReadAcquire (&bNeedOutput))
+    else if (ReadAcquire (&bNeedOutput) && InterlockedCompareExchange (&bOutputEnqueued, TRUE, FALSE) == FALSE)
       SetEvent (hOutputEnqueued);
 
     return true;
@@ -3835,7 +3835,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       std::scoped_lock _initlock(*xinput.lock_report);
 
       hOutputEnqueued =
-        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+        SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
       hOutputFinished =
         SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
@@ -3918,7 +3918,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
           if (dwWaitState == (WAIT_OBJECT_0 + 2))
           {
-            ResetEvent (pDevice->hOutputEnqueued);
+            WriteRelease (&pDevice->bOutputEnqueued, FALSE);
             bEnqueued = true;
           }
 
@@ -4246,7 +4246,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       }, L"[SK] HID Output Report Producer", this);
     }
 
-    else if (ReadAcquire (&bNeedOutput))
+    else if (ReadAcquire (&bNeedOutput) && InterlockedCompareExchange (&bOutputEnqueued, TRUE, FALSE) == FALSE)
       SetEvent (hOutputEnqueued);
 
     return true;

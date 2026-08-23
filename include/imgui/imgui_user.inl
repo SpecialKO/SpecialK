@@ -3795,7 +3795,24 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void) noexcept
   static CRegKey skif_controller_reg_key;
   SK_RunOnce    (skif_controller_reg_key.Open (HKEY_CURRENT_USER, LR"(Software\Kaldaien\Special K\Input)"));
 
-  if (SK_IsGameWindowActive ())
+  const bool window_active =
+    SK_IsGameWindowActive ();
+
+  if (window_active)
+  {
+    SK_ImGui_ProcessGamepadInput = true;
+  }
+
+  // Rate-limit to 5 Hz, because this is one of the more expensive operations
+  //   that SK performs at the beginning of every frame.
+  static DWORD
+      dwLastUpdated = 0;
+  if (dwLastUpdated > SK::ControlPanel::current_time - 200UL)
+  {
+    return;
+  }
+
+  if (window_active)
   {
     SK_ImGui_ProcessGamepadInput = true;
   }
@@ -3806,13 +3823,15 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void) noexcept
   //
   else if (config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled && config.window.background_render)
   {
+    dwLastUpdated = SK::ControlPanel::current_time;
+
     bool process_input = true;
 
-    auto GetWindowsAbove = [&](HWND targetHwnd) -> std::vector <HWND>
-    {
-      std::vector <HWND> windowsAbove;
-                         windowsAbove.reserve (32);
+    static std::vector <HWND> windowsAbove (128);
+                              windowsAbove.clear ();
 
+    auto GetWindowsAbove = [&](HWND targetHwnd) -> std::vector <HWND>&
+    {
       HWND hwnd =
         GetTopWindow (nullptr);
 
