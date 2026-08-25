@@ -3615,7 +3615,7 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
   return bRet;
 }
 
-BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
+BOOL SK_NvAPI_EnableVulkanBridge_Impl (BOOL bEnable)
 {
   // This is completely undefined on Linux, there is no real DXGI to interop with :)
   if (config.compatibility.using_wine)
@@ -3858,6 +3858,30 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
     SK_RestartGame ();
 
   return true;
+}
+
+// On recent NVIDIA drivers since the separation of NvAPI into nvapi64 and nvapi64_impl.dll,
+//   the driver settings API will crash in many Vulkan applications inside driver code...
+//
+//  * Just let NV's driver be flaky, don't have time to deal with this.
+//
+BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
+{
+  BOOL bRet = FALSE;
+
+  __try {
+    bRet =
+      SK_NvAPI_EnableVulkanBridge_Impl (bEnable);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    SK_LOGi0 (
+      L"SK_NvAPI_EnableVulkanBridge: Exception %x", GetExceptionCode ()
+    );
+  }
+
+  return bRet;
 }
 
 BOOL SK_NvAPI_GetFastSync (void)

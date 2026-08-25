@@ -1,4 +1,10 @@
-﻿26.8.23
+﻿26.8.25
+=======
+ + Added workaround for flaky NVIDIA Vulkan driver since NVIDIA split NVAPI up into
+     nvapi64.dll and nvapi64_impl.dll. Driver Settings API often crashes internally
+       when saving settings now that the DLL is split in two.
+
+26.8.23
 =======
  + Slightly optimize per-frame input processing, especially when the game window is
      in the background.
