@@ -1,4 +1,16 @@
-﻿26.8.25
+﻿26.8.28
+=======
+ + Initial support for NVIDIA DLSS Slop Shading (Neural Rendering) features.
+     (i.e. status text and DLL version override)
+ + DLSS Slop Shading can be blocked by setting:
+
+      [NVIDIA.DLSS]
+      SlopStop5000={true|false}  Default: false
+
+    * This will have a global setting in the future to ensure no game ever
+        activates this functionality on your system with confidence.
+
+26.8.25
 =======
  + Added workaround for flaky NVIDIA Vulkan driver since NVIDIA split NVAPI up into
      nvapi64.dll and nvapi64_impl.dll. Driver Settings API often crashes internally

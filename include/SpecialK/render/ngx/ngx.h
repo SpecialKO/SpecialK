@@ -34,9 +34,10 @@ struct NGX_ThreadSafety {
 
 extern SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
-void SK_NGX_EstablishDLSSVersion  (const wchar_t*) noexcept;
-void SK_NGX_EstablishDLSSGVersion (const wchar_t*) noexcept;
-void SK_NGX_EstablishDLSSDVersion (const wchar_t*) noexcept;
+void SK_NGX_EstablishDLSSVersion   (const wchar_t*) noexcept;
+void SK_NGX_EstablishDLSSGVersion  (const wchar_t*) noexcept;
+void SK_NGX_EstablishDLSSDVersion  (const wchar_t*) noexcept;
+void SK_NGX_EstablishDLSSNRVersion (const wchar_t*) noexcept;
 
 enum {
   SK_NGX_Init_                   = 0,
@@ -203,6 +204,39 @@ struct SK_DLSS_Context
       return true;
     }
   } ray_reconstruction;
+
+  struct dlssnr_s {
+    struct instance_s {
+      NVSDK_NGX_Handle*    Handle     = nullptr;
+      NVSDK_NGX_Parameter* Parameters = nullptr;
+      NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_SlopShading;
+    };
+    concurrency::concurrent_unordered_map <const NVSDK_NGX_Handle*, instance_s>
+                     Instances {};
+    instance_s*      LastInstance   = nullptr;
+    volatile ULONG64 LastFrame      = 0ULL;
+    static DWORD     IndicatorFlags;
+    static version_s Version;
+
+    // Are these separate from DLSS...?
+    static void showIndicator    (bool show);
+    static bool isIndicatorShown (void);
+
+    bool        hasInstance (const NVSDK_NGX_Handle* handle) { return Instances.count (handle) != 0; }
+    instance_s* getInstance (const NVSDK_NGX_Handle* handle) { if (hasInstance (handle)) return &Instances [handle]; return nullptr; }
+
+    bool evaluateFeature (instance_s* feature)
+    {
+      if (feature == nullptr)
+        return false;
+
+      WriteULong64Release (&LastFrame, SK_GetFramesDrawn ());
+
+      LastInstance = feature;
+
+      return true;
+    }
+  } slop_shading;
 
   inline void log_call (void) noexcept { apis_called = true; };
 };

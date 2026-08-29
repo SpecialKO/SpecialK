@@ -76,6 +76,23 @@ SK_NGX_IsUsingDLSS_D (void)
 }
 
 bool
+SK_NGX_IsUsingDLSS_NR (void)
+{
+  auto isSlopShadingValid = [](const SK_DLSS_Context::dlssnr_s& dlssnr_context) -> bool
+  {
+    if (const auto* inst = dlssnr_context.LastInstance;
+                    inst && inst->Handle
+                         && inst->DLSS_Type == NVSDK_NGX_Feature_SlopShading)
+      return ReadULong64Acquire (&dlssnr_context.LastFrame) >= SK_GetFramesDrawn () - 8;
+
+    return false;
+  };
+
+  return (SK_NGX_DLSS12.apis_called && isSlopShadingValid (SK_NGX_DLSS12.slop_shading)) ||
+         (SK_NGX_VULKAN.apis_called && isSlopShadingValid (SK_NGX_VULKAN.slop_shading));
+}
+
+bool
 SK_NGX_IsUsingDLSS_G (void)
 {
   return /// TODO Refactor
@@ -170,6 +187,30 @@ SK_NGX_EstablishDLLVersionFromAPICall (int operation, LPCVOID pReturn) noexcept
       else
       {
         SK_NGX_EstablishDLSSDVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );
+      }
+
+      return;
+    }
+
+    if ( SK_IsCallingDLL (    LR"(NGX\models\dlssnr\versions\)", pReturn) ||
+         (! _wcsicmp (name.c_str (), L"nvngx_dlssnr.dll")) )
+    { if (! _wcsicmp (name.c_str (), L"nvngx_dlssnr.dll"))
+      {
+        if (! SK_DLSS_Context::dlssnr_s::Version.driver_override)
+              SK_DLSS_Context::dlssnr_s::Version = {};
+
+        // Normal DLL, not a driver override (.bin)
+        SK_NGX_EstablishDLSSNRVersion (
+          SK_GetCallerFullName (pReturn).c_str ()
+        );        
+      }
+
+      // Driver override (.bin) from NGX\models\...
+      else
+      {
+        SK_NGX_EstablishDLSSNRVersion (
           SK_GetCallerFullName (pReturn).c_str ()
         );
       }
@@ -1277,6 +1318,7 @@ SK_NGX_GetDLSSGParameters (void)
 SK_DLSS_Context::version_s SK_DLSS_Context::dlss_s::Version;
 SK_DLSS_Context::version_s SK_DLSS_Context::dlssg_s::Version;
 SK_DLSS_Context::version_s SK_DLSS_Context::dlssd_s::Version;
+SK_DLSS_Context::version_s SK_DLSS_Context::dlssnr_s::Version;
 
 void
 SK_NGX_EstablishDLSSVersion (const wchar_t* wszDLSS) noexcept
@@ -1435,6 +1477,78 @@ SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSSD) noexcept
 }
 
 void
+SK_NGX_EstablishDLSSNRVersion (const wchar_t* wszDLSSNR) noexcept
+{
+  SK_NGX_Init ();
+
+  static bool bHasVersion = false;
+
+  // Driver overrides have extension .bin
+  const bool bIsDriverOverride =
+    _wcsicmp (PathFindExtensionW (wszDLSSNR), L".bin") == 0;
+
+  const bool bIsVersionValid =
+    bHasVersion && SK_DLSS_Context::dlssnr_s::Version.major > 0;
+
+  if (bIsVersionValid && SK_GetFramesDrawn () > 0 && !bIsDriverOverride)
+    return;
+
+  const HMODULE dll =
+    SK_GetModuleHandleW (wszDLSSNR);
+
+  if (! dll)
+    return;
+
+  auto version =
+    SK_DLSS_Context::dlssnr_s::Version;
+
+  version.dll = dll;
+
+  std::wstring product_str =
+    SK_GetDLLProductName (wszDLSSNR);
+
+  // Verify this is in fact a DLSS-NR DLL
+  if (StrStrIW (product_str.c_str (), L"DLSSNR"))
+  {
+    std::wstring ver_str =
+      SK_GetDLLVersionStr (wszDLSSNR);
+
+    std::swscanf (
+      SK_GetDLLVersionShort (wszDLSSNR).c_str (), L"%u,%u,%u,%u",
+        &version.major, &version.minor,
+        &version.build, &version.revision
+    );
+
+    // Stupid hack because of NVIDIA's in-place OTA upgrades not necessarily actually
+    //   upgrading anything.
+    if (SK_DLSS_Context::dlssnr_s::Version.isOlderThan (version))
+    {
+      SK_LOGi1 (L"New DLSS-NR Version String (%ws): %ws", wszDLSSNR,
+                                  ver_str.c_str ());
+
+      if (SK_DLSS_Context::dlssnr_s::Version.major != 0)
+      {
+        version.driver_override                            |= bIsDriverOverride;
+        SK_DLSS_Context::dlssnr_s::Version.driver_override |= bIsDriverOverride;
+      }
+
+      SK_DLSS_Context::dlssnr_s::Version = version;
+    }
+
+    else if (! SK_DLSS_Context::dlssnr_s::Version.isEqualTo (version))
+    {
+      SK_LOGi1 (L"Old DLSS-NR Version String (%ws): %ws", wszDLSSNR,
+                                 ver_str.c_str ());
+
+      if (! bIsDriverOverride)
+        SK_DLSS_Context::dlssnr_s::Version = version;
+    }
+
+    bHasVersion = SK_DLSS_Context::dlssnr_s::Version.major > 0;
+  }
+}
+
+void
 SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSSG) noexcept
 {
   SK_NGX_Init ();
@@ -1581,6 +1695,31 @@ SK_NGX_GetDLSSDVersion (void) noexcept
     return *v;
 
   if (auto* v = getDlssdVersion (SK_NGX_VULKAN))
+    return *v;
+
+  return s_fallback;
+}
+
+const SK_DLSS_Context::version_s&
+SK_NGX_GetDLSSNRVersion (void) noexcept
+{
+  static const SK_DLSS_Context::version_s s_fallback { };
+
+  auto getDlssnrVersion = [](const SK_DLSS_Context& dlssContext) -> const SK_DLSS_Context::version_s*
+  {
+    if (! dlssContext.apis_called)
+      return nullptr;
+
+    const auto& v =
+      dlssContext.slop_shading.Version;
+
+    return (v.major != 0) ? &v : nullptr;
+  };
+
+  if (auto* v = getDlssnrVersion (SK_NGX_DLSS12))
+    return *v;
+
+  if (auto* v = getDlssnrVersion (SK_NGX_VULKAN))
     return *v;
 
   return s_fallback;
@@ -2198,8 +2337,9 @@ SK_NGX_DLSS_ControlPanel (void)
       {
         ImGui::SameLine ();
 
-        const bool bFrameGen = SK_NGX_IsUsingDLSS_G ();
-        const bool bRayRecon = SK_NGX_IsUsingDLSS_D ();
+        const bool bFrameGen    = SK_NGX_IsUsingDLSS_G  ();
+        const bool bRayRecon    = SK_NGX_IsUsingDLSS_D  ();
+        const bool bSlopShading = SK_NGX_IsUsingDLSS_NR ();
 
         ImGui::TextColored     ( bFrameGen ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
@@ -2212,6 +2352,11 @@ SK_NGX_DLSS_ControlPanel (void)
                                  bRayRecon ? ICON_FA_CHECK                   : ICON_FA_XMARK );
         ImGui::SameLine        ( );
         ImGui::TextUnformatted ( "Ray Reconstruction" );
+        ImGui::SameLine        ( );
+        ImGui::TextColored     ( bSlopShading ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
+                                 bSlopShading ? ICON_FA_CHECK                   : ICON_FA_XMARK );
+        ImGui::SameLine        ( );
+        ImGui::TextUnformatted ( "Slop Shading" );
       }
 
       ImGui::TreePush     ("");
@@ -2248,6 +2393,9 @@ SK_NGX_DLSS_ControlPanel (void)
 
       static auto& dlssd_version =
         SK_NGX_GetDLSSDVersion ();
+
+      static auto& dlssnr_version =
+        SK_NGX_GetDLSSNRVersion ();
 
       static bool restart_required = false;
 
@@ -3346,6 +3494,31 @@ SK_NGX_DLSS_ControlPanel (void)
         }
       }
 
+      if (dlssnr_version.major > 0)
+      {
+        //ImGui::SameLine ();
+
+        color =
+          dlssnr_version.driver_override ? ImVec4 (1.f, 1.f, 0.f, 1.f) :
+                               ImGui::GetStyleColorVec4 (ImGuiCol_Text);
+
+        ImGui::TextUnformatted ( "DLSS-NR Version: " );
+        ImGui::SameLine        ();
+        ImGui::TextColored     ( color,
+          "%d.%d.%d%hs", dlssnr_version.major, dlssnr_version.minor,
+                                               dlssnr_version.build,
+                                               dlssnr_version.driver_override ?
+                                             " " ICON_FA_QUESTION_CIRCLE "\t" :
+                                                                         "\t" );
+
+        if (dlssnr_version.driver_override)
+        {
+          ImGui::SetItemTooltip (
+            "A forced driver override is active, SK may be unable to "
+            "change DLSS-NR settings and reported active settings may be inaccurate." );
+        }
+      }
+
       static bool bRestartNeeded = false;
 
       // Only offer option to replace DLSS DLLs in DLSS 2.x+ games and
@@ -3376,7 +3549,7 @@ SK_NGX_DLSS_ControlPanel (void)
           {
             ImGui::BeginTooltip ();
             ImGui::BulletText   ("Click to Create the Plug-In Directory for Auto-Load.");
-            ImGui::BulletText   ("Place nvngx_dlss.dll, nvngx_dlssd.dll and nvngx_dlssg.dll in the Directory.");
+            ImGui::BulletText   ("Place nvngx_dlss.dll, nvngx_dlssd.dll, nvngx_dlssg.dll and nvngx_dlssnr.dll in the Directory.");
             ImGui::EndTooltip   ();
           }
 
@@ -3536,6 +3709,8 @@ SK_NGX_Reset (void)
 
   WriteULong64Release (&SK_NGX_DLSS12.ray_reconstruction.ResetFrame, SK_GetFramesDrawn () + 1);
   WriteULong64Release (&SK_NGX_VULKAN.ray_reconstruction.ResetFrame, SK_GetFramesDrawn () + 1);
+
+  // TODO: Does Slop Shading need reset?
 }
 
 namespace sl
@@ -3844,6 +4019,7 @@ SK_NGX_FeatureToStr (NVSDK_NGX_Feature feature) noexcept
     case NVSDK_NGX_Feature_FrameGeneration:       return "DLSS Frame Generation";
     case NVSDK_NGX_Feature_DeepDVC:               return "Deep VC";
     case NVSDK_NGX_Feature_RayReconstruction:     return "DLSS Ray Reconstruction";
+    case NVSDK_NGX_Feature_SlopShading:           return "DLSS Slop Shading";
     default:                                      return "Unknown Feature";
   }
 }

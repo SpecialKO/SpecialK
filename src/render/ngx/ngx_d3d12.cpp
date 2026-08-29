@@ -278,6 +278,14 @@ NVSDK_NGX_D3D12_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
         instance.second.Parameters = nullptr;
       }
     }
+
+    for ( auto& instance : SK_NGX_DLSS12.slop_shading.Instances )
+    {
+      if (instance.second.Parameters == InParameters)
+      {
+        instance.second.Parameters = nullptr;
+      }
+    }
   }
 
   return ret;
@@ -377,6 +385,19 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
 
       SK_LOGi1 (L"DLSS-D Feature Created!");
     }
+
+    else if (InFeatureID == NVSDK_NGX_Feature_SlopShading)
+    {
+      SK_DLSS_Context::dlssnr_s::instance_s instance;
+
+      instance.Handle     = *OutHandle;
+      instance.Parameters = InParameters;
+      instance.DLSS_Type  = InFeatureID;
+
+      SK_NGX_DLSS12.slop_shading.Instances [*OutHandle] = instance;
+
+      SK_LOGi0 (L"DLSS Slop Shading Feature Created!");
+    }
   }
 
   else
@@ -417,6 +438,14 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
         params->Set ("DLSSG.TargetFrameRate", __target_fps_now);
       else
         params->Set ("DLSSG.TargetFrameRate", config.nvidia.dlss.dmfg_target_fps);
+    }
+  }
+
+  if (SK_NGX_DLSS12.slop_shading.hasInstance (InFeatureHandle))
+  {
+    if (config.nvidia.dlss.slop_stop_5000)
+    {
+      return NVSDK_NGX_Result_FAIL_Denied;
     }
   }
 
@@ -513,6 +542,7 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
     SK_NGX_DLSS12.frame_gen.evaluateFeature          (SK_NGX_DLSS12.frame_gen.getInstance          (InFeatureHandle));
     SK_NGX_DLSS12.super_sampling.evaluateFeature     (SK_NGX_DLSS12.super_sampling.getInstance     (InFeatureHandle));
     SK_NGX_DLSS12.ray_reconstruction.evaluateFeature (SK_NGX_DLSS12.ray_reconstruction.getInstance (InFeatureHandle));
+    SK_NGX_DLSS12.slop_shading.evaluateFeature       (SK_NGX_DLSS12.slop_shading.getInstance       (InFeatureHandle));
   }
 
   else
@@ -521,6 +551,7 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
       SK_NGX_DLSS12.frame_gen.hasInstance          (InFeatureHandle) ? L"DLSS Frame Generation"   :
       SK_NGX_DLSS12.super_sampling.hasInstance     (InFeatureHandle) ? L"DLSS Super Sampling"     :
       SK_NGX_DLSS12.ray_reconstruction.hasInstance (InFeatureHandle) ? L"DLSS Ray Reconstruction" :
+      SK_NGX_DLSS12.slop_shading.hasInstance       (InFeatureHandle) ? L"DLSS Slop Shading"       :
                                                                        L"Unknown Feature";
 
     SK_LOGi0 (
@@ -589,6 +620,15 @@ NVSDK_NGX_D3D12_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
       pRayReconstructionInstance->Handle     = nullptr;
 
       SK_LOGi1 (L"DLSS-D Feature Released!");
+    }
+
+    auto pSlopShadingInstance  = SK_NGX_DLSS12.slop_shading.getInstance (InHandle);
+    if ( pSlopShadingInstance != nullptr )
+    {
+      pSlopShadingInstance->Parameters = nullptr;
+      pSlopShadingInstance->Handle     = nullptr;
+
+      SK_LOGi1 (L"DLSS Slop Shading Feature Released!");
     }
   }
 

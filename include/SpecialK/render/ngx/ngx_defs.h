@@ -172,6 +172,9 @@ typedef enum NVSDK_NGX_Feature
   NVSDK_NGX_Feature_RayReconstruction     = 13,
 //NVSDK_NGX_Feature_Reserved13            = 13,
 
+  // DLSS5 Slop
+  NVSDK_NGX_Feature_SlopShading           = 18,
+
   // New features go here
   NVSDK_NGX_Feature_Count,
 

@@ -247,11 +247,12 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
 
 extern std::wstring SK_XInput_LinkedVersion;
-extern void SK_NGX_EstablishDLSSDVersion (const wchar_t* wszDLSS) noexcept;
-extern void SK_NGX_EstablishDLSSGVersion (const wchar_t* wszDLSS) noexcept;
-extern void SK_NGX_EstablishDLSSVersion  (const wchar_t* wszDLSS) noexcept;
-extern void SK_NGX_Init                  (void);
-extern void SK_DStorage_Init             (void);
+extern void SK_NGX_EstablishDLSSNRVersion (const wchar_t* wszDLSS) noexcept;
+extern void SK_NGX_EstablishDLSSDVersion  (const wchar_t* wszDLSS) noexcept;
+extern void SK_NGX_EstablishDLSSGVersion  (const wchar_t* wszDLSS) noexcept;
+extern void SK_NGX_EstablishDLSSVersion   (const wchar_t* wszDLSS) noexcept;
+extern void SK_NGX_Init                   (void);
+extern void SK_DStorage_Init              (void);
 
 template <typename _T>
 void
@@ -600,9 +601,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       extern HMODULE SK_KnownModule_MFPLAT;
                      SK_KnownModule_MFPLAT = SK_GetModuleHandleW (L"mfplat.dll");
     }
-    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlss.dll")  ) SK_NGX_EstablishDLSSVersion  (wszCallingMod);
-    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssg.dll") ) SK_NGX_EstablishDLSSGVersion (wszCallingMod);
-    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssd.dll") ) SK_NGX_EstablishDLSSDVersion (wszCallingMod);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlss.dll")   ) SK_NGX_EstablishDLSSVersion   (wszCallingMod);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssg.dll")  ) SK_NGX_EstablishDLSSGVersion  (wszCallingMod);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssd.dll")  ) SK_NGX_EstablishDLSSDVersion  (wszCallingMod);
+    else if ( StrStrIW (wszCallingMod,     L"nvngx_dlssnr.dll") ) SK_NGX_EstablishDLSSNRVersion (wszCallingMod);
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
                 StrStrIW( wszCallingMod,     L"_nvngx.dll" ) ||
                // Handles case where a .bin file is loaded, but something has LoadLibrary hooked
@@ -622,13 +624,15 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
         // It's not clear what part of DLSS this .bin file is actually, but
         //   EstablishDLSS*Version (...) will figure it out.
-        SK_NGX_EstablishDLSSVersion  (wszFileName);
-        SK_NGX_EstablishDLSSGVersion (wszFileName);
-        SK_NGX_EstablishDLSSDVersion (wszFileName);
+        SK_NGX_EstablishDLSSVersion   (wszFileName);
+        SK_NGX_EstablishDLSSGVersion  (wszFileName);
+        SK_NGX_EstablishDLSSDVersion  (wszFileName);
+        SK_NGX_EstablishDLSSNRVersion (wszFileName);
       }
-      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlss.dll")))  SK_NGX_EstablishDLSSVersion  (wszFileName);
-      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssg.dll"))) SK_NGX_EstablishDLSSGVersion (wszFileName);
-      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssd.dll"))) SK_NGX_EstablishDLSSDVersion (wszFileName);
+      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlss.dll")))   SK_NGX_EstablishDLSSVersion   (wszFileName);
+      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssg.dll")))  SK_NGX_EstablishDLSSGVersion  (wszFileName);
+      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssd.dll")))  SK_NGX_EstablishDLSSDVersion  (wszFileName);
+      else if (StrStrI (lpFileName, SK_TEXT("nvngx_dlssnr.dll"))) SK_NGX_EstablishDLSSNRVersion (wszFileName);
     }
 #if 0
     if (! config.platform.silent) {
@@ -1059,12 +1063,13 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
     else if (StrStrIW (compliant_path, L"nvngx_dlss"))
     {
-      const bool is_dlss  = StrStrIW (compliant_path, L"nvngx_dlss.dll");
-      const bool is_dlssg = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
-      const bool is_dlssd = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
+      const bool is_dlss   = StrStrIW (compliant_path, L"nvngx_dlss.dll");
+      const bool is_dlssg  = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
+      const bool is_dlssd  = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
+      const bool is_dlssnr = StrStrIW (compliant_path, L"nvngx_dlssnr.dll");
 
       const bool is_nvngx_dll =
-        (is_dlss || is_dlssg || is_dlssd);
+        (is_dlss || is_dlssg || is_dlssd || is_dlssnr);
       if (is_nvngx_dll)
       {
         if (config.nvidia.dlss.auto_redirect_dlss && !hModEarly)
@@ -1074,7 +1079,8 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
               SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
             ) / L"NVIDIA" / (is_dlss  ? L"nvngx_dlss.dll"  :
                              is_dlssg ? L"nvngx_dlssg.dll" :
-                                        L"nvngx_dlssd.dll");
+                             is_dlssd ? L"nvngx_dlssd.dll" :
+                                        L"nvngx_dlssnr.dll");
 
           std::error_code                                   ec;
           if (std::filesystem::exists (path_to_plugin_dlss, ec))
@@ -1132,6 +1138,11 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
           else if (is_dlssd)
           {
             SK_NGX_EstablishDLSSDVersion (compliant_path);
+          }
+
+          else if (is_dlssnr)
+          {
+            SK_NGX_EstablishDLSSNRVersion (compliant_path);
           }
         }
       }
@@ -1401,12 +1412,13 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   HMODULE hMod = hModEarly;
 
-  const bool is_dlss  = StrStrIW (compliant_path, L"nvngx_dlss.dll");
-  const bool is_dlssg = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
-  const bool is_dlssd = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
+  const bool is_dlss   = StrStrIW (compliant_path, L"nvngx_dlss.dll");
+  const bool is_dlssg  = StrStrIW (compliant_path, L"nvngx_dlssg.dll");
+  const bool is_dlssd  = StrStrIW (compliant_path, L"nvngx_dlssd.dll");
+  const bool is_dlssnr = StrStrIW (compliant_path, L"nvngx_dlssnr.dll");
 
   const bool is_nvngx_dll =
-    (is_dlss || is_dlssg || is_dlssd);
+    (is_dlss || is_dlssg || is_dlssd || is_dlssnr);
 
   if (is_nvngx_dll)
   {
@@ -1417,7 +1429,8 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
           SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
         ) / L"NVIDIA" / (is_dlss  ? L"nvngx_dlss.dll"  :
                          is_dlssg ? L"nvngx_dlssg.dll" :
-                                    L"nvngx_dlssd.dll");
+                         is_dlssd ? L"nvngx_dlssd.dll" :
+                                    L"nvngx_dlssnr.dll");
 
       std::error_code                                   ec;
       if (std::filesystem::exists (path_to_plugin_dlss, ec))
@@ -1475,6 +1488,11 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
       else if (is_dlssd)
       {
         SK_NGX_EstablishDLSSDVersion (compliant_path);
+      }
+
+      else if (is_dlssnr)
+      {
+        SK_NGX_EstablishDLSSNRVersion (compliant_path);
       }
     }
   }
