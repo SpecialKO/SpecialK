@@ -184,6 +184,7 @@ struct SK_DLSS_Context
     // TODO, what versions do these things become deprecated / removed in...?
     static bool hasPresetsAThroughC (void) { return true; };
     static bool hasPresetsDThroughE (void) { return true; };
+    static bool hasPresetF          (void) { return ( Version.major > 310 || ( Version.major == 310 && ( Version.minor > 7 || ( Version.minor == 7 && Version.build >= 128 ) ) ) ); };
 
     // Are these separate from DLSS...?
     static void showIndicator    (bool show);

@@ -587,6 +587,14 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         }
       }
 
+      if (! SK_DLSS_Context::dlssd_s::hasPresetF ())
+      {
+        if (config.nvidia.dlss.forced_rr_preset >= NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F)
+        {
+          config.nvidia.dlss.forced_rr_preset = NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E;
+        }
+      }
+
       InValue = config.nvidia.dlss.forced_rr_preset;
     }
   }
@@ -739,6 +747,14 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
         }
       }
 
+      if (! SK_DLSS_Context::dlssd_s::hasPresetF ())
+      {
+        if (config.nvidia.dlss.forced_rr_preset >= NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F)
+        {
+          config.nvidia.dlss.forced_rr_preset = NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E;
+        }
+      }
+
       InValue = config.nvidia.dlss.forced_rr_preset;
     }
   }
@@ -888,6 +904,14 @@ NVSDK_NGX_Parameter_SetULL_Detour (NVSDK_NGX_Parameter* InParameter, const char*
             config.nvidia.dlss.forced_rr_preset <= NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E)
         {
           config.nvidia.dlss.forced_rr_preset = NVSDK_NGX_RayReconstruction_Hint_Render_Preset_Default;
+        }
+      }
+
+      if (! SK_DLSS_Context::dlssd_s::hasPresetF ())
+      {
+        if (config.nvidia.dlss.forced_rr_preset >= NVSDK_NGX_RayReconstruction_Hint_Render_Preset_F)
+        {
+          config.nvidia.dlss.forced_rr_preset = NVSDK_NGX_RayReconstruction_Hint_Render_Preset_E;
         }
       }
 
@@ -2432,6 +2456,9 @@ SK_NGX_DLSS_ControlPanel (void)
         static const bool bHasPresetM =
           SK_DLSS_Context::dlss_s::hasPresetM ();
 
+        static const bool bHasDLSSDPresetF =
+          SK_DLSS_Context::dlssd_s::hasPresetF ();
+
         const bool bHasDenoising = bIsUsingDLSSD;
         const bool bHasHWDepth   = bIsUsingDLSSD;
 
@@ -2910,13 +2937,22 @@ SK_NGX_DLSS_ControlPanel (void)
                             :                    7; // DLSS-D
 
         static const char* combo_str_dlssd =
-          "Game Default\0"
-          "DLSS Default\0"
-          "Override: A\0"
-          "Override: B\0"
-          "Override: C\0"
-          "Override: D\0"
-          "Override: E\0\0";
+          bHasDLSSDPresetF ?
+            "Game Default\0"
+            "DLSS Default\0"
+            "Override: A\0"
+            "Override: B\0"
+            "Override: C\0"
+            "Override: D\0"
+            "Override: E\0"
+            "Override: F\0\0"
+          : "Game Default\0"
+            "DLSS Default\0"
+            "Override: A\0"
+            "Override: B\0"
+            "Override: C\0"
+            "Override: D\0"
+            "Override: E\0\0";
 
         auto combo_str =
           (! bIsUsingDLSSD) ? combo_str_dlss

@@ -1,4 +1,9 @@
-﻿26.8.28
+﻿26.8.29
+=======
+ + Added support for forcing DLSS Ray Reconstruction Preset F when using a
+     sufficiently up-to-date DLSS-D DLL (310.7.128+).
+
+26.8.28
 =======
  + Initial support for NVIDIA DLSS Slop Shading (Neural Rendering) features.
      (i.e. status text and DLL version override)
