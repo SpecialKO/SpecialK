@@ -1,4 +1,8 @@
-﻿26.8.29
+﻿26.8.29.1
+=========
+ + Force SK_SleepEx (...) inline to prevent signin crash in Genshin Impact.
+
+26.8.29
 =======
  + Added support for forcing DLSS Ray Reconstruction Preset F when using a
      sufficiently up-to-date DLSS-D DLL (310.7.128+).
