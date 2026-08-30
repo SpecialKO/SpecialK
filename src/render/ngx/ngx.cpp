@@ -2369,18 +2369,33 @@ SK_NGX_DLSS_ControlPanel (void)
                                  bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
         ImGui::SameLine        ( );
         ImGui::Text            ( bFrameGen ? "Frame Generation (%dx)\t" :
-                                             "Frame Generation",
+                                             "Frame Generation\t",
                          SK_NGX_DLSSG_GetMultiFrameCount () + 1 );
         ImGui::SameLine        ( );
         ImGui::TextColored     ( bRayRecon ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bRayRecon ? ICON_FA_CHECK                   : ICON_FA_XMARK );
         ImGui::SameLine        ( );
-        ImGui::TextUnformatted ( "Ray Reconstruction" );
+        ImGui::TextUnformatted ( "Ray Reconstruction\t" );
         ImGui::SameLine        ( );
         ImGui::TextColored     ( bSlopShading ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bSlopShading ? ICON_FA_CHECK                   : ICON_FA_XMARK );
         ImGui::SameLine        ( );
-        ImGui::TextUnformatted ( "Slop Shading" );
+        ImGui::TextUnformatted ( "Slop Shading\t" );
+
+        if (ImGui::IsItemClicked (ImGuiPopupFlags_MouseButtonRight))
+        {
+          ImGui::OpenPopup ("DLSS_SlopShading_Popup");
+        }
+
+        if (ImGui::BeginPopup ("DLSS_SlopShading_Popup"))
+        {
+          if (ImGui::Checkbox ("Disable Slop Shading", &config.nvidia.dlss.slop_stop_5000))
+          {
+            config.utility.save_async ();
+          }
+
+          ImGui::EndPopup ();
+        }
       }
 
       ImGui::TreePush     ("");
