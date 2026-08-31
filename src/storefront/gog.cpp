@@ -1273,25 +1273,26 @@ SK::Galaxy::Init (void)
             {
               _InitGOGLog ();
 
-              gog_log->Log (
-                L"GOG gameId: %d", gog_gameId
-              );
+             gog_log->Log (
+               L"GOG gameId: %d", gog_gameId
+             );
 
-              if (gog_gameId != 0)
-              {
-                config.platform.type = SK_Platform_GOG;
-              }
+             if (gog_gameId != 0)
+             {
+               config.platform.type = SK_Platform_GOG;
+             }
 
-              if (config.platform.equivalent_steam_app == -1)
+             if (config.platform.equivalent_steam_app == -1)
+             {
+              SK_RunOnce(
               {
                 std::wstring url =
                   SK_FormatStringW (
-                    LR"(https://www.pcgamingwiki.com/w/api.php?action=cargoquery&format=json&tables=Infobox_game&fields=Steam_AppID&where=GOGcom_ID+HOLDS+%%27%d%%27)",
-                                                                                                                                         gog_gameId
+                    LR"(https://gamesdb.gog.com/platforms/gog/external_releases/%d)", gog_gameId
                   );
 
                 SK_Network_EnqueueDownload (
-                  sk_download_request_s (L"pcgw_appid_map.json", url.data (),
+                  sk_download_request_s (L"api.php", url.data (),
                     []( const std::vector <uint8_t>&& data,
                         const std::wstring_view       file )
                     {
@@ -1300,70 +1301,52 @@ SK::Galaxy::Init (void)
 
                       std::ignore = file;
 
+                      static SK_LazyGlobal <nlohmann::json> json;
+
+                      int32_t appid = 0;
+
                       try {
-                        gog_log->Log (L"PCGW Queried Data: %hs", data.data ());
+                        json.get () = std::move
+                          ( nlohmann::json::parse
+                            ( data.cbegin (),
+                                data.cend (),
+                                     nullptr,
+                                     true   )  );
 
-                        nlohmann::json json =
-                          std::move (
-                            nlohmann::json::parse ( data.cbegin (),
-                                                    data.cend   (), nullptr, true )
-                          );
+                        const auto& game_ =
+                          json.get ()["game"];
 
-                        for ( auto& query : json ["cargoquery"] )
+                        for (const auto& release : game_ ["releases"])
                         {
-                          if ( query.contains ("title") &&
-                               query.at       ("title").contains ("Steam AppID") )
+                          if (release.count ("platform_id"))
                           {
-                            config.platform.equivalent_steam_app =
-                              atoi (
-                                query.at ("title").
-                                      at ("Steam AppID").
-                                      get <std::string_view> ().
-                                                        data () );
-                            break;
+                            if (release ["platform_id"].get <std::string>() == "steam")
+                            {
+                              if (release.count ("external_id"))
+                              {
+                                if (1 == sscanf (release ["external_id"].get <std::string> ().c_str (), "%d", &appid))
+                                {
+                                  config.platform.equivalent_steam_app = appid;
+                                  break;
+                                }
+                              }
+                            }
                           }
-                        }
-
-                        gog_log->Log (L"Steam AppID: %d", config.platform.equivalent_steam_app);
-
-                        if (config.platform.equivalent_steam_app != -1)
-                        {   config.utility.save_async ();
-                        }
-
-                        else
-                        {
-                          config.platform.equivalent_steam_app = 0;
                         }
                       }
 
                       catch (const std::exception& e)
                       {
-                        if (config.system.log_level > 0)
-                        {
-/*
-#ifdef __CPP20
-                          const auto&& src_loc =
-                            std::source_location::current ();
+                        SK_LOGi0 (L"JSON Parse Failure: %hs", e.what ());
+                      }
 
-                          steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
-                                                       src_loc.file_name     (),
-                                                       src_loc.line          (),
-                                                       src_loc.column        (), e.what ());
-                          steam_log->Log (L"%hs",      src_loc.function_name ());
-                          steam_log->Log (L"%hs",
-                            std::format ( std::string ("{:*>") +
-                                       std::to_string (src_loc.column        ()), 'x').c_str ());
-#else
-*/
-                          std::ignore = e;
-/*#endif*/
-                       }
-                     }
+                      config.utility.save_async ();
 
-                     return true;
-                   }
-                 )
-               );
+                      return true;
+                    } ),
+                  true
+                );
+              });
              }
 
              break;

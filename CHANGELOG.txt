@@ -1,4 +1,9 @@
-﻿26.8.29.2
+﻿26.8.31
+=======
+ + Eliminated PCGW queries to determine equivalent Steam AppID for GOG games;
+     uses https://gamesdb.gog.com/platforms/gog/external_releases/<gogid> now.
+
+26.8.29.2
 =========
  + Make Slop Shading disable setting accessible by right-clicking the DLSS
      feature in the DLSS section of the control panel.
