@@ -661,6 +661,7 @@ struct {
   } text;
 
   struct {
+    sk::ParameterFloat*   font_size               = nullptr;
     sk::ParameterFloat*   scale                   = nullptr;
     sk::ParameterInt*     pos_x                   = nullptr;
     sk::ParameterInt*     pos_y                   = nullptr;
@@ -1757,6 +1758,7 @@ auto DeclKeybind =
     ConfigEntry (osd.viewport.pos_x,                     L"OSD Position (X)",                                          osd_ini,         L"SpecialK.OSD",          L"PositionX"),
     ConfigEntry (osd.viewport.pos_y,                     L"OSD Position (Y)",                                          osd_ini,         L"SpecialK.OSD",          L"PositionY"),
 
+    ConfigEntry (osd.viewport.font_size,                 L"OSD Font Size",                                             osd_ini,         L"SpecialK.OSD",          L"FontSize"),
     ConfigEntry (osd.viewport.scale,                     L"OSD Scale",                                                 osd_ini,         L"SpecialK.OSD",          L"Scale"),
 
     ConfigEntry (osd.state.remember,                     L"Remember status monitoring state",                          osd_ini,         L"SpecialK.OSD",          L"RememberMonitoringState"),
@@ -6433,9 +6435,10 @@ auto DeclKeybind =
   osd.text.green->load     (config.osd.green);
   osd.text.blue->load      (config.osd.blue);
 
-  osd.viewport.pos_x->load (config.osd.pos_x);
-  osd.viewport.pos_y->load (config.osd.pos_y);
-  osd.viewport.scale->load (config.osd.scale);
+  osd.viewport.pos_x->load     (config.osd.pos_x);
+  osd.viewport.pos_y->load     (config.osd.pos_y);
+  osd.viewport.font_size->load (config.osd.font_size);
+  osd.viewport.scale->load     (config.osd.scale);
 
 
   silent->load              (config.system.silent);
@@ -7078,6 +7081,7 @@ SK_SaveConfig ( std::wstring name,
   osd.text.blue->store                        (config.osd.blue);
   osd.viewport.pos_x->store                   (config.osd.pos_x);
   osd.viewport.pos_y->store                   (config.osd.pos_y);
+  osd.viewport.font_size->store               (config.osd.font_size);
   osd.viewport.scale->store                   (config.osd.scale);
   osd.state.remember->store                   (config.osd.remember_state);
 
