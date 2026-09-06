@@ -1,4 +1,11 @@
-﻿26.8.31
+﻿26.9.6
+======
+ + Notifications for switching HDR presets no longer display in SDR mode, or
+     in native HDR games.
+ + Changed HDR widget keybinds to use Global\osd.ini as intended instead of
+     a game's profile INI.
+
+26.8.31
 =======
  + Eliminated PCGW queries to determine equivalent Steam AppID for GOG games;
      uses https://gamesdb.gog.com/platforms/gog/external_releases/<gogid> now.

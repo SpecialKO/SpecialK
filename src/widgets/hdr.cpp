@@ -265,6 +265,8 @@ struct SK_HDR_Preset_s {
   {
     if (cfg_nits == nullptr)
     {
+      extern iSK_INI* osd_ini;
+
       cfg_nits =
         _CreateConfigParameterFloat ( SK_HDR_SECTION,
                    SK_FormatStringW (L"scRGBLuminance_[%lu]", preset_idx).c_str (),
@@ -336,7 +338,7 @@ struct SK_HDR_Preset_s {
         SK_FormatStringW (L"Activate%lu", preset_idx).c_str (), _TRUNCATE );
 
       preset_activate.param =
-        DeclKeybind (&preset_activate, SK_GetDLLConfig (), L"HDR.Presets");
+        DeclKeybind (&preset_activate, osd_ini, L"HDR.Presets");
 
       if (! preset_activate.param->load (preset_activate.human_readable))
       {
@@ -370,7 +372,7 @@ SK_HDR_KeyPress ( BOOL Control,
     SK_GetCurrentRenderBackend ();
 
   // If override is not enabled and display is not HDR capable, then do nothing.
-  if ((! rb.isHDRCapable ()) && (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)))
+  if ((! rb.isHDRCapable ()) && (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)) && __SK_HDR_UserForced)
   {
     return FALSE;
   }
