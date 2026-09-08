@@ -66,7 +66,7 @@ namespace reshade { namespace internal
 		if (handle == nullptr)
 		{
 			HMODULE modules[1024]; DWORD num = 0;
-			if (K32EnumProcessModules(GetCurrentProcess(), modules, sizeof(modules), &num))
+			if (EnumProcessModules(GetCurrentProcess(), modules, sizeof(modules), &num))
 			{
 				if (num > sizeof(modules))
 					num = sizeof(modules);
@@ -101,8 +101,8 @@ namespace reshade { namespace internal
     HMODULE modules [1024] = { };
     DWORD   num            =  0 ;
 
-    if (K32EnumProcessModules (SK_GetCurrentProcess (), modules,
-                                                sizeof (modules), &num))
+    if (EnumProcessModules (SK_GetCurrentProcess (), modules,
+                                             sizeof (modules), &num))
     {
       if (num > sizeof (modules))
           num = sizeof (modules);

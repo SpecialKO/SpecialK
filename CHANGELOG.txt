@@ -1,4 +1,9 @@
-﻿26.9.8
+﻿26.9.8.1
+========
+ + Changed ReShade AddOn helper code to use EnumProcessModules (...) from
+     psapi.dll instead of kernel32.dll, for proper Windows 7 support.
+
+26.9.8
 ======
  + Rewrote various COM dependencies to load functions at runtime instead of
      depending on DLL entry-points that do not exist on Windows 7.
