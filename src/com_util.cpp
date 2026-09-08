@@ -567,3 +567,120 @@ SK_SafeQueryInterface (IUnknown* pObj, REFIID riid, void** pUnk)
 
   return E_POINTER;
 }
+
+
+using WindowsGetStringRawBuffer_pfn    = PCWSTR  (WINAPI *)(HSTRING, UINT32*);
+using WindowsDeleteString_pfn          = HRESULT (WINAPI *)(HSTRING);
+using WindowsCreateString_pfn          = HRESULT (WINAPI *)(PCNZWCH, UINT32, HSTRING*);
+using WindowsCreateStringReference_pfn = HRESULT (WINAPI *)(PCWSTR, UINT32, HSTRING_HEADER*, HSTRING*);
+using RoGetActivationFactory_pfn       = HRESULT (WINAPI *)(HSTRING, REFIID, void**);
+
+PCWSTR
+WINAPI
+SK_WindowsGetStringRawBuffer (HSTRING string, UINT32* length)
+{
+  static WindowsGetStringRawBuffer_pfn
+        _WindowsGetStringRawBuffer =
+        (WindowsGetStringRawBuffer_pfn)SK_GetProcAddress (L"combase.dll",
+        "WindowsGetStringRawBuffer");
+
+  if (_WindowsGetStringRawBuffer == nullptr)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"WindowsGetStringRawBuffer (...) not found in combase.dll!")
+    );
+
+    return nullptr;
+  }
+
+  return
+    _WindowsGetStringRawBuffer (string, length);
+}
+
+HRESULT
+WINAPI
+SK_WindowsDeleteString (HSTRING string)
+{
+  static WindowsDeleteString_pfn
+        _WindowsDeleteString =
+        (WindowsDeleteString_pfn)SK_GetProcAddress (L"combase.dll",
+        "WindowsDeleteString");
+
+  if (_WindowsDeleteString == nullptr)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"WindowsDeleteString (...) not found in combase.dll!")
+    );
+
+    return E_FAIL;
+  }
+
+  return
+    _WindowsDeleteString (string);
+}
+
+HRESULT
+WINAPI
+SK_WindowsCreateString (PCNZWCH sourceString, UINT32 length, HSTRING* string)
+{
+  static WindowsCreateString_pfn
+        _WindowsCreateString =
+        (WindowsCreateString_pfn)SK_GetProcAddress (L"combase.dll",
+        "WindowsCreateString");
+
+  if (_WindowsCreateString == nullptr)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"WindowsCreateString (...) not found in combase.dll!")
+    );
+
+    return E_FAIL;
+  }
+
+  return
+    _WindowsCreateString (sourceString, length, string);
+}
+
+HRESULT
+WINAPI
+SK_WindowsCreateStringReference (PCWSTR sourceString, UINT32 length, HSTRING_HEADER* hstringHeader, HSTRING* string)
+{
+  static WindowsCreateStringReference_pfn
+        _WindowsCreateStringReference =
+        (WindowsCreateStringReference_pfn)SK_GetProcAddress (L"combase.dll",
+        "WindowsCreateStringReference");
+
+  if (_WindowsCreateStringReference == nullptr)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"WindowsCreateStringReference (...) not found in combase.dll!")
+    );
+
+    return E_FAIL;
+  }
+
+  return
+    _WindowsCreateStringReference (sourceString, length, hstringHeader, string);
+}
+
+HRESULT
+WINAPI
+SK_RoGetActivationFactory (HSTRING activatableClassId, REFIID iid, void** factory)
+{
+  static RoGetActivationFactory_pfn
+        _RoGetActivationFactory =
+        (RoGetActivationFactory_pfn)SK_GetProcAddress (L"combase.dll",
+        "RoGetActivationFactory");
+
+  if (_RoGetActivationFactory == nullptr)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (L"RoGetActivationFactory (...) not found in combase.dll!")
+    );
+
+    return E_FAIL;
+  }
+
+  return
+    _RoGetActivationFactory (activatableClassId, iid, factory);
+}

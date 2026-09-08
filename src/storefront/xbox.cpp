@@ -50,13 +50,13 @@ SK::Xbox::Init (void)
   HSTRING_HEADER   hNamespaceStringHeader;
   HSTRING          hNamespaceString;
 
-  if (SUCCEEDED (WindowsCreateStringReference (wszNamespace,
-                 static_cast <UINT32> (wcslen (wszNamespace)),
-                                                &hNamespaceStringHeader,
-                                                &hNamespaceString)))
+  if (SUCCEEDED (SK_WindowsCreateStringReference (wszNamespace,
+                    static_cast <UINT32> (wcslen (wszNamespace)),
+                                                   &hNamespaceStringHeader,
+                                                   &hNamespaceString)))
   {
     if (SUCCEEDED (
-      RoGetActivationFactory (hNamespaceString, IID_IGameBarStatics,
+      SK_RoGetActivationFactory (hNamespaceString, IID_IGameBarStatics,
                                           (void **)&SK_GameBar_Statics)))
     {
       // Keep COM loaded indefinitely, this object is persistent

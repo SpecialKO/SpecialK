@@ -3355,6 +3355,7 @@ scePadGetContainerIdInformation_Detour (int handle, ScePadContainerIdInfo* pInfo
   auto ret =
     scePadGetContainerIdInformation_Original (handle, pInfo);
 
+#ifdef SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
   if (ret == SCE_PAD_ERROR_DEVICE_NOT_CONNECTED)
   {
     // Not even remotely the correct behavior, this just uses the first Bluetooth
@@ -3381,6 +3382,7 @@ scePadGetContainerIdInformation_Detour (int handle, ScePadContainerIdInfo* pInfo
   {
     SK_LOGi0 (L"scePadGetContainerIdInformation failed for Controller %d with error code 0x%08x", handle, ret);
   }
+#endif
 
   return ret;
 }
@@ -3416,29 +3418,35 @@ AkMotionInitializeScePadFunctions_Detour (
 {
   SK_LOG_FIRST_CALL
 
+#ifdef SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
   int hooks_to_install = 0;
 
-  if (in_pPadGetControllerBusType != nullptr)
-  {
-    SK_CreateFuncHook (  L"scePadGetControllerBusType",
-                         *in_pPadGetControllerBusType,
-                           scePadGetControllerBusType_Detour,
-                 (void **)&scePadGetControllerBusType_Original  );
-    SK_QueueEnableHook  (*in_pPadGetControllerBusType);
+  SK_RunOnce (
+    // This function can't be hooked, just swap out the function pointer instead.
+    if (in_pPadGetControllerBusType != nullptr)
+    {
+      scePadGetControllerBusType_Original = in_pPadGetControllerBusType;
+      in_pPadGetControllerBusType         = scePadGetControllerBusType_Detour;
+      //SK_CreateFuncHook (  L"scePadGetControllerBusType",
+      //                     *in_pPadGetControllerBusType,
+      //                       scePadGetControllerBusType_Detour,
+      //             (void **)&scePadGetControllerBusType_Original  );
+      //SK_QueueEnableHook  (*in_pPadGetControllerBusType);
 
-    ++hooks_to_install;
-  }
+      //++hooks_to_install;
+    }
 
-  if (in_pPadGetContainerIdInformation != nullptr)
-  {
-    SK_CreateFuncHook ( L"scePadGetContainerIdInformation",
-                         in_pPadGetContainerIdInformation,
-                          scePadGetContainerIdInformation_Detour,
-                (void **)&scePadGetContainerIdInformation_Original );
-    SK_QueueEnableHook  (in_pPadGetContainerIdInformation);
+    if (in_pPadGetContainerIdInformation != nullptr)
+    {
+      SK_CreateFuncHook ( L"scePadGetContainerIdInformation",
+                           in_pPadGetContainerIdInformation,
+                            scePadGetContainerIdInformation_Detour,
+                  (void **)&scePadGetContainerIdInformation_Original );
+      SK_QueueEnableHook  (in_pPadGetContainerIdInformation);
 
-    ++hooks_to_install;
-  }
+      ++hooks_to_install;
+    }
+  );
 
   if (hooks_to_install > 0)
   {
@@ -3453,6 +3461,7 @@ AkMotionInitializeScePadFunctions_Detour (
     in_pPadSetVibration              != nullptr ? "PadSetVibration "              : "",
     in_pPadGetControllerBusType      != nullptr ? "PadGetControllerBusType "      : ""
   );
+#endif
 
   AkMotionInitializeScePadFunctions_Original (
     in_pPadGetHandle,
@@ -3486,6 +3495,10 @@ SK_AK_GetDeviceIDFromName_Detour (const wchar_t* wszName)
 void
 SK_Input_HookAkMotion (const wchar_t* wszFileName = nullptr)
 {
+#ifndef SK_ENABLE_DUALSENSE_VIRTUAL_HAPTICS
+  return;
+#endif
+
   // Statically linked games (Unreal usually)
   if (wszFileName == nullptr)
   {

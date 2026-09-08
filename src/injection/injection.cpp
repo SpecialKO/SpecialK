@@ -1294,6 +1294,37 @@ SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
   return FALSE;
 }
 
+using RegisterAppStateChangeNotification_pfn   = ULONG (WINAPI *)(PAPPSTATE_CHANGE_ROUTINE, PVOID, PAPPSTATE_REGISTRATION*);
+using UnregisterAppStateChangeNotification_pfn = void  (WINAPI *)(PAPPSTATE_REGISTRATION);
+
+ULONG
+WINAPI
+SK_RegisterAppStateChangeNotification (PAPPSTATE_CHANGE_ROUTINE Routine, PVOID Context, PAPPSTATE_REGISTRATION* Registration)
+{
+  static RegisterAppStateChangeNotification_pfn
+        _RegisterAppStateChangeNotification =
+        (RegisterAppStateChangeNotification_pfn)GetProcAddress (LoadLibraryW (L"twinapi.appcore.dll"),
+        "RegisterAppStateChangeNotification");
+
+  if (_RegisterAppStateChangeNotification != nullptr)
+    return _RegisterAppStateChangeNotification (Routine, Context, Registration);
+
+  return 0;
+}
+
+void
+WINAPI
+SK_UnregisterAppStateChangeNotification (PAPPSTATE_REGISTRATION Registration)
+{
+  static UnregisterAppStateChangeNotification_pfn
+        _UnregisterAppStateChangeNotification =
+        (UnregisterAppStateChangeNotification_pfn)GetProcAddress (LoadLibraryW (L"twinapi.appcore.dll"),
+        "UnregisterAppStateChangeNotification");
+
+  if (_UnregisterAppStateChangeNotification != nullptr)
+      _UnregisterAppStateChangeNotification (Registration);
+}
+
 void
 SK_Inject_SpawnUnloadListener (void)
 {
@@ -1378,14 +1409,14 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement (&injected_procs);
 
-          RegisterAppStateChangeNotification ([](BOOLEAN suspending, PVOID)
+          SK_RegisterAppStateChangeNotification ([](BOOLEAN suspending, PVOID)
           {
             if (suspending)
             {
               SignalObjectAndWait ( hWinRTSuspending,
                     __SK_DLL_TeardownEvent, INFINITE, FALSE );
 
-              UnregisterAppStateChangeNotification (app_state_cookie);
+              SK_UnregisterAppStateChangeNotification (app_state_cookie);
             }
           }, nullptr, &app_state_cookie);
 

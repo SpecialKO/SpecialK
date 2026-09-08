@@ -349,29 +349,29 @@ public:
     HSTRING        hClassName = nullptr;
     HSTRING_HEADER header;
     HRESULT        hr =
-      WindowsCreateStringReference (name, len, &header, &hClassName);
+      SK_WindowsCreateStringReference (name, len, &header, &hClassName);
 
     if (FAILED (hr) || hClassName == nullptr)
     {
-      if (        nullptr != hClassName)
-        WindowsDeleteString (hClassName);
+      if (           nullptr != hClassName)
+        SK_WindowsDeleteString (hClassName);
 
       return false;
     }
 
     hr =
-      RoGetActivationFactory   (hClassName, __uuidof (IAudioPolicyConfigFactory),       (void **)&policy_cfg_factory);
+      SK_RoGetActivationFactory (hClassName, __uuidof (IAudioPolicyConfigFactory), (void **)&policy_cfg_factory);
 
     // Fallback does not work.
 #if 0
     if (hr == E_NOINTERFACE)
     {
       hr =
-        RoGetActivationFactory (hClassName, __uuidof (IAudioPolicyConfigFactoryLegacy), (void **)&policy_cfg_factory);
+        SK_RoGetActivationFactory (hClassName, __uuidof (IAudioPolicyConfigFactoryLegacy), (void **)&policy_cfg_factory);
     }
 #endif
 
-    WindowsDeleteString        (hClassName);
+    SK_WindowsDeleteString (hClassName);
 
     return
       SUCCEEDED (hr);
@@ -397,8 +397,8 @@ public:
         SK_MMDev_Endpoint::getDeviceId (flow, deviceId.data ());
 
       const auto hr =
-        WindowsCreateString ( fullDeviceId.c_str  (),
-                      (UINT32)fullDeviceId.length (), &hDeviceId );
+        SK_WindowsCreateString ( fullDeviceId.c_str  (),
+                         (UINT32)fullDeviceId.length (), &hDeviceId );
 
       if (FAILED (hr))
         return false;
@@ -410,9 +410,9 @@ public:
       pid, flow, eMultimedia | eConsole, &hExistingDeviceId
     );
 
-    UINT32                                           len;
+    UINT32                                              len;
     std::wstring existing_device =
-      WindowsGetStringRawBuffer (hExistingDeviceId, &len);
+      SK_WindowsGetStringRawBuffer (hExistingDeviceId, &len);
 
     bool needs_change =
       !(         existing_device.empty () && fullDeviceId.empty ()) &&
@@ -427,8 +427,8 @@ public:
       needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId)
                    : S_OK;
 
-    WindowsDeleteString (        hDeviceId);
-    WindowsDeleteString (hExistingDeviceId);
+    SK_WindowsDeleteString (        hDeviceId);
+    SK_WindowsDeleteString (hExistingDeviceId);
 
     return
       SUCCEEDED (hrConsole) &&
@@ -446,10 +446,10 @@ public:
       pid, flow, eMultimedia | eConsole, &hDeviceId
     );
 
-    UINT32                                   len;
+    UINT32                                      len;
     std::wstring ret =
-      WindowsGetStringRawBuffer (hDeviceId, &len);
-      WindowsDeleteString       (hDeviceId);
+      SK_WindowsGetStringRawBuffer (hDeviceId, &len);
+      SK_WindowsDeleteString       (hDeviceId);
 
     return
       ret;

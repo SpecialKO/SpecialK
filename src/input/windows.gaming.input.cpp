@@ -1714,10 +1714,10 @@ SK_Input_HookWGI (void)
         HSTRING_HEADER   hNamespaceStringHeader;
         HSTRING          hNamespaceString;
     
-        if (SUCCEEDED (WindowsCreateStringReference (wszNamespace,
-                       static_cast <UINT32> (wcslen (wszNamespace)),
-                                                      &hNamespaceStringHeader,
-                                                      &hNamespaceString)))
+        if (SUCCEEDED (SK_WindowsCreateStringReference (wszNamespace,
+                          static_cast <UINT32> (wcslen (wszNamespace)),
+                                                         &hNamespaceStringHeader,
+                                                         &hNamespaceString)))
         {
           SK_ComPtr <ABI::Windows::Gaming::Input::IGamepadStatics> pGamepadStatics;
     

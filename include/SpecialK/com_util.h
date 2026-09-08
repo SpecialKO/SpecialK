@@ -31,6 +31,7 @@ SK_INCLUDE_START_CPP (COM_UTIL)
 #include <atlcomcli.h>
 #include <comdef.h>
 #include <shlwapi.h>
+#include <winstring.h>
 
 #include <SpecialK/thread.h>
 
@@ -1532,6 +1533,13 @@ HRESULT
 SK_SafeQueryInterface (IUnknown* pObj, REFIID riid, void** pUnk);
 
 template <typename _Tp, size_t n> using SK_ComPtrArray = std::array <SK_ComPtr <_Tp>, n>;
+
+
+PCWSTR  WINAPI SK_WindowsGetStringRawBuffer    (HSTRING string, UINT32* length);
+HRESULT WINAPI SK_WindowsDeleteString          (HSTRING string);
+HRESULT WINAPI SK_WindowsCreateString          (PCNZWCH sourceString, UINT32 length, HSTRING* string);
+HRESULT WINAPI SK_WindowsCreateStringReference (PCWSTR sourceString, UINT32 length, HSTRING_HEADER* hstringHeader, HSTRING* string);
+HRESULT WINAPI SK_RoGetActivationFactory       (HSTRING activatableClassId, REFIID iid, void** factory);
 
 
 //#endif /* __SK_COM_UTIL_H__ */

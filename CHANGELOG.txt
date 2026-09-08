@@ -1,4 +1,9 @@
-﻿26.9.6
+﻿26.9.8
+======
+ + Rewrote various COM dependencies to load functions at runtime instead of
+     depending on DLL entry-points that do not exist on Windows 7.
+
+26.9.6
 ======
  + Notifications for switching HDR presets no longer display in SDR mode, or
      in native HDR games.
