@@ -1,4 +1,8 @@
-﻿26.9.8.1
+﻿26.9.9
+======
+ + Eliminated CreateWaitableTimer log spam in Resonance: A Plague Tale Legacy.
+
+26.9.8.1
 ========
  + Changed ReShade AddOn helper code to use EnumProcessModules (...) from
      psapi.dll instead of kernel32.dll, for proper Windows 7 support.
