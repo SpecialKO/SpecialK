@@ -1,4 +1,8 @@
-﻿26.9.9
+﻿26.9.9.1
+========
+ + Add Windows 7 fallback for kernel32.dll SetProcessInformation (...).
+
+26.9.9
 ======
  + Eliminated CreateWaitableTimer log spam in Resonance: A Plague Tale Legacy.
 

@@ -609,7 +609,30 @@ CreateWaitableTimerExW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
                 dwFlags, dwDesiredAccess );
 }
 
+using SetProcessInformation_pfn = BOOL (WINAPI *)(
+    _In_                                     HANDLE                    hProcess,
+    _In_                                     PROCESS_INFORMATION_CLASS  ProcessInformationClass,
+    _In_reads_bytes_(ProcessInformationSize) LPVOID                     ProcessInformation,
+    _In_                                     DWORD                      ProcessInformationSize);
 
+BOOL
+WINAPI
+SK_SetProcessInformation (HANDLE hProcess, PROCESS_INFORMATION_CLASS ProcessInformationClass, LPVOID ProcessInformation, DWORD ProcessInformationSize)
+{
+  static SetProcessInformation_pfn
+        _SetProcessInformation =
+        (SetProcessInformation_pfn)SK_GetProcAddress (SK_GetModuleHandle (L"kernel32.dll"),
+        "SetProcessInformation");
+
+  if (_SetProcessInformation == nullptr)
+  {
+    return FALSE;
+  }
+
+  return
+    _SetProcessInformation ( hProcess, ProcessInformationClass,
+                              ProcessInformation, ProcessInformationSize );
+}
 
 void
 SK_ImGui_LatentSyncConfig (void)
@@ -1656,7 +1679,7 @@ SK::Framerate::Init (void)
     state.ControlMask = PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
     state.StateMask   = 0;
 
-  SetProcessInformation (
+  SK_SetProcessInformation (
     SK_GetCurrentProcess (),
      ProcessPowerThrottling, &state,
                       sizeof (state) );
@@ -2236,7 +2259,7 @@ void SK_Framerate_SetPowerThrottlingPolicy (bool always_high_res)
 
   if (std::exchange (last_policy, always_high_res) != always_high_res)
   {
-    SetProcessInformation (
+    SK_SetProcessInformation (
       SK_GetCurrentProcess (),
        ProcessPowerThrottling, &state,
                         sizeof (state) );
