@@ -2026,8 +2026,11 @@ SK_TextOverlay::update (const char* szText)
 
   ImGui::PushFont (pFont);
 
+  // Config's Font Size won't visually affect size of OSD.
+  // OSD size regulated by Scale
+  // With Scale 1.0 visually equal to Font Size 18.0 
   auto pImGuiWindow = ImGui::GetCurrentWindow ();
-       pImGuiWindow->FontWindowScale = font_.scale;
+  pImGuiWindow->FontWindowScale = font_.scale / (config.osd.init_font_size / 18);
 
         float baseline = 0.0f;
   const float spacing  = pImGuiWindow->CalcFontSize () + ImGui::GetStyle ().ItemSpacing.y;
