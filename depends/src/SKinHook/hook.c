@@ -268,22 +268,24 @@ static
 VOID
 EnterSpinLock (VOID)
 {
-  SIZE_T spinCount = 0;
+  int backoff = 1;
 
   // Wait until the flag is FALSE.
-  while (InterlockedCompareExchange (&g_isLocked, TRUE, FALSE) != FALSE)
+  if (InterlockedCompareExchange (&g_isLocked, TRUE, FALSE) != FALSE)
   {
     // No need to generate a memory barrier here, since InterlockedCompareExchange()
     // generates a full memory barrier itself.
 
     // Prevent the loop from being too busy.
-    if (spinCount++ < 17)
-      YieldProcessor ();
-    else
-    {
-      MicroSleep ();
-      spinCount = 0;
-    }
+    do {
+      for (int i = 0; i < backoff; ++i)
+        YieldProcessor ();
+
+      backoff =
+        backoff < 64 ?
+        backoff << 1 : 64;
+
+    } while (InterlockedCompareExchange (&g_isLocked, TRUE, FALSE) != FALSE);
   }
 }
 
