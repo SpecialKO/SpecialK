@@ -244,9 +244,9 @@ NvAPI_D3D_SetReflexSync_Detour ( __in IUnknown                  *pDev,
 {
   SK_LOG_FIRST_CALL
 
-  static NvU32       enabled = MAXDWORD;
-  if (std::exchange (enabled, (NvU32)pSetReflexSyncParams->bEnable) != pSetReflexSyncParams->bEnable)
-    SK_LOGi0 (L"NVIDIA Reflex Sync %wsabled by game...",               pSetReflexSyncParams->bEnable ? L"En" : L"NOT En");
+  static NvU32        enabled = MAXDWORD;
+  if (std::exchange ( enabled, (NvU32)pSetReflexSyncParams->bEnable ) != pSetReflexSyncParams->bEnable)
+    SK_LOGi0 (L"NVIDIA Reflex Sync %wsabled by game...",                 pSetReflexSyncParams->bEnable ? L"En" : L"NOT En");
 
   static NvU32       disabled = MAXDWORD;
   if (std::exchange (disabled, (NvU32)pSetReflexSyncParams->bDisable) != pSetReflexSyncParams->bDisable)

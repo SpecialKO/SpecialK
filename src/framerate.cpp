@@ -5082,7 +5082,7 @@ SK_Framerate_EnergyControlPanel (void)
   ImGui::Separator  ();
 
   const bool bNodeOpen =
-    ImGui::TreeNodeEx ("Energy Efficiency", ImGuiTreeNodeFlags_DefaultOpen);
+    ImGui::TreeNodeEx ("Energy Efficiency", 0);
 
   if (bNodeOpen)
   {
