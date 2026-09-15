@@ -1,4 +1,10 @@
-﻿26.9.9.1
+﻿26.9.15
+=======
+ + Adjusted MinHook spinlock code.
+ + No longer expand Framerate Limiter|Advanced|Energy Efficiency by default.
+ + Fixed issues with XInput Bridge DLL (XInput1_3.dll).
+
+26.9.9.1
 ========
  + Add Windows 7 fallback for kernel32.dll SetProcessInformation (...).
 

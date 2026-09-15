@@ -3619,7 +3619,10 @@ SK_Input_PreHookXInput (void)
         for ( auto&& fishy_signature :
                 { "CreateDXGIFactory",
                   "X3DAudioInitialize",
-                  "DllMain_stub" } )
+                  "DllMain_stub",
+                  // Real DLLs have these as ordinal-only
+                  "XInputGetStateEx",
+                  "XInputGetExtended" } )
         // Set of signatures used currently comes from emoose's mods,
         //   which are commonly distributed as XInput1_3.dll.
         {
