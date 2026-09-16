@@ -1973,6 +1973,7 @@ enum class SK_GAME_ID
   PRAGMATA,                     // PRAGMATA.exe
   Hearthstone,                  // Hearthstone.exe
   NevernessToEverness,          // NTEGlobalGame.exe
+  Dispatch,                     // Dispatch-Win64-Shipping.exe, DispatchEGS-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };

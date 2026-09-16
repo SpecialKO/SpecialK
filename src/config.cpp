@@ -340,6 +340,8 @@ SK_GetCurrentGameID (void) noexcept
           { L"Hearthstone.exe",                        SK_GAME_ID::Hearthstone                  },
           { L"Hearthstone Beta Launcher.exe",          SK_GAME_ID::Hearthstone                  },
           { L"htgame.exe",                             SK_GAME_ID::NevernessToEverness          },
+          { L"Dispatch-Win64-Shipping.exe",            SK_GAME_ID::Dispatch                     },
+          { L"DispatchEGS-Win64-Shipping.exe",         SK_GAME_ID::Dispatch                     }
         };
 
     first_check  = false;
@@ -4247,6 +4249,11 @@ auto DeclKeybind =
         break;
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::Dispatch:
+        // Game's internal limiter stupidly renders at 62 FPS instead of 60.
+        config.render.framerate.target_fps = 60.0f;
+        break;
+
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
         config.priority.perf_cores_only                = true;
