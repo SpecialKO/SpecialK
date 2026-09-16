@@ -1,4 +1,13 @@
-﻿26.9.16.5
+﻿26.9.16.6
+=========
+ + Blacklisted Dispatch's Unreal Engine launcher.
+ + Changed Windows Game Config (Game Bar - "Remember this is a Game") to
+     match full filesystem paths before declaring a game already registered.
+
+   * Should take care of games with demos that have the same .exe, and the
+       even more annoying case of a developer naming their game: game.exe!
+
+26.9.16.5
 =========
  + Speed up initialization and avoid deadlocks in lock guards needed for
      dbghelp.dll to be used on multiple threads.

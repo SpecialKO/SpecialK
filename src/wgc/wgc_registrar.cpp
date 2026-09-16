@@ -243,7 +243,7 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
       for ( auto& child_key_name : child_key_names )
       {
         ULONG    ulMatchedExeFullPathLen = MAX_PATH;
-        wchar_t wszMatchedExeFullPath     [MAX_PATH] = {};
+        wchar_t wszMatchedExeFullPath     [MAX_PATH + 2] = {};
 
         CRegKey
             hkChildKey;
@@ -252,7 +252,13 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
                                         wszMatchedExeFullPath,
                                         &ulMatchedExeFullPathLen)            == ERROR_SUCCESS)
         {
-          if (StrStrIW (wszMatchedExeFullPath, wszExeFile))
+#ifdef SK_BUILTIN
+          SK_LOGi1 (
+            L"wcscmp (%ws, %ws) = %d", wszMatchedExeFullPath, wszExePath,
+              wcscmp (                 wszMatchedExeFullPath, wszExePath) );
+#endif
+
+          if (! wcscmp (wszMatchedExeFullPath, wszExePath))
           {
 #ifdef SK_BUILTIN
             if (config.system.log_level > 0)
@@ -296,9 +302,10 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
 #endif
 
         // Create subkeys inside Children and Parents path trees
-        CRegKey parentSubKey, childSubKey;
-        if (parentSubKey.Create (hkGameConfigParentsRoot, parentKeyName.c_str (), REG_NONE, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE) == ERROR_SUCCESS &&
-            childSubKey.Create  (hkGameConfigChildRoot,   childGuid.c_str     (), REG_NONE, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE) == ERROR_SUCCESS)
+        CRegKey parentSubKey,
+                 childSubKey;
+        if (parentSubKey.Create (hkGameConfigParentsRoot, parentKeyName.c_str (), REG_NONE, REG_OPTION_NON_VOLATILE, KEY_READ|KEY_WRITE) == ERROR_SUCCESS
+          && childSubKey.Create (hkGameConfigChildRoot,   childGuid    .c_str (), REG_NONE, REG_OPTION_NON_VOLATILE, KEY_READ|KEY_WRITE) == ERROR_SUCCESS)
         {
           // Write properties to the Child GUID target path
           childSubKey.SetStringValue (L"ExeParentDirectory",   wszExeParentDir);

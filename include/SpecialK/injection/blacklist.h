@@ -241,6 +241,10 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"idtechlauncher.exe",
 //L"gamelaunchhelper.exe",
 
+  // Dispatch's UE4 launcher(s)
+  L"dispatchegs.exe",
+  L"dispatch.exe",
+
   L"coherentui_host.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",
