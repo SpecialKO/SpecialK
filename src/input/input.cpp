@@ -689,8 +689,10 @@ SK_Input_Init (void)
   // -- Async Init = OFF option may invoke this twice
   //SK_ReleaseAssert (std::exchange (once, true) == false);
 
-  static bool        once = false;
-  if (std::exchange (once, true))
+  static             bool           expected = false;
+  static std::atomic_bool
+      once = false;
+  if (once.compare_exchange_strong (expected, true))
     return;
 
   SK_PROFILE_FIRST_CALL

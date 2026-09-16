@@ -201,6 +201,15 @@ void SK_HID_SetupPlayStationControllers (void)
     cmd_proc->AddVariable ("Input.Gamepad.DualSense.RumbleStr",      &dualsense_rumble_str->   setRange (12.5f, 100.0f));
     cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImprovedRumble",  dualsense_improved_rumble.get ());
 
+    if (SK_SetupDiGetClassDevsW == nullptr)
+    {
+      if ((! SK_Input_PreHookHID ()) || SK_SetupDiGetClassDevsW == nullptr)
+      {
+        SK_LOGi0 (L"Failed to initialize basic HID function pointers!");
+        return;
+      }
+    }
+
     HDEVINFO hid_device_set = 
       SK_SetupDiGetClassDevsW (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
                                                                          DIGCF_PRESENT);

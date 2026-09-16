@@ -3717,7 +3717,7 @@ SK_Input_PreHookHID (void)
     {
       SK_LOGi0 (L"Missing required HID DLLs (!!)");
     }
-                                 
+
     SK_HidD_GetAttributes =
       (HidD_GetAttributes_pfn)SK_GetProcAddress (hModHID,
       "HidD_GetAttributes");

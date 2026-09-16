@@ -4261,10 +4261,20 @@ SK_BackgroundRender_EndFrame (void)
      if (PathFileExistsW (L"REFramework.dll"))
             LoadLibraryW (L"REFramework.dll");
 
-      if (SK_GetCurrentGameID () == SK_GAME_ID::Hello_Kitty_Island_Adventure)
+      if (SK_IsCurrentGame (SK_GAME_ID::Hello_Kitty_Island_Adventure))
       {
         config.input.gamepad.xinput.emulate   = false;
         config.nvidia.reflex.enforcement_site = 0; // Reduce stutter
+      }
+
+      if (static bool is_dispatch = SK_IsCurrentGame (SK_GAME_ID::Dispatch);
+                      is_dispatch)
+      {
+        config.render.framerate.target_fps         = 60.0f;
+
+        // FMV latency does not matter, use "Normal" mode
+        if (config.render.framerate.enforcement_policy == 2)
+            config.render.framerate.enforcement_policy =  4;
       }
 
       if (SK_GetModuleHandleW (L"UnityPlayer.dll"))

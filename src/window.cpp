@@ -9282,13 +9282,7 @@ SK_Win32_CreateBackgroundWindow (void)
           config.display.focus_mode ) )
     return;
 
-  static bool once = false;
-
-  if (std::exchange (once, true))
-  {
-    return;
-  }
-
+  SK_RunOnce (
   WNDCLASSEXW wc  = { };
 
   wc.cbSize        = sizeof (WNDCLASSEXW);
@@ -9392,7 +9386,7 @@ SK_Win32_CreateBackgroundWindow (void)
     SK_Thread_CloseSelf ();
 
     return 0;
-  }, L"[SK] Background Fill Window");
+  }, L"[SK] Background Fill Window"));
 }
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)

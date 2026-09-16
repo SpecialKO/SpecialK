@@ -2071,8 +2071,9 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   if (pSwapChain3 != nullptr)
       pSwapChain3->GetDesc1 (&swapDesc1);
 
-  static bool init_once  = false;
-  if (        init_once == false)
+  static             bool expected   = false;
+  static std::atomic_bool init_once  = false;
+  if (                    init_once.compare_exchange_strong (expected, true) == false)
   {
     DXGI_SWAP_CHAIN_DESC
                     swapDesc = { };
@@ -2081,9 +2082,12 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
     if (IsWindow (swapDesc.OutputWindow) &&
                   swapDesc.OutputWindow  != 0)
     {
-              init_once = true;
-
       SK_InstallWindowHook (swapDesc.OutputWindow);
+    }
+
+    else
+    {
+      init_once.store (false);
     }
   }
 
@@ -2222,8 +2226,10 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
 
   else
   {
-    static bool          once = false;
-    if (! std::exchange (once, true))
+    static             bool           expected = false;
+    static std::atomic_bool
+        once = false;
+    if (once.compare_exchange_strong (expected, true) == false)
     {     DXGI_SWAP_CHAIN_DESC
                       swapDesc = { };
       This->GetDesc (&swapDesc);
@@ -10038,8 +10044,10 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   if (! first_frame)
     return;
 
-  static bool        once = false;
-  if (std::exchange (once, true))
+  static             bool           expected = false;
+  static std::atomic_bool
+      once = false;
+  if (once.compare_exchange_strong (expected, true))
     return;
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))

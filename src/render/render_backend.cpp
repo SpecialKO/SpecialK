@@ -3054,8 +3054,7 @@ SK_D3D_GetShaderCompiler (void)
   if (hModCompiler != nullptr)
     return hModCompiler;
 
-  static bool once = false;
-  if (std::exchange (once, true) == false)
+  SK_RunOnce (
   {
     for ( auto wszDLLName : { L"D3DCompiler_46.dll", L"D3DCompiler_45.dll",
                               L"D3DCompiler_44.dll", L"D3DCompiler_43.dll",
@@ -3068,7 +3067,7 @@ SK_D3D_GetShaderCompiler (void)
       if (hModCompiler != nullptr)
         break;
     }
-  }
+  });
 
   return hModCompiler;
 }
