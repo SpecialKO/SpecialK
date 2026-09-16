@@ -1349,6 +1349,7 @@ struct {
   sk::ParameterBool*      reshade_mode            = nullptr;
   sk::ParameterBool*      fsr3_mode               = nullptr;
   sk::ParameterInt*       sdl_sanity_level        = nullptr;
+  sk::ParameterInt*       debug_level             = nullptr;
   struct {
     sk::ParameterInt*     allow_wgi               = nullptr;
     sk::ParameterInt*     allow_raw_input         = nullptr;
@@ -2046,6 +2047,7 @@ auto DeclKeybind =
     ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
     ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
     ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
+    ConfigEntry (compatibility.debug_level,              L"Debug Level (0=Most debug code OFF, >0=Normal behavior)",   dll_ini,         L"Compatibility.General", L"DebugLevel"),
     ConfigEntry (compatibility.sdl_sanity_level,         L"Set Default (1) or Override (2) SDL input/window behavior.",dll_ini,         L"Compatibility.General", L"SDLSanityLevel"),
     // Refer to SDL_hints.h, only the most useful options are exposed here...
     ConfigEntry (compatibility.sdl.allow_wgi,            L"SDL_JOYSTICK_WGI",                                          dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_WGI"),
@@ -4789,7 +4791,6 @@ auto DeclKeybind =
   init = TRUE;
 }
 
-
   //
   // Load Parameters
   //
@@ -4801,6 +4802,11 @@ auto DeclKeybind =
   compatibility.rehook_loadlibrary->load    (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->load            (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->load         (config.compatibility.allow_dxdiagn);
+  int                                        debug_level = 0;
+  compatibility.debug_level->load           (debug_level);
+
+  if ((debug_level & 0xffffffff) == 0)
+    config.compatibility.disable_debug_features = true;
 
   compatibility.sdl.allow_wgi->load         (config.compatibility.sdl.allow_wgi);
   compatibility.sdl.allow_raw_input->load   (config.compatibility.sdl.allow_raw_input); 
@@ -7022,6 +7028,7 @@ SK_SaveConfig ( std::wstring name,
   compatibility.using_wine->store             (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->store          (config.compatibility.allow_dxdiagn);
   compatibility.sdl_sanity_level->store       (config.compatibility.sdl_sanity_level);
+  compatibility.debug_level->store            (config.compatibility.disable_debug_features ? 0 : 1);
 
   compatibility.sdl.allow_xinput->store       (config.compatibility.sdl.allow_xinput);
   compatibility.sdl.allow_direct_input->store (config.compatibility.sdl.allow_direct_input);

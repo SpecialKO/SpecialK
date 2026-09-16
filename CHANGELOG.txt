@@ -2,6 +2,21 @@
 =========
  + Speed up initialization and avoid deadlocks in lock guards needed for
      dbghelp.dll to be used on multiple threads.
+ + Added new INI variable to control whether SK should use dbghelp.dll and
+     other debug-related features that may piss off anti-cheat / DRM:
+
+     [Compatibility.General]
+     DebugLevel={0,1,...}     Default: 1  (currently only 1 level exists)
+
+    * 0 = Disable all debug features (debug symbols, thread names, etc.);
+
+    >> Many of SK's features depend on this debug information to observe
+        a game's behavior and apply various fixes... avoid using lvl 0
+          except in emergency situations where anti-cheat is unhappy.
+
+     @ Also consider DontHookWndProc=true; the Window Procedure is the
+         only game-owned memory that SK ever touches and this makes
+           anti-cheat / anti-tamper angry.
 
 26.9.16.4
 =========
