@@ -4251,7 +4251,7 @@ auto DeclKeybind =
       case SK_GAME_ID::Dispatch:
         // Game's internal limiter stupidly renders at 62 FPS instead of 60.
         config.render.framerate.target_fps                 = 60.0f;
-        config.render.framerate.enforcement_policy         = 4; // FMV latency does not matter, use "Normal" mode
+        config.render.framerate.enforcement_policy         = 2; // FMV latency does not matter, use "Normal" mode
         config.render.framerate.auto_low_latency.waiting   = false;
         config.render.framerate.auto_low_latency.triggered = true;
         break;

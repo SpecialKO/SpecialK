@@ -7,7 +7,7 @@
 
 26.9.16
 =======
- + Default Dispatch to 60 FPS cap, since it has trouble counting frames,
+ + Default Dispatch to 60 FPS cap, since it has trouble counting frames
      and runs 60 FPS FMVs at 62 FPS instead.
 
 26.9.15
