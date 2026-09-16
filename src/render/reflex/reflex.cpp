@@ -174,26 +174,38 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     static volatile UINT64    lastSleepFrameId = MAXUINT64;
     if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId) || ignore_sleep_frame_id)
     {   WriteULong64Release (&lastSleepFrameId,    ReadULong64Acquire (&SK_Reflex_LastFrameId));
-      extern float
-          __target_fps_now;
-      if (__target_fps_now > 0.0f)
+
+      // We do not have a proxy swapchain for framegen, so the limit will be setup from
+      //   within this call to NvAPI_D3D_Sleep (...).
+      if (SK_Streamline_ProxyChain == nullptr && pLimiter != nullptr)
       {
-        config.render.framerate.streamline.target_fps =
-                                        (__target_fps_now / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.00667f);
+        extern float
+            __target_fps_now;
+        if (__target_fps_now > 0.0f)
+        {
+          config.render.framerate.streamline.target_fps =
+                                          (__target_fps_now / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.00667f);
+        }
+
+        else
+        {
+          config.render.framerate.streamline.target_fps =
+            -abs (config.render.framerate.streamline.target_fps);
+        }
+
+        float limit_to_set =
+          config.render.framerate.streamline.target_fps;
+
+        pLimiter->standalone = true;
+
+        pLimiter->set_limit (limit_to_set);
+        pLimiter->wait      (            );
       }
 
-      else
+      // Standard Streamline proxy SwapChain codepath
+      else if (pLimiter != nullptr)
       {
-        config.render.framerate.streamline.target_fps =
-          -abs (config.render.framerate.streamline.target_fps);
-      }
-
-      float limit_to_set = config.render.framerate.streamline.target_fps;
-
-      if (pLimiter != nullptr)
-      {   pLimiter->standalone = true;
-          pLimiter->set_limit (limit_to_set);
-          pLimiter->wait      (            );
+        pLimiter->wait ();
       }
     }
 

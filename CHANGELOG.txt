@@ -1,4 +1,8 @@
-﻿26.9.16.3
+﻿26.9.16.4
+=========
+ + Fixed 'Native Pacing' not applying to games without broken DLSS framegen.
+
+26.9.16.3
 =========
  + Avoid loading debug symbols while DllMain is running Process Attach code.
 
