@@ -3100,8 +3100,7 @@ SK_Input_HookHID (void)
   if (! config.input.gamepad.hook_hid)
     return;
 
-  static volatile LONG hooked = FALSE;
-
+  static volatile LONG               hooked    =   FALSE;
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     SK_PROFILE_FIRST_CALL
@@ -3603,7 +3602,7 @@ SK_Input_OnLoadLibrary ( LPCWSTR wszFileName )
 }
 
 bool
-SK_Input_PreHookHID (void)
+SK_Input_PreHookHID (bool wait)
 {
   bool ret = true;
 
@@ -3918,7 +3917,7 @@ SK_Input_PreHookHID (void)
     InterlockedIncrement (&_init);
   }
 
-  else
+  else if (wait)
   {
     SK_Thread_SpinUntilAtomicMin (&_init, 2);
   }

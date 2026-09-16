@@ -409,10 +409,11 @@ SK_WMI_Init (void)
 {
   SK_PROFILE_FIRST_CALL
 
-  static             bool           expected = false;
-  static std::atomic_bool
-      once = false;
-  if (once.compare_exchange_strong (expected, true) == false)
+  static           std::recursive_mutex        mtx;
+  std::lock_guard <std::recursive_mutex> lock (mtx);
+
+  static bool          once = false;
+  if (! std::exchange (once, true))
   {
     const wchar_t* wszCOMBase  = L"combase.dll";
                    hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);

@@ -69,7 +69,7 @@ void SK_Input_PreHookKeyboard (void);
 void SK_Input_PreHookWinHook  (void);
 void SK_Input_PreHookXInput   (void);
 void SK_Input_PreHookScePad   (void);
-bool SK_Input_PreHookHID      (void);
+bool SK_Input_PreHookHID      (bool wait = true);
 bool SK_Input_PreHookWinMM    (void);
 void SK_Input_HookWinMM       (void);
 

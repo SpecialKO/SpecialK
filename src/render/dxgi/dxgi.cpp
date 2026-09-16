@@ -10044,11 +10044,8 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   if (! first_frame)
     return;
 
-  static             bool           expected = false;
-  static std::atomic_bool
-      once = false;
-  if (once.compare_exchange_strong (expected, true))
-    return;
+  static           std::recursive_mutex        mtx;
+  std::lock_guard <std::recursive_mutex> lock (mtx);
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {

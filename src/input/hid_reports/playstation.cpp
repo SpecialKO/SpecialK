@@ -176,6 +176,8 @@ void SK_HID_SetupPlayStationControllers (void)
   static volatile LONG             _init  =  0;
   if (InterlockedCompareExchange (&_init, 1, 0) == 0)
   {
+    SK_PROFILE_FIRST_CALL
+
     auto cmd_proc =
       SK_GetCommandProcessor ();
 

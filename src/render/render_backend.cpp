@@ -3048,6 +3048,9 @@ SK_D3D_SetupShaderCompiler (void)
 HMODULE
 SK_D3D_GetShaderCompiler (void)
 {
+  static           std::mutex        mtx;
+  std::lock_guard <std::mutex> lock (mtx);
+
   static HMODULE hModCompiler =
     SK_LoadLibraryW (L"D3DCompiler_47.dll");
 

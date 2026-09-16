@@ -1,4 +1,8 @@
-﻿26.9.16.1
+﻿26.9.16.2
+=========
+ + Fixed initialization race that prevented SK from polling Xbox controllers.
+
+26.9.16.1
 =========
  + Fixed 'Native Pacing' not applying to games that use DLSS Frame Generation
      with a proxy SwapChain created before SK runs any code.
