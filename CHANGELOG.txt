@@ -1,4 +1,9 @@
-﻿26.9.16.4
+﻿26.9.16.5
+=========
+ + Speed up initialization and avoid deadlocks in lock guards needed for
+     dbghelp.dll to be used on multiple threads.
+
+26.9.16.4
 =========
  + Fixed 'Native Pacing' not applying to games without broken DLSS framegen.
 

@@ -125,11 +125,11 @@ struct SK_XInputContext
     XInput1_3, XInput1_4, XInput9_1_0,
     XInput_SK;
 
-  std::recursive_mutex cs_poll   [XUSER_MAX_COUNT] = { };
-  std::recursive_mutex cs_haptic [XUSER_MAX_COUNT] = { };
-  std::recursive_mutex cs_power  [XUSER_MAX_COUNT] = { };
-  std::recursive_mutex cs_hook   [XUSER_MAX_COUNT] = { };
-  std::recursive_mutex cs_caps   [XUSER_MAX_COUNT] = { };
+  std::mutex cs_poll   [XUSER_MAX_COUNT] = { };
+  std::mutex cs_haptic [XUSER_MAX_COUNT] = { };
+  std::mutex cs_power  [XUSER_MAX_COUNT] = { };
+  std::mutex cs_hook   [XUSER_MAX_COUNT] = { };
+  std::mutex cs_caps   [XUSER_MAX_COUNT] = { };
 
   volatile instance_s*              primary_hook                         = nullptr;
   volatile LONG                     primary_level                        = XInputLevel_NONE;
@@ -223,8 +223,8 @@ SK_XInputContext xinput_ctx;
         auto                                     \
         {                                        \
           std::scoped_lock <                     \
-            std::recursive_mutex,                \
-            std::recursive_mutex                 \
+            std::mutex,                          \
+            std::mutex                           \
           > lock_and_call (                      \
             lock, xinput_ctx.cs_hook [idx]       \
           );                                     \

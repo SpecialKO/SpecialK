@@ -689,98 +689,96 @@ SK_Input_Init (void)
   // -- Async Init = OFF option may invoke this twice
   //SK_ReleaseAssert (std::exchange (once, true) == false);
 
-  static std::recursive_mutex mtx;
+  static volatile LONG                      hooked    =   FALSE;
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
+  {
+    SK_PROFILE_FIRST_CALL
 
-  static bool        once = false;
-  if (std::exchange (once, true)) {
-    std::lock_guard <std::recursive_mutex> lock (mtx);
-    return;
+    auto *cp =
+      SK_Render_InitializeSharedCVars ();
+
+    auto CreateInputVar_Bool = [&](auto name, auto config_var)
+    {
+      cp->AddVariable  (
+        name,
+          SK_CreateVar ( SK_IVariable::Boolean,
+                           config_var
+                       )
+      );
+    };
+
+    auto CreateInputVar_Int = [&](auto name, auto config_var)
+    {
+      cp->AddVariable  (
+        name,
+          SK_CreateVar ( SK_IVariable::Int,
+                           config_var
+                       )
+      );
+    };
+
+    CreateInputVar_Bool ("Input.Keyboard.DisableToGame", &config.input.keyboard.disabled_to_game);
+    CreateInputVar_Bool ("Input.Mouse.DisableToGame",    &config.input.mouse.disabled_to_game);
+    CreateInputVar_Bool ("Input.Gamepad.DisableToGame",  &config.input.gamepad.disabled_to_game);
+    CreateInputVar_Bool ("Input.Gamepad.DisableRumble",  &config.input.gamepad.disable_rumble);
+    CreateInputVar_Bool ("Input.XInput.HideAllDevices",  &config.input.gamepad.xinput.blackout_api);
+    CreateInputVar_Bool ("Input.XInput.EnableEmulation", &config.input.gamepad.xinput.emulate);
+
+    CreateInputVar_Int  ("Input.Steam.UIController",     &config.input.gamepad.steam.ui_slot);
+    CreateInputVar_Int  ("Input.XInput.UIController",    &config.input.gamepad.xinput.ui_slot);
+
+    CreateInputVar_Int  ("Input.Keyboard.EnableAltTab",  &config.input.keyboard.enable_alt_tab);
+    CreateInputVar_Int  ("Input.Keyboard.EnableWinKey",  &config.input.keyboard.enable_win_key);
+    CreateInputVar_Int  ("Input.Keyboard.AltTabPace",    &config.input.keyboard.alt_tab_adhd_pace);
+
+    bool bEnable =
+      SK_DisableApplyQueuedHooks ();
+
+    SK_Input_PreHookHID ();
+
+    if (config.input.gamepad.hook_raw_input)
+      SK_Input_HookRawInput ();
+
+    if (config.input.gamepad.hook_windows_gaming)
+      SK_Input_HookWGI ();
+
+    if (config.input.gamepad.hook_game_input)
+      SK_Input_HookGameInput ();
+
+    if (config.input.gamepad.hook_xinput)
+    {
+      SK_Input_PreHookXInput ();
+    }
+
+    if (config.input.gamepad.hook_scepad)
+    {
+      //SK_Input_PreHookScePad ();
+      //
+      //if (SK_IsModuleLoaded (L"libScePad.dll"))
+      //  SK_Input_HookScePad ();
+    }
+
+    if (SK_GetDLLRole () != DLL_ROLE::DInput8)
+    {
+      if (SK_GetModuleHandle (L"dinput8.dll"))
+        SK_Input_HookDI8  ();
+
+      if (SK_GetModuleHandle (L"dinput.dll"))
+        SK_Input_HookDI7  ();
+    }
+
+    SK_Input_InitKeyboard ();
+
+    if (bEnable)
+    {
+      SK_EnableApplyQueuedHooks ();
+            SK_ApplyQueuedHooks ();
+    }
+
+    InterlockedIncrementRelease (&hooked);
   }
 
-  std::lock_guard <std::recursive_mutex> lock (mtx);
-
-  SK_PROFILE_FIRST_CALL
-
-  auto *cp =
-    SK_Render_InitializeSharedCVars ();
-
-  auto CreateInputVar_Bool = [&](auto name, auto config_var)
-  {
-    cp->AddVariable  (
-      name,
-        SK_CreateVar ( SK_IVariable::Boolean,
-                         config_var
-                     )
-    );
-  };
-
-  auto CreateInputVar_Int = [&](auto name, auto config_var)
-  {
-    cp->AddVariable  (
-      name,
-        SK_CreateVar ( SK_IVariable::Int,
-                         config_var
-                     )
-    );
-  };
-
-  CreateInputVar_Bool ("Input.Keyboard.DisableToGame", &config.input.keyboard.disabled_to_game);
-  CreateInputVar_Bool ("Input.Mouse.DisableToGame",    &config.input.mouse.disabled_to_game);
-  CreateInputVar_Bool ("Input.Gamepad.DisableToGame",  &config.input.gamepad.disabled_to_game);
-  CreateInputVar_Bool ("Input.Gamepad.DisableRumble",  &config.input.gamepad.disable_rumble);
-  CreateInputVar_Bool ("Input.XInput.HideAllDevices",  &config.input.gamepad.xinput.blackout_api);
-  CreateInputVar_Bool ("Input.XInput.EnableEmulation", &config.input.gamepad.xinput.emulate);
-
-  CreateInputVar_Int  ("Input.Steam.UIController",     &config.input.gamepad.steam.ui_slot);
-  CreateInputVar_Int  ("Input.XInput.UIController",    &config.input.gamepad.xinput.ui_slot);
-
-  CreateInputVar_Int  ("Input.Keyboard.EnableAltTab",  &config.input.keyboard.enable_alt_tab);
-  CreateInputVar_Int  ("Input.Keyboard.EnableWinKey",  &config.input.keyboard.enable_win_key);
-  CreateInputVar_Int  ("Input.Keyboard.AltTabPace",    &config.input.keyboard.alt_tab_adhd_pace);
-
-  bool bEnable =
-    SK_DisableApplyQueuedHooks ();
-
-  SK_Input_PreHookHID ();
-
-  if (config.input.gamepad.hook_raw_input)
-    SK_Input_HookRawInput ();
-
-  if (config.input.gamepad.hook_windows_gaming)
-    SK_Input_HookWGI ();
-
-  if (config.input.gamepad.hook_game_input)
-    SK_Input_HookGameInput ();
-
-  if (config.input.gamepad.hook_xinput)
-  {
-    SK_Input_PreHookXInput ();
-  }
-
-  if (config.input.gamepad.hook_scepad)
-  {
-    //SK_Input_PreHookScePad ();
-    //
-    //if (SK_IsModuleLoaded (L"libScePad.dll"))
-    //  SK_Input_HookScePad ();
-  }
-
-  if (SK_GetDLLRole () != DLL_ROLE::DInput8)
-  {
-    if (SK_GetModuleHandle (L"dinput8.dll"))
-      SK_Input_HookDI8  ();
-
-    if (SK_GetModuleHandle (L"dinput.dll"))
-      SK_Input_HookDI7  ();
-  }
-
-  SK_Input_InitKeyboard ();
-
-  if (bEnable)
-  {
-    SK_EnableApplyQueuedHooks ();
-          SK_ApplyQueuedHooks ();
-  }
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 

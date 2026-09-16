@@ -409,8 +409,8 @@ SK_WMI_Init (void)
 {
   SK_PROFILE_FIRST_CALL
 
-  static           std::recursive_mutex        mtx;
-  std::lock_guard <std::recursive_mutex> lock (mtx);
+  static           std::mutex        mtx;
+  std::lock_guard <std::mutex> lock (mtx);
 
   static bool          once = false;
   if (! std::exchange (once, true))

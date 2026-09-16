@@ -399,9 +399,9 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   PathStripPathA (pszShortName);
 
   if ( dbghelp_callers.find (hMod) ==
-       dbghelp_callers.cend (    ) && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0 )
+       dbghelp_callers.cend (    ) && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0 )
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     if ( dbghelp_callers.find (hMod) ==
          dbghelp_callers.cend (    )  )
@@ -422,6 +422,8 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
                       sip.si.MaxNameLen   = sizeof sip.name;
 
   DWORD64 Displacement = 0;
+
+  std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
   if ( SymFromAddr ( hProc,
          static_cast <DWORD64> (addr),
@@ -1758,8 +1760,10 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
     PathStripPathA (pszShortName);
 
     if ( dbghelp_callers.find (hMod) ==
-         dbghelp_callers.cend (    )  )
+         dbghelp_callers.cend (    ) && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
     {
+      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
+
       if (! SymLoadModule64 ( GetCurrentProcess (),
                                 nullptr,
                                   pszShortName,
@@ -1784,6 +1788,8 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
                       sip.si.MaxNameLen   = sizeof sip.name;
 
   DWORD64 Displacement = 0;
+
+  std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
   if ( SymFromAddr ( hProc,
                        ip,
@@ -1885,6 +1891,8 @@ CrashHandler::InitSyms (void)
   {
     if (config.system.handle_crashes)
     {
+      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
+
       SymCleanup    (SK_GetCurrentProcess ());
       SymInitialize (
         SK_GetCurrentProcess (),

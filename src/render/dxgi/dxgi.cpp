@@ -9089,8 +9089,7 @@ SK_HookDXGI (void)
     return;
   }
 
-  static volatile LONG hooked = FALSE;
-
+  static volatile LONG                      hooked    =   FALSE;
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     SK_PROFILE_FIRST_CALL
@@ -10043,9 +10042,6 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
 
   if (! first_frame)
     return;
-
-  static           std::recursive_mutex        mtx;
-  std::lock_guard <std::recursive_mutex> lock (mtx);
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {

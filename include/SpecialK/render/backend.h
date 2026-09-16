@@ -200,7 +200,7 @@ public:
     struct {
       D3DKMT_HANDLE       hDevice              =  0;
     } device;
-    std::recursive_mutex  lock;
+    std::mutex            lock;
   } adapter;
 
   static auto constexpr

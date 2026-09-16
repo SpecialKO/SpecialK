@@ -118,6 +118,7 @@ extern "C++" SK_Thread_HybridSpinlock* init_mutex;
 extern "C++" SK_Thread_HybridSpinlock* budget_mutex;
 extern "C++" SK_Thread_HybridSpinlock* wmi_cs;
 extern "C++" SK_Thread_HybridSpinlock* cs_dbghelp;
+extern "C++" SK_Thread_HybridSpinlock* cs_dbghelp2;
 
 #define SK_API __declspec (dllexport)
 #else

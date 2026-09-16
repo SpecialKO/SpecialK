@@ -74,6 +74,7 @@ SK_Thread_HybridSpinlock* init_mutex          = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex        = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs              = nullptr;
 SK_Thread_HybridSpinlock* cs_dbghelp          = nullptr;
+SK_Thread_HybridSpinlock* cs_dbghelp2         = nullptr;
 SK_Thread_HybridSpinlock* steam_callback_cs   = nullptr;
 SK_Thread_HybridSpinlock* platform_popup_cs   = nullptr;
 SK_Thread_HybridSpinlock* steam_init_cs       = nullptr;
@@ -1643,6 +1644,8 @@ SK_Attach (DLL_ROLE role)
           void
           {
             cs_dbghelp =
+              new SK_Thread_HybridSpinlock (/*2048UL*/);
+            cs_dbghelp2 =
               new SK_Thread_HybridSpinlock (/*2048UL*/);
             budget_mutex =
               new SK_Thread_HybridSpinlock (/* 100UL*/);

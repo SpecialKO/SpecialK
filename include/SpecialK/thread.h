@@ -184,18 +184,18 @@ public:
   ~SK_Thread_CriticalSection (void) noexcept = default;
 
   _Acquires_exclusive_lock_ (cs_)
-  void lock (void) noexcept {
+  virtual void lock (void) noexcept {
     EnterCriticalSection (cs_);
   }
 
   _Releases_exclusive_lock_ (cs_)
-  void unlock (void) noexcept
+  virtual void unlock (void) noexcept
   {
     LeaveCriticalSection (cs_);
   }
 
   _When_ (return != false, _Acquires_exclusive_lock_ (cs_))
-  bool try_lock (void) noexcept
+  virtual bool try_lock (void) noexcept
   {
     return
       TryEnterCriticalSection (cs_) != FALSE;
@@ -204,6 +204,37 @@ public:
 protected:
   CRITICAL_SECTION* cs_;
 };
+
+class SK_Thread_HybridRecursiveLock : public std::recursive_mutex
+{
+public:
+  void lock (void) noexcept
+  {
+    int backoff = 1;
+
+    do
+    {
+      for (int i = 0; i < backoff; ++i)
+        YieldProcessor ();
+
+      backoff =
+        backoff <  128 ?
+        backoff << 1   : 128;
+
+      if (backoff == 128)
+      {
+        recursive_mutex::lock ();
+        break;
+      }
+    } while (! recursive_mutex::try_lock ());
+  }
+
+  void unlock (void) noexcept
+  {
+    recursive_mutex::unlock ();
+  }
+};
+
 
 #if 0
 class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
@@ -227,7 +258,7 @@ private:
 };
 #else
 #include <mutex>
-using SK_Thread_HybridSpinlock = std::recursive_mutex;
+using SK_Thread_HybridSpinlock = std::recursive_mutex;//SK_Thread_HybridRecursiveLock;//
 #endif
 
 
