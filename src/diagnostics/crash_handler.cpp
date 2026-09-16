@@ -399,7 +399,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   PathStripPathA (pszShortName);
 
   if ( dbghelp_callers.find (hMod) ==
-       dbghelp_callers.cend (    ) && cs_dbghelp != nullptr )
+       dbghelp_callers.cend (    ) && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0 )
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
@@ -927,7 +927,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
       PathStripPathA (pszShortName);
 
       if ( dbghelp_callers.find (hModSource) ==
-           dbghelp_callers.cend (          ) && cs_dbghelp != nullptr )
+           dbghelp_callers.cend (          ) && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0 )
       {
         std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 

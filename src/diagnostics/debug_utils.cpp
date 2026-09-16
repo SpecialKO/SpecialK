@@ -2128,7 +2128,8 @@ ZwCreateThreadEx_Detour (
     SK_GetModuleFromAddr (StartRoutine);
 
   if ( dbghelp_callers.find (hModStart) ==
-       dbghelp_callers.cend (         )  )
+       dbghelp_callers.cend (         ) && (ReadAcquire (&__SK_DLL_Refs) > 0 ||
+                                       ReadULongAcquire (&__SK_DLL_InitThreadId) != SK_GetCurrentThreadId ()) )
   {
 #ifdef _M_AMD64
 # define SK_DBGHELP_STUB(__proto) __proto##64
@@ -4281,7 +4282,7 @@ StackWalk64(
   if (! config.system.handle_crashes)
     return FALSE;
 
-  if (StackWalk64_Imp != nullptr && cs_dbghelp != nullptr)
+  if (StackWalk64_Imp != nullptr && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
   {
     SK_SymSetOpts ();
 
@@ -4319,7 +4320,7 @@ StackWalk (
   if (! config.system.handle_crashes)
     return FALSE;
 
-  if (StackWalk_Imp != nullptr && cs_dbghelp != nullptr)
+  if (StackWalk_Imp != nullptr && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
   {
     SK_SymSetOpts ();
 
@@ -4385,7 +4386,7 @@ SymGetTypeInfo (
   _In_  IMAGEHLP_SYMBOL_TYPE_INFO GetType,
   _Out_ PVOID                     pInfo )
 {
-  if (SymGetTypeInfo_Imp != nullptr)
+  if (SymGetTypeInfo_Imp != nullptr && cs_dbghelp != nullptr)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
@@ -4404,7 +4405,7 @@ SymGetModuleBase64 (
   _In_ DWORD64 qwAddr
 )
 {
-  if (SymGetModuleBase64_Imp != nullptr)
+  if (SymGetModuleBase64_Imp != nullptr && cs_dbghelp != nullptr)
   {
     SK_SymSetOpts ();
 
@@ -4424,7 +4425,7 @@ SymGetModuleBase (
   _In_ DWORD  dwAddr
 )
 {
-  if (SymGetModuleBase_Imp != nullptr)
+  if (SymGetModuleBase_Imp != nullptr && cs_dbghelp != nullptr)
   {
     SK_SymSetOpts ();
 
@@ -4629,7 +4630,7 @@ SymCleanup (
     return TRUE;
   }
 
-  if (SymCleanup_Imp != nullptr)
+  if (SymCleanup_Imp != nullptr && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
@@ -4720,7 +4721,8 @@ SymLoadModule (
     if (hModDll != nullptr && (! loaded))
     {
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
-                                && (! ReadAcquire (&__SK_DLL_Ending))))
+                                && (! ReadAcquire (&__SK_DLL_Ending)))
+                                &&  ( ReadAcquire (&__SK_DLL_Refs) > 0 ))
       {
         SK_SymSetOpts ();
 
@@ -4786,7 +4788,8 @@ SymLoadModule64 (
     if (hModDll != nullptr && (! loaded))
     {
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
-                                && (! ReadAcquire (&__SK_DLL_Ending))))
+                                && (! ReadAcquire (&__SK_DLL_Ending)))
+                                &&  ( ReadAcquire (&__SK_DLL_Refs) > 0 ))
       {
         SK_SymSetOpts ();
 

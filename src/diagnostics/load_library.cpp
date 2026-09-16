@@ -315,12 +315,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     PathStripPathA (pszShortName);
 
-    if (cs_dbghelp != nullptr)
+    if (cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
     {
       std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
       if ( dbghelp_callers.cend (           ) ==
-           dbghelp_callers.find (hCallingMod) ) 
+           dbghelp_callers.find (hCallingMod) )
       {
         SK_SymLoadModule ( GetCurrentProcess (),
                              nullptr,

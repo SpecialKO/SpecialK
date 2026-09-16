@@ -81,13 +81,14 @@ SK_Thread_HybridSpinlock* steam_init_cs       = nullptr;
                 HANDLE __SK_DLL_TeardownEvent = nullptr;
 
 // Various helpful quick watch variables for debugging
-volatile          LONG __SK_DLL_Ending        = FALSE;
-volatile          LONG __SK_DLL_Attached      = FALSE;
-            __time64_t __SK_DLL_AttachTime    = 0ULL;
-volatile          LONG __SK_Threads_Attached  = 0UL;
-volatile          LONG __SK_DLL_Refs          = 0UL;
-volatile          LONG __SK_HookContextOwner  = FALSE;
-                  BOOL __SK_ExitedCleanly     =  TRUE;
+volatile          LONG  __SK_DLL_Ending        = FALSE;
+volatile          LONG  __SK_DLL_Attached      = FALSE;
+            __time64_t  __SK_DLL_AttachTime    = 0ULL;
+volatile          LONG  __SK_Threads_Attached  = 0UL;
+volatile          LONG  __SK_DLL_Refs          = 0UL;
+volatile          DWORD __SK_DLL_InitThreadId  = 0UL;
+volatile          LONG  __SK_HookContextOwner  = FALSE;
+                  BOOL  __SK_ExitedCleanly     =  TRUE;
 
 extern volatile  DWORD __SK_TLS_INDEX;
         volatile LONG  lLastThreadCreate      = 0;
@@ -519,6 +520,8 @@ DllMain ( HMODULE hModule,
     {
       if (SK_IsServiceHost ())
         return FALSE;
+
+      WriteULongRelease (&__SK_DLL_InitThreadId, GetCurrentThreadId ());
 
       int process_protection =
         SK_NT_GetProcessProtection ();

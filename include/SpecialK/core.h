@@ -136,6 +136,7 @@ extern volatile LONG            __SK_Init;
 extern volatile LONG            __SK_DLL_Refs;
 extern volatile LONG            __SK_DLL_Attached;
 extern          __time64_t      __SK_DLL_AttachTime;
+extern volatile DWORD           __SK_DLL_InitThreadId;
 extern          HANDLE          __SK_DLL_TeardownEvent;
 extern volatile LONG            __SK_DLL_Ending;
 extern volatile LONGLONG        SK_SteamAPI_CallbackRunCount;
