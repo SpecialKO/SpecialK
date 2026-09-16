@@ -4141,6 +4141,7 @@ auto DeclKeybind =
         config.input.gamepad.scepad.hide_ds_edge_pid = SK_Disabled;
         config.input.gamepad.xinput.emulate          = false;
         input.gamepad.scepad.hide_ds_edge_pid->store (config.input.gamepad.scepad.hide_ds_edge_pid);
+        config.nvidia.bugs.reflex_never_sleeps       = true; // It does, but it is on the wrong thread!!
         break;
 
       case SK_GAME_ID::HonkaiStarRail:

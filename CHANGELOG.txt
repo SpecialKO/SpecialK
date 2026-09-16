@@ -1,4 +1,19 @@
-﻿26.9.15
+﻿26.9.16
+=======
+ + Added hacky workaround for games that do not put the Reflex Sleep call
+     in the correct place to have it delay the game's next frame.
+
+   [*] Use the INI setting if SK cannot limit framerate in a DLSS FG game:
+
+    [NVIDIA.Bugs]
+    ReflexNeverSleeps={true|false}  Default: false
+
+    >> If you need to this feature in a game, select either Normal or
+         Latent Sync Framerate Limit Modes.
+
+ + Added Zenless Zone Zero to list of games with never sleeps status.
+
+26.9.15
 =======
  + Adjusted MinHook spinlock code.
  + No longer expand Framerate Limiter|Advanced|Energy Efficiency by default.
