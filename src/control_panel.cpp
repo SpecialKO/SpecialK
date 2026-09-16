@@ -5754,6 +5754,10 @@ static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
         //   and values out of range for this can be catastrophic.
         config.imgui.scale = SK_ImGui::SanitizeFontGlobalScale (config.imgui.scale);
         io.FontGlobalScale = config.imgui.scale;
+        auto OSD_font = SK_ImGui_GetFont_Consolas();
+
+        // Exclude OSD scale from this
+        OSD_font->Scale = 1.0F / config.imgui.scale;
       }
       ImGui::SetItemTooltip  ("Optimal UI layout requires 1.0; other scales "
                               "may not display as intended." );
