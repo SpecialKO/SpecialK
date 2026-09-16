@@ -164,7 +164,9 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   if (__SK_IsDLSSGActive && config.render.framerate.streamline.wantNativePacing ())
   {
     auto pLimiter =
-      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain);
+      SK::Framerate::GetLimiter (SK_Streamline_ProxyChain != nullptr ?
+                                 SK_Streamline_ProxyChain            :
+                                 (IUnknown *)-3);
 
     const bool ignore_sleep_frame_id =
       config.nvidia.bugs.reflex_never_sleeps || config.nvidia.bugs.reflex_non_monotonic || SK_GetFramesDrawn () < 30;
@@ -172,8 +174,27 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
     static volatile UINT64    lastSleepFrameId = MAXUINT64;
     if (ReadULong64Acquire  (&lastSleepFrameId) != ReadULong64Acquire (&SK_Reflex_LastFrameId) || ignore_sleep_frame_id)
     {   WriteULong64Release (&lastSleepFrameId,    ReadULong64Acquire (&SK_Reflex_LastFrameId));
+      extern float
+          __target_fps_now;
+      if (__target_fps_now > 0.0f)
+      {
+        config.render.framerate.streamline.target_fps =
+                                        (__target_fps_now / ((float)SK_NGX_DLSSG_GetMultiFrameCount () + 1.0f) - 0.00667f);
+      }
+
+      else
+      {
+        config.render.framerate.streamline.target_fps =
+          -abs (config.render.framerate.streamline.target_fps);
+      }
+
+      float limit_to_set = config.render.framerate.streamline.target_fps;
+
       if (pLimiter != nullptr)
-          pLimiter->wait ();
+      {   pLimiter->standalone = true;
+          pLimiter->set_limit (limit_to_set);
+          pLimiter->wait      (            );
+      }
     }
 
     if (config.render.framerate.streamline.pacing_mode >= 3)

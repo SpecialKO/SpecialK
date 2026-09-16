@@ -1,4 +1,11 @@
-﻿26.9.16
+﻿26.9.16.1
+=========
+ + Fixed 'Native Pacing' not applying to games that use DLSS Frame Generation
+     with a proxy SwapChain created before SK runs any code.
+
+     (i.e. Zenless Zone Zero, Final Fantasy 7 Rebirth)
+
+26.9.16
 =======
  + Default Dispatch to 60 FPS cap, since it has trouble counting frames,
      and runs 60 FPS FMVs at 62 FPS instead.
