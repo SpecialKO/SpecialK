@@ -50,3 +50,7 @@ There are many more possible ways to inject the DLLs, the two outlined above are
 Special K will happily inject into a game that is already running if you want to build your own tool using something like **`CreateRemoteThread (...)`**, but keep in mind that late injection will prevent some of Special K's features (particularly those related to D3D overrides and shader/texture mods) from working.
 
 > CBT Hooks were chosen due to hookchain order. Since most graphics APIs on Windows need a window before they can do non-trivial initialization, a CBT hook reliably gets us into the application ***before*** D3D9/11/12 swapchain creation.
+
+## SAST Tools
+
+[PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - static code analyzer for Enterprise (C, C++, C#, Go, and Java) and Web (JS and TS) development.
