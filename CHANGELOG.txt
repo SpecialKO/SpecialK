@@ -1,4 +1,8 @@
-﻿26.9.18
+﻿26.9.18.1
+=========
+ + Default games with missing DebugLevel INI parameter to level 1.
+
+26.9.18
 =======
  + Added limit to number of times (10) SK logs timer upgrades, to prevent
      gigabytes worth of log spam in Deltarune.

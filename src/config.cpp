@@ -4802,7 +4802,7 @@ auto DeclKeybind =
   compatibility.rehook_loadlibrary->load    (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->load            (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->load         (config.compatibility.allow_dxdiagn);
-  int                                        debug_level = 0;
+  int                                        debug_level = 1;
   compatibility.debug_level->load           (debug_level);
 
   if ((debug_level & 0xffffffff) == 0)
