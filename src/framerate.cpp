@@ -434,15 +434,29 @@ CreateWaitableTimerW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
   if (high_res_flag != 0 && (sk::NVAPI::nvwgf2umx == nullptr ||
                              sk::NVAPI::nvwgf2umx != SK_GetCallingDLL ()))
   {
-    SK_LOGi0 (
-      L"Promoting Waitable Timer %hs%ws%hs to a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
-        lpTimerName != nullptr ? "'"             :  "",
-        lpTimerName != nullptr ? lpTimerName     : L"",
-        lpTimerName != nullptr ? "' "            :  "",
-                  bManualReset ? "Manual Reset " :  "",
-        SK_GetCallerName      ().c_str (),
-        SK_GetCurrentThreadId ()
-    );
+    static int num_calls = 0;
+
+    if (num_calls++ < 10)
+    {
+      SK_LOGi0 (
+        L"Promoting Waitable Timer %hs%ws%hs to a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
+          lpTimerName != nullptr ? "'"             :  "",
+          lpTimerName != nullptr ? lpTimerName     : L"",
+          lpTimerName != nullptr ? "' "            :  "",
+                    bManualReset ? "Manual Reset " :  "",
+          SK_GetCallerName      ().c_str (),
+          SK_GetCurrentThreadId ()
+      );
+    }
+
+    else
+    {
+      SK_RunOnce (
+        SK_LOGi0 (
+          L"CreateWaitableTimerW (...) called too many times... ignoring"
+        );
+      );
+    }
   }
 
   const auto override_flags = high_res_flag |
@@ -490,15 +504,29 @@ CreateWaitableTimerA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
   if (high_res_flag != 0 && (sk::NVAPI::nvwgf2umx == nullptr ||
                              sk::NVAPI::nvwgf2umx != SK_GetCallingDLL ()))
   {
-    SK_LOGi0 (
-      L"Promoting Waitable Timer %hs%hs%hsto a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
-        lpTimerName != nullptr ? "'"             : "",
-        lpTimerName != nullptr ? lpTimerName     : "",
-        lpTimerName != nullptr ? "' "            : "",
-                  bManualReset ? "Manual Reset " : "",
-        SK_GetCallerName      ().c_str (),
-        SK_GetCurrentThreadId ()
-    );
+    static int num_calls = 0;
+
+    if (num_calls++ < 10)
+    {
+      SK_LOGi0 (
+        L"Promoting Waitable Timer %hs%hs%hsto a High-Resolution %hstimer -- [ %ws, tid=%04x ]",
+          lpTimerName != nullptr ? "'"             : "",
+          lpTimerName != nullptr ? lpTimerName     : "",
+          lpTimerName != nullptr ? "' "            : "",
+                    bManualReset ? "Manual Reset " : "",
+          SK_GetCallerName      ().c_str (),
+          SK_GetCurrentThreadId ()
+      );
+    }
+
+    else
+    {
+      SK_RunOnce (
+        SK_LOGi0 (
+          L"CreateWaitableTimerA (...) called too many times... ignoring"
+        );
+      );
+    }
   }
 
   const auto override_flags = high_res_flag |
@@ -558,8 +586,7 @@ CreateWaitableTimerExA_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
     {
       SK_RunOnce (
         SK_LOGi0 (
-          L"CreateWaitableTimerExA (...) called too many times... ignoring",
-          SK_GetCallerName ().c_str ()
+          L"CreateWaitableTimerExA (...) called too many times... ignoring"
         );
       );
     }
@@ -602,8 +629,7 @@ CreateWaitableTimerExW_Detour ( _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes
     {
       SK_RunOnce (
         SK_LOGi0 (
-          L"CreateWaitableTimerExW (...) called too many times... ignoring",
-          SK_GetCallerName ().c_str ()
+          L"CreateWaitableTimerExW (...) called too many times... ignoring"
         );
       );
     }

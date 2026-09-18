@@ -1,4 +1,9 @@
-﻿26.9.16.6
+﻿26.9.18
+=======
+ + Added limit to number of times (10) SK logs timer upgrades, to prevent
+     gigabytes worth of log spam in Deltarune.
+
+26.9.16.6
 =========
  + Blacklisted Dispatch's Unreal Engine launcher.
  + Changed Windows Game Config (Game Bar - "Remember this is a Game") to
