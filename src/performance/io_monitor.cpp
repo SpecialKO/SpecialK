@@ -502,7 +502,7 @@ SK_MonitorCPU (LPVOID user_param)
         for ( unsigned int i = 0;        pCPU  <  pEndCPU ;
                                        ++pCPU )
         {
-          if (needs_idle_fixup)
+          if (needs_idle_fixup && pIdle != nullptr)
           {
             pCPU->IdleTime.QuadPart =
               pIdle [i].IdleTime.QuadPart;

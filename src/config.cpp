@@ -8482,8 +8482,10 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
                                mancpn.is_open ())
               {
                 char                     szLine [512] = { };
-                while (! mancpn.fail                      () &&
-                       ! mancpn.getline (szLine, 511).eof ())
+                auto& line =
+                         mancpn.getline (szLine, 511);
+                while (! line.fail () &&
+                       ! line.eof  ())
                 {
                   if (StrStrIA (szLine, "\"AppName\"") != nullptr)
                   {
@@ -8823,8 +8825,10 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
                              mancpn.is_open ())
             {
               char                     szLine [512] = { };
-              while (! mancpn.fail                      () &&
-                     ! mancpn.getline (szLine, 511).eof ())
+              auto& line =
+                       mancpn.getline (szLine, 511);
+              while (! line.fail () &&
+                     ! line.eof  ())
               {
                 if (StrStrIA (szLine, "\"AppName\"") != nullptr)
                 {

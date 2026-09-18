@@ -511,7 +511,7 @@ sk::ParameterStringW::set_value (const wchar_t* val)
 void
 sk::ParameterStringW::set_value (std::wstring val)
 {
-  value = val;
+  value = std::move (val);
 }
 
 

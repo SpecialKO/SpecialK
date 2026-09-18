@@ -1718,15 +1718,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 {
                   ULONG value;
 
+                  auto& value_cap =
+                    pDevice->value_caps [i];
+
                   if ( HIDP_STATUS_SUCCESS ==
-                    SK_HidP_GetUsageValue ( HidP_Input, pDevice->value_caps [i].UsagePage,   0,
-                                                        pDevice->value_caps [i].Range.UsageMin,
-                                                                                           &value,
+                    SK_HidP_GetUsageValue ( HidP_Input, value_cap.UsagePage,   0,
+                                                        value_cap.Range.UsageMin,
+                                                       &value,
                                                         pDevice->pPreparsedData,
                                                (PCHAR) (pDevice->input_report.data ()),
                                    static_cast <ULONG> (pDevice->input_report.size ()) ) )
                   {
-                    switch (pDevice->value_caps [i].Range.UsageMin)
+                    switch (value_cap.Range.UsageMin)
                     {
                       case 0x30: // X-axis
                         pDevice->xinput.report.Gamepad.sThumbLX =

@@ -24,7 +24,7 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/com_util.h>
 
-#define __SK_SUBSYSTEM__ " COM Util "
+#define __SK_SUBSYSTEM__ L" COM Util "
 
 namespace COM
 {
