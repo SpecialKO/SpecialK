@@ -169,7 +169,7 @@ SK_ScreenshotManager::getBasePath (void) const
             app_cache_mgr->getConfigPathFromAppPath (path_to_app);
 
           if (! path._Equal (SK_GetNaiveConfigPath ()))
-            profile_path = path;
+            profile_path = std::move (path);
         }
       }
 
@@ -1684,10 +1684,16 @@ constexpr uint8_t PNG_COMPRESSION_TYPE_BASE = 0; /* Deflate method 8, 32K window
 # define SK_PNG_GetUint32(x)                    _byteswap_ulong (x)
 # define SK_PNG_SetUint32(x,y)              x = _byteswap_ulong (y)
 # define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y))
+# define SK_PNG_GetUint16(x)                    _byteswap_ushort (x)
+# define SK_PNG_SetUint16(x,y)              x = _byteswap_ushort (y)
+# define SK_PNG_DeclareUint16(x,y) uint32_t x = SK_PNG_SetUint16((x),(y))
 #else
 # define SK_PNG_GetUint32(x)                    (x)
 # define SK_PNG_SetUint32(x,y)              x = (y)
 # define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y))
+# define SK_PNG_GetUint16(x)                    (x)
+# define SK_PNG_SetUint16(x,y)              x = (y)
+# define SK_PNG_DeclareUint16(x,y) uint32_t x = SK_PNG_SetUint16((x),(y))
 #endif
 
 struct SK_PNG_HDR_cHRM_Payload
@@ -1712,17 +1718,17 @@ struct SK_PNG_HDR_sBIT_Payload
 struct SK_PNG_HDR_mDCv_Payload
 {
   struct {
-    SK_PNG_DeclareUint32 (red_x,   35400); // 0.708 / 0.00002
-    SK_PNG_DeclareUint32 (red_y,   14600); // 0.292 / 0.00002
-    SK_PNG_DeclareUint32 (green_x,  8500); // 0.17  / 0.00002
-    SK_PNG_DeclareUint32 (green_y, 39850); // 0.797 / 0.00002
-    SK_PNG_DeclareUint32 (blue_x,   6550); // 0.131 / 0.00002
-    SK_PNG_DeclareUint32 (blue_y,   2300); // 0.046 / 0.00002
+    SK_PNG_DeclareUint16 (red_x,   35400); // 0.708 / 0.00002
+    SK_PNG_DeclareUint16 (red_y,   14600); // 0.292 / 0.00002
+    SK_PNG_DeclareUint16 (green_x,  8500); // 0.17  / 0.00002
+    SK_PNG_DeclareUint16 (green_y, 39850); // 0.797 / 0.00002
+    SK_PNG_DeclareUint16 (blue_x,   6550); // 0.131 / 0.00002
+    SK_PNG_DeclareUint16 (blue_y,   2300); // 0.046 / 0.00002
   } primaries;
 
   struct {
-    SK_PNG_DeclareUint32 (x, 15635); // 0.3127 / 0.00002
-    SK_PNG_DeclareUint32 (y, 16450); // 0.3290 / 0.00002
+    SK_PNG_DeclareUint16 (x, 15635); // 0.3127 / 0.00002
+    SK_PNG_DeclareUint16 (y, 16450); // 0.3290 / 0.00002
   } white_point;
 
   // The only real data we need to fill-in
