@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -396,7 +394,7 @@ void SK_HID_SetupPlayStationControllers (void)
                       if ( container_id.vt == VT_CLSID &&
                            IsEqualGUID (controller.container_id, *reinterpret_cast <GUID*> (container_id.puuid)) )
                       {
-                        controller.audio_endpoint = pAudioDevice;
+                        controller.audio_endpoint = std::move (pAudioDevice);
 
                         PropVariantClear (&container_id);
                         break;

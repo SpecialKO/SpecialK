@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -2261,12 +2259,16 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   if (cbProductBytes)
   {
+    if (        wszFileDescrip != nullptr)
     ret.append (wszFileDescrip);
     ret.append (L"  ");
   }
 
   if (cbVersionBytes)
-    ret.append (wszFileVersion);
+  {
+    if (          wszFileVersion != nullptr)
+      ret.append (wszFileVersion);
+  }
 
   return ret;
 }
@@ -2363,8 +2365,8 @@ SK_GetDLLVersionShort (const wchar_t* wszName)
 
   std::wstring ret;
 
-  if (cbVersionBytes)
-    ret.append (wszFileVersion);
+  if (cbVersionBytes && wszFileVersion != nullptr)
+    ret.append (        wszFileVersion);
 
   return ret;
 }

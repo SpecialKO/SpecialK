@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -4318,7 +4316,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
         rb.fullscreen_exclusive                 = (! pparams->Windowed);
       }
     
-      else
+      else if (pparams != nullptr)
       {
         if (nullptr !=  pparams &&
                 0x0 != (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP))

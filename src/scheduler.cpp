@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1123,7 +1121,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     // If this assertion fails, this sleep is irreversible!
     //SK_ReleaseAssert (dwMilliseconds != (DWORD)-1 || bAlertable != FALSE);
 
-    if (dwMilliseconds == (DWORD)-1 && bAlertable == false)
+    if (bAlertable == false)
     {
       SK_RunOnce (
         SK_LOGi0 ( L"SleepEx called with INFINITE and non-alertable, which is "

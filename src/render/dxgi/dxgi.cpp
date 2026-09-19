@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
- /**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -9623,9 +9621,6 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
 
   if (pColorSpaceSupported == nullptr)
     return DXGI_ERROR_INVALID_CALL;
-
-  std::wstring caller =
-    SK_GetCallerName ();
 
   bool nvoglv_caller  = SK_IsModuleInCallstack (SK_GetModuleHandleW (SK_RunLHIfBitness (64, L"nvoglv64", L"nvoglv")));
   bool vulkan1_caller = SK_IsModuleInCallstack (SK_GetModuleHandleW (L"vulkan-1"));

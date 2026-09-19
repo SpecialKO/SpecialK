@@ -1,4 +1,11 @@
-﻿26.9.18.1
+﻿26.9.19
+=======
+ + Adjusted the size of the PNG mDCV chunk to use 16-bit unsigned integers
+     for the color primary coordinates instead of 32-bit signed integers,
+       to match the finalized PNG spec.
+ + Static analysis cleanup
+
+26.9.18.1
 =========
  + Default games with missing DebugLevel INI parameter to level 1.
 
