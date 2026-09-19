@@ -762,7 +762,9 @@ SK_NvAPI_HookReflex (void)
       SK_NvAPI_HookFunction (NvAPI_D3D_SetLatencyMarker);
       SK_NvAPI_HookFunction (NvAPI_D3D_SetSleepMode);
       SK_NvAPI_HookFunction (NvAPI_D3D_Sleep);
+#if 0 // API is not documented, and games are shipping that use this now; do not hook.
       SK_NvAPI_HookFunction (NvAPI_D3D_SetReflexSync);
+#endif
 
       SK_ApplyQueuedHooks ();
     }

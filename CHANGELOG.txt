@@ -1,7 +1,13 @@
-﻿26.9.19
+﻿26.9.19.1
+=========
+ + Remove hooks on NVAPI's new Reflex Sync API, because it is generating
+     massive log spam in the first known game to use the API
+       (Resonance: A Plague Tale Legacy), and it's still undocumented :(
+
+26.9.19
 =======
  + Adjusted the size of the PNG mDCV chunk to use 16-bit unsigned integers
-     for the color primary coordinates instead of 32-bit signed integers,
+     for the color primary coordinates instead of 32-bit unsigned integers,
        to match the finalized PNG spec.
  + Static analysis cleanup
 
