@@ -1,4 +1,24 @@
-﻿26.9.19.1
+﻿26.9.20
+=======
+ + Added INI option to disallow the "application is not responding" status
+     applied to games not processing their message queue for 5 seconds.
+
+   * Mostly applies to Unreal Engine during FMV playback.
+
+      [Window.System]
+      AllowGhosting={true|false}    Default: true
+
+  Ghosting displays a white haze on top of any software that Windows thinks
+    is unresponsive and causes the cursor to change to a spinning wheel;
+      it should be easy to tell if you are affected by this and need to use
+        SK's new option.
+
+    - These games -are- technically unresponsive, but only because the thread
+        that processes window messages is independent from the thread that
+          outputs images. That is how Unreal Engine keeps putting images on
+            screen even though it has stopped processing window messages.
+
+26.9.19.1
 =========
  + Remove hooks on NVAPI's new Reflex Sync API, because it is generating
      massive log spam in the first known game to use the API

@@ -1251,6 +1251,10 @@ DllThread (LPVOID user)
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
   SetThreadPriorityBoost      ( SK_GetCurrentThread (), FALSE                         );
 
+  // Unreal Engine primarily requires this during FMVs.
+  if (! config.window.allow_ghosting)
+    DisableProcessWindowsGhosting ();
+
   if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline))
                                                    //&& (! config.compatibility.init_sync_for_reshade))
   {
