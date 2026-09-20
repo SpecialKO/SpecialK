@@ -3175,9 +3175,33 @@ SK_NV_LatencyControlPanel (void)
   static bool     native_disabled =
     config.nvidia.reflex.disable_native;
 
+  if (SK_NVAPI_IsReflexSyncActive ())
+  {
+    static const char* reflex_sync_status_active  = ICON_FA_CHECK_CIRCLE " Reflex Sync Active";
+    static const char* reflex_sync_status_blocked = ICON_FA_XMARK        " Reflex Sync Blocked";
+
+    ImGui::SameLine    ();
+    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine    ();
+    ImGui::TextColored (config.nvidia.reflex.allow_reflex_sync ? ImVec4 (0.3f, 1.f, 0.3f, 1.f)
+                                                               : ImVec4 (1.f, 0.3f, 0.3f, 1.f),
+                        config.nvidia.reflex.allow_reflex_sync ? reflex_sync_status_active :
+                                                                 reflex_sync_status_blocked);
+
+    ImGui::SameLine ();
+
+    config.utility.save_async_if (
+      ImGui::Checkbox ("Allow Reflex Sync", &config.nvidia.reflex.allow_reflex_sync)
+    );
+
+    ImGui::SetItemTooltip ("Reflex Sync is used by newer DLSS Framegen games, but may cause frame pacing issues.");
+  }
+
   if ((config.nvidia.reflex.native && config.nvidia.reflex.override && !config.nvidia.reflex.vulkan) || native_disabled)
   {
-    ImGui::SameLine ();
+    ImGui::SameLine    ();
+    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine    ();
 
            bool changed      = false;
     static bool need_restart = false;

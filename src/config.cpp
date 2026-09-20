@@ -891,6 +891,7 @@ struct {
     sk::ParameterBool*    combined_limiter        = nullptr;
     sk::ParameterBool*    disable_native          = nullptr;
     sk::ParameterBool*    show_detailed_widget    = nullptr;
+    sk::ParameterBool*    allow_reflex_sync       = nullptr;
   } reflex;
 
   struct
@@ -2198,6 +2199,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.combined_limiter,         L"Use Reflex's framerate limiter (AND SK's)",                 dll_ini,         L"NVIDIA.Reflex",         L"CombineFramerateLimiters"),
     ConfigEntry (nvidia.reflex.disable_native,           L"Disable a game's native Reflex implementation",             dll_ini,         L"NVIDIA.Reflex",         L"DisableNative"),
     ConfigEntry (nvidia.reflex.show_detailed_widget,     L"Show detailed stage timing pipeline diagram on widget",     osd_ini,         L"NVIDIA.Reflex",         L"ShowDetailsInWidget"),
+    ConfigEntry (nvidia.reflex.allow_reflex_sync,        L"Allow game to use new undocumented Reflex Sync API",        dll_ini,         L"NVIDIA.Reflex",         L"AllowReflexSync"),
 
     ConfigEntry (nvidia.dlss.force_dlaa,                 L"Force DLAA in games that do not normally support it",       dll_ini,         L"NVIDIA.DLSS",           L"ForceDLAA"),
     ConfigEntry (nvidia.dlss.use_sharpening,             L"Override DLSS Sharpening Mode",                             dll_ini,         L"NVIDIA.DLSS",           L"UseSharpening"),
@@ -5121,6 +5123,7 @@ auto DeclKeybind =
   nvidia.reflex.combined_limiter->load       (config.nvidia.reflex.combined_limiter);
   nvidia.reflex.disable_native->load         (config.nvidia.reflex.disable_native);
   nvidia.reflex.show_detailed_widget->load   (config.nvidia.reflex.show_detailed_widget);
+  nvidia.reflex.allow_reflex_sync->load      (config.nvidia.reflex.allow_reflex_sync);
 
   nvidia.dlss.force_dlaa->load               (config.nvidia.dlss.force_dlaa);
   nvidia.dlss.use_sharpening->load           (config.nvidia.dlss.use_sharpening);
@@ -7590,6 +7593,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.combined_limiter->store       (config.nvidia.reflex.combined_limiter);
       nvidia.reflex.disable_native->store         (config.nvidia.reflex.disable_native);
       nvidia.reflex.show_detailed_widget->store   (config.nvidia.reflex.show_detailed_widget);
+      nvidia.reflex.allow_reflex_sync->store      (config.nvidia.reflex.allow_reflex_sync);
       nvidia.dlss.force_dlaa->store               (config.nvidia.dlss.force_dlaa);
       nvidia.dlss.use_sharpening->store           (config.nvidia.dlss.use_sharpening);
       nvidia.dlss.forced_sharpness->store         (config.nvidia.dlss.forced_sharpness);

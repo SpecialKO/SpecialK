@@ -945,4 +945,6 @@ extern bool SK_GL_OnD3D11_Reset; // This one especially, this has a signal
 
 extern volatile LONG __SK_NVAPI_UpdateGSync;
 
+bool SK_NVAPI_IsReflexSyncActive (IUnknown* pDevice = nullptr);
+
 #endif /* __SK__RENDER_BACKEND__H__ */

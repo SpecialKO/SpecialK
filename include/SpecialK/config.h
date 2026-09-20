@@ -1123,6 +1123,7 @@ struct sk_config_t
       bool    combined_limiter    =  false;
       bool    disable_native      =  false;
       bool    show_detailed_widget=  false;
+      bool    allow_reflex_sync   =   true;
     } reflex;
     struct dlss_s {
       bool    force_dlaa          =  false;

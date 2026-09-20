@@ -271,37 +271,86 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   return ret;
 }
 
+static volatile ULONG64 SK_Reflex_LastReflexSyncFrameId = 0ULL;
+
+bool
+SK_NVAPI_IsReflexSyncActive (IUnknown* pDevice)
+{
+  // TODO, track this per actual D3D device.
+  std::ignore = pDevice;
+
+#if 0
+  SK_LOGi0 (L"Current Frame: %d, Last Reflex Sync Frame: %d, Diff: %d",
+     SK_GetFramesDrawn (),  ReadULong64Acquire (&SK_Reflex_LastReflexSyncFrameId),
+    (SK_GetFramesDrawn () - ReadULong64Acquire (&SK_Reflex_LastReflexSyncFrameId))
+  );
+#endif
+
+  return
+    (SK_GetFramesDrawn () < ReadULong64Acquire (&SK_Reflex_LastReflexSyncFrameId) + 6);
+}
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetReflexSync_Detour ( __in IUnknown                  *pDev,
                                  __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams )
 {
   SK_LOG_FIRST_CALL
 
-  static NvU32        enabled = MAXDWORD;
-  if (std::exchange ( enabled, (NvU32)pSetReflexSyncParams->bEnable ) != pSetReflexSyncParams->bEnable)
-    SK_LOGi0 (L"NVIDIA Reflex Sync %wsabled by game...",                 pSetReflexSyncParams->bEnable ? L"En" : L"NOT En");
+  if (pSetReflexSyncParams == nullptr/*|| pDev == nullptr*/)
+    return NVAPI_INVALID_ARGUMENT;
 
-  static NvU32       disabled = MAXDWORD;
-  if (std::exchange (disabled, (NvU32)pSetReflexSyncParams->bDisable) != pSetReflexSyncParams->bDisable)
-                 if (disabled)
-    SK_LOGi0 (L"NVIDIA Reflex Sync disabled by game...");
+  if (! pSetReflexSyncParams->bDisable)
+  {
+    WriteULong64Release (&SK_Reflex_LastReflexSyncFrameId, SK_GetFramesDrawn ());
 
-  static NV_SET_REFLEX_SYNC_PARAMS_V1 lastParams = { .version = MAXDWORD };
+    SK_RunOnce (
+      SK_ImGui_CreateNotification (
+        "Reflex.SyncActive", SK_ImGui_Toast::Info,
+          "Reflex Sync Active\r\n\r\n"
+          "\t* If frame pacing is weird, try disabling it in the Advanced "
+          "Framerate Limiter control panel.",
+             "Reflex Sync Detected", 2500,
+             SK_ImGui_Toast::UseDuration |
+             SK_ImGui_Toast::ShowCaption |
+             SK_ImGui_Toast::ShowTitle   |
+             SK_ImGui_Toast::ShowOnce );
+    );
+  }
 
-  if (std::exchange (lastParams.vblankIntervalUs,
-          pSetReflexSyncParams->vblankIntervalUs)   !=    pSetReflexSyncParams->vblankIntervalUs)
-    SK_LOGi0 (L"NVIDIA Reflex Sync vblankIntervalUs changed by game: %u us (%0.2f ms)",
-          pSetReflexSyncParams->vblankIntervalUs, (double)pSetReflexSyncParams->vblankIntervalUs / 1000.0);
+  if (config.nvidia.reflex.allow_reflex_sync)
+  {
+    static NvU32        enabled = MAXDWORD;
+    if (std::exchange ( enabled, (NvU32)pSetReflexSyncParams->bEnable ) != pSetReflexSyncParams->bEnable)
+      SK_LOGi1 (L"NVIDIA Reflex Sync %wsabled by game...",                 pSetReflexSyncParams->bEnable ? L"En" : L"NOT En");
 
-  if (std::exchange (lastParams.timeInQueueUs,
-          pSetReflexSyncParams->timeInQueueUs)    !=   pSetReflexSyncParams->timeInQueueUs)
-    SK_LOGi0 (L"NVIDIA Reflex Sync timeInQueueUs changed by game: %i us (%0.2f ms)",
-          pSetReflexSyncParams->timeInQueueUs, (double)pSetReflexSyncParams->timeInQueueUs / 1000.0);
+    static NvU32       disabled = MAXDWORD;
+    if (std::exchange (disabled, (NvU32)pSetReflexSyncParams->bDisable) != pSetReflexSyncParams->bDisable)
+                   if (disabled)
+      SK_LOGi1 (L"NVIDIA Reflex Sync disabled by game...");
 
-  if (std::exchange (lastParams.timeInQueueUsTarget,
-          pSetReflexSyncParams->timeInQueueUsTarget)    !=   pSetReflexSyncParams->timeInQueueUsTarget)
-    SK_LOGi0 (L"NVIDIA Reflex Sync timeInQueueUsTarget changed by game: %i us (%0.2f ms)",
-          pSetReflexSyncParams->timeInQueueUsTarget, (double)pSetReflexSyncParams->timeInQueueUsTarget / 1000.0);
+    static NV_SET_REFLEX_SYNC_PARAMS_V1 lastParams = { .version = MAXDWORD };
+
+    if (std::exchange (lastParams.vblankIntervalUs,
+            pSetReflexSyncParams->vblankIntervalUs)   !=    pSetReflexSyncParams->vblankIntervalUs)
+      SK_LOGi1 (L"NVIDIA Reflex Sync vblankIntervalUs changed by game: %u us (%0.2f ms)",
+            pSetReflexSyncParams->vblankIntervalUs, (double)pSetReflexSyncParams->vblankIntervalUs / 1000.0);
+
+    if (std::exchange (lastParams.timeInQueueUs,
+            pSetReflexSyncParams->timeInQueueUs)    !=   pSetReflexSyncParams->timeInQueueUs)
+      SK_LOGi1 (L"NVIDIA Reflex Sync timeInQueueUs changed by game: %i us (%0.2f ms)",
+            pSetReflexSyncParams->timeInQueueUs, (double)pSetReflexSyncParams->timeInQueueUs / 1000.0);
+
+    if (std::exchange (lastParams.timeInQueueUsTarget,
+            pSetReflexSyncParams->timeInQueueUsTarget)    !=   pSetReflexSyncParams->timeInQueueUsTarget)
+      SK_LOGi1 (L"NVIDIA Reflex Sync timeInQueueUsTarget changed by game: %i us (%0.2f ms)",
+            pSetReflexSyncParams->timeInQueueUsTarget, (double)pSetReflexSyncParams->timeInQueueUsTarget / 1000.0);
+  }
+
+  else
+  {
+    pSetReflexSyncParams->bEnable  = false;
+    pSetReflexSyncParams->bDisable =  true;
+  }
 
   return
     NvAPI_D3D_SetReflexSync_Original (pDev, pSetReflexSyncParams);
@@ -762,9 +811,7 @@ SK_NvAPI_HookReflex (void)
       SK_NvAPI_HookFunction (NvAPI_D3D_SetLatencyMarker);
       SK_NvAPI_HookFunction (NvAPI_D3D_SetSleepMode);
       SK_NvAPI_HookFunction (NvAPI_D3D_Sleep);
-#if 0 // API is not documented, and games are shipping that use this now; do not hook.
       SK_NvAPI_HookFunction (NvAPI_D3D_SetReflexSync);
-#endif
 
       SK_ApplyQueuedHooks ();
     }

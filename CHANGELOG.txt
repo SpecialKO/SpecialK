@@ -1,4 +1,11 @@
-﻿26.9.20
+﻿26.9.20.1
+=========
+ + Added NVIDIA Reflex Sync status, and an option to forcefully disable it.
+
+    * Only very new games use this API, and a notification will popup if you
+        are running one (i.e. Resonance: A Plague Tale Legacy).
+
+26.9.20
 =======
  + Added INI option to disallow the "application is not responding" status
      applied to games not processing their message queue for 5 seconds.
