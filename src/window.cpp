@@ -8130,6 +8130,8 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   {
     SK_GetCurrentRenderBackend ().windows.unreal = true;
 
+    DisableProcessWindowsGhosting ();
+
     SK_ReShade_HasRenoDX ();
   }
 

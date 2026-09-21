@@ -1976,6 +1976,7 @@ enum class SK_GAME_ID
   Hearthstone,                  // Hearthstone.exe
   NevernessToEverness,          // NTEGlobalGame.exe
   Dispatch,                     // Dispatch-Win64-Shipping.exe, DispatchEGS-Win64-Shipping.exe
+  Timberborn,                   // Timberborn.exe
 
   UNKNOWN_GAME               = 0xffff
 };

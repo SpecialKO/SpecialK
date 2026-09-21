@@ -5064,8 +5064,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   game_pace.signalEvent ();
 
-  if (SK_API_IsDirect3D9 (rb.api) || SK_API_IsDXGIBased (rb.api))
-    SK_Reflex_SetupReflexSync (device);
+#if 0
+  if (! SK_NVAPI_IsReflexSyncActive (device))
+  {
+    if (SK_API_IsLayeredOnD3D12 (rb.api))
+      SK_Reflex_SetupReflexSync (device);
+  }
+#endif
 
 
   SK_GetCurrentRenderBackend ().in_present_call = false;

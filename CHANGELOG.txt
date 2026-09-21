@@ -1,4 +1,8 @@
-﻿26.9.20.1
+﻿26.9.20.2
+=========
+ + Apply disallow window ghosting to Timberborn.
+
+26.9.20.1
 =========
  + Added NVIDIA Reflex Sync status, and an option to forcefully disable it.
 
