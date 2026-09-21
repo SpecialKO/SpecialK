@@ -7905,9 +7905,24 @@ SK_Steam_GetAppID_NoAPI (void)
                                   szSteamGameId,
                                     MAX_APPID_LEN );
 
+    bool game_id_is_base16 = false;
+
+    for (DWORD i = 0; i < dwSteamGameIdLen; ++i)
+    {
+      if (isalpha (szSteamGameId [i]))
+      {
+        game_id_is_base16 = true;
+        break;
+      }
+    }
 
     if (dwSteamGameIdLen > 1)
-      AppID = strtoll (szSteamGameId, nullptr, 0);
+    {
+      if (! game_id_is_base16)
+        AppID = strtoll (szSteamGameId, nullptr, 0);
+      else
+        AppID = strtoll (szSteamGameId, nullptr, 16);
+    }
   }
 
   // Special K's AppID is a mistake of some sort, ignore it

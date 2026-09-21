@@ -1,6 +1,11 @@
-﻿26.9.20.2
+﻿26.9.20.3
+=========
+ + Handle hexadecimal values assigned to the environment variable SteamGameId.
+
+26.9.20.2
 =========
  + Apply disallow window ghosting to Timberborn.
+ + Disallow window ghosting in all Unreal Engine games.
 
 26.9.20.1
 =========
