@@ -1,4 +1,8 @@
-﻿26.9.24.1
+﻿26.9.24.2
+=========
+ + Add nullptr check on backbuffer to GL/DXGI interop presentation thread.
+
+26.9.24.1
 =========
  + Minor log cleanup and optimized SK_LOG_FIRST_EXTERNAL_CALL (...).
 

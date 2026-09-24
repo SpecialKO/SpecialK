@@ -2731,30 +2731,34 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       // We can skip the vertical flip operation if SK's HDR mode is enabled
       if (! bHDRZeroCopy)
       {
-        D3D11_TEXTURE2D_DESC                             tex_desc = { };
-        dx_gl_interop.output.backbuffer.image->GetDesc (&tex_desc);
+        if (dx_gl_interop.output.backbuffer.image.p != nullptr &&
+            dx_gl_interop.output.backbuffer.rtv.p   != nullptr)
+        {
+          D3D11_TEXTURE2D_DESC                             tex_desc = { };
+          dx_gl_interop.output.backbuffer.image->GetDesc (&tex_desc);
 
-        tex_desc.Format = DirectX::MakeTypelessUNORM (
-                          DirectX::MakeTypelessFLOAT (tex_desc.Format));
+          tex_desc.Format = DirectX::MakeTypelessUNORM (
+                            DirectX::MakeTypelessFLOAT (tex_desc.Format));
 
-        tex_desc.ArraySize          = 1;
-        tex_desc.MipLevels          = 1;
-        tex_desc.SampleDesc.Count   = 1;
-        tex_desc.SampleDesc.Quality = 0;
-        tex_desc.Usage              = D3D11_USAGE_DEFAULT;
-        tex_desc.BindFlags          = D3D11_BIND_RENDER_TARGET |
-                                      D3D11_BIND_SHADER_RESOURCE |
-                                      D3D11_BIND_UNORDERED_ACCESS;
-        tex_desc.CPUAccessFlags     = 0;
-        tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
+          tex_desc.ArraySize          = 1;
+          tex_desc.MipLevels          = 1;
+          tex_desc.SampleDesc.Count   = 1;
+          tex_desc.SampleDesc.Quality = 0;
+          tex_desc.Usage              = D3D11_USAGE_DEFAULT;
+          tex_desc.BindFlags          = D3D11_BIND_RENDER_TARGET |
+                                        D3D11_BIND_SHADER_RESOURCE |
+                                        D3D11_BIND_UNORDERED_ACCESS;
+          tex_desc.CPUAccessFlags     = 0;
+          tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
 
-        dx_gl_interop.d3d11.staging.colorBuffer = nullptr;
-        dx_gl_interop.d3d11.staging.colorView   = nullptr;
+          dx_gl_interop.d3d11.staging.colorBuffer = nullptr;
+          dx_gl_interop.d3d11.staging.colorView   = nullptr;
 
-        pDevice->CreateTexture2D (         &tex_desc,                                  nullptr,
-                                           &dx_gl_interop.d3d11.staging.colorBuffer.p);
-        pDevice->CreateShaderResourceView ( dx_gl_interop.d3d11.staging.colorBuffer.p, nullptr,
-                                           &dx_gl_interop.d3d11.staging.colorView.p);
+          pDevice->CreateTexture2D (         &tex_desc,                                  nullptr,
+                                             &dx_gl_interop.d3d11.staging.colorBuffer.p);
+          pDevice->CreateShaderResourceView ( dx_gl_interop.d3d11.staging.colorBuffer.p, nullptr,
+                                             &dx_gl_interop.d3d11.staging.colorView.p);
+        }
       }
 
       else // Skip the vertical flip!
