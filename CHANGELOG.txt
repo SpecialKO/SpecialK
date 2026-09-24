@@ -1,4 +1,8 @@
-﻿26.9.24.2
+﻿26.9.25
+=======
+ + Fixed infinite loop in Epic Games Store manifest parser.
+
+26.9.24.2
 =========
  + Add nullptr check on backbuffer to GL/DXGI interop presentation thread.
 
