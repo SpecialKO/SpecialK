@@ -281,6 +281,9 @@ EnterSpinLock (VOID)
       for (int i = 0; i < backoff; ++i)
         YieldProcessor ();
 
+      if (backoff >= 32)
+        MicroSleep ();
+
       backoff =
         backoff < 64 ?
         backoff << 1 : 64;
