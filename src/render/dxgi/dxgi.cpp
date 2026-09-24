@@ -9345,7 +9345,7 @@ dxgi_init_callback (finish_pfn finish)
         static UINT
               spin_count = 0;
         if (++spin_count > 100)
-          break;
+          SK_SleepEx (0, FALSE);
       }
     } while (! ReadAcquire (&__dxgi_ready));
   }
@@ -10287,11 +10287,11 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
-using IDXGIAdapter3_QueryVideoMemoryInfo_pnf = HRESULT (STDMETHODCALLTYPE *)(IDXGIAdapter3*,
+using IDXGIAdapter3_QueryVideoMemoryInfo_pfn = HRESULT (STDMETHODCALLTYPE *)(IDXGIAdapter3*,
                                                                              UINT,DXGI_MEMORY_SEGMENT_GROUP,
                                                                              DXGI_QUERY_VIDEO_MEMORY_INFO*);
 
-IDXGIAdapter3_QueryVideoMemoryInfo_pnf
+IDXGIAdapter3_QueryVideoMemoryInfo_pfn
 IDXGIAdapter3_QueryVideoMemoryInfo_Original = nullptr;
 
 HRESULT
@@ -10301,7 +10301,7 @@ IDXGIAdapter3_QueryVideoMemoryInfo_Detour ( IDXGIAdapter3                *This,
                                       _In_  DXGI_MEMORY_SEGMENT_GROUP     MemorySegmentGroup,
                                       _Out_ DXGI_QUERY_VIDEO_MEMORY_INFO *pVideoMemoryInfo )
 {
-  SK_LOG_FIRST_CALL;
+  SK_LOG_FIRST_EXTERNAL_CALL;
 
   HRESULT hr =
     IDXGIAdapter3_QueryVideoMemoryInfo_Original (This, NodeIndex, MemorySegmentGroup, pVideoMemoryInfo);
@@ -10319,9 +10319,8 @@ IDXGIAdapter3_QueryVideoMemoryInfo_Detour ( IDXGIAdapter3                *This,
 void
 SK_DXGI_HookAdapter (IDXGIAdapter* pAdapter)
 {
-  static volatile
-               LONG hooked   = FALSE;
-  if (ReadAcquire (&hooked) != FALSE)
+  static volatile LONG             hooked                = FALSE;
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE) != FALSE)
     return;
 
   //  0 QueryInterface
@@ -10376,29 +10375,25 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
   if (    pProxyFactory == nullptr)
     return;
 
-  static volatile
-               LONG hooked   = FALSE;
-  if (ReadAcquire (&hooked) != FALSE)
-    return;
-
-  SK_GetDXGIFactoryInterfaceVer (pProxyFactory);
-
-  const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
-
-  SK_ComPtr <IDXGIFactory> pFactory;
-
-  if (bHasStreamline)
-  {
-    if (SK_slGetNativeInterface (pProxyFactory, (void **)&pFactory.p) == sl::Result::eOk)
-      SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGIFactory...");
-
-    else pFactory = pProxyFactory;
-  } else pFactory = pProxyFactory;
-
-  reshade::UnwrapObject (&pFactory);
-
+  static volatile LONG                      hooked    =   FALSE;
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
+    SK_GetDXGIFactoryInterfaceVer (pProxyFactory);
+
+    const bool bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
+
+    SK_ComPtr <IDXGIFactory> pFactory;
+
+    if (bHasStreamline)
+    {
+      if (SK_slGetNativeInterface (pProxyFactory, (void **)&pFactory.p) == sl::Result::eOk)
+        SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGIFactory...");
+
+      else pFactory = pProxyFactory;
+    } else pFactory = pProxyFactory;
+
+    reshade::UnwrapObject (&pFactory);
+
     //int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
     //  0 QueryInterface
