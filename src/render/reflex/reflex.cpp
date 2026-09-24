@@ -303,6 +303,7 @@ NvAPI_D3D_SetReflexSync_Detour ( __in IUnknown                  *pDev,
   {
     WriteULong64Release (&SK_Reflex_LastReflexSyncFrameId, SK_GetFramesDrawn ());
 
+#if 0
     SK_RunOnce (
       SK_ImGui_CreateNotification (
         "Reflex.SyncActive", SK_ImGui_Toast::Info,
@@ -315,6 +316,7 @@ NvAPI_D3D_SetReflexSync_Detour ( __in IUnknown                  *pDev,
              SK_ImGui_Toast::ShowTitle   |
              SK_ImGui_Toast::ShowOnce );
     );
+#endif
   }
 
   if (config.nvidia.reflex.allow_reflex_sync)
