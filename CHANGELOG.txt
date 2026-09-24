@@ -1,4 +1,8 @@
-﻿26.9.24
+﻿26.9.24.1
+=========
+ + Minor log cleanup and optimized SK_LOG_FIRST_EXTERNAL_CALL (...).
+
+26.9.24
 =======
  + Added Sleep to MinHook spinlock under contention to prevent deadlock.
 

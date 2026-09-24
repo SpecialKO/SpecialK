@@ -925,7 +925,7 @@ WriteFile_Detour (HANDLE       hFile,
                   LPDWORD      lpNumberOfBytesWritten,
                   LPOVERLAPPED lpOverlapped)
 {
-  SK_LOG_FIRST_CALL
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   for ( auto callback : plugin_mgr->write_file_fns )
              callback (hFile);
@@ -1033,7 +1033,7 @@ ReadFile_Detour (HANDLE       hFile,
                  LPDWORD      lpNumberOfBytesRead,
                  LPOVERLAPPED lpOverlapped)
 {
-  SK_LOG_FIRST_CALL
+  SK_LOG_FIRST_EXTERNAL_CALL
 
   for ( auto callback : plugin_mgr->read_file_fns )
              callback (hFile);
