@@ -1,4 +1,9 @@
-﻿26.9.26
+﻿
+26.9.26.1
+=========
+ + Added battle.net.exe, upc.exe and uplaywebcore.exe to 32-bit injection blacklist.
+
+26.9.26
 =======
  + Handle suspended UWP processes better during Global Injection unhook.
  + Remove ApplicationFrameHost.exe from blacklist to help with process cleanup.
