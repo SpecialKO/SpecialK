@@ -1,6 +1,7 @@
 ﻿26.9.26
 =======
  + Handle suspended UWP processes better during Global Injection unhook.
+ + Remove ApplicationFrameHost.exe from blacklist to help with process cleanup.
 
 26.9.25
 =======

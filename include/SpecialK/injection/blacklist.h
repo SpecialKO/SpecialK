@@ -295,7 +295,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"galaxyclient helper.exe",
 
 
-  L"applicationframehost.exe",
+//  L"applicationframehost.exe",
   L"servicehub.host.clr.x86.exe",
   L"servicehub.settingshost.exe",
   L"servicehub.identityhost.exe",
