@@ -1420,13 +1420,6 @@ SK_Inject_SpawnUnloadListener (void)
             }
           }, nullptr, &app_state_cookie);
 
-          const DWORD dwTimeout   = 3333UL;
-          const DWORD dwWaitState =
-            WaitForMultipleObjects ( sizeof (signals) /
-                                     sizeof (signals [0]),
-                                             signals, FALSE,
-                                               dwTimeout );
-
           if (RtlpWaitCouldDeadlock ())
           {
             HMODULE this_module = (HMODULE)
@@ -1437,6 +1430,13 @@ SK_Inject_SpawnUnloadListener (void)
 
             return 0;
           }
+
+          const DWORD dwTimeout   = 3333UL;
+          const DWORD dwWaitState = RtlpWaitCouldDeadlock () ? WAIT_TIMEOUT :
+            WaitForMultipleObjects ( sizeof (signals) /
+                                     sizeof (signals [0]),
+                                             signals, FALSE,
+                                               dwTimeout );
 
           // Is Process Actively Using Special K (?)
           if ( dwWaitState      == WAIT_OBJECT_0+1 &&
@@ -1450,10 +1450,12 @@ SK_Inject_SpawnUnloadListener (void)
               tier2_events [ ] =
                  { signals [0], signals [2] };
 
-            WaitForMultipleObjects (2, tier2_events, FALSE, INFINITE);
+            if (! RtlpWaitCouldDeadlock ())
+              WaitForMultipleObjects (2, tier2_events, FALSE, INFINITE);
           }
 
-          if (WAIT_TIMEOUT != WaitForSingleObject (hWinRTSuspending, 0))
+          if (dwWaitState != WAIT_TIMEOUT &&
+                             WAIT_TIMEOUT != WaitForSingleObject (hWinRTSuspending, 0))
           {
             OutputDebugStringW (L"WinRT Process Suspending... Deploying UWP Parachute!\r\n");
           }

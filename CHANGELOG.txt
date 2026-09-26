@@ -1,4 +1,8 @@
-﻿26.9.25
+﻿26.9.26
+=======
+ + Handle suspended UWP processes better during Global Injection unhook.
+
+26.9.25
 =======
  + Fixed infinite loop in Epic Games Store manifest parser.
 
