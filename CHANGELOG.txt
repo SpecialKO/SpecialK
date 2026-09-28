@@ -3,6 +3,9 @@
  + Hook timeBeginPeriod and timeEndPeriod from winmm.dll if it does not exist
      in kernel32.dll; this is needed for Windows 7 support.
  + Add bounds checking to SK_Win32_ToLowerInvariant (...).
+ + Disable Intel Hybrid Perf/Efficiency Core CPU detection code on systems
+     older than Windows 10, and only run said code if the INI setting to force
+       a game to use performance cores is enabled.
 
 26.9.27
 =======

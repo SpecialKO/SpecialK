@@ -1928,54 +1928,64 @@ void SK_Scheduler_Init (void)
       );
     }
 
-    HybridDetect::PROCESSOR_INFO    pinfo;
-    HybridDetect::GetProcessorInfo (pinfo);
+    // Intel's HybridDetect library does not work correctly on Windows 7
+    if (config.priority.perf_cores_only && SK_IsWindows10OrGreater ())
+    {
+      HybridDetect::PROCESSOR_INFO    pinfo;
+      HybridDetect::GetProcessorInfo (pinfo);
 
-    if (pinfo.IsIntel () && pinfo.hybrid && config.priority.perf_cores_only)
-    {      
-      DWORD_PTR orig_affinity    = ULONG_PTR_MAX,
-                process_affinity = 0,
-                system_affinity  = 0;
+      if (pinfo.IsIntel () && pinfo.hybrid)
+      {      
+        DWORD_PTR orig_affinity    = ULONG_PTR_MAX,
+                  process_affinity = 0,
+                  system_affinity  = 0;
 
-      GetProcessAffinityMask ( GetCurrentProcess (),
-                                &orig_affinity,
-                              &system_affinity );
+        GetProcessAffinityMask ( GetCurrentProcess (),
+                                  &orig_affinity,
+                                &system_affinity );
 
-      process_affinity &=
-        pinfo.coreMasks [HybridDetect::INTEL_CORE];
+        process_affinity &=
+          pinfo.coreMasks [HybridDetect::INTEL_CORE];
 
-      SK_LOGs0 (L"Scheduler",
-        L"Intel Hybrid CPU Detected:  Performance Core Mask=%x",
+        SK_LOGs0 (L"Scheduler",
+          L"Intel Hybrid CPU Detected:  Performance Core Mask=%x",
+            process_affinity
+        );
+
+        SK_SetProcessAffinityMask ( GetCurrentProcess (),
           process_affinity
-      );
+        );
 
-      SK_SetProcessAffinityMask ( GetCurrentProcess (),
-        process_affinity
-      );
+        // Determine number of CPU cores total, and then the subset of those
+        //   cores that the process is allowed to run threads on.
+        SYSTEM_INFO        si = { };
+        SK_GetSystemInfo (&si);
 
-      // Determine number of CPU cores total, and then the subset of those
-      //   cores that the process is allowed to run threads on.
-      SYSTEM_INFO        si = { };
-      SK_GetSystemInfo (&si);
+        DWORD cpu_pop    = std::max (1UL, si.dwNumberOfProcessors);
+        process_affinity = 0;
+        system_affinity  = 0;
 
-      DWORD cpu_pop    = std::max (1UL, si.dwNumberOfProcessors);
-      process_affinity = 0;
-      system_affinity  = 0;
-
-      if (GetProcessAffinityMask (GetCurrentProcess (), &process_affinity,
-                                                         &system_affinity))
-      {
-        cpu_pop = 0;
-
-        for ( auto i = 0 ; i < SK_GetBitness () ; ++i )
+        if (GetProcessAffinityMask (GetCurrentProcess (), &process_affinity,
+                                                           &system_affinity))
         {
-          if ((process_affinity >> i) & 0x1)
-            ++cpu_pop;
-        }
-      }
+          cpu_pop = 0;
 
-      config.priority.available_cpu_cores =
-        std::max (1UL, std::min (cpu_pop, si.dwNumberOfProcessors));
+          for ( auto i = 0 ; i < SK_GetBitness () ; ++i )
+          {
+            if ((process_affinity >> i) & 0x1)
+              ++cpu_pop;
+          }
+        }
+
+        config.priority.available_cpu_cores =
+          std::max (1UL, std::min (cpu_pop, si.dwNumberOfProcessors));
+      }
+    }
+
+    else
+    {
+      // Turn this off if not Windows 10+
+      config.priority.perf_cores_only = false;
     }
 
     SK_ApplyQueuedHooks ();
