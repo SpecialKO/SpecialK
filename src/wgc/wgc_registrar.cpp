@@ -176,14 +176,20 @@ SK_Win32_ToLowerInvariant (const std::wstring& input)
   int size = LCMapStringEx (LOCALE_NAME_INVARIANT, LCMAP_LOWERCASE, 
                             input.c_str (), -1, nullptr, 0, nullptr, nullptr, 0);
 
+  if (size <= 0)
+    return L"";
+
   std::wstring output (size, 0);
 
   // Map the string to lowercase
   LCMapStringEx (LOCALE_NAME_INVARIANT, LCMAP_LOWERCASE, 
                  input.c_str (), -1, &output [0], size, nullptr, nullptr, 0);
 
-  // Remove the trailing null terminator that LCMapStringEx includes
-  output.resize (size - 1);
+  if (size > 1)
+  {
+    // Remove the trailing null terminator that LCMapStringEx includes
+    output.resize (size - 1);
+  }
 
   return output;
 }

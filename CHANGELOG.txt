@@ -1,4 +1,10 @@
-﻿26.9.27
+﻿26.9.28
+=======
+ + Hook timeBeginPeriod and timeEndPeriod from winmm.dll if it does not exist
+     in kernel32.dll; this is needed for Windows 7 support.
+ + Add bounds checking to SK_Win32_ToLowerInvariant (...).
+
+26.9.27
 =======
  + Fully restored Windows 7 support.
 
