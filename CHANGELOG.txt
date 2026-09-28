@@ -1,7 +1,10 @@
-﻿
+﻿26.9.27
+=======
+ + Fully restored Windows 7 support.
+
 26.9.26.1
 =========
- + Added battle.net.exe, upc.exe and uplaywebcore.exe to 32-bit injection blacklist.
+ + Added battle.net, upc and uplaywebcore.exe to 32-bit injection blacklist.
 
 26.9.26
 =======
