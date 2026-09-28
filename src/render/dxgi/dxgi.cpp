@@ -37,7 +37,6 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
-#include <SpecialK/render/ngx/ngx.h>
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
@@ -50,19 +49,15 @@
 #include <math.h>
 
 #include <CoreWindow.h>
-#include <VersionHelpers.h>
 
 #undef IMGUI_VERSION_NUM
 #include <ReShade/reshade.hpp>
-#include <ReShade/reshade_api.hpp>
 
 BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC  = { };
 DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1 = { };
 
 int SK_DXGI_HighestFactorySupported = -1;
-
-#include <../depends/include/DirectXTex/d3dx12.h>
 
 using D3D12GetDebugInterface_pfn = HRESULT (WINAPI* )( _In_ REFIID riid, _COM_Outptr_opt_ void** ppvDebug );
 

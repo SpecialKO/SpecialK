@@ -24,8 +24,6 @@
 #include <SpecialK/stdafx.h>
 #include <imgui/backends/imgui_d3d11.h>
 
-#include <future>
-
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif

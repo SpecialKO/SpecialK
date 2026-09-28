@@ -51,8 +51,6 @@
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
-#include <SpecialK/render/dxgi/dxgi_util.h>
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/ngx/ngx_dlss.h>
 

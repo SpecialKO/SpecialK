@@ -35,8 +35,6 @@
 #include <regex>
 #include <sddl.h>
 
-#include <SpecialK/render/present_mon/TraceSession.hpp>
-
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif

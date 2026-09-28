@@ -41,8 +41,6 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/injection/injection.h>
 
-#include <SpecialK/osd/popup.h>
-
 // For OpenGL-IK
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
@@ -51,7 +49,6 @@
 #include <imgui/backends/imgui_gl3.h>
 #include <../depends/include/GL/glew.h>
 #include <../depends/include/GL/wglew.h>
-#include <imgui/imgui.h>
 
 // Necessary hack for Postal 2
 #define SK_USE_UNREAL_ENGINE_ASSERTION_WORKAROUND
@@ -165,8 +162,6 @@ WaitForInit_GL (void)
   return;
   //SK_Thread_SpinUntilFlagged (&__gl_ready);
 }
-
-#include <SpecialK/osd/text.h>
 
 static
 HMODULE local_gl = nullptr;
