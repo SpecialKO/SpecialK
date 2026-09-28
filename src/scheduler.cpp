@@ -1886,19 +1886,39 @@ void SK_Scheduler_Init (void)
 
     if (config.render.framerate.max_timer_resolution)
     {
-      //
-      // Turn these into nops because they do nothing useful,
-      //   there is more overhead calling them than there is benefit.
-      //
-      SK_CreateDLLHook2 (      L"Kernel32",
-                                "timeBeginPeriod",
-                                 timeBeginPeriod_Detour,
-        static_cast_p2p <void> (&timeBeginPeriod_Original) );
+      // Windows 8 "mincore" moved these APIs into kernel32.dll, winmm is now a
+      //   hollow DLL that just forwards to kernel32.dll.
+      if (SK_GetProcAddress (L"Kernel32", "timeBeginPeriod") != nullptr &&
+          SK_GetProcAddress (L"Kernel32", "timeEndPeriod")   != nullptr)
+      {
+        //
+        // Turn these into nops because they do nothing useful,
+        //   there is more overhead calling them than there is benefit.
+        //
+        SK_CreateDLLHook2 (      L"Kernel32",
+                                  "timeBeginPeriod",
+                                   timeBeginPeriod_Detour,
+          static_cast_p2p <void> (&timeBeginPeriod_Original) );
 
-      SK_CreateDLLHook2 (      L"Kernel32",
-                                "timeEndPeriod",
-                                 timeEndPeriod_Detour,
-        static_cast_p2p <void> (&timeEndPeriod_Original) );
+        SK_CreateDLLHook2 (      L"Kernel32",
+                                  "timeEndPeriod",
+                                   timeEndPeriod_Detour,
+          static_cast_p2p <void> (&timeEndPeriod_Original) );
+      }
+
+      // Windows 7 fallback
+      else
+      {
+        SK_CreateDLLHook2 (      L"winmm.dll",
+                                  "timeBeginPeriod",
+                                   timeBeginPeriod_Detour,
+          static_cast_p2p <void> (&timeBeginPeriod_Original) );
+
+        SK_CreateDLLHook2 (      L"winmm.dll",
+                                  "timeEndPeriod",
+                                   timeEndPeriod_Detour,
+          static_cast_p2p <void> (&timeEndPeriod_Original) );
+      }
     }
 
     if (config.priority.cpu_affinity_mask != -1)
