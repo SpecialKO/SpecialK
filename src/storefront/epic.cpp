@@ -757,6 +757,9 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
 
                 SK_EOS_Achievements_RefreshPlayerStats ();
 
+                pAchievement->unlocked_ = true;
+                pAchievement->time_     = Data->UnlockTime;
+
                 eos_achievements->unlock (Data->AchievementId);
               }
             }
