@@ -9371,7 +9371,11 @@ dxgi_init_callback (finish_pfn finish)
         static UINT
               spin_count = 0;
         if (++spin_count > 100)
-          SK_SleepEx (0, FALSE);
+          SK_SleepEx (15UL, FALSE);
+
+        // Prevent deadlock when async init is disabled.
+        if (spin_count > 101 && SK_GetCurrentThreadId () == ReadULongAcquire (&__SK_DLL_InitThreadId))
+          break;
       }
     } while (! ReadAcquire (&__dxgi_ready));
   }

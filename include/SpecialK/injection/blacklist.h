@@ -332,6 +332,9 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"hyp.exe",
   L"hyphelper.exe",
 
+  // Shell Infrastructure Host
+  L"sihost.exe",
+
   // Our image viewer
   L"skiv.exe",
 

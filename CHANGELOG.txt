@@ -1,4 +1,8 @@
-﻿26.9.28
+﻿26.9.28.1
+=========
+ + Fixed potential deadlock in DXGI init code if AsyncInit=false.
+
+26.9.28
 =======
  + Hook timeBeginPeriod and timeEndPeriod from winmm.dll if it does not exist
      in kernel32.dll; this is needed for Windows 7 support.
