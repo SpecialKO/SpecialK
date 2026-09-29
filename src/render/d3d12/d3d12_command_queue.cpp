@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -91,7 +89,11 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
       auto            name = SK_D3D12_GetDebugNameUTF8 (pCmdQueue);
       bool compatible_name =
-           (StrStrIA (name.c_str (), "3D Queue (GPU") != nullptr);
+           (StrStrIA (name.c_str (), "3D Queue (GPU") != nullptr) ||
+           (StrStrIA (name.c_str (), "Unnamed")       != nullptr);
+
+      // Mio Memories in Orbit uses a 3D Queue with no debug name, so
+      //   SK assigns it "Unnamed".
 
       // When Streamline is involved, we -DO NOT- want 3D Queue (GPU x)...
       if (bIsStreamline && sk::NVAPI::nv_hardware) {
