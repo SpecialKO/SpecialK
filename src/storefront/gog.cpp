@@ -309,7 +309,7 @@ public:
         // It's implicit
         achievement->unlocked_ = true;
 
-        if (achievement->time_ == 0)
+      //if (achievement->time_ == 0)
             achievement->time_ = time (nullptr);
       }
 
