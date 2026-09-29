@@ -1,11 +1,17 @@
-﻿26.9.29
+﻿26.9.29.1
+=========
+ + Default CONTROL Resonant to using "Low-Latency" DLSS FG pacing mode; the
+     other two options have judder due to the game's input code.
+ + Do not use ImGui HW mouse cursor in CONTROL Resonant by default.
+
+26.9.29
 =======
  + Allow SK to acquire D3D12 Command Queues with no debug name, instead of
      the standard "3D Queue (GPU..." name assigned by D3D12 when injecting
        code into a game that is already running or otherwise initialized
          after a game creates a SwapChain.
 
-    * Fixes MIO: Memory In Orbit compatibility.
+    * Fixes MIO: Memories In Orbit compatibility.
 
 26.9.28.1
 =========

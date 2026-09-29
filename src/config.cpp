@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -342,7 +340,8 @@ SK_GetCurrentGameID (void) noexcept
           { L"htgame.exe",                             SK_GAME_ID::NevernessToEverness          },
           { L"Dispatch-Win64-Shipping.exe",            SK_GAME_ID::Dispatch                     },
           { L"DispatchEGS-Win64-Shipping.exe",         SK_GAME_ID::Dispatch                     },
-          { L"Timberborn.exe",                         SK_GAME_ID::Timberborn                   }
+          { L"Timberborn.exe",                         SK_GAME_ID::Timberborn                   },
+          { L"CONTROLResonant.exe",                    SK_GAME_ID::CONTROL_Resonant             },
         };
 
     first_check  = false;
@@ -4255,6 +4254,11 @@ auto DeclKeybind =
         break;
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::CONTROL_Resonant:
+        config.input.ui.use_hw_cursor                  = false;
+        config.render.framerate.streamline.pacing_mode = 2; // Low-Latency
+        break;
+
       case SK_GAME_ID::Timberborn:
         config.window.allow_ghosting = false;
         break;
