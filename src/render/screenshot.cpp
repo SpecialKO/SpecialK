@@ -2566,15 +2566,16 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
       SK_PNG_SetUint32 (mdcv_data.white_point.y,
         static_cast <uint32_t> (round (active_display.gamut.Yw / 0.00002)));
 
+      // If the cICP chunk is included, Discord will not render the image in HDR, so we omit it.
       SK_PNG_Chunk iccp_chunk = { sizeof (SK_PNG_HDR_iCCP_Payload), { 'i','C','C','P' }, &iccp_data };
-      SK_PNG_Chunk cicp_chunk = { sizeof (cicp_data),               { 'c','I','C','P' }, &cicp_data };
+    //SK_PNG_Chunk cicp_chunk = { sizeof (cicp_data),               { 'c','I','C','P' }, &cicp_data };
       SK_PNG_Chunk clli_chunk = { sizeof (clli_data),               { 'c','L','L','I' }, &clli_data };
       SK_PNG_Chunk sbit_chunk = { sizeof (sbit_data),               { 's','B','I','T' }, &sbit_data };
       SK_PNG_Chunk chrm_chunk = { sizeof (chrm_data),               { 'c','H','R','M' }, &chrm_data };
       SK_PNG_Chunk mdcv_chunk = { sizeof (mdcv_data),               { 'm','D','C','V' }, &mdcv_data };
 
       iccp_chunk.write (fPNG);
-      cicp_chunk.write (fPNG);
+    //cicp_chunk.write (fPNG);
       clli_chunk.write (fPNG);
       sbit_chunk.write (fPNG);
       chrm_chunk.write (fPNG);
