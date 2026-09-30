@@ -2365,22 +2365,42 @@ SK_NGX_DLSS_ControlPanel (void)
         const bool bRayRecon    = SK_NGX_IsUsingDLSS_D  ();
         const bool bSlopShading = SK_NGX_IsUsingDLSS_NR ();
 
+        ImGui::BeginGroup      ( );
         ImGui::TextColored     ( bFrameGen ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
         ImGui::SameLine        ( );
         ImGui::Text            ( bFrameGen ? "Frame Generation (%dx)\t" :
                                              "Frame Generation\t",
                          SK_NGX_DLSSG_GetMultiFrameCount () + 1 );
+        ImGui::EndGroup        ( );
+
+        if (ImGui::IsItemClicked (ImGuiPopupFlags_MouseButtonRight))
+        {
+          ImGui::OpenPopup ("DLSS_FrameGeneration_Popup");
+        }
+
+        if (ImGui::BeginPopup ("DLSS_FrameGeneration_Popup"))
+        {
+          if (ImGui::SliderFloat ("Menu Framerate Limit", &config.nvidia.dlss.dlssfg_menu_fps,   0.0f, 360.0f,
+                                                           config.nvidia.dlss.dlssfg_menu_fps == 0.0f ? "N/A" : "%.2f FPS"))
+          {
+            config.utility.save_async ();
+          }
+          ImGui::EndPopup ();
+        }
+
         ImGui::SameLine        ( );
         ImGui::TextColored     ( bRayRecon ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bRayRecon ? ICON_FA_CHECK                   : ICON_FA_XMARK );
         ImGui::SameLine        ( );
         ImGui::TextUnformatted ( "Ray Reconstruction\t" );
         ImGui::SameLine        ( );
+        ImGui::BeginGroup      ( );
         ImGui::TextColored     ( bSlopShading ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
                                  bSlopShading ? ICON_FA_CHECK                   : ICON_FA_XMARK );
         ImGui::SameLine        ( );
         ImGui::TextUnformatted ( "Slop Shading\t" );
+        ImGui::EndGroup        ( );
 
         if (ImGui::IsItemClicked (ImGuiPopupFlags_MouseButtonRight))
         {

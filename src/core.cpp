@@ -4024,10 +4024,30 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   SK_PROFILE_SCOPED_TASK (SK_BeginBufferSwapEx)
 
   // Update the active framerate limit for window state agnostic functions.
-  __target_fps_now =
+  float fps_to_set =
     (SK_IsGameWindowActive () || __target_fps_bg <= 0.0f) ?
                                  __target_fps             :
                                  __target_fps_bg;
+
+  // Apply a framerate limit for DLSS FG games when menus are active,
+  //   if the user has specified a limit.
+  if (config.nvidia.dlss.dlssfg_menu_fps > 0.0f && (! __SK_IsDLSSGActive))
+  {
+    if ( (SK_NGX_DLSS12.frame_gen.LastFrame != 0 ||
+          SK_NGX_VULKAN.frame_gen.LastFrame != 0) )
+    {
+      if (SK_IsGameWindowActive () || __target_fps_bg <= 0.0f)
+      {
+        fps_to_set =
+          config.nvidia.dlss.dlssfg_menu_fps;
+
+        if (__target_fps_temp != fps_to_set)
+            __target_fps_temp  = fps_to_set;
+      }
+    }
+  }
+
+  __target_fps_now = fps_to_set;
 
   void SK_Render_CountVBlanks (void);
        SK_Render_CountVBlanks ();

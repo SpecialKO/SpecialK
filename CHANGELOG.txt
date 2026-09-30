@@ -1,4 +1,18 @@
-﻿26.9.29.2
+﻿26.9.30
+=======
+ + Added framerate limit to apply to DLSS Frame Generation games while framegen
+     is inactive (i.e. menu screens or cutscenes).
+
+    * Right-click the "Frame Generation" status text in the DLSS section of the
+        control panel to set this limit; 0.0 = use standard limit.
+
+   Possible use-cases are to eliminate VRR flicker during loading screens, to
+     compensate for FMVs that run at a different rate or to reduce mouse lag.
+
+   @ This is an experimental hack; various frame pacing graphs do not reflect
+       the special temporary framerate limit (i.e. graph range is wrong).
+
+26.9.29.2
 =========
  + Fixed Epic achievement unlock not taking screenshots if configured to do so.
  + Assign GOG achievements unlock time manually, because Galaxy often does not.
