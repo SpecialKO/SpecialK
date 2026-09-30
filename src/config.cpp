@@ -2083,7 +2083,6 @@ auto DeclKeybind =
 #endif
 
     ConfigEntry (apis.OpenGL.hook,                       L"Enable OpenGL Hooking",                                     dll_ini,         L"API.Hook",              L"OpenGL"),
-    ConfigEntry (apis.OpenGL.debug,                      L"Enable OpenGL Debugging",                                   dll_ini,         L"OpenGL.System",         L"EnableDebug"),
 
     // Misc.
     //////////////////////////////////////////////////////////////////////////
