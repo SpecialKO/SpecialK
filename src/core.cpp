@@ -4041,8 +4041,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
         fps_to_set =
           config.nvidia.dlss.dlssfg_menu_fps;
 
-        if (__target_fps_temp != fps_to_set)
-            __target_fps_temp  = fps_to_set;
+        __target_fps_temp = fps_to_set;
       }
     }
   }

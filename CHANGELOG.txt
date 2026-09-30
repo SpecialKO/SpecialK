@@ -1,4 +1,9 @@
-﻿26.9.30
+﻿26.9.30.1
+=========
+ + Reduced overhead of SK_Platform_GetOverlayState (...) and
+     SK_ImGui_WantMouseCapture (...) by caching overlay state for 10 frames.
+
+26.9.30
 =======
  + Added framerate limit to apply to DLSS Frame Generation games while framegen
      is inactive (i.e. menu screens or cutscenes).

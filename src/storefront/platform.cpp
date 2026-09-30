@@ -25,11 +25,18 @@
 #include <SpecialK/storefront/gog.h>
 #include <SpecialK/steam_api.h>
 
-#include <windows.gaming.ui.h>
-
 bool SK_Platform_GetOverlayState (bool real)
 {
+  SK_PROFILE_SCOPED_TASK (SK_Platform_GetOverlayState)
+
   using namespace SK;
+
+  static bool   last_state = false;
+  static UINT64 last_frame =     0;
+
+  // Slow your horses! You can have a cached value instead.
+  if (last_frame + 10 > SK_GetFramesDrawn ())
+    return last_state;
 
   bool state =
     ((SteamAPI::AppID () != 0       ) ? SteamAPI::GetOverlayState (real) : false) ||
@@ -40,6 +47,9 @@ bool SK_Platform_GetOverlayState (bool real)
   {
     state = SK_Xbox_GetOverlayState (real);
   }
+
+  last_state = state;
+  last_frame = SK_GetFramesDrawn ();
 
   return state;
 }
