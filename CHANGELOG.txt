@@ -10,6 +10,8 @@
      stuck down when alt-tabbing out or when activating an overlay until
        you tap the key again.
 
+ + Add preliminary support for GameInput v1, v2 and v3 hooking.
+
 26.10.1.1
 =========
  + Corrected libScePad.dll 2 ms Sleep (...) nop applying to wrong threads.

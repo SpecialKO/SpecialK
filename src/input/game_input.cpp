@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -68,6 +66,13 @@ using GameInputCreate_pfn = HRESULT (WINAPI *)(IGameInput**);
 
       GameInputCreate_pfn
       GameInputCreate_Redist_Original = nullptr;
+
+using GameInputInitialize_pfn = HRESULT (WINAPI *)(REFIID, IGameInput**);
+      GameInputInitialize_pfn
+      GameInputInitialize_Original = nullptr;
+
+      GameInputInitialize_pfn
+      GameInputInitialize_Redist_Original = nullptr;
 
 static IGameInputDevice *s_virtual_gameinput_device = nullptr;
 
@@ -850,6 +855,87 @@ GameInputCreate_Detour (IGameInput** gameInput)
   return hr;
 }
 
+static const IID IID_IGameInput_v0 = {0x11be2a7e, 0x4254, 0x445a, {0x9c, 0x09, 0xff, 0xc4, 0x0f, 0x00, 0x69, 0x18}};
+static const IID IID_IGameInput_v1 = {0x40ffb7e4, 0x6150, 0x407a, {0xb4, 0x39, 0x13, 0x2b, 0xad, 0xc0, 0x8d, 0x2d}};
+static const IID IID_IGameInput_v2 = {0xbbaa66d2, 0x837a, 0x40f7, {0xa3, 0x03, 0x91, 0x7d, 0x50, 0x09, 0x55, 0xf4}};
+static const IID IID_IGameInput_v3 = {0x20efc1c7, 0x5d9a, 0x43ba, {0xb2, 0x6f, 0xb8, 0x07, 0xfa, 0x48, 0x60, 0x9c}};
+
+HRESULT
+WINAPI
+GameInputInitialize_Redist_Detour (REFIID riid, IGameInput** gameInput)
+{
+  SK_LOG_FIRST_CALL
+
+  IGameInput* pReal = nullptr;
+
+  HRESULT hr =
+    GameInputInitialize_Redist_Original (riid, &pReal);
+
+  // SK only supports GameInput v0
+  if (riid != IID_IGameInput_v0)
+  {
+    if (riid != IID_IGameInput_v1 &&
+        riid != IID_IGameInput_v2 &&
+        riid != IID_IGameInput_v3)
+    {
+      wchar_t                wszGUID [41] = { };
+      StringFromGUID2 (riid, wszGUID, 40);
+
+      SK_LOGi0 (L"GameInputInitialize called with Unknown IID=%s", wszGUID);
+    }
+
+    else
+    {
+      const int version =
+        (riid == IID_IGameInput_v1) ? 1 :
+        (riid == IID_IGameInput_v2) ? 2 : 3;
+
+      SK_LOGi0 (L"GameInputInitialize called for Unsupported Version: %d", version);
+    }
+
+    if (gameInput != nullptr &&
+          nullptr != pReal)
+       *gameInput  = pReal;
+
+    return hr;
+  }
+
+  if (SUCCEEDED (hr) || config.input.gamepad.xinput.emulate)
+  {
+    // Turn on XInput emulation by default on first-run for Unreal Engine.
+    //
+    //   -> Their GameInput integration is extremely simple and SK is fully compatible.
+    //
+    if (config.system.first_run && (! SK_XInput_PollController (0)))
+    {
+      SK_RunOnce (if (! SK_ImGui_HasPlayStationController  ())
+                        SK_HID_SetupPlayStationControllers ());
+
+      if (SK_ImGui_HasPlayStationController () && StrStrIW (SK_GetFullyQualifiedApp (), L"Binaries\\Win"))
+      {
+        SK_LOGi0 (L"Enabling Xbox Mode because Unreal Engine is using GameInput...");
+
+        config.input.gamepad.xinput.emulate = true;
+      }
+    }
+
+    if (config.input.gamepad.xinput.emulate)
+    {
+      if (gameInput != nullptr)
+         *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
+      else                          new SK_IWrapGameInput (pReal);
+
+      return S_OK;
+    }
+  }
+
+  if (gameInput != nullptr && 
+        nullptr != pReal)
+     *gameInput  = pReal;
+
+  return hr;
+}
+
 HRESULT
 WINAPI
 GameInputCreate_Redist_Detour (IGameInput** gameInput)
@@ -1581,7 +1667,7 @@ SK_IWrapGameInputReading::GetUiNavigationState (GameInputUiNavigationState *stat
 }
 
 void
-SK_Input_HookGameInput (void)
+SK_Input_HookGameInput (bool async)
 {
   if (! config.input.gamepad.hook_game_input)
     return;
@@ -1612,6 +1698,14 @@ SK_Input_HookGameInput (void)
         SK_Thread_CloseSelf ();
         return 0;
       }, L"[SK] GameInput.dll Init Thread");
+
+      if (! async)
+      {
+        if (WAIT_TIMEOUT == WaitForSingleObject (hGameInputInitThread, 1000UL))
+        {
+          SK_LOGi0 (L"GameInput.dll Init Thread timed out after 1 second, continuing...");
+        }
+      }
     }
 
     if (config.input.gamepad.xinput.emulate || GetModuleHandleW (L"GameInputRedist.dll"))
@@ -1630,12 +1724,24 @@ SK_Input_HookGameInput (void)
                                     "GameInputCreate",
                                      GameInputCreate_Redist_Detour,
             static_cast_p2p <void> (&GameInputCreate_Redist_Original) );
+          SK_CreateDLLHook2 (      L"GameInputRedist.dll",
+                                    "GameInputInitialize",
+                                     GameInputInitialize_Redist_Detour,
+            static_cast_p2p <void> (&GameInputInitialize_Redist_Original) );
           SK_ApplyQueuedHooks ();
         }
 
         SK_Thread_CloseSelf ();
         return 0;
       }, L"[SK] GameInputRedist.dll Init Thread");
+
+      if (! async)
+      {
+        if (WAIT_TIMEOUT == WaitForSingleObject (hGameInputRedistInitThread, 1000UL))
+        {
+          SK_LOGi0 (L"GameInputRedist.dll Init Thread timed out after 1 second, continuing...");
+        }
+      }
     }
   }
 }

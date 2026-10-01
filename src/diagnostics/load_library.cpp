@@ -512,10 +512,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     }
     else if (   StrStrI  (lpFileName, SK_TEXT("GameInput.dll")) ||
                 StrStrIW (wszCallingMod,     L"GameInput.dll")  )
-      SK_RunOnce (SK_Input_HookGameInput ());
+      SK_RunOnce (SK_Input_HookGameInput (false));
     else if (   StrStrI  (lpFileName, SK_TEXT("GameInputRedist.dll")) ||
                 StrStrIW (wszCallingMod,     L"GameInputRedist.dll")  )
-      SK_RunOnce (SK_Input_HookGameInput ());
+      SK_RunOnce (SK_Input_HookGameInput (false));
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
                      SK_RunOnce (SK_Input_HookXInput1_3 ());

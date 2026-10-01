@@ -274,6 +274,6 @@ private:
   unsigned int          ver_  = 0;
 };
 
-void SK_Input_HookGameInput (void);
+void SK_Input_HookGameInput (bool async = true);
 
 #endif /* __SK__GAME_INPUT_H__ */
