@@ -519,7 +519,7 @@ SK_LoadEarlyImports64 (void)
 
                 import.hLibrary = (HMODULE)-2;
                 dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -604,7 +604,7 @@ SK_LoadPlugIns64 (void)
 
                 import.hLibrary = (HMODULE)-2;
                 dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -681,7 +681,7 @@ SK_LoadLateImports64 (void)
 
                 import.hLibrary = (HMODULE)-2;
                 dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                               err.WCode (), err.ErrorMessage () );
+                               err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -758,7 +758,7 @@ SK_LoadLazyImports64 (void)
 
                 import.hLibrary = (HMODULE)-3;
                 dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -886,7 +886,7 @@ SK_LoadEarlyImports32 (void)
 
                 import.hLibrary = (HMODULE)-2;
                 dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -971,7 +971,7 @@ SK_LoadPlugIns32 (void)
 
                 import.hLibrary = (HMODULE)-2;
                 dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -1048,7 +1048,7 @@ SK_LoadLateImports32 (void)
 
                 import.hLibrary = (HMODULE)-2;
                 dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -1125,7 +1125,7 @@ SK_LoadLazyImports32 (void)
 
                 import.hLibrary = (HMODULE)-3;
                 dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                                err.WCode (), err.ErrorMessage () );
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
@@ -1148,7 +1148,7 @@ SK_LogLastErr (void)
 
   dll_log->LogEx ( false,
                      L"failed: 0x%04X (%s)!\n",
-                       err.WCode (),
+                       err.Error (),
                          err.ErrorMessage ()
                  );
 }
