@@ -892,9 +892,9 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
   
       if (keyboard)
       {
-        if (! (pItem->data.keyboard.Flags & RI_KEY_BREAK))
+      //if (! (pItem->data.keyboard.Flags & RI_KEY_BREAK))
                pItem->data.keyboard.VKey  = 0;
-  
+
         // Fake key release
         pItem->data.keyboard.Flags |= RI_KEY_BREAK;
       }

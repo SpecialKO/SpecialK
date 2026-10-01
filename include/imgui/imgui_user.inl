@@ -591,7 +591,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
     if (keyboard)
     {
-      if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+    //if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
              ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
 
       // Fake key release

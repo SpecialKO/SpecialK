@@ -1,4 +1,16 @@
-﻿26.10.1.1
+﻿26.10.1.2
+=========
+ + No longer allow Raw Input key release events to passthrough while SK
+     is blocking keyboard input.
+
+   The Witcher 3 processes menu input on key release, but actions on key
+     press; this causes menus to trigger while the window is not focused.
+
+   A consequence of this change is that games may believe that keys are
+     stuck down when alt-tabbing out or when activating an overlay until
+       you tap the key again.
+
+26.10.1.1
 =========
  + Corrected libScePad.dll 2 ms Sleep (...) nop applying to wrong threads.
 
