@@ -1,4 +1,8 @@
-﻿26.10.1
+﻿26.10.1.1
+=========
+ + Corrected libScePad.dll 2 ms Sleep (...) nop applying to wrong threads.
+
+26.10.1
 =======
  + Omit the cICP chunk from HDR PNG screenshots, because Discord will panic
      and strip HDR info from the transcoded thumbnail.
