@@ -1,4 +1,8 @@
-﻿26.10.1.2
+﻿26.10.2
+=======
+ + Correctly report Early load-order PlugIn load status
+
+26.10.1.2
 =========
  + No longer allow Raw Input key release events to passthrough while SK
      is blocking keyboard input.

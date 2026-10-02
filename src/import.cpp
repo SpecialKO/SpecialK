@@ -314,11 +314,12 @@ SK_LoadImportModule (import_s& import)
 
   if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
   {
-    SK_ReShade_LoadDLL ( import.filename->get_value_ref ().c_str (),
-                             import.mode->get_value_str ().c_str () );
+    import.hLibrary = 
+      SK_ReShade_LoadDLL ( import.filename->get_value_ref ().c_str (),
+                               import.mode->get_value_str ().c_str () );
   }
 
-  if (config.system.central_repository)
+  if (config.system.central_repository && import.hLibrary == nullptr)
   {
     wchar_t      wszProfilePlugIn [MAX_PATH + 2] = { };
     wcsncpy_s   (wszProfilePlugIn, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
@@ -518,14 +519,15 @@ SK_LoadEarlyImports64 (void)
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 import.hLibrary = (HMODULE)-2;
-                dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
+                dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                 err.Error (), err.ErrorMessage () );
               }
             }
 
             else
             {
-              dll_log->LogEx (false, L"failed: Host App is Blacklisted!\n");
+              import.hLibrary = (HMODULE)-2;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -610,7 +612,8 @@ SK_LoadPlugIns64 (void)
 
             else
             {
-              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
+              import.hLibrary = (HMODULE)-2;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -680,14 +683,15 @@ SK_LoadLateImports64 (void)
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 import.hLibrary = (HMODULE)-2;
-                dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
-                               err.Error (), err.ErrorMessage () );
+                dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
+                                err.Error (), err.ErrorMessage () );
               }
             }
 
             else
             {
-              dll_log->Log (L"LoadLibrary failed: Host App is Blacklisted!\n");
+              import.hLibrary = (HMODULE)-2;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -757,14 +761,15 @@ SK_LoadLazyImports64 (void)
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 import.hLibrary = (HMODULE)-3;
-                dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
+                dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                 err.Error (), err.ErrorMessage () );
               }
             }
 
             else
             {
-              dll_log->Log (L"LoadLibrary failed: Host App is Blacklisted!\n");
+              import.hLibrary = (HMODULE)-3;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -885,14 +890,15 @@ SK_LoadEarlyImports32 (void)
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 import.hLibrary = (HMODULE)-2;
-                dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
+                dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                 err.Error (), err.ErrorMessage () );
               }
             }
 
             else
             {
-              dll_log->Log (L"LoadLibrary failed: Host App is Blacklisted!\n");
+              import.hLibrary = (HMODULE)-2;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -977,7 +983,8 @@ SK_LoadPlugIns32 (void)
 
             else
             {
-              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
+              import.hLibrary = (HMODULE)-2;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -1047,14 +1054,15 @@ SK_LoadLateImports32 (void)
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 import.hLibrary = (HMODULE)-2;
-                dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
+                dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                 err.Error (), err.ErrorMessage () );
               }
             }
 
             else
             {
-              dll_log->Log (L"LoadLibrary failed: Host App is Blacklisted!\n");
+              import.hLibrary = (HMODULE)-2;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
@@ -1124,15 +1132,15 @@ SK_LoadLazyImports32 (void)
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 import.hLibrary = (HMODULE)-3;
-                dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
+                dll_log->Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                 err.Error (), err.ErrorMessage () );
               }
             }
 
             else
             {
-              dll_log->Log (L"LoadLibrary failed: Host App is Blacklisted!\n");
               import.hLibrary = (HMODULE)-3;
+              dll_log->Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!\n");
             }
           }
         }
