@@ -34,6 +34,10 @@
 #endif
 #define SK_DBGHELP_STUB_(__proto) __proto
 
+#ifndef  EXCEPTION_MSVC_CPP
+# define EXCEPTION_MSVC_CPP 0xE06D7363
+#endif
+
 #define SK_StackWalk          SK_DBGHELP_STUB  (StackWalk)
 #define SK_SymLoadModule      SK_DBGHELP_STUB  (SymLoadModule)
 #define SK_SymUnloadModule    SK_DBGHELP_STUB  (SymUnloadModule)
@@ -712,6 +716,11 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
         desc = L"\t<< EXCEPTION_STACK_OVERFLOW >>";
                //L"The thread used up its stack.";
         break;
+
+      case EXCEPTION_MSVC_CPP:
+        desc = L"\t<< EXCEPTION_MSVC_CPP >>";
+               //L"A Microsoft C++ exception occurred.";
+        break;
     }
 
     log_entry.append (L"-----------------------------------------------------------\n");
@@ -819,8 +828,6 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   log_entry.append (
     L"-----------------------------------------------------------\n");
 
-//SK_SymUnloadModule (hProc, BaseAddr);
-
   CONTEXT ctx (*ExceptionInfo->ContextRecord);
 
 
@@ -840,8 +847,6 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   stackframe.AddrStack.Mode = AddrModeFlat;
   stackframe.AddrFrame.Mode = AddrModeFlat;
 
-
-  //char szTopFunc [512] = { };
 
   BOOL ret = TRUE;
 
@@ -1017,22 +1022,11 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
         {
           AddStackEntry ();
         }
-
-        ////if (StrStrIA (sip.si.Name, "Scaleform"))
-        ////  scaleform = true;
-
-        //if (*szTopFunc == '\0')
-        //{
-        //  strncpy_s ( szTopFunc,     512,
-        //                sip.si.Name, _TRUNCATE );
-        //}
       }
 
       if (hModSource)
         SK_FreeLibrary (hModSource);
     }
-
-  //SK_SymUnloadModule (hProc, BaseAddr);
 
     ret =
       SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
