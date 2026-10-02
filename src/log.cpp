@@ -690,11 +690,14 @@ std::wstring
 __stdcall
 SK_SummarizeCaller (LPVOID lpReturnAddr) noexcept
 {
+  if (cs_dbghelp == nullptr || cs_dbghelp2 == nullptr)
+    return L"";
+
   wchar_t wszSummary [256] = { };
   char    szSymbol   [256] = { };
   ULONG   ulLen            = 191;
 
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
   ulLen = SK_GetSymbolNameFromModuleAddr (
               SK_GetCallingDLL (lpReturnAddr),

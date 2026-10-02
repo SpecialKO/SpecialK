@@ -1,6 +1,10 @@
-﻿26.10.2
+﻿26.10.2.1
+=========
+ + Rewrite dbghelp.dll locking code to prevent lock inversion.
+
+26.10.2
 =======
- + Correctly report Early load-order PlugIn load status
+ + Correctly report Early load-order PlugIn load status.
 
 26.10.1.2
 =========

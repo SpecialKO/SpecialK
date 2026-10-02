@@ -2132,7 +2132,7 @@ ZwCreateThreadEx_Detour (
      ReadULongAcquire (&__SK_DLL_InitThreadId) != SK_GetCurrentThreadId () );
 
   if ( dbghelp_callers.find (hModStart) ==
-       dbghelp_callers.cend (         ) && should_analyze_symbols )
+       dbghelp_callers.cend (         ) && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
   {
 #ifdef _M_AMD64
 # define SK_DBGHELP_STUB(__proto) __proto##64
@@ -2170,8 +2170,7 @@ ZwCreateThreadEx_Detour (
     PathStripPathA (pszShortName);
 
     if ( dbghelp_callers.find (hModStart) ==
-         dbghelp_callers.cend (         ) && should_analyze_symbols
-                                          && cs_dbghelp  != nullptr
+         dbghelp_callers.cend (         ) && cs_dbghelp  != nullptr
                                           && cs_dbghelp2 != nullptr )
     {
       std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
@@ -4299,11 +4298,11 @@ StackWalk64(
   if (! config.system.handle_crashes)
     return FALSE;
 
-  if (StackWalk64_Imp != nullptr && cs_dbghelp2 != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
+  if (StackWalk64_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
   {
     SK_SymSetOpts ();
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       StackWalk64_Imp ( MachineType,
@@ -4337,11 +4336,11 @@ StackWalk (
   if (! config.system.handle_crashes)
     return FALSE;
 
-  if (StackWalk_Imp != nullptr && cs_dbghelp2 != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
+  if (StackWalk_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
   {
     SK_SymSetOpts ();
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       StackWalk_Imp ( MachineType,
@@ -4365,9 +4364,9 @@ SymSetOptions (
   _In_ DWORD SymOptions
 )
 {
-  if (SymSetOptions_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymSetOptions_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymSetOptions_Imp (SymOptions);
@@ -4382,9 +4381,9 @@ SymSetExtendedOption (
   _In_ IMAGEHLP_EXTENDED_OPTIONS option,
   _In_ BOOL                      value )
 {
-  if (SymSetExtendedOption_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymSetExtendedOption_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymSetExtendedOption_Imp (option, value);
@@ -4403,9 +4402,9 @@ SymGetTypeInfo (
   _In_  IMAGEHLP_SYMBOL_TYPE_INFO GetType,
   _Out_ PVOID                     pInfo )
 {
-  if (SymGetTypeInfo_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymGetTypeInfo_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymGetTypeInfo_Imp (hProcess, ModBase, TypeId, GetType, pInfo);
@@ -4422,11 +4421,11 @@ SymGetModuleBase64 (
   _In_ DWORD64 qwAddr
 )
 {
-  if (SymGetModuleBase64_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymGetModuleBase64_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
     SK_SymSetOpts ();
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymGetModuleBase64_Imp ( hProcess, qwAddr );
@@ -4442,11 +4441,11 @@ SymGetModuleBase (
   _In_ DWORD  dwAddr
 )
 {
-  if (SymGetModuleBase_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymGetModuleBase_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
     SK_SymSetOpts ();
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymGetModuleBase_Imp ( hProcess, dwAddr );
@@ -4465,11 +4464,11 @@ SymGetLineFromAddr64 (
   _Out_ PIMAGEHLP_LINE64 Line64
 )
 {
-  if (SymGetLineFromAddr64_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymGetLineFromAddr64_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
     SK_SymSetOpts ();
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymGetLineFromAddr64_Imp ( hProcess, qwAddr,
@@ -4488,11 +4487,11 @@ SymGetLineFromAddr (
   _Out_ PIMAGEHLP_LINE   Line
 )
 {
-  if (SymGetLineFromAddr_Imp != nullptr && cs_dbghelp2 != nullptr)
+  if (SymGetLineFromAddr_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
     SK_SymSetOpts ();
 
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+    std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
     return
       SymGetLineFromAddr_Imp ( hProcess, dwAddr,
@@ -4617,12 +4616,12 @@ SymFromAddr (
 
   if (SymFromAddr_Imp != nullptr)
   {
-    if (cs_dbghelp2 != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
-                               && (! ReadAcquire (&__SK_DLL_Ending))))
+    if (cs_dbghelp != nullptr && cs_dbghelp2 != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
+                                                        && (! ReadAcquire (&__SK_DLL_Ending))))
     {
       SK_SymSetOpts ();
 
-      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp2);
+      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
       return
         SAFE_SymFromAddr ( hProcess, Address,
@@ -4647,7 +4646,7 @@ SymCleanup (
     return TRUE;
   }
 
-  if (SymCleanup_Imp != nullptr && cs_dbghelp2 != nullptr && cs_dbghelp != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0)
+  if (SymCleanup_Imp != nullptr && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
   {
     std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
@@ -4737,10 +4736,7 @@ SymLoadModule (
 
     if (hModDll != nullptr && (! loaded))
     {
-      if (cs_dbghelp != nullptr && cs_dbghelp2 != nullptr &&
-                                   (  ReadAcquire (&__SK_DLL_Attached)
-                                && (! ReadAcquire (&__SK_DLL_Ending)))
-                                &&  ( ReadAcquire (&__SK_DLL_Refs) > 0 ))
+      if (cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
       {
         SK_SymSetOpts ();
 
@@ -4805,10 +4801,7 @@ SymLoadModule64 (
 
     if (hModDll != nullptr && (! loaded))
     {
-      if (cs_dbghelp != nullptr && cs_dbghelp2 != nullptr &&
-                                   (  ReadAcquire (&__SK_DLL_Attached)
-                                && (! ReadAcquire (&__SK_DLL_Ending)))
-                                &&  ( ReadAcquire (&__SK_DLL_Refs) > 0 ))
+      if (cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
       {
         SK_SymSetOpts ();
 
