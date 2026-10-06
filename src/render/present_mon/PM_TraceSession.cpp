@@ -129,17 +129,6 @@ bool StopTraceSession (void)
   // Stop the trace session.
   gSession.Stop ();
 
-  // Wait for the consumer and output threads to end (which are using the
-  // consumers).
-  WaitForConsumerThreadToExit ();
-  StopOutputThread            ();
-
-  // Destruct the consumers
-  delete gMRConsumer;
-  delete gPMConsumer;
-         gMRConsumer = nullptr;
-         gPMConsumer = nullptr;
-
   bool bRet =
     SK_Etw_UnregisterSession ("SK_PresentMon");
 
