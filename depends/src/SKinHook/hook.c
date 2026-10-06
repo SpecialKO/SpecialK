@@ -704,7 +704,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
   // Unsafe (deadlock possible) due to DirectInput 8 hook code
   //
-  //SK_NtLdr_LockLoaderLock (0x0, &ldrState, &ldrCookie);
+  SK_NtLdr_LockLoaderLock (0x0, &ldrState, &ldrCookie);
 
   EnumerateThreads (pThreads);
 

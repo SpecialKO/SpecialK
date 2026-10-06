@@ -1,4 +1,9 @@
-﻿26.10.6.1
+﻿26.10.6.2
+=========
+ + Re-enable loader lock code in Special K's fork of MinHook, because the
+     DirectInput 8 problems mentioned in 25.5.22.2 for KEX are gone.
+
+26.10.6.1
 =========
  + Add SlashZero's overlay framework (gp) to known dummy window classes,
      to prevent hooking its fake SwapChains created using "gpdcw".
