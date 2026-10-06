@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  MinHook - The Minimalistic API Hooking Library for x64/x86
  *  Copyright (C) 2009-2016 Tsuda Kageyu.
  *  All rights reserved.
@@ -80,7 +80,10 @@ typedef enum MH_STATUS
     MH_ERROR_MODULE_NOT_FOUND,
 
     // The specified function is not found.
-    MH_ERROR_FUNCTION_NOT_FOUND
+    MH_ERROR_FUNCTION_NOT_FOUND,
+
+    // The call to OpenProcess() failed
+    MH_ERROR_OPENPROCESS_FAILED
 } MH_STATUS;
 
 // Can be passed as a parameter to MH_EnableHook, MH_DisableHook,

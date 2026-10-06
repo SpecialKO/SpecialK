@@ -979,16 +979,31 @@ EnableHookLLEx (UINT pos, UINT8 enable, UINT idx)
     patchSize    += sizeof (JMP_REL_SHORT);
   }
 
-  if (! VirtualProtect ( pPatchTarget,            patchSize,
-                         PAGE_EXECUTE_READWRITE, &oldProtect ) )
-    return MH_ERROR_MEMORY_PROTECT;
+  HANDLE processHandle        = NULL;
+  BOOL   usedVirtualProtectEx = FALSE;
+
+  if (! VirtualProtect (pPatchTarget, patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
+  {
+    processHandle = OpenProcess (PROCESS_VM_OPERATION | PROCESS_VM_WRITE, FALSE, GetCurrentProcessId ());
+
+    if (NULL == processHandle)
+    {
+      return MH_ERROR_OPENPROCESS_FAILED;
+    }
+
+    if (! VirtualProtectEx (processHandle, pPatchTarget, patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
+    {
+      return MH_ERROR_MEMORY_PROTECT;
+    }
+
+    usedVirtualProtectEx = TRUE;
+  }
 
   if (enable)
   {
-    PJMP_REL pJmp = (PJMP_REL)pPatchTarget;
-    pJmp->opcode  = 0xE9;
-    pJmp->operand = (UINT32)( (LPBYTE)pHook->pDetour -
-                              (pPatchTarget + sizeof (JMP_REL)) );
+    PJMP_REL pJmp          = (PJMP_REL)pPatchTarget;
+             pJmp->opcode  = 0xE9;
+             pJmp->operand = (UINT32)((LPBYTE)pHook->pDetour - (pPatchTarget + sizeof (JMP_REL)));
 
     if (pHook->patchAbove)
     {
@@ -1006,14 +1021,21 @@ EnableHookLLEx (UINT pos, UINT8 enable, UINT idx)
   else
   {
     if (pHook->patchAbove)
-      memcpy ( pPatchTarget, pHook->backup,
-                 sizeof (JMP_REL) + sizeof (JMP_REL_SHORT)   );
+      memcpy (pPatchTarget, pHook->backup, sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
     else
-      memcpy ( pPatchTarget, pHook->backup, sizeof (JMP_REL) );
+      memcpy (pPatchTarget, pHook->backup, sizeof(JMP_REL));
   }
 
-  VirtualProtect ( pPatchTarget,  patchSize,
-                   oldProtect,   &oldProtect );
+  if (usedVirtualProtectEx)
+  {
+    VirtualProtectEx (processHandle, pPatchTarget, patchSize, oldProtect, &oldProtect);
+    CloseHandle      (processHandle);
+  }
+
+  else
+  {
+    VirtualProtect (pPatchTarget, patchSize, oldProtect, &oldProtect);
+  }
 
   // Just-in-case measure.  (Silly on x86/x64: They have snooping caches)
   FlushInstructionCache ( GetCurrentProcess (),
