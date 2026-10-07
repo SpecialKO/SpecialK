@@ -1408,7 +1408,7 @@ struct sk_config_t
     bool    manage_screensaver  = false;
     BOOL    screensaver_active  = FALSE; // - Current state, not a preference
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
-    bool    dont_hook_wndproc   = false;
+    bool    dont_hook_wndproc   =  true;
     bool    activate_at_start   = false;
     bool    fix_stuck_keys      = false; // Fixes keys that might be stuck after alt-tab
     bool    allow_drag_n_drop   =  true;

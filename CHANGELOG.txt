@@ -1,4 +1,9 @@
-﻿26.10.6.2
+﻿26.10.7
+=======
+ + Change DontHookWndProc's default value to true, because new hook memory
+     protection changes allow hooks in weak anti-cheat scenarios.
+
+26.10.6.2
 =========
  + Re-enable loader lock code in Special K's fork of MinHook, because the
      DirectInput 8 problems mentioned in 25.5.22.2 for KEX are gone.
