@@ -342,6 +342,7 @@ SK_GetCurrentGameID (void) noexcept
           { L"DispatchEGS-Win64-Shipping.exe",         SK_GAME_ID::Dispatch                     },
           { L"Timberborn.exe",                         SK_GAME_ID::Timberborn                   },
           { L"CONTROLResonant.exe",                    SK_GAME_ID::CONTROL_Resonant             },
+          { L"helldivers2.exe",                        SK_GAME_ID::Helldivers2                  }
         };
 
     first_check  = false;
@@ -4255,6 +4256,10 @@ auto DeclKeybind =
         break;
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::Helldivers2:
+        config.window.dont_hook_wndproc                = true; // Do not mess with game memory, anti-cheat will activate
+        break;
+
       case SK_GAME_ID::CONTROL_Resonant:
         config.input.ui.use_hw_cursor                  = false;
         config.render.framerate.streamline.pacing_mode = 2; // Low-Latency

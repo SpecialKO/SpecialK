@@ -1,7 +1,14 @@
-﻿26.10.7
+﻿26.10.7.1
+=========
+ + Revert 26.10.7, too much important window management functionality will
+     be lost.
+ + Add workaround for Helldivers 2, so it will not use window management hooks.
+
+26.10.7
 =======
  + Change DontHookWndProc's default value to true, because new hook memory
-     protection changes allow hooks in weak anti-cheat scenarios.
+     protection changes allow hooks in weak anti-cheat scenarios and this
+       setting restores original behavior.
 
 26.10.6.2
 =========

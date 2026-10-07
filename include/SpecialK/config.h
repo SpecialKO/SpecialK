@@ -1408,7 +1408,7 @@ struct sk_config_t
     bool    manage_screensaver  = false;
     BOOL    screensaver_active  = FALSE; // - Current state, not a preference
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
-    bool    dont_hook_wndproc   =  true;
+    bool    dont_hook_wndproc   = false;
     bool    activate_at_start   = false;
     bool    fix_stuck_keys      = false; // Fixes keys that might be stuck after alt-tab
     bool    allow_drag_n_drop   =  true;
@@ -1979,6 +1979,7 @@ enum class SK_GAME_ID
   Dispatch,                     // Dispatch-Win64-Shipping.exe, DispatchEGS-Win64-Shipping.exe
   Timberborn,                   // Timberborn.exe
   CONTROL_Resonant,             // CONTROLResonant.exe
+  Helldivers2,                  // Helldivers2.exe
 
   UNKNOWN_GAME               = 0xffff
 };
