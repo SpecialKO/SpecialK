@@ -553,7 +553,7 @@ XInputGetState1_4_Detour (
       InterlockedExchange (&last_native_time   [0], SK_QueryPerf ().QuadPart);
     }
 
-    SK_XInput_ApplyDeadzone (pState, config.input.gamepad.xinput.deadzone);
+    SK_XInput_ApplyDeadzone (pState);
 
     native_state = *pState;
   }
@@ -914,7 +914,7 @@ XInputGetStateEx1_4_Detour (
       InterlockedExchange (&last_native_time   [0], SK_QueryPerf ().QuadPart);
     }
 
-    SK_XInput_ApplyDeadzone ((XINPUT_STATE *)pState, config.input.gamepad.xinput.deadzone);
+    SK_XInput_ApplyDeadzone ((XINPUT_STATE *)pState);
   }
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
@@ -3955,48 +3955,187 @@ SK_XInput_GetProcAddress (HMODULE hModule, PCSTR lpFuncName, LPCVOID/*pCaller*/)
     SK_GetProcAddress (hModule, lpFuncName);
 }
 
-void
-SK_XInput_ApplyDeadzone (XINPUT_STATE* state, float deadzone_percent)
+SK_StickCurveType
+SK_XInput_StickCurveTypeFromString (const wchar_t* str)
 {
-  auto ApplyDeadzoneToStick = [&](SHORT& X, SHORT& Y, float deadzone_percent)
+  if (0 == _wcsicmp (str, L"Power"))   return SK_StickCurve_Power;
+  if (0 == _wcsicmp (str, L"Expo"))    return SK_StickCurve_Expo;
+  if (0 == _wcsicmp (str, L"Sigmoid")) return SK_StickCurve_Sigmoid;
+
+  return SK_StickCurve_Linear;
+}
+
+const wchar_t*
+SK_XInput_StickCurveTypeToString (SK_StickCurveType type)
+{
+  switch (type)
   {
-    const float fX   = X;
-    const float fY   = Y;
-          float norm = sqrt ( fX*fX + fY*fY );
-          float unit = 1.0f;
+    case SK_StickCurve_Power:   return L"Power";
+    case SK_StickCurve_Expo:    return L"Expo";
+    case SK_StickCurve_Sigmoid: return L"Sigmoid";
+    default:                    return L"Linear";
+  }
+}
 
-    const auto fUserDeadzone =
-      (deadzone_percent / 100.0f) * 32767.0f;
+float
+SK_XInput_ShapeStickMagnitude (float u, const SK_StickShaping& shaping)
+{
+  if (u <= 0.0f) return 0.0f;
+  if (u >= 1.0f) return 1.0f;
 
-    if (norm > fUserDeadzone)
+  switch (shaping.curve)
+  {
+    case SK_StickCurve_Power:
+      return powf (u, shaping.power);
+
+    case SK_StickCurve_Expo:
     {
-#if 1
-      // Logarithmic scaling
-      norm = (std::min (norm, 32767.0f) - fUserDeadzone) /
-                             (32767.0f  - fUserDeadzone);
-      unit = log10 (1.0f + 9.0f * norm) / log10 (10.0f);
-#else
-      // Linear scaling
-      norm = std::min (norm, 32767.0f) - fUserDeadzone;
-      unit =           norm/(32767.0f  - fUserDeadzone);
-#endif
+      const float e = shaping.expo;
+      return (1.0f - e) * u + e * (u * u * u);
     }
 
-    else
+    case SK_StickCurve_Sigmoid:
     {
-      norm = 0.0f;
-      unit = 0.0f;
+      // Logistic curve rescaled so that s(0) == 0 and s(1) == 1; k >= 1
+      //   (see SK_StickSigmoidK_Min) keeps hi > lo.
+      const float k  = shaping.sig_k;
+      const float c  = shaping.sig_mid;
+      const float w  = shaping.sig_w;
+      const float lo = 1.0f / (1.0f + expf (  k * c));
+      const float hi = 1.0f / (1.0f + expf (- k * (1.0f - c)));
+      const float s  = (1.0f / (1.0f + expf (- k * (u - c))) - lo) / (hi - lo);
+      return (1.0f - w) * u + w * s;
     }
 
-    const float ufX = (fX / 32767.0f) * unit;
-    const float ufY = (fY / 32767.0f) * unit;
+    case SK_StickCurve_Linear:
+    default:
+      return u;
+  }
+}
 
-    X = static_cast <SHORT> (ufX < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * ufX))
-                                     : std::max (     0.0f, std::min (32767.0f, 32767.0f * ufX)));
-    Y = static_cast <SHORT> (ufY < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * ufY))
-                                     : std::max (     0.0f, std::min (32767.0f, 32767.0f * ufY)));
+float
+SK_XInput_ShapeStickOutput (float u, const SK_StickShaping& shaping)
+{
+  const float c = shaping.input_deadzone;
+  const float D = shaping.deadzone_elimination;
+
+  // Below the controller deadzone -> no output (reject noise/play).
+  if (u <= c)
+    return 0.0f;
+
+  // Remap the live range (c..1] onto (0..1], shape it, then raise the output
+  //   floor to the game deadzone D. Magnitude is deliberately clamped to the
+  //   unit circle: per-pad diagonal overshoot beyond 32767 is normalized away.
+  const float r = std::min (1.0f, (u - c) / (1.0f - c));
+  const float s = SK_XInput_ShapeStickMagnitude (r, shaping);
+
+  return D + s * (1.0f - D);
+}
+
+SK_StickShaping
+SK_XInput_GetStickShaping (SK_Stick stick)
+{
+  const auto& xi   = config.input.gamepad.xinput;
+  const bool  left = (stick == SK_Stick_Left);
+
+  SK_StickShaping s = { };
+
+  s.input_deadzone       = std::clamp (left ? xi.input_deadzone_l       : xi.input_deadzone_r,       0, SK_StickDeadzone_Max) / 32767.0f;
+  s.deadzone_elimination = std::clamp (left ? xi.deadzone_elimination_l : xi.deadzone_elimination_r, 0, SK_StickDeadzone_Max) / 32767.0f;
+  s.curve                = static_cast <SK_StickCurveType> (
+                           std::clamp (left ? xi.stick_curve_l          : xi.stick_curve_r,          0, static_cast <int> (SK_StickCurve_Sigmoid)));
+  s.power                = std::clamp (left ? xi.stick_curve_power_l    : xi.stick_curve_power_r,    SK_StickPower_Min,      SK_StickPower_Max);
+  s.expo                 = std::clamp (left ? xi.stick_curve_expo_l     : xi.stick_curve_expo_r,     0.0f,                   1.0f);
+  s.sig_k                = std::clamp (left ? xi.stick_curve_sig_k_l    : xi.stick_curve_sig_k_r,    SK_StickSigmoidK_Min,   SK_StickSigmoidK_Max);
+  s.sig_mid              = std::clamp (left ? xi.stick_curve_sig_mid_l  : xi.stick_curve_sig_mid_r,  SK_StickSigmoidMid_Min, SK_StickSigmoidMid_Max);
+  s.sig_w                = std::clamp (left ? xi.stick_curve_sig_w_l    : xi.stick_curve_sig_w_r,    0.0f,                   1.0f);
+
+  return s;
+}
+
+void
+SK_XInput_SanitizeStickShapingConfig (void)
+{
+  auto& xi = config.input.gamepad.xinput;
+
+  const SK_StickShaping l = SK_XInput_GetStickShaping (SK_Stick_Left);
+  const SK_StickShaping r = SK_XInput_GetStickShaping (SK_Stick_Right);
+
+  xi.input_deadzone_l       = static_cast <int> (lroundf (l.input_deadzone       * 32767.0f));
+  xi.input_deadzone_r       = static_cast <int> (lroundf (r.input_deadzone       * 32767.0f));
+  xi.deadzone_elimination_l = static_cast <int> (lroundf (l.deadzone_elimination * 32767.0f));
+  xi.deadzone_elimination_r = static_cast <int> (lroundf (r.deadzone_elimination * 32767.0f));
+  xi.stick_curve_l          = l.curve;
+  xi.stick_curve_r          = r.curve;
+  xi.stick_curve_power_l    = l.power;
+  xi.stick_curve_power_r    = r.power;
+  xi.stick_curve_expo_l     = l.expo;
+  xi.stick_curve_expo_r     = r.expo;
+  xi.stick_curve_sig_k_l    = l.sig_k;
+  xi.stick_curve_sig_k_r    = r.sig_k;
+  xi.stick_curve_sig_mid_l  = l.sig_mid;
+  xi.stick_curve_sig_mid_r  = r.sig_mid;
+  xi.stick_curve_sig_w_l    = l.sig_w;
+  xi.stick_curve_sig_w_r    = r.sig_w;
+}
+
+void
+SK_XInput_ShapeSticks (float& lx, float& ly, float& rx, float& ry)
+{
+  if (! config.input.gamepad.xinput.stick_shaping)
+    return;
+
+  // Per stick: controller deadzone (input floor c) -> remap live range to
+  //   0..1 -> response curve -> game deadzone (output floor D). Direction is
+  //   preserved; only the magnitude is reshaped. The control panel preview
+  //   plots the same SK_XInput_ShapeStickOutput, so what the user sees is
+  //   what the game gets.
+  auto ShapeStick = [](float& X, float& Y, const SK_StickShaping& shaping)
+  {
+    // Fully neutral settings are a raw passthrough.
+    if ( shaping.curve                == SK_StickCurve_Linear &&
+         shaping.input_deadzone       <= 0.0f                 &&
+         shaping.deadzone_elimination <= 0.0f )
+    {
+      return;
+    }
+
+    const float norm = sqrtf (X*X + Y*Y);
+
+    if (norm <= 0.0f)
+      return;
+
+    const float out = SK_XInput_ShapeStickOutput (norm, shaping);
+
+    X = (X / norm) * out;
+    Y = (Y / norm) * out;
   };
 
-  ApplyDeadzoneToStick (state->Gamepad.sThumbLX, state->Gamepad.sThumbLY, deadzone_percent);
-  ApplyDeadzoneToStick (state->Gamepad.sThumbRX, state->Gamepad.sThumbRY, deadzone_percent);
+  ShapeStick (lx, ly, SK_XInput_GetStickShaping (SK_Stick_Left));
+  ShapeStick (rx, ry, SK_XInput_GetStickShaping (SK_Stick_Right));
+}
+
+void
+SK_XInput_ApplyDeadzone (XINPUT_STATE* state)
+{
+  if (! config.input.gamepad.xinput.stick_shaping)
+    return;
+
+  float lx = static_cast <float> (state->Gamepad.sThumbLX) / 32767.0f;
+  float ly = static_cast <float> (state->Gamepad.sThumbLY) / 32767.0f;
+  float rx = static_cast <float> (state->Gamepad.sThumbRX) / 32767.0f;
+  float ry = static_cast <float> (state->Gamepad.sThumbRY) / 32767.0f;
+
+  SK_XInput_ShapeSticks (lx, ly, rx, ry);
+
+  auto ToAxis = [](float v) -> SHORT
+  {
+    return
+      static_cast <SHORT> (std::clamp (v * 32767.0f, -32768.0f, 32767.0f));
+  };
+
+  state->Gamepad.sThumbLX = ToAxis (lx);
+  state->Gamepad.sThumbLY = ToAxis (ly);
+  state->Gamepad.sThumbRX = ToAxis (rx);
+  state->Gamepad.sThumbRY = ToAxis (ry);
 }
