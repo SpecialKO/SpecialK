@@ -1,4 +1,11 @@
-﻿26.10.7.1
+﻿26.10.10
+========
+ + Removed references to unused INI parameters:
+
+    [Steam.System]          BlockUserStatsCallback
+    [Compatibility.General] FSR3Mode
+
+26.10.7.1
 =========
  + Revert 26.10.7, too much important window management functionality will
      be lost.

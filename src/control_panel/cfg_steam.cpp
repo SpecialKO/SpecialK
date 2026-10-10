@@ -317,21 +317,6 @@ SK::ControlPanel::Steam::Draw (void)
 
       if (! config.platform.silent)
       {
-        ImGui::Checkbox (" Disable User Stats Receipt Callback",   &config.steam.block_stat_callback);
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("These Games may shutdown SteamAPI when Special K fetches Friend Achievements");
-          ImGui::BulletText   ("If SteamAPI Frame Counter is STUCK, turn this option ON and restart the Game");
-          ImGui::EndTooltip   ();
-        }
-      }
-
-      if (! config.platform.silent)
-      {
         ImGui::EndGroup   (  );
         ImGui::SameLine   (  );
         ImGui::BeginGroup (  );

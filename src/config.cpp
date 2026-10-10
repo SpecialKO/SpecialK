@@ -693,7 +693,6 @@ struct {
     sk::ParameterInt64*   appid                   = nullptr;
     sk::ParameterInt*     init_delay              = nullptr;
     sk::ParameterBool*    auto_pump               = nullptr;
-    sk::ParameterBool*    block_stat_callback     = nullptr;
     sk::ParameterBool*    filter_stat_callbacks   = nullptr;
     sk::ParameterBool*    load_early              = nullptr;
     sk::ParameterBool*    early_overlay           = nullptr;
@@ -1351,7 +1350,6 @@ struct {
   sk::ParameterBool*      auto_large_address      = nullptr; // 32-bit only
   sk::ParameterBool*      async_init              = nullptr;
   sk::ParameterBool*      reshade_mode            = nullptr;
-  sk::ParameterBool*      fsr3_mode               = nullptr;
   sk::ParameterInt*       sdl_sanity_level        = nullptr;
   sk::ParameterInt*       debug_level             = nullptr;
   struct {
@@ -2051,7 +2049,6 @@ auto DeclKeybind =
 #endif
     ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
     ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
-    ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
     ConfigEntry (compatibility.debug_level,              L"Debug Level (0=Most debug code OFF, >0=Normal behavior)",   dll_ini,         L"Compatibility.General", L"DebugLevel"),
     ConfigEntry (compatibility.sdl_sanity_level,         L"Set Default (1) or Override (2) SDL input/window behavior.",dll_ini,         L"Compatibility.General", L"SDLSanityLevel"),
     // Refer to SDL_hints.h, only the most useful options are exposed here...
@@ -2423,7 +2420,6 @@ auto DeclKeybind =
     ConfigEntry (steam.system.appid,                     L"Steam AppID",                                               dll_ini,         L"Steam.System",          L"AppID"),
     ConfigEntry (steam.system.init_delay,                L"Delay SteamAPI initialization if the game doesn't do it",   dll_ini,         L"Steam.System",          L"AutoInitDelay"),
     ConfigEntry (steam.system.auto_pump,                 L"Should we force the game to run Steam callbacks?",          dll_ini,         L"Steam.System",          L"AutoPumpCallbacks"),
-    ConfigEntry (steam.system.block_stat_callback,       L"Block the User Stats Receipt Callback?",                    dll_ini,         L"Steam.System",          L"BlockUserStatsCallback"),
     ConfigEntry (steam.system.filter_stat_callbacks,     L"Filter Unrelated Data from the User Stats Receipt Callback",dll_ini,         L"Steam.System",          L"FilterExternalDataFromCallbacks"),
     ConfigEntry (steam.system.load_early,                L"Load the Steam Client DLL Early?",                          dll_ini,         L"Steam.System",          L"PreLoadSteamClient"),
     ConfigEntry (steam.system.early_overlay,             L"Load the Steam Overlay Early",                              dll_ini,         L"Steam.System",          L"PreLoadSteamOverlay"),
@@ -4814,7 +4810,6 @@ auto DeclKeybind =
   // Load Parameters
   //
   compatibility.sdl_sanity_level->load      (config.compatibility.sdl_sanity_level);
-  compatibility.fsr3_mode->load             (config.compatibility.fsr3_mode);
   compatibility.reshade_mode->load          (config.compatibility.reshade_mode);
   compatibility.async_init->load            (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->load      (config.compatibility.disable_nv_bloat);
@@ -6282,7 +6277,6 @@ auto DeclKeybind =
 
   steam.system.init_delay->load               (config.steam.init_delay);
   steam.system.auto_pump->load                (config.steam.auto_pump_callbacks);
-  steam.system.block_stat_callback->load      (config.steam.block_stat_callback);
   steam.system.filter_stat_callbacks->load    (config.steam.filter_stat_callback);
   steam.system.load_early->load               (config.steam.preload_client);
   steam.system.early_overlay->load            (config.steam.preload_overlay);
@@ -7042,7 +7036,6 @@ SK_SaveConfig ( std::wstring name,
 
 
   // Don't write these to INI by default, they're rarely needed and planned to be removed
-//compatibility.fsr3_mode->store              (config.compatibility.fsr3_mode);
 //compatibility.reshade_mode->store           (config.compatibility.reshade_mode);
   compatibility.async_init->store             (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
@@ -7890,7 +7883,6 @@ SK_SaveConfig ( std::wstring name,
   steam.system.appid->store                    (config.steam.appid);
   steam.system.init_delay->store               (config.steam.init_delay);
   steam.system.auto_pump->store                (config.steam.auto_pump_callbacks);
-  steam.system.block_stat_callback->store      (config.steam.block_stat_callback);
   steam.system.filter_stat_callbacks->store    (config.steam.filter_stat_callback);
   steam.system.load_early->store               (config.steam.preload_client);
   steam.system.early_overlay->store            (config.steam.preload_overlay);
