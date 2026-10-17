@@ -338,6 +338,16 @@ SK::ControlPanel::OSD::Draw (void)
              color [2] <= default_b + 0.001F    ) config.osd.blue  = (int)MAXDWORD;
       }
 
+      if (ImGui::SliderFloat("OSD Font Size", &config.osd.font_size, 10.0F, 100.0F))
+      {
+
+      }
+
+      ImGui::SetItemTooltip(
+        "Requires a Game Restart.\r\n\r\n"
+        " * High Font Size might cause problems in D3D9 games."
+      );
+
       if (ImGui::SliderFloat ("OSD Scale", &config.osd.scale, 0.5F, 10.0F))
       {
         SK_SetOSDScale (config.osd.scale, false, nullptr);

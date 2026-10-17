@@ -305,6 +305,8 @@ struct sk_config_t
     int    red            = MAXDWORD32;
     int    green          = MAXDWORD32;
     int    blue           = MAXDWORD32;
+    float  font_size      =  18.0F;
+    float  init_font_size =  18.0F;
     float  scale          =  1.0F;
     int    pos_x          =  0;
     int    pos_y          =  0;

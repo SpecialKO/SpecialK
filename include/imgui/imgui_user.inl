@@ -196,8 +196,12 @@ SK_ImGui_LoadFonts (void)
     font_cfg           = {   };
     font_cfg.MergeMode = false;
 
+    float fs = std::max(1.0f, std::min(300.0f, config.osd.font_size)); //sanitization
+
     __SK_ImGui_FontConsolas =
-      LoadFont ("Consolab.ttf", 18, SK_ImGui_GetGlyphRangesDefaultEx (), &font_cfg);
+      LoadFont ("Consolab.ttf", fs, SK_ImGui_GetGlyphRangesDefaultEx (), &font_cfg);
+
+    config.osd.init_font_size = config.osd.font_size;
 
     InterlockedIncrementRelease (&init);
   }
