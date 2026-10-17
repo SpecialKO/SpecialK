@@ -157,6 +157,7 @@ SK_GetCurrentGameID (void) noexcept
           { L"okami.exe",                              SK_GAME_ID::Okami                        },
           { L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          },
           { L"mafia3.exe",                             SK_GAME_ID::Mafia3                       },
+          { L"mafia3definitiveedition.exe",            SK_GAME_ID::Mafia3DefinitiveEdition      },
           { L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       },
           { L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   },
           { L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     },
@@ -3064,6 +3065,11 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Mafia3:
         config.steam.force_load_steamapi        = true;
+        break;
+
+      case SK_GAME_ID::Mafia3DefinitiveEdition:
+        // Bypasses 2K fairplay detection.
+        config.steam.crapcom_mode               = true;
         break;
 
       // (0.8.58 - 1/1/18) -> API autodetect doesn't like XNA games

@@ -1815,6 +1815,7 @@ enum class SK_GAME_ID
   Okami,                        // okami.exe
   DuckTalesRemastered,          // DuckTales.exe
   Mafia3,                       // mafia3.exe
+  Mafia3DefinitiveEdition,      // mafia3definitiveedition.exe
   Owlboy,                       // Owlboy.exe
   DarkSouls3,                   // DarkSoulsIII.exe
   Fallout4,                     // Fallout4.exe
