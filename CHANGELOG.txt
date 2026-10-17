@@ -1,4 +1,9 @@
-﻿26.10.10
+﻿26.10.17
+========
+ + Merge pull request #391 from Evasion3356:fix/MafiaIIIDefEdition
+    * Fix Mafia III Definitive Edition SteamAPI anti-piracy protection.
+
+26.10.10
 ========
  + Removed references to unused INI parameters:
 
