@@ -214,7 +214,7 @@ void __stdcall SK_StartPerfMonThreads (void);
 //         packed directly into the DLL, but must be downloaded
 //           starting with v. 22.2.22
 //
-void SK_FetchBuiltinSounds (void);
+void SK_FetchBuiltinSounds (bool strict_integrity_check = true);
 
 extern BOOL          __SK_DisableQuickHook;
 
