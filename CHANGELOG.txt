@@ -1,4 +1,10 @@
-﻿26.10.23
+﻿26.10.23.1
+==========
+ + Make SteamAPI an optional automatic download for games that need it,
+     mostly Unity games since SK cannot share their non-standard DLL.
+ + Reduce filesystem checks for various sound files on every injection.
+
+26.10.23
 ========
  + Added check for D3D12 version of Metro 2033 and turn off the default
      config profile that forced Flip Model off in D3D11.

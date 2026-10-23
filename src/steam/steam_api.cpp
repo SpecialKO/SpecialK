@@ -7172,6 +7172,82 @@ SK::SteamAPI::IsOverlayAware (void)
   return (! overlay_activation_callbacks->empty ());
 }
 
+void SK_Steam_FetchOptionalPlugIn (void)
+{
+  SK_PROFILE_FIRST_CALL
+
+  wchar_t           wszArchive  [MAX_PATH + 2] = { };
+  static const auto wszDestination =
+      std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                        LR"(Steamworks\)";
+
+  std::error_code                                                                    ec;
+  if (! std::filesystem::exists (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty), ec))
+    return;
+
+  static const std::filesystem::path
+    predefined_libs [] =
+    {
+#ifdef _M_AMD64
+      std::filesystem::path (wszDestination) / LR"(steam_api_sk64.dll)"
+#else
+      std::filesystem::path (wszDestination) / LR"(steam_api_sk.dll)"
+#endif
+    };
+
+  static bool incomplete_set = false;
+
+  for ( auto& lib : predefined_libs )
+  {
+    if (! std::filesystem::exists (lib, ec))
+    {
+      incomplete_set = true;
+      break;
+    }
+  }
+
+  if (! incomplete_set) return;
+
+  SK_CreateDirectories (wszDestination.c_str ());
+
+  wcsncpy_s   ( wszArchive,               MAX_PATH,
+                wszDestination.c_str (), _TRUNCATE );
+  PathAppendW ( wszArchive,          L"steam_api_sk.7z" );
+
+  SK_RunOnce (
+  SK_Network_EnqueueDownload (
+    sk_download_request_s (wszArchive, R"(https://sk-data.special-k.info/redist/steam_api_sk.7z)",
+      []( const std::vector <uint8_t>&& data,
+          const std::wstring_view       file ) -> bool
+      {
+        std::filesystem::path
+                    full_path (file.data ());
+
+        if ( FILE *fPackedLibs = _wfopen (full_path.c_str (), L"wb") ;
+                   fPackedLibs != nullptr )
+        {
+          fwrite (data.data (), 1, data.size (), fPackedLibs);
+          fclose (                               fPackedLibs);
+
+          if ( SUCCEEDED (
+                 SK_Decompress7zEx ( full_path.c_str (),
+                                     full_path.parent_path (
+                                            ).c_str (), nullptr )
+                         )
+             )
+          {
+            DeleteFileW (full_path.c_str ());
+
+            incomplete_set = false;
+          }
+        }
+
+        return true;
+      }
+    ), true // High Priority
+  ));
+}
+
 BOOL
 SK_Steam_KickStart (const wchar_t* wszLibPath)
 {

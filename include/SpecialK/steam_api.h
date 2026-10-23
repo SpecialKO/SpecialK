@@ -508,6 +508,9 @@ BOOL
 SK_Steam_KickStart   (const wchar_t* szLibPath = nullptr);
 
 void
+SK_Steam_FetchOptionalPlugIn (void);
+
+void
 SK_Steam_KillPump (void);
 
 const wchar_t*
