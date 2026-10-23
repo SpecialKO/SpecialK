@@ -4040,8 +4040,24 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Metro2033:
       {
-        // Disable to prevent visual artifacts on tittle screen
-        config.render.framerate.flip_discard = false;
+        // Because there are now two versions of this game sharing the same executable name,
+        //   we need to set this INI setting on every launch.
+        //
+        //   * D3D11 needs it disabled, the new D3D12 version needs it enabled :-\
+        //
+        if (! (PathFileExistsW (L"amd_fidelityfx_dx12.dll") ||
+               PathFileExistsW (L"nvngx_dlss.dll")))
+        {
+          // Disable to prevent visual artifacts on tittle screen
+          config.render.framerate.flip_discard = false;
+        }
+
+        else
+        {
+          config.render.framerate.flip_discard = true;
+        }
+
+        render.framerate.flip_discard->store (config.render.framerate.flip_discard);
       } break;
 
       case SK_GAME_ID::StarWarsOutlaws:

@@ -1,4 +1,14 @@
-﻿26.10.17
+﻿26.10.23
+========
+ + Added check for D3D12 version of Metro 2033 and turn off the default
+     config profile that forced Flip Model off in D3D11.
+
+   * User may no longer configure this manually, it will always be set
+       according to which version of the game is being launched because
+         the D3D11 and D3D12 game both share the same executable name and
+           this is the only way to accomodate both.
+
+26.10.17
 ========
  + Merge pull request #391 from Evasion3356:fix/MafiaIIIDefEdition
     * Fix Mafia III Definitive Edition SteamAPI anti-piracy protection.
