@@ -2035,6 +2035,7 @@ SK::ControlPanel::D3D11::Draw (void)
                       auto& timestamp =
                         debug_messages.
                           emplace_back (
+                            SK_DEBUG_MESSAGE {
                               .Type       = SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_DXGI,
                               .dxgi       = {
                                 .Producer = pMsg->Producer,
@@ -2046,7 +2047,7 @@ SK::ControlPanel::D3D11::Draw (void)
                                 std::string (
                                        pMsg->pDescription,
                                        pMsg->DescriptionByteLength
-                                )
+                                )            }
                           ).Timestamp;
 
                                 timestamp.reserve (27);
