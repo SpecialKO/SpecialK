@@ -1140,7 +1140,7 @@ __stdcall
 iSK_INISection::add_key_value (const std::wstring_view key, const std::wstring_view value)
 {
   const auto add =
-    keys.emplace (std::make_pair (key, value));
+    keys.try_emplace (key.data (), value.data ());
 
   if (add.second)
   {
@@ -1176,7 +1176,7 @@ __stdcall
 iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& value)
 {
   const auto add =
-    keys.emplace (key, value);
+    keys.try_emplace (key, value);
 
   if (add.second)
   {
@@ -1253,19 +1253,17 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const std::wstring_view section)
 {
-  std::wstring wstr (section);
-
   bool try_emplace =
-    ( sections.find (wstr) ==
+    ( sections.find (section.data ()) ==
       sections.cend (    ) );
 
   iSK_INISection& ret =
-    sections [wstr];
+    sections [section.data ()];
 
   if (try_emplace)
   {
-                                    ret.name = std::move (wstr);
-    ordered_sections.emplace_back (&ret);;
+                                    ret.name = section;
+    ordered_sections.emplace_back (&ret);
   }
 
   return ret;
@@ -1569,14 +1567,14 @@ iSK_INI::remove_section (const std::wstring& wszSection)
 
   if (it != sections.cend ())
   {
-    sections.erase (it);
-
     const auto ordered_it =
       std::find ( ordered_sections.begin (),
                   ordered_sections.end   (), &(it->second) );
 
     if (ordered_it != ordered_sections.cend ())
                       ordered_sections.erase (ordered_it);
+
+    sections.erase (it);
 
     return true;
   }
@@ -1612,8 +1610,6 @@ iSK_INISection::remove_key (const std::wstring& wszKey)
 
   if (it != keys.end ())
   {
-    keys.erase (it);
-
     const auto ordered_it =
       std::find ( ordered_keys.begin (),
                   ordered_keys.end   (), wszKey );
@@ -1627,6 +1623,8 @@ iSK_INISection::remove_key (const std::wstring& wszKey)
         SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::remove_key (%ws)", wszKey.c_str () ),
                     L"ConfigMgmt" );
     }
+
+    keys.erase (it);
 
     return true;
   }
