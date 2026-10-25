@@ -669,8 +669,8 @@ SK_Sekiro_PlugInCfg (void)
                   );
 
                   nominal_ratio.emplace_back (
-                    std::make_pair (mode.RefreshRate.Numerator,
-                                    mode.RefreshRate.Denominator)
+                    mode.RefreshRate.Numerator,
+                    mode.RefreshRate.Denominator
                   );
 
                   if ( config.render.framerate.refresh_rate >= (nominal_refresh.back () - 1.0f) &&

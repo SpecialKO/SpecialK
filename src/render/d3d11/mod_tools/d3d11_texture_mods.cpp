@@ -574,8 +574,8 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
           if (! entry.mipmapped)
             non_mipped++;
 
-          temp_list.emplace_back  (entry);
-          total_texture_memory  += entry.size;
+          total_texture_memory +=            entry.size;
+          temp_list.emplace_back (std::move (entry));
         }
       }
 

@@ -76,11 +76,11 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
     if (raw_mice->empty ())
     {
       raw_devices->emplace_back (
-        RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
-                         HID_USAGE_GENERIC_MOUSE, 0x00, nullptr } );
+        HID_USAGE_PAGE_GENERIC,
+        HID_USAGE_GENERIC_MOUSE, 0x00, nullptr );
       raw_mice->emplace_back    (
-        RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
-                         HID_USAGE_GENERIC_MOUSE, 0x00, nullptr } );
+        HID_USAGE_PAGE_GENERIC,
+        HID_USAGE_GENERIC_MOUSE, 0x00, nullptr );
       raw_overrides.mouse.legacy_messages = true;
     }
 

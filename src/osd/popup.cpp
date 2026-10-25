@@ -329,7 +329,7 @@ SK_ImGui_DismissNotification (const char* szID)
     while (! SK_ImGui_Notifications.try_pop (toast))
       ;
 
-    notifications.emplace_back (toast);
+    notifications.emplace_back (std::move (toast));
   }
 
   for ( auto& notification : notifications )
@@ -501,7 +501,7 @@ SK_ImGui_CreateNotificationEx ( const char* szID,
           while (! SK_ImGui_Notifications.try_pop (existing_toast))
             ;
 
-          notifications.emplace_back (existing_toast);
+          notifications.emplace_back (std::move (existing_toast));
         }
 
         for ( auto& notification : notifications )
@@ -544,7 +544,7 @@ SK_ImGui_UnsilenceNotifications (void)
 
     if (! (toast.flags & SK_ImGui_Toast::Silenced))
     {
-      regular_notifications.emplace_back (toast);
+      regular_notifications.emplace_back (std::move (toast));
     }
 
     else
@@ -555,7 +555,7 @@ SK_ImGui_UnsilenceNotifications (void)
 
       SK_ImGui_SilencedNotifications--;
 
-      unsilenced_notifications.emplace_back (toast);
+      unsilenced_notifications.emplace_back (std::move (toast));
     }
   }
 
@@ -587,7 +587,7 @@ SK_ImGui_DrawNotifications (void)
     while (! SK_ImGui_Notifications.try_pop (toast))
       ;
 
-    notifications.emplace_back (toast);
+    notifications.emplace_back (std::move (toast));
   }
 
   float fHeight = 0.0F;

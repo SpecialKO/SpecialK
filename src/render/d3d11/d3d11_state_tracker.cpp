@@ -418,16 +418,16 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
       D3D11_QUERY_TIMESTAMP, 0x00
     };
 
-    duration_s duration;
-
     SK_ComPtr <ID3D11Query>                         pQuery;
     if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
     {
+      duration_s duration;
+
       duration.start.dev_ctx = pDevContext;
       duration.start.async   = pQuery;
       pDevContext->End (       pQuery);
 
-      timers.emplace_back (duration);
+      timers.emplace_back (std::move (duration));
     }
   }
 }

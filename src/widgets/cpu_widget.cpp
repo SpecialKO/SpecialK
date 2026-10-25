@@ -2268,8 +2268,8 @@ public:
                     power_scheme_s scheme;
                                    scheme.uid = scheme_guid;
 
-                    resolveNameAndDescForPowerScheme (scheme);
-                    schemes.emplace_back             (scheme);
+                    resolveNameAndDescForPowerScheme (           scheme);
+                    schemes.emplace_back             (std::move (scheme));
 
                     scheme_guid = { };
                     guid_size   = sizeof (GUID);

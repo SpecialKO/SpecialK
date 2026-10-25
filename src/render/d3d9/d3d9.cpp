@@ -6872,12 +6872,12 @@ SK_D3D9_DrawFileList (bool& can_scroll)
             {
               case DontCare:
               case Streaming:
-                source.streaming.records.emplace_back (std::make_pair (it.first, it.second));
+                source.streaming.records.emplace_back (it.first, it.second);
                 source.streaming.size += it.second.size;
                 break;
 
               case Blocking:
-                source.blocking.records.emplace_back (std::make_pair (it.first, it.second));
+                source.blocking.records.emplace_back (it.first, it.second);
                 source.blocking.size += it.second.size;
                 break;
             }

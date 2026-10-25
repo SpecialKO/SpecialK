@@ -1,4 +1,13 @@
-﻿26.10.23.1
+﻿26.10.24
+========
+ + Fixed potential use-after-free in iSK_INI::remove_section (...) and
+     iSK_INISection::remove_key (...).
+ + Replace various calls to emplace with try_emplace in INI parser to
+     avoid unnecessary construction of objects that may not be inserted.
+ + Fixed incorrect use of std::move (...) and STL emplace (...) in numerous
+     places throughout the codebase.
+
+26.10.23.1
 ==========
  + Make SteamAPI an optional automatic download for games that need it,
      mostly Unity games since SK cannot share their non-standard DLL.

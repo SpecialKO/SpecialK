@@ -856,8 +856,8 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
          max_file_len   = 0;
 
   struct stack_entry_s {
-    stack_entry_s ( char* szShortName, char* szSymbolName,
-                    char* szFileName,  int   uiLineNum )
+    stack_entry_s ( const char* szShortName, const char* szSymbolName,
+                    const char* szFileName,        int   uiLineNum )
     {
       strncpy_s ( short_mod_name, 64,
                   szShortName,    _TRUNCATE );
@@ -873,7 +873,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
       line_number = uiLineNum;
     }
 
-    stack_entry_s ( char* szShortName, char* szSymbolName )
+    stack_entry_s ( const char* szShortName, const char* szSymbolName )
     {
       strncpy_s ( short_mod_name, 64,
                   szShortName,    _TRUNCATE );
@@ -915,9 +915,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
        )                       )
     {
       stack_entries.emplace_back (
-        stack_entry_s (
-          "Unknown Module", "Unknown Function"
-        )
+        "Unknown Module", "Unknown Function"
       );
     }
 
@@ -981,9 +979,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
           [&](void) -> void
         {
           stack_entries.emplace_back (
-            stack_entry_s (
-              pszShortName, sip.si.Name
-            )
+            pszShortName, sip.si.Name
           );
 
           max_symbol_len =
@@ -996,10 +992,8 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
         [&](void) -> void
         {
           stack_entries.emplace_back (
-            stack_entry_s (
-              pszShortName, sip.si.Name,
-                ihl.FileName, ihl.LineNumber
-            )
+            pszShortName, sip.si.Name,
+              ihl.FileName, ihl.LineNumber
           );
 
           auto& entry =

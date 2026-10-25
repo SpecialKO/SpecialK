@@ -1633,10 +1633,10 @@ EnumConstantBuffer ( ID3D11ShaderReflectionConstantBuffer* pConstantBuffer,
 
                 dll_log->Log  (L"%hs.%hs <%lu> {%lu}", this_struct.second.c_str (), mem_var.name.c_str (), mem_var.var_desc.StartOffset, mem_var.var_desc.Size);
 
-                this_struct.first.emplace_back (mem_var);
+                this_struct.first.emplace_back (std::move (mem_var));
               }
 
-              cbuffer.structs.emplace_back (this_struct);
+              cbuffer.structs.emplace_back (std::move (this_struct));
             }
 
             else if (var.type_desc.Class < D3D_SVC_OBJECT)
@@ -3166,7 +3166,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       list->max_name_len =
         std::max (list->max_name_len, ImGui::CalcTextSize (szDesc, nullptr, true).x);
 
-      list->contents.emplace_back (shader_entry_s { it, (! disabled), szDesc });
+      list->contents.emplace_back (it, (! disabled), szDesc);
 
       if ( ((! GetShaderChange (shader_type)) && list->last_sel == (uint32_t)it) ||
                GetShaderChange (shader_type)                    == (uint32_t)it )
@@ -3566,7 +3566,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
                         EnumConstantBuffer (pReflectedCBuffer, cbuffer);
 
-                        (*disassembly) [ReadAcquire ((volatile LONG *)&tracker->crc32c)].cbuffers.emplace_back (cbuffer);
+                        (*disassembly) [ReadAcquire ((volatile LONG *)&tracker->crc32c)].cbuffers.emplace_back (std::move (cbuffer));
                       }
                     }
                   }

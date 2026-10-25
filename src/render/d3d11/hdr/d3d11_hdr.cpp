@@ -834,13 +834,13 @@ SK_HDR_SnapshotSwapchain (void)
 
         SK_ComPtr <ID3D11Query>                         pQuery;
         if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
-      {
-        duration.start.dev_ctx = pDevCtx;
-        duration.start.async   = pQuery;
-                  pDevCtx->End ( pQuery);
+        {
+          duration.start.dev_ctx = pDevCtx;
+          duration.start.async   = pQuery;
+                    pDevCtx->End ( pQuery);
 
-        SK_D3D11_HDRTimers.emplace_back (duration);
-      }
+          SK_D3D11_HDRTimers.emplace_back (std::move (duration));
+        }
       }
     }
 

@@ -1033,9 +1033,7 @@ SK_D3D11_CreateShader_Impl (
       ///           pShaderRepo->rev [*ppShader] != checksum )
       ///  pShaderRepo->rev.erase (*ppShader);
 
-      pShaderRepo->rev [This].emplace (
-        std::make_pair (*ppShader, pCachedDesc)
-      );
+      pShaderRepo->rev [This].emplace (*ppShader, pCachedDesc);
     }
 
     pCritical->unlock ();

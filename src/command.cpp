@@ -175,7 +175,7 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
   if (FindCommand (szCommand) != nullptr)
     return nullptr;
 
-  commands_.emplace (SK_CommandRecord (szCommand, std::unique_ptr <SK_ICommand> (pCommand)));
+  commands_.emplace (szCommand, std::unique_ptr <SK_ICommand> (pCommand));
 
   return pCommand;
 }
@@ -231,9 +231,7 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
   if (FindVariable (szVariable) != nullptr)
     return nullptr;
 
-  variables_.emplace (
-    SK_VariableRecord (szVariable, std::unique_ptr <SK_IVariable> (pVariable))
-  );
+  variables_.emplace (szVariable, std::unique_ptr <SK_IVariable> (pVariable));
 
   return pVariable;
 }

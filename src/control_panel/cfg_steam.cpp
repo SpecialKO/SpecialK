@@ -96,11 +96,11 @@ SK::ControlPanel::Steam::Draw (void)
         file.blacklisted =
           (config.steam.cloud.blacklist.count (file.filename) != 0);
 
-        files.emplace_back (file);
+        files.emplace_back (std::move (file));
       }
 
       if (files.empty ())
-          files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
+          files.emplace_back ("No Files", "", 0L, 0LL, false);
     }
 
 
@@ -593,7 +593,7 @@ SK_AppCache_Manager::loadDepotCache (DepotId_t steam_depot)
           depot_record.manifest.id   = manifest_id;
           depot_record.manifest.date = SK_WideCharToUTF8 (key.second);
 
-          SK_Steam_DepotManifestRegistry [depot_id].emplace_back (depot_record);
+          SK_Steam_DepotManifestRegistry [depot_id].emplace_back (std::move (depot_record));
         }
       }
 

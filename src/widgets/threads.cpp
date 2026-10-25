@@ -2083,7 +2083,7 @@ public:
                                 hThread__.Detach  ();
 
                               suspended_threads.emplace_back (
-                                suspend_me
+                                std::move (suspend_me)
                               );
                             }
                           }

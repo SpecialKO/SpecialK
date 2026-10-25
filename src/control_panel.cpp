@@ -1041,7 +1041,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
             if (used_refreshes_.emplace (dm_enum.dmDisplayFrequency).second)
             {
               refresh.modes.
-                emplace_back (dm_enum);
+                emplace_back (std::move (dm_enum));
             }
           }
         }
@@ -1068,7 +1068,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
             if (used_resolutions_.emplace (std::make_pair (dm_enum.dmPelsWidth, dm_enum.dmPelsHeight)).second)
             {
               resolution.modes.
-                emplace_back (dm_enum);
+                emplace_back (std::move (dm_enum));
             }
           }
         }
@@ -1088,7 +1088,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           SK_FormatString ( "  %u Hz",
                    it.dmDisplayFrequency );
 
-        if (refreshes.emplace (mode_str).second)
+        if (! refreshes.contains (mode_str))
         {
           if ( dm_now.dmDisplayFrequency
                 == it.dmDisplayFrequency )
@@ -1100,6 +1100,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           refresh.string += '\0';
 
           ++idx;
+
+          refreshes.emplace (std::move (mode_str));
         }
       }
 
@@ -1112,7 +1114,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
                it.dmPelsWidth,
                it.dmPelsHeight );
 
-        if (resolutions.emplace (mode_str).second)
+        if (! resolutions.contains (mode_str))
         {
           if ( it.dmPelsWidth  == dm_now.dmPelsWidth &&
                it.dmPelsHeight == dm_now.dmPelsHeight )
@@ -1129,6 +1131,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           resolution.string += '\0';
 
           ++idx;
+
+          resolutions.emplace (std::move (mode_str));
         }
       }
 
@@ -1690,7 +1694,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           wcsncpy_s (monitor.wszDevice, 32, display.gdi_name, _TRUNCATE);
                      monitor.dm = dm;
 
-          monitors.emplace_back (monitor);
+          monitors.emplace_back (std::move (monitor));
         }
 
         if (! _wcsicmp (display.gdi_name, rb.displays [rb.active_display].gdi_name))
@@ -2682,42 +2686,42 @@ DisplayModeMenu (bool windowed)
         if ( rb.hdr_capable && rb.scanout.nvapi_hdr.active )
         {
           nv_color_encodings.emplace_back (
-            std::make_pair (NV_COLOR_FORMAT_AUTO,   NV_BPC_DEFAULT)
+            NV_COLOR_FORMAT_AUTO,   NV_BPC_DEFAULT
           );
           nv_color_encodings.emplace_back (
-            std::make_pair (NV_COLOR_FORMAT_RGB,    NV_BPC_8)
+            NV_COLOR_FORMAT_RGB,    NV_BPC_8
           );
           nv_color_encodings.emplace_back (
-            std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_8)
+            NV_COLOR_FORMAT_YUV444, NV_BPC_8
           );
           nv_color_encodings.emplace_back (
-            std::make_pair (NV_COLOR_FORMAT_YUV422, NV_BPC_8)
+            NV_COLOR_FORMAT_YUV422, NV_BPC_8
           );
 
           if (rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 & 0x1)
           {
             nv_color_encodings.emplace_back (
-              std::make_pair (NV_COLOR_FORMAT_RGB, NV_BPC_10)
+              NV_COLOR_FORMAT_RGB, NV_BPC_10
             );
             nv_color_encodings.emplace_back (
-              std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_10)
+              NV_COLOR_FORMAT_YUV444, NV_BPC_10
             );
           }
 
           if ( rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit )
           {
             nv_color_encodings.emplace_back (
-              std::make_pair (NV_COLOR_FORMAT_YUV422, NV_BPC_12)
+              NV_COLOR_FORMAT_YUV422, NV_BPC_12
             );
           }
 
           if (rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 & 0x2)
           {
             nv_color_encodings.emplace_back (
-              std::make_pair (NV_COLOR_FORMAT_YUV444, NV_BPC_12)
+              NV_COLOR_FORMAT_YUV444, NV_BPC_12
             );
             nv_color_encodings.emplace_back (
-              std::make_pair (NV_COLOR_FORMAT_RGB,    NV_BPC_12)
+              NV_COLOR_FORMAT_RGB,    NV_BPC_12
             );
           }
         }
@@ -2727,7 +2731,7 @@ DisplayModeMenu (bool windowed)
 #define _ValidateColorCombo(fmt,bpc) \
                (NVAPI_OK == SK_NvAPI_CheckColorSupport_SDR (0, (bpc), (fmt)))
 
-          nv_color_encodings.emplace_back (std::make_pair (NV_COLOR_FORMAT_AUTO, NV_BPC_DEFAULT));
+          nv_color_encodings.emplace_back (NV_COLOR_FORMAT_AUTO, NV_BPC_DEFAULT);
 
           static const
             std::pair <NV_COLOR_FORMAT, NV_BPC>
@@ -2771,8 +2775,7 @@ DisplayModeMenu (bool windowed)
           {
             if (_ValidateColorCombo (test_set.first, test_set.second))
             {
-              nv_color_encodings.emplace_back (
-                               std::make_pair ( test_set.first, test_set.second ) );
+              nv_color_encodings.emplace_back (test_set.first, test_set.second);
             }
           }
         }

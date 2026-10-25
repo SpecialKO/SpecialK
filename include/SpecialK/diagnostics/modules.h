@@ -413,8 +413,7 @@ private:
     }
 
     return
-      _loaded_libraries.try_emplace (hMod,
-                      skWin32Module (hMod, mod_info, wszLibrary)
+      _loaded_libraries.try_emplace (hMod, hMod, mod_info, wszLibrary
       ).second;
   }
 

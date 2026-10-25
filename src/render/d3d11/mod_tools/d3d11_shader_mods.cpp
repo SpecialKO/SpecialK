@@ -794,10 +794,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               {
                 if (render_lifetime.count     (it) == 0)
                 {   render_textures.push_back (it);
-                    render_lifetime.emplace   (
-                               std::make_pair (it,
-                                    lifetime { frames_drawn, 1 })
-                    );
+                    render_lifetime.emplace   (it,
+                                    lifetime { frames_drawn, 1 });
                 }
 
                 else
