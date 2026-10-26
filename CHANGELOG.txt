@@ -1,4 +1,10 @@
-﻿26.10.24
+﻿26.10.25
+========
+ + Removed std::wstring_view variants of iSK_INI and iSK_INISection methods.
+ + Added move constructors to iSK_INI and iSK_INISection.
+ + Disabled exception handling on parts of the INI parser.
+
+26.10.24
 ========
  + Fixed potential use-after-free in iSK_INI::remove_section (...) and
      iSK_INISection::remove_key (...).
