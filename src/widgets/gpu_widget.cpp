@@ -136,34 +136,31 @@ public:
 
       std::vector <std::tuple <sk::iParameter *, void *, std::type_index>> params;
 
-      for (auto& it : prefs)
+      for (const auto& it : prefs)
       {
-        params.push_back ( { it->params.enable,
-                            &it->enable,
-          std::type_index (
-                     typeid (it->params.enable)
-                          )
-                           }
+        params.emplace_back ( it->params.enable,
+                             &it->enable,
+           std::type_index (
+                      typeid (it->params.enable)
+                           )
         );
 
-        params.push_back ( { it->params.max,
-                            &it->max_val,
-          std::type_index (
-                     typeid (it->params.max)
-                          )
-                           }
+        params.emplace_back ( it->params.max,
+                             &it->max_val,
+           std::type_index (
+                      typeid (it->params.max)
+                           )
         );
 
-        params.push_back ( { it->params.min,
-                            &it->min_val,
-          std::type_index (
-                     typeid (it->params.min)
-                          )
-                           }
+        params.emplace_back ( it->params.min,
+                             &it->min_val,
+           std::type_index (
+                      typeid (it->params.min)
+                           )
         );
       }
 
-      for (auto& it : params)
+      for (const auto& it : params)
       {
         const std::type_index tidx ( std::get <2> (it) );
 

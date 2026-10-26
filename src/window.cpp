@@ -9211,16 +9211,12 @@ SK_Win32_BringBackgroundWindowToTop (void)
           if (! dwData)
             return TRUE;
 
-          std::vector <MonitorInfo>* monitors =
+          auto monitors =
             reinterpret_cast <std::vector <MonitorInfo>*> (dwData);
-    
-          MonitorInfo minfo;
-          minfo.x      = lprcMonitor->left;
-          minfo.y      = lprcMonitor->top;
-          minfo.width  = lprcMonitor->right  - lprcMonitor->left;
-          minfo.height = lprcMonitor->bottom - lprcMonitor->top;
 
-          monitors->push_back (minfo);
+          monitors->emplace_back ( lprcMonitor->left, lprcMonitor->top,
+             lprcMonitor->right  - lprcMonitor->left,
+             lprcMonitor->bottom - lprcMonitor->top );
 
           return TRUE;
         };

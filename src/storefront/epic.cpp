@@ -112,7 +112,7 @@ public:
       popup.final_pos   = false;
       popup.achievement = achievement;
 
-      popups.push_back (popup);
+      popups.emplace_back (std::move (popup));
 
       if (platform_popup_cs != nullptr)
           platform_popup_cs->unlock ();

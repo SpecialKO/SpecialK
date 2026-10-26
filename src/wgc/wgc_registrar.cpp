@@ -238,10 +238,9 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
 #ifdef SK_BUILTIN
             SK_LOGi1 (L"Child Key: %ws", child_str.c_str ());
 #endif
-
-            child_key_names.push_back (child_str);
-
             p += child_str.length () + 1;
+
+            child_key_names.emplace_back (std::move (child_str));
           }
         }
       }
@@ -340,9 +339,9 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
               {
                 std::wstring child_str (p);
 
-                children_array.push_back (child_str);
-
                 p += child_str.length () + 1;
+
+                children_array.emplace_back (std::move (child_str));
               }
             }
           }
@@ -350,7 +349,7 @@ SK_WGC_AddGameIfNeeded (const wchar_t* wszExePath)
           // Ensure uniqueness and avoid array duplicates before adding
           if (std::find (children_array.begin (), children_array.end (), childGuid) == children_array.end ())
           {
-            children_array.push_back (childGuid);
+            children_array.emplace_back (std::move (childGuid));
           }
 
           // Reconstruct MultiString structure bytes block (sequences ending with double null bytes)
