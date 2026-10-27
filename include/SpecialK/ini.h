@@ -49,42 +49,47 @@ public:
   }
 
   iSK_INISection ( const wchar_t* section_name,
-                         iSK_INI* _parent ) : name   (section_name != nullptr ?
-                                                      section_name            : L""),
-                                              parent (_parent) { };
+                         iSK_INI* _parent )     : name   (section_name != nullptr ?
+                                                          section_name            : L""),
+                                                  parent (_parent) { };
 
   iSK_INISection ( const std::wstring& sec_name,
                               iSK_INI* _parent ) : name   (sec_name),
                                                    parent (_parent) { };
 
-  iSK_INISection            (const iSK_INISection&)           = default;
-  iSK_INISection& operator= (const iSK_INISection&)           = default;
-  iSK_INISection            (      iSK_INISection&&) noexcept = default;
-  iSK_INISection& operator= (      iSK_INISection&&) noexcept = default;
+  iSK_INISection ( std::wstring_view sec_name,
+                             iSK_INI* _parent ) : name   (sec_name),
+                                                  parent (_parent) { };
 
-  virtual ~iSK_INISection (void) noexcept = default;
+  virtual ~iSK_INISection (void) = default;
 
   /*** IUnknown methods ***/
-  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj)                                  noexcept final;
-  STDMETHOD_ (ULONG, AddRef)        (THIS)                                                              noexcept final;
-  STDMETHOD_ (ULONG, Release)       (THIS)                                                              noexcept final;
+  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
+  STDMETHOD_ (ULONG, AddRef)        (THIS);
+  STDMETHOD_ (ULONG, Release)       (THIS);
 
-  STDMETHOD_ (std::wstring&, get_value)    (const wchar_t* key)                                                  final;
-  STDMETHOD_ (void,          set_name)     (const wchar_t* name_)                                                final;
-  STDMETHOD_ (bool,          contains_key) (const wchar_t* key) const                                            final;
-  STDMETHOD_ (void,          add_key_value)(const wchar_t* key, const wchar_t* value)                            final;
-  STDMETHOD_ (bool,          remove_key)   (const wchar_t* key)                                                  final;
+  STDMETHOD_ (std::wstring&, get_value)    (const wchar_t* key);
+  STDMETHOD_ (void,          set_name)     (const wchar_t* name_);
+  STDMETHOD_ (bool,          contains_key) (const wchar_t* key) const;
+  STDMETHOD_ (void,          add_key_value)(const wchar_t* key, const wchar_t* value);
+  STDMETHOD_ (bool,          remove_key)   (const wchar_t* key);
 
 
   // Private to DLL
-  STDMETHOD_ (std::wstring&, get_value)    (const std::wstring& key)                                    noexcept final;
-  STDMETHOD_ (void,          set_name)     (const std::wstring& name_)                                  noexcept final;
+  STDMETHOD_ (std::wstring&, get_value)    (const std::wstring_view key);
+  STDMETHOD_ (void,          set_name)     (const std::wstring_view name_);
+  STDMETHOD_ (bool,          contains_key) (const std::wstring_view key) const;
+  STDMETHOD_ (void,          add_key_value)(const std::wstring_view key, const std::wstring_view value);
+  STDMETHOD_ (bool,          remove_key)   (const std::wstring_view key);
+
+  STDMETHOD_ (std::wstring&, get_value)    (const std::wstring& key);
+  STDMETHOD_ (void,          set_name)     (const std::wstring& name_);
   STDMETHOD_ (const
-              std::wstring*, contains_key) (const std::wstring& key) const                              noexcept final;
-  STDMETHOD_ (void,          add_key_value)(const std::wstring& key, const std::wstring& value)         noexcept final;
-  STDMETHOD_ (bool,          remove_key)   (const std::wstring& key)                                    noexcept final;
+              std::wstring*, contains_key) (const std::wstring& key) const;
+  STDMETHOD_ (void,          add_key_value)(const std::wstring& key, const std::wstring& value);
+  STDMETHOD_ (bool,          remove_key)   (const std::wstring& key);
   STDMETHOD_ (const
-              std::wstring&, get_cvalue)   (const std::wstring& key) const                              noexcept final;
+              std::wstring&, get_cvalue)   (const std::wstring& key) const;
 
 
   //protected:
@@ -117,45 +122,44 @@ interface iSK_INI : public IUnknown
   };
 
            iSK_INI (const wchar_t* filename);
-  virtual ~iSK_INI (void) noexcept;
-
-  iSK_INI            (const iSK_INI&)           = default;
-  iSK_INI& operator= (const iSK_INI&)           = default;
-  iSK_INI            (      iSK_INI&&) noexcept = default;
-  iSK_INI& operator= (      iSK_INI&&) noexcept = default;
+  virtual ~iSK_INI (void);
 
   /*** IUnknown methods ***/
-  STDMETHOD  (                   QueryInterface)  (THIS_ REFIID riid, void** ppvObj)     noexcept final;
-  STDMETHOD_ (ULONG,             AddRef)          (THIS)                                 noexcept final;
-  STDMETHOD_ (ULONG,             Release)         (THIS)                                 noexcept final;
+  STDMETHOD  (                   QueryInterface)  (THIS_ REFIID riid, void** ppvObj);
+  STDMETHOD_ (ULONG,             AddRef)          (THIS);
+  STDMETHOD_ (ULONG,             Release)         (THIS);
 
-  STDMETHOD_ (void,              parse)           (THIS)                                          final;
-  STDMETHOD_ (void,              import)          (THIS_ const wchar_t* import_data)              final;
-  STDMETHOD_ (void,              write)           (THIS_ const wchar_t* fname = nullptr)          final;
+  STDMETHOD_ (void,              parse)           (THIS);
+  STDMETHOD_ (void,              import)          (THIS_ const wchar_t* import_data);
+  STDMETHOD_ (void,              write)           (THIS_ const wchar_t* fname = nullptr);
 
-  STDMETHOD_ (_TSectionMap&,     get_sections)    (THIS)                                 noexcept final;
-  STDMETHOD_ (iSK_INISection&,   get_section)     (const wchar_t* section)                        final;
-  STDMETHOD_ (bool,              contains_section)(const wchar_t* section)                        final;
-  STDMETHOD_ (bool,              remove_section)  (const wchar_t* section)                        final;
+  STDMETHOD_ (_TSectionMap&,     get_sections)    (THIS);
+  STDMETHOD_ (iSK_INISection&,   get_section)     (const wchar_t* section);
+  STDMETHOD_ (bool,              contains_section)(const wchar_t* section);
+  STDMETHOD_ (bool,              remove_section)  (const wchar_t* section);
 
   STDMETHOD_ (iSK_INISection&,   get_section_f)   ( THIS_ _In_z_ _Printf_format_string_
                                                     wchar_t const* const _Format,
-                                                                       ... )                      final;
-  STDMETHOD_ (const wchar_t*,    get_filename)    (THIS) const                           noexcept final;
-  STDMETHOD_ (bool,              import_file)     (const wchar_t* fname)                          final;
-  STDMETHOD_ (bool,              rename)          (const wchar_t* fname)                 noexcept final;
-  STDMETHOD_ (bool,              reload)          (const wchar_t* fname = nullptr)       noexcept final;
+                                                                       ... );
+  STDMETHOD_ (const wchar_t*,    get_filename)    (THIS) const;
+  STDMETHOD_ (bool,              import_file)     (const wchar_t* fname);
+  STDMETHOD_ (bool,              rename)          (const wchar_t* fname);
+  STDMETHOD_ (bool,              reload)          (const wchar_t* fname = nullptr);
 
-  STDMETHOD_ (CharacterEncoding, get_encoding)    (void) const                           noexcept final;
-  STDMETHOD_ (bool,              set_encoding)    (CharacterEncoding encoding)           noexcept final;
+  STDMETHOD_ (CharacterEncoding, get_encoding)    (void) const;
+  STDMETHOD_ (bool,              set_encoding)    (CharacterEncoding encoding);
 
 
   // Private to DLL
-  STDMETHOD_ (iSK_INISection&,   get_section)     (const std::wstring& section)          noexcept final;
-  STDMETHOD_ (iSK_INISection*,   contains_section)(const std::wstring& section)          noexcept final;
-  STDMETHOD_ (bool,              remove_section)  (const std::wstring& section)          noexcept final;
+  STDMETHOD_ (iSK_INISection&,   get_section)     (const std::wstring_view section);
+  STDMETHOD_ (bool,              contains_section)(const std::wstring_view section);
+  STDMETHOD_ (bool,              remove_section)  (const std::wstring_view section);
 
-  STDMETHOD_ (bool&,             get_allow_empty) (void)                                 noexcept final;
+  STDMETHOD_ (iSK_INISection&,   get_section)     (const std::wstring& section);
+  STDMETHOD_ (iSK_INISection*,   contains_section)(const std::wstring& section);
+  STDMETHOD_ (bool,              remove_section)  (const std::wstring& section);
+
+  STDMETHOD_ (bool&,             get_allow_empty) (void);
 
 protected:
   std::recursive_mutex  lock;

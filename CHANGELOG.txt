@@ -1,4 +1,9 @@
-﻿26.10.26
+﻿26.10.27
+========
+ + Revert INI parser memory optimization because it causes an off-by-one error
+     when importing INI sections from master/default_SpecialK.ini.
+
+26.10.26
 ========
  + Minor optimizations to per-frame input and overlay rendering code.
 

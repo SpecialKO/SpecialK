@@ -119,7 +119,7 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
 }
 
 bool
-iSK_INI::reload (const wchar_t *fname) noexcept
+iSK_INI::reload (const wchar_t *fname)
 {
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -206,7 +206,7 @@ iSK_INI::reload (const wchar_t *fname) noexcept
 
     // First, consider Unicode
     // UTF16-LE  (All is well in the world)
-    if (data [0] == 0xFEFF)
+    if (*data.data () == 0xFEFF)
     {
       bom_size = 1; // Skip the BOM
 
@@ -214,7 +214,7 @@ iSK_INI::reload (const wchar_t *fname) noexcept
     }
 
     // UTF16-BE  (Somehow we are swapped)
-    else if (data [0] == 0xFFFE)
+    else if (*data.data () == 0xFFFE)
     {
       SK_LOG0 ( ( L"Encountered Byte-Swapped Unicode INI "
                   L"file ('%s'), attempting to recover...",
@@ -242,13 +242,14 @@ iSK_INI::reload (const wchar_t *fname) noexcept
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      const bool utf8_bom =
-        (data [0] == 0xEF && data [1] == 0xBB && data [2] == 0xBF);
+      bool utf8_bom = (reinterpret_cast <unsigned char *> (data.data ())) [0] == 0xEF &&
+                      (reinterpret_cast <unsigned char *> (data.data ())) [1] == 0xBB &&
+                      (reinterpret_cast <unsigned char *> (data.data ())) [2] == 0xBF;
 
       const uintptr_t offset =
            utf8_bom ? 3 : 0;
 
-      const int       real_size  =
+      const int       real_size =
         size - sk::narrow_cast <int> (offset);
 
       char*           start_addr =
@@ -366,7 +367,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   this->iSK_INI::reload ();
 }
 
-iSK_INI::~iSK_INI (void) noexcept
+iSK_INI::~iSK_INI (void)
 {
   ULONG refs =
     this->iSK_INI::Release ();
@@ -409,7 +410,7 @@ iSK_INISection&
 Process_Section ( iSK_INISection  &kSection,
                          wchar_t  *start,
                          wchar_t  *end,
-                         SK_TLS  **ppTLS      = nullptr ) noexcept
+                         SK_TLS  **ppTLS      = nullptr )
 {
   if (start == nullptr || end == nullptr)
   {
@@ -496,7 +497,7 @@ bool
 Import_Section ( iSK_INISection  &section,
                         wchar_t  *start,
                         wchar_t  *end,
-                         SK_TLS **ppTLS = nullptr ) noexcept
+                         SK_TLS **ppTLS = nullptr )
 {
   if (start == nullptr || end == nullptr)
     return false;
@@ -583,9 +584,10 @@ Import_Section ( iSK_INISection  &section,
   return true;
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INI::parse (void) noexcept
+iSK_INI::parse (void)
 {
   SK_ReleaseAssert (data.size () > 0);
 
@@ -797,9 +799,10 @@ iSK_INI::parse (void) noexcept
   }
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INI::import (const wchar_t* import_data) noexcept
+iSK_INI::import (const wchar_t* import_data)
 {
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -979,17 +982,36 @@ iSK_INI::import (const wchar_t* import_data) noexcept
   }
 }
 
+__declspec(nothrow)
 std::wstring&
 __stdcall
-iSK_INISection::get_value (const wchar_t* key) noexcept
+iSK_INISection::get_value (const wchar_t* key)
 {
   return
-    get_value (std::wstring (key));
+    get_value (std::wstring_view (key));
 }
 
+__declspec(nothrow)
 std::wstring&
 __stdcall
-iSK_INISection::get_value (const std::wstring& key) noexcept
+iSK_INISection::get_value (const std::wstring_view key)
+{
+  auto it_key =
+    keys.find (key.data ());
+
+  if (it_key != keys.cend ())
+    return (*it_key).second;
+
+  static
+    std::wstring
+         invalid = L"Invalid";
+  return invalid;
+}
+
+__declspec(nothrow)
+std::wstring&
+__stdcall
+iSK_INISection::get_value (const std::wstring& key)
 {
   auto it_key =
     keys.find (key);
@@ -1003,9 +1025,10 @@ iSK_INISection::get_value (const std::wstring& key) noexcept
   return invalid;
 }
 
+__declspec(nothrow)
 const std::wstring&
 __stdcall
-iSK_INISection::get_cvalue (const std::wstring& key) const noexcept
+iSK_INISection::get_cvalue (const std::wstring& key) const
 {
   const auto it_key =
     keys.find (key);
@@ -1019,17 +1042,37 @@ iSK_INISection::get_cvalue (const std::wstring& key) const noexcept
   return invalid;
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INISection::set_name (const wchar_t* name_) noexcept
+iSK_INISection::set_name (const wchar_t* name_)
 {
   return
-    set_name (std::wstring (name_));
+    set_name (std::wstring_view (name_));
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INISection::set_name (const std::wstring& name_) noexcept
+iSK_INISection::set_name (const std::wstring_view name_)
+{
+  if (parent != nullptr)
+  {
+    if (! name_._Equal (name))
+    { parent->crc32_ = 0x0;
+
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.data () ),
+                  L"ConfigMgmt" );
+    }
+  }
+
+  name = name_;
+}
+
+__declspec(nothrow)
+void
+__stdcall
+iSK_INISection::set_name (const std::wstring& name_)
 {
   if (parent != nullptr)
   {
@@ -1044,17 +1087,32 @@ iSK_INISection::set_name (const std::wstring& name_) noexcept
   name = name_;
 }
 
+__declspec(nothrow)
 bool
 __stdcall
-iSK_INISection::contains_key (const wchar_t* key) const noexcept
+iSK_INISection::contains_key (const wchar_t* key) const
 {
   return
-    contains_key (std::wstring (key));
+    contains_key (std::wstring_view (key));
 }
 
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INISection::contains_key (const std::wstring_view key) const
+{
+  const auto _kvp =
+    keys.find (key.data ());
+
+  return
+    (   _kvp != keys.cend  () &&
+     (! _kvp->second.empty () ));
+}
+
+__declspec(nothrow)
 const std::wstring*
 __stdcall
-iSK_INISection::contains_key (const std::wstring& key) const noexcept
+iSK_INISection::contains_key (const std::wstring& key) const
 {
   const auto _kvp =
     keys.find (key);
@@ -1066,18 +1124,56 @@ iSK_INISection::contains_key (const std::wstring& key) const noexcept
   return nullptr;
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value) noexcept
+iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 {
   return
-    add_key_value ( std::wstring (key),
-                    std::wstring (value) );
+    add_key_value ( std::wstring_view (key),
+                    std::wstring_view (value) );
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& value) noexcept
+iSK_INISection::add_key_value (const std::wstring_view key, const std::wstring_view value)
+{
+  const auto add =
+    keys.try_emplace (key.data (), value.data ());
+
+  if (add.second)
+  {
+    ordered_keys.emplace_back (key);
+
+    if (parent != nullptr)
+    {   parent->crc32_ = 0x0;
+
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
+                                                 key.data (), value.data () ),
+                  L"ConfigMgmt" );
+    }
+  }
+
+  else
+  {
+    if (! value._Equal (add.first->second))
+    {
+      // Implicit Flush is not needed
+      //
+      ///if (parent != nullptr)
+      ///    parent->crc32_ = 0x0;
+
+      add.first->second =
+        value;
+    }
+  }
+}
+
+__declspec(nothrow)
+void
+__stdcall
+iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& value)
 {
   const auto add =
     keys.try_emplace (key, value);
@@ -1110,17 +1206,29 @@ iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& valu
   }
 }
 
+__declspec(nothrow)
 bool
 __stdcall
-iSK_INI::contains_section (const wchar_t* section) noexcept
+iSK_INI::contains_section (const wchar_t* section)
 {
   return
-    contains_section (std::wstring (section));
+    contains_section (std::wstring_view (section));
 }
 
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INI::contains_section (const std::wstring_view section)
+{
+  return
+    ( sections.find (section.data ()) !=
+      sections.cend (               ) );
+}
+
+__declspec(nothrow)
 iSK_INISection*
 __stdcall
-iSK_INI::contains_section (const std::wstring& section) noexcept
+iSK_INI::contains_section (const std::wstring& section)
 {
   const auto _sec =
     sections.find (section);
@@ -1131,25 +1239,49 @@ iSK_INI::contains_section (const std::wstring& section) noexcept
   return nullptr;
 }
 
+__declspec(nothrow)
 iSK_INISection&
 __stdcall
-iSK_INI::get_section (const wchar_t* section) noexcept
+iSK_INI::get_section (const wchar_t* section)
 {
   return
-    get_section (std::wstring (section));
+    get_section (std::wstring_view (section));
 }
 
+__declspec(nothrow)
 iSK_INISection&
 __stdcall
-iSK_INI::get_section (const std::wstring& section) noexcept
+iSK_INI::get_section (const std::wstring_view section)
 {
-  bool contained =
-    sections.contains (section);
+  bool try_emplace =
+    ( sections.find (section.data ()) ==
+      sections.cend (    ) );
+
+  iSK_INISection& ret =
+    sections [section.data ()];
+
+  if (try_emplace)
+  {
+                                    ret.name = section;
+    ordered_sections.emplace_back (&ret);
+  }
+
+  return ret;
+}
+
+__declspec(nothrow)
+iSK_INISection&
+__stdcall
+iSK_INI::get_section (const std::wstring& section)
+{
+  bool try_emplace =
+    ( sections.find (section) ==
+      sections.cend (       ) );
 
   iSK_INISection& ret =
     sections [section];
 
-  if (! contained)
+  if (try_emplace)
   {
                                     ret.name = section;
     ordered_sections.emplace_back (&ret);
@@ -1159,11 +1291,12 @@ iSK_INI::get_section (const std::wstring& section) noexcept
 }
 
 
+__declspec(nothrow)
 iSK_INISection&
 __cdecl
 iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
                          wchar_t const* const    _Format,
-                                                 ... ) noexcept
+                                                 ... )
 {
   wchar_t wszFormatted [128] = { };
 
@@ -1195,9 +1328,10 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
   return ret;
 }
 
+__declspec(nothrow)
 void
 __stdcall
-iSK_INI::write (const wchar_t* fname) noexcept
+iSK_INI::write (const wchar_t* fname)
 {
   if (ordered_sections.empty () && !allow_empty)
     return;
@@ -1358,17 +1492,19 @@ iSK_INI::write (const wchar_t* fname) noexcept
 }
 
 
+__declspec(nothrow)
 iSK_INI::_TSectionMap&
 __stdcall
-iSK_INI::get_sections (void) noexcept
+iSK_INI::get_sections (void)
 {
   return sections;
 }
 
 
+__declspec(nothrow)
 HRESULT
 __stdcall
-iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
+iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
   if (ppvObj == nullptr)
     return E_POINTER;
@@ -1385,31 +1521,46 @@ iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
   return E_NOTIMPL;
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
-iSK_INI::AddRef (THIS) noexcept
+iSK_INI::AddRef (THIS)
 {
   return InterlockedIncrement (&refs_);
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
-iSK_INI::Release (THIS) noexcept
+iSK_INI::Release (THIS)
 {
   return InterlockedDecrement (&refs_);
 }
 
+__declspec(nothrow)
 bool
 __stdcall
-iSK_INI::remove_section (const wchar_t* wszSection) noexcept
+iSK_INI::remove_section (const wchar_t* wszSection)
 {
   return
-    remove_section (std::wstring (wszSection));
+    remove_section (std::wstring_view (wszSection));
 }
 
+__declspec(nothrow)
 bool
 __stdcall
-iSK_INI::remove_section (const std::wstring& wszSection) noexcept
+iSK_INI::remove_section (const std::wstring_view wszSection)
+{
+  const std::wstring wstr (wszSection.data ());
+
+  return
+    remove_section (wstr);
+}
+
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INI::remove_section (const std::wstring& wszSection)
 {
   const auto it =
     sections.find (wszSection);
@@ -1431,17 +1582,28 @@ iSK_INI::remove_section (const std::wstring& wszSection) noexcept
   return false;
 }
 
+__declspec(nothrow)
 bool
 __stdcall
-iSK_INISection::remove_key (const wchar_t* wszKey) noexcept
+iSK_INISection::remove_key (const wchar_t* wszKey)
+{
+  return
+    remove_key (std::wstring_view (wszKey));
+}
+
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INISection::remove_key (const std::wstring_view wszKey)
 {
   return
     remove_key (std::wstring (wszKey));
 }
 
+__declspec(nothrow)
 bool
 __stdcall
-iSK_INISection::remove_key (const std::wstring& wszKey) noexcept
+iSK_INISection::remove_key (const std::wstring& wszKey)
 {
   auto it =
     keys.find (wszKey);
@@ -1471,16 +1633,17 @@ iSK_INISection::remove_key (const std::wstring& wszKey) noexcept
 }
 
 bool&
-iSK_INI::get_allow_empty (void) noexcept
+iSK_INI::get_allow_empty (void)
 {
   return
     allow_empty;
 }
 
 
+__declspec(nothrow)
 HRESULT
 __stdcall
-iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
+iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
   if (IsEqualGUID (riid, IID_SK_INISection) != 0)
   {
@@ -1494,16 +1657,18 @@ iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
   return E_NOTIMPL;
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
-iSK_INISection::AddRef (THIS) noexcept
+iSK_INISection::AddRef (THIS)
 {
   return InterlockedIncrement (&refs);
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
-iSK_INISection::Release (THIS) noexcept
+iSK_INISection::Release (THIS)
 {
   ULONG ret = InterlockedDecrement (&refs);
 
@@ -1517,15 +1682,17 @@ iSK_INISection::Release (THIS) noexcept
 }
 
 
+__declspec(nothrow)
 const wchar_t*
-iSK_INI::get_filename (void) const noexcept
+iSK_INI::get_filename (void) const
 {
   return
     name.c_str ();
 }
 
+__declspec(nothrow)
 bool
-iSK_INI::import_file (const wchar_t* fname) noexcept
+iSK_INI::import_file (const wchar_t* fname)
 {
   // Invalid filename
   if (fname == nullptr || *fname == L'\0')
@@ -1546,7 +1713,7 @@ iSK_INI::import_file (const wchar_t* fname) noexcept
   if (fImportINI != nullptr)
   {
     auto size =
-      sk::narrow_cast <unsigned int> (
+      sk::narrow_cast <int> (
         SK_File_GetSize (fname)
       );
 
@@ -1582,7 +1749,7 @@ iSK_INI::import_file (const wchar_t* fname) noexcept
 
       wchar_t* wszSwapMe = wszImportData;
 
-      for (unsigned int i = 0; i < size; i += 2)
+      for (int i = 0; i < size; i += 2)
       {
         unsigned short swapped =
           _byteswap_ushort (*wszSwapMe);
@@ -1600,22 +1767,22 @@ iSK_INI::import_file (const wchar_t* fname) noexcept
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      const bool utf8_bom =
-        (wszImportData [0] == 0xEF && wszImportData [1] == 0xBB && wszImportData [2] == 0xBF);
+      bool utf8_bom =
+        (reinterpret_cast <unsigned char *> (wszImportData)) [0] == 0xEF &&
+        (reinterpret_cast <unsigned char *> (wszImportData)) [1] == 0xBB &&
+        (reinterpret_cast <unsigned char *> (wszImportData)) [2] == 0xBF;
 
       const uintptr_t offset =
            utf8_bom ? 3 : 0;
 
-      const int       real_size  =
+      const int      real_size  =
         size - sk::narrow_cast <int> (offset);
 
-      char*           start_addr =
+      char*          start_addr =
       (reinterpret_cast <char *> (wszImportData)) + offset;
 
-      char*           string =
+      char* string =
         pTLS->scratch_memory->ini.utf8_string.alloc (real_size + 2, true);
-
-       SK_ReleaseAssert (string != nullptr);
 
       if (string == nullptr)
       {
@@ -1627,26 +1794,21 @@ iSK_INI::import_file (const wchar_t* fname) noexcept
         memcpy (string, start_addr, real_size);
       }
 
-      const UINT converted_size =
-        std::max ( 0,
-                     MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED |
-                                                    MB_ERR_INVALID_CHARS,
-                                          string, real_size, nullptr, 0 )
-                 );
+      const int converted_size =
+        MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS,
+                                               string, real_size, nullptr, 0 );
 
-      if (0 == converted_size && ((! utf8_bom) || real_size > 0))
+      if (0 == converted_size)
       {
         SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);
 
-        std::string utf8_fname =
-          SK_StripUserNameFromPathA (
-            SK_WideCharToUTF8 (fname).data ()
-          );
-
-        SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI Encoded "
-                    L".ini file ('%hs') to UTF-16.",
-                                        utf8_fname.c_str () ),
-                    L"INI Parser" );
+        if (real_size > 0)
+        {
+          SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI "
+                      L"Encoded .ini file ('%s') to UTF-16, aborting!",
+                                                               fname ),
+                      L"INI Parser" );
+        }
 
         return false;
       }
@@ -1665,7 +1827,7 @@ iSK_INI::import_file (const wchar_t* fname) noexcept
                                                            string, real_size,
                                                wszImportData, converted_size );
 
-        SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);
+        SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);  
 
         //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
                                       //wszImportName ), L"INI Parser" );
@@ -1684,8 +1846,9 @@ iSK_INI::import_file (const wchar_t* fname) noexcept
   return false;
 }
 
+__declspec(nothrow)
 bool
-iSK_INI::rename (const wchar_t* fname) noexcept
+iSK_INI::rename (const wchar_t* fname)
 {
   if (  fname != nullptr &&
        *fname == L'\0' )
@@ -1703,13 +1866,13 @@ iSK_INI::rename (const wchar_t* fname) noexcept
 }
 
 iSK_INI::CharacterEncoding
-iSK_INI::get_encoding (void) const noexcept
+iSK_INI::get_encoding (void) const
 {
   return encoding_;
 }
 
 bool
-iSK_INI::set_encoding (CharacterEncoding encoding) noexcept
+iSK_INI::set_encoding (CharacterEncoding encoding)
 {
   if ( encoding >= INI_UTF8 &&
        encoding <= INI_UTF8NOBOM )
@@ -1720,6 +1883,8 @@ iSK_INI::set_encoding (CharacterEncoding encoding) noexcept
 
   return false;
 }
+
+
 
 iSK_INI*
 __stdcall
