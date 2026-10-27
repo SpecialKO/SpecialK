@@ -1927,7 +1927,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
           DWORD dwTimeNow =
-            SK_timeGetTime ();
+            SK::ControlPanel::current_time;//SK_timeGetTime ();
 
           static DWORD dwLastCacheTime          =  0;
           static int   dwLastCacheDisplay       = -1;

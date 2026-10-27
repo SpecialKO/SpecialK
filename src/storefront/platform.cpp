@@ -34,8 +34,11 @@ bool SK_Platform_GetOverlayState (bool real)
   static bool   last_state = false;
   static UINT64 last_frame =     0;
 
+  const auto frames_drawn =
+    SK_GetFramesDrawn ();
+
   // Slow your horses! You can have a cached value instead.
-  if (last_frame + 10 > SK_GetFramesDrawn ())
+  if (last_frame + 10 > frames_drawn)
     return last_state;
 
   bool state =
@@ -49,7 +52,7 @@ bool SK_Platform_GetOverlayState (bool real)
   }
 
   last_state = state;
-  last_frame = SK_GetFramesDrawn ();
+  last_frame = frames_drawn;
 
   return state;
 }

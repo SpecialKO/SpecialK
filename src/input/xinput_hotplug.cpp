@@ -88,7 +88,7 @@ SK_XInput_Holding (DWORD dwUserIndex)
 
     if (dwRecheck < 6666UL)
          placeholders [dwUserIndex].setRefreshTime (dwRecheck * 2);
-    else placeholders [dwUserIndex].setRefreshTime (SK_timeGetTime ());
+    else placeholders [dwUserIndex].setRefreshTime (SK::ControlPanel::current_time);
 
     return true;
   }

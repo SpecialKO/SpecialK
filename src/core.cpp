@@ -3971,7 +3971,7 @@ static auto _HandlePlatformOverlayVar = [](void)
 
   if (dismiss)
   {
-    SK_ImGui_DismissNotification ("Platform.Pause");    
+    SK_ImGui_DismissNotification ("Platform.Pause");
   }
 
   SK_RunOnce (
@@ -5532,22 +5532,25 @@ SK_GetStoreOverlayState (bool bReal) noexcept
   static std::atomic_bool     s_LastState = false;
   static std::atomic<ULONG64> s_LastFrame = 0;
 
-  if (s_LastFrame.load () < SK_GetFramesDrawn ())
+  const auto frames_drawn =
+    SK_GetFramesDrawn ();
+
+  if (s_LastFrame.load () < frames_drawn)
   {
     bool ret =
-      SK_Platform_GetOverlayState (bReal) ||
-      SK_ReShadeAddOn_IsOverlayActive ();
+      SK_ReShadeAddOn_IsOverlayActive ( ) ||
+      SK_Platform_GetOverlayState (bReal);
 
     // The Xbox overlay cannot block PlayStation controller input to games,
     //   but Special K can... so if it's open, update gamepad capture state.
     //
-    //  Normally we would want the eopposite behavior, because most overlays
+    //  Normally we would want the opposite behavior, because most overlays
     //    run inside the game process, but Xbox's overlay is external.
     if (ret && SK_Xbox_GetOverlayState (true))
            SK_ImGui_WantGamepadCapture (true);
 
     s_LastState.store (ret);
-    s_LastFrame.store (SK_GetFramesDrawn ());
+    s_LastFrame.store (frames_drawn);
 
     return ret;
   }

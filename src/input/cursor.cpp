@@ -1210,17 +1210,32 @@ GetCursorPos_Detour (LPPOINT lpPoint)
              fixed_return.has_value () )
      return *fixed_return;
 
+  if ((! game_window.isCursorHovering ()) || SK_ImGui_IsMouseRelevant ())
+  {
+    //
+    // Compute delta mouse coordinates for games that use cursor warping (i.e. mouselook)
+    //
+    if (SK_ImGui_WantMouseCapture () || (SK_ImGui_Active () && (! SK_ImGui_CursorWarpingCooledDown ())))
+    {
+      SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
+
+      *lpPoint = s_GameSetCursorPos;
+
+      return TRUE;
+    }
+  }
+
+  BOOL bRet =
+    SK_GetCursorPos (lpPoint);
+
   //
   // Allow games running as a background window with Continue Rendering enabled
   //   to see the real cursor position as long as there is no window on top of it...
   //
-  if (game_window.wantBackgroundRender () && (! SK_IsGameWindowActive ()))
+  if (bRet && game_window.wantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
-    POINT             ptCursor = {};
-    SK_GetCursorPos (&ptCursor);
-
     // Also prevent mouse look from spinning like mad while the cursor is outisde the game window :)
-    if (!SK_ImGui_CursorWarpingCooledDown () || (!PtInRect (&game_window.actual.window, ptCursor)))// || WindowFromPoint (ptCursor) != game_window.hWnd))
+    if ((! SK_ImGui_CursorWarpingCooledDown ()) || (! PtInRect (&game_window.actual.window, *lpPoint)))// || WindowFromPoint (ptCursor) != game_window.hWnd))
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 
@@ -1231,43 +1246,6 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     }
   }
 
-  if (!game_window.isCursorHovering () || SK_ImGui_IsMouseRelevant())
-  {
-    //
-    // Compute delta mouse coordinates for games that use cursor warping (i.e. mouselook)
-    //
-    if (SK_ImGui_WantMouseCapture () || (SK_ImGui_Active () && !SK_ImGui_CursorWarpingCooledDown ()))
-    {
-      SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
-#if 0
-      static POINT lastCapturedPt = s_GameSetCursorPos;
-             POINT currentMousePt;
-      
-      SK_GetCursorPos (&currentMousePt);
-#endif
-      *lpPoint = s_GameSetCursorPos;
-#if 0
-      if (! SK_ImGui_WantMouseCapture())
-      {
-        POINT ptDelta = { currentMousePt.x - lastCapturedPt.x,
-                          currentMousePt.y - lastCapturedPt.y };
-
-        *lpPoint = { s_GameSetCursorPos.x + ptDelta.x,
-                     s_GameSetCursorPos.y + ptDelta.y };
-
-        s_GameSetCursorPos = *lpPoint;
-      }
-
-      lastCapturedPt = currentMousePt;
-#endif
-
-      return TRUE;
-    }
-  }
-
-
-  BOOL bRet =
-    SK_GetCursorPos (lpPoint);
 
   if (bRet)
   {

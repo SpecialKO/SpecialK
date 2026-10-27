@@ -1,4 +1,8 @@
-﻿26.10.25
+﻿26.10.26
+========
+ + Minor optimizations to per-frame input and overlay rendering code.
+
+26.10.25
 ========
  + Removed std::wstring_view variants of iSK_INI and iSK_INISection methods.
  + Added move constructors to iSK_INI and iSK_INISection.
