@@ -1345,7 +1345,7 @@ SK_Inject_SpawnUnloadListener (void)
     if (! InterlockedCompareExchange (&g_sOnce, TRUE, FALSE))
     {
       LONG idx =
-        InterlockedIncrement (&num_hooked_pids);
+        InterlockedIncrement (&num_hooked_pids) - 1;
 
       if (idx < MAX_HOOKED_PROCS)
       {
@@ -1391,15 +1391,17 @@ SK_Inject_SpawnUnloadListener (void)
         SK_CloseHandle    (g_hPacifierThread);
                            g_hPacifierThread = nullptr;
 
+#ifdef USE_WINRT_STUFF
         static SK_AutoHandle hWinRTSuspending (
           SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
         );
 
         static PAPPSTATE_REGISTRATION app_state_cookie = {};
+#endif
 
         const HANDLE
           signals [] =
-          {  hWinRTSuspending,
+          {  //hWinRTSuspending,
                 hHookTeardown,
             __SK_DLL_TeardownEvent };
 
@@ -1407,6 +1409,7 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement (&injected_procs);
 
+#ifdef USE_WINRT_STUFF
           SK_RegisterAppStateChangeNotification ([](BOOLEAN suspending, PVOID)
           {
             if (suspending)
@@ -1417,14 +1420,15 @@ SK_Inject_SpawnUnloadListener (void)
               SK_UnregisterAppStateChangeNotification (app_state_cookie);
             }
           }, nullptr, &app_state_cookie);
+#endif
 
           if (RtlpWaitCouldDeadlock ())
           {
             HMODULE this_module = (HMODULE)
                     ReadPointerAcquire ((void **)&g_hModule_CBT);
             InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
-            SK_FreeLibraryAndExitThread (this_module, 0x0);
             InterlockedDecrement        (&injected_procs);
+            SK_FreeLibraryAndExitThread (this_module, 0x0);
 
             return 0;
           }
@@ -1437,7 +1441,7 @@ SK_Inject_SpawnUnloadListener (void)
                                                dwTimeout );
 
           // Is Process Actively Using Special K (?)
-          if ( dwWaitState      == WAIT_OBJECT_0+1 &&
+          if ( dwWaitState      == WAIT_OBJECT_0 &&
                hModHookInstance != nullptr )
           {
             // Global Injection Shutting Down, SK is -ACTIVE- in this App.
@@ -1446,20 +1450,22 @@ SK_Inject_SpawnUnloadListener (void)
             //
             const HANDLE
               tier2_events [ ] =
-                 { signals [0], signals [2] };
+                 { /*signals [0],*/ signals [1] };
 
             if (! RtlpWaitCouldDeadlock ())
-              WaitForMultipleObjects (2, tier2_events, FALSE, INFINITE);
+              WaitForMultipleObjects (sizeof (tier2_events) / sizeof (HANDLE), tier2_events, FALSE, INFINITE);
           }
 
+#ifdef USE_WINRT_STUFF
           if (dwWaitState != WAIT_TIMEOUT &&
                              WAIT_TIMEOUT != WaitForSingleObject (hWinRTSuspending, 0))
           {
             OutputDebugStringW (L"WinRT Process Suspending... Deploying UWP Parachute!\r\n");
           }
+#endif
 
           hHookTeardown.Close    ();
-          hWinRTSuspending.Close ();
+        //hWinRTSuspending.Close ();
 
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
@@ -1483,16 +1489,24 @@ SK_Inject_SpawnUnloadListener (void)
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                             (LPCWSTR)SK_GetDLL (), &hMod );
 
+      if (g_hPacifierThread != 0)
+      {
+        ResumeThread (g_hPacifierThread);
+      }
+
       if (hMod != nullptr)
       {
         InterlockedExchangePointer ((void **)&g_hModule_CBT, hMod);
-        ResumeThread               (g_hPacifierThread);
       }
 
       else
       {
-        SetEvent                   (hHookTeardown);
-        SK_CloseHandle             (g_hPacifierThread);
+        //SetEvent                   (hHookTeardown);
+      }
+
+      if (g_hPacifierThread != 0)
+      {
+        SK_CloseHandle (std::exchange (g_hPacifierThread, nullptr));
       }
     }
   }

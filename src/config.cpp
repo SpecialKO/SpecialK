@@ -8664,19 +8664,12 @@ SK_AppCache_GetSharedProfileName (const wchar_t* wszPath, bool log_status = fals
 {
   SK_PROFILE_FIRST_CALL
 
+  if (wszPath == nullptr || *wszPath == L'\0')
+    return L"";
+
   static std::wstring                  profile_name {};
-  static std::wstring                  last_path    {};
   static std::mutex                    lock;
   std::scoped_lock <std::mutex> guard (lock);
-
-  if ( std::filesystem::path (  wszPath) ==
-       std::filesystem::path (last_path) && (! profile_name.empty ()) )
-  {
-    return profile_name;
-  }
-
-  profile_name = L"";
-  last_path    = wszPath;
 
   static std::unordered_map <std::wstring, std::wstring> profiles {}; // Lowercase path -> name
   static std::wstring                                    status   {}; // Outcome of reading it
@@ -8744,7 +8737,7 @@ SK_AppCache_GetSharedProfileName (const wchar_t* wszPath, bool log_status = fals
         {
           if (name.is_string ())
             profiles.emplace ( _ToLower (SK_UTF8ToWideChar (path).c_str ()),
-                                         SK_UTF8ToWideChar (name.get <std::string> ()) );
+                           std::wstring (SK_UTF8ToWideChar (name.get <std::string> ()).c_str ()) );
         }
 
         status =
