@@ -102,16 +102,18 @@ SK_ImGui_LoadFonts (void)
     {
       char szFullPath [ MAX_PATH + 2 ] = { };
 
-      if (GetFileAttributesA (            filename.c_str ()) != INVALID_FILE_ATTRIBUTES)
-         strncpy_s (szFullPath, MAX_PATH, filename.c_str (),
+      if (GetFileAttributesW (SK_UTF8ToWideChar (filename).c_str ()) != INVALID_FILE_ATTRIBUTES)
+         strncpy_s (szFullPath, MAX_PATH,        filename .c_str (),
                                _TRUNCATE);
 
       else
       {
-        snprintf (szFullPath, MAX_PATH, R"(%ws\%s)", SK_GetFontsDir ().c_str (), filename.c_str ());
+        snprintf (szFullPath, MAX_PATH, R"(%hs)",(char *)
+          (std::filesystem::path (SK_GetFontsDir ().c_str ()) /
+                     filename.c_str ()).u8string ().c_str ());
 
 
-        if (GetFileAttributesA (szFullPath) == INVALID_FILE_ATTRIBUTES)
+        if (GetFileAttributesW (SK_UTF8ToWideChar (szFullPath).c_str ()) == INVALID_FILE_ATTRIBUTES)
           *szFullPath = '\0';
       }
 
@@ -1508,6 +1510,9 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  if (dwUserIndex > 3)
+      return false;
+  
   bool disable =
     config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled ||
       ( SK_ImGui_WantGamepadCapture () /* &&
@@ -1744,8 +1749,10 @@ bool
 SK_XInput_ValidateStatePointer (XINPUT_STATE *pState)
 {
   __try {
-    pState->dwPacketNumber++;
-    pState->dwPacketNumber--;
+    auto orig =
+      pState->dwPacketNumber;
+      pState->dwPacketNumber = 8;
+      pState->dwPacketNumber = orig;
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)
@@ -1779,11 +1786,11 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
   if ( SK_IsGameWindowActive () )
   {
     bool Alt =
-      (SK_GetAsyncKeyState (VK_MENU)    ) != 0;
+      (SK_GetAsyncKeyState (VK_MENU)    & 0x8000) != 0;
     bool Ctrl =
-      (SK_GetAsyncKeyState (VK_CONTROL) ) != 0;
+      (SK_GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0;
     bool Shift =
-      (SK_GetAsyncKeyState (VK_SHIFT)   ) != 0;
+      (SK_GetAsyncKeyState (VK_SHIFT)   & 0x8000) != 0;
 
     // This code looks strange, but this function is called multiple
     //   times per-frame if games poll more than one gamepad... so
@@ -3235,16 +3242,36 @@ SK_ImGui_KillScreensaver (void)
   static HANDLE hSignalScreensaver =
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
+  // Nothing to wait on, and no way to signal the thread
+  if (hSignalScreensaver == nullptr)
+    return;
+
   static HANDLE hScreensaverTerminator =
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      const HANDLE events [] = {
-        __SK_DLL_TeardownEvent, hSignalScreensaver
-      };
+      // Teardown event may not exist; wait only on the handles we have
+      HANDLE events [2] = { };
+      DWORD  count      = 0;
 
-      while ( WAIT_OBJECT_0 != WaitForMultipleObjects (2, events, FALSE, INFINITE) )
+      if (__SK_DLL_TeardownEvent != nullptr)
+        events [count++] = __SK_DLL_TeardownEvent;
+
+      const DWORD dwSignalIdx = count;
+      events [count++] = hSignalScreensaver;
+
+      for (;;)
       {
-        SK_TerminateProcesses (L"scrnsave.scr", true);
+        const DWORD dwWait =
+          WaitForMultipleObjects (count, events, FALSE, INFINITE);
+
+        if (dwWait == WAIT_OBJECT_0 + dwSignalIdx)
+        {
+          SK_TerminateProcesses (L"scrnsave.scr", true);
+          continue;
+        }
+
+        // Teardown, WAIT_FAILED or WAIT_ABANDONED_*: stop
+        break;
       }
 
       SK_Thread_CloseSelf ();
@@ -3612,6 +3639,7 @@ SK_ImGui_BackupInputThread (LPVOID)
                   keyboard_state, sizeof (BYTE) * 256);
         }
 
+        // TODO: This may collide with ImGui's normal messge loop running on a different thread...
         if (bProcessInput)
         {
           auto& io =
@@ -3858,7 +3886,7 @@ SK_ImGui_UpdateGamepadProcessingEligibility (void) noexcept
         IntersectRect (&rcIntersect, &rectContainer, &rectContained) != FALSE;
     };
 
-    auto windows_above =
+    auto& windows_above =
       GetWindowsAbove (game_window.hWnd);
 
     if (process_input)
@@ -4296,9 +4324,11 @@ SK_ImGui_User_NewFrame (void)
 
     bool  bMouseIsForegroundOrTop = ( hWndForeground == hWndMouse0 ||
                                       hWndForeground == hWndMouse1 );
-                                      
-    if (std::exchange(last_cursor_pos.x,cursor_pos.x) == cursor_pos.x&&
-        std::exchange(last_cursor_pos.y,cursor_pos.y) == cursor_pos.y)
+
+    const bool equal_x = (std::exchange (last_cursor_pos.x,cursor_pos.x) == cursor_pos.x);
+    const bool equal_y = (std::exchange (last_cursor_pos.y,cursor_pos.y) == cursor_pos.y);
+    
+    if (equal_x && equal_y)
     {
       bMouseIsForegroundOrTop = last_fg_or_top;
     }
@@ -4613,7 +4643,7 @@ SK_ImGui_User_NewFrame (void)
         {
         //game_window.active = true;
 
-          SetWindowPos ( game_window.hWnd, GetTopWindow (hWndForeground),
+          SetWindowPos ( game_window.hWnd, hWndForeground,
                            0, 0,
                            0, 0,
                              SWP_NOMOVE | SWP_NOSIZE |

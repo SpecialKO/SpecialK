@@ -1,7 +1,16 @@
-﻿26.10.28.1
+﻿26.10.28.2
+==========
+ + More static analysis cleanup.
+ + Potentially fixed ImGui fonts not loading on systems whose username contains
+     non-Latin characters.
+
+26.10.28.1
 ==========
  + Reduced overhead when SKIF is not running but global injection is active.
  + Various static analysis fixes that hopefully do not break anything.
+ + ASI files will no longer be located if they are in a subdirectory of SK's
+     profile for the specific game; recursive searching is too slow in profiles
+       with many screenshots.
 
 26.10.28
 ========
