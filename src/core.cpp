@@ -55,6 +55,7 @@
 #include <SpecialK/commands/update.inl>
 #include <imgui/font_awesome.h>
 
+#include <cwctype>
 #include <filesystem>
 #include <json/json.hpp>
 
@@ -227,7 +228,8 @@ SK_StartPerfMonThreads (void)
         SK_Thread_CreateEx ( pThunk )
       );
 
-      if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
+      if ( ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE &&
+           ReadPointerAcquire (phThread) != 0 )
       {
         dll_log->LogEx (false, L"tid=0x%04x\n",
                           GetThreadId (ReadPointerAcquire (phThread)));
@@ -539,7 +541,7 @@ void SK_FetchBuiltinSounds (bool strict_integrity_check)
           const std::wstring_view       file ) -> bool
       {
         std::filesystem::path
-                    full_path (file.data ());
+                    full_path (file);
 
         if ( FILE *fPackedSounds = _wfopen (full_path.c_str (), L"wb") ;
                    fPackedSounds != nullptr )
@@ -1439,13 +1441,13 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
 
     wchar_t wszFoundFile      [MAX_PATH + 2] = { };
     wchar_t wszFoundFileLower [MAX_PATH + 2] = { };
-    wchar_t wszFoundExtension [     16     ] = { };
+    wchar_t wszFoundExtension [MAX_PATH + 2] = { };
 
     if ( _wsplitpath_s (
            fd.cFileName, nullptr, 0,
                          nullptr, 0,
-                         wszFoundFile, MAX_PATH,
-                         wszFoundExtension, 16
+                         wszFoundFile,      MAX_PATH,
+                         wszFoundExtension, MAX_PATH
                        ) != 0
        )
     {
@@ -1562,7 +1564,7 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
   else
   {
     dll_log->Log ( L"No Such File [%ws] Exists",
-                   SK_ConcealUserDir (std::wstring (*matches.begin ()).data ()) );
+                   SK_ConcealUserDir (std::wstring (wszFile).data ()) );
   }
 
   return matches.empty () ?
@@ -1990,7 +1992,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           const DWORD dwCount =
             SuspendThread (    delay_params.parent );
 
-          if ( dwCount > 0 &&
+          if ( dwCount >= 0 &&
                dwCount < MAXIMUM_SUSPEND_COUNT )
           {
             if ( GetThreadContext (
@@ -2425,61 +2427,70 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       using namespace std::filesystem;
 
-      std::error_code                                                ec;
-      directory_iterator           working_dir (wszWorkDir,          ec);
-      recursive_directory_iterator profile_dir (SK_GetConfigPath (), ec);
-      
-      std::vector <directory_entry>        files;
-      for (const auto& file : working_dir) files.emplace_back (file);
-      for (const auto& file : profile_dir) files.emplace_back (file);
-      for (const auto& file :              files )
-      {
-        const auto& path =
-               file.path ();
+      std::error_code                                      ec;
+      directory_iterator working_dir (wszWorkDir,          ec);
+      directory_iterator profile_dir (SK_GetConfigPath (), ec);
 
-        if (          file.is_regular_file (ec) &&
-           !_wcsicmp (path.extension ().c_str (), L".asi"))
+      try {
+        std::vector <directory_entry>        files;
+        for (const auto& file : working_dir) files.emplace_back (file);
+        for (const auto& file : profile_dir) files.emplace_back (file);
+        for (const auto& file :              files )
         {
-          const auto& path_filename = path.filename ();
+          const auto& path =
+                 file.path ();
 
-          // It's already loaded...
-          if (GetModuleHandleW (path_filename.c_str ()))
-            continue;
-
-          const auto filename      = path_filename.wstring  ();
-          const auto filename_utf8 = path_filename.u8string ();
-
-          dll_log->LogEx (
-            true, L"[ SpecialK ]  * Loading Early ASI PlugIn: '%ws' from '%ws' ... ",
-              filename.c_str (),
-            SK_StripUserNameFromPathW (path.parent_path ().wstring ().data ())
-          );
-
-          const HMODULE hModASI =
-            SK_Modules->LoadLibraryLL (
-             path.wstring ().c_str () );
-
-          if (hModASI != skModuleRegistry::INVALID_MODULE)
+          if (          file.is_regular_file (ec) &&
+             !_wcsicmp (path.extension ().c_str (), L".asi"))
           {
-            dll_log->LogEx (false, L"success!\n");
+            const auto& path_filename = path.filename ();
 
-            SK_ImGui_CreateNotification (
-              "PlugIn.Load", SK_ImGui_Toast::Success,
-                (const char *)filename_utf8.c_str (),
-                        "Special K ASI Plug-In Loaded",
-                          5000, SK_ImGui_Toast::UseDuration |
-                                SK_ImGui_Toast::ShowCaption |
-                                SK_ImGui_Toast::ShowTitle );
-          }
-          
-          else
-          {
-            _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+            // It's already loaded...
+            if (GetModuleHandleW (path_filename.c_str ()))
+              continue;
 
-            dll_log->LogEx (false, L"failed: 0x%04X (%s)!\n",
-                            err.WCode (), err.ErrorMessage () );
+            const auto filename      = path_filename.wstring  ();
+            const auto filename_utf8 = path_filename.u8string ();
+
+            dll_log->LogEx (
+              true, L"[ SpecialK ]  * Loading Early ASI PlugIn: '%ws' from '%ws' ... ",
+                filename.c_str (),
+              SK_StripUserNameFromPathW (path.parent_path ().wstring ().data ())
+            );
+
+            const HMODULE hModASI =
+              SK_Modules->LoadLibraryLL (
+               path.wstring ().c_str () );
+
+            if (hModASI != skModuleRegistry::INVALID_MODULE)
+            {
+              dll_log->LogEx (false, L"success!\n");
+
+              SK_ImGui_CreateNotification (
+                "PlugIn.Load", SK_ImGui_Toast::Success,
+                  (const char *)filename_utf8.c_str (),
+                          "Special K ASI Plug-In Loaded",
+                            5000, SK_ImGui_Toast::UseDuration |
+                                  SK_ImGui_Toast::ShowCaption |
+                                  SK_ImGui_Toast::ShowTitle );
+            }
+            
+            else
+            {
+              _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+
+              dll_log->LogEx (false, L"failed: 0x%04X (%s)!\n",
+                              err.WCode (), err.ErrorMessage () );
+            }
           }
         }
+      }
+
+      catch (std::exception& e)
+      {
+        SK_LOGi0 (
+          L"Caught exception while scanning ASI modules to load... %ws", e.what ()
+        );
       }
     };
 
@@ -2602,6 +2613,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       }
       if (! bEnable) SK_DisableApplyQueuedHooks ();
     }
+
+    static std::mutex       we_only_need_one_thread;
+    std::scoped_lock _lock (we_only_need_one_thread);
 
     InterlockedExchangePointer (
       const_cast <void **> (&hInitThread),
@@ -2979,6 +2993,7 @@ SK_Inject_PostHeartbeatToSKIF (void)
       if (dwLastWindowCheck < SK_timeGetTime () - 1250)
       {
         hWndSKIF = nullptr;
+        dwLastWindowCheck = SK_timeGetTime ();
       }
 
       else
@@ -3555,7 +3570,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       {
         SK_Thread_SetCurrentPriority (config.priority.minimum_render_prio);
 
-        _last_priority = priority;
+        _last_priority = config.priority.minimum_render_prio;
       }
 
       // This is going to fail on Steam Deck EVERY time, so limit the number of attempts...
@@ -3582,12 +3597,14 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                   _16BitHDR = false,
                        _SDR = true;
 
-      if (  __SK_HDR_16BitSwap != _16BitHDR ||
-            __SK_HDR_10BitSwap != _10BitHDR ||
-          !(__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) != _SDR )
+      if ( (  __SK_HDR_16BitSwap != _16BitHDR ||
+              __SK_HDR_10BitSwap != _10BitHDR ||
+            !(__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) != _SDR ) &&
+              __SK_HDR_UserForced )
       {
-        if (SK_ComQIPtr <IDXGISwapChain3> pSwapChain3 (rb.swapchain);
-                                          pSwapChain3 != nullptr && __SK_HDR_UserForced)
+        if (
+            SK_ComQIPtr <IDXGISwapChain3> pSwapChain3 (rb.swapchain);
+                                          pSwapChain3 != nullptr)
         {
           if (
             SUCCEEDED (
@@ -4213,7 +4230,7 @@ SK_Input_PollKeyboard (void)
 
   static bool toggle_drag = false;
 
-  static const auto& io =
+  const auto& io =
     ImGui::GetIO ();
 
   if ( io.KeysDown [VK_CONTROL] &&
@@ -5575,7 +5592,7 @@ SK_Platform_RemoveTrademarkSymbols (const std::wstring& name)
   out.erase (
     std::find_if ( out.rbegin (),
                    out.  rend (),
-      std::not_fn ( static_cast <int (*)(int)> (std::isspace) )
+      std::not_fn ( static_cast <int (*)(wint_t)> (std::iswspace) )
                  ).base (),
                 out.end () );
 

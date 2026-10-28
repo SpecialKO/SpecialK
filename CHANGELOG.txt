@@ -1,4 +1,9 @@
-﻿26.10.28
+﻿26.10.28.1
+==========
+ + Reduced overhead when SKIF is not running but global injection is active.
+ + Various static analysis fixes that hopefully do not break anything.
+
+26.10.28
 ========
  + Added profile name resolution using Profiles\AppCache\ProfileNames.json to
      handle sandboxed games that cannot access the user's registry where these
