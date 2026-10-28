@@ -97,7 +97,7 @@ public:
   std::wstring                                    name;
   std::unordered_map <std::wstring, std::wstring> keys;
   std::vector        <std::wstring>               ordered_keys;
-  iSK_INI*                                        parent;
+  iSK_INI*                                        parent = nullptr;
 
   ULONG                                           refs = 0;
 };

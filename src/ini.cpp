@@ -90,7 +90,7 @@ ErrorMessage (errno_t        err,
   return wszFormattedError;
 }
 
-#define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) == nullptr) \
+#define TRY_FILE_IO(x,y,z) { (z) = x; if ((z) == nullptr) \
 SK_LOG0 ( ( L"%ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str () ), \
             L" SpecialK " ); }
 
@@ -107,7 +107,7 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
                               FILE_ATTRIBUTE_NORMAL, nullptr )
   );
 
-  if (hFile.m_h != 0)
+  if (hFile.isValid ())
   {
     FILETIME                   ftCreation,  ftAccess;
 
@@ -138,7 +138,7 @@ iSK_INI::reload (const wchar_t *fname)
   if (! PathFileExistsW (fname))
     return false;
 
-  if (file_watch == nullptr)
+  if (file_watch == nullptr || file_watch == INVALID_HANDLE_VALUE)
   {
     wchar_t     wszDirName [MAX_PATH] = { };
     wcsncpy_s ( wszDirName, MAX_PATH,
@@ -156,7 +156,7 @@ iSK_INI::reload (const wchar_t *fname)
   {
     alignas (8) FILETIME    ftLastWrite =    file_stamp;
     if (SK_File_GetModificationTime (fname, &file_stamp) &&
-          CompareFileTime (&ftLastWrite,    &file_stamp) <= 0)
+          CompareFileTime (&ftLastWrite,    &file_stamp) == 0)
     {
       flushed_ = file_stamp;
 
@@ -311,8 +311,10 @@ iSK_INI::reload (const wchar_t *fname)
         return false;
       }
 
-      if (data.size () < converted_size + 3)
+      if (data.size () < converted_size + 3) {
           data.resize   (converted_size + 3);
+          data          [converted_size] = L'\0';
+      }
 
       SK_ReleaseAssert (data.size () > 0);
 
@@ -741,8 +743,10 @@ iSK_INI::parse (void)
                               &pTLS );
 
         ordered_sections.emplace_back (
-               &sections.emplace      (section.name,
-                                       section).first->second
+               &sections.emplace      (
+                                        section.name,
+                             std::move (section)
+                                      ).first->second
                                       );
       }
 
@@ -1253,20 +1257,23 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const std::wstring_view section)
 {
-  bool try_emplace =
-    ( sections.find (section.data ()) ==
-      sections.cend (    ) );
-
-  iSK_INISection& ret =
-    sections [section.data ()];
-
-  if (try_emplace)
+  if (section.empty ())
   {
-                                    ret.name = section;
-    ordered_sections.emplace_back (&ret);
+    static iSK_INISection invalid_section = {};
+    return                invalid_section;
   }
 
-  return ret;
+  auto emplaced =
+    sections.try_emplace (section.data (), iSK_INISection {});
+
+  if (emplaced.second)
+  {
+    sections                                 [section.data ()].name = section;
+    ordered_sections.emplace_back (&sections [section.data ()]);
+  }
+
+  return
+    sections [section.data ()];
 }
 
 __declspec(nothrow)
@@ -1274,20 +1281,23 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const std::wstring& section)
 {
-  bool try_emplace =
-    ( sections.find (section) ==
-      sections.cend (       ) );
-
-  iSK_INISection& ret =
-    sections [section];
-
-  if (try_emplace)
+  if (section.empty ())
   {
-                                    ret.name = section;
-    ordered_sections.emplace_back (&ret);
+    static iSK_INISection invalid_section = {};
+    return                invalid_section;
   }
 
-  return ret;
+  auto emplaced =
+    sections.try_emplace (section.data (), iSK_INISection {});
+
+  if (emplaced.second)
+  {
+    sections                                 [section.data ()].name = section;
+    ordered_sections.emplace_back (&sections [section.data ()]);
+  }
+
+  return
+    sections [section.data ()];
 }
 
 
@@ -1312,20 +1322,23 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
   }
   va_end   (_ArgList);
 
-  bool try_emplace =
-    ( sections.find (wszFormatted) ==
-      sections.cend (            ) );
-
-  iSK_INISection& ret =
-    sections [wszFormatted];
-
-  if (try_emplace)
+  if (wszFormatted [0] == L'\0')
   {
-                                    ret.name = wszFormatted;
-    ordered_sections.emplace_back (&ret);
+    static iSK_INISection invalid_section = {};
+    return                invalid_section;
   }
 
-  return ret;
+  auto emplaced =
+    sections.try_emplace (wszFormatted, iSK_INISection {});
+
+  if (emplaced.second)
+  {
+    sections                                 [wszFormatted].name = wszFormatted;
+    ordered_sections.emplace_back (&sections [wszFormatted]);
+  }
+
+  return
+    sections [wszFormatted];
 }
 
 __declspec(nothrow)
@@ -1728,7 +1741,6 @@ iSK_INI::import_file (const wchar_t* fname)
 
     fread  (wszImportData, size, 1, fImportINI);
 
-    fflush (fImportINI);
     fclose (fImportINI);
             fImportINI = nullptr;
 
@@ -1850,8 +1862,7 @@ __declspec(nothrow)
 bool
 iSK_INI::rename (const wchar_t* fname)
 {
-  if (  fname != nullptr &&
-       *fname == L'\0' )
+  if (fname != nullptr)
   {
     name = fname;
 
