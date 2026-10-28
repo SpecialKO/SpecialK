@@ -2644,21 +2644,16 @@ SK::Framerate::Limiter::wait (void) noexcept
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
       //     spinning, because the OS scheduler is not accurate enough.
+      const double dDelayMs =
+        std::max ( 0.0,
+          std::min ( to_next_in_secs * 1000.0 - timer_res_ms * fSwapWaitRatio,
+                     to_next_in_secs * 1000.0 * fSwapWaitFract ) );
+
+      // Negative = relative due time, in 100 ns units
       LARGE_INTEGER
         liDelay
           { .QuadPart =
-              std::min (
-                static_cast <LONGLONG> (
-                  to_next_in_secs * 1000.0 - timer_res_ms * fSwapWaitRatio
-                                       ),
-                static_cast <LONGLONG> (
-                  to_next_in_secs * 1000.0 * fSwapWaitFract
-                                       )
-                       )
-          };
-
-        liDelay.QuadPart =
-      -(liDelay.QuadPart * 10000LL);
+              -static_cast <LONGLONG> (dDelayMs * 10000.0) };
 
       // Check if the next frame is sooner than waitable timer resolution before
       //   rescheduling this thread.
@@ -5031,21 +5026,16 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer) noexcept
     // Schedule the wait period just shy of the timer resolution determined
     //   by NtQueryTimerResolution (...). Excess wait time will be handled by
     //     spinning, because the OS scheduler is not accurate enough.
+    const double dDelayMs =
+      std::max ( 0.0,
+        std::min ( to_next_in_secs * 1000.0 - SK::Framerate::Limiter::timer_res_ms * fSwapWaitRatio,
+                   to_next_in_secs * 1000.0 * fSwapWaitFract ) );
+
+    // Negative = relative due time, in 100 ns units
     LARGE_INTEGER
       liDelay
         { .QuadPart =
-            std::min (
-              static_cast <LONGLONG> (
-                to_next_in_secs * 1000.0 - SK::Framerate::Limiter::timer_res_ms * fSwapWaitRatio
-                                     ),
-              static_cast <LONGLONG> (
-                to_next_in_secs * 1000.0 * fSwapWaitFract
-                                     )
-                     )
-        };
-
-      liDelay.QuadPart =
-    -(liDelay.QuadPart * 10000LL);
+            -static_cast <LONGLONG> (dDelayMs * 10000.0) };
 
     // Check if the next frame is sooner than waitable timer resolution before
     //   rescheduling this thread.

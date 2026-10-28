@@ -3,6 +3,7 @@
  + More static analysis cleanup.
  + Potentially fixed ImGui fonts not loading on systems whose username contains
      non-Latin characters.
+ + Tweaked framerate limiter timing code for greater precision.
 
 26.10.28.1
 ==========
