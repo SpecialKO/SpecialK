@@ -1,4 +1,10 @@
-﻿26.10.27
+﻿26.10.28
+========
+ + Added profile name resolution using Profiles\AppCache\ProfileNames.json to
+     handle sandboxed games that cannot access the user's registry where these
+       executable path -> profile name mappings are normally stored.
+
+26.10.27
 ========
  + Revert INI parser memory optimization because it causes an off-by-one error
      when importing INI sections from master/default_SpecialK.ini.
