@@ -4021,26 +4021,12 @@ SK_RenderBackend_V2::decodeEDIDForVRRCaps (uint8_t* edid, size_t length) const
                     }
                   }
                   default:
-                  {
-                    if (config.system.log_level > 0)
-                    {
-                      SK_ImGui_Warning (
-                        SK_FormatStringW (L"OUI: %x", oui).c_str ()
-                      );
-                    }
-                  } break;
+                    break;
                 }
               } break;
 
               default:
-              {
-                if (config.system.log_level > 0)
-                {
-                  SK_ImGui_Warning (
-                    SK_FormatStringW (L"Other CTAv3 Tag: %d", tag).c_str ()
-                  );
-                }
-              } break;
+                break;
             }
           }
         }
