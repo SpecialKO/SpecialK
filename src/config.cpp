@@ -8720,27 +8720,35 @@ SK_AppCache_GetSharedProfileName (const wchar_t* wszPath, bool log_status = fals
 
         CloseHandle (hFile);
 
-        nlohmann::json json =
-          nlohmann::json::parse (data, nullptr, false);
-
-        if (json.is_discarded () || ! json.is_object () || ! json.contains ("profiles") || ! json ["profiles"].is_object ())
-          status = SK_FormatStringW (L"Could not parse %ws (%zu bytes read)", file.c_str (), data.size ());
-
-        else
+        try
         {
-          for (const auto& [path, name] : json ["profiles"].items ())
-          {
-            // SK_UTF8ToWideChar pads its result with trailing nulls; keep only the text up to the first one
-            if (name.is_string ())
-              profiles.emplace ( _ToLower (SK_UTF8ToWideChar (path).c_str ()),
-                                std::wstring (SK_UTF8ToWideChar (name.get <std::string> ()).c_str ()) );
-          }
+          nlohmann::json json =
+            nlohmann::json::parse (data, nullptr, false);
 
-          status = SK_FormatStringW (L"Read %zu shared profile names from %ws", profiles.size (), file.c_str ());
+          if (json.is_discarded () || ! json.is_object () || ! json.contains ("profiles") || ! json ["profiles"].is_object ())
+            status = SK_FormatStringW (L"Could not parse %ws (%zu bytes read)", file.c_str (), data.size ());
+
+          else
+          {
+            for (const auto& [path, name] : json ["profiles"].items ())
+            {
+              // SK_UTF8ToWideChar pads its result with trailing nulls; keep only the text up to the first one
+              if (name.is_string ())
+                profiles.emplace (    _ToLower (SK_UTF8ToWideChar (path).c_str ()),
+                                  std::wstring (SK_UTF8ToWideChar (name.get <std::string> ()).c_str ()) );
+            }
+
+            status = SK_FormatStringW (L"Read %zu shared profile names from %ws", profiles.size (), file.c_str ());
+          }
+        }
+        catch (const std::exception& e)
+        {
+          status =
+            SK_FormatStringW (L"Exception thrown when trying to parse %ws: %s", file.c_str (), e.what ());
         }
       }
 
-      OutputDebugStringW ((L"[Special K] [ AppCache ] " + status + L"\n").c_str ());
+      //OutputDebugStringW ((L"[Special K] [ AppCache ] " + status + L"\n").c_str ());
       SK_LOGs0 (L" AppCache ", L"%ws", status.c_str ());
     }
   }
