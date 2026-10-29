@@ -3189,7 +3189,7 @@ SK_SetWindowLongPtrA (
   _In_ LONG_PTR dwNewLong )
 {
   auto dwOldLong =
-    GetWindowLongPtrA_Original (hWnd, nIndex);
+    SK_GetWindowLongPtrA (hWnd, nIndex);
 
   if (nIndex == GWLP_WNDPROC)
   {
@@ -3308,7 +3308,7 @@ SK_SetWindowLongPtrW (
   _In_ LONG_PTR dwNewLong )
 {
   auto dwOldLong =
-    GetWindowLongPtrW_Original (hWnd, nIndex);
+    SK_GetWindowLongPtrW (hWnd, nIndex);
 
   if (nIndex == GWLP_WNDPROC)
   {
