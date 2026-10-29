@@ -1,4 +1,8 @@
-﻿26.10.29.2
+﻿26.10.29.3
+==========
+ + Fixed the same thing as 26.10.29.2, but for wrapped SwapChains.
+
+26.10.29.2
 ==========
  + Fixed crash that could occur if a game passes nullptr to
      IDXGISwapChain4::SetHDRMetadata (...).
