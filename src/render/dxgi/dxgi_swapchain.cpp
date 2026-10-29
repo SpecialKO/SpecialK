@@ -1077,7 +1077,8 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                    SK_DXGI_FormatToStr (NewFormat).data () );
     }
 
-    _last_requested_format = NewFormat;
+    if (NewFormat != DXGI_FORMAT_UNKNOWN)
+      _last_requested_format = NewFormat;
 
     state_cache._stalebuffers = false;
 
@@ -1186,7 +1187,8 @@ IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
                    SK_DXGI_FormatToStr (pNewTargetParameters->Format).data () );
     }
 
-    _last_requested_format = pNewTargetParameters->Format;
+    if (pNewTargetParameters->Format != DXGI_FORMAT_UNKNOWN)
+      _last_requested_format = pNewTargetParameters->Format;
   }
 
   return hr;
