@@ -1466,7 +1466,7 @@ ActivateWindow ( HWND hWnd,
         rb.requestFullscreenMode (true);
       }
 
-      DWORD                                                    dwProcess;
+      DWORD                                                    dwProcess = 0;
       SK_GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwProcess);
 
       if (dwProcess != GetCurrentProcessId ())
@@ -3188,6 +3188,9 @@ SK_SetWindowLongPtrA (
   _In_ int      nIndex,
   _In_ LONG_PTR dwNewLong )
 {
+  auto dwOldLong =
+    GetWindowLongPtrA_Original (hWnd, nIndex);
+
   if (nIndex == GWLP_WNDPROC)
   {
     if (SetWindowLongPtrA_Original != nullptr)
@@ -3276,7 +3279,7 @@ SK_SetWindowLongPtrA (
   }
 
   return
-    dwNewLong;
+    dwOldLong;
 }
 
 LONG_PTR
@@ -3304,6 +3307,9 @@ SK_SetWindowLongPtrW (
   _In_ int      nIndex,
   _In_ LONG_PTR dwNewLong )
 {
+  auto dwOldLong =
+    GetWindowLongPtrW_Original (hWnd, nIndex);
+
   if (nIndex == GWLP_WNDPROC)
   {
     if (SetWindowLongPtrW_Original != nullptr)
@@ -3394,7 +3400,7 @@ SK_SetWindowLongPtrW (
   }
 
   return
-    dwNewLong;
+    dwOldLong;
 }
 
 DECLSPEC_NOINLINE
@@ -4565,10 +4571,10 @@ SK_AdjustWindow (void)
 
       if (((! nomove) && (window_rect.left != game_window.actual.window.left  ||
                           window_rect.top  != game_window.actual.window.top)) ||
-          ((! nosize) && ((              window_rect.right -               window_rect.left  ) !=
-                          (game_window.actual.window.right - game_window.actual.window.left  ))||
-                          (              window_rect.top   -               window_rect.bottom) !=
-                          (game_window.actual.window.top   - game_window.actual.window.bottom)))
+         (((! nosize) && ((              window_rect.right -               window_rect.left  ) !=
+                          (game_window.actual.window.right - game_window.actual.window.left  )))||
+          ((! nosize) && ((              window_rect.top   -               window_rect.bottom) !=
+                          (game_window.actual.window.top   - game_window.actual.window.bottom)))))
       {
         // Yes, so apply the new dimensions
         SK_SetWindowPos ( game_window.hWnd,
@@ -4691,7 +4697,7 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
 
     // DXGI checks on this during SwapChain creation...
     //   lie to DXGI if we have to, so that SwapChain creation succeeds.
-    if (SK_IsCallingDLL (hModSystemDXGI))
+    if (SK_IsModuleInCallstack (hModSystemDXGI))
     {
       pwi->dwExStyle &= ~WS_EX_TOPMOST;
 
@@ -4829,9 +4835,6 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
       case WM_CHAR:
       case WM_MENUCHAR:
       {
-        if (lpMsg->message == WM_MENUCHAR)
-          return MAKEWPARAM (0, MNC_CLOSE);
-
         return TRUE;
       } break;
     }
@@ -5196,7 +5199,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, uiMask & ~QS_PAINT, MWMO_INPUTAVAILABLE );
+                                      INFINITE, uiMask /*& ~QS_PAINT*/, 0x0 );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
@@ -5275,7 +5278,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, uiMask & ~QS_PAINT, MWMO_INPUTAVAILABLE );
+                                      INFINITE, uiMask /*& ~QS_PAINT*/, 0x0 );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
@@ -7393,13 +7396,6 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
       (! StrStrIW (pWindowClass->lpszClassName, L"qtopengltest")))
     return false;
 
-  if (! dummy_window)
-  {
-    // If it starts life minimized, we don't care about it...
-    return
-      (pWindowClass->style & WS_ICONIC);
-  }
-
   return
     dummy_window;
 }
@@ -7930,8 +7926,8 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
 
   if ( SetWindowDisplayAffinity_Original != nullptr)
-       SetWindowDisplayAffinity_Original (game_window.hWnd, WDA_NONE);
-  else SetWindowDisplayAffinity          (game_window.hWnd, WDA_NONE);
+       SetWindowDisplayAffinity_Original (hWnd, WDA_NONE);
+  else SetWindowDisplayAffinity          (hWnd, WDA_NONE);
 
   dll_log->Log ( L"[Window Mgr] Hooking the Window Procedure for "
                  L"%s Window Class ('%s' - \"%s\" * %x)",
@@ -8072,7 +8068,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
     const bool bLibDualSense =
       SK_IsModuleLoaded (L"lib_dualsense_win.dll") ||
-      SK_LoadLibraryW   (L"AkSoundEngine.dll");
+      SK_IsModuleLoaded (L"AkSoundEngine.dll");
 
     // Game supports native haptics, and spoofing controller ID would
     //   result in no haptics.
@@ -8160,11 +8156,14 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     auto *pRecord =
       SK_Inject_GetRecord (GetCurrentProcessId ());
 
-    wcsncpy (pRecord->process.win_title, wszTitle, 127);
-
-    SK_Inject_AuditRecord ( pRecord->process.id,
-                            pRecord,
-                   sizeof (*pRecord) );
+    if (pRecord != nullptr)
+    {
+      wcsncpy (pRecord->process.win_title, wszTitle, 128);
+  
+      SK_Inject_AuditRecord ( pRecord->process.id,
+                              pRecord,
+                     sizeof (*pRecord) );
+    }
   }
 }
 
@@ -9077,17 +9076,26 @@ SK_SetWindowPos ( HWND hWnd,
 
 HWND SK_Win32_BackgroundHWND = HWND_DESKTOP;
 
+// Private to SK_BackgroundWindow's class; DestroyWindow (...) only works on the
+//   window's own thread, so other threads must ask that thread to do it.
+static constexpr UINT SK_WM_DESTROY_BACKGROUND_WINDOW = WM_APP + 0x5B;
+
 void
 SK_Win32_DestroyBackgroundWindow (void)
 {
-  if (SK_Win32_BackgroundHWND != HWND_DESKTOP)
-  {
-    if (   IsWindow (SK_Win32_BackgroundHWND)) {
-         ShowWindow (SK_Win32_BackgroundHWND, SW_FORCEMINIMIZE);
-      DestroyWindow (SK_Win32_BackgroundHWND);
-    }
+  HWND hWndBackground = (HWND)
+    InterlockedExchangePointer ((PVOID *)&SK_Win32_BackgroundHWND, HWND_DESKTOP);
 
-    SK_Win32_BackgroundHWND = HWND_DESKTOP;
+  if (hWndBackground != HWND_DESKTOP && IsWindow (hWndBackground))
+  {
+    if (GetWindowThreadProcessId (hWndBackground, nullptr) == GetCurrentThreadId ())
+      DestroyWindow (hWndBackground);
+
+    else
+    {
+      SK_ShowWindowAsync (hWndBackground, SW_HIDE);
+      SK_PostMessage     (hWndBackground, SK_WM_DESTROY_BACKGROUND_WINDOW, 0, 0);
+    }
   }
 }
 
@@ -9100,6 +9108,19 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
   switch (msg)
   {
+    case SK_WM_DESTROY_BACKGROUND_WINDOW:
+      DestroyWindow (hwnd);
+      return 0;
+
+    case WM_NCDESTROY:
+      InterlockedCompareExchangePointer (
+        (PVOID volatile *)&SK_Win32_BackgroundHWND, HWND_DESKTOP, hwnd
+      );
+
+      // Ends the background window thread's message loop
+      PostQuitMessage (0);
+      break;
+
     case WM_CLOSE:
       //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
       break;
@@ -9170,32 +9191,46 @@ SK_Win32_BringBackgroundWindowToTop (void)
 
   MONITORINFO mi = { .cbSize = sizeof (MONITORINFO) };
 
-  RECT                                     wndRect = { };
-  GetWindowRect (SK_Win32_BackgroundHWND, &wndRect);
-
   if (GetMonitorInfo (hMonitor, &mi))
   {
     HWND hWndGame =
       SK_GetGameWindow ();
 
     if (                                      hWndGame != 0 &&
-              IsWindow (                      hWndGame)   //&&
-        //(GetNextWindow (hWnd, GW_HWNDPREV) != hWndGame ||
-        //   ! EqualRect (&wndRect, &mi.rcMonitor))
-       )
+              IsWindow (                      hWndGame) )
     {
+      // This is called periodically; skip the Z-Order / size change if the
+      //   background window is already sized, visible and directly below the game.
+      auto _Reposition = [&](const RECT& rcTarget, UINT uiVisibilityFlag)
+      {
+        const bool bWantVisible =
+          (uiVisibilityFlag & SWP_SHOWWINDOW) != 0;
+
+        RECT                                     rcCurrent = { };
+        if ( GetWindowRect (SK_Win32_BackgroundHWND, &rcCurrent)           &&
+                 EqualRect (&rcCurrent,              &rcTarget)            &&
+             (IsWindowVisible (SK_Win32_BackgroundHWND) != FALSE) == bWantVisible &&
+             ((! bWantVisible) ||
+               GetWindow (SK_Win32_BackgroundHWND, GW_HWNDPREV) == hWndGame) )
+        {
+          return;
+        }
+
+        SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
+                            rcTarget.left,
+                            rcTarget.top,
+                              rcTarget.right  - rcTarget.left,
+                              rcTarget.bottom - rcTarget.top,
+                                SWP_NOSENDCHANGING | SWP_NOACTIVATE |
+                                uiVisibilityFlag );
+      };
+
       if ( config.display.aspect_ratio_stretch ||
          !(config.display.aspect_ratio_stretch || config.display.focus_mode) )
       {
-        SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
-                            mi.rcMonitor.left,
-                            mi.rcMonitor.top,
-                              mi.rcMonitor.right  - mi.rcMonitor.left,
-                              mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                SWP_NOSENDCHANGING | SWP_NOACTIVATE |
-        
-        ( config.display.aspect_ratio_stretch ? SWP_SHOWWINDOW
-                                              : SWP_HIDEWINDOW ) );
+        _Reposition ( mi.rcMonitor,
+          config.display.aspect_ratio_stretch ? SWP_SHOWWINDOW
+                                              : SWP_HIDEWINDOW );
       }
 
       else
@@ -9242,10 +9277,7 @@ SK_Win32_BringBackgroundWindowToTop (void)
             if (monitor.y + monitor.height > maxY) maxY = monitor.y + monitor.height;
           }
 
-          const int totalWidth  = (maxX - minX);
-          const int totalHeight = (maxY - minY);
-
-          DWORD dwVisibilityFlags = 
+          DWORD dwVisibilityFlags =
             ( config.display.focus_mode ? SWP_SHOWWINDOW
                                         : SWP_HIDEWINDOW );
 
@@ -9254,12 +9286,8 @@ SK_Win32_BringBackgroundWindowToTop (void)
             dwVisibilityFlags = SWP_HIDEWINDOW;
           }
 
-          SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
-                            minX, minY,
-                            totalWidth,
-                            totalHeight,
-                                SWP_NOSENDCHANGING | SWP_NOACTIVATE |
-                                dwVisibilityFlags );
+          _Reposition ( RECT { minX, minY, maxX, maxY },
+                          dwVisibilityFlags );
         }
       }
 
@@ -9298,8 +9326,8 @@ SK_Win32_CreateBackgroundWindow (void)
   }
 
   SK_Thread_CreateEx ([](LPVOID) -> DWORD
-  { 
-    SK_Win32_BackgroundHWND =
+  {
+    HWND hWndBackground =
       CreateWindowExW ( WS_EX_NOACTIVATE,
           L"SK_BackgroundWindow",
           L"Special K Background",
@@ -9310,7 +9338,7 @@ SK_Win32_CreateBackgroundWindow (void)
         SK_GetModuleHandle (nullptr), nullptr
       );
 
-    if (SK_Win32_BackgroundHWND == nullptr)
+    if (hWndBackground == nullptr)
     {
       MessageBoxW (NULL, L"Window Creation Failed!", L"Error!",
         MB_ICONEXCLAMATION | MB_OK);
@@ -9320,14 +9348,16 @@ SK_Win32_CreateBackgroundWindow (void)
       return 0;
     }
 
+    SK_Win32_BackgroundHWND = hWndBackground;
+
     // Discord could become confused without this and report that
     //   users are playing the Aspect Ratio window...
     wchar_t                                     wszTitle [128] = { };
     if (GetWindowText (game_window.hWnd,        wszTitle, 127))
-        SetWindowText (SK_Win32_BackgroundHWND, wszTitle);
+        SetWindowText (hWndBackground,          wszTitle);
 
-    SK_ShowWindowAsync (SK_Win32_BackgroundHWND, SW_SHOW);
-    SK_PostMessage     (SK_Win32_BackgroundHWND, WM_PAINT, 0, 0);
+    SK_ShowWindowAsync (hWndBackground, SW_SHOW);
+    SK_PostMessage     (hWndBackground, WM_PAINT, 0, 0);
 
     // Wakes up a lot, to do nothing...
     SK_Thread_ScopedPriority priority (
@@ -9337,18 +9367,44 @@ SK_Win32_CreateBackgroundWindow (void)
     // When all possible events that require resizing the window and changing
     //   its Z-Order are identified, the spurious wake behavior will be removed
 
-    do
+    bool bQuit = false;
+
+    while (! bQuit)
     {
-      if ( WAIT_OBJECT_0 ==
-             MsgWaitForMultipleObjects (0, nullptr, FALSE, 250UL, QS_ALLINPUT) )
+      const DWORD dwWait =
+        MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 250UL, QS_ALLINPUT);
+
+      if (dwWait == WAIT_OBJECT_0) // DLL Teardown
+      {
+        InterlockedCompareExchangePointer (
+          (PVOID volatile *)&SK_Win32_BackgroundHWND, HWND_DESKTOP, hWndBackground
+        );
+
+        if (IsWindow (hWndBackground))
+          DestroyWindow (hWndBackground);
+
+        break;
+      }
+
+      if (dwWait == WAIT_OBJECT_0 + 1)
       {
         MSG                      msg = { };
         while (SK_PeekMessageW (&msg, nullptr, 0, 0, PM_REMOVE) != 0)
         {
+          // Posted by WM_NCDESTROY after SK_Win32_DestroyBackgroundWindow (...)
+          if (msg.message == WM_QUIT)
+          {
+            bQuit = true;
+            break;
+          }
+
           SK_TranslateMessage (&msg);
           SK_DispatchMessageW (&msg);
         }
       }
+
+      if (bQuit || ! IsWindow (hWndBackground))
+        break;
 
       static bool         virtual_fullscreen = false;
       if ( std::exchange (virtual_fullscreen, config.display.aspect_ratio_stretch ||
@@ -9364,7 +9420,7 @@ SK_Win32_CreateBackgroundWindow (void)
         if ( std::exchange (last_state, config.display.aspect_ratio_stretch) !=
                                         config.display.aspect_ratio_stretch )
         {
-          SK_ShowWindowAsync ( SK_Win32_BackgroundHWND,
+          SK_ShowWindowAsync ( hWndBackground,
             config.display.aspect_ratio_stretch ? SW_SHOWNA
                                                 : SW_HIDE );
         }
@@ -9373,12 +9429,12 @@ SK_Win32_CreateBackgroundWindow (void)
         if ( std::exchange (last_state2, config.display.focus_mode) !=
                                          config.display.focus_mode )
         {
-          SK_ShowWindowAsync ( SK_Win32_BackgroundHWND,
+          SK_ShowWindowAsync ( hWndBackground,
             config.display.focus_mode ? SW_SHOWNA
                                       : SW_HIDE );
         }
       }
-    } while (true);
+    }
 
     SK_Thread_CloseSelf ();
 
@@ -9740,7 +9796,7 @@ SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
     {
       if (WindowFromPoint (pt) == hWnd)
       {
-        if (IsWindowVisible (hWndAbove) && !IsIconic (hWndAbove))
+        if (IsWindowVisible (hWnd) && !IsIconic (hWnd))
         {
           hWndTopLevelOnWindowMonitor.emplace (hWnd);
         }
