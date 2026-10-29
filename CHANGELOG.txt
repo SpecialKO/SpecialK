@@ -1,4 +1,10 @@
-﻿26.10.28.3
+﻿26.10.29
+========
+ + Fixed issues with the game window not being considered active by SK when
+     alt-tabbing in if the game has more than one window or ADHD multi-monitor
+       mode is active.
+
+26.10.28.3
 ==========
  + Fixed EDID parser problems for Refresh Rates > 255 Hz
  + Eliminated DXGI SwapChain Wait Handle leaks when forcing Waitable SwapChains

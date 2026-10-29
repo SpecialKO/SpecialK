@@ -774,6 +774,17 @@ SK_IsGameWindowActive (bool activate_if_in_limbo, HWND hWndForeground)
       (   game_window.hWnd        == hWndForeground ||
         ( SK_Win32_BackgroundHWND == hWndForeground &&
           SK_Win32_BackgroundHWND != 0 ) );
+
+    if (! bActive)
+    {
+      DWORD                                         dwProcId = 0;
+      SK_GetWindowThreadProcessId (hWndForeground, &dwProcId);
+
+      if (dwProcId == GetCurrentProcessId ())
+      {
+        bActive = true;
+      }
+    }
   }
 
 #if 0
@@ -877,7 +888,7 @@ SK_IsGameWindowFocused (void)
     };
 
   return (
-    SK_IsGameWindowActive () && (SK_GetFocus () == game_window.hWnd || 
+    SK_IsGameWindowActive () && (SK_GetFocus () == game_window.hWnd ||
                                 hWndAtCenter () == game_window.hWnd)
   );
 }
