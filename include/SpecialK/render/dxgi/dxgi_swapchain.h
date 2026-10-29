@@ -496,6 +496,7 @@ extern ResizeTarget_pfn       ResizeTarget_Original;
 extern ResizeBuffers_pfn      ResizeBuffers_Original;
 
 uint64_t SK_DXGI_LastFrameSwapChainDestroyed (void) noexcept;
+bool     SK_DXGI_SwapChainDestroyedRecently  (uint64_t frames = 16) noexcept;
 
 
 #endif /* __SK__DXGI_SWAPCHAIN_H__ */

@@ -1,4 +1,11 @@
-﻿26.10.28.2
+﻿26.10.28.3
+==========
+ + Fixed EDID parser problems for Refresh Rates > 255 Hz
+ + Eliminated DXGI SwapChain Wait Handle leaks when forcing Waitable SwapChains
+ + Fixed several Vulkan API hooking problems related to Reflex extensions
+ + Do not attempt to index arrays using DISPLAYCONFIG_PATH_MODE_IDX_INVALID
+
+26.10.28.2
 ==========
  + More static analysis cleanup.
  + Potentially fixed ImGui fonts not loading on systems whose username contains

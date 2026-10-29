@@ -690,7 +690,7 @@ SK_VK_EnumerateDeviceExtensionProperties (
       {
         // Erase this extension by duplicating the prior extension...
         if (strcmp (property->extensionName, "VK_NV_present_metering") == 0)
-        {   memcpy (property, property-1, sizeof (VkExtensionProperties));
+        {   memcpy (property, (property + (*pPropertyCount)-- - 1), sizeof (VkExtensionProperties));
 
           SK_RunOnce (
             SK_LOGi0 (
@@ -1078,7 +1078,7 @@ SK_Reflex_WaitOnSemaphore (VkDevice device, VkSemaphore semaphore, uint64_t valu
     return;
   }
 
-  if (SK_DXGI_LastFrameSwapChainDestroyed () > SK_GetFramesDrawn () - 16)
+  if (SK_DXGI_SwapChainDestroyedRecently ())
     return;
 
   if (! vkGetSemaphoreCounterValue_SK)
@@ -1191,7 +1191,7 @@ SK_VK_QueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
       (pNativePresentId)->pPresentIds [0];
 
     SK_RunOnce (
-      SK_LOGi0 (L"Game provided a native present id (%d)", id)
+      SK_LOGi0 (L"Game provided a native present id (%llu)", id)
     );
   }
 
@@ -1344,6 +1344,16 @@ SK_VK_CreateInstance (
     }
   }
 
+  SK_LOG_FIRST_CALL
+
+  auto result =
+    vkCreateInstance_Original (pCreateInfo, pAllocator, pInstance);
+
+  if (VK_SUCCESS == result && pInstance != nullptr)
+  {
+    SK_Reflex_VkInstance = *pInstance;
+  }
+
   if (config.apis.Vulkan.hook && pInstance != nullptr)
   SK_RunOnce (
     auto vkCreateDevice = vkGetInstanceProcAddr_SK (*pInstance, "vkCreateDevice");
@@ -1426,16 +1436,6 @@ SK_VK_CreateInstance (
     }
   );
 
-  SK_LOG_FIRST_CALL
-
-  auto result =
-    vkCreateInstance_Original (pCreateInfo, pAllocator, pInstance);
-
-  if (VK_SUCCESS == result && pInstance != nullptr)
-  {
-    SK_Reflex_VkInstance = *pInstance;
-  }
-
   return result;
 }
 
@@ -1506,7 +1506,7 @@ vkLatencySleepNV_Detour (
 
   if (config.nvidia.reflex.override)
   {
-    VkLatencySleepModeInfoNV                            dummy = {};
+    VkLatencySleepModeInfoNV                            dummy = { .sType = VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV };
     vkSetLatencySleepModeNV_Detour (device, swapchain, &dummy);
   }
 
@@ -1594,35 +1594,40 @@ SK_VK_HookFirstDevice (VkDevice device)
     SK_ApplyQueuedHooks ();
   }
 
-  if (SK_VK_HasLowLatency2 && vkGetLatencyTimingsNV_Original == nullptr
-                           && vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencySleepModeNV") != nullptr)
+  if (SK_VK_HasLowLatency2 && vkGetLatencyTimingsNV_Original == nullptr)
   {
-    void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencySleepModeNV");
-    void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkLatencySleepNV");
-    void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencyMarkerNV");
-    vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkGetLatencyTimingsNV");
+    static auto vkSetLatencySleepModeNV_Exists =
+      vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencySleepModeNV") != nullptr;
 
-    if (vkGetLatencyTimingsNV_Original != nullptr)
+    if (vkSetLatencySleepModeNV_Exists)
     {
-      if (                       vkSetLatencySleepModeNV != nullptr &&
-                  MH_CreateHook (vkSetLatencySleepModeNV,
-                                 vkSetLatencySleepModeNV_Detour,
-        static_cast_p2p <void> (&vkSetLatencySleepModeNV_Original) ) == MH_OK )
-             MH_QueueEnableHook (vkSetLatencySleepModeNV);
+      void* vkSetLatencySleepModeNV  = (PFN_vkSetLatencySleepModeNV)vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencySleepModeNV");
+      void* vkLatencySleepNV         = (PFN_vkLatencySleepNV)       vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkLatencySleepNV");
+      void* vkSetLatencyMarkerNV     = (PFN_vkSetLatencyMarkerNV)   vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkSetLatencyMarkerNV");
+      vkGetLatencyTimingsNV_Original = (PFN_vkGetLatencyTimingsNV)  vkGetInstanceProcAddr_SK (SK_Reflex_VkInstance, "vkGetLatencyTimingsNV");
 
-      if (                       vkLatencySleepNV != nullptr &&
-                  MH_CreateHook (vkLatencySleepNV,
-                                 vkLatencySleepNV_Detour,
-        static_cast_p2p <void> (&vkLatencySleepNV_Original) ) == MH_OK )
-             MH_QueueEnableHook (vkLatencySleepNV);
+      if (vkGetLatencyTimingsNV_Original != nullptr)
+      {
+        if (                       vkSetLatencySleepModeNV != nullptr &&
+                    MH_CreateHook (vkSetLatencySleepModeNV,
+                                   vkSetLatencySleepModeNV_Detour,
+          static_cast_p2p <void> (&vkSetLatencySleepModeNV_Original) ) == MH_OK )
+               MH_QueueEnableHook (vkSetLatencySleepModeNV);
 
-      if (                       vkSetLatencyMarkerNV != nullptr &&
-                  MH_CreateHook (vkSetLatencyMarkerNV,
-                                 vkSetLatencyMarkerNV_Detour,
-        static_cast_p2p <void> (&vkSetLatencyMarkerNV_Original) ) == MH_OK )
-             MH_QueueEnableHook (vkSetLatencyMarkerNV);
+        if (                       vkLatencySleepNV != nullptr &&
+                    MH_CreateHook (vkLatencySleepNV,
+                                   vkLatencySleepNV_Detour,
+          static_cast_p2p <void> (&vkLatencySleepNV_Original) ) == MH_OK )
+               MH_QueueEnableHook (vkLatencySleepNV);
 
-      SK_ApplyQueuedHooks ();
+        if (                       vkSetLatencyMarkerNV != nullptr &&
+                    MH_CreateHook (vkSetLatencyMarkerNV,
+                                   vkSetLatencyMarkerNV_Detour,
+          static_cast_p2p <void> (&vkSetLatencyMarkerNV_Original) ) == MH_OK )
+               MH_QueueEnableHook (vkSetLatencyMarkerNV);
+
+        SK_ApplyQueuedHooks ();
+      }
     }
   }
 }
@@ -1708,7 +1713,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandl
     SK_GetCurrentRenderBackend ();
 
   const auto active_display =
-    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);;
+    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);
 
   // Try the active display first, most of the time it's the one we're looking for.
   if (      rb.displays [active_display].nvapi.display_handle == display_handle)
@@ -1729,8 +1734,11 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+  const auto _active_display =
+    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);
+
   auto& display =
-    rb.displays [rb.active_display];
+    rb.displays [_active_display];
 
   auto _EvaluateAutoLowLatency = [&]()
   {
@@ -1866,7 +1874,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           __target_fps                       = static_cast <float> (dVRROptimalFPS);
         }
 
-        config.render.framerate.last_monitor_path = rb.displays [rb.active_display].path_name;
+        config.render.framerate.last_monitor_path = rb.displays [_active_display].path_name;
         config.render.framerate.last_refresh_rate = static_cast <float> (dRefreshRate);
       }
 
@@ -1918,8 +1926,11 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
         do
         {
+          const auto active_display =
+            std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);
+
           auto& display =
-            rb.displays [rb.active_display];
+            rb.displays [active_display];
 
           static NV_GET_VRR_INFO
                         vrr_info              = {       NV_GET_VRR_INFO_VER };
@@ -1940,7 +1951,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
             dwLastCacheTime = 0;
           }
 
-          if (std::exchange (dwLastCacheDisplay, rb.active_display) != rb.active_display)
+          if (std::exchange (dwLastCacheDisplay, active_display) != active_display)
           {
             dwLastCacheTime = 0;
           }
@@ -3438,12 +3449,13 @@ void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set)
     );
 
     wchar_t *pwszHIGHDPIAWARE =
-      StrStrIW (wszOrigKeyVal,     L"HIGHDPIAWARE");
-    wchar_t *pwszNextToken    =  pwszHIGHDPIAWARE + 13;
+      StrStrIW (wszOrigKeyVal, L"HIGHDPIAWARE");
+
 
     if ((! set) && pwszHIGHDPIAWARE != nullptr)
     {
-      *pwszHIGHDPIAWARE  = L'\0';
+      wchar_t *pwszNextToken = pwszHIGHDPIAWARE + 13;
+                              *pwszHIGHDPIAWARE = L'\0';
 
       std::wstring combined  = wszOrigKeyVal;
                    combined += L" ";
@@ -3865,8 +3877,8 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 std::pair <uint16_t, uint16_t>
 SK_EDID_GetMonitorVRRRange ( uint8_t const* block, uint32_t ieee_oui = HFSC_IEEE_OUI )
 {
-  auto min = 0ui8,
-       max = 0ui8;
+  auto min = 0ui16,
+       max = 0ui16;
   auto ptr = (block);
 
   switch (ieee_oui)
@@ -4314,7 +4326,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
     UINT devIdx = display.idx;
 
-    swprintf (display.name, L"UNKNOWN");
+    wcscpy (display.name, L"UNKNOWN");
 
     bool nvSuppliedEDID = false;
 
@@ -4968,8 +4980,11 @@ void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+  const auto active_display =
+    std::clamp (rb.active_display,0,SK_RenderBackend_V2::_MAX_DISPLAYS-1);
+
   if (pOutput == nullptr)
-      pOutput = &rb.displays [rb.active_display];
+      pOutput = &rb.displays [active_display];
 
   if (    pOutput->hdr.supported)
   { if (! pOutput->hdr.enabled)
@@ -5001,8 +5016,11 @@ void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-   if (pOutput == nullptr)
-      pOutput = &rb.displays [rb.active_display];
+  const auto active_display =
+    std::clamp (rb.active_display,0,SK_RenderBackend_V2::_MAX_DISPLAYS-1);
+
+  if (pOutput == nullptr)
+      pOutput = &rb.displays [active_display];
 
   if (  pOutput->hdr.supported)
   { if (pOutput->hdr.enabled)
@@ -5250,7 +5268,13 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
         if (GetMonitorInfoW (outDesc.Monitor, &mi))
         {
-          swscanf (StrStrIW (mi.szDevice, LR"(\DISPLAY)"), LR"(\DISPLAY%u)", &display.idx);
+          wchar_t* wszDevice =
+            StrStrIW (mi.szDevice, LR"(\DISPLAY)");
+
+          if (wszDevice != nullptr)
+          {
+            swscanf (wszDevice, LR"(\DISPLAY%u)", &display.idx);
+          }
         }
 
         display.monitor     = outDesc.Monitor;
@@ -5753,7 +5777,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                    )
                 {
                   edid_name =
-                    decodeEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+                    decodeEDIDForName ( edid.EDID_Data, std::min (edid.sizeofEDID, (NvU32)NV_EDID_DATA_SIZE) );
                 }
 
                 if (! edid_name.empty ())
@@ -6051,7 +6075,7 @@ ChangeDisplaySettingsExA_Detour (
   }
 
   DEVMODEA dev_mode        = { };
-           dev_mode.dmSize = sizeof (DEVMODEW);
+           dev_mode.dmSize = sizeof (DEVMODEA);
 
   if (! config.window.res.override.isZero ())
   {
@@ -6578,8 +6602,11 @@ SK_Display_UpdateVRRStatusUsingVBlankTimestamps (void)
     auto& rb =
       SK_GetCurrentRenderBackend ();
 
+    const auto active_display =
+      std::clamp (rb.active_display,0,SK_RenderBackend_V2::_MAX_DISPLAYS-1);
+
     auto& display =
-      rb.displays [rb.active_display];
+      rb.displays [active_display];
 
     auto& stats =
       display.statistics;
@@ -6677,15 +6704,17 @@ SK_Render_CountVBlanks ()
           }
         }
 
-        rb.active_display =
+        int active_display = 
           std::clamp (rb.active_display, 0, SK_RenderBackend_V2::_MAX_DISPLAYS-1);
+
+        rb.active_display = active_display;
 
         if (frameStats.PresentCount != 0)
         {
           auto& nvapi_display =
-            rb.displays [rb.active_display].nvapi;
+            rb.displays [active_display].nvapi;
           auto& stats =
-            rb.displays [rb.active_display].statistics;
+            rb.displays [active_display].statistics;
 
           const ULONGLONG& kSyncQPC =
             (ULONGLONG &)frameStats.SyncQPCTime.QuadPart;
@@ -6706,10 +6735,10 @@ SK_Render_CountVBlanks ()
           //     with little to no real workload.
           //
           auto& nvapi_display =
-            rb.displays [rb.active_display].nvapi;
+            rb.displays [active_display].nvapi;
 
           auto& stats =
-            rb.displays [rb.active_display].statistics;
+            rb.displays [active_display].statistics;
 
           if (nvapi_display.display_handle != nullptr)
           {
@@ -6798,7 +6827,7 @@ SK_RenderBackend_V2::postNewFrameOnThread (SK_TLS *pTLS, bool designated_thread_
     if (last_render_thread_ != 0 &&
              render_thread_changes++ < MaxThreadChangesToLog)
     {
-      SK_LOGi0 (L"Render thread has changed to %zu", thread);
+      SK_LOGi0 (L"Render thread has changed to %lu", thread);
     }
 
     last_render_thread_ = thread;

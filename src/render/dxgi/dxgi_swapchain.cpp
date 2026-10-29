@@ -83,13 +83,28 @@ SK_DXGI_ReleaseSwapChainOnHWnd (
 );
 
 
-uint64_t SK_DXGI_SwapChainDestroyedOnFrame = 0;
+// UINT64_MAX = no SwapChain has been destroyed yet
+uint64_t SK_DXGI_SwapChainDestroyedOnFrame = UINT64_MAX;
 
 uint64_t
 SK_DXGI_LastFrameSwapChainDestroyed (void) noexcept
 {
   return
     SK_DXGI_SwapChainDestroyedOnFrame;
+}
+
+bool
+SK_DXGI_SwapChainDestroyedRecently (uint64_t frames) noexcept
+{
+  const uint64_t destroyed =
+    SK_DXGI_SwapChainDestroyedOnFrame;
+
+  if (destroyed == UINT64_MAX)
+    return false;
+
+  // The frame counter only increases, so (now - destroyed) cannot wrap
+  return
+    SK_GetFramesDrawn () - destroyed < frames;
 }
 
 void
