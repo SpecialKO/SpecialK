@@ -1,4 +1,9 @@
-﻿26.10.29.3
+﻿26.10.30
+========
+ + Default the framepacing widget to display Disk Load % and VRAM
+     Budget for new users, instead of configuring these manually.
+
+26.10.29.3
 ==========
  + Fixed the same thing as 26.10.29.2, but for wrapped SwapChains.
  + Prevent setting DXGI_FORMAT_UNKNOWN to _last_requested_format.

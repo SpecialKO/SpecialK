@@ -340,7 +340,7 @@ IWrapDXGISwapChain::Release (void)
     auto _ClearCachedViews = [&](void)
     {
       std::scoped_lock _(_backbufferLock);
-      
+
       for (     auto& rtv : _backbuffer_rtvs)
         if (auto orig_rtv = std::exchange (rtv.second, nullptr);
                  orig_rtv != nullptr)
@@ -473,7 +473,7 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
     if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
                                                   pDataSize != nullptr)
     {
-      if (pData != nullptr && *pDataSize >= sizeof (void *))
+      if (pData != nullptr && *pDataSize >= sizeof (void *) && _backbuffers [0].p != nullptr)
       {
         D3D11_TEXTURE2D_DESC        texDesc = { };
         _backbuffers [0]->GetDesc (&texDesc);
