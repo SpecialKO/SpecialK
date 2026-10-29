@@ -1,6 +1,8 @@
 ﻿26.10.29.3
 ==========
  + Fixed the same thing as 26.10.29.2, but for wrapped SwapChains.
+ + Prevent setting DXGI_FORMAT_UNKNOWN to _last_requested_format.
+ + Fixed data race on the cached views for SwapChain proxy buffers.
 
 26.10.29.2
 ==========

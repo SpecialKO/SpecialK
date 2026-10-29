@@ -339,6 +339,8 @@ IWrapDXGISwapChain::Release (void)
   {
     auto _ClearCachedViews = [&](void)
     {
+      std::scoped_lock _(_backbufferLock);
+      
       for (     auto& rtv : _backbuffer_rtvs)
         if (auto orig_rtv = std::exchange (rtv.second, nullptr);
                  orig_rtv != nullptr)
