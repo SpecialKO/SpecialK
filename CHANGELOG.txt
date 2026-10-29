@@ -1,4 +1,9 @@
-﻿26.10.29.1
+﻿26.10.29.2
+==========
+ + Fixed crash that could occur if a game passes nullptr to
+     IDXGISwapChain4::SetHDRMetadata (...).
+
+26.10.29.1
 ==========
  + Fixed various window management issues.
 
