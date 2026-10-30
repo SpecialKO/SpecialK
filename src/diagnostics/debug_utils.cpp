@@ -785,46 +785,6 @@ StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
     ///  }
     ///}
 
-
-    //if (! lstrcmpA (lpProcName, "AnselEnableCheck"))
-    //{
-    //  static FARPROC pLast = nullptr;
-    //
-    //  if (pLast) return pLast;
-    //
-    //  FARPROC pProc =
-    //    GetProcAddress_Original (hModule, lpProcName);
-    //
-    //  if (pProc != nullptr)
-    //  {
-    //    pLast = pProc;
-    //    SK_NvCamera_ApplyHook__AnselEnableCheck (hModule, lpProcName);
-    //    return pLast;
-    //  }
-    //
-    //  return pProc;
-    //}
-
-    //if (! lstrcmpA (lpProcName, "isAnselAvailable"))
-    //{
-    //  static FARPROC pLast = nullptr;
-    //
-    //  if (pLast) return pLast;
-    //
-    //  FARPROC pProc =
-    //    GetProcAddress_Original (hModule, lpProcName);
-    //
-    //  if (pProc != nullptr)
-    //  {
-    //    pLast = pProc;
-    //    SK_AnselSDK_ApplyHook__isAnselAvailable (hModule, lpProcName);
-    //    return pLast;
-    //  }
-    //
-    //  return pProc;
-    //}
-
-
     if (config.system.log_level > 1)
     {
       SK_Module_IsProcAddrLocal ( hModule, lpProcName,

@@ -1938,6 +1938,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\control_panel\cfg_sound.cpp" />
     <ClCompile Include="src\control_panel\cfg_steam.cpp" />
     <ClCompile Include="src\control_panel\cfg_window.cpp" />
+    <ClCompile Include="src\control_panel\control_panel.cpp" />
     <ClCompile Include="src\crc32.cpp" />
     <ClCompile Include="src\diagnostics\cpu.cpp" />
     <ClCompile Include="src\diagnostics\file.cpp" />
@@ -2067,7 +2068,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\popups\achievement.cpp" />
     <ClCompile Include="src\process.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">Use</PrecompiledHeader>
@@ -2223,7 +2223,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\diagnostics\debug_utils.cpp" />
     <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\hooks.cpp" />
-    <ClCompile Include="src\control_panel.cpp" />
     <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp" />
     <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp" />
     <ClCompile Include="src\imgui\backends\imgui_gl3.cpp" />
@@ -2304,11 +2303,11 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\steam\client.cpp" />
-    <ClCompile Include="src\steam\steam_api.cpp" />
-    <ClCompile Include="src\steam\steam_tier0.cpp" />
-    <ClCompile Include="src\steam\user.cpp" />
-    <ClCompile Include="src\steam\utils.cpp" />
+    <ClCompile Include="src\storefront\steam\client.cpp" />
+    <ClCompile Include="src\storefront\steam\steam_api.cpp" />
+    <ClCompile Include="src\storefront\steam\steam_tier0.cpp" />
+    <ClCompile Include="src\storefront\steam\user.cpp" />
+    <ClCompile Include="src\storefront\steam\utils.cpp" />
     <ClCompile Include="src\storefront\achievements.cpp" />
     <ClCompile Include="src\storefront\epic.cpp" />
     <ClCompile Include="src\storefront\gog.cpp" />
@@ -2335,6 +2334,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NTDDI_VERSION=NTDDI_WIN11_GE;_WIN32_WINNT=_WIN32_WINNT_WIN10;NOMINMAX;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;SK_BUILTIN</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NTDDI_VERSION=WDK_NTDDI_VERSION;DIRECTINPUT_VERSION=0x0800;PSAPI_VERSION=1;NOMINMAX;_UNICODE;UNICODE;_WIN64;WIN32;NDEBUG;_LIB;_USRDLL;_WINDOWS;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;_STL_CONCRT_SUPPORT;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);SK_BUILD_DLL=1;SK_EXPORTS;;SK_BUILTIN</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="src\widgets\popups\achievement.cpp" />
     <ClCompile Include="src\widgets\achievement_tracker.cpp" />
     <ClCompile Include="src\widgets\cpu_widget.cpp" />
     <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp" />
