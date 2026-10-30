@@ -766,7 +766,7 @@ WaitForInit (void)
     };
 
     const DWORD dwWaitStatus =
-      MsgWaitForMultipleObjectsEx (1, hWaitArray, 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+      MsgWaitForMultipleObjectsEx (1, hWaitArray, 16UL, QS_ALLINPUT, 0);
 
     if ( dwWaitStatus == WAIT_OBJECT_0 ||
          dwWaitStatus == WAIT_ABANDONED ) break;
@@ -1584,8 +1584,9 @@ SK_HasGlobalInjector (void)
     wcsncpy_s ( wszBasePath, MAX_PATH,
           SK_GetInstallPath (), _TRUNCATE );
 
-    lstrcatW (wszBasePath, SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
-                                                   L"SpecialK32.dll" ));
+    wcsncat_s ( wszBasePath, MAX_PATH,
+                SK_RunLHIfBitness ( 64, L"\\SpecialK64.dll",
+                                        L"\\SpecialK32.dll" ), _TRUNCATE );
 
     bool result = (GetFileAttributesW (wszBasePath) != INVALID_FILE_ATTRIBUTES);
     last_test   = result ?
@@ -1840,8 +1841,9 @@ SK_EstablishRootPath (void)
     // Fallback to ol' trusty
     if (! (bRegistryDefinedPath || bEnvironmentDefinedPath))
     {
-      swprintf ( SKX_GetInstallPath (), LR"(%s\My Mods\SpecialK)",
-                 SK_GetDocumentsDir ().c_str () );
+      _snwprintf_s ( SKX_GetInstallPath (), MAX_PATH, _TRUNCATE,
+                     LR"(%s\My Mods\SpecialK)",
+                     SK_GetDocumentsDir ().c_str () );
     }
   }
 
@@ -1863,8 +1865,8 @@ SK_EstablishRootPath (void)
 
     wcsncpy_s ( wszConfigPath,      MAX_PATH,
                 SKX_GetRootPath (), _TRUNCATE  );
-    lstrcatW  ( wszConfigPath, LR"(\Profiles\)");
-    lstrcatW  ( wszConfigPath, SK_GetHostApp ());
+    wcsncat_s ( wszConfigPath, MAX_PATH, LR"(\Profiles\)", _TRUNCATE );
+    wcsncat_s ( wszConfigPath, MAX_PATH, SK_GetHostApp (), _TRUNCATE );
   }
 
 
@@ -2489,7 +2491,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       catch (std::exception& e)
       {
         SK_LOGi0 (
-          L"Caught exception while scanning ASI modules to load... %ws", e.what ()
+          L"Caught exception while scanning ASI modules to load... %hs", e.what ()
         );
       }
     };
