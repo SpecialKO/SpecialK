@@ -3440,9 +3440,6 @@
     <ClCompile Include="src\render\gl\opengl.cpp">
       <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\steam\steam_api.cpp">
-      <Filter>Source Files\Storefronts\Steam</Filter>
-    </ClCompile>
     <ClCompile Include="src\performance\gpu_monitor.cpp">
       <Filter>Source Files\Stats</Filter>
     </ClCompile>
@@ -3566,9 +3563,6 @@
     <ClCompile Include="src\diagnostics\memory.cpp">
       <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="src\control_panel.cpp">
-      <Filter>Source Files\Control Panel</Filter>
-    </ClCompile>
     <ClCompile Include="src\thread.cpp">
       <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
@@ -3679,15 +3673,6 @@
     </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\steam\client.cpp">
-      <Filter>Source Files\Storefronts\Steam\Wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="src\steam\user.cpp">
-      <Filter>Source Files\Storefronts\Steam\Wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="src\steam\utils.cpp">
-      <Filter>Source Files\Storefronts\Steam\Wrapper</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\persona4.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3818,9 +3803,6 @@
     <ClCompile Include="src\storefront\platform.cpp">
       <Filter>Source Files\Storefronts</Filter>
     </ClCompile>
-    <ClCompile Include="src\popups\achievement.cpp">
-      <Filter>Source Files\OSD</Filter>
-    </ClCompile>
     <ClCompile Include="src\input\sce_pad.cpp">
       <Filter>Source Files\Backends\Input\scePad</Filter>
     </ClCompile>
@@ -3832,9 +3814,6 @@
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_command_queue.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
-    </ClCompile>
-    <ClCompile Include="src\steam\steam_tier0.cpp">
-      <Filter>Source Files\Storefronts\Steam</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
@@ -4011,9 +3990,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\storefront\steam\steam_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\storefront\steam\steam_tier0.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\storefront\steam\user.cpp">
