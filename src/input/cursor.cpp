@@ -52,6 +52,8 @@ SK_InputUtil_IsHWCursorVisible (void)
 
 ShowCursor_pfn ShowCursor_Original = nullptr;
 
+static std::atomic_int SK_ShowCursor_Offset = 0;
+
 BOOL
 WINAPI
 SK_SendMsgShowCursor (BOOL bShow)
@@ -120,7 +122,11 @@ WINAPI
 SK_ShowCursor (BOOL bShow)
 {
   if (! config.input.ui.allow_show_cursor)
-    return SK_InputUtil_IsHWCursorVisible ();
+    return SK_InputUtil_IsHWCursorVisible () ? 1 : 0;
+
+  // Keep track of SK's contribution to the display counter, so that
+  //   ShowCursor_Detour does not undo it when syncing with the game's count.
+  SK_ShowCursor_Offset += (bShow ? 1 : -1);
 
   return (ShowCursor_Original != nullptr) ?
           ShowCursor_Original (bShow)     :
@@ -156,7 +162,7 @@ ShowCursor_Detour (BOOL bShow)
 
   static int expected_val = 0;
 
-  SK_RunOnce (expected_val = ShowCursor_Original (FALSE) + 1;
+  SK_RunOnce (expected_val = ShowCursor_Original (FALSE) + 1 - SK_ShowCursor_Offset;
                              ShowCursor_Original (TRUE));
 
   static constexpr int  _MAX_TRIES = 8;
@@ -255,13 +261,16 @@ ShowCursor_Detour (BOOL bShow)
   }
 
 
+  const int target_val =
+    ret + SK_ShowCursor_Offset;
+
   for ( int x = 0 ; x < 512 ; ++x )
   {
     int real_val =
       ShowCursor_Original (bShow);
 
-    if (     real_val < ret) bShow = true;
-    else if (real_val > ret) bShow = false;
+    if (     real_val < target_val) bShow = true;
+    else if (real_val > target_val) bShow = false;
     else break;
   }
 
@@ -620,7 +629,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor) noexcept
   bool imgui_capture = false;
 
   LRESULT hit_test = 0;
-  POINT  ptCursor;
+  POINT  ptCursor {};
 
   if (pptCursor != nullptr)
        ptCursor = *pptCursor;
@@ -660,7 +669,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask, POINT *pptCursor) noexcept
 
         else
         {
-          DWORD                                                                            dwProcId;
+          DWORD                                                                            dwProcId {};
           SK_GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
 
           if (dwProcId != GetCurrentProcessId ())
@@ -1036,7 +1045,7 @@ SetCursor_Detour (
   if ((SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ()) || ImGui::GetIO ().WantCaptureMouse)
   {
     if (! SK_ImGui_WantHWCursor ())
-      return 0;
+      return GetCursor_Original ();
 
     hCursor =
       ImGui_DesiredCursor ();
@@ -1447,8 +1456,7 @@ SK_Window_ActivateCursor (bool changed)
     {
       if (SK_ImGui_WantHWCursor ())
       {
-        if (config.input.ui.allow_set_cursor)
-          SK_SendMsgShowCursor (TRUE);
+        SK_SendMsgShowCursor (TRUE);
       }
 
       else
