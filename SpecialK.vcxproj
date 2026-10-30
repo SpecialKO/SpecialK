@@ -1919,7 +1919,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4201;4702;4061;4005</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4201;4702;4061;4005</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="src\adl.cpp" />
     <ClCompile Include="src\com_util.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">stdcpp20</LanguageStandard>
@@ -2074,6 +2073,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\render\adl.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_debug.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_screenshot.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_shader.cpp" />
@@ -2110,6 +2110,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\render\ngx\ngx_d3d11.cpp" />
     <ClCompile Include="src\render\ngx\ngx_d3d12.cpp" />
     <ClCompile Include="src\render\ngx\ngx_vulkan.cpp" />
+    <ClCompile Include="src\render\nvapi.cpp" />
     <ClCompile Include="src\render\present_mon\CommandLine.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">NotUsing</PrecompiledHeader>
@@ -2289,7 +2290,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\ini.cpp" />
     <ClCompile Include="src\performance\io_monitor.cpp" />
     <ClCompile Include="src\log.cpp" />
-    <ClCompile Include="src\nvapi.cpp" />
     <ClCompile Include="src\render\gl\opengl.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">NotUsing</PrecompiledHeader>
