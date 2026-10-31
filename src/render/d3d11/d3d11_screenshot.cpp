@@ -714,6 +714,9 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
             pImmediateCtx->End   (pPixelBufferFence);
             pImmediateCtx->Flush ();
 
+            // Don't keep the SwapChain alive while this waits on the GPU
+            pSwapChain.Release ();
+
             if (bPlaySound)
               SK_Screenshot_PlaySound ();
 
