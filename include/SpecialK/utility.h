@@ -542,16 +542,16 @@ SK_ImGui_DrawNotifications (void);
 
 
 struct SK_ThreadSuspension_Ctx {
-  std::queue <DWORD> tids;
+  std::vector <DWORD> tids;
 
-  ULONG              ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
-  ULONG_PTR          ldrCookie = 0x0;
+  ULONG               ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+  ULONG_PTR           ldrCookie = 0x0;
 };
 
 SK_ThreadSuspension_Ctx
                SK_SuspendAllOtherThreads (void);
 void
-               SK_ResumeThreads          (SK_ThreadSuspension_Ctx threads);
+               SK_ResumeThreads          (const SK_ThreadSuspension_Ctx& threads);
 
 
 bool __cdecl   SK_IsServiceHost          (void);

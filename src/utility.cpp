@@ -1382,8 +1382,8 @@ SK_IsCallingDLL (HMODULE hModule, LPCVOID pReturn) noexcept
     SK_GetCallingDLL (pReturn) == hModule;
 }
 
-SK_ThreadSuspension_Ctx
-SK_SuspendAllOtherThreads (void)
+static SK_ThreadSuspension_Ctx
+SK_SuspendThreadsExcept (const std::set <DWORD>* pExemptTids)
 {
   SK_ThreadSuspension_Ctx suspension_ctx;
 
@@ -1408,31 +1408,45 @@ SK_SuspendAllOtherThreads (void)
         //bool locked =
         //  dll_log.lock ();
 
+        // No thread can be suspended while it owns the process heap's lock if we
+        //   own it, otherwise anything that allocates memory before the threads
+        //     are resumed (including this loop) could deadlock.
+        const HANDLE hProcessHeap = GetProcessHeap ();
+        const bool   bHeapLocked  = HeapLock (hProcessHeap);
+
         do
         {
           if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
                                     sizeof (tent.th32OwnerProcessID) )
           {
-            if ( tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
+            if ( (pExemptTids == nullptr || (! pExemptTids->count (tent.th32ThreadID))) &&
+                 tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
                  tent.th32OwnerProcessID == GetCurrentProcessId    () )
             {
               SK_AutoHandle hThread (
-                OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
+                OpenThread (THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT, FALSE, tent.th32ThreadID)
               );
 
               if ((intptr_t)hThread.m_h > 0)
               {
-                suspension_ctx.tids.push (tent.th32ThreadID);
+                if (SuspendThread (hThread.m_h) != (DWORD)-1)
+                {
+                  suspension_ctx.tids.push_back (tent.th32ThreadID);
 
-                CONTEXT                         threadContext = { };
-                SuspendThread    (hThread.m_h);
-                GetThreadContext (hThread.m_h, &threadContext);
+                  // SuspendThread is asynchronous, this waits until it has happened
+                  CONTEXT                         threadContext = { };
+                                                  threadContext.ContextFlags = CONTEXT_CONTROL;
+                  GetThreadContext (hThread.m_h, &threadContext);
+                }
               }
             }
           }
 
           tent.dwSize = sizeof (tent);
         } while (Thread32Next (hSnap.m_h, &tent));
+
+        if (bHeapLocked)
+          HeapUnlock (hProcessHeap);
 
         //if (locked)
         //  dll_log.unlock ();
@@ -1444,74 +1458,24 @@ SK_SuspendAllOtherThreads (void)
 }
 
 SK_ThreadSuspension_Ctx
+SK_SuspendAllOtherThreads (void)
+{
+  return
+    SK_SuspendThreadsExcept (nullptr);
+}
+
+SK_ThreadSuspension_Ctx
 SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
 {
-  SK_ThreadSuspension_Ctx suspension_ctx;
-
-  suspension_ctx.ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
-  suspension_ctx.ldrCookie = 0x0;
-  
-  if ( STATUS_SUCCESS ==
-         SK_NtLdr_LockLoaderLock ( 0x0,
-           &suspension_ctx.ldrState, &suspension_ctx.ldrCookie ) )
-  {
-    SK_AutoHandle hSnap (
-      CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
-    );
-
-    if ((intptr_t)hSnap.m_h > 0)//!= INVALID_HANDLE_VALUE)
-    {
-      THREADENTRY32 tent = {                    };
-      tent.dwSize = sizeof (THREADENTRY32);
-
-      if (Thread32First (hSnap.m_h, &tent))
-      {
-        //bool locked =
-        //  dll_log.lock ();
-
-        do
-        {
-          if (tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
-              sizeof (tent.th32OwnerProcessID))
-          {
-            if ((!exempt_tids.count (tent.th32ThreadID)) &&
-                tent.th32ThreadID != SK_Thread_GetCurrentId () &&
-                tent.th32OwnerProcessID == GetCurrentProcessId ())
-            {
-              SK_AutoHandle hThread (
-                OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
-              );
-
-              if ((intptr_t)hThread.m_h > 0)
-              {
-                suspension_ctx.tids.push (tent.th32ThreadID);
-
-                CONTEXT                         threadContext = { };
-                SuspendThread (hThread.m_h);
-                GetThreadContext (hThread.m_h, &threadContext);
-              }
-            }
-          }
-
-          tent.dwSize = sizeof (tent);
-        } while (Thread32Next (hSnap.m_h, &tent));
-
-        //if (locked)
-        //  dll_log.unlock ();
-      }
-    }
-  }
-
-  return suspension_ctx;
+  return
+    SK_SuspendThreadsExcept (&exempt_tids);
 }
 
 void
-SK_ResumeThreads (SK_ThreadSuspension_Ctx suspension_ctx)
+SK_ResumeThreads (const SK_ThreadSuspension_Ctx& suspension_ctx)
 {
-  while (! suspension_ctx.tids.empty ())
+  for ( const DWORD tid : suspension_ctx.tids )
   {
-    DWORD tid = suspension_ctx.tids.front ();
-
     SK_AutoHandle hThread (
       OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid)
     );
@@ -1520,8 +1484,6 @@ SK_ResumeThreads (SK_ThreadSuspension_Ctx suspension_ctx)
     {
       ResumeThread (hThread);
     }
-
-    suspension_ctx.tids.pop ();
   }
 
   if (suspension_ctx.ldrState == LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED)
