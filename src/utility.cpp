@@ -579,35 +579,76 @@ void
 SK_File_FullCopy ( const wchar_t* from,
                    const wchar_t* to )
 {
-  // Strip Read-Only
-  SK_File_SetNormalAttribs (to);
-
-  DeleteFile (      to);
-  CopyFile   (from, to, FALSE);
-
-  WIN32_FIND_DATA FromFileData;
-  HANDLE          hFrom =
+  WIN32_FIND_DATA FromFileData = { };
+  HANDLE          hFrom        =
     FindFirstFile (from, &FromFileData);
 
-  SK_AutoHandle hTo (
-    CreateFile ( to,
-                   GENERIC_READ      | GENERIC_WRITE,
-                     FILE_SHARE_READ | FILE_SHARE_WRITE |
-                                       FILE_SHARE_DELETE,
-                       nullptr,
-                         OPEN_EXISTING,
-                           GetFileAttributes (to),
-                             nullptr )
-  );
+  // Nothing to copy, leave the destination alone
+  if (hFrom == INVALID_HANDLE_VALUE)
+    return;
 
-  // Here's where the magic happens, apply the attributes from the
-  //   original file to the new one!
-  SetFileTime ( hTo.m_h,
-                  &FromFileData.ftCreationTime,
-                    &FromFileData.ftLastAccessTime,
-                      &FromFileData.ftLastWriteTime );
+  FindClose (hFrom);
 
-  FindClose   (hFrom);
+  // Copy to a file beside the destination, which is only replaced
+  //   once there is a complete copy to replace it with.
+  wchar_t     wszDestDir [MAX_PATH + 2] = { };
+  wcsncpy_s ( wszDestDir, MAX_PATH, to, _TRUNCATE );
+
+  PathRemoveFileSpecW (wszDestDir);
+
+  if (*wszDestDir == L'\0')
+    wcscpy_s (wszDestDir, L".");
+
+  wchar_t wszTemp [MAX_PATH + 2] = { };
+
+  if (! GetTempFileNameW (wszDestDir, L"SKI", 0, wszTemp))
+    return;
+
+  bool bCopied =
+    CopyFileW (from, wszTemp, FALSE);
+
+  if (bCopied)
+  {
+    // Only asks for attribute access, because the copy may be Read-Only
+    SK_AutoHandle hTemp (
+      CreateFileW ( wszTemp,
+                      FILE_WRITE_ATTRIBUTES,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                          FILE_SHARE_DELETE,
+                          nullptr,
+                            OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL,
+                                nullptr )
+    );
+
+    // Here's where the magic happens, apply the attributes from the
+    //   original file to the new one!
+    SetFileTime ( hTemp.m_h,
+                    &FromFileData.ftCreationTime,
+                      &FromFileData.ftLastAccessTime,
+                        &FromFileData.ftLastWriteTime );
+  }
+
+  if (bCopied)
+  {
+    const DWORD dwOrigAttribs =
+      GetFileAttributesW (to);
+
+    // Strip Read-Only
+    SK_File_SetNormalAttribs (to);
+
+    bCopied =
+      MoveFileExW (wszTemp, to, MOVEFILE_REPLACE_EXISTING);
+
+    if ((! bCopied) && dwOrigAttribs != INVALID_FILE_ATTRIBUTES)
+      SK_File_SetAttribs (to, dwOrigAttribs);
+  }
+
+  if (! bCopied)
+  {
+    SK_File_SetNormalAttribs (wszTemp);
+    DeleteFileW              (wszTemp);
+  }
 }
 
 //BOOL TakeOwnership (LPTSTR lpszOwnFile);
