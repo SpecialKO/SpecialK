@@ -2232,7 +2232,7 @@ public:
   void TryCallback (CCallbackBase* pCallback, UserStatsReceived_t* pParam)
   {
     __try {
-      if (SK_ValidatePointer (pParam, true) && SK_IsAddressExecutable (&pCallback, true))
+      if (SK_ValidatePointer (pParam, true) && SK_ValidatePointer (pCallback, true))
               pCallback->Run (pParam);
     }
     __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?

@@ -1,4 +1,10 @@
-﻿26.10.31.1
+﻿26.10.31.2
+==========
+ + Changed pattern scanning code to more efficiently skip non-executable
+     pages of memory. THIS MAY BREAK EXISTING MODS.
+ + Cleanup SK_DeleteTemporaryFiles (...).
+
+26.10.31.1
 ==========
  + Increased precision on SK_timeGetTimeFloat (...).
  + SK_GetCanonicalDLLForRole (DLL_ROLE role) returns vulkan-1.dll

@@ -538,22 +538,46 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
   HANDLE          hOldFind     =
     FindFirstFile (wszOld, &OldFileData);
 
+  // Nothing to move, leave the destination alone
+  if (hOldFind == INVALID_HANDLE_VALUE)
+    return;
+
+  FindClose (hOldFind);
+
+  const DWORD dwMoveFlags   = MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED;
+  const DWORD dwOrigAttribs = GetFileAttributesW (wszNew);
+
   // Strip read-only if need be
   SK_File_SetNormalAttribs (wszNew);
 
-  if (! MoveFileExW ( wszOld,
-                        wszNew,
-                          MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED ) )
+  bool bMoved =
+    MoveFileExW (wszOld, wszNew, dwMoveFlags);
+
+  if (! bMoved)
   {
     wchar_t wszTemp [MAX_PATH + 2] = { };
     GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", SK_timeGetTime (), wszTemp);
 
-    MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
-    MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
+    const bool bMovedAside =
+      MoveFileExW (wszNew, wszTemp, dwMoveFlags);
+
+    bMoved =
+      MoveFileExW (wszOld, wszNew,  dwMoveFlags);
+
+    // Nothing took its place, so it has to go back
+    if ((! bMoved) && bMovedAside)
+      MoveFileExW (wszTemp, wszNew, dwMoveFlags);
+  }
+
+  if (! bMoved)
+  {
+    if (dwOrigAttribs != INVALID_FILE_ATTRIBUTES)
+      SK_File_SetAttribs (wszNew, dwOrigAttribs);
+
+    return;
   }
 
   // Preserve file times
-  if (hOldFind != INVALID_HANDLE_VALUE)
   {
     SK_AutoHandle hNewFile (
       CreateFile ( wszNew,
@@ -565,7 +589,6 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
                              GetFileAttributes (wszNew),
                                nullptr ) );
 
-    FindClose         (hOldFind);
     SetFileTime       ( hNewFile,
                           &OldFileData.ftCreationTime,
                             &OldFileData.ftLastAccessTime,
@@ -998,12 +1021,14 @@ struct SK_MemScan_Params__v0
 
     bool valid = true;
 
+    // Without modifiers such as PAGE_NOCACHE and PAGE_GUARD
+    const DWORD dwProtect = mi.Protect & 0xFF;
 
     if (privileges.execute != DontCare)
     {
       bool exec_matches = true;
 
-      switch (mi.Protect)
+      switch (dwProtect)
       {
         case PAGE_EXECUTE:
         case PAGE_EXECUTE_READ:
@@ -1014,7 +1039,7 @@ struct SK_MemScan_Params__v0
           break;
 
         default:
-          if (privileges.execute == Disallowed)
+          if (privileges.execute == Allowed)
             exec_matches = false;
           break;
       }
@@ -1027,10 +1052,11 @@ struct SK_MemScan_Params__v0
     {
       bool read_matches = true;
 
-      switch (mi.Protect)
+      switch (dwProtect)
       {
         case PAGE_READONLY:
         case PAGE_READWRITE:
+        case PAGE_WRITECOPY:
         case PAGE_EXECUTE_READ:
         case PAGE_EXECUTE_READWRITE:
         case PAGE_EXECUTE_WRITECOPY:
@@ -1039,7 +1065,7 @@ struct SK_MemScan_Params__v0
           break;
 
         default:
-          if (privileges.read == Disallowed)
+          if (privileges.read == Allowed)
             read_matches = false;
           break;
       }
@@ -1052,7 +1078,7 @@ struct SK_MemScan_Params__v0
     {
       bool write_matches = true;
 
-      switch (mi.Protect)
+      switch (dwProtect)
       {
         case PAGE_READWRITE:
         case PAGE_WRITECOPY:
@@ -1063,7 +1089,7 @@ struct SK_MemScan_Params__v0
           break;
 
         default:
-          if (privileges.write == Disallowed)
+          if (privileges.write == Allowed)
             write_matches = false;
           break;
       }
@@ -1134,6 +1160,11 @@ SK_IsAddressExecutable (LPCVOID addr, bool silent)
 
     SK_RunOnce(
       test_exec.privileges.execute = SK_MemScan_Params__v0::Allowed
+    );
+
+    // Execute-only memory is still executable
+    SK_RunOnce(
+      test_exec.privileges.read    = SK_MemScan_Params__v0::DontCare
     );
 
     if (test_exec.testPrivs (minfo))
@@ -2547,12 +2578,25 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
   DWORD dwStartTime =
     SK_timeGetTime ();
 
+  // Scan the module that base_addr belongs to, or the game if it has none
+  HMODULE hBaseModule = nullptr;
+
+  if (base_addr != nullptr)
+  {
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+                         GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                           (LPCWSTR)base_addr, &hBaseModule );
+  }
+
+  if (hBaseModule == nullptr)
+  {
+    hBaseModule = SK_GetModuleHandle (nullptr);
+    base_addr   = reinterpret_cast <uint8_t *> (hBaseModule);
+  }
+
   MEMORY_BASIC_INFORMATION  minfo = { };
   VirtualQuery (base_addr, &minfo, sizeof (minfo));
 
-           base_addr = static_cast <uint8_t *> (
-                                      (void *)SK_GetModuleHandle (nullptr)
-                                               );
   uint8_t* end_addr  = static_cast <uint8_t *> (    minfo.BaseAddress    ) +
                                                     minfo.RegionSize;
   size_t pages = 0;
@@ -2560,7 +2604,7 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
   MODULEINFO mod_info = { };
 
   GetModuleInformation (
-    GetCurrentProcess (), SK_GetModuleHandle (nullptr), &mod_info, sizeof (mod_info)
+    GetCurrentProcess (), hBaseModule, &mod_info, sizeof (mod_info)
   );
 
   end_addr =
@@ -2635,6 +2679,17 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
        sizeof (MODULEINFO) )
   );
 
+  // Installed once, it is much too expensive to do for every byte compared
+  auto orig_se =
+    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+
+  struct _RestoreTranslator {
+    decltype (orig_se) orig;
+    ~_RestoreTranslator (void) { SK_SEH_RemoveTranslator (orig); }
+  } restore_translator { orig_se };
+
+  size_t compares = 0;
+
   while (it < end_addr)
   {
     if (use_timeout && SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
@@ -2677,20 +2732,16 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       continue;
     }
 
-    static bool include_end =
-      SK_GetCurrentGameID () == SK_GAME_ID::EldenRing;
-
     // Do not search past the end of the module image!
-    if ((! include_end) ? next_rgn >= end_addr
-                        : next_rgn >  end_addr)
-      break;
+    next_rgn =
+      std::min (next_rgn, end_addr);
 
     while (it < next_rgn)
     {
       if (it == nullptr)
         break;
 
-      if (use_timeout && SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
+      if (use_timeout && (++compares & 0xFFFF) == 0 && SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
       {
         SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
                     L" Sig Scan " );
@@ -2700,7 +2751,6 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       uint8_t* scan_addr = it;
 
       uint8_t test_val = static_cast <const uint8_t *> (pattern)[idx];
-      uint8_t mask_val = 0x0;
 
       bool match = false;
 
@@ -2716,6 +2766,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       }
       SK_SEH_RemoveTranslator (orig_se);
 
+      // Treat portions we do not care about (mask [idx] == 0) as wildcards.
       if (mask != nullptr && (! match))
       {
         mask_val = static_cast <const uint8_t *> (mask)[idx];
@@ -2733,39 +2784,25 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
       if (match)
       {
-        if (++idx == len)
+        if (++idx < len)
         {
-          if ((reinterpret_cast <uintptr_t> (begin) % align) != 0)
-          {
-            begin += idx;
-            begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
-
-            it     = begin;
-            idx    = 0;
-          }
-
-          else
-          {
-            return begin;
-          }
+          ++it;
+          continue;
         }
 
-        else
-          ++it;
+        if ((reinterpret_cast <uintptr_t> (begin) % align) == 0)
+          return begin;
       }
 
-      else
-      {
-        // No match?!
-        if (it > end_addr - len)
-          break;
+      // Every candidate has to be tried, a failed one can overlap the next.
+      begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
 
-        begin += idx;
-        begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
+      it  = begin;
+      idx = 0;
 
-        it  = begin;
-        idx = 0;
-      }
+      // There is no room left for the pattern
+      if (begin > end_addr - len)
+        return nullptr;
     }
   }
 
@@ -3200,7 +3237,7 @@ SK_IsSuperSpecialK (void)
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
-  if (wszInOut == nullptr)
+  if (wszInOut == nullptr || *wszInOut == L'\0')
     return;
 
   wchar_t *wszEnd  = wszInOut,
@@ -3234,9 +3271,13 @@ SK_GetBlacklistFilename (void)
 
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
-    lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
-    lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
+    // A truncated name could not refer to the right file, so leave it empty
+    if (0 > _snwprintf_s ( host_proc.wszBlacklist, MAX_PATH, _TRUNCATE,
+                             LR"(%ws\SpecialK.deny.%ws)",
+                               SK_GetHostPath (), SK_GetHostApp () ))
+    {
+      *host_proc.wszBlacklist = L'\0';
+    }
 
     SK_PathRemoveExtension (host_proc.wszBlacklist);
 
@@ -3435,18 +3476,24 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   HANDLE
     hFind = FindFirstFileW (wszFindPattern, &fd);
 
-  if (hFind != INVALID_HANDLE_VALUE && StrStrIW (fd.cFileName, L"SKI"))
+  if (hFind != INVALID_HANDLE_VALUE)
   {
-    if (config.system.log_level >= 0)
-    {
-      dll_log->LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ",
-                               SK_ConcealUserDir (std::wstring (wszPath).data ()) );
-    }
+    bool bLogged = false;
 
     wchar_t wszFullPath [MAX_PATH + 2] = { };
 
     do
     {
+      // Only our temporary files, whatever else the pattern happens to match
+      if (0 != wcsncmp (fd.cFileName, L"SKI", 3))
+        continue;
+
+      if (config.system.log_level >= 0 && (! std::exchange (bLogged, true)))
+      {
+        dll_log->LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ",
+                                 SK_ConcealUserDir (std::wstring (wszPath).data ()) );
+      }
+
       if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
       {
         *wszFullPath = L'\0';
@@ -3463,7 +3510,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
       }
     } while (FindNextFileW (hFind, &fd) != 0);
 
-    if (config.system.log_level >= 0)
+    if (bLogged)
       dll_log->LogEx ( false, L"%zu files deleted\n", files);
 
     FindClose (hFind);
