@@ -232,12 +232,6 @@ struct sk_config_t
       SK_CPU_TestForMWAITX ();
 
     SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
-
-    if (! SK_GetHostAppUtil ()->isBlacklisted ())
-    {
-      utility.hSignalAsyncSave =
-        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
-    }
   }
   struct whats_new_s {
     float  duration       = 20.0F;

@@ -9771,6 +9771,14 @@ sk_config_t::utility_functions_s::save_async_if (bool predicate)
 void
 sk_config_t::utility_functions_s::save_async (void)
 {
+  SK_RunOnce (
+    if (! SK_GetHostAppUtil ()->isBlacklisted ())
+    {
+      config.utility.hSignalAsyncSave =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    }
+  );
+
   // Don't write anything for launchers
   if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher || SK_GetHostAppUtil ()->isBlacklisted ())
     return;

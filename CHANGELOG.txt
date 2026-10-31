@@ -1,4 +1,8 @@
-﻿26.10.30
+﻿26.10.31
+========
+ + Fixed 3 Win32 Event HANDLE leaks per-DLL injection.
+
+26.10.30
 ========
  + Default the framepacing widget to display Disk Load % and VRAM
      Budget for new users, instead of configuring these manually.

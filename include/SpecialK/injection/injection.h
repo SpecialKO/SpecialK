@@ -74,6 +74,7 @@ SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 //
 void SK_Inject_SpawnUnloadListener      (void);
 void SK_Inject_CleanupSharedMemory      (void);
+void SK_Inject_Cleanup32BitRecords      (void);
 void SK_Inject_ReleaseProcess           (void);
 void SK_Inject_AcquireProcess           (void);
 void SK_Inject_SuppressExitNotify       (void);

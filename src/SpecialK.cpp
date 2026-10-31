@@ -722,6 +722,7 @@ DllMain ( HMODULE hModule,
 #endif
 
       SK_Inject_CleanupSharedMemory ();
+      SK_Inject_Cleanup32BitRecords ();
 
       // Give time for any threads waiting on something such as a message pump
       //   to wake up before we unload the DLL, because our hook procedures are
@@ -732,6 +733,23 @@ DllMain ( HMODULE hModule,
         while (ReadAcquire (&__SK_Init) != -2 && tries++ < 5)
         {
           SK_Sleep (50UL);
+        }
+      }
+
+      // Must remain outside of the TLS cleanup above; early-out processes
+      //   (e.g. blacklisted) have a teardown event, but no TLS slot.
+      if (lpReserved == nullptr)
+      {
+        if (config.utility.hSignalAsyncSave != nullptr &&
+            config.utility.hSignalAsyncSave != INVALID_HANDLE_VALUE)
+        {
+          SK_CloseHandle (config.utility.hSignalAsyncSave);
+        }
+
+        if (__SK_DLL_TeardownEvent != nullptr &&
+            __SK_DLL_TeardownEvent != INVALID_HANDLE_VALUE)
+        {
+          SK_CloseHandle (__SK_DLL_TeardownEvent);
         }
       }
     } break;
