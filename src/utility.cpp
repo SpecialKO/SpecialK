@@ -3503,7 +3503,7 @@ ModifyPrivilege (
                           TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
                           &hToken ))
     {
-        return ERROR_FUNCTION_FAILED;
+        return HRESULT_FROM_WIN32 (GetLastError ());
     }
 
     // Get the local unique ID for the privilege.
@@ -3511,8 +3511,10 @@ ModifyPrivilege (
                                 szPrivilege,
                                 &luid ))
     {
+        hr = HRESULT_FROM_WIN32 (GetLastError ());
+
         SK_CloseHandle( hToken );
-        return ERROR_FUNCTION_FAILED;
+        return hr;
     }
 
     // Assign values to the TOKEN_PRIVILEGE structure.
@@ -3522,14 +3524,22 @@ ModifyPrivilege (
               (fEnable ? SE_PRIVILEGE_ENABLED : 0);
 
     // Adjust the token privilege.
-    if (!AdjustTokenPrivileges(hToken,
-                               FALSE,
-                               &NewState,
-                               0,
-                               nullptr,
-                               nullptr))
+    const BOOL bAdjusted =
+      AdjustTokenPrivileges(hToken,
+                            FALSE,
+                            &NewState,
+                            0,
+                            nullptr,
+                            nullptr);
+
+    // This succeeds if the token does not hold the privilege, the only
+    //   indication is ERROR_NOT_ALL_ASSIGNED.
+    const DWORD dwLastError =
+      GetLastError ();
+
+    if ((! bAdjusted) || dwLastError == ERROR_NOT_ALL_ASSIGNED)
     {
-        hr = ERROR_FUNCTION_FAILED;
+        hr = HRESULT_FROM_WIN32 (dwLastError);
     }
 
     // Close the handle.
