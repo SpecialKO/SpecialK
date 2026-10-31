@@ -5322,27 +5322,41 @@ RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
 
   SK_WaitForParentToExit ();
 
+  char* szExecutableEnd = nullptr;
+
   // Strip enclosing quotes
   if (*lpszCmdLine == '"')
+  {
      ++lpszCmdLine;
+
+    szExecutableEnd =
+      StrChrA (lpszCmdLine, '"');
+  }
+
+  // Not quoted, a directory with ".exe" in its name will end the path early
+  if (szExecutableEnd == nullptr)
+  {
+    szExecutableEnd =
+      StrStrIA (lpszCmdLine, ".exe");
+
+    if (szExecutableEnd != nullptr)
+        szExecutableEnd += 4;
+  }
 
   std::string work_dir;
   char*      szArgs  = nullptr;
-  char* szExecutable =
-    StrStrIA (lpszCmdLine, ".exe");
+  char* szExecutable = lpszCmdLine;
 
-  if (szExecutable != nullptr)
+  if (szExecutableEnd != nullptr)
   {
-    if (     *(szExecutable + 4) != '\0')
-      szArgs = szExecutable + 5;
+    if (     *szExecutableEnd != '\0')
+      szArgs = szExecutableEnd + 1;
 
-    *(szExecutable + 4) = '\0';
+    *szExecutableEnd = '\0';
 
     work_dir =
       std::filesystem::path (lpszCmdLine).parent_path ().string ();
   }
-
-  szExecutable = lpszCmdLine;
 
   if (szArgs == nullptr || (! StrStrIA (szArgs, "-epicapp=")))
   {

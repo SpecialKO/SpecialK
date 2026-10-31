@@ -3831,7 +3831,7 @@ SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
       GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
 
       //if (SK_FileHasSpaces (wszShortPath))
-      // 
+      //
       //{
       //  if (wszFailMsg == nullptr)
       //    SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
@@ -3839,20 +3839,17 @@ SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
       //    SK_ImGui_Warning (wszFailMsg);
       //  return;
       //}
-      UNREFERENCED_PARAMETER (wszFailMsg);
     }
   }
 
-  SK_Inject_SuppressExitNotify ();
-
   if (! SK_IsSuperSpecialK ())
   {
-    wchar_t      wszRunDLLCmd [MAX_PATH * 4] = { };
-    swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-                 L"RunDll32.exe \"%ws\",RunDLL_RestartGame %ws %ws",
-                   wszShortPath,
-                     SK_GetFullyQualifiedApp (),
-                     PathGetArgsW (GetCommandLineW ()) );
+    // Not a fixed-size buffer; some launchers pass very long command lines
+    std::wstring wszRunDLLCmd =
+      SK_FormatStringW ( L"RunDll32.exe \"%ws\",RunDLL_RestartGame \"%ws\" %ws",
+                           wszShortPath,
+                             SK_GetFullyQualifiedApp (),
+                             PathGetArgsW (GetCommandLineW ()) );
 
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
@@ -3861,20 +3858,32 @@ SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    CreateProcess ( nullptr, wszRunDLLCmd,     nullptr, nullptr,
-                    FALSE,   CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
-                    &sinfo,  &pinfo );
-
-    if (pinfo.hProcess != 0)
+    // Nothing would bring the game back, so it has to keep running
+    if (! CreateProcess ( nullptr, wszRunDLLCmd.data (), nullptr, nullptr,
+                          FALSE,   CREATE_SUSPENDED,     nullptr, SK_GetHostPath (),
+                          &sinfo,  &pinfo ))
     {
-      // Save config prior to committing suicide
-      SK_SelfDestruct ();
+      SK_LOGi0 ( L"Could not start RunDll32 to restart the game (Error=%d)",
+                   GetLastError () );
 
-      ResumeThread   (pinfo.hThread);
-      SK_CloseHandle (pinfo.hThread);
-      SK_CloseHandle (pinfo.hProcess);
+      SK_ImGui_Warning ( wszFailMsg != nullptr ? wszFailMsg
+                                               : L"The game could not be restarted." );
+
+      return;
     }
+
+    SK_Inject_SuppressExitNotify ();
+
+    // Save config prior to committing suicide
+    SK_SelfDestruct ();
+
+    ResumeThread   (pinfo.hThread);
+    SK_CloseHandle (pinfo.hThread);
+    SK_CloseHandle (pinfo.hProcess);
   }
+
+  else
+    SK_Inject_SuppressExitNotify ();
 
   SK_TerminateProcess (0x00);
 }
