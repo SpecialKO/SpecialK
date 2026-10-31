@@ -2047,9 +2047,9 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
   wchar_t wszFullyQualifiedName [MAX_PATH + 2] = { };
 
-  lstrcatW (wszFullyQualifiedName, SK_GetHostPath ());
-  lstrcatW (wszFullyQualifiedName, L"\\");
-  lstrcatW (wszFullyQualifiedName, wszName);
+  // Fails, instead of overflowing, if the result does not fit in MAX_PATH
+  if (! SK_PathCombineW (wszFullyQualifiedName, SK_GetHostPath (), wszName))
+    return false;
 
   BOOL bRet =
     SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
@@ -3577,107 +3577,139 @@ ModifyPrivilege (
 }
 
 
+// Builds "BASE~N.EXT" from the characters in wszName that are valid in an 8.3 name
+static void
+SK_Build8Dot3Name (const wchar_t* wszName, bool dir, int idx, wchar_t (&wsz8Dot3)[14])
+{
+  wchar_t* wszOut = wsz8Dot3;
+
+  auto _AppendValid =
+  [&](const wchar_t* wszBegin, const wchar_t* wszEnd, int max_chars) -> int
+  {
+    int count = 0;
+
+    for ( ; wszBegin < wszEnd && count < max_chars ; ++wszBegin )
+    {
+      const wchar_t ch =
+        (*wszBegin >= L'a' && *wszBegin <= L'z') ? *wszBegin - (L'a' - L'A')
+                                                 : *wszBegin;
+
+      if ( (ch >= L'A' && ch <= L'Z') ||
+           (ch >= L'0' && ch <= L'9') || (ch != L'\0' && wcschr (L"$%'-_@`!(){}^#&", ch)) )
+      {
+        *wszOut++ = ch;
+         count++;
+      }
+    }
+
+    return count;
+  };
+
+  const wchar_t* wszNameEnd = wszName + wcslen (wszName);
+  const wchar_t* wszExt     = dir ? wszNameEnd
+                                  : PathFindExtensionW (wszName);
+
+  // Names without a single valid character are possible (i.e. Japanese)
+  if (_AppendValid (wszName, wszExt, 6) == 0)
+  {
+    *wszOut++ = L'S';
+    *wszOut++ = L'K';
+  }
+
+  *wszOut++ = L'~';
+  *wszOut++ = sk::narrow_cast <wchar_t> (L'0' + idx);
+
+  if (wszExt < wszNameEnd)
+  {
+    wchar_t* wszDot = wszOut;
+    *wszOut++ = L'.';
+
+    if (_AppendValid (wszExt + 1, wszNameEnd, 3) == 0)
+      wszOut = wszDot;
+  }
+
+  *wszOut = L'\0';
+}
+
+// Gives a short name to every part of a path that has a space in it and no short
+//   name already. This changes the filesystem, requires admin privileges and is
+//     not possible on volumes that have 8.3 name support disabled.
 bool
 SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 {
-  wchar_t wszFileName  [MAX_PATH] = { };
-  wchar_t wszFileName1 [MAX_PATH] = { };
+  wchar_t wszPath [MAX_PATH + 2] = { };
 
-  PathCombineW (wszFileName, wszLongFileName,  nullptr);
-  PathCombineW (wszFileName1, wszLongFileName, nullptr);
+  if (! PathCombineW (wszPath, wszLongFileName, nullptr))
+    return false;
 
-  wchar_t  wsz8     [11] = { }; // One non-nul for overflow
-  wchar_t  wszDot3  [ 4] = { };
-  wchar_t  wsz8Dot3 [14] = { };
+  bool bHasPrivileges = false;
 
-  while (SK_FileHasSpaces (wszFileName))
+  PathRemoveBackslashW (wszPath);
+
+  while (SK_FileHasSpaces (wszPath))
   {
-    ModifyPrivilege (SE_RESTORE_NAME, TRUE);
-    ModifyPrivilege (SE_BACKUP_NAME,  TRUE);
+    const wchar_t* wszName =
+      PathFindFileNameW (wszPath);
 
-    SK_AutoHandle hFile (
-      CreateFileW ( wszFileName,
-                      GENERIC_WRITE      | DELETE,
-                        FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                          nullptr,
-                            OPEN_EXISTING,
-                              FILE_FLAG_BACKUP_SEMANTICS,
-                                nullptr ) );
+    wchar_t wszShortPath [MAX_PATH + 2] = { };
 
-    if ((intptr_t)hFile.m_h <= 0)
-    {
+    if (! GetShortPathNameW (wszPath, wszShortPath, MAX_PATH))
       return false;
-    }
 
-    DWORD dwAttrib =
-      GetFileAttributes (wszFileName);
-
-    if (dwAttrib == INVALID_FILE_ATTRIBUTES)
+    // A part of the path without spaces does not need a short name (it might not
+    //   even be possible to open for write access, as with a DLL that is loaded).
+    if (SK_FileHasSpaces (wszName) &&
+        SK_FileHasSpaces (PathFindFileNameW (wszShortPath)))
     {
-      return false;
-    }
-
-    bool dir = false;
-
-    if (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)
-    {
-      dir = true;
-    }
-
-    else
-    {
-      dir = false;
-
-      const wchar_t* pwszExt =
-        PathFindExtension (wszFileName);
-
-      if (pwszExt != nullptr && *pwszExt == L'.')
+      if (! std::exchange (bHasPrivileges, true))
       {
-        swprintf (wszDot3, L"%3s", SK_CharNextW (pwszExt));
+        ModifyPrivilege (SE_RESTORE_NAME, TRUE);
+        ModifyPrivilege (SE_BACKUP_NAME,  TRUE);
       }
 
-      PathRemoveExtension (wszFileName);
-    }
+      SK_AutoHandle hFile (
+        CreateFileW ( wszPath,
+                        GENERIC_WRITE     | DELETE,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                            FILE_SHARE_DELETE,
+                            nullptr,
+                              OPEN_EXISTING,
+                                FILE_FLAG_BACKUP_SEMANTICS,
+                                  nullptr ) );
 
-    PathStripPath       (wszFileName);
-    PathRemoveBackslash (wszFileName);
-    PathRemoveBlanks    (wszFileName);
+      if ((intptr_t)hFile.m_h <= 0)
+        return false;
 
-    wcsncpy_s (wsz8, 11, wszFileName, _TRUNCATE);
+      const DWORD dwAttrib =
+        GetFileAttributesW (wszPath);
 
-    wchar_t idx = 0;
+      if (dwAttrib == INVALID_FILE_ATTRIBUTES)
+        return false;
 
-    if (wcslen (wsz8) > 8)
-    {
-      wsz8 [6] = L'~';
-      wsz8 [7] = L'0';
-      wsz8 [8] = L'\0';
+      const bool dir =
+        (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
 
-      swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+      bool bSuccess = false;
 
-      while ((! SetFileShortNameW (hFile, wsz8Dot3)) && idx < 9)
+      for ( int idx = 1 ; idx <= 9 && (! bSuccess) ; ++idx )
       {
-        wsz8 [6] = L'~';
-        wsz8 [7] = L'0' + idx++;
-        wsz8 [8] = L'\0';
+        wchar_t                                wsz8Dot3 [14] = { };
+        SK_Build8Dot3Name (wszName, dir, idx,  wsz8Dot3);
 
-        swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+        bSuccess =
+          SetFileShortNameW (hFile, wsz8Dot3);
+
+        // Only a name collision is worth trying again
+        if ((! bSuccess) && GetLastError () != ERROR_ALREADY_EXISTS)
+          return false;
       }
+
+      if (! bSuccess)
+        return false;
     }
 
-    else
-    {
-      swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
-    }
-
-    if (idx == 9)
-    {
-      return false;
-    }
-
-    PathRemoveFileSpec (wszFileName1);
-    wcsncpy_s          (wszFileName,   MAX_PATH,
-                        wszFileName1, _TRUNCATE);
+    if (! PathRemoveFileSpecW (wszPath))
+      break;
   }
 
   return true;
@@ -3701,13 +3733,8 @@ SK_CanRestartGame (void)
       wcsncpy_s ( wszFullname, MAX_PATH,
                   SK_GetModuleFullName ( SK_GetDLL () ).c_str (),
                               _TRUNCATE );
-    
-      wchar_t                         wszCurDir
-                           [MAX_PATH + 2] = {  };
-      GetCurrentDirectoryW (MAX_PATH, wszCurDir);
-    
-      SK_Generate8Dot3 (wszCurDir);
-      SK_Generate8Dot3 (wszFullname);
+
+      // This only tests, SK_RestartGame (...) will generate short names if needed
       wcsncpy_s        (wszShortPath, MAX_PATH, wszFullname, _TRUNCATE);
     
       if (SK_FileHasSpaces (wszFullname))
@@ -3738,7 +3765,8 @@ SK_CanRestartGame (void)
                     wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
           GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
     
-          if (SK_FileHasSpaces (wszShortPath))
+          // Generating a short name requires admin
+          if (SK_FileHasSpaces (wszShortPath) && (! SK_IsAdmin ()))
           {
             can_restart = false;
           }
