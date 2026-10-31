@@ -2707,7 +2707,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       }
       SK_SEH_RemoveTranslator (orig_se);
 
-      if (mask != nullptr)
+      if (mask != nullptr && (! match))
       {
         mask_val = static_cast <const uint8_t *> (mask)[idx];
 
@@ -4631,22 +4631,8 @@ SK_StripLeadingSlashesW (wchar_t *wszInOut)
 
   if (len != new_len)
   {
-    wchar_t *wszOut = wszInOut;
-    wchar_t *wszIn  = wszStart;
-
-    for ( size_t i = 0 ; i < new_len ; ++i )
-    {
-      *wszOut =           *wszIn;
-
-      if (*wszOut == L'\0')
-        break;
-
-      wszIn  = SK_CharNextW (wszIn);
-      wszOut = SK_CharNextW (wszOut);
-    }
-
-    if (*wszOut != L'\0')
-      *SK_CharNextW (wszOut) = L'\0';
+    // Includes the null-terminator
+    wmemmove (wszInOut, wszStart, new_len + 1);
   }
 
   // Else:
