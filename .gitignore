@@ -291,3 +291,5 @@ opengl_stateblock.cpp
 /StructLayoutSettings.json
 /resource/textures/Gamepads/PS5 Button Icons and Controls/Buttons Full Solid/Black/128w/Circle.png
 *.png
+/en-x-cat.po
+/.vscode/settings.json
