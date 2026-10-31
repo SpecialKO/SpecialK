@@ -1046,8 +1046,9 @@ SK_ValidatePointer (LPCVOID addr, bool silent, MEMORY_BASIC_INFORMATION *pmi)
   {
     bFail = false;
 
-    if ((minfo.AllocationProtect == 0 ) ||
-      (  minfo.Protect & PAGE_NOACCESS)   )
+    if ((minfo.State    != MEM_COMMIT) ||
+        (minfo.AllocationProtect == 0) ||
+        (minfo.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
     {
       bFail = true;
     }
@@ -1687,7 +1688,7 @@ SK_TestImports (          HMODULE  hMod,
       ( pImgBase + pImgDir->VirtualAddress ),
                              end   = reinterpret_cast <PIMAGE_IMPORT_DESCRIPTOR> (
                                      reinterpret_cast <uintptr_t>
-      (    start + pImgDir->Size )                                               );
+      (    start + pImgDir->Size / sizeof (IMAGE_IMPORT_DESCRIPTOR) )            );
 
     static bool bValidIAT = true;
 
@@ -1701,13 +1702,12 @@ SK_TestImports (          HMODULE  hMod,
         {
           if (SK_ValidatePointer (pImpDesc, true))
           {
-            if ( pImpDesc->Characteristics == 0  )
-              break;
-
-            if ( pImpDesc->ForwarderChain != DWORD_MAX ||
-                 pImpDesc->Name           == 0x0 )
+            // Same terminating condition as the loader; OriginalFirstThunk
+            //   (Characteristics) is legitimately 0 in some older linkers' output.
+            if ( pImpDesc->Name       == 0x0 ||
+                 pImpDesc->FirstThunk == 0x0 )
             {
-              continue;
+              break;
             }
           }
 
@@ -1723,7 +1723,7 @@ SK_TestImports (          HMODULE  hMod,
 
         const auto* szImport =
           reinterpret_cast <const char *> (
-            pImgBase + (pImpDesc++)->Name
+            pImgBase + pImpDesc->Name
           );
 
         //dll_log->Log (L"%hs", szImport);
@@ -1775,9 +1775,8 @@ SK_TestImports (          HMODULE  hMod,
   }
   __except (EXCEPTION_EXECUTE_HANDLER) { };
 
-  // We found all of nothing by examining the IAT, so time to try a
-  //   different approach...
-  if (hits == 0)
+  // The import table says nothing about APIs that the game loads dynamically,
+  //   so always supplement it; even if some of the tests were hits.
   {
     i = 0;
 
@@ -3062,13 +3061,14 @@ SK_RemoveTrailingDecimalZeros (wchar_t* wszNum, size_t bufLen)
                   wcslen (wszNum) :
         std::min (wcslen (wszNum), bufLen);
 
-  for (size_t i = (len - 1); i > 1; i--)
-  {
-    if (wszNum [i] == L'0' && wszNum [i - 1] != L'.')
-      len--;
+  const wchar_t* wszDecimal =
+    wcschr (wszNum, L'.');
 
-    if (wszNum [i] != L'0' && wszNum [i] != L'\0')
-      break;
+  // Always leave one digit following the .
+  if (wszDecimal != nullptr && wszDecimal < wszNum + len)
+  {
+    while (wszNum + len > wszDecimal + 2 && wszNum [len - 1] == L'0')
+      len--;
   }
 
   wszNum [len] = L'\0';
@@ -3087,13 +3087,14 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
                   strlen (szNum) :
         std::min (strlen (szNum), bufLen);
 
-  for (size_t i = (len - 1); i > 1; i--)
-  {
-    if (szNum [i] == '0' && szNum [i - 1] != '.')
-      len--;
+  const char* szDecimal =
+    strchr (szNum, '.');
 
-    if (szNum [i] != '0' && szNum [i] != '\0')
-      break;
+  // Always leave one digit following the .
+  if (szDecimal != nullptr && szDecimal < szNum + len)
+  {
+    while (szNum + len > szDecimal + 2 && szNum [len - 1] == '0')
+      len--;
   }
 
   szNum [len] = '\0';
