@@ -1889,16 +1889,16 @@ SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
 
   const wchar_t* wszSearch = pwszStr;
 
-  while (wszSearch >= wszStr)
+  while (*wszSearch != wchr)
   {
-    if (*wszSearch == wchr)
-      break;
+    // SK_CharPrevW (...) does not move beyond the start of the string
+    if (wszSearch == wszStr)
+      return nullptr;
 
     wszSearch = SK_CharPrevW (wszStr, wszSearch);
   }
 
-  return (wszSearch < wszStr) ?
-           nullptr : wszSearch;
+  return wszSearch;
 }
 
 const wchar_t*

@@ -1117,7 +1117,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
     SK_CharNextW ( SK_Path_wcsrchr ( wszSelfTitledDLL, *LR"(\)" ) );
 
   // The DLL path was _already_ in non-fully-qualified form... oops?
-  if (wszShort == reinterpret_cast <const wchar_t *> (1))
+  if (wszShort == nullptr)
       wszShort = wszSelfTitledDLL;
 
 
