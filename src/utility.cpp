@@ -5169,7 +5169,7 @@ SK_GetCanonicalDLLForRole (DLL_ROLE role)
     case DLL_ROLE::OpenGL:
       return L"OpenGL32.dll";
     case DLL_ROLE::Vulkan:
-      return L"vk-1.dll";
+      return L"vulkan-1.dll";
     case DLL_ROLE::DInput8:
       return L"dinput8.dll";
     default:
