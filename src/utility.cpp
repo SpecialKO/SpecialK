@@ -1201,7 +1201,8 @@ FindProcessByName (const wchar_t* wszName)
        ) return pe32;
   } while (Process32NextW (hProcessSnap, &pe32));
 
-  return pe32;
+  // pe32 still holds the last process enumerated
+  return { };
 }
 
 iSK_INI*
@@ -1366,6 +1367,10 @@ SK_IsCallingDLL ( const wchar_t* const wszModule,
   const HMODULE calling_module =
     SK_GetCallingDLL (pReturn);
 
+  // Would otherwise test the name of the game's executable (i.e. JIT'd caller)
+  if (calling_module == nullptr)
+    return false;
+
   const bool fuzzy_match =
     StrStrIW (
       SK_GetModuleFullName (calling_module).c_str (),
@@ -1378,8 +1383,9 @@ SK_IsCallingDLL ( const wchar_t* const wszModule,
 bool
 SK_IsCallingDLL (HMODULE hModule, LPCVOID pReturn) noexcept
 {
+  // A module that is not loaded cannot be the caller, even if no module is
   return
-    SK_GetCallingDLL (pReturn) == hModule;
+    hModule != nullptr && SK_GetCallingDLL (pReturn) == hModule;
 }
 
 static SK_ThreadSuspension_Ctx
@@ -2650,7 +2656,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
     if ( (! (minfo.Type     & MEM_IMAGE))   ||
        //(! (minfo.State    & MEM_COMMIT))  ||
-             minfo.Protect  & PAGE_NOACCESS ||
+             minfo.Protect  & (PAGE_NOACCESS | PAGE_GUARD) ||
              minfo.Protect == 0             ||
          ( ! params.testPrivs (minfo) )     ||
     
@@ -2876,7 +2882,7 @@ __stdcall SK_ScanIdaStyle(void* module, const char* pattern)
   while (it < end && VirtualQuery (it, &mbi, sizeof (mbi)))
   {
     // Skip unreadable / non-image memory
-    if (!(mbi.Type & MEM_IMAGE) || (mbi.Protect & PAGE_NOACCESS) ||  mbi.Protect == 0)
+    if (!(mbi.Type & MEM_IMAGE) || (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)) ||  mbi.Protect == 0)
     {
       it = static_cast<std::uint8_t*> (mbi.BaseAddress) + mbi.RegionSize;
       continue;
@@ -4629,6 +4635,14 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
   }
   va_end (_ArgList);
 
+  // There is no truncation to a buffer that does not exist, so this is an encoding
+  //   error and anything already in the buffer must not be mistaken for the output.
+  if (len < 0)
+  {
+    ((wchar_t *)out.data ())[0] = L'\0';
+    return 0;
+  }
+
   len =
     std::min (
       std::max (0, len + 1),
@@ -5832,15 +5846,14 @@ SK_timeGetTime (void) noexcept
     winmm_timeGetTime ();
 }
 
-float
+double
 WINAPI
 SK_timeGetTimeFloat (void) noexcept
 {
   LARGE_INTEGER                    qpcNow;
   if (SK_QueryPerformanceCounter (&qpcNow))
-    return (float)
-             static_cast <double> (qpcNow.QuadPart /
-                  SK_QpcTicksPerMs);
+    return ( static_cast <double> (qpcNow.QuadPart) /
+             static_cast <double> (SK_QpcTicksPerMs) );
 
 
   static HMODULE hModWinMM =
@@ -5853,7 +5866,7 @@ SK_timeGetTimeFloat (void) noexcept
         "timeGetTime"                      );
 
   return
-    (float)winmm_timeGetTime ();
+    (double)winmm_timeGetTime ();
 }
 
 BOOL

@@ -1,4 +1,32 @@
-﻿26.10.31
+﻿26.10.31.1
+==========
+ + Increased precision on SK_timeGetTimeFloat (...).
+ + SK_GetCanonicalDLLForRole (DLL_ROLE role) returns vulkan-1.dll
+     instead of vk-1.dll for DLL_ROLE::Vulkan.
+ + Fixed potential deadlock in SK_SuspendAllOtherThreads (...) due to
+     heap memory allocation while threads holding the heap lock are
+       suspended.
+ + Fixed SK_RestartGame (...) terminating instead of restarting if the
+     command line arguments exceeded 1040 characters.
+ + Fixed problems in SK_Generate8Dot3 (...) for files with spaces in
+     them, and for files with extensions longer than three characters.
+ + Fixed SK_File_FullCopy (...) deleting the destination file it is
+     supposed to overwrite before knowing if a copy is even possible.
+ + Fixed SK_Path_wcsrchr (...) hanging if the letter is absent.
+ + Fixed premature null-termination in SK_StripLeadingSlashesW (...).
+ + Fixed SK_StripUserNameFromPathA (...) not actually doing anything,
+     and changed both ..FromPathA (...) and ..FromPathW (...) to remove
+       all instances of a user's name if they appear more than once.
+    * Made both functions case insensitive.
+ + Fixed out-of-bounds write in SK_FormatStringView (...).
+ + Fixed possible buffer overflow in SK_GetDocumentsDir (...).
+ + Fixed formatting issues with SK_RemoveTrailingDecimalZeros (...).
+ + Fixed missing memory state flags in SK_ValidatePointer (...).
+ + Avoid holding a reference to the DXGI SwapChain while waiting for a
+     screenshot transfer to complete in D3D11.
+ + Reduce redundant INI file writes.
+
+26.10.31
 ========
  + Fixed 3 Win32 Event HANDLE leaks per-DLL injection.
 
