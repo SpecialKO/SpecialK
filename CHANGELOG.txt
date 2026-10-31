@@ -1,4 +1,8 @@
-﻿26.10.31.2
+﻿26.10.31.3
+==========
+ + Fixed mask bits not applying in calls to SKX_ScanAlignedEx (...).
+
+26.10.31.2
 ==========
  + Changed pattern scanning code to more efficiently skip non-executable
      pages of memory. THIS MAY BREAK EXISTING MODS.

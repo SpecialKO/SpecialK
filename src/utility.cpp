@@ -2765,7 +2765,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
         if (! mask_val)
           match = true;
 
-        else if (match)
+        else
         {
           // The more complicated case, where the mask is an actual mask :)
           match = (test_val & mask_val);
