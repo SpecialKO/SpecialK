@@ -101,8 +101,8 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
     return FALSE;
 
   SK_AutoHandle hFile (
-    CreateFileW ( wszFile, GENERIC_READ,
-                        FILE_SHARE_READ, nullptr,
+    CreateFileW ( wszFile, GENERIC_READ, FILE_SHARE_READ |
+                      FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
                               OPEN_EXISTING,
                               FILE_ATTRIBUTE_NORMAL, nullptr )
   );
@@ -116,6 +116,23 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
   }
 
   return FALSE;
+}
+
+// Compares INI paths, ignoring case, slash direction and repeated slashes
+static bool
+SK_INI_IsSamePath (const wchar_t* wszPathA, const wchar_t* wszPathB)
+{
+  std::wstring path_a (wszPathA),
+               path_b (wszPathB);
+
+  std::replace (path_a.begin (), path_a.end (), L'/', L'\\');
+  std::replace (path_b.begin (), path_b.end (), L'/', L'\\');
+
+  SK_StripTrailingSlashesW (path_a.data ());
+  SK_StripTrailingSlashesW (path_b.data ());
+
+  return // Case insensitive comparison of the two paths
+    0 == _wcsicmp (path_a.c_str (), path_b.c_str ());
 }
 
 bool
@@ -152,14 +169,12 @@ iSK_INI::reload (const wchar_t *fname)
   }
 
   // Avoid reloading when it would make no sense to do so
-  if (! _wcsicmp (fname, name.c_str ()))
+  if (SK_INI_IsSamePath (fname, name.c_str ()))
   {
     alignas (8) FILETIME    ftLastWrite =    file_stamp;
     if (SK_File_GetModificationTime (fname, &file_stamp) &&
           CompareFileTime (&ftLastWrite,    &file_stamp) == 0)
     {
-      flushed_ = file_stamp;
-
       if (! sections.empty ())
       {
         SK_LOG2 ( ( L"Skipping Reload on file '%ws' because it is unchanged", fname ),
@@ -168,8 +183,6 @@ iSK_INI::reload (const wchar_t *fname)
         return true;
       }
     }
-
-    flushed_ = file_stamp;
 
     SK_LOG2 ( ( L"Continuing reload on file '%ws' because old modification time = %llu, "
                 L"new = %llu", fname, *(UINT64 *)&ftLastWrite, *(UINT64 *)&file_stamp ),
@@ -1065,7 +1078,7 @@ iSK_INISection::set_name (const std::wstring_view name_)
     if (! name_._Equal (name))
     { parent->crc32_ = 0x0;
 
-      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.data () ),
+      SK_LOG1 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.data () ),
                   L"ConfigMgmt" );
     }
   }
@@ -1083,7 +1096,7 @@ iSK_INISection::set_name (const std::wstring& name_)
     if (! name_._Equal (name))
     { parent->crc32_ = 0x0;
 
-      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.c_str () ),
+      SK_LOG1 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.c_str () ),
                   L"ConfigMgmt" );
     }
   }
@@ -1153,7 +1166,7 @@ iSK_INISection::add_key_value (const std::wstring_view key, const std::wstring_v
     if (parent != nullptr)
     {   parent->crc32_ = 0x0;
 
-      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
+      SK_LOG1 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
                                                  key.data (), value.data () ),
                   L"ConfigMgmt" );
     }
@@ -1189,7 +1202,7 @@ iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& valu
     if (parent != nullptr)
     {   parent->crc32_ = 0x0;
 
-      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
+      SK_LOG1 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
                                                  key.c_str (), value.c_str () ),
                   L"ConfigMgmt" );
     }
@@ -1409,40 +1422,40 @@ iSK_INI::write (const wchar_t* fname)
 
   uint32_t new_crc32 = 0;
   bool     orig_file =
-    (0 == _wcsicmp (fname, get_filename ()));
+    SK_INI_IsSamePath (fname, get_filename ());
 
   if (orig_file)
   {
+    std::wstring log_name (fname);
+
+    SK_ConcealUserDir (log_name.data ());
+
+    const bool bShutdown =
+      ReadAcquire (&__SK_DLL_Ending) != 0;
+
+    // Avoid writing INI files when launchers exit, even if their contents changed
+    if (bShutdown && (! SK_GetFramesDrawn ()))
+    {
+      SK_LOG1 ( ( L"Flush Skipped For INI '%ws' (No Frames Drawn)", log_name.c_str () ),
+                  L"ConfigMgmt" );
+      return;
+    }
+
     new_crc32 =
         crc32 ( 0x0, outbuf.data   (),
                      outbuf.length () * sizeof (wchar_t) );
 
-    //dll_log->Log (L"%s => Old: %x, New: %x", fname, crc32_, new_crc32);
+    SK_LOG1 ( ( L"%ws => Old: %x, New: %x", log_name.c_str (), crc32_, new_crc32 ),
+                L"ConfigMgmt" );
 
     if (new_crc32 == crc32_)
     {
-      if (ReadAcquire (&__SK_DLL_Ending))
+      // We have nothing new to add, so leave any external changes to this file alone.
+      //   A file that was deleted while we were running is still re-created at shutdown.
+      if ((! bShutdown) || PathFileExistsW (fname))
       {
-        //if (WaitForSingleObject (   file_watch, 0) == WAIT_TIMEOUT)
-        //  return;
-        //
-        //FindNextChangeNotification (file_watch);
-
-        if (SK_File_GetModificationTime (fname, &file_stamp))
-        {
-          // Check if file was re-written externally, if not we can avoid flushing to disk.
-          if (CompareFileTime (&flushed_, &file_stamp) == 0 || (! SK_GetFramesDrawn ()))
-          {                                                 // Also avoid writing INI files when launchers exit
-            SK_LOG2 ((L"Flush Skipped For Unmodified INI '%s' (Shutdown)", fname),
-                     L"ConfigMgmt");
-            return;
-          }
-        }
-      }
-
-      else
-      {
-        SK_LOG2 ( ( L"Flush Skipped For Unmodified INI '%s' (Normal)", fname ),
+        SK_LOG1 ( ( L"Flush Skipped For Unmodified INI '%ws' (%ws)", log_name.c_str (),
+                                                 bShutdown ? L"Shutdown" : L"Normal" ),
                     L"ConfigMgmt" );
         return;
       }
@@ -1497,10 +1510,7 @@ iSK_INI::write (const wchar_t* fname)
   {
     crc32_ = new_crc32;
 
-    if (SK_File_GetModificationTime (fname, &file_stamp))
-    {
-      flushed_ = file_stamp;
-    }
+    SK_File_GetModificationTime (fname, &file_stamp);
   }
 }
 
@@ -1633,7 +1643,7 @@ iSK_INISection::remove_key (const std::wstring& wszKey)
     if (parent != nullptr)
     {   parent->crc32_ = 0x0;
 
-        SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::remove_key (%ws)", wszKey.c_str () ),
+        SK_LOG1 ( ( L"Forced INI Flush: iSK_INISection::remove_key (%ws)", wszKey.c_str () ),
                     L"ConfigMgmt" );
     }
 
@@ -1867,7 +1877,6 @@ iSK_INI::rename (const wchar_t* fname)
     name = fname;
 
     crc32_     =   0  ;
-    flushed_   = { 0 };
     file_stamp = { 0 };
 
     return true;

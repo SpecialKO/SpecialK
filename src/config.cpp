@@ -8724,7 +8724,7 @@ SK_AppCache_GetSharedProfileName (const wchar_t* wszPath, bool log_status = fals
           data.resize (size);
       }
 
-      CloseHandle (hFile);
+      SK_CloseHandle (hFile);
 
       nlohmann::json json =
         nlohmann::json::parse (data, nullptr, false);
@@ -9242,6 +9242,16 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
 
       SK_RecursiveMove ( original_dir.c_str (),
                                  path.c_str (), false );
+
+      // The profile moved; if the INI keeps its old name, SK_SaveConfig's path
+      //   will never match it and iSK_INI::write (...) bypasses its CRC test.
+      if ((! old_ini.empty ()) && dll_ini != nullptr)
+      {
+        dll_ini->rename (
+          SK_FormatStringW ( L"%ws%ws", path.c_str (),
+            std::filesystem::path (old_ini).filename ().c_str () ).c_str ()
+        );
+      }
     }
   }
 
@@ -9307,6 +9317,16 @@ SK_AppCache_Manager::getConfigPathForGenericApp (const wchar_t* wszGenericAppNam
 
       SK_RecursiveMove ( original_dir.c_str (),
                                  path.c_str (), false );
+
+      // The profile moved; if the INI keeps its old name, SK_SaveConfig's path
+      //   will never match it and iSK_INI::write (...) bypasses its CRC test.
+      if ((! old_ini.empty ()) && dll_ini != nullptr)
+      {
+        dll_ini->rename (
+          SK_FormatStringW ( L"%ws%ws", path.c_str (),
+            std::filesystem::path (old_ini).filename ().c_str () ).c_str ()
+        );
+      }
     }
   }
 
@@ -9372,6 +9392,16 @@ SK_AppCache_Manager::getConfigPathForAppID (AppId64_t uiAppID) const
 
       SK_RecursiveMove ( original_dir.c_str (),
                                  path.c_str (), false );
+
+      // The profile moved; if the INI keeps its old name, SK_SaveConfig's path
+      //   will never match it and iSK_INI::write (...) bypasses its CRC test.
+      if ((! old_ini.empty ()) && dll_ini != nullptr)
+      {
+        dll_ini->rename (
+          SK_FormatStringW ( L"%ws%ws", path.c_str (),
+            std::filesystem::path (old_ini).filename ().c_str () ).c_str ()
+        );
+      }
     }
   }
 
