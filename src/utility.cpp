@@ -365,7 +365,7 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
         return false;
       }
 
-      wcsncat (buf, docs.c_str (), *pdwLen);
+      wcsncat (buf, docs.c_str (), *pdwLen-1);
 
       *pdwLen =
         sk::narrow_cast <uint32_t> (wcslen (buf));
