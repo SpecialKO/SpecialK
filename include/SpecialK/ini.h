@@ -187,7 +187,6 @@ private:
 
   ULONG    refs_       =    0;
   uint32_t crc32_      =    0; // Skip writing config files that haven't changed
-  FILETIME flushed_    =  { 0 };
   FILETIME file_stamp  =  { 0 };
   HANDLE   file_watch  = nullptr;
   bool     allow_empty =  false;

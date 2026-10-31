@@ -5832,15 +5832,14 @@ SK_timeGetTime (void) noexcept
     winmm_timeGetTime ();
 }
 
-float
+double
 WINAPI
 SK_timeGetTimeFloat (void) noexcept
 {
   LARGE_INTEGER                    qpcNow;
   if (SK_QueryPerformanceCounter (&qpcNow))
-    return (float)
-             static_cast <double> (qpcNow.QuadPart /
-                  SK_QpcTicksPerMs);
+    return ( static_cast <double> (qpcNow.QuadPart) /
+             static_cast <double> (SK_QpcTicksPerMs) );
 
 
   static HMODULE hModWinMM =
@@ -5853,7 +5852,7 @@ SK_timeGetTimeFloat (void) noexcept
         "timeGetTime"                      );
 
   return
-    (float)winmm_timeGetTime ();
+    (double)winmm_timeGetTime ();
 }
 
 BOOL

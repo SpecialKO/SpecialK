@@ -1086,9 +1086,9 @@ SK_make_unique_nothrow (Args && ... args) noexcept
 (  T ( std::forward   < Args >     (args)   ... ))
 );
 
-float WINAPI SK_timeGetTimeFloat (void) noexcept;
-DWORD WINAPI SK_timeGetTime      (void) noexcept;
-BOOL  WINAPI SK_PlaySound        (_In_opt_ LPCWSTR pszSound,
+double WINAPI SK_timeGetTimeFloat (void) noexcept;
+DWORD  WINAPI SK_timeGetTime      (void) noexcept;
+BOOL   WINAPI SK_PlaySound        (_In_opt_ LPCWSTR pszSound,
                                   _In_opt_ HMODULE hmod,
                                   _In_     DWORD   fdwSound);
 

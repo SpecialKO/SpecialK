@@ -827,11 +827,11 @@ SK_Input_SetLatencyMarker (void) noexcept
   static volatile DWORD64  ulLastFrame  = 0;
   if (ReadULong64Acquire (&ulLastFrame) <= ulFramesDrawn)
   {
-    static float fLastInput = 0.0f;
-           float fTimeNow   =
+    static double dLastInput = 0.0f;
+           double dTimeNow   =
                 SK_timeGetTimeFloat ();
-    if (fTimeNow > fLastInput + 1.5f || ReadULong64Acquire (&ulLastFrame) < ulFramesDrawn)
-    {              fLastInput = fTimeNow;
+    if (dTimeNow > dLastInput + 1.5f || ReadULong64Acquire (&ulLastFrame) < ulFramesDrawn)
+    {              dLastInput = dTimeNow;
       rb.setLatencyMarkerNV (INPUT_SAMPLE);
     }
 
