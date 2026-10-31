@@ -3298,7 +3298,7 @@ SteamAPI_RunCallbacks_Detour (void)
                   SK_RunOnce (
                   {
                     wchar_t                               wszMessage [128] = { };
-                    std::wstring_view     wszMessageView (wszMessage);
+                    std::wstring_view     wszMessageView (wszMessage, 128);
                     SK_FormatStringViewW (wszMessageView,
                       L"Steam Input appears to be broken in this game, consider turning it off."
                       L"\r\n\r\n\t\t Session Input Enable Config:\t%x", input_dev_type_mask);

@@ -4497,33 +4497,29 @@ size_t
 __cdecl
 SK_FormatStringView (std::string_view& out, char const* const _Format, ...)
 {
+  if (out.empty ())
+    return 0;
+
   int len = 0;
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   {
     len =
-      vsnprintf (nullptr, 0, _Format, _ArgList);
+      vsnprintf ((char *)out.data (), out.size (), _Format, _ArgList);
   }
   va_end   (_ArgList);
 
-  len =
-    std::min (
-      std::max (0, len + 1),
-         (int)out.size () );
-
-  va_start (_ArgList, _Format);
-  {
-    len =
-      vsnprintf ((char *)out.data (), len, _Format, _ArgList);
-  }
-  va_end (_ArgList);
-
+  // Negative means an encoding error (not truncation) and the output is unusable
   if (len < 0)
-      len = (int)out.size () - 1;
+      len = 0;
 
-  ((char *)out.data ())[(size_t)len] = '\0';
-  return                (size_t)len;
+  // On truncation, this is the length that was needed rather than what was written
+  const size_t written =
+    std::min ((size_t)len, out.size () - 1);
+
+  ((char *)out.data ())[written] = '\0';
+  return                written;
 }
 
 std::wstring
@@ -4570,6 +4566,9 @@ size_t
 __cdecl
 SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
 {
+  if (out.empty ())
+    return 0;
+
   int len = 0;
 
   va_list   _ArgList;
@@ -4592,7 +4591,8 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  if (len < 0)
+  // Truncated: -1, unless the output was exactly as long as the buffer
+  if (len < 0 || len >= (int)out.size ())
       len = (int)out.size () - 1;
 
   ((wchar_t *)out.data ())[(size_t)len] = L'\0';
@@ -4828,9 +4828,10 @@ SK_GetUserNameExW (
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.
 
-static char     szUserName        [MAX_PATH + 2] = { };
-static char     szUserNameDisplay [MAX_PATH + 2] = { };
-static char     szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
+// Callers pass both UTF-8 and ANSI paths, so narrow names are kept in both encodings
+static char     szUserName        [2][MAX_PATH + 2] = { };
+static char     szUserNameDisplay [2][MAX_PATH + 2] = { };
+static char     szUserProfile     [2][MAX_PATH + 2] = { };
 static wchar_t wszUserName        [MAX_PATH + 2] = { };
 static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
 static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
@@ -4838,93 +4839,89 @@ static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
 char*
 SK_StripUserNameFromPathA (char* szInOut)
 {
-  if (*szUserProfile == '\0')
+  // A failed lookup caches '?' (Invalid filesystem char) so that it is not retried.
+  //
+  //  * These cannot be initialized by a function-local static; the lookups may load
+  //      DLLs, which re-enters this function through the LoadLibrary hooks.
+  auto _CacheName =
+  [](char (&szName)[2][MAX_PATH + 2], const wchar_t* wszName)
   {
-                                        uint32_t len = MAX_PATH;
-    if (! SK_GetUserProfileDir (wszUserProfile, &len))
-      *wszUserProfile = L'?'; // Invalid filesystem char
-    else
-      PathStripPathW (wszUserProfile);
+    if (*wszName == L'\0')
+        wszName = L"?";
 
-    strncpy_s ( szUserProfile, MAX_PATH,
-                  SK_WideCharToUTF8 (wszUserProfile).c_str (), _TRUNCATE );
+    BOOL bLossy = FALSE;
+
+    if ( 0 == WideCharToMultiByte ( CP_ACP, 0, wszName, -1, szName [1],
+                                      MAX_PATH, nullptr, &bLossy ) || bLossy )
+    {
+      strncpy_s (szName [1], MAX_PATH, "?", _TRUNCATE);
+    }
+
+    strncpy_s ( szName [0], MAX_PATH,
+                  SK_WideCharToUTF8 (wszName).c_str (), _TRUNCATE );
+  };
+
+  if (**szUserProfile == '\0')
+  {
+    wchar_t wszName [MAX_PATH + 2] = { };
+
+                                 uint32_t len = MAX_PATH;
+    if (SK_GetUserProfileDir (wszName, &len))
+      PathStripPathW (wszName);
+    else
+      *wszName = L'\0';
+
+    _CacheName (szUserProfile, wszName);
   }
 
-  if (*szUserName == '\0')
+  if (**szUserName == '\0')
   {
+    wchar_t wszName [MAX_PATH + 2] = { };
+
+                                                 DWORD dwLen = MAX_PATH;
+    if (SK_GetUserNameExW (NameSamCompatible, wszName, &dwLen))
+      PathStripPathW (wszName);
+    else
+      *wszName = L'\0';
+
+    _CacheName (szUserName, wszName);
+  }
+
+  if (**szUserNameDisplay == '\0')
+  {
+    wchar_t wszName [MAX_PATH + 2] = { };
+
                                            DWORD dwLen = MAX_PATH;
-    SK_GetUserNameExA (NameUnknown, szUserName, &dwLen);
+    if (! SK_GetUserNameExW (NameDisplay, wszName, &dwLen))
+      *wszName = L'\0';
 
-    if (dwLen == 0)
-      *szUserName = '?'; // Invalid filesystem char
-    else
-      PathStripPathA (szUserName);
+    _CacheName (szUserNameDisplay, wszName);
   }
 
-  if (*szUserNameDisplay == '\0')
+  const char* szNames [] = {
+    szUserProfile     [0], szUserProfile     [1],
+    szUserNameDisplay [0], szUserNameDisplay [1],
+    szUserName        [0], szUserName        [1]
+  };
+
+  // Longest first, or masking "Bob" would leave the rest of "Bob Smith" behind
+  std::sort ( std::begin (szNames), std::end (szNames),
+    [](const char* szA, const char* szB) { return strlen (szA) > strlen (szB); } );
+
+  for ( const char* szName : szNames )
   {
-                                                  DWORD dwLen = MAX_PATH;
-    SK_GetUserNameExA (NameDisplay, szUserNameDisplay, &dwLen);
+    const size_t len =
+      strlen (szName);
 
-    if (dwLen == 0)
-      *szUserNameDisplay = '?'; // Invalid filesystem char
-  }
+    if (len == 0 || *szName == '?')
+      continue;
 
-  char* pszUserNameSubstr =
-    StrStrIA (szInOut, szUserProfile);
-
-  if (pszUserNameSubstr != nullptr)
-  {
-    static const size_t len =
-      strlen (szUserProfile);
-
-    for (size_t i = 0; i < len; i++)
+    for ( char* pszUserNameSubstr  = StrStrIA (szInOut, szName);
+                pszUserNameSubstr != nullptr;
+                pszUserNameSubstr  = StrStrIA (pszUserNameSubstr + len, szName) )
     {
-      *pszUserNameSubstr = '*';
-       pszUserNameSubstr = CharNextA (pszUserNameSubstr);
-
-       if (pszUserNameSubstr == nullptr) break;
+      memset (pszUserNameSubstr, '*', len);
     }
-
-    return szInOut;
-  }
-
-  pszUserNameSubstr =
-    StrStrIA (szInOut, szUserNameDisplay);
-
-  if (pszUserNameSubstr != nullptr)
-  {
-    static const size_t len =
-      strlen (szUserNameDisplay);
-
-    for (size_t i = 0; i < len; i++)
-    {
-      *pszUserNameSubstr = '*';
-       pszUserNameSubstr = CharNextA (pszUserNameSubstr);
-
-       if (pszUserNameSubstr == nullptr) break;
-    }
-
-    return szInOut;
-  }
-
-  pszUserNameSubstr =
-    StrStrIA (szInOut, szUserName);
-
-  if (pszUserNameSubstr != nullptr)
-  {
-    static const size_t len =
-      strlen (szUserName);
-
-    for (size_t i = 0; i < len; i++)
-    {
-      *pszUserNameSubstr = '*';
-       pszUserNameSubstr = CharNextA (pszUserNameSubstr);
-
-       if (pszUserNameSubstr == nullptr) break;
-    }
-
-    return szInOut;
   }
 
   return szInOut;
@@ -4937,29 +4934,35 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
   {
                                         uint32_t len = MAX_PATH;
     if (! SK_GetUserProfileDir (wszUserProfile, &len))
-      *wszUserProfile = L'?'; // Invalid filesystem char
+      *wszUserProfile = L'\0';
     else
       PathStripPathW (wszUserProfile);
+
+    // A failed lookup caches '?' (Invalid filesystem char) so that it is not retried
+    if (*wszUserProfile == L'\0')
+      wcscpy_s (wszUserProfile, L"?");
   }
 
   if (*wszUserName == L'\0')
   {
-                                                  DWORD dwLen = MAX_PATH;
-    SK_GetUserNameExW (NameSamCompatible, wszUserName, &dwLen);
-
-    if (dwLen == 0)
-      *wszUserName = L'?'; // Invalid filesystem char
+                                                       DWORD dwLen = MAX_PATH;
+    if (! SK_GetUserNameExW (NameSamCompatible, wszUserName, &dwLen))
+      *wszUserName = L'\0';
     else
       PathStripPathW (wszUserName);
+
+    if (*wszUserName == L'\0')
+      wcscpy_s (wszUserName, L"?");
   }
 
   if (*wszUserNameDisplay == L'\0')
   {
-                                                   DWORD dwLen = MAX_PATH;
-    SK_GetUserNameExW (NameDisplay, wszUserNameDisplay, &dwLen);
+                                                        DWORD dwLen = MAX_PATH;
+    if (! SK_GetUserNameExW (NameDisplay, wszUserNameDisplay, &dwLen))
+      *wszUserNameDisplay = L'\0';
 
-    if (dwLen == 0)
-      *wszUserNameDisplay = L'?'; // Invalid filesystem char
+    if (*wszUserNameDisplay == L'\0')
+      wcscpy_s (wszUserNameDisplay, L"?");
   }
 
   if (config.system.log_level > 4)
@@ -4971,61 +4974,28 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
   }
 
 
-  wchar_t* pwszUserNameSubstr =
-    StrStrIW (wszInOut, wszUserProfile);
+  const wchar_t* wszNames [] = {
+    wszUserProfile, wszUserNameDisplay, wszUserName
+  };
 
-  if (pwszUserNameSubstr != nullptr)
+  // Longest first, or masking "Bob" would leave the rest of "Bob Smith" behind
+  std::sort ( std::begin (wszNames), std::end (wszNames),
+    [](const wchar_t* wszA, const wchar_t* wszB) { return wcslen (wszA) > wcslen (wszB); } );
+
+  for ( const wchar_t* wszName : wszNames )
   {
-    static const size_t len =
-      wcslen (wszUserProfile);
+    const size_t len =
+      wcslen (wszName);
 
-    for (size_t i = 0; i < len; i++)
+    if (len == 0 || *wszName == L'?')
+      continue;
+
+    for ( wchar_t* pwszUserNameSubstr  = StrStrIW (wszInOut, wszName);
+                   pwszUserNameSubstr != nullptr;
+                   pwszUserNameSubstr  = StrStrIW (pwszUserNameSubstr + len, wszName) )
     {
-      *pwszUserNameSubstr = L'*';
-       pwszUserNameSubstr = SK_CharNextW (pwszUserNameSubstr);
-
-       if (pwszUserNameSubstr == nullptr) break;
+      wmemset (pwszUserNameSubstr, L'*', len);
     }
-
-    return wszInOut;
-  }
-
-  pwszUserNameSubstr =
-    StrStrIW (wszInOut, wszUserNameDisplay);
-
-  if (pwszUserNameSubstr != nullptr)
-  {
-    static const size_t len =
-      wcslen (wszUserNameDisplay);
-
-    for (size_t i = 0; i < len; i++)
-    {
-      *pwszUserNameSubstr = L'*';
-       pwszUserNameSubstr = SK_CharNextW (pwszUserNameSubstr);
-
-       if (pwszUserNameSubstr == nullptr) break;
-    }
-
-    return wszInOut;
-  }
-
-  pwszUserNameSubstr =
-    StrStrIW (wszInOut, wszUserName);
-
-  if (pwszUserNameSubstr != nullptr)
-  {
-    static const size_t len =
-      wcslen (wszUserName);
-
-    for (size_t i = 0; i < len; i++)
-    {
-      *pwszUserNameSubstr = L'*';
-       pwszUserNameSubstr = SK_CharNextW (pwszUserNameSubstr);
-
-       if (pwszUserNameSubstr == nullptr) break;
-    }
-
-    return wszInOut;
   }
 
   return wszInOut;

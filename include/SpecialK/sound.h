@@ -479,7 +479,7 @@ public:
       char szTitle [512]  =
       {                   };
 
-      std::string_view     title_view (szTitle);
+      std::string_view     title_view (szTitle, 512);
       SK_FormatStringView (title_view, "%ws", wszDisplayName);
 
       const DWORD proc_id =
