@@ -2728,7 +2728,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       it    = next_rgn;
       idx   = 0;
       begin = it;
-    
+
       continue;
     }
 
@@ -2751,20 +2751,10 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       uint8_t* scan_addr = it;
 
       uint8_t test_val = static_cast <const uint8_t *> (pattern)[idx];
+      uint8_t mask_val = 0x0;
 
-      bool match = false;
-
-      auto orig_se =
-      SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-      try {
-        match =
-          (*scan_addr == test_val);
-      }
-
-      catch (const SK_SEH_IgnoredException&) {
-        //continue;
-      }
-      SK_SEH_RemoveTranslator (orig_se);
+      bool match =
+        (*scan_addr == test_val);
 
       // Treat portions we do not care about (mask [idx] == 0) as wildcards.
       if (mask != nullptr && (! match))
