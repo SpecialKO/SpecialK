@@ -232,6 +232,8 @@ FILETIME       SK_Win32_time_t_to_FILETIME  (time_t          epoch);
 
 std::string    SK_WideCharToUTF8            (const std::wstring& in);
 std::wstring   SK_UTF8ToWideChar            (const std::string&  in);
+std::wstring   SK_ANSIToWideChar            (const std::string&  in);
+std::string    SK_WideCharToANSI            (const std::wstring& in);
 
 std::string
 __cdecl        SK_FormatString              (char    const* const _Format, ...);

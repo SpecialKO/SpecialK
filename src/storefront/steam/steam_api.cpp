@@ -4719,11 +4719,6 @@ SteamAPI_Delay_Init (LPVOID)
   return 0;
 }
 
-std::wstring
-SK_RecursiveFileSearch ( const wchar_t* wszDir,
-                         const wchar_t* wszFile );
-
-
 enum SK_File_SearchStopCondition {
   FirstMatchFound,
   AllMatchesFound,

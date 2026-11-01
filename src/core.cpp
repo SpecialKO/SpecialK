@@ -325,7 +325,7 @@ SK_LoadGPUVendorAPIs (void)
                                    :
                                      L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  { '%s' }",
                                        gpu_count > 1 ? num_sli_gpus :
-                                                       num_sli_gpus + 1,
+                                       gpu_count,
                                          sk::NVAPI::EnumGPUs_DXGI ()[0].Description );
 
       if (num_sli_gpus > 0)
@@ -1529,48 +1529,6 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
   return found_set;
 }
 
-std::wstring
-SK_RecursiveFileSearch ( const wchar_t* wszDir,
-                         const wchar_t* wszFile )
-{
-  dll_log->Log ( L"Recursive File Search for '%ws', beginning in '%ws'",
-                   SK_ConcealUserDir (std::wstring (wszFile).data ()),
-                   SK_ConcealUserDir (std::wstring (wszDir).data  ()) );
-
-  std::wstring extension (
-    PathFindExtensionW     (wszFile)
-                         ),
-               filename    (wszFile);
-
-  PathRemoveExtensionW (filename.data ());
-  PathFindFileNameW    (filename.data ());
-
-  std::unordered_set <std::wstring_view> file_pattern = {
-    filename.data ()
-  };
-
-  const std::unordered_set <std::wstring> matches =
-    SK_RecursiveFileSearchEx (
-      wszDir, extension.c_str (),
-        file_pattern, {{wszFile, false}}, FirstMatchFound
-    );
-
-  if (! matches.empty ())
-  {
-    dll_log->Log ( L"Success!  [%ws]",
-                   SK_ConcealUserDir (std::wstring (*matches.begin ()).data ()) );
-  }
-
-  else
-  {
-    dll_log->Log ( L"No Such File [%ws] Exists",
-                   SK_ConcealUserDir (std::wstring (wszFile).data ()) );
-  }
-
-  return matches.empty () ?
-                      L"" : *matches.begin ();
-}
-
 
 bool
 __stdcall
@@ -1978,7 +1936,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                                   THREAD_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE |
                                                             DUPLICATE_SAME_ACCESS ) )
       {             delay_params.parent  = INVALID_HANDLE_VALUE; }
-      if ((intptr_t)delay_params.parent <= 0)
+      if ((intptr_t)delay_params.parent == 0)
                     delay_params.parent  = INVALID_HANDLE_VALUE;
 
       delay_params.thread =
@@ -2411,8 +2369,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {        dll_log->silent = true;
 
     std::wstring log_fnameW (
-      SK_IsInjected () ? L"SpecialK"
-                       : backend
+      SK_IsInjected () ? LR"(logs\SpecialK)" :
+           std::wstring (LR"(logs\)") + backend
     );           log_fnameW += L".log";
     DeleteFile ( log_fnameW.c_str () );
   }
@@ -2745,6 +2703,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
 
         dummy_windows->list [hWnd] = window;
 
+#if 0   // This is invalid, only the thread that created the window is able to do this.
         if (hWndParent != 0 && IsWindow (hWndParent))
         {
           SK_Thread_CreateEx ([](LPVOID user)->DWORD
@@ -2771,6 +2730,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
             return 0;
           }, L"[SK] Dummy Window Proc", (LPVOID)hWnd);
         }
+#endif
       }
     }
 
@@ -2805,10 +2765,9 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
 
     if (DestroyWindow (window.hWnd))
     {
-      //if (IsWindow (     window.parent.hWnd))
-      //  SetActiveWindow (window.parent.hWnd);
+      cleaned_windows.emplace_back (window.hWnd);
+      dummy_windows->unique.erase  (window.hWnd);
     }
-    cleaned_windows.emplace_back (window.hWnd);
   }
 
   else if (hwnd == 0)
@@ -2817,10 +2776,9 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
     {
       if (DestroyWindow (it.second.hWnd))
       {
-        //if (it.second.parent.hWnd != 0 && IsWindow (it.second.parent.hWnd))
-        //  SetActiveWindow (it.second.parent.hWnd);
+        cleaned_windows.emplace_back (it.second.hWnd);
+        dummy_windows->unique.erase  (it.second.hWnd);
       }
-      cleaned_windows.emplace_back (it.second.hWnd);
     }
   }
 
@@ -2986,23 +2944,23 @@ SK_Inject_PostHeartbeatToSKIF (void)
         hWndSKIF = game_window.hWnd;
       }
     }
+  }
 
+  if (! (hWndSKIF != game_window.hWnd && IsWindow (hWndSKIF)))
+  {
     // SKIF's not running, we'll re-check every 1250 ms
+    static DWORD
+        dwLastWindowCheck = 0;
+    if (dwLastWindowCheck < SK_timeGetTime () - 1250)
+    {
+      hWndSKIF = nullptr;
+      dwLastWindowCheck = SK_timeGetTime ();
+    }
+
     else
     {
-      static DWORD
-          dwLastWindowCheck = 0;
-      if (dwLastWindowCheck < SK_timeGetTime () - 1250)
-      {
-        hWndSKIF = nullptr;
-        dwLastWindowCheck = SK_timeGetTime ();
-      }
-
-      else
-      {
-        // Deliberately wrong window, it will be the same PID
-        hWndSKIF = game_window.hWnd;
-      }
+      // Deliberately wrong window, it will be the same PID
+      hWndSKIF = game_window.hWnd;
     }
   }
 }
@@ -4083,7 +4041,8 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
         fps_to_set =
           config.nvidia.dlss.dlssfg_menu_fps;
 
-        __target_fps_temp = fps_to_set;
+        __target_fps      = fps_to_set;
+        __target_fps_temp = 0.0f;
       }
     }
   }
@@ -4661,7 +4620,7 @@ SK_Battery_UpdateRemainingPowerForAllDevices (void)
         if (battery_level  > 100) // If we're still > 100, it's because running on AC.
             battery_level  = 100;
 
-        if (battery_level <= 25.0f)
+        if (battery_level <= 25.0f && (! charging))
         {
           SK_ImGui_CreateNotification (
             "Computer.Battery_Low", SK_ImGui_Toast::Warning,
@@ -5232,7 +5191,7 @@ RunDLL_Extract7Zip ( HWND  hwnd,        HINSTANCE hInst,
   if (PathFileExistsA (lpszCmdLine))
   {
     wchar_t    wszPathToArchive [MAX_PATH + 2] = {};
-    wcsncpy_s (wszPathToArchive, MAX_PATH, SK_UTF8ToWideChar (lpszCmdLine).c_str (),
+    wcsncpy_s (wszPathToArchive, MAX_PATH, SK_ANSIToWideChar (lpszCmdLine).c_str (),
                                  MAX_PATH);
 
     config.system.log_level = -1;

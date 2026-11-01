@@ -1,4 +1,15 @@
-﻿26.11.1
+﻿26.11.1.1
+=========
+ + Fixed incorrect DLSS Framegen Menu framerate limit being applied if
+     Latent Sync is active.
+ + Do not show battery low warnings while batteries are charging.
+ + Fixed log silence mode to actually delete the log file.
+ + Handle dummy window cleanup better.
+ + Avoid trying to locate SKIF's window every frame if global injection
+     is inactive and SKIF is not running.
+ + Properly convert ANSI to UTF-16 filesystem paths in RunDLL_Extract7Zip.
+
+26.11.1
 =======
  + Optimized SK_ScanAlignedEx (...) and added stricter HANDLE validation.
  + Replace checks for HANDLE values > 0 with SK_AutoHandle::isValid () to

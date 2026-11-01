@@ -96,6 +96,58 @@ SK_UTF8ToWideChar (const std::string& in)
   return out;
 }
 
+std::wstring
+SK_ANSIToWideChar (const std::string& in)
+{
+  if (in.empty ())
+    return L"";
+
+  constexpr UINT mbFlags = 0x0;
+
+  size_t len =
+    MultiByteToWideChar ( CP_ACP, mbFlags, in.c_str (), -1,
+                           nullptr, 0 );
+
+  std::wstring out (
+    len * 2 + 2,
+      L'\0'
+  );
+
+  MultiByteToWideChar   ( CP_ACP, mbFlags, in.c_str (),
+                                                    -1,
+                                           out.data (),
+                            sk::narrow_cast <DWORD> (len) );
+
+  return out;
+}
+
+std::string
+SK_WideCharToUTF8 (const std::wstring& in)
+{
+  if (in.empty ())
+    return "";
+
+  constexpr UINT wcFlags =
+    WC_COMPOSITECHECK | WC_NO_BEST_FIT_CHARS;
+
+  size_t len =
+    WideCharToMultiByte ( CP_ACP, wcFlags, in.c_str (), -1,
+                           nullptr, 0, nullptr, FALSE );
+
+  std::string out (
+    len * 2 + 2,
+      '\0'
+  );
+
+  WideCharToMultiByte   ( CP_ACP, wcFlags, in.c_str (),
+                                                    -1,
+                                          out.data  (),
+                         sk::narrow_cast <DWORD> (len),
+                           nullptr,                   FALSE );
+
+  return out;
+}
+
 bool
 SK_COM_TestInit (void)
 {
