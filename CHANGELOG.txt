@@ -1,4 +1,18 @@
-﻿26.11.1.1
+﻿26.11.2
+=======
+ + Added new INI option to set Environment Variables when SK injects.
+
+    [Compatibility.General]
+    EnvironmentVars={A=1|B=2|C=3}  Default: (empty)
+
+   * Use || to include a literal pipe in a variable's value, e.g.:
+       A=1||2|B=3 sets A = 1|2 and B = 3
+
+   @ This is intended to control third-party mods/overlays; the vars
+       are set too late for most games to notice, but things like ReShade
+         are loaded late enough that they will read the injected vars.
+
+26.11.1.1
 =========
  + Fixed incorrect DLSS Framegen Menu framerate limit being applied if
      Latent Sync is active.

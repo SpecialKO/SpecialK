@@ -1440,7 +1440,6 @@ struct sk_config_t
     bool     shutdown_on_window_close = false;
     bool     disable_dx12_vk_interop  = false;
     bool     reshade_mode             = false;
-    bool     fsr3_mode                = false;
     int      sdl_sanity_level         =     1;
     struct sdl_s {
       int    allow_wgi                =    -1;
@@ -1461,6 +1460,8 @@ struct sk_config_t
     bool     disallow_ll_keyhook      = false;
     bool     suppress_exit_proc       = false;
     bool     suppress_term_proc       = false;
+    std::wstring
+             environment_variables    =   L"";
   } compatibility;
 
   struct apis_s {

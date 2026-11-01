@@ -6261,3 +6261,69 @@ SK_AppX_GetCurrentPackageFamilyName (void)
   return wszPackageFamilyName [0] != L'\0'    ?
     std::make_optional (wszPackageFamilyName) : std::nullopt;
 }
+
+std::wstring
+SK_Win32_ParseEnvVarsFromStr (const std::wstring& input)
+{
+  static constexpr auto whitespace = L" \t\r\n";
+
+  auto trim = [](std::wstring_view str) -> std::wstring_view
+  {
+    const size_t first = str.find_first_not_of (whitespace);
+
+    if (first == std::wstring_view::npos)
+      return { };
+
+    return
+      str.substr (first, str.find_last_not_of (whitespace) - first + 1);
+  };
+
+  std::wstring block;
+  std::wstring entry;
+
+  auto flushEntry = [&]()
+  {
+    const std::wstring_view view (entry);
+    const size_t            sep = view.find (L'=');
+
+    if (sep != std::wstring_view::npos)
+    {
+      const auto name  = trim (view.substr (0, sep));
+      const auto value = trim (view.substr (sep + 1));
+
+      // Entries without a name are ignored.
+      if (! name.empty ())
+      {
+        block.append    (name);
+        block.push_back (L'=');
+        block.append    (value);
+        block.push_back (L'\0');
+      }
+    }
+
+    entry.clear ();
+  };
+
+  for (size_t i = 0; i < input.size (); ++i)
+  {
+    if (input [i] != L'|')
+      entry.push_back (input [i]);
+
+    // Two pipes in a row is an escaped pipe character.
+    else if (i + 1 < input.size () && input [i + 1] == L'|')
+    {
+      entry.push_back (L'|');
+      ++i;
+    }
+
+    else
+      flushEntry ();
+  }
+
+  flushEntry ();
+
+  // Final terminator for the block; an empty block is still a valid "\0\0".
+  block.push_back (L'\0');
+
+  return block;
+}

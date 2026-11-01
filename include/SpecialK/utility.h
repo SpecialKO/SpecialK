@@ -230,6 +230,9 @@ LPVOID         SK_Win32_ReleaseTokenInfo    (LPVOID                   lpTokenBuf
 time_t         SK_Win32_FILETIME_to_time_t  (FILETIME const& ft);
 FILETIME       SK_Win32_time_t_to_FILETIME  (time_t          epoch);
 
+// Converts "A=1|B=2" into "A=1\0B=2\0\0"; use || for a literal pipe.
+std::wstring   SK_Win32_ParseEnvVarsFromStr (const std::wstring& input);
+
 std::string    SK_WideCharToUTF8            (const std::wstring& in);
 std::wstring   SK_UTF8ToWideChar            (const std::string&  in);
 std::wstring   SK_ANSIToWideChar            (const std::string&  in);
