@@ -1014,7 +1014,7 @@ struct SK_MemScan_Params__v0
     HeapMemory = SEC_COMMIT
   } mem_type;
 
-  bool testPrivs (const MEMORY_BASIC_INFORMATION& mi)
+  bool testPrivs (const MEMORY_BASIC_INFORMATION& mi) const
   {
     if (mi.AllocationProtect == 0)
       return false;
@@ -1156,16 +1156,13 @@ SK_IsAddressExecutable (LPCVOID addr, bool silent)
   MEMORY_BASIC_INFORMATION               minfo = { };
   if (SK_ValidatePointer (addr, silent, &minfo))
   {
-    static SK_MemScan_Params__v0 test_exec;
-
-    SK_RunOnce(
-      test_exec.privileges.execute = SK_MemScan_Params__v0::Allowed
-    );
-
-    // Execute-only memory is still executable
-    SK_RunOnce(
-      test_exec.privileges.read    = SK_MemScan_Params__v0::DontCare
-    );
+    static const SK_MemScan_Params__v0
+      test_exec = {
+        .privileges = { .execute = SK_MemScan_Params__v0::Allowed,
+                        .read    = SK_MemScan_Params__v0::DontCare,
+                        .write   = SK_MemScan_Params__v0::DontCare
+                      }
+      };
 
     if (test_exec.testPrivs (minfo))
     {
@@ -1211,7 +1208,7 @@ FindProcessByName (const wchar_t* wszName)
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, 0)
   );
 
-  if ((intptr_t)hProcessSnap.m_h <= 0)// == INVALID_HANDLE_VALUE)
+  if (! hProcessSnap.isValid ())
     return pe32;
 
   pe32.dwSize =
@@ -2679,15 +2676,6 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
        sizeof (MODULEINFO) )
   );
 
-  // Installed once, it is much too expensive to do for every byte compared
-  auto orig_se =
-    SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-
-  struct _RestoreTranslator {
-    decltype (orig_se) orig;
-    ~_RestoreTranslator (void) { SK_SEH_RemoveTranslator (orig); }
-  } restore_translator { orig_se };
-
   size_t compares = 0;
 
   while (it < end_addr)
@@ -2749,28 +2737,20 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       }
 
       uint8_t* scan_addr = it;
+      uint8_t  test_val  = static_cast <const uint8_t *> (pattern)[idx];
+      uint8_t  mask_val  = 0xFF;
 
-      uint8_t test_val = static_cast <const uint8_t *> (pattern)[idx];
-      uint8_t mask_val = 0x0;
+      if (mask != nullptr)
+        mask_val = static_cast <const uint8_t*> (mask)[idx];
 
-      bool match =
-        (*scan_addr == test_val);
+      bool match = false;
 
-      // Treat portions we do not care about (mask [idx] == 0) as wildcards.
-      if (mask != nullptr && (! match))
-      {
-        mask_val = static_cast <const uint8_t *> (mask)[idx];
-
-        // Treat portions we do not care about (mask [idx] == 0) as wildcards.
-        if (! mask_val)
-          match = true;
-
-        else
-        {
-          // The more complicated case, where the mask is an actual mask :)
-          match = (test_val & mask_val);
-        }
+      try {
+        match =
+          (*scan_addr == (test_val & mask_val) ||
+                                     mask_val == 0x0);
       }
+      catch (...) {}
 
       if (match)
       {

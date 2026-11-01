@@ -141,7 +141,9 @@ public:
   bool isValid (void) const noexcept
   {
     return
-      (reinterpret_cast <intptr_t> (m_h) > 0) && SK_IsHandleValid (m_h);
+      reinterpret_cast <intptr_t> (m_h) !=  0 &&
+                                   m_h  != INVALID_HANDLE_VALUE &&
+                 SK_IsHandleValid (m_h);
   }
 
 public:

@@ -1,4 +1,8 @@
-﻿26.10.31.3
+﻿26.11.1
+=======
+ + Optimized SK_ScanAlignedEx (...) and added stricter HANDLE validation.
+
+26.10.31.3
 ==========
  + Fixed mask bits not applying in calls to SKX_ScanAlignedEx (...).
 

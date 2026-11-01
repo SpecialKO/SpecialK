@@ -39,7 +39,7 @@ struct SK_MemScan_Params__v0
     HeapMemory = SEC_COMMIT
   } mem_type;
 
-  bool testPrivs (const MEMORY_BASIC_INFORMATION& mi)
+  bool testPrivs (const MEMORY_BASIC_INFORMATION& mi) const
   {
     if (mi.AllocationProtect == 0)
       return false;
@@ -62,7 +62,7 @@ struct SK_MemScan_Params__v0
           break;
 
         default:
-          if (privileges.execute == Disallowed)
+          if (privileges.execute == Allowed)
             exec_matches = false;
           break;
       }
@@ -87,7 +87,7 @@ struct SK_MemScan_Params__v0
           break;
 
         default:
-          if (privileges.read == Disallowed)
+          if (privileges.read == Allowed)
             read_matches = false;
           break;
       }
@@ -111,7 +111,7 @@ struct SK_MemScan_Params__v0
           break;
 
         default:
-          if (privileges.write == Disallowed)
+          if (privileges.write == Allowed)
             write_matches = false;
           break;
       }
