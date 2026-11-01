@@ -1743,7 +1743,7 @@ public:
             OpenThread ( THREAD_ALL_ACCESS, false, dwSelectedTid )
           );
 
-          if ((intptr_t)hThreadStack.m_h > 0)//!= INVALID_HANDLE_VALUE)
+          if (hThreadStack.isValid ())
           {
             FILETIME ftCreateStack, ftUserStack,
                      ftKernelStack, ftExitStack;
@@ -1816,12 +1816,12 @@ public:
         if (task == nullptr || task->dwTid == 0)
           continue;
 
-        CHandle hThread (
+        SK_AutoHandle hThread (
           OpenThread (THREAD_QUERY_INFORMATION, FALSE, task->dwTid)
         );
 
         DWORD dwTaskCode = 0;
-        if (                      hThread.m_h == 0           ||
+        if (                     !hThread.isValid ()         ||
             (! GetExitCodeThread (hThread.m_h, &dwTaskCode)) ||
                                                 dwTaskCode != STILL_ACTIVE)
         {

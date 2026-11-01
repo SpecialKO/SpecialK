@@ -538,7 +538,7 @@ SK_Process_Suspend (DWORD dwPid)
                     FALSE, dwPid )
   );
 
-  if ((intptr_t)hProcess.m_h > 0)
+  if (hProcess.isValid ())
   {
     return
       NT_SUCCESS (
@@ -561,7 +561,7 @@ SK_Process_Resume (DWORD dwPid)
                     FALSE, dwPid )
   );
 
-  if ((intptr_t)hProcess.m_h > 0)
+  if (hProcess.isValid ())
   {
     return
       NT_SUCCESS (

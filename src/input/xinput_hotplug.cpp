@@ -745,7 +745,7 @@ SK_XInput_DeferredStatusChecks (void)
   // Always refresh at the beginning of a frame rather than the end,
   //   a failure event may cause a lengthy delay, missing VBLANK.
   if (ullLastFrameChecked < frames_drawn - 30 &&
-      (intptr_t)hHotplugUnawareXInputRefresh.m_h > 0)
+                hHotplugUnawareXInputRefresh.isValid ())
   { SetEvent (  hHotplugUnawareXInputRefresh);
       ullLastFrameChecked = frames_drawn;
   }

@@ -5201,7 +5201,7 @@ SK_WaitForParentToExit (void)
                     SK_GetParentProcessId () )
                 );
 
-  if (reinterpret_cast <intptr_t> (hProc.m_h) > 0)
+  if (hProc.isValid ())
   {
     for (int tries = 0 ; tries < 10 ; ++tries)
     {

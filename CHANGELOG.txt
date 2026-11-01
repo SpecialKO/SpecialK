@@ -1,6 +1,8 @@
 ﻿26.11.1
 =======
  + Optimized SK_ScanAlignedEx (...) and added stricter HANDLE validation.
+ + Replace checks for HANDLE values > 0 with SK_AutoHandle::isValid () to
+     allow all HANDLE values except for 0 and INVALID_HANDLE_VALUE (-1).
 
 26.10.31.3
 ==========

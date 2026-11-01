@@ -3492,7 +3492,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (config.render.framerate.swapchain_wait > 0)
     {
       SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-      if ((intptr_t)hWaitHandle.m_h > 0)
+      if (          hWaitHandle.isValid ())
       {
         if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
         {
@@ -6162,7 +6162,7 @@ SK_DXGI_CreateSwapChain_PostInit (
       {
         // Immediately following creation, wait on the SwapChain to get the semaphore initialized.
         SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-        if ((intptr_t)hWaitHandle.m_h > 0 )
+        if (          hWaitHandle.isValid ())
         {
           SK_WaitForSingleObject (
                 hWaitHandle.m_h, 15

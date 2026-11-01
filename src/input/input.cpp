@@ -96,7 +96,7 @@ SK_ImGui_WantGamepadCapture (bool update) noexcept
                            SK_WGI_GamePollingThreadId )
         );
 
-        if ((intptr_t)hThread__.m_h > 0)
+        if (hThread__.isValid ())
         {
           static int suspensions = 0;
 

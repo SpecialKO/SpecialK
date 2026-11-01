@@ -1432,7 +1432,7 @@ SK_SuspendThreadsExcept (const std::set <DWORD>* pExemptTids)
       CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
     );
 
-    if ((intptr_t)hSnap.m_h > 0)// != INVALID_HANDLE_VALUE)
+    if (hSnap.isValid ())// != INVALID_HANDLE_VALUE)
     {
       THREADENTRY32 tent        = {                    };
                     tent.dwSize = sizeof (THREADENTRY32);
@@ -1461,7 +1461,7 @@ SK_SuspendThreadsExcept (const std::set <DWORD>* pExemptTids)
                 OpenThread (THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT, FALSE, tent.th32ThreadID)
               );
 
-              if ((intptr_t)hThread.m_h > 0)
+              if (hThread.isValid ())
               {
                 if (SuspendThread (hThread.m_h) != (DWORD)-1)
                 {
@@ -1514,7 +1514,7 @@ SK_ResumeThreads (const SK_ThreadSuspension_Ctx& suspension_ctx)
       OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid)
     );
 
-    if ((intptr_t)hThread.m_h > 0)
+    if (hThread.isValid ())
     {
       ResumeThread (hThread);
     }
