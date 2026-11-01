@@ -122,7 +122,7 @@ SK_ANSIToWideChar (const std::string& in)
 }
 
 std::string
-SK_WideCharToUTF8 (const std::wstring& in)
+SK_WideCharToANSI (const std::wstring& in)
 {
   if (in.empty ())
     return "";

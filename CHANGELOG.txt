@@ -8,6 +8,8 @@
  + Avoid trying to locate SKIF's window every frame if global injection
      is inactive and SKIF is not running.
  + Properly convert ANSI to UTF-16 filesystem paths in RunDLL_Extract7Zip.
+ + Properly escape PCGW redirection URLs instead of passing Unicode
+     characters in URL.
 
 26.11.1
 =======

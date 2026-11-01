@@ -3797,10 +3797,15 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                         {
                           if (entry.is_string ())
                           {
+                            std::wstring search_string =
+                              SK_Network_MakeEscapeSequencedURL (
+                                SK_Platform_RemoveTrademarkSymbols (
+                                  SK_UTF8ToWideChar (entry.get <std::string> ().c_str ())));
+
                             redirected_url =
                               SK_FormatStringW (
-                                LR"(https://www.pcgamingwiki.com/w/api.php?action=parse&format=xml&redirects=1&prop=wikitext&page=%hs)",
-                                  entry.get <std::string> ().c_str ()
+                                LR"(https://www.pcgamingwiki.com/w/api.php?action=parse&format=xml&redirects=1&prop=wikitext&page=%ws)",
+                                  search_string.c_str ()
                               );
 
                             break;
