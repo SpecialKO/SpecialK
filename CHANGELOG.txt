@@ -3,6 +3,8 @@
  + Fixed various potential bufer overflows in config.cpp and debug_utils.cpp.
  + Fixed problems if more than 8 DLLs are configured to load as plug-ins.
  + Fixed \\.\DISPLAY1 matching \\.\DISPLAY10 in some cases.
+ + Correctly null-terminate strings assigned to keys in
+     HKCU\SOFTWARE\Kaldaien\Special K\Local
 
 26.11.2.1
 =========

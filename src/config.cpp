@@ -8032,7 +8032,7 @@ SK_SaveConfig ( std::wstring name,
       LSTATUS lsRegSet = RegSetValueExW (
              hKey, SK_GetModuleFullName (SK_GetDLL ()).c_str (),
                 0, REG_SZ, (LPBYTE)        SK_GetVersionStrW (),
-                            (DWORD)wcslen (SK_GetVersionStrW ()) * sizeof (wchar_t) );
+                            (DWORD)wcslen (SK_GetVersionStrW () + 1) * sizeof (wchar_t) );
 
       if (lsRegSet != ERROR_SUCCESS)
       {
