@@ -4851,13 +4851,18 @@ auto DeclKeybind =
   if ((debug_level & 0xffffffff) == 0)
     config.compatibility.disable_debug_features = true;
 
+                                             config.compatibility.environment_variables = L"";
   compatibility.environment_variables->load (config.compatibility.environment_variables);
 
   if (! config.compatibility.environment_variables.empty ())
   {
-    SetEnvironmentStringsW (
-      SK_Win32_ParseEnvVarsFromStr (config.compatibility.environment_variables).data ()
-    );
+    const auto env_vars =
+      SK_Win32_ParseEnvVarsFromStr (config.compatibility.environment_variables);
+
+    for (const auto& env_var : env_vars) {
+      SetEnvironmentVariableW (env_var.first .c_str (),
+                               env_var.second.c_str ());
+    }
   }
 
   compatibility.sdl.allow_wgi->load         (config.compatibility.sdl.allow_wgi);

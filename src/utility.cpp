@@ -6262,9 +6262,11 @@ SK_AppX_GetCurrentPackageFamilyName (void)
     std::make_optional (wszPackageFamilyName) : std::nullopt;
 }
 
-std::wstring
+std::vector <std::pair <std::wstring, std::wstring>>
 SK_Win32_ParseEnvVarsFromStr (const std::wstring& input)
 {
+  std::vector <std::pair <std::wstring, std::wstring>> env_var_pairs;
+
   static constexpr auto whitespace = L" \t\r\n";
 
   auto trim = [](std::wstring_view str) -> std::wstring_view
@@ -6278,7 +6280,6 @@ SK_Win32_ParseEnvVarsFromStr (const std::wstring& input)
       str.substr (first, str.find_last_not_of (whitespace) - first + 1);
   };
 
-  std::wstring block;
   std::wstring entry;
 
   auto flushEntry = [&]()
@@ -6294,10 +6295,7 @@ SK_Win32_ParseEnvVarsFromStr (const std::wstring& input)
       // Entries without a name are ignored.
       if (! name.empty ())
       {
-        block.append    (name);
-        block.push_back (L'=');
-        block.append    (value);
-        block.push_back (L'\0');
+        env_var_pairs.emplace_back (name, value);
       }
     }
 
@@ -6322,8 +6320,5 @@ SK_Win32_ParseEnvVarsFromStr (const std::wstring& input)
 
   flushEntry ();
 
-  // Final terminator for the block; an empty block is still a valid "\0\0".
-  block.push_back (L'\0');
-
-  return block;
+  return env_var_pairs;
 }

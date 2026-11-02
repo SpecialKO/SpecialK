@@ -1,4 +1,12 @@
-﻿26.11.2
+﻿26.11.2.1
+=========
+ + Set environment variables one-by-one instead of overwriting the
+     enviornment block since that requires locking memory.
+ + Added SK_IGNORE_STEAM_INPUT environment variable; if set to a non-zero
+     value then SK will leave Steam Input in a broken undefined state instead
+       of trying to workaround its god awful design decisions.
+
+26.11.2
 =======
  + Added new INI option to set Environment Variables when SK injects.
 

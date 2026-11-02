@@ -6170,6 +6170,12 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
   if (*xinput_emulation != '\0' && atoi (xinput_emulation) == 0)
     return;
 
+  char                                              ignore_steam_input [8] = { };
+  GetEnvironmentVariableA ("SK_IGNORE_STEAM_INPUT", ignore_steam_input, 7);
+
+  if (*ignore_steam_input != '\0' && atoi (ignore_steam_input) != 0)
+    return;
+
   //
   // SteamOS has a ton of input problems to begin with, let's just let the platform
   //   stay broken.
