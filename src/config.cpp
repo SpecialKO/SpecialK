@@ -2649,7 +2649,7 @@ auto DeclKeybind =
 
         import_.hLibrary = nullptr;
 
-        if (++import_idx > SK_MAX_IMPORTS)
+        if (++import_idx >= SK_MAX_IMPORTS)
           break;
       }
 
