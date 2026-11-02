@@ -6015,7 +6015,7 @@ auto DeclKeybind =
         {
           if (config.display.monitor_idx > 0)
           {
-            if (StrStrIW (mi.szDevice, SK_FormatStringW (LR"(\DISPLAY%i)", config.display.monitor_idx).c_str ()) != nullptr)
+            if (wcsicmp (mi.szDevice, SK_FormatStringW (LR"(\\.\DISPLAY%i)", config.display.monitor_idx).c_str ()) == 0)
             {
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
