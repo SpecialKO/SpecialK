@@ -892,7 +892,7 @@ using TerminateThread_pfn = BOOL (WINAPI *)( _In_ HANDLE hThread,
                                              _In_ DWORD  dwExitCode );
                                              using ExitThread_pfn = VOID (WINAPI *)(_In_ DWORD  dwExitCode);
 using _endthreadex_pfn = void (__cdecl *)( _In_ unsigned _ReturnCode );
-using NtTerminateProcess_pfn = NTSTATUS (*)(HANDLE, NTSTATUS);
+using NtTerminateProcess_pfn = NTSTATUS (NTAPI *)(HANDLE, NTSTATUS);
 using RtlExitUserThread_pfn = VOID (NTAPI *)(_In_ NTSTATUS 	Status);
 using SHGetKnownFolderPath_pfn = HRESULT (WINAPI *)(REFKNOWNFOLDERID,DWORD,HANDLE,PWSTR*);
 

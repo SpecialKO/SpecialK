@@ -8367,7 +8367,7 @@ SK_Keybind::parse (void)
   }
 
   wchar_t   wszKeyBind [128] = { };
-  lstrcatW (wszKeyBind, human_readable.c_str ());
+  StrNCatW (wszKeyBind, human_readable.c_str (), 127);
 
   wchar_t* wszBuf = nullptr;
   wchar_t* wszTok = std::wcstok (wszKeyBind, L"+", &wszBuf);

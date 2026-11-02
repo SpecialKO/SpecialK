@@ -385,6 +385,8 @@ SK_Util_PinModule (HMODULE hModToPin)
                         (LPCWSTR)hModToPin,
                           &hModDontCare );
 
+  __pinned.insert (hModToPin);
+
   return TRUE;
 }
 
@@ -487,6 +489,10 @@ GetProcAddress_Detour     (
   _In_ HMODULE hModule,
   _In_ LPCSTR  lpProcName )
 {
+  // Cache is known to cause problems in XInput 9.1.0 games,
+  //   it is not worth it.
+#define _NOCACHE 1
+                                                   
   // Let someone else sort this out
   if (lpProcName == nullptr)
   {
@@ -566,7 +572,7 @@ GetProcAddress_Detour     (
 ///////  }
 ///////}
 
-
+#ifndef _NOCACHE
   char proc_name [512] = { };
 
   if ((uintptr_t)lpProcName > 65536)
@@ -582,6 +588,7 @@ GetProcAddress_Detour     (
         SK_FormatString ("Ordinal_%lu", (uint32_t)((uintptr_t)lpProcName & 0xFFFFUL)).c_str (),
            _TRUNCATE );
   }
+#endif
 
   // Ignore ordinals for these bypasses
   if ((uintptr_t)lpProcName > 65535UL)
@@ -695,8 +702,11 @@ StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
             );
         }
 
-        return
-          (FARPROC)SteamAPI_ISteamInput_GetAnalogActionData_override;
+        if (realGetAnalogActionData != nullptr)
+        {
+          return
+            (FARPROC)SteamAPI_ISteamInput_GetAnalogActionData_override;
+        }
       }
 
       else if (! lstrcmpA (lpProcName, "SteamAPI_ISteamInput_GetDigitalActionData") )
@@ -709,8 +719,11 @@ StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
             );
         }
 
-        return
-          (FARPROC)SteamAPI_ISteamInput_GetDigitalActionData_override;
+        if (realGetDigitalActionData != nullptr)
+        {
+          return
+            (FARPROC)SteamAPI_ISteamInput_GetDigitalActionData_override;
+        }
       }
     }
 
@@ -804,9 +817,6 @@ StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
       SK_FormatString ("Ordinal_%lu", (intptr_t)lpProcName);
   }
 
-  // Cache is known to cause problems in XInput 9.1.0 games,
-  //   it is not worth it.
-#define _NOCACHE 1
 #if _NOCACHE
   FARPROC farproc = nullptr;
 #else
@@ -1781,7 +1791,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
         BOOLEAN BeingDebugged = pPeb->BeingDebugged;
         ULONG   NtGlobalFlag  = pPeb->NtGlobalFlag;
         ULONG   DebugFlags    = pPeb->ProcessParameters->DebugFlags;
-        wcsncpy_s ( wszWindowTitle, 511,
+        wcsncpy_s ( wszWindowTitle, 255,
                       pPeb->ProcessParameters->WindowTitle.Buffer,
                       pPeb->ProcessParameters->WindowTitle.Length );
 
@@ -1822,7 +1832,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
         }
 
         pRealPeb->BeingDebugged                  = BeingDebugged;
-        pRealPeb->NtGlobalFlag                  &=  NtGlobalFlag;
+        pRealPeb->NtGlobalFlag                  |=  NtGlobalFlag;
         pRealPeb->ProcessParameters->DebugFlags  =    DebugFlags;
 
         SK_InitUnicodeString (
@@ -2192,7 +2202,7 @@ ZwCreateThreadEx_Detour (
       ulLen =
         SK_GetSymbolNameFromModuleAddr (
           hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-            szSymbol, ulLen );
+            szSymbol, sizeof (szSymbol) - 1 );
 
       if (ulLen > 0)
       {
@@ -4680,7 +4690,7 @@ SymLoadModule (
   if (! config.system.handle_crashes)
     return 0;
 
-  BOOL bRet = FALSE;
+  DWORD dwRet = 0;
 
   if (SymLoadModule_Imp != nullptr)
   {
@@ -4715,20 +4725,21 @@ SymLoadModule (
           {
             _SK_DbgHelp_FailedModules->insert (BaseOfDll);
           }
+
+          else loaded = 1;
         }
-        else loaded = 1;
       }
     }
 
-    bRet =
-      ( loaded != 0 );
+    if (loaded != 0)
+      dwRet = BaseOfDll;
 
     if (hModDll != 0)
       SK_FreeLibrary (hModDll);
   }
 
   return
-    bRet;
+    dwRet;
 }
 
 DWORD64
@@ -4745,7 +4756,7 @@ SymLoadModule64 (
   if (! config.system.handle_crashes)
     return 0;
 
-  BOOL bRet = FALSE;
+  DWORD64 dwRet = 0;
 
   if (SymLoadModule64_Imp != nullptr)
   {
@@ -4785,16 +4796,15 @@ SymLoadModule64 (
         }
       }
     }
-
-    bRet =
-      ( loaded != 0 );
+    if (loaded != 0)
+      dwRet = BaseOfDll;
 
     if (hModDll)
       SK_FreeLibrary (hModDll);
   }
 
   return
-    bRet;
+    dwRet;
 }
 
 using SymSetSearchPathW_pfn = BOOL (IMAGEAPI *)(HANDLE,PCWSTR);
@@ -4983,7 +4993,9 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
   if (config.system.log_level < 2)
     return;
 
-  if (SK_TLS_Bottom ()->debug.silent_exceptions)
+  auto pTLS = SK_TLS_Bottom ();
+                                    
+  if (pTLS != nullptr && pTLS->debug.silent_exceptions)
     return;
 
   static RtlNtStatusToDosError_pfn
@@ -5005,11 +5017,14 @@ SK_SEH_LogException ( unsigned int        nExceptionCode,
   {
     lpMsgBuf = (wchar_t*)SK_LocalAlloc (LPTR, 8192);
 
-    wcsncpy_s ( lpMsgBuf, 8191,
-     _com_error (
-       HRESULT_FROM_WIN32 (ulDosError)
-                ).ErrorMessage (),
-                          _TRUNCATE );
+    if (lpMsgBuf != nullptr)
+    {
+      wcsncpy_s ( lpMsgBuf, 4095,
+      _com_error (
+        HRESULT_FROM_WIN32 (ulDosError)
+                 ).ErrorMessage (),
+                            _TRUNCATE );
+    }
   }
 
 
@@ -5204,6 +5219,9 @@ SHGetKnownFolderPath_Detour ( _In_     REFKNOWNFOLDERID              rfid,
     //   perform EXCEPTION_CONTINUE_SEARCH instead of terminating.
     static wchar_t fake_path [MAX_PATH] = L"XYZ:\\123\\456\\!#$%^@?|";
 
+    // This intentionally crashes because SHGetKnownFolderPath memory is supposed to
+    //   be allocated using CoTaskMemAlloc (...) - we are trying to break Streamline's
+    //     execption handler on purpose!
     if (rfid == FOLDERID_ProgramData && dwFlags == 0x0 && hToken == nullptr)
     {
       if (__SK_RaisedException.get ()[GetCurrentThreadId ()] == TRUE)
