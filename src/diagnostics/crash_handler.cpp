@@ -412,7 +412,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
     {
       if (! SK_SymLoadModule ( hProc,
                                  nullptr,
-                                   pszShortName,
+                                   szModName,
                                      nullptr,
                                        BaseAddr,
                                          mod_info.SizeOfImage )
@@ -539,6 +539,349 @@ GetBasicType (DWORD typeIndex, DWORD64 modBase)
   }
 
   return btNoType;
+}
+
+//
+// DbgHelp entry points used by the crash stack walk that Special K does not wrap;
+//   these all come from the isolated DbgHelp DLL and the caller must hold
+//     cs_dbghelp and cs_dbghelp2 while using them.
+//
+static struct {
+  decltype (&::StackWalkEx)                 StackWalkEx                 = nullptr;
+  decltype (&::SymFromInlineContext)        SymFromInlineContext        = nullptr;
+  decltype (&::SymGetLineFromInlineContext) SymGetLineFromInlineContext = nullptr;
+  decltype (&::SymFunctionTableAccess64)    SymFunctionTableAccess64    = nullptr;
+  decltype (&::SymGetModuleBase64)          SymGetModuleBase64          = nullptr;
+  decltype (&::SymLoadModuleExW)            SymLoadModuleExW            = nullptr;
+} SK_Crash_DbgHelp;
+
+static void
+SK_Crash_ResolveDbgHelp (void)
+{
+  static const bool
+    resolved = []
+    {
+      const HMODULE hModDbgHelp =
+        SK_Debug_LoadHelper ();
+
+      SK_Crash_DbgHelp.StackWalkEx                 = (decltype (&::StackWalkEx))                SK_GetProcAddress (hModDbgHelp, "StackWalkEx");
+      SK_Crash_DbgHelp.SymFromInlineContext        = (decltype (&::SymFromInlineContext))       SK_GetProcAddress (hModDbgHelp, "SymFromInlineContext");
+      SK_Crash_DbgHelp.SymGetLineFromInlineContext = (decltype (&::SymGetLineFromInlineContext))SK_GetProcAddress (hModDbgHelp, "SymGetLineFromInlineContext");
+      SK_Crash_DbgHelp.SymFunctionTableAccess64    = (decltype (&::SymFunctionTableAccess64))   SK_GetProcAddress (hModDbgHelp, "SymFunctionTableAccess64");
+      SK_Crash_DbgHelp.SymGetModuleBase64          = (decltype (&::SymGetModuleBase64))         SK_GetProcAddress (hModDbgHelp, "SymGetModuleBase64");
+      SK_Crash_DbgHelp.SymLoadModuleExW            = (decltype (&::SymLoadModuleExW))           SK_GetProcAddress (hModDbgHelp, "SymLoadModuleExW");
+
+      return true;
+    } ();
+
+  std::ignore = resolved;
+}
+
+// Returns the base of the module containing addr, loading the module into DbgHelp
+//   (by its full path) if DbgHelp does not already know about it.
+//
+//  * The dbghelp_callers cache cannot be trusted here; modules are added to it even
+//      when SymLoadModule fails, and they are never retried after that.
+static DWORD64
+SK_Crash_EnsureSymModule (HANDLE hProc, DWORD64 addr)
+{
+  if (SK_Crash_DbgHelp.SymGetModuleBase64 == nullptr)
+    return 0;
+
+  if (const DWORD64 base = SK_Crash_DbgHelp.SymGetModuleBase64 (hProc, addr))
+    return base;
+
+  HMODULE hMod = nullptr;
+
+  if (! GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                               reinterpret_cast <LPCWSTR> (static_cast <uintptr_t> (addr)),
+                                 &hMod ) )
+    return 0;
+
+  MODULEINFO mod_info = { };
+
+  if (! GetModuleInformation (hProc, hMod, &mod_info, sizeof (mod_info)))
+    return 0;
+
+  wchar_t                    wszModPath [MAX_PATH + 2] = { };
+  GetModuleFileNameW (hMod,  wszModPath, MAX_PATH);
+
+  if (SK_Crash_DbgHelp.SymLoadModuleExW != nullptr)
+  {
+    SK_Crash_DbgHelp.SymLoadModuleExW ( hProc, nullptr, wszModPath, nullptr,
+                                          reinterpret_cast <DWORD64> (mod_info.lpBaseOfDll),
+                                                                      mod_info.SizeOfImage,
+                                            nullptr, 0 );
+  }
+
+  return
+    SK_Crash_DbgHelp.SymGetModuleBase64 (hProc, addr);
+}
+
+static PVOID
+CALLBACK
+SK_Crash_FunctionTableAccess (HANDLE hProc, DWORD64 addr)
+{
+#ifdef _M_AMD64
+  // The OS's own lookup also finds function tables registered at runtime
+  //   (RtlAddFunctionTable / RtlInstallFunctionTableCallback) by JIT compilers,
+  //     which DbgHelp knows nothing about.
+  DWORD64 image_base = 0;
+
+  if (PRUNTIME_FUNCTION pFunc = RtlLookupFunctionEntry (addr, &image_base, nullptr))
+    return pFunc;
+#endif
+
+  SK_Crash_EnsureSymModule (hProc, addr);
+
+  return SK_Crash_DbgHelp.SymFunctionTableAccess64 != nullptr ?
+         SK_Crash_DbgHelp.SymFunctionTableAccess64 (hProc, addr) : nullptr;
+}
+
+static DWORD64
+CALLBACK
+SK_Crash_GetModuleBase (HANDLE hProc, DWORD64 addr)
+{
+  if (const DWORD64 base = SK_Crash_EnsureSymModule (hProc, addr))
+    return base;
+
+#ifdef _M_AMD64
+  // Code outside of any module (JIT); the unwind data returned by
+  //   SK_Crash_FunctionTableAccess is relative to the function table's base.
+  DWORD64 image_base = 0;
+
+  if (RtlLookupFunctionEntry (addr, &image_base, nullptr))
+    return image_base;
+#endif
+
+  return 0;
+}
+
+static BOOL
+SK_Crash_SafeStackWalk (HANDLE hProc, HANDLE hThread, STACKFRAME_EX* pFrame, CONTEXT* pCtx)
+{
+  const DWORD MachineType =
+    SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
+                            IMAGE_FILE_MACHINE_AMD64 );
+
+  __try
+  {
+    // StackWalkEx also produces frames for inlined functions
+    if (SK_Crash_DbgHelp.StackWalkEx != nullptr)
+    {
+      return
+        SK_Crash_DbgHelp.StackWalkEx ( MachineType, hProc, hThread, pFrame, pCtx, nullptr,
+                                         SK_Crash_FunctionTableAccess,
+                                         SK_Crash_GetModuleBase, nullptr, SYM_STKWALK_DEFAULT );
+    }
+
+    // STACKFRAME_EX begins with the layout of STACKFRAME64
+    return
+      StackWalk64 ( MachineType, hProc, hThread,
+                      reinterpret_cast <LPSTACKFRAME64> (pFrame), pCtx, nullptr,
+                        SK_Crash_FunctionTableAccess,
+                        SK_Crash_GetModuleBase, nullptr );
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                    EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
+  {
+    return FALSE;
+  }
+}
+
+static BOOL
+SK_Crash_SafeSymbolizeFrame ( HANDLE           hProc,
+                              DWORD64          addr,
+                              ULONG            inline_ctx,
+                              bool             inline_frame,
+                              PSYMBOL_INFO     pSymbol,
+                              PIMAGEHLP_LINE64 pLine,
+                              BOOL*            pbFileAndLine )
+{
+  DWORD64 Displacement = 0;
+  DWORD   Disp         = 0;
+  BOOL    bSymbol      = FALSE;
+
+  *pbFileAndLine = FALSE;
+
+  __try
+  {
+    if (inline_frame && SK_Crash_DbgHelp.SymFromInlineContext        != nullptr
+                     && SK_Crash_DbgHelp.SymGetLineFromInlineContext != nullptr)
+    {
+      bSymbol =
+        SK_Crash_DbgHelp.SymFromInlineContext (hProc, addr, inline_ctx, &Displacement, pSymbol);
+
+      if (bSymbol)
+        *pbFileAndLine =
+          SK_Crash_DbgHelp.SymGetLineFromInlineContext (hProc, addr, inline_ctx, 0, &Disp, pLine);
+    }
+
+    else
+    {
+      bSymbol =
+        SymFromAddr (hProc, addr, &Displacement, pSymbol);
+
+      if (bSymbol)
+        *pbFileAndLine =
+          SymGetLineFromAddr64 (hProc, addr, &Disp, pLine);
+    }
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                    EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
+  {
+    bSymbol        = FALSE;
+    *pbFileAndLine = FALSE;
+  }
+
+  return bSymbol;
+}
+
+std::string
+SK_DbgHlp_StackFrame::describe (void) const
+{
+  if (has_symbol)
+    return
+      SK_FormatString ("%s%s", inline_frame ? "[Inline] " : "", symbol_name);
+
+  if (hModule != nullptr)
+    return
+      SK_FormatString ( "+0x%llx", static_cast <unsigned long long> (
+                          address - reinterpret_cast <uintptr_t> (hModule) ) );
+
+  return
+    SK_FormatString ("0x%llx", static_cast <unsigned long long> (address));
+}
+
+size_t
+SK_DbgHlp_WalkStack ( HANDLE                               hThread,
+                      const CONTEXT&                       context,
+                      std::vector <SK_DbgHlp_StackFrame>&  frames,
+                      size_t                               max_frames )
+{
+  frames.clear ();
+
+  if (! ( config.system.handle_crashes && cs_dbghelp  != nullptr
+                                       && cs_dbghelp2 != nullptr && ReadAcquire (&__SK_DLL_Refs) > 0 ))
+  {
+    return 0;
+  }
+
+  SK_Crash_ResolveDbgHelp ();
+  SK_SymSetOpts           ();
+
+  HANDLE  hProc = SK_GetCurrentProcess ();
+  CONTEXT ctx (context);
+
+  STACKFRAME_EX stackframe = { };
+                stackframe.StackFrameSize   = sizeof (STACKFRAME_EX);
+#ifdef _M_AMD64
+                stackframe.AddrPC.Offset    = ctx.Rip;
+                stackframe.AddrStack.Offset = ctx.Rsp;
+                stackframe.AddrFrame.Offset = ctx.Rbp;
+#else /* _M_IX86 */
+                stackframe.AddrPC.Offset    = ctx.Eip;
+                stackframe.AddrStack.Offset = ctx.Esp;
+                stackframe.AddrFrame.Offset = ctx.Ebp;
+#endif
+
+  stackframe.AddrPC.Mode    = AddrModeFlat;
+  stackframe.AddrStack.Mode = AddrModeFlat;
+  stackframe.AddrFrame.Mode = AddrModeFlat;
+
+  std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
+
+  // Return addresses point to the instruction after the call, which may belong to
+  //   a different line (or function); look those frames up using the call itself.
+  bool caller_frame = false;
+
+  // The size limit guards against endless walks through a corrupted stack
+  while ( frames.size () < max_frames &&
+            SK_Crash_SafeStackWalk (hProc, hThread, &stackframe, &ctx) )
+  {
+    const DWORD64 addr =
+      stackframe.AddrPC.Offset;
+
+    if (addr == 0)
+      break;
+
+    // INLINE_FRAME_CONTEXT (DbgEng.h): { BYTE FrameId; BYTE FrameType; WORD FrameSignature; }
+    static constexpr BYTE _STACK_FRAME_TYPE_INLINE = 0x02;
+
+    const ULONG inline_ctx =
+      stackframe.InlineFrameContext;
+
+    auto& frame =
+      frames.emplace_back ();
+
+    frame.address      = addr;
+    frame.inline_frame =
+      ( inline_ctx != INLINE_FRAME_CONTEXT_IGNORE &&
+        (static_cast <BYTE> (inline_ctx >> 8) & _STACK_FRAME_TYPE_INLINE) );
+
+    if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                              GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+              reinterpret_cast <LPCSTR> (static_cast <uintptr_t> (addr)),
+                                  &frame.hModule ) )
+    {
+      char                              szModName [MAX_PATH + 2] = { };
+      GetModuleFileNameA (frame.hModule, szModName, MAX_PATH);
+
+      strncpy_s ( frame.module_name, MAX_PATH,
+                    PathFindFileNameA (szModName), _TRUNCATE );
+    }
+
+    // Make sure DbgHelp has this frame's module loaded before symbolizing it
+    SK_Crash_EnsureSymModule (hProc, addr);
+
+    const DWORD64 lookup_addr =
+      caller_frame ? addr - 1 : addr;
+
+    SYMBOL_INFO_PACKAGE sip = { };
+
+    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+    sip.si.MaxNameLen   = sizeof sip.name;
+
+    IMAGEHLP_LINE64 ihl              = {                    };
+                    ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+
+    BOOL bFileAndLine = FALSE;
+    BOOL bSymbol      =
+      SK_Crash_SafeSymbolizeFrame ( hProc, lookup_addr, inline_ctx,
+                                      frame.inline_frame, &sip.si, &ihl, &bFileAndLine );
+
+    if ((! bSymbol) && lookup_addr != addr)
+    {
+      bSymbol =
+        SK_Crash_SafeSymbolizeFrame ( hProc, addr, inline_ctx,
+                                        frame.inline_frame, &sip.si, &ihl, &bFileAndLine );
+    }
+
+    if (bSymbol)
+    {
+      frame.has_symbol = true;
+
+      strncpy_s ( frame.symbol_name, sizeof (frame.symbol_name),
+                    sip.si.Name, _TRUNCATE );
+
+      if (bFileAndLine && ihl.FileName != nullptr)
+      {
+        strncpy_s ( frame.file_name, MAX_PATH,
+                      ihl.FileName, _TRUNCATE );
+
+        frame.line_number = ihl.LineNumber;
+      }
+    }
+
+    if (! frame.inline_frame)
+      caller_frame = true;
+  }
+
+  return
+    frames.size ();
 }
 
 std::wstring
@@ -756,7 +1099,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   log_entry_format ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh\n",
                        ip,
                          ExceptionInfo->ContextRecord->Esp,
-                           ExceptionInfo->ContextRecord->Ebp ));
+                         ExceptionInfo->ContextRecord->Ebp ));
   log_entry_format ( L"[StackFrame] >-< Esi=%08xh, Edi=%08xh\n",
                        ExceptionInfo->ContextRecord->Esi,
                          ExceptionInfo->ContextRecord->Edi ));
@@ -776,10 +1119,10 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   log_entry_format ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh\n",
                      ip,
                        ExceptionInfo->ContextRecord->Rsp,
-                         ExceptionInfo->ContextRecord->Rbp ));
+                       ExceptionInfo->ContextRecord->Rbp ));
   log_entry_format ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%012llxh\n",
                      ExceptionInfo->ContextRecord->Rsi,
-                       ExceptionInfo->ContextRecord->Rdi ));
+                     ExceptionInfo->ContextRecord->Rdi ));
 
   log_entry_format ( L"[  GP Reg  ]   rax:    0x%012llx    rbx:    0x%012llx\n",
                      ExceptionInfo->ContextRecord->Rax,
@@ -830,29 +1173,6 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   log_entry.append (
     L"-----------------------------------------------------------\n");
 
-  CONTEXT ctx (*ExceptionInfo->ContextRecord);
-
-
-#ifdef _M_AMD64
-  STACKFRAME64 stackframe = { };
-               stackframe.AddrStack.Offset = ctx.Rsp;
-               stackframe.AddrFrame.Offset = ctx.Rbp;
-#else /* _M_IX86 */
-  STACKFRAME   stackframe = { };
-               stackframe.AddrStack.Offset = ctx.Esp;
-               stackframe.AddrFrame.Offset = ctx.Ebp;
-#endif
-
-  stackframe.AddrPC.Mode   = AddrModeFlat;
-  stackframe.AddrPC.Offset = ip;
-
-  stackframe.AddrStack.Mode = AddrModeFlat;
-  stackframe.AddrFrame.Mode = AddrModeFlat;
-
-
-  BOOL ret = TRUE;
-
-
   size_t max_symbol_len = 0,
          max_module_len = 0,
          max_file_len   = 0;
@@ -897,156 +1217,47 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   };
 
   std::vector <stack_entry_s> stack_entries;
-  stack_entries.reserve (16);
+  stack_entries.reserve (64);
 
-  do
+  std::vector <SK_DbgHlp_StackFrame> frames;
+
+  SK_DbgHlp_WalkStack ( SK_GetCurrentThread (),
+                          *ExceptionInfo->ContextRecord, frames );
+
+  for ( const auto& frame : frames )
   {
-    hModSource = nullptr;
-    *szModName = '\0';
+    const std::string symbol_name =
+      frame.describe ();
 
-    ip = stackframe.AddrPC.Offset;
+    const char* szModule =
+      frame.hModule != nullptr ? frame.module_name
+                               : "Unknown Module";
 
-    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-              reinterpret_cast <LPCWSTR> (ip),
-                                 &hModSource ) )
-    {
-      GetModuleFileNameA (hModSource, szModName, MAX_PATH);
-    }
-
-    MODULEINFO mod_info = { };
-
-    if (! GetModuleInformation (
-            GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
-       )                       )
+    if (frame.line_number != 0)
     {
       stack_entries.emplace_back (
-        "Unknown Module", "Unknown Function"
+        szModule, symbol_name.c_str (),
+          frame.file_name, static_cast <int> (frame.line_number)
       );
     }
 
     else
     {
-#ifdef _M_AMD64
-      BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else /* _M_IX86 */
-      BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
-#endif
-
-      strncpy_s     (szDupName, MAX_PATH, szModName, _TRUNCATE);
-      pszShortName = szDupName;
-
-      PathStripPathA (pszShortName);
-
-      if ( dbghelp_callers.find (hModSource) ==
-           dbghelp_callers.cend (          ) && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
-      {
-        std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
-
-        if ( dbghelp_callers.find (hModSource) ==
-             dbghelp_callers.cend (          )  )
-        {
-          SK_SymLoadModule ( hProc,
-                               nullptr,
-                                pszShortName,
-                                  nullptr,
-                                    BaseAddr,
-                                      mod_info.SizeOfImage );
-
-          dbghelp_callers.insert (hModSource);
-        }
-      }
-
-      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
-
-      SYMBOL_INFO_PACKAGE sip = { };
-
-      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-      sip.si.MaxNameLen   = sizeof sip.name;
-
-      DWORD64 Displacement = 0;
-
-      if ( SymFromAddr ( hProc,
-               static_cast <DWORD64> (ip),
-                             &Displacement,
-                               &sip.si ) )
-      {
-        DWORD Disp = 0x00UL;
-
-#ifdef _M_AMD64
-        IMAGEHLP_LINE64 ihl              = {                    };
-                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
-#else /* _M_IX86 */
-        IMAGEHLP_LINE   ihl              = {                  };
-                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
-#endif
-        BOOL bFileAndLine =
-          SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
-
-        auto AddStackEntry =
-          [&](void) -> void
-        {
-          stack_entries.emplace_back (
-            pszShortName, sip.si.Name
-          );
-
-          max_symbol_len =
-            std::max (stack_entries.back ().sym_len, max_symbol_len);
-          max_module_len =
-            std::max (stack_entries.back ().mod_len, max_module_len);
-        };
-
-        auto AddStackEntryWithFileAndLine =
-        [&](void) -> void
-        {
-          stack_entries.emplace_back (
-            pszShortName, sip.si.Name,
-              ihl.FileName, ihl.LineNumber
-          );
-
-          auto& entry =
-            stack_entries.back ();
-
-          max_symbol_len =
-            std::max (entry.sym_len, max_symbol_len);
-          max_module_len =
-            std::max (entry.mod_len, max_module_len);
-          max_file_len =
-            std::max (entry.file_len, max_file_len);
-        };
-
-        if (bFileAndLine)
-        {
-          AddStackEntryWithFileAndLine ();
-        }
-
-        else
-        {
-          AddStackEntry ();
-        }
-      }
-
-      if (hModSource)
-        SK_FreeLibrary (hModSource);
+      stack_entries.emplace_back (
+        szModule, symbol_name.c_str ()
+      );
     }
 
-#ifdef _M_AMD64
-    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE64)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess64");
-    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE64)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase64");
-#else
-    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess");
-    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase");
-#endif
+    auto& entry =
+      stack_entries.back ();
 
-    ret =
-      SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
-                                             IMAGE_FILE_MACHINE_AMD64 ),
-                       hProc,
-                         SK_GetCurrentThread (),
-                           &stackframe,
-                             &ctx,
-                               nullptr, SymFunctionTableAccess,
-                                 SymGetModuleBase, nullptr );
-  } while (ret != FALSE);
+    max_symbol_len =
+      std::max (entry.sym_len,  max_symbol_len);
+    max_module_len =
+      std::max (entry.mod_len,  max_module_len);
+    max_file_len =
+      std::max (entry.file_len, max_file_len);
+  }
 
   for (auto& stack_entry : stack_entries)
   {
@@ -1766,10 +1977,6 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
                                     MAX_PATH )
        ) return 0;
 
-    char* pszShortName = szModName;
-
-    PathStripPathA (pszShortName);
-
     if ( dbghelp_callers.find (hMod) ==
          dbghelp_callers.cend (    ) && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
     {
@@ -1777,7 +1984,7 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
       if (! SymLoadModule64 ( GetCurrentProcess (),
                                 nullptr,
-                                  pszShortName,
+                                  szModName,   
                                     nullptr,
                                       BaseAddr,
                                         mod_info.SizeOfImage )

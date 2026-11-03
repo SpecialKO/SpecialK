@@ -1,4 +1,9 @@
-﻿26.11.3.2
+﻿26.11.3.3
+=========
+ + Use StackWalk{64}Ex (...) instead of StackWalk{64} (...) in SK's
+     crash handler in order to report inline functions in the callstack.
+
+26.11.3.2
 =========
  + Use "SDL_JOYSTICK_DIRECTINPUT" instead of "SDL_HINT_JOYSTICK_DIRECTINPUT"
      when setting the environment variable, the latter is just the C macro.

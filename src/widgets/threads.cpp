@@ -737,9 +737,6 @@ void
 SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
                                            LARGE_INTEGER kernelTime )
 {
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
   static LARGE_INTEGER lastUser   { 0, 0 },
                        lastKernel { 0, 0 };
   static DWORD         lastThreadId  = 0;
@@ -748,38 +745,11 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
 
   static std::set <int> special_lines;
 
-  HMODULE hModSource               = nullptr;
-  char    szModName [MAX_PATH + 2] = { };
-  HANDLE  hProc                    = SK_GetCurrentProcess ();
-
-  CONTEXT thread_ctx              = {             };
-          thread_ctx.ContextFlags = CONTEXT_CONTROL;
+  // x64 unwinding needs the integer registers too (i.e. RBP for frame-pointer functions)
+  CONTEXT thread_ctx              = {          };
+          thread_ctx.ContextFlags = CONTEXT_FULL;
 
   GetThreadContext (hThread, &thread_ctx);
-
-#ifdef _M_AMD64
-  DWORD64  ip       = thread_ctx.Rip;
-  DWORD64  BaseAddr = 0;
-
-  STACKFRAME64
-    stackframe                  = {            };
-    stackframe.AddrStack.Offset = thread_ctx.Rsp;
-    stackframe.AddrFrame.Offset = thread_ctx.Rbp;
-#else /* _M_IX86 */
-  DWORD    ip       = thread_ctx.Eip;
-  DWORD    BaseAddr = 0;
-
-  STACKFRAME
-    stackframe                  = {            };
-    stackframe.AddrStack.Offset = thread_ctx.Esp;
-    stackframe.AddrFrame.Offset = thread_ctx.Ebp;
-#endif
-
-  stackframe.AddrPC.Mode   = AddrModeFlat;
-  stackframe.AddrPC.Offset = ip;
-
-  stackframe.AddrStack.Mode = AddrModeFlat;
-  stackframe.AddrFrame.Mode = AddrModeFlat;
 
   std::string top_func = "";
 
@@ -787,7 +757,6 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
   static std::vector <std::string> symbol_names;
   static std::vector <std::string> code_lines;
 
-         BOOL ret   = TRUE;
   static int  lines = 0;
 
   if (
@@ -811,140 +780,41 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
     symbol_names.clear ();
     code_lines.clear   ();
 
-    do
+    static std::vector <SK_DbgHlp_StackFrame> frames;
+
+    SK_DbgHlp_WalkStack (hThread, thread_ctx, frames);
+
+    for ( const auto& frame : frames )
     {
-      hModSource = nullptr;
-      *szModName = '\0';
-
-      ip = stackframe.AddrPC.Offset;
-
-      if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                reinterpret_cast <LPCWSTR> (ip),
-                                   &hModSource ) )
-      {
-        GetModuleFileNameA (hModSource, szModName, MAX_PATH);
-      }
-
-      MODULEINFO mod_info = { };
-
-      GetModuleInformation (
-        hProc, hModSource,
-          &mod_info, sizeof (MODULEINFO)
+      file_names.emplace_back   (
+        frame.hModule != nullptr ? frame.module_name
+                                 : "Unknown Module"
       );
+      symbol_names.emplace_back (frame.describe ());
 
-#ifdef _M_AMD64
-      BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else /* _M_IX86 */
-      BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
-#endif
-
-      char* szDupName =
-        pTLS->scratch_memory->cmd.alloc (
-          strnlen (szModName, MAX_PATH) + 1, true );
-
-      if (szDupName != nullptr)
+      if (frame.line_number != 0)
       {
-        strncpy_s ( szDupName, pTLS->scratch_memory->cmd.len,
-                    szModName, _TRUNCATE );
-
-        char* pszShortName =
-                szDupName;
-
-        PathStripPathA (pszShortName);
-
-
-        if ( dbghelp_callers.find (hModSource) ==
-             dbghelp_callers.cend (          ) && cs_dbghelp != nullptr )
-        {
-          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-          if ( dbghelp_callers.find (hModSource) ==
-               dbghelp_callers.cend (          )  )
-          {
-            SK_SymLoadModule ( hProc,
-                                 nullptr,
-                                  pszShortName,
-                                    nullptr,
-                                      BaseAddr,
-                                        mod_info.SizeOfImage );
-
-            dbghelp_callers.insert (hModSource);
-          }
-        }
-
-        SYMBOL_INFO_PACKAGE sip = { };
-
-        sip.si.SizeOfStruct = sizeof (SYMBOL_INFO);
-        sip.si.MaxNameLen   = sizeof (sip.name);
-
-        DWORD64 Displacement = 0;
-
-        if ( SymFromAddr ( hProc,
-               static_cast <DWORD64> (ip),
-                          &Displacement,
-                            &sip.si  )  )
-        {
-          DWORD Disp = 0x00UL;
-
-#ifdef _M_AMD64
-          IMAGEHLP_LINE64 ihl = {                      };
-          ihl.SizeOfStruct    = sizeof (IMAGEHLP_LINE64);
-#else /* _M_IX86 */
-          IMAGEHLP_LINE ihl = {                    };
-          ihl.SizeOfStruct  = sizeof (IMAGEHLP_LINE);
-#endif
-          const BOOL bFileAndLine =
-            SK_SymGetLineFromAddr (hProc, ip, &Disp, &ihl);
-
-          file_names.emplace_back   (pszShortName);
-          symbol_names.emplace_back (sip.si.Name);
-
-          if (bFileAndLine)
-          {
-            code_lines.emplace_back (
-              SK_FormatString ( "<%hs:%lu>",
-                                  ihl.FileName,
-                                    ihl.LineNumber )
-            );
-          }
-
-          else
-          {
-            code_lines.emplace_back ();
-          }
-
-          if (top_func.empty ())
-            top_func = sip.si.Name;
-
-          ++lines;
-        }
+        code_lines.emplace_back (
+          SK_FormatString ( "<%hs:%lu>",
+                              frame.file_name,
+                                frame.line_number )
+        );
       }
 
-#ifdef _M_AMD64
-    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE64)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess64");
-    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE64)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase64");
-#else
-    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess");
-    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase");
-#endif
+      else
+      {
+        code_lines.emplace_back ();
+      }
 
-      ret =
-        SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
-                                               IMAGE_FILE_MACHINE_AMD64 ),
-                         hProc,
-                           hThread,
-                             &stackframe,
-                               &thread_ctx,
-                                 nullptr, SymFunctionTableAccess,
-                                   SymGetModuleBase, nullptr );
+      if (top_func.empty () && frame.has_symbol)
+        top_func = frame.symbol_name;
 
-      if (hModSource)
-        SK_FreeLibrary (hModSource);
-    } while (ret != FALSE);
+      ++lines;
+    }
   }
 
 
-  if (file_names.size ( ) > 2)
+  if (file_names.size ( ) > 1)
   {
     static std::string self_ansi =
       SK_WideCharToUTF8 (SK_GetModuleName (skModuleRegistry::Self ()));
@@ -966,7 +836,7 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
 
     for ( const auto& it : file_names )
     {
-      if (idx++ == 0 || idx == file_names.size ()) continue;
+      if (++idx == file_names.size ()) continue;
 
       ImColor color (0.75f, 0.75f, 0.75f, 1.0f);
 
@@ -991,7 +861,7 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
     idx = 0;
     for ( auto& it : symbol_names )
     {
-      if (idx++ == 0 || idx == symbol_names.size ()) continue;
+      if (++idx == symbol_names.size ()) continue;
 
       ImColor color (0.95f, 0.95f, 0.95f, 1.0f);
 
@@ -1010,7 +880,7 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
     idx = 0;
     for ( auto& it : code_lines )
     {
-      if (idx++ == 0 || idx == code_lines.size ()) continue;
+      if (++idx == code_lines.size ()) continue;
 
       ImColor color (1.0f, 1.0f, 1.0f, 1.0f);
 

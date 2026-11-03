@@ -4723,7 +4723,11 @@ SymLoadModule (
                     ModuleName,    BaseOfDll,
                                    SizeOfDll  ) )
           {
-            _SK_DbgHelp_FailedModules->insert (BaseOfDll);
+            // Returns 0 w/ ERROR_SUCCESS if the module was already loaded
+            if (GetLastError () != ERROR_SUCCESS)
+              _SK_DbgHelp_FailedModules->insert (BaseOfDll);
+            else
+              loaded = 1;
           }
 
           else loaded = 1;
@@ -4789,7 +4793,11 @@ SymLoadModule64 (
                      ModuleName,    BaseOfDll,
                                     SizeOfDll  ))
           {
-            _SK_DbgHelp_FailedModules->insert (BaseOfDll);
+            // Returns 0 w/ ERROR_SUCCESS if the module was already loaded
+            if (GetLastError () != ERROR_SUCCESS)
+              _SK_DbgHelp_FailedModules->insert (BaseOfDll);
+            else
+              loaded = 1;
           }
 
           else loaded = 1;
