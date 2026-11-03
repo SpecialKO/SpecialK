@@ -469,33 +469,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
                                         lpMsg->wParam, lpMsg->lParam ) );
       } break;
 
-      case WM_DPICHANGED:
-      {
-        if (SK_GetThreadDpiAwareness () != DPI_AWARENESS_UNAWARE)
-        {
-          const RECT* suggested_rect =
-              (RECT *)lpMsg->lParam;
-
-          SK_LOG0 ( ( L"DPI Scaling Changed: %lu (%.0f%%)",
-                        HIWORD (lpMsg->wParam),
-                ((float)HIWORD (lpMsg->wParam) / (float)USER_DEFAULT_SCREEN_DPI) * 100.0f ),
-                      L"Window Mgr" );
-
-          ::SetWindowPos (
-            lpMsg->hwnd, HWND_TOP,
-              suggested_rect->left,                         suggested_rect->top,
-              suggested_rect->right - suggested_rect->left, suggested_rect->bottom - suggested_rect->top,
-                SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS
-          );
-
-          SK_Window_RepositionIfNeeded ();
-        }
-
-        ////extern void
-        ////SK_Display_UpdateOutputTopology (void);
-        ////SK_Display_UpdateOutputTopology (    );
-      } break;
-
       default:
       {
       } break;
