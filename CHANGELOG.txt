@@ -2,6 +2,8 @@
 =======
  + Optimized Thread Local Storage (TLS) management and re-enabled the raw TEB
      fastpath that used to crash in modified versions of Cyberpunk 2077.
+ + Merged pull request #395 from Aemony:main
+    * Drops hardcoded VCToolsVersion and enables builds in parallel.
 
 26.11.3.3
 =========
