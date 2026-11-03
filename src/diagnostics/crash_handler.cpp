@@ -229,8 +229,8 @@ CrashHandler::Reinstall (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
-  static volatile LPVOID   pOldHook   = nullptr;
-  if ((uintptr_t)InterlockedCompareExchangePointer (&pOldHook, (PVOID)1, nullptr) > (uintptr_t)1)
+  static volatile LPVOID              pOldHook  = nullptr;
+  if ((uintptr_t)ReadPointerAcquire (&pOldHook) > 1)
   {
     if (MH_OK == SK_RemoveHook (ReadPointerAcquire (&pOldHook)))
     {
@@ -394,12 +394,11 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   auto BaseAddr   = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
-  char szModName [MAX_PATH + 2] = { };
+  char                      szModName [MAX_PATH + 2] = { };
+  GetModuleFileNameA (hMod, szModName, MAX_PATH);
 
-  GetModuleFileNameA   ( hMod, szModName, MAX_PATH );
-
-  char* szDupName    = _strdup (szModName);
-  char* pszShortName = szDupName;
+  std::string szDupName (szModName);
+  char*    pszShortName = szDupName.data ();
 
   PathStripPathA (pszShortName);
 
@@ -411,12 +410,17 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
     if ( dbghelp_callers.find (hMod) ==
          dbghelp_callers.cend (    )  )
     {
-      SK_SymLoadModule ( hProc,
-                           nullptr,
-                             pszShortName,
-                               nullptr,
-                                 BaseAddr,
-                                   mod_info.SizeOfImage );
+      if (! SK_SymLoadModule ( hProc,
+                                 nullptr,
+                                   pszShortName,
+                                     nullptr,
+                                       BaseAddr,
+                                         mod_info.SizeOfImage )
+         )
+      {
+        //if (GetLastError () != ERROR_SUCCESS)
+          //return 0;
+      }
 
       dbghelp_callers.insert (hMod);
     }
@@ -442,8 +446,6 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   {
     ret = "UNKNOWN";
   }
-
-  free (szDupName);
 
   return ret;
 }
@@ -899,6 +901,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
   do
   {
+    hModSource = nullptr;
+    *szModName = '\0';
+
     ip = stackframe.AddrPC.Offset;
 
     if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -950,6 +955,8 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
           dbghelp_callers.insert (hModSource);
         }
       }
+
+      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 
       SYMBOL_INFO_PACKAGE sip = { };
 
@@ -1022,6 +1029,14 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
         SK_FreeLibrary (hModSource);
     }
 
+#ifdef _M_AMD64
+    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE64)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess64");
+    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE64)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase64");
+#else
+    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess");
+    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase");
+#endif
+
     ret =
       SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
                                              IMAGE_FILE_MACHINE_AMD64 ),
@@ -1029,15 +1044,15 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
                          SK_GetCurrentThread (),
                            &stackframe,
                              &ctx,
-                               nullptr, nullptr,
-                                 nullptr, nullptr );
+                               nullptr, SymFunctionTableAccess,
+                                 SymGetModuleBase, nullptr );
   } while (ret != FALSE);
 
   for (auto& stack_entry : stack_entries)
   {
     if (stack_entry.line_number == 0)
     {
-      log_entry_format ( L" %*hs >  %#*hs\n",
+      log_entry_format ( L" %*hs >  %*hs\n",
                            max_module_len,
                            stack_entry.short_mod_name,
                              max_symbol_len,
@@ -1047,7 +1062,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     else
     {
       log_entry_format
-              ( L" %*hs >  %#*hs  <%*hs:%lu>\n",
+              ( L" %*hs >  %*hs  <%*hs:%lu>\n",
                max_module_len,   stack_entry.short_mod_name,
                  max_symbol_len, stack_entry.symbol_name,
                     max_file_len, stack_entry.file_name,
@@ -1123,8 +1138,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //  __debugbreak ();
   //}
 
-  static bool          run_once = false;
-  if (! std::exchange (run_once,  true))
+  SK_RunOnce (
   {
     std::wstring hw_status =
       L"==================================================================================================\n";
@@ -1235,7 +1249,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           SK_FormatStringW (
             L"  - Current VRAM In Use....: %6.3f GiB / Max Useable VRAM: %6.3f GiB\n",
             (float)((double)SK_GPU_GetVRAMUsed     (0) / (1024.0 * 1024.0 * 1024.0)),
-            (float)((double)SK_GPU_GetVRAMCapacity (0) / (1024.0 * 1024.0 * 1024.0 * 1024.0))
+            (float)((double)SK_GPU_GetVRAMCapacity (0) / (1024.0 * 1024.0 * 1024.0))
           )
         );
       }
@@ -1246,7 +1260,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     );
 
     crash_log->LogEx (false, L"\n%ws\n\n", hw_status.c_str ());
-  }
+  });
 
 #ifdef    _M_AMD64
 #  define _IP       Rip
@@ -1293,6 +1307,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   repeat_sequence =
     ( repeated ? ++repeat_sequence
                :   0 );
+
+  if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_MSVC_CPP)
+  {
+    // Immediately crash out rather than returning execution to the [[noreturn]] function that raised this exception.
+    repeat_sequence = 2;
+  }
 
   last_ctx = *ExceptionInfo->ContextRecord;
   last_exc = *ExceptionInfo->ExceptionRecord;
@@ -1535,7 +1555,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     if (pTLS != nullptr)
         pTLS->debug.last_chance = true;
 
-    wchar_t   wszFindPattern [MAX_PATH + 2] = { };
+    wchar_t   wszFindPattern [MAX_PATH * 2 + 1] = { };
     lstrcatW (wszFindPattern, SK_GetConfigPath ());
     lstrcatW (wszFindPattern,    LR"(logs\*.log)");
 
@@ -1545,9 +1565,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
-      wchar_t wszBaseDir [MAX_PATH + 2] = { };
-      wchar_t wszOutDir  [MAX_PATH + 2] = { };
-      wchar_t wszTime    [MAX_PATH + 2] = { };
+      wchar_t wszBaseDir [MAX_PATH * 2 + 1] = { };
+      wchar_t wszOutDir  [MAX_PATH * 2 + 1] = { };
+      wchar_t wszTime    [MAX_PATH * 2 + 1] = { };
 
       lstrcatW (wszBaseDir, SK_GetConfigPath ( ));
       lstrcatW (wszBaseDir, LR"(logs\)");
@@ -1759,7 +1779,11 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
                                     nullptr,
                                       BaseAddr,
                                         mod_info.SizeOfImage )
-         ) return 0;
+         )
+      {
+        if (GetLastError () != ERROR_SUCCESS)
+          return 0;
+      }
 
       dbghelp_callers.insert (hMod);
     }
@@ -1786,7 +1810,7 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
     pszOut [0] = '\0';
 
     strncat             ( pszOut.data (), sip.si.Name,
-                            std::min (ulLen, sip.si.NameLen) );
+                            std::min (ulLen - 1, sip.si.NameLen) );
     ret =
       sk::narrow_cast <ULONG> (strlen (pszOut.data ()));
   }
@@ -1876,7 +1900,7 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    if (config.system.handle_crashes)
+    if (config.system.handle_crashes && cs_dbghelp != nullptr && cs_dbghelp2 != nullptr)
     {
       std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
 

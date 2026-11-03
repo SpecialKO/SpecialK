@@ -813,6 +813,9 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
 
     do
     {
+      hModSource = nullptr;
+      *szModName = '\0';
+
       ip = stackframe.AddrPC.Offset;
 
       if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -917,6 +920,14 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
         }
       }
 
+#ifdef _M_AMD64
+    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE64)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess64");
+    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE64)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase64");
+#else
+    static auto SymFunctionTableAccess = (PFUNCTION_TABLE_ACCESS_ROUTINE)SK_GetProcAddress (SK_Debug_LoadHelper (), "SymFunctionTableAccess");
+    static auto SymGetModuleBase       = (PGET_MODULE_BASE_ROUTINE)      SK_GetProcAddress (SK_Debug_LoadHelper (), "SymGetModuleBase");
+#endif
+
       ret =
         SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
                                                IMAGE_FILE_MACHINE_AMD64 ),
@@ -924,8 +935,8 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
                            hThread,
                              &stackframe,
                                &thread_ctx,
-                                 nullptr, nullptr,
-                                   nullptr, nullptr );
+                                 nullptr, SymFunctionTableAccess,
+                                   SymGetModuleBase, nullptr );
 
       if (hModSource)
         SK_FreeLibrary (hModSource);

@@ -1,6 +1,13 @@
-﻿26.11.2.2
+﻿26.11.3
+=======
+ + Addressed buffer overrun issues in crash_handler.cpp.
+ + Fixed crash handler not reinstalling itself correctly in some cases.
+ + Improved accuracy of stack unwinds in crash handler.
+ + Fixed incorrect VRAM capacity reported in crash logs.
+
+26.11.2.2
 =========
- + Fixed various potential bufer overflows in config.cpp and debug_utils.cpp.
+ + Fixed various potential buffer overflows in config.cpp and debug_utils.cpp.
  + Fixed problems if more than 8 DLLs are configured to load as plug-ins.
  + Fixed \\.\DISPLAY1 matching \\.\DISPLAY10 in some cases.
  + Correctly null-terminate strings assigned to keys in

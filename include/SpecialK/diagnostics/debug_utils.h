@@ -882,6 +882,8 @@ bool SK_Process_Resume      (DWORD dwPid);
 void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString) noexcept;
 void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString) noexcept;
 
+HMODULE SK_Debug_LoadHelper (void);
+
 using SetLastError_pfn   = void (WINAPI *)(_In_ DWORD dwErrCode);
 using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);
 using CloseHandle_pfn    = BOOL (WINAPI *)(HANDLE);
