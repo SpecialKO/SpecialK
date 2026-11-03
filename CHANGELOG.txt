@@ -2,6 +2,9 @@
 =========
  + Use StackWalk{64}Ex (...) instead of StackWalk{64} (...) in SK's
      crash handler in order to report inline functions in the callstack.
+ + Added decoding of MSVC C++ exceptions that reach the crash handler, for
+     more sensible crash reports when C++ exceptions rather than structured
+       exceptions are the cause of a crash.
 
 26.11.3.2
 =========
