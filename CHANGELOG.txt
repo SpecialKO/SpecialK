@@ -9,6 +9,7 @@
  + Rewrite SK_Input_ReleaseCommonStuckKeys (...) to correctly distinguish
      Left/Right Alt, Shift and Ctrl keys.
  + Removed WM_DPICHANGED handler.
+ + Handle possible crash if WM_MOUSELEAVE is received before ImGui init.
 
 26.11.3.1
 =========

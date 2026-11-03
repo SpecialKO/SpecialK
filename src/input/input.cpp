@@ -282,9 +282,12 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           game_window.mouse.inside   = false;
           game_window.mouse.tracking = false;
 
-          // We're no longer inside the game window, move the cursor off-screen
-          ImGui::GetIO ().MousePos =
-            ImVec2 (-FLT_MAX, -FLT_MAX);
+          if (SK_GImDefaultContext ())
+          {
+            // We're no longer inside the game window, move the cursor off-screen
+            ImGui::GetIO ().MousePos =
+              ImVec2 (-FLT_MAX, -FLT_MAX);
+          }
         }
         break;
 
