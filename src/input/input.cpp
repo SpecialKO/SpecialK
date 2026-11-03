@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -33,10 +31,6 @@
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/storefront/xbox.h>
 
-extern "C" {
-  extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
-}
-
 DWORD SK_WGI_GamePollingThreadId = 0;
 
 bool
@@ -49,7 +43,7 @@ SK_ImGui_WantGamepadCapture (bool update) noexcept
 
   if (! update)
   {
-    return capture.load () || lastFrameCaptured > SK_GetFramesDrawn () - 2;
+    return capture.load () || (lastFrameCaptured != 0 && lastFrameCaptured + 2 > SK_GetFramesDrawn ());
   }
 
   // Do not block on first frame drawn unless explicitly disabled
@@ -840,30 +834,6 @@ SK_Input_SetLatencyMarker (void) noexcept
   }
 }
 
-
-// SK doesn't use SDL, but many games crash on exit due to polling
-//   joystick after XInput is unloaded... so we'll just terminate
-//     the thread manually so it doesn't crash.
-void
-SK_SDL_ShutdownInput (void)
-{
-  auto tidSDL =
-    SK_Thread_FindByName (L"SDL_joystick");
-
-  if (tidSDL != 0)
-  {
-    SK_AutoHandle hThread (
-      OpenThread (THREAD_ALL_ACCESS, FALSE, tidSDL)
-    );
-
-    if (hThread.isValid ())
-    {
-      SuspendThread      (hThread);
-      SK_TerminateThread (hThread, 0xDEADC0DE);
-    }
-  }
-}
-
 #include <imgui/font_awesome.h>
 
 extern bool
@@ -916,7 +886,7 @@ SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
     _BatteryPollingIntervalMs = 10000UL;
 
   auto BatteryStateTTL =
-    SK::ControlPanel::current_time - _BatteryPollingIntervalMs;
+    SK::ControlPanel::current_time - std::min (SK::ControlPanel::current_time, _BatteryPollingIntervalMs);
 
   auto current_frame =
     SK_GetFramesDrawn ();
