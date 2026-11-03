@@ -4,16 +4,14 @@ on: [push, pull_request]
 
 jobs:
   Build:
+    name: Build (${{ matrix.platform }})
     runs-on: windows-2022
 
     strategy:
       fail-fast: false
-      #matrix:
-      #  config: [Release]
-      #  platform: [Win32, x64]
-      # Originally the build was then executed with this:
-      # msbuild SpecialK.sln -p:Configuration="${{ matrix.config }}" -p:Platform="${{ matrix.platform }}" -m
-    
+      matrix:
+        platform: [x64, Win32]
+
     steps:
     - uses: actions/checkout@v4
 
@@ -26,31 +24,68 @@ jobs:
     #  run: |
     #    nuget restore SpecialK.sln
 
-    - name: Build the codebase (64-bit)
+    - name: Build the codebase (${{ matrix.platform }})
       run: |
-        msbuild SpecialK.sln -p:Configuration="Release" -p:Platform="x64" -m
+        msbuild SpecialK.sln -p:Configuration="Release" -p:Platform="${{ matrix.platform }}" -m
 
-    - name: Build the codebase (32-bit)
-      run: |
-        msbuild SpecialK.sln -p:Configuration="Release" -p:Platform="Win32" -m
-
-    - name: Prepare environment variables for the artifact name
-      run: |
-        $Version = (Get-Item "$HOME\Documents\My Mods\SpecialK\SpecialK*.dll").VersionInfo.ProductVersion | Select-Object -First 1
-        If ($null -eq $Version) { $Version = "unknown" }
-        "SK_VERSION=$Version" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
-        "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
-
+    # Per-platform artifacts; the Merge job combines them and then deletes these
     - uses: actions/upload-artifact@v4
       with:
-        name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}
+        name: build-${{ matrix.platform }}
         path: |
           ~\Documents\My Mods\SpecialK\*.dll
         if-no-files-found: error
+        retention-days: 1
 
     - uses: actions/upload-artifact@v4
       with:
-        name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}_debug_symbols
+        name: symbols-${{ matrix.platform }}
         path: |
           ~\Documents\My Mods\SpecialK\*.pdb
         if-no-files-found: warn
+        retention-days: 1
+
+  Merge:
+    name: Merge artifacts
+    needs: Build
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: build-*
+        path: Builds
+        merge-multiple: true
+
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: symbols-*
+        path: Symbols
+        merge-multiple: true
+
+    - name: Prepare environment variables for the artifact name
+      id: prep
+      run: |
+        # Prefer the 64-bit SpecialK64.dll for the version, fall back to any SpecialK*.dll
+        $Dll = Get-Item ".\Builds\SpecialK64.dll", ".\Builds\SpecialK*.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+        $Version = if ($Dll) { $Dll.VersionInfo.ProductVersion } else { $null }
+        If ([string]::IsNullOrWhiteSpace($Version)) { $Version = "unknown" }
+        "SK_VERSION=$($Version.Trim())" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
+        "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
+
+        $HasSymbols = [bool](Get-ChildItem ".\Symbols\*.pdb" -ErrorAction SilentlyContinue)
+        "has_symbols=$($HasSymbols.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding UTF8 -Append
+        Get-ChildItem .\Builds, .\Symbols -ErrorAction SilentlyContinue | Format-Table Name, Length -AutoSize
+
+    - uses: actions/upload-artifact/merge@v4
+      with:
+        name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}
+        pattern: build-*
+        delete-merged: true
+
+    - uses: actions/upload-artifact/merge@v4
+      if: steps.prep.outputs.has_symbols == 'true'
+      with:
+        name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}_debug_symbols
+        pattern: symbols-*
+        delete-merged: true
