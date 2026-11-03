@@ -3,6 +3,8 @@
  + Use "SDL_JOYSTICK_DIRECTINPUT" instead of "SDL_HINT_JOYSTICK_DIRECTINPUT"
      when setting the environment variable, the latter is just the C macro.
  + Same as above for "SDL_FORCE_RAISEWINDOW".
+ + In the failure case for SK_XInput_GetBatteryInformation (...), set the
+     minimum retry interval to 5 seconds as intended.
 
 26.11.3.1
 =========

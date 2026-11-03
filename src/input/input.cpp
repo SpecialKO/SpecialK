@@ -970,6 +970,9 @@ SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
           else
               battery.last_checked = BatteryStateTTL + 1000; // Retry in 1 second
         }
+
+        else
+          battery.last_checked = BatteryStateTTL + 5000; // Retry in 5 seconds
       }
 
       if (battery.draining && gamepad.attached && battery.battery_info.BatteryLevel <= BATTERY_LEVEL_LOW)
