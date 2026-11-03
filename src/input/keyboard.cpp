@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -361,7 +359,7 @@ SK_keybd_event (
 {
   static concurrency::concurrent_queue <SK_Win32_KeybdEvent> _keybd_events;
   static HANDLE                                               hInputEvent =
-    SK_CreateEvent (nullptr, FALSE, FALSE, L"[SK] Input Synthesis Requested");
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);//L"[SK] Input Synthesis Requested");
 
   static HANDLE hKeyboardSynthesisThread =
     SK_Thread_CreateEx ([](LPVOID)->DWORD
@@ -372,7 +370,7 @@ SK_keybd_event (
         { __SK_DLL_TeardownEvent,
                      hInputEvent };
 
-      while ( WAIT_OBJECT_0 !=
+      while ( (WAIT_OBJECT_0 + 1) ==
                 WaitForMultipleObjects (2, hSignals, FALSE, INFINITE) )
       {
         while (! _keybd_events.empty ())
@@ -605,39 +603,6 @@ GetKeyboardState_Detour (PBYTE lpKeyState) noexcept
 
   return bRet;
 }
-
-
-typedef HKL (WINAPI *GetKeyboardLayout_pfn)(_In_ DWORD idThread);
-                     GetKeyboardLayout_pfn
-                     GetKeyboardLayout_Original = nullptr;
-
-SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, HKL>> CachedHKL;
-
-void
-SK_Win32_InvalidateHKLCache (void)
-{
-  CachedHKL->clear ();
-}
-
-HKL
-WINAPI
-GetKeyboardLayout_Detour (_In_ DWORD idThread)
-{
-  const auto& ret =
-    CachedHKL->find (idThread);
-
-  if (ret != CachedHKL->cend ())
-    return ret->second;
-
-
-  HKL current_hkl =
-    GetKeyboardLayout_Original (idThread);
-
-  CachedHKL.get ()[idThread] = current_hkl; //-V108
-
-  return current_hkl;
-}
-
 
 SK_LazyGlobal <std::unordered_map <char, char>> SK_Keyboard_LH_Arrows;
 

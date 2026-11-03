@@ -1,4 +1,12 @@
-﻿26.11.3
+﻿26.11.3.1
+=========
+ + Fixed SK_keybd_event (...) signaling itself and any other game that also
+     has SK injected instead of just itself.
+ + Removed dead keyboard layout caching code.
+ + Run keyboard & mouse blocking exemption tests for ReShade overlay once
+     per-frame instead of once per-input.
+
+26.11.3
 =======
  + Addressed buffer overrun issues in crash_handler.cpp.
  + Fixed crash handler not reinstalling itself correctly in some cases.
