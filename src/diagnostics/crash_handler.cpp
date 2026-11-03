@@ -1461,8 +1461,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
         hw_status.append (
           SK_FormatStringW (
             L"  - Current VRAM In Use....: %6.3f GiB / Max Useable VRAM: %6.3f GiB\n",
-            (float)((double)SK_GPU_GetVRAMUsed     (0) / (1024.0 * 1024.0 * 1024.0)),
-            (float)((double)SK_GPU_GetVRAMCapacity (0) / (1024.0 * 1024.0 * 1024.0))
+            (float)((double)SK_GPU_GetVRAMUsed   (0) / (1024.0 * 1024.0 * 1024.0)),
+            (float)((double)SK_GPU_GetVRAMBudget (0) / (1024.0 * 1024.0 * 1024.0))
           )
         );
       }

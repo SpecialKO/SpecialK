@@ -1282,10 +1282,10 @@ SK_GPU_GetVRAMUsed          (int gpu)
   buffer_t buffer = dxgi_mem_info [0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < pDataView->num_gpus )                         ?
-         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].CurrentUsage     :
-                                        pDataView->gpus [gpu].memory_B.local ) :
-                                    0;
+  return ( gpu   > -1  && gpu < pDataView->num_gpus )                         ?
+         ( nodes > gpu ?  dxgi_mem_info [buffer].local [gpu].CurrentUsage     :
+                                       pDataView->gpus [gpu].memory_B.local ) :
+                                   0;
 }
 
 uint64_t
@@ -1298,10 +1298,10 @@ SK_GPU_GetVRAMShared        (int gpu)
   buffer_t buffer = dxgi_mem_info [0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < pDataView->num_gpus )                               ?
-         ( nodes >= gpu ?  dxgi_mem_info [buffer].nonlocal [gpu].CurrentUsage        :
-                                           pDataView->gpus [gpu].memory_B.nonlocal ) :
-                                    0;
+  return ( gpu   > -1  && gpu < pDataView->num_gpus )                               ?
+         ( nodes > gpu ?  dxgi_mem_info [buffer].nonlocal [gpu].CurrentUsage        :
+                                          pDataView->gpus [gpu].memory_B.nonlocal ) :
+                                   0;
 }
 
 uint64_t
@@ -1326,8 +1326,8 @@ SK_GPU_GetVRAMBudget        (int gpu)
   buffer_t buffer = dxgi_mem_info [0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < pDataView->num_gpus ) ?
-         ( nodes >= gpu ?  dxgi_mem_info [buffer].local [gpu].Budget :
-                            SK_GPU_GetVRAMCapacity (gpu) )           :
-                                    0;
+  return ( gpu   > -1  && gpu < pDataView->num_gpus ) ?
+         ( nodes > gpu ?  dxgi_mem_info [buffer].local [gpu].Budget :
+                           SK_GPU_GetVRAMCapacity (gpu) )           :
+                                   0;
 }
