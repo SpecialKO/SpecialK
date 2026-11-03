@@ -1153,6 +1153,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       pmc_ex    = {             };
       pmc_ex.cb = sizeof (pmc_ex);
 
+/*
 #if   0
     if (SK_WMI_CPUStats->num_cpus > 1)
     {
@@ -1186,6 +1187,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       log_entry.append (L"\n");
     }
 #endif
+*/
 
     if ( GetProcessMemoryInfo (
            GetCurrentProcess ( ), (PROCESS_MEMORY_COUNTERS *)&pmc_ex,
