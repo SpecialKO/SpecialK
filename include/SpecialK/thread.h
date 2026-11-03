@@ -690,18 +690,8 @@ __forceinline
 TEB_SK*
 SK_Thread_GetTEB_FAST (void) noexcept
 {
-#ifdef _UNSTABLE
-#ifdef _M_IX86
-  return
-    reinterpret_cast <TEB_SK *> (__readfsdword (0x18));
-#elif _M_AMD64
-  return
-    reinterpret_cast <TEB_SK *> (__readgsqword (0x30));
-#endif
-#else
   return
     reinterpret_cast <TEB_SK *> (NtCurrentTeb ());
-#endif
 }
 
 __forceinline

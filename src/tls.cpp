@@ -1,6 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -36,38 +34,23 @@ SK_LazyGlobal <
 volatile DWORD __SK_TLS_INDEX =
   TLS_OUT_OF_INDEXES;
 
-constexpr auto TlsMax0 =   64;
-constexpr auto TlsMax1 = 1088;
+constexpr auto TlsMax0 = SK_TLS_MinimumSlots; //   64
+constexpr auto TlsMax1 = SK_TLS_MaximumSlots; // 1088 (valid indexes: 0 - 1087)
 
-SK_TLS*
-SK_TLS_FastTEBLookup (DWORD dwTlsIndex)
+// SK_TLS_FastTEBLookup (tls.h) reads these offsets straight out of the TEB
+static_assert (offsetof (TEB,    TlsSlots)          == SK_TEB_TlsSlotsOffset);
+static_assert (offsetof (TEB,    TlsExpansionSlots) == SK_TEB_TlsExpansionSlotsOffset);
+// Not checked against TEB_SK: its layout is an old, incomplete 32-bit TEB
+//   that only matches the real one up to roughly Win32ThreadInfo.
+static_assert (sizeof (TEB::TlsSlots) / sizeof (void *) == SK_TLS_MinimumSlots);
+
+// TEB::TlsExpansionSlots is a pointer to a separately allocated array of
+//   SK_TLS_ExpansionSlots entries (nullptr until the thread first needs it).
+static void**
+SK_TLS_GetExpansionSlots (TEB* pTEB) noexcept
 {
-  // It's not often we get an index this low,
-  //   if we have one, it has a lower address in the TEB
-  if (dwTlsIndex < TlsMax0)
-  {
-    return
-      (SK_TLS *)(SK_Thread_GetTEB_FAST ()->TlsSlots [dwTlsIndex]);
-  }
-
-  //
-  // The remainder of the indexes are into an array at the end of
-  //   the Windows NT Thread Environment Block data structure.
-  //
-  //  * The original claimed limitation of 64 indexes has not been true
-  //      for a very long time. But there's still an upper-bound of ~1088.
-  //
-  if (dwTlsIndex <= TlsMax1)
-  {
-    TEB* pTEB =
-      (TEB *)SK_Thread_GetTEB_FAST ();
-
-    return ( pTEB->TlsExpansionSlots == nullptr ?
-                                        nullptr : (SK_TLS *)
-          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - TlsMax0]) );
-  }
-
-  return nullptr;
+  return
+    static_cast <void **> (pTEB->TlsExpansionSlots);
 }
 
 //
@@ -99,23 +82,28 @@ SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
   //   the Windows NT Thread Environment Block data structure.
   //
   //  * The original claimed limitation of 64 indexes has not been true
-  //      for a very long time. But there's still an upper-bound of ~1088.
+  //      for a very long time. But there's still an upper-bound of 1088.
   //
-  if (dwTlsIndex <= TlsMax1)
+  if (dwTlsIndex < TlsMax1)
   {
-    SK_ReleaseAssert (pTEB->TlsExpansionSlots != nullptr);
+    void** pExpansionSlots =
+      SK_TLS_GetExpansionSlots (pTEB);
 
-    if (pTEB->TlsExpansionSlots != nullptr)
+    SK_ReleaseAssert (pExpansionSlots != nullptr);
+
+    if (pExpansionSlots != nullptr)
     {
-      SK_ReleaseAssert ((&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0] == nullptr ||
-                        (&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0] == pTLS);
+      void*& slot =
+        pExpansionSlots [dwTlsIndex - TlsMax0];
 
-      if ((&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0] == nullptr)
-      {   (&pTEB->TlsExpansionSlots)[dwTlsIndex - TlsMax0]  = pTLS;  }
+      SK_ReleaseAssert (slot == nullptr ||
+                        slot == pTLS);
+
+      if (slot == nullptr)
+      {   slot  = pTLS;  }
 
       return
-        (SK_TLS *)
-          ((&pTEB->TlsExpansionSlots) [dwTlsIndex - TlsMax0]);
+        static_cast <SK_TLS *> (slot);
     }
   }
 
@@ -123,11 +111,39 @@ SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
 }
 
 
+// TlsGetValue sets the last error to ERROR_SUCCESS whenever it succeeds;
+//   that must not leak out into game code that called a hooked API.
+//
+//  * Uses the TEB directly (exactly what Get/SetLastError do) rather than
+//      SetLastError, which _EXTENDED_DEBUG builds hook with a detour that
+//        calls SK_TLS_Bottom and would recurse back into here.
+#ifdef _M_AMD64
+static_assert (offsetof (TEB_SK, LastErrorValue) == 0x68);
+#else
+static_assert (offsetof (TEB_SK, LastErrorValue) == 0x34);
+#endif
+
+class SK_TLS_PreserveLastError
+{
+public:
+   SK_TLS_PreserveLastError (void) noexcept : dwLastError (SK_Thread_GetTEB_FAST ()->LastErrorValue) {             }
+  ~SK_TLS_PreserveLastError (void) noexcept {              SK_Thread_GetTEB_FAST ()->LastErrorValue = dwLastError; }
+
+  SK_TLS_PreserveLastError            (const SK_TLS_PreserveLastError&) = delete;
+  SK_TLS_PreserveLastError& operator= (const SK_TLS_PreserveLastError&) = delete;
+
+private:
+  const DWORD dwLastError;
+};
+
 SK_TlsRecord*
 SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 {
   if (ppTLS == nullptr)
     return nullptr;
+
+  SK_TLS_PreserveLastError
+    preserve_last_error;
 
   auto& pTLS =
     *ppTLS;
@@ -152,6 +168,10 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 
   if (pTLS == nullptr)
   {
+    // The first getPtr () allocates, and TlsSetValue may allocate this
+    //   thread's expansion slots; keep SK's heap hooks from re-entering.
+    InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
     emergency_room =
       __SK_EmergencyTLS.getPtr ();
 
@@ -165,9 +185,11 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 
       // Try to store it in TLS again, because this hash map is thread-safe,
       //   but not exactly fast under high contention workloads.
-      if (dwTLSIndex > 0 && dwTLSIndex < TlsMax1)
+      if (dwTLSIndex < TlsMax1)
         TlsSetValue       ( dwTLSIndex, pTLS );
     }
+
+    InterlockedDecrement (&_SK_IgnoreTLSAlloc);
   }
 
   // We have no TLS data for this thread, time to allocate one.
@@ -178,10 +200,6 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 
     bool success = false;
 
-#ifdef _DEBUG
-    if (GetLastError () == ERROR_SUCCESS)
-    {
-#endif
     InterlockedIncrement (&_SK_IgnoreTLSAlloc);
     try {
       pTLS =
@@ -211,28 +229,24 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
       }
     }
 
-    catch (std::bad_alloc&)
+    catch (std::bad_alloc& e)
     {
+      // This will be corrupted if multiple failures happen concurrently,
+      //   but allocating memory is not an option right now.
+      static char szDescrip [512];
+                 *szDescrip = '\0';
+
+      snprintf (szDescrip, 511,
+        "TLS Allocation Failure: %hs (tid=%x)",
+          e.what (), SK_GetCurrentThreadId ()
+      );
+
+      SK_OutputDebugStringA (szDescrip);
+
       pTLS = nullptr;
       InterlockedIncrement (&_SK_TLS_AllocationFailures);
     }
     InterlockedDecrement (&_SK_IgnoreTLSAlloc);
-
-     //if (! success)
-     //{
-     //  static bool warned = false;
-     //
-     //  if (! warned)
-     //  {
-     //    warned = true;
-     //    SK_ReleaseAssert (!"TLS Allocation Failed! Falling back to global heap (slow).");
-     //  }
-     //}
-    ////pTLS->scheduler.objects_waited =
-    ////  new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
-#ifdef _DEBUG
-    }
-#endif
   }
 
   if (pTLS != nullptr)
@@ -340,8 +354,20 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 
 extern DWORD SK_TLS_Acquire (void);
 
+//
+// Everything SK_TLS_Bottom's inline fast path (tls.h) can't handle:
+//
+//  * First call on a thread (allocate and/or map the TLS block)
+//  * Threads whose TLS had to go into the emergency backing store
+//
+// The fast path used to be disabled because This + Steam Overlay + Local
+//   ReShade + Cyberpunk 2077 = crash. The cause was most likely
+//     SK_TLS_FastTEBLookup indexing &TEB::TlsExpansionSlots instead of the
+//       array it points to, which only shows up with TLS index >= 64.
+//
+__declspec (noinline)
 SK_TLS*
-SK_TLS_Bottom (void) noexcept
+SK_TLS_BottomSlow (void) noexcept
 {
   // For unusual cases where SK_TLS_Bottom is called
   //   before DllMain (...) returns.
@@ -349,28 +375,11 @@ SK_TLS_Bottom (void) noexcept
 
   SK_TLS *pTLS = nullptr;
 
-  // This doesn't work for WOW64 executables, so
-  //   basically any 32-bit program on a modern
-  //     OS has to take the slow path.
-#ifdef _M_AMD64
-  // ----------- Fast Path ------------
-  // 
-  //  Disabled because This + Steam Overlay + Local ReShade + Cyberpunk 2077 = crash
-  // 
-#if 0
-    ULONG dwTLSIndex =
-      ReadULongAcquire (&__SK_TLS_INDEX);
-  
-    SK_TLS *pTLS =
-      SK_TLS_FastTEBLookup (dwTLSIndex);
-  
-    if (pTLS != nullptr) return pTLS;
-#endif
-  // ----------- Fast Path ------------
-#endif
-
-  InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
+  // SK_GetTLS guards its own allocations against SK's heap hooks; only the
+  //   one-time map insert below needs _SK_IgnoreTLSAlloc. Keeping the global
+  //     counter off the common path avoids a contended cache line shared by
+  //       every thread, and stops one thread's lookup from muting memory
+  //         tracking for all the others.
   auto pTLSRecord =
     SK_GetTLS (&pTLS);
 
@@ -380,6 +389,8 @@ SK_TLS_Bottom (void) noexcept
   {
     if (ReadAcquire (&_SK_IgnoreTLSMap) == 0)
     {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
       try
       {
         auto& tls_map =
@@ -392,10 +403,10 @@ SK_TLS_Bottom (void) noexcept
       }
 
       catch (...) {}
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
   }
-
-  InterlockedDecrement (&_SK_IgnoreTLSAlloc);
 
   if (pTLSRecord == nullptr)
   {

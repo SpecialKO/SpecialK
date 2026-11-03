@@ -1,4 +1,9 @@
-﻿26.11.3.3
+﻿26.11.4
+=======
+ + Optimized Thread Local Storage (TLS) management and re-enabled the raw TEB
+     fastpath that used to crash in modified versions of Cyberpunk 2077.
+
+26.11.3.3
 =========
  + Use StackWalk{64}Ex (...) instead of StackWalk{64} (...) in SK's
      crash handler in order to report inline functions in the callstack.

@@ -28,8 +28,12 @@
 class SK_TLS;
 
 //SK_TLS* __cdecl SK_TLS_Get      (void); // Alias: SK_TLS_Top
-extern SK_TLS* SK_TLS_Bottom   (void)        noexcept;
-extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid) noexcept;
+//   SK_TLS_Bottom's fast path is inlined at the end of this file;
+//     SK_TLS_BottomSlow (tls.cpp) handles creation, mapping and fallbacks.
+__forceinline
+       SK_TLS* SK_TLS_Bottom     (void)        noexcept;
+extern SK_TLS* SK_TLS_BottomSlow (void)        noexcept;
+extern SK_TLS* SK_TLS_BottomEx   (DWORD dwTid) noexcept;
 
 #include <Windows.h>
 
@@ -887,3 +891,69 @@ public:
 
 extern volatile LONG _SK_IgnoreTLSAlloc;
 extern volatile LONG _SK_IgnoreTLSMap;
+
+extern volatile DWORD __SK_TLS_INDEX;
+
+
+//
+// Raw TEB access for our own TLS slot, so the hot path needs no calls,
+//   no locked instructions, and never clobbers the game's last-error value
+//     (TlsGetValue resets it to ERROR_SUCCESS on every successful call).
+//
+// Offsets are stable Windows ABI; tls.cpp static_asserts them against
+//   <winternl.h> and TEB_SK.
+//
+constexpr DWORD SK_TLS_MinimumSlots   =   64; // TEB::TlsSlots
+constexpr DWORD SK_TLS_ExpansionSlots = 1024; // *TEB::TlsExpansionSlots
+constexpr DWORD SK_TLS_MaximumSlots   =
+  SK_TLS_MinimumSlots + SK_TLS_ExpansionSlots;
+
+#ifdef _M_AMD64
+constexpr DWORD SK_TEB_TlsSlotsOffset          = 0x1480;
+constexpr DWORD SK_TEB_TlsExpansionSlotsOffset = 0x1780;
+#else
+constexpr DWORD SK_TEB_TlsSlotsOffset          = 0x0E10;
+constexpr DWORD SK_TEB_TlsExpansionSlotsOffset = 0x0F94;
+#endif
+
+__forceinline
+SK_TLS*
+SK_TLS_FastTEBLookup (DWORD dwTlsIndex) noexcept
+{
+  if (dwTlsIndex < SK_TLS_MinimumSlots)
+  {
+    return reinterpret_cast <SK_TLS *> (
+      NtReadCurrentTebUlongPtr (SK_TEB_TlsSlotsOffset + dwTlsIndex * sizeof (void *))
+    );
+  }
+
+  if (dwTlsIndex < SK_TLS_MaximumSlots)
+  {
+    // TlsExpansionSlots is a POINTER to a separately allocated array,
+    //   allocated lazily the first time this thread stores to slot >= 64.
+    void** pExpansionSlots = reinterpret_cast <void **> (
+      NtReadCurrentTebUlongPtr (SK_TEB_TlsExpansionSlotsOffset)
+    );
+
+    return pExpansionSlots == nullptr ? nullptr :
+      static_cast <SK_TLS *> (pExpansionSlots [dwTlsIndex - SK_TLS_MinimumSlots]);
+  }
+
+  return nullptr;
+}
+
+__forceinline
+SK_TLS*
+SK_TLS_Bottom (void) noexcept
+{
+  SK_TLS* pTLS =
+    SK_TLS_FastTEBLookup (ReadULongAcquire (&__SK_TLS_INDEX));
+
+  // Unmapped threads must go through the slow path once so that
+  //   SK_TLS_BottomEx (tid) can find them.
+  if (pTLS != nullptr && pTLS->debug.mapped) [[likely]]
+    return pTLS;
+
+  return
+    SK_TLS_BottomSlow ();
+}
