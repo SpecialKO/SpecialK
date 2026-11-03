@@ -441,6 +441,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_LBUTTONDBLCLK:
       case WM_MBUTTONDBLCLK:
       case WM_MBUTTONUP:
+      case WM_MBUTTONDOWN:
       case WM_RBUTTONDBLCLK:
       case WM_RBUTTONDOWN:
       case WM_RBUTTONUP:
