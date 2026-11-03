@@ -1198,7 +1198,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
         break;
     }
 
-    log_entry.append (L"-----------------------------------------------------------\n");
+    log_entry.append (L"--------------------------------------------------------------------------------------------------\n");
     if (*desc != L'\0') log_entry_format (L"[! Except !] %s\n", desc));
     else                log_entry_format (L"[! Except !] Non-SEH Exception:\t%08x\n",
                                 ExceptionInfo->ExceptionRecord->ExceptionCode));
@@ -1218,15 +1218,17 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
                                          szType, sizeof (szType),
                                          szWhat, sizeof (szWhat), &bByPointer ) )
       {
+        log_entry.append (L"--------------------------------------------------------------------------------------------------\n");
+
         log_entry_format (L"[ CxxThrow ]  ~ Type.....: %hs%ws\n", szType,
                                              bByPointer ? L" (thrown by pointer)" : L""));
 
         if (*szWhat != '\0')
-          log_entry_format (L"[ CxxThrow ]  ~ what ()..: \"%hs\"\n", szWhat));
+          log_entry_format (L"[ CxxThrow ]  # what ()..: \"%hs\"\n", szWhat));
       }
     }
 
-    log_entry.append (L"-----------------------------------------------------------\n");
+    log_entry.append (L"--------------------------------------------------------------------------------------------------\n");
 
     if (hModSource)
       SK_FreeLibrary (hModSource);
@@ -1270,30 +1272,30 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   log_entry_format ( L"[ FaultMod ]  * RIP Addr.: %hs+%ph\n",
                        pszShortName, (LPVOID)((uintptr_t)ip-(uintptr_t)BaseAddr)));
 
-  log_entry_format ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh\n",
+  log_entry_format ( L"[StackFrame] <-> Rip=%016llxh, Rsp=%016llxh, Rbp=%016llxh\n",
                      ip,
                        ExceptionInfo->ContextRecord->Rsp,
                        ExceptionInfo->ContextRecord->Rbp ));
-  log_entry_format ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%012llxh\n",
+  log_entry_format ( L"[StackFrame] >-< Rsi=%016llxh, Rdi=%016llxh\n",
                      ExceptionInfo->ContextRecord->Rsi,
                      ExceptionInfo->ContextRecord->Rdi ));
 
-  log_entry_format ( L"[  GP Reg  ]   rax:    0x%012llx    rbx:    0x%012llx\n",
+  log_entry_format ( L"[  GP Reg  ]   rax:    0x%016llx    rbx:    0x%016llx\n",
                      ExceptionInfo->ContextRecord->Rax,
                      ExceptionInfo->ContextRecord->Rbx ));
-  log_entry_format ( L"[  GP Reg  ]   rcx:    0x%012llx    rdx:    0x%012llx\n",
+  log_entry_format ( L"[  GP Reg  ]   rcx:    0x%016llx    rdx:    0x%016llx\n",
                      ExceptionInfo->ContextRecord->Rcx,
                      ExceptionInfo->ContextRecord->Rdx ));
-  log_entry_format ( L"[  GP Reg  ]   r8:     0x%012llx    r9:     0x%012llx\n",
+  log_entry_format ( L"[  GP Reg  ]   r8:     0x%016llx    r9:     0x%016llx\n",
                      ExceptionInfo->ContextRecord->R8,
                      ExceptionInfo->ContextRecord->R9 ));
-  log_entry_format ( L"[  GP Reg  ]   r10:    0x%012llx    r11:    0x%012llx\n",
+  log_entry_format ( L"[  GP Reg  ]   r10:    0x%016llx    r11:    0x%016llx\n",
                      ExceptionInfo->ContextRecord->R10,
                      ExceptionInfo->ContextRecord->R11 ));
-  log_entry_format ( L"[  GP Reg  ]   r12:    0x%012llx    r13:    0x%012llx\n",
+  log_entry_format ( L"[  GP Reg  ]   r12:    0x%016llx    r13:    0x%016llx\n",
                      ExceptionInfo->ContextRecord->R12,
                      ExceptionInfo->ContextRecord->R13 ));
-  log_entry_format ( L"[  GP Reg  ]   r14:    0x%012llx    r15:    0x%012llx\n",
+  log_entry_format ( L"[  GP Reg  ]   r14:    0x%016llx    r15:    0x%016llx\n",
                      ExceptionInfo->ContextRecord->R14,
                      ExceptionInfo->ContextRecord->R15 ));
   log_entry_format ( L"[ GP Flags ]   EFlags: 0x%08x\n",
@@ -1302,7 +1304,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   if ( ExceptionInfo->ContextRecord->Dr0 != 0x0 ||
        ExceptionInfo->ContextRecord->Dr1 != 0x0 )
   {
-    log_entry_format ( L"[ DebugReg ]   dr0:    0x%012llx    dr1:    0x%012llx\n",
+    log_entry_format ( L"[ DebugReg ]   dr0:    0x%016llx    dr1:    0x%016llx\n",
                     ExceptionInfo->ContextRecord->Dr0,
                     ExceptionInfo->ContextRecord->Dr1 ));
   }
@@ -1310,7 +1312,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   if ( ExceptionInfo->ContextRecord->Dr2 != 0x0 ||
        ExceptionInfo->ContextRecord->Dr3 != 0x0 )
   {
-    log_entry_format ( L"[ DebugReg ]   dr2:    0x%012llx    dr3:    0x%012llx\n",
+    log_entry_format ( L"[ DebugReg ]   dr2:    0x%016llx    dr3:    0x%016llx\n",
                     ExceptionInfo->ContextRecord->Dr2,
                     ExceptionInfo->ContextRecord->Dr3 ));
   }
@@ -1318,14 +1320,14 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   if ( ExceptionInfo->ContextRecord->Dr6 != 0x0 ||
        ExceptionInfo->ContextRecord->Dr7 != 0x0 )
   {
-    log_entry_format ( L"[ DebugReg ]   dr6:    0x%012llx    dr7:    0x%012llx\n",
+    log_entry_format ( L"[ DebugReg ]   dr6:    0x%016llx    dr7:    0x%016llx\n",
                     ExceptionInfo->ContextRecord->Dr6,
                     ExceptionInfo->ContextRecord->Dr7 ));
   }
 #endif
 
   log_entry.append (
-    L"-----------------------------------------------------------\n");
+    L"--------------------------------------------------------------------------------------------------\n");
 
   size_t max_symbol_len = 0,
          max_module_len = 0,
@@ -1435,7 +1437,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     }
   }
 
-  log_entry.append (L"-----------------------------------------------------------\n\n");
+  log_entry.append (L"--------------------------------------------------------------------------------------------------\n\n");
 
   return log_entry;
 }
