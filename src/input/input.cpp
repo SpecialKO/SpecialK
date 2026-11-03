@@ -718,9 +718,9 @@ SK_Input_Init (void)
       );
     };
 
-    CreateInputVar_Bool ("Input.Keyboard.DisableToGame", &config.input.keyboard.disabled_to_game);
-    CreateInputVar_Bool ("Input.Mouse.DisableToGame",    &config.input.mouse.disabled_to_game);
-    CreateInputVar_Bool ("Input.Gamepad.DisableToGame",  &config.input.gamepad.disabled_to_game);
+    CreateInputVar_Int  ("Input.Keyboard.DisableToGame", &config.input.keyboard.disabled_to_game);
+    CreateInputVar_Int  ("Input.Mouse.DisableToGame",    &config.input.mouse.disabled_to_game);
+    CreateInputVar_Int  ("Input.Gamepad.DisableToGame",  &config.input.gamepad.disabled_to_game);
     CreateInputVar_Bool ("Input.Gamepad.DisableRumble",  &config.input.gamepad.disable_rumble);
     CreateInputVar_Bool ("Input.XInput.HideAllDevices",  &config.input.gamepad.xinput.blackout_api);
     CreateInputVar_Bool ("Input.XInput.EnableEmulation", &config.input.gamepad.xinput.emulate);
