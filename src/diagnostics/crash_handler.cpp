@@ -1232,34 +1232,6 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
       SK_FreeLibrary (hModSource);
   }
 
-  // Decode C++ Exceptions that are actually caught by the running software,
-  //   log their symbol name for easier debugging.
-  else
-  {
-    if ( ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_MSVC_CPP &&
-         cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
-    {
-      char szType [512] = { };
-      char szWhat [512] = { };
-      bool bByPointer   = false;
-
-      SK_Crash_ResolveDbgHelp ();
-
-      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
-
-      if ( SK_SEH_DecodeCxxException ( ExceptionInfo->ExceptionRecord,
-                                         szType, sizeof (szType),
-                                         szWhat, sizeof (szWhat), &bByPointer ) )
-      {
-        log_entry_format (L"[ CxxThrow ]  ~ Type.....: %hs%ws\n", szType,
-                                             bByPointer ? L" (thrown by pointer)" : L""));
-
-        if (*szWhat != '\0')
-          log_entry_format (L"[ CxxThrow ]  ~ what ()..: \"%hs\"\n", szWhat));
-      }
-    }
-  }
-
   wchar_t* wszThreadDescription = nullptr;
 
   if (SUCCEEDED (GetCurrentThreadDescription (&wszThreadDescription)))
