@@ -553,6 +553,7 @@ static struct {
   decltype (&::SymFunctionTableAccess64)    SymFunctionTableAccess64    = nullptr;
   decltype (&::SymGetModuleBase64)          SymGetModuleBase64          = nullptr;
   decltype (&::SymLoadModuleExW)            SymLoadModuleExW            = nullptr;
+  decltype (&::UnDecorateSymbolName)        UnDecorateSymbolName        = nullptr;
 } SK_Crash_DbgHelp;
 
 static void
@@ -570,6 +571,7 @@ SK_Crash_ResolveDbgHelp (void)
       SK_Crash_DbgHelp.SymFunctionTableAccess64    = (decltype (&::SymFunctionTableAccess64))   SK_GetProcAddress (hModDbgHelp, "SymFunctionTableAccess64");
       SK_Crash_DbgHelp.SymGetModuleBase64          = (decltype (&::SymGetModuleBase64))         SK_GetProcAddress (hModDbgHelp, "SymGetModuleBase64");
       SK_Crash_DbgHelp.SymLoadModuleExW            = (decltype (&::SymLoadModuleExW))           SK_GetProcAddress (hModDbgHelp, "SymLoadModuleExW");
+      SK_Crash_DbgHelp.UnDecorateSymbolName        = (decltype (&::UnDecorateSymbolName))       SK_GetProcAddress (hModDbgHelp, "UnDecorateSymbolName");
 
       return true;
     } ();
@@ -738,6 +740,134 @@ SK_Crash_SafeSymbolizeFrame ( HANDLE           hProc,
   }
 
   return bSymbol;
+}
+
+//
+// MSVC C++ exception (0xE06D7363) throw information; see
+//   https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
+//
+//  * On x64, the int fields are RVAs relative to ExceptionInformation [3];
+//      on x86 they are absolute addresses (and the image base is 0).
+//
+#pragma pack (push, 4)
+struct SK_MSVC_TypeDescriptor     { const void* pVFTable; void* spare; char name [1]; };
+struct SK_MSVC_PMD                { int mdisp; int pdisp; int vdisp;                  };
+struct SK_MSVC_CatchableType      { unsigned int properties;    int         pType;
+                                    SK_MSVC_PMD  thisDisplacement;
+                                    int          sizeOrOffset;  int         copyFunction; };
+struct SK_MSVC_CatchableTypeArray { int nCatchableTypes; int arrayOfCatchableTypes [1]; };
+struct SK_MSVC_ThrowInfo          { unsigned int attributes;    int         pmfnUnwind;
+                                    int          pForwardCompat;
+                                    int          pCatchableTypeArray;                 };
+#pragma pack (pop)
+
+// Undocumented UnDecorateSymbolName (...) flags, these are what type_info::name (...) uses
+#define SK_UNDNAME_TYPE_ONLY 0x2000
+#define SK_UNDNAME_NO_ECSU   0x8000 // No "class", "struct", "union" or "enum"
+
+// Caller must hold cs_dbghelp and cs_dbghelp2
+static bool
+SK_SEH_DecodeCxxException ( const EXCEPTION_RECORD* pRecord,
+                                  char*             szType, size_t type_len,
+                                  char*             szWhat, size_t what_len,
+                                  bool*             pbByPointer )
+{
+  *szType      = '\0';
+  *szWhat      = '\0';
+  *pbByPointer = false;
+
+  if (pRecord->ExceptionCode != EXCEPTION_MSVC_CPP || pRecord->NumberParameters < 3)
+    return false;
+
+  const ULONG_PTR magic = pRecord->ExceptionInformation [0];
+
+  if (magic != 0x19930520 && magic != 0x19930521 && magic != 0x19930522)
+    return false;
+
+  const ULONG_PTR base =
+    pRecord->NumberParameters >= 4 ? pRecord->ExceptionInformation [3] : 0;
+
+  const auto pObject    =
+    reinterpret_cast <      uint8_t           *> (pRecord->ExceptionInformation [1]);
+  const auto pThrowInfo =
+    reinterpret_cast <const SK_MSVC_ThrowInfo *> (pRecord->ExceptionInformation [2]);
+
+  if (pThrowInfo == nullptr)
+    return false;
+
+  __try
+  {
+    const auto pTypeArray =
+      reinterpret_cast <const SK_MSVC_CatchableTypeArray *> (base + pThrowInfo->pCatchableTypeArray);
+
+    for ( int i = 0 ; i < pTypeArray->nCatchableTypes ; ++i )
+    {
+      const auto pCatchable =
+        reinterpret_cast <const SK_MSVC_CatchableType *>  (base + pTypeArray->arrayOfCatchableTypes [i]);
+      const auto pType      =
+        reinterpret_cast <const SK_MSVC_TypeDescriptor *> (base + pCatchable->pType);
+
+      // The first catchable type is the type of the thrown object, the rest are its bases
+      if (i == 0 && SK_Crash_DbgHelp.UnDecorateSymbolName != nullptr)
+      {
+        // Skip the leading '.' to get the decorated type name (i.e. ".PEAVCResourceException@@")
+        if ( SK_Crash_DbgHelp.UnDecorateSymbolName ( &pType->name [1], szType, static_cast <DWORD> (type_len),
+                                                       UNDNAME_32_BIT_DECODE | SK_UNDNAME_TYPE_ONLY |
+                                                                               SK_UNDNAME_NO_ECSU ) == 0 )
+        {
+          strncpy_s (szType, type_len, pType->name, _TRUNCATE);
+        }
+
+        // UNDNAME_NO_PTR64 is ignored by DbgHelp
+        if (char* pszPtr64 = strstr (szType, " __ptr64"))
+          memmove (pszPtr64, pszPtr64 + 8, strlen (pszPtr64 + 8) + 1);
+
+        const size_t len = strlen (szType);
+
+        if (len > 2 && strcmp (&szType [len - 2], " *") == 0)
+        {
+          szType [len - 2] = '\0';
+          *pbByPointer     = true;
+        }
+      }
+
+      // Call what () if this can be caught as std::exception (or std::exception *)
+      const bool by_value   = strcmp (pType->name, ".?AVexception@std@@")  == 0;
+      const bool by_pointer = strcmp (pType->name, SK_RunLHIfBitness (64, ".PEAVexception@std@@",
+                                                                          ".PAVexception@std@@")) == 0;
+
+      if ((by_value || by_pointer) && pObject != nullptr && *szWhat == '\0')
+      {
+        uint8_t* pThis =
+          by_pointer ? *reinterpret_cast <uint8_t **> (pObject)
+                     :                                 pObject;
+
+        if (pThis != nullptr)
+        {
+          const SK_MSVC_PMD& pmd =
+            pCatchable->thisDisplacement;
+
+          if (pmd.pdisp >= 0) // Virtual base
+          {
+            const int* vbtable = *reinterpret_cast <int **> (pThis + pmd.pdisp);
+            pThis             += pmd.pdisp + vbtable [pmd.vdisp / sizeof (int)];
+          }
+
+          pThis += pmd.mdisp;
+
+          if (const char* szExceptionWhat = reinterpret_cast <std::exception *> (pThis)->what ())
+            strncpy_s (szWhat, what_len, szExceptionWhat, _TRUNCATE);
+        }
+      }
+    }
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                    EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
+  {
+  }
+
+  return *szType != '\0';
 }
 
 std::string
@@ -1072,10 +1202,62 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     if (*desc != L'\0') log_entry_format (L"[! Except !] %s\n", desc));
     else                log_entry_format (L"[! Except !] Non-SEH Exception:\t%08x\n",
                                 ExceptionInfo->ExceptionRecord->ExceptionCode));
+
+    if ( ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_MSVC_CPP &&
+         cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
+    {
+      char szType [512] = { };
+      char szWhat [512] = { };
+      bool bByPointer   = false;
+
+      SK_Crash_ResolveDbgHelp ();
+
+      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
+
+      if ( SK_SEH_DecodeCxxException ( ExceptionInfo->ExceptionRecord,
+                                         szType, sizeof (szType),
+                                         szWhat, sizeof (szWhat), &bByPointer ) )
+      {
+        log_entry_format (L"[ CxxThrow ]  ~ Type.....: %hs%ws\n", szType,
+                                             bByPointer ? L" (thrown by pointer)" : L""));
+
+        if (*szWhat != '\0')
+          log_entry_format (L"[ CxxThrow ]  ~ what ()..: \"%hs\"\n", szWhat));
+      }
+    }
+
     log_entry.append (L"-----------------------------------------------------------\n");
 
     if (hModSource)
       SK_FreeLibrary (hModSource);
+  }
+
+  // Decode C++ Exceptions that are actually caught by the running software,
+  //   log their symbol name for easier debugging.
+  else
+  {
+    if ( ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_MSVC_CPP &&
+         cs_dbghelp != nullptr && cs_dbghelp2 != nullptr )
+    {
+      char szType [512] = { };
+      char szWhat [512] = { };
+      bool bByPointer   = false;
+
+      SK_Crash_ResolveDbgHelp ();
+
+      std::scoped_lock auto_lock { *cs_dbghelp, *cs_dbghelp2 };
+
+      if ( SK_SEH_DecodeCxxException ( ExceptionInfo->ExceptionRecord,
+                                         szType, sizeof (szType),
+                                         szWhat, sizeof (szWhat), &bByPointer ) )
+      {
+        log_entry_format (L"[ CxxThrow ]  ~ Type.....: %hs%ws\n", szType,
+                                             bByPointer ? L" (thrown by pointer)" : L""));
+
+        if (*szWhat != '\0')
+          log_entry_format (L"[ CxxThrow ]  ~ what ()..: \"%hs\"\n", szWhat));
+      }
+    }
   }
 
   wchar_t* wszThreadDescription = nullptr;
