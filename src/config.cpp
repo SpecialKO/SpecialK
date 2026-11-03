@@ -3199,6 +3199,11 @@ auto DeclKeybind =
         // Don't accidentally hook the D3D9 device used for video playback
         config.apis.d3d9.hook   = false;
         config.apis.d3d9ex.hook = false;
+        config.apis.OpenGL.hook =  true;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
       case SK_GAME_ID::Ys_Eight:
