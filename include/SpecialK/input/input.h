@@ -1373,6 +1373,11 @@ SK_keybd_event (
   _In_ ULONG_PTR dwExtraInfo
 );
 
+// Returns the scancode for vKey, and adds KEYEVENTF_EXTENDEDKEY to dwFlags
+//   if the key requires it (i.e. Right Ctrl/Alt, Windows keys, Home, ...)
+BYTE
+SK_Keyboard_GetScancodeAndFlags (UINT vKey, DWORD& dwFlags) noexcept;
+
 void
 WINAPI
 SK_mouse_event (

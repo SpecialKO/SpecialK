@@ -780,33 +780,32 @@ SK_Input_Init (void)
 void
 SK_Input_ReleaseCommonStuckKeys (void) noexcept
 {
-  static const std::pair <BYTE, BYTE> virt_keys_to_release [] =
-    { { (BYTE)VK_MENU,     (BYTE)MapVirtualKey ((BYTE)VK_MENU,     0) },   // 0
+  static constexpr BYTE virt_keys_to_release [] =
+    { VK_MENU,       // 0
     // Dead or Alive processes the UP version of this and displays a quit confirmation,
     //   do not change the state of this button...
-    //{ (BYTE)VK_ESCAPE,   (BYTE)MapVirtualKey ((BYTE)VK_ESCAPE,   0) },   // 1
-      { (BYTE)VK_LWIN,     (BYTE)MapVirtualKey ((BYTE)VK_LWIN,     0) },   // 2
-      { (BYTE)VK_LMENU,    (BYTE)MapVirtualKey ((BYTE)VK_LMENU,    0) },   // 3
-      { (BYTE)VK_LSHIFT,   (BYTE)MapVirtualKey ((BYTE)VK_LSHIFT,   0) },   // 4
-      { (BYTE)VK_LCONTROL, (BYTE)MapVirtualKey ((BYTE)VK_LCONTROL, 0) },   // 5
-      { (BYTE)VK_SHIFT,    (BYTE)MapVirtualKey ((BYTE)VK_SHIFT,    0) },   // 6
-      { (BYTE)VK_CONTROL,  (BYTE)MapVirtualKey ((BYTE)VK_CONTROL,  0) },   // 7
-      { (BYTE)VK_RMENU,    (BYTE)MapVirtualKey ((BYTE)VK_RMENU,    0) },   // 8
-      { (BYTE)VK_RWIN,     (BYTE)MapVirtualKey ((BYTE)VK_RWIN,     0) },   // 9
-      { (BYTE)VK_RSHIFT,   (BYTE)MapVirtualKey ((BYTE)VK_RSHIFT,   0) },   // 10
-      { (BYTE)VK_RCONTROL, (BYTE)MapVirtualKey ((BYTE)VK_RCONTROL, 0) },   // 11
-      { (BYTE)VK_TAB,      (BYTE)MapVirtualKey ((BYTE)VK_TAB,      0) } }; // 12
+    //VK_ESCAPE,     // 1
+      VK_LWIN,       // 2
+      VK_LMENU,      // 3
+      VK_LSHIFT,     // 4
+      VK_LCONTROL,   // 5
+      VK_SHIFT,      // 6
+      VK_CONTROL,    // 7
+      VK_RMENU,      // 8
+      VK_RWIN,       // 9
+      VK_RSHIFT,     // 10
+      VK_RCONTROL,   // 11
+      VK_TAB };      // 12
 
-  for ( auto& [vKey, bScancode] : virt_keys_to_release )
-  {  
+  for ( const BYTE vKey : virt_keys_to_release )
+  {
     if ((SK_GetAsyncKeyState (vKey) & 0x8000) == 0x0)
     {
-      DWORD dwFlags  =
-        ( bScancode & 0xE0 ) == 0   ?
-          static_cast <DWORD> (0x0) :
-          static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+      DWORD      dwFlags   = KEYEVENTF_KEYUP;
+      const BYTE bScancode =
+        SK_Keyboard_GetScancodeAndFlags (vKey, dwFlags);
 
-      SK_keybd_event (vKey, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+      SK_keybd_event (vKey, bScancode, dwFlags, 0);
     }
   }
 }

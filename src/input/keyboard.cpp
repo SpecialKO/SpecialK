@@ -116,23 +116,15 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
       if (bSteamOverlay/*|| bEpicOverlay*/)
       {
+        DWORD      dwFlagsShift   = 0x0;
         const BYTE bScancodeShift =
-          (BYTE)MapVirtualKey (vKeyShift, 0);
-
-        const DWORD dwFlagsShift =
-          ( bScancodeShift & 0xE0 ) == 0  ?
-                static_cast <DWORD> (0x0) :
-                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+          SK_Keyboard_GetScancodeAndFlags (vKeyShift, dwFlagsShift);
 
         if (bSteamOverlay && bTabChanged)
         {
+          DWORD      dwFlagsSteam   = 0x0;
           const BYTE bScancodeSteam =
-            (BYTE)MapVirtualKey (vKeySteam, 0);
-
-          const DWORD dwFlagsSteam =
-            ( bScancodeSteam & 0xE0 ) == 0  ?
-                  static_cast <DWORD> (0x0) :
-                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+            SK_Keyboard_GetScancodeAndFlags (vKeySteam, dwFlagsSteam);
 
           SK_keybd_event ((BYTE)vKeyShift, bScancodeShift, dwFlagsShift, 0);
           SK_keybd_event ((BYTE)vKeySteam, bScancodeSteam, dwFlagsSteam, 0);
@@ -144,13 +136,9 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 #if 0
         else if (bEpicOverlay && bF3Changed)
         {
+          DWORD      dwFlagsEpic   = 0x0;
           const BYTE bScancodeEpic =
-            (BYTE)MapVirtualKey (vKeyEpic, 0);
-
-          const DWORD dwFlagsEpic =
-            ( bScancodeEpic & 0xE0 ) == 0  ?
-                 static_cast <DWORD> (0x0) :
-                 static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+            SK_Keyboard_GetScancodeAndFlags (vKeyEpic, dwFlagsEpic);
 
           SK_keybd_event ((BYTE)vKeyShift, bScancodeShift, dwFlagsShift, 0);
           SK_keybd_event ((BYTE)vKeyEpic,  bScancodeEpic,  dwFlagsEpic,  0);
@@ -160,13 +148,9 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
       else if (bReShadeOverlay && bHomeChanged)
       {
+        DWORD      dwFlagsReShade   = 0x0;
         const BYTE bScancodeReShade =
-          (BYTE)MapVirtualKey (vKeyReShade, 0);
-
-        const DWORD dwFlagsReShade =
-          ( bScancodeReShade & 0xE0 ) == 0 ?
-                 static_cast <DWORD> (0x0) :
-                 static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+          SK_Keyboard_GetScancodeAndFlags (vKeyReShade, dwFlagsReShade);
 
         SK_keybd_event ((BYTE)vKeyReShade, bScancodeReShade, dwFlagsReShade, 0);
         SK_keybd_event ((BYTE)vKeyReShade, bScancodeReShade, dwFlagsReShade | KEYEVENTF_KEYUP, 0);
@@ -400,6 +384,21 @@ SK_keybd_event (
   );
 
   SetEvent (hInputEvent);
+}
+
+BYTE
+SK_Keyboard_GetScancodeAndFlags (UINT vKey, DWORD& dwFlags) noexcept
+{
+  // MAPVK_VK_TO_VSC (0) never includes the 0xE0 prefix, and its scancodes
+  //   can't be used to tell extended keys apart (i.e. LAlt = 0x38 = RAlt).
+  const UINT uiScancode =
+    MapVirtualKey (vKey, MAPVK_VK_TO_VSC_EX);
+
+  if (HIBYTE (uiScancode) == 0xE0)
+    dwFlags |= KEYEVENTF_EXTENDEDKEY;
+
+  return
+    LOBYTE (uiScancode);
 }
 
 GetKeyState_pfn      GetKeyState_Original      = nullptr;
