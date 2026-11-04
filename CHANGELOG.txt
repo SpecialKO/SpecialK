@@ -4,7 +4,8 @@
      SteamAPI_RegisterCallback (...) rather than the base address of the class;
        prevented some games from getting achievements.
  + Add blocking wait for GPU vendor API initialization (ADL, NVAPI, etc.) to
-     finish before IDXGIFactory[2]::CreateSwapChain[ForHwnd] (...) executes.
+     finish before letting hooked calls to CreateDXGIFactory{1|2} (...) or
+       IDXGIFactory[2]::CreateSwapChain[ForHwnd] (...) execute.
 
 26.11.4
 =======

@@ -8569,6 +8569,9 @@ HRESULT
 WINAPI CreateDXGIFactory (REFIID   riid,
                     _Out_ void   **ppFactory)
 {
+  // Need to know which GPU vendors APIs are supported before allowing this to proceed.
+  WaitForGPUInit ();
+
   std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int         iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
@@ -8605,6 +8608,9 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
 
 {
+  // Need to know which GPU vendors APIs are supported before allowing this to proceed.
+  WaitForGPUInit ();
+
   std::wstring iname = SK_UTF8ToWideChar (SK_GetDXGIFactoryInterfaceEx  (riid));
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
@@ -8828,6 +8834,9 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
                            REFIID   riid_,
                      _Out_ void   **ppFactory)
 {
+  // Need to know which GPU vendors APIs are supported before allowing this to proceed.
+  WaitForGPUInit ();
+
   if (ppFactory == nullptr)
     return E_INVALIDARG;
 

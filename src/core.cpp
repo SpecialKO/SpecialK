@@ -278,16 +278,15 @@ SK_LoadGPUVendorAPIs (void)
   sk::NVAPI::nvwgf2umx =
     SK_GetModuleHandleW (L"nvwgf2umx.dll");
 
-#define THREADED_VENDOR_API_INIT
+//#define THREADED_VENDOR_API_INIT
 
 #ifdef THREADED_VENDOR_API_INIT
   static HANDLE hVendorInitThread =
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
+    SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 #endif
     SK_PROFILE_FIRST_CALL
-
-    SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
     dll_log->LogEx (false, L"================================================"
                            L"===========================================\n" );
