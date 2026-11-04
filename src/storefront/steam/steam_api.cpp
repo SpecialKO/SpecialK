@@ -4481,19 +4481,15 @@ SteamAPI_Init_Detour (void)
 
   bool bRet = false;
 
-  if (steam_init_cs != nullptr)
-      steam_init_cs->lock ();
-
   // In case we already initialized stuff...
   if (ReadAcquire (&__SK_Steam_init))
   {
-    bRet = SK_SAFE_SteamAPI_Init ();
-
-    if (steam_init_cs != nullptr)
-        steam_init_cs->unlock ();
-
-    return bRet;
+    return
+      SK_SAFE_SteamAPI_Init ();
   }
+
+  if (steam_init_cs != nullptr)
+      steam_init_cs->lock ();
 
   static volatile LONG init_tries = -1;
 
