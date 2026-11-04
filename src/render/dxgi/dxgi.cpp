@@ -6718,6 +6718,9 @@ DXGIFactory_CreateSwapChain_Override (
   _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
   _Out_       IDXGISwapChain       **ppSwapChain )
 {
+  // Need to know which GPU vendors APIs are supported before allowing this to proceed.
+  WaitForGPUInit ();
+
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -7404,6 +7407,9 @@ _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
+  // Need to know which GPU vendors APIs are supported before allowing this to proceed.
+  WaitForGPUInit ();
+
   SK_ReleaseAssert (pDesc   != nullptr);
   SK_ReleaseAssert (pDevice != nullptr);
 

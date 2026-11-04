@@ -153,7 +153,8 @@ extern BOOL                     nvapi_init;
 // We have some really sneaky overlays that manage to call some of our
 //   exported functions before the DLL's even attached -- make them wait,
 //     so we don't crash and burn!
-void           WaitForInit     (void);
+void           WaitForInit    (void);
+void           WaitForGPUInit (void); // Wait until GPU vendor APIs are initialized
 
 void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
 bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
