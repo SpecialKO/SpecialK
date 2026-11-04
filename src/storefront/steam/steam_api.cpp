@@ -1569,11 +1569,17 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     } break;
   }
 
-  if (SK_IsAddressExecutable             (pCallback))
+  if (SK_ValidatePointer (pCallback))
   {
-    if (true || //(! config.platform.achievements.pull_friend_stats) //< Temporarily skip while achievement popups are not implemented
-                 iCallback != UserStatsReceived_t::k_iCallback)
-      SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+    void** vftable =
+      *(void ***)*(&pCallback);
+
+    if (SK_IsAddressExecutable (vftable [0]))
+    {
+      if (true || //(! config.platform.achievements.pull_friend_stats) //< Temporarily skip while achievement popups are not implemented
+                   iCallback != UserStatsReceived_t::k_iCallback)
+        SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+    }
   }
 
   if (steam_callback_cs != nullptr)
