@@ -261,7 +261,77 @@ SK_ImGui_FilterXInputKeystroke (
   _Out_ XINPUT_KEYSTROKE *pKeystroke );
 
 void
-SK_XInput_ApplyDeadzone (XINPUT_STATE* state, float deadzone_percent);
+SK_XInput_ApplyDeadzone (XINPUT_STATE* state);
+
+enum SK_StickCurveType
+{
+  SK_StickCurve_Linear  = 0,
+  SK_StickCurve_Power   = 1,
+  SK_StickCurve_Expo    = 2,
+  SK_StickCurve_Sigmoid = 3
+};
+
+enum SK_Stick
+{
+  SK_Stick_Left  = 0,
+  SK_Stick_Right = 1
+};
+
+// Valid ranges for the Input.XInput stick-shaping settings. The INI loader,
+//   the control panel sliders and SK_XInput_GetStickShaping all clamp to them.
+constexpr int   SK_StickDeadzone_Max   = 16384; // raw units
+constexpr float SK_StickPower_Min      =  0.25f;
+constexpr float SK_StickPower_Max      =  4.00f;
+constexpr float SK_StickSigmoidK_Min   =  1.00f;
+constexpr float SK_StickSigmoidK_Max   = 12.00f;
+constexpr float SK_StickSigmoidMid_Min =  0.15f;
+constexpr float SK_StickSigmoidMid_Max =  0.85f;
+
+// One stick's shaping settings, normalized. Built by SK_XInput_GetStickShaping.
+struct SK_StickShaping
+{
+  float             input_deadzone;       // Controller deadzone c (input floor), 0..1
+  float             deadzone_elimination; // Game deadzone D (output floor),      0..1
+  SK_StickCurveType curve;
+  float             power;                // Power exponent k
+  float             expo;                 // Expo amount e       (0..1)
+  float             sig_k;                // Sigmoid steepness
+  float             sig_mid;              // Sigmoid midpoint
+  float             sig_w;                // Sigmoid strength w  (0..1)
+};
+
+// Pure: reshape a normalized magnitude u (0..1) -> shaped magnitude (0..1).
+//   Endpoints are pinned: 0 at u <= 0, 1 at u >= 1.
+float
+SK_XInput_ShapeStickMagnitude (float u, const SK_StickShaping& shaping);
+
+// Pure: full per-stick pipeline. u normalized 0..1; returns 0..1.
+//   controller deadzone c (input floor) -> remap (c..1) to 0..1 -> curve ->
+//   game deadzone D (output floor). output == D exactly at u == c for every
+//   curve, so the input where movement first registers is curve-independent.
+//   Both the input path and the control panel preview call this.
+float
+SK_XInput_ShapeStickOutput (float u, const SK_StickShaping& shaping);
+
+// Shaping settings for one stick, read from config and clamped to the valid ranges.
+SK_StickShaping
+SK_XInput_GetStickShaping (SK_Stick stick);
+
+// Clamp the Input.XInput stick-shaping config values in place.
+void
+SK_XInput_SanitizeStickShapingConfig (void);
+
+// Unified stick pipeline in the normalized float domain [-1, 1].
+//   Shapes both sticks per the Input.XInput curve/deadzone config.
+void
+SK_XInput_ShapeSticks (float& lx, float& ly, float& rx, float& ry);
+
+// INI spelling of a curve type; unrecognized strings map to Linear.
+SK_StickCurveType
+SK_XInput_StickCurveTypeFromString (const wchar_t* str);
+
+const wchar_t*
+SK_XInput_StickCurveTypeToString (SK_StickCurveType type);
 
 void
 SK_XInput_ApplyRemapping (XINPUT_STATE* state);

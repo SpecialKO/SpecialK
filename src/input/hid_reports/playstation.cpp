@@ -2670,7 +2670,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #pragma endregion
 
-            SK_XInput_ApplyDeadzone (&pDevice->xinput.report, config.input.gamepad.xinput.deadzone);
+            SK_XInput_ApplyDeadzone (&pDevice->xinput.report);
 
 #define SK_HID_BROKEN_DUALSHOCK4_REV2
 #ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
