@@ -345,7 +345,8 @@ SK_GetCurrentGameID (void) noexcept
           { L"DispatchEGS-Win64-Shipping.exe",         SK_GAME_ID::Dispatch                     },
           { L"Timberborn.exe",                         SK_GAME_ID::Timberborn                   },
           { L"CONTROLResonant.exe",                    SK_GAME_ID::CONTROL_Resonant             },
-          { L"helldivers2.exe",                        SK_GAME_ID::Helldivers2                  }
+          { L"helldivers2.exe",                        SK_GAME_ID::Helldivers2                  },
+          { L"EDF41.exe",                              SK_GAME_ID::EarthDefenseForce41          }
         };
 
     first_check  = false;

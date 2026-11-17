@@ -498,6 +498,53 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc) noexcept
   SHORT sKeyState =
     pfnGetFunc (vKey);
 
+  // Earth Defense Force 4.1 polls GetKeyState (...) for its radial menu (Ctrl + Left Click)
+  //   from a worker thread that owns no windows and is not input-attached to the window
+  //     thread. That thread normally sees live key state, but after an Alt+Tab with SK
+  //       injected its key state stops updating (the async state keeps changing,
+  //         GetKeyState (...) never does) and left clicks in the radial menu are lost.
+  //
+  //   While the game window is active, report the physical (async) down-state to threads
+  //     that are not the game window's thread and have no active / focus window of their own.
+  static const bool bEDF41 =
+    SK_IsCurrentGame (SK_GAME_ID::EarthDefenseForce41);
+
+  if (bEDF41 && pfnGetFunc == GetKeyState_Original && game_window.hWnd != 0 && SK_IsGameWindowActive ())
+  {
+    struct thread_input_s {
+      DWORD dwLastCheck = 0;
+      bool  bUnattached = false;
+    } static thread_local tis;
+
+    const DWORD dwNow = SK_timeGetTime ();
+
+    // Re-check every 250 ms; GetGUIThreadInfo (...) is too expensive to call on every poll
+    if (dwNow - tis.dwLastCheck > 250UL)
+    {
+      tis.dwLastCheck = dwNow;
+      tis.bUnattached = false;
+
+      if (GetCurrentThreadId () != GetWindowThreadProcessId (game_window.hWnd, nullptr))
+      {
+        GUITHREADINFO                                    gti = { sizeof (GUITHREADINFO) };
+        if (GetGUIThreadInfo (GetCurrentThreadId (), &gti))
+        {
+          tis.bUnattached =
+            (gti.hwndActive == 0 && gti.hwndFocus == 0);
+        }
+      }
+    }
+
+    if (tis.bUnattached)
+    {
+      // Keep the thread's own toggle bit, only the down-state is stale
+      sKeyState =
+        static_cast <SHORT> (
+          ((SK_GetAsyncKeyState (vKey) & 0x8000) ? 0xFF80 : 0x0) | (sKeyState & 0x1)
+        );
+    }
+  }
+
   if (pfnGetFunc == GetAsyncKeyState_Original)
   {
     // Remove this stupid bit it is unrealiable and we are better off
