@@ -27,8 +27,12 @@ SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void) noexcept
 {
-  static SK_ICommandProcessor command;
-  return                     &command;
+  // Intentionally never destroyed: it owns every registered variable, and some of
+  //   those are freed by (or live inside) objects that are torn down earlier during
+  //     process exit. Destroying it as a static crashed games on exit (0xC0000409).
+  static SK_ICommandProcessor* command =
+    new SK_ICommandProcessor ();
+  return command;
 }
 
 
