@@ -835,6 +835,46 @@ SK_Inject_GetFocusWindow (void)
   return nullptr;
 }
 
+// Window whose thread still has to install the WinEvent hook (see below)
+static volatile PVOID g_hWndPendingWinEventHook = nullptr;
+
+static void
+SK_Inject_InstallWinEventHook (void)
+{
+  g_WinEventHook =
+    SetWinEventHook ( EVENT_SYSTEM_FOREGROUND,
+                      EVENT_SYSTEM_FOREGROUND, nullptr,
+                        SK_Inject_WinEventHookProc, 0, 0,
+                          WINEVENT_OUTOFCONTEXT/*|
+                          WINEVENT_SKIPOWNTHREAD*/);
+}
+
+// Called from the game's window procedure, i.e. on the window's own thread
+void
+SK_Inject_InstallDeferredWinEventHook (void)
+{
+  const HWND hWndPending =
+    static_cast <HWND> (ReadPointerAcquire (&g_hWndPendingWinEventHook));
+
+  if (hWndPending == nullptr)
+    return;
+
+  if (GetWindowThreadProcessId (hWndPending, nullptr) != GetCurrentThreadId ())
+    return;
+
+  if (InterlockedCompareExchangePointer (&g_hWndPendingWinEventHook, nullptr, hWndPending) != hWndPending)
+    return;
+
+  if (g_WinEventHook == nullptr && SK_Inject_GetFocusWindow () == hWndPending)
+  {
+    SK_Inject_InstallWinEventHook ();
+
+    SK_LOGs1 ( L" WinEvent ",
+               L"Installed deferred foreground WinEvent hook on window thread (tid=%x)",
+                 GetCurrentThreadId () );
+  }
+}
+
 void
 SK_Inject_SetFocusWindow (HWND hWndFocus)
 {
@@ -846,12 +886,27 @@ SK_Inject_SetFocusWindow (HWND hWndFocus)
     if ( g_WinEventHook == nullptr &&
               hWndFocus != nullptr )
     {
-      g_WinEventHook =
-        SetWinEventHook ( EVENT_SYSTEM_FOREGROUND,
-                          EVENT_SYSTEM_FOREGROUND, nullptr,
-                            SK_Inject_WinEventHookProc, 0, 0,
-                              WINEVENT_OUTOFCONTEXT/*|
-                              WINEVENT_SKIPOWNTHREAD*/);
+      // An out-of-context WinEvent hook delivers its events to the installing thread by
+      //   sending it messages, so that thread has to pump messages. This is often called
+      //     on whatever thread creates the SwapChain; if that thread never pumps messages,
+      //       events from the first foreground change onward wait in its queue forever
+      //         (QS_SENDMESSAGE), the hook procedure never runs, and Windows stops
+      //           updating that thread's key state (GetKeyState (...) goes stale).
+      //
+      //  * Earth Defense Force 4.1 creates its SwapChain on its main thread, which never
+      //      pumps messages but polls GetKeyState (VK_LBUTTON) for its radial menu.
+      //
+      //   Install the hook on the window's own thread, deferring it to the window procedure
+      //     when this is called from any other thread.
+      if (GetWindowThreadProcessId (hWndFocus, nullptr) == GetCurrentThreadId ())
+      {
+        SK_Inject_InstallWinEventHook ();
+      }
+
+      else
+      {
+        InterlockedExchangePointer ((PVOID *)&g_hWndPendingWinEventHook, hWndFocus);
+      }
     }
 
     else
@@ -863,6 +918,9 @@ SK_Inject_SetFocusWindow (HWND hWndFocus)
                             g_WinEventHook = nullptr;
       }
     }
+
+    if (hWndFocus == nullptr)
+      InterlockedExchangePointer ((PVOID *)&g_hWndPendingWinEventHook, nullptr);
 
     if (                                 hWndFocus == nullptr
          || ChangeWindowMessageFilterEx (hWndFocus, 0xfa57, MSGFLT_ALLOW, nullptr) )

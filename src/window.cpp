@@ -5894,6 +5894,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  // Install SK's foreground WinEvent hook here if it was requested from a thread other
+  //   than the window's (the hook must live on a thread that pumps messages).
+  if (game_window.hWnd == hWnd)
+    SK_Inject_InstallDeferredWinEventHook ();
+
   if (SK_GetFramesDrawn () > 5 && game_window.hWnd == hWnd)
   {
     void SK_ImGui_InitDragAndDrop (void);
