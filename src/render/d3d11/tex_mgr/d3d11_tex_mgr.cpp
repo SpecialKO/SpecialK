@@ -388,6 +388,7 @@ IUnknown_Release (IUnknown* This)
 #ifdef _M_AMD64
   static bool __yk =
     ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
+      SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami ||
       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
 

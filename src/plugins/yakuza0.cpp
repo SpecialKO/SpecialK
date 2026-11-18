@@ -81,6 +81,138 @@ SK_Yakuza_ResizeBuffers_NOP (IDXGISwapChain* This,
   //  );
 }
 
+// Yakuza Kiwami polls gamepads as soon as its window has focus; once a pad reports input,
+//   it runs code that reads its button config ([g_Input + 0x29C8]), which is only created
+//     later during startup (YakuzaKiwami.exe+326840 -> +18AA00). Input that arrives before
+//       then dereferences a null pointer (YakuzaKiwami.exe+18C894).
+//
+//   Unmodded, the window rarely has focus that early, but Fake Fullscreen skips the real
+//     mode switch and lets the game reach its input loop sooner.
+//
+//   Both input paths are gated on GetFocus () == game window (+18C02A, +18C690), so SK
+//     reports the window as unfocused until the config exists.
+bool
+SK_YakuzaKiwami_IsInputConfigLoaded (void)
+{
+  static volatile LONG loaded = FALSE;
+
+  if (ReadAcquire (&loaded) != FALSE)
+    return true;
+
+  struct input_sig_s {
+    const uint8_t* const* ppInput = nullptr; // g_Input
+    uint32_t              offset  = 0;       // Offset of the button config pointer
+  };
+
+  static const input_sig_s sig = [](void) -> input_sig_s
+  {
+    input_sig_s s;
+
+    if (SK_GetCurrentGameID () != SK_GAME_ID::YakuzaKiwami)
+      return s;
+
+    const auto* pBase =
+      reinterpret_cast <const uint8_t *> (GetModuleHandleW (nullptr));
+
+    const auto* pDos = reinterpret_cast <const IMAGE_DOS_HEADER *> (pBase);
+    const auto* pNt  = reinterpret_cast <const IMAGE_NT_HEADERS *> (pBase + pDos->e_lfanew);
+
+    if (pDos->e_magic != IMAGE_DOS_SIGNATURE || pNt->Signature != IMAGE_NT_SIGNATURE ||
+        pNt->OptionalHeader.SizeOfImage < 0x18C88C)
+      return s;
+
+    const uint8_t* pLoadInput = pBase + 0x18C875; // mov rcx, [rip + disp32]   (g_Input)
+    const uint8_t* pLoadField = pBase + 0x18C885; // mov rax, [rcx + disp32]   (button config)
+
+    if ( pLoadInput [0] == 0x48 && pLoadInput [1] == 0x8B && pLoadInput [2] == 0x0D &&
+         pLoadField [0] == 0x48 && pLoadField [1] == 0x8B && pLoadField [2] == 0x81 )
+    {
+      int32_t disp = 0;
+      memcpy (&disp,     pLoadInput + 3, sizeof (disp));
+      memcpy (&s.offset, pLoadField + 3, sizeof (s.offset));
+
+      s.ppInput =
+        reinterpret_cast <const uint8_t* const*> (pLoadInput + 7 + disp);
+
+      SK_LOGs0 ( L"  Yakuza  ",
+                 L"Delaying window focus until the game's input config is loaded "
+                 L"(g_Input=%p, offset=%x)", s.ppInput, s.offset );
+    }
+
+    else
+    {
+      SK_LOGs0 ( L"  Yakuza  ",
+                 L"Unrecognized executable; not delaying window focus for input init." );
+    }
+
+    return s;
+  }();
+
+  // Unknown build, do not interfere
+  if (sig.ppInput == nullptr)
+  {
+    WriteRelease (&loaded, TRUE);
+    return true;
+  }
+
+  const uint8_t* pInput = *sig.ppInput;
+
+  if ( pInput == nullptr ||
+       *reinterpret_cast <void* const*> (pInput + sig.offset) == nullptr )
+  {
+    return false;
+  }
+
+  WriteRelease (&loaded, TRUE);
+
+  return true;
+}
+
+static bool __SK_Yakuza_ResizeBuffersDisabled = false;
+
+// Called from SK's window procedure before the game sees the message.
+//
+//   With ResizeBuffers (...) turned into a no-op, the SwapChain can never change size,
+//     but the engine resizes everything else it renders to whenever WM_SIZE reports a
+//       new client size (Yakuza Kiwami: YakuzaKiwami.exe+59FA20 -> +1B9580 -> +1C94E0).
+//         Its render targets then no longer match the SwapChain and nothing it draws
+//           reaches the screen (black window, e.g. when windowed with a frame).
+//
+//   Report the SwapChain's size instead; Flip Model stretches it to the real client area.
+void
+SK_Yakuza_FilterWindowResize (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM& lParam)
+{
+  if (! __SK_Yakuza_ResizeBuffersDisabled)
+    return;
+
+  if ( uMsg   != WM_SIZE || hWnd != game_window.hWnd ||
+     ( wParam != SIZE_RESTORED && wParam != SIZE_MAXIMIZED ) )
+    return;
+
+  SK_ComQIPtr <IDXGISwapChain>
+      pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
+  if ( pSwapChain.p == nullptr || FAILED (pSwapChain->GetDesc (&swapDesc)) ||
+       swapDesc.BufferDesc.Width == 0  ||  swapDesc.BufferDesc.Height == 0 )
+    return;
+
+  const LPARAM lParamSwapChain =
+    MAKELPARAM ( swapDesc.BufferDesc.Width,
+                 swapDesc.BufferDesc.Height );
+
+  if (lParam != lParamSwapChain)
+  {
+    SK_LOGs0 ( L"  Yakuza  ",
+               L"WM_SIZE (%ux%u) replaced with SwapChain size (%ux%u); ResizeBuffers is disabled.",
+                 LOWORD (lParam), HIWORD (lParam),
+                   swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height );
+
+    lParam = lParamSwapChain;
+  }
+}
+
 
 void
 SK_YS0_TriggerHudFreeScreenshot (void) noexcept
@@ -367,6 +499,10 @@ SK_Yakuza0_PlugInInit (void)
     SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0;
   static bool yakuza_dragon =
     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow;
+  // Kiwami 2's post-processing overrides use its shader hashes and code addresses,
+  //   they do not apply to any other game (Kiwami 1 runs on Yakuza 0's engine).
+  static bool yakuza_kiwami2 =
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2;
 
   auto& shaders =
     SK_D3D11_Shaders.get ();
@@ -454,9 +590,11 @@ SK_Yakuza0_PlugInInit (void)
                          SK_Yakuza_ResizeBuffers_NOP,
  static_cast_p2p <void> (&DXGISwap_ResizeBuffers_NeverCallThis) );
     SK_EnableHook     (   DXGISwap_ResizeBuffers_Override );
+
+    __SK_Yakuza_ResizeBuffersDisabled = true;
   }
 
-  if (! (yakuza0 || yakuza_dragon))
+  if (yakuza_kiwami2)
   {
     _SK_Y_NoBlur0 =
       dynamic_cast <sk::ParameterBool *> (
@@ -619,7 +757,7 @@ SK_Yakuza0_PlugInInit (void)
     }
   }
 
-  else if (! yakuza_dragon)
+  else if (yakuza_kiwami2)
   {
    /*
     * 0: Hash,    1: CBuffer Size
@@ -709,19 +847,31 @@ SK_Yakuza0_PlugInCfg (void)
   static bool yakuza_cant_count =
     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow;
 
+  static bool yakuza_kiwami =
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami;
+
+  static bool yakuza_kiwami2 =
+    SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2;
+
   auto& shaders =
     SK_D3D11_Shaders.get ();
 
-  if ( (yakuza0           && ImGui::CollapsingHeader ("Yakuza 0",                  ImGuiTreeNodeFlags_DefaultOpen)) ||
-       (yakuza_cant_count && ImGui::CollapsingHeader ("Yakuza: Trouble Counting?", ImGuiTreeNodeFlags_DefaultOpen)) ||
-                             ImGui::CollapsingHeader ("Yakuza Kiwami 2",           ImGuiTreeNodeFlags_DefaultOpen |
-                                                                                   ImGuiTreeNodeFlags_AllowOverlap) )
+  const char* szHeader =
+    yakuza0           ? "Yakuza 0"                  :
+    yakuza_kiwami     ? "Yakuza Kiwami"             :
+    yakuza_kiwami2    ? "Yakuza Kiwami 2"           :
+                        "Yakuza: Trouble Counting?";
+
+  if ( ImGui::CollapsingHeader ( szHeader, yakuza_kiwami2 ? ImGuiTreeNodeFlags_DefaultOpen |
+                                                            ImGuiTreeNodeFlags_AllowOverlap
+                                                          : ImGuiTreeNodeFlags_DefaultOpen ) )
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
-    if (! (yakuza0 || yakuza_cant_count))
+    // Face Saver, post-processing, SSAA and libScePad options are Kiwami 2 only
+    if (yakuza_kiwami2)
     {
       ImGui::SameLine ();
 
@@ -761,7 +911,7 @@ SK_Yakuza0_PlugInCfg (void)
       config.textures.d3d11.cache = __SK_Y0_SafetyLeak;
     }
 
-    if (! (yakuza0 || yakuza_cant_count))
+    if (yakuza_kiwami2)
     {
       static         LPVOID         pBaseAddr =
         ReadPointerAcquire (&__SK_GameBaseAddr);
@@ -1249,25 +1399,30 @@ SK_Yakuza0_PlugInCfg (void)
           return false;
         };
 
-        static std::set <SK_ConfigSerializedKeybind *>
-          keybinds = {
-          &config.screenshots.game_hud_free_keybind
-        };
+        // HUD-free screenshots need known HUD shaders: Yakuza 0's (SK_Yakuza0_BeginFrame)
+        //   or the ones declared for Kiwami 2 in its config profile.
+        if (yakuza0 || yakuza_kiwami2)
+        {
+          static std::set <SK_ConfigSerializedKeybind *>
+            keybinds = {
+            &config.screenshots.game_hud_free_keybind
+          };
 
-        ImGui::BeginGroup ();
-        for ( auto keybind : keybinds )
-        {
-          ImGui::Text          ( "%s:  ",
-                                keybind->bind_name );
+          ImGui::BeginGroup ();
+          for ( auto keybind : keybinds )
+          {
+            ImGui::Text          ( "%s:  ",
+                                  keybind->bind_name );
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto keybind : keybinds )
+          {
+            Keybinding ( keybind, keybind->param );
+          }
+          ImGui::EndGroup   ();
         }
-        ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::BeginGroup ();
-        for ( auto keybind : keybinds )
-        {
-          Keybinding ( keybind, keybind->param );
-        }
-        ImGui::EndGroup   ();
 
         bool png_changed = false;
 
