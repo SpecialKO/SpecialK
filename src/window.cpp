@@ -5356,17 +5356,59 @@ SK_GetFocus (void)
     GetFocus          ();
 }
 
+// Background rendering spoofs keyboard focus for the game window, but doing so
+//   before the window has ever really had focus lets games run input code they
+//     only expect to run once fully initialized.
+//
+//  * Yakuza Kiwami processes gamepad input only while GetFocus () returns its
+//      window; doing so before it has loaded its input config dereferences a
+//        null pointer (YakuzaKiwami.exe+18C894).
+//
+//   Only spoof focus after the game window has genuinely held it at least once.
+static volatile LONG SK_Window_HadRealFocus = FALSE;
+
+static bool
+SK_Window_HasHadRealFocus (HWND hWndRealFocus)
+{
+  if (ReadAcquire (&SK_Window_HadRealFocus) != FALSE)
+    return true;
+
+  if ( hWndRealFocus    != 0 &&
+       game_window.hWnd != 0 &&
+     ( hWndRealFocus    == game_window.hWnd ||
+       IsChild (game_window.hWnd, hWndRealFocus) ) )
+  {
+    WriteRelease (&SK_Window_HadRealFocus, TRUE);
+
+    return true;
+  }
+
+  return false;
+}
+
 HWND
 WINAPI
 GetFocus_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
+#ifdef _M_AMD64
+  // Yakuza Kiwami crashes if it processes gamepad input before loading its button config
+  bool SK_YakuzaKiwami_IsInputConfigLoaded (void);
+  if (! SK_YakuzaKiwami_IsInputConfigLoaded ())
+  {
+    HWND    hWndFocus = SK_GetFocus ();
+    return (hWndFocus != 0 && hWndFocus == game_window.hWnd) ? nullptr
+                                                            : hWndFocus;
+  }
+#endif
+
   // This function is hooked before we actually know the game's HWND,
   //   this would be catastrophic.
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    if (game_window.wantBackgroundRender ())
+    if ( game_window.wantBackgroundRender () &&
+         SK_Window_HasHadRealFocus (SK_GetFocus ()) )
     {
       DWORD dwPid = 0x0;
       DWORD dwTid =
@@ -5423,7 +5465,7 @@ GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
         BOOL bRet =
           SK_GetGUIThreadInfo (idThread, pgui);
 
-        if (bRet)
+        if (bRet && SK_Window_HasHadRealFocus (pgui->hwndFocus))
         {
           pgui->hwndActive = game_window.hWnd;
           pgui->hwndFocus  = game_window.hWnd;
@@ -5894,6 +5936,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+#ifdef _M_AMD64
+  // Yakuza engines cannot resize their SwapChain while SK has ResizeBuffers disabled
+  if (uMsg == WM_SIZE)
+  {
+    void SK_Yakuza_FilterWindowResize (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM& lParam);
+         SK_Yakuza_FilterWindowResize (hWnd, uMsg, wParam, lParam);
+  }
+#endif
+
   if (SK_GetFramesDrawn () > 5 && game_window.hWnd == hWnd)
   {
     void SK_ImGui_InitDragAndDrop (void);
