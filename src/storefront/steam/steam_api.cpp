@@ -1449,6 +1449,358 @@ SK_Steam_ClassifyCallback (int iCallback)
   }
 }
 
+
+//
+// Legacy third-party CD key delivery (ISteamApps::RequestAppProofOfPurchaseKey)
+//
+//   Steam no longer answers this request, so games that fetch their CD key
+//     this way wait forever (e.g. Raven's Cry: "Waiting to obtain game serial
+//       key from Steam").  When the user supplies the key Steam lists for their
+//         copy in [Steam.DRMWorks] ProofOfPurchaseKey, answer it ourselves.
+//
+namespace SK_Steam_ProofOfPurchase
+{
+  // Older Steamworks SDKs: k_iSteamAppsCallbacks + 13, 64-byte key, no length
+  constexpr int k_iLegacyCallback = k_iSteamAppsCallbacks + 13;
+
+  struct LegacyResponse_t
+  {
+    EResult m_eResult;
+    uint32  m_nAppID;
+    char    m_rgchKey [64];
+  };
+
+  static_assert (sizeof (LegacyResponse_t) == 72);
+
+  // Vtable slot of RequestAppProofOfPurchaseKey (stable in ISteamApps 005 - 008)
+  constexpr DWORD kRequestKeyVFTableIdx = 14;
+
+  static std::map <CCallbackBase*, int>
+                       callbacks;          // Guarded by steam_callback_cs
+  static volatile LONG pending_app  = 0;   // AppID awaiting a response
+  static std::string   key;
+
+  static bool
+  IsCallback (int iCallback)
+  {
+    return iCallback == k_iLegacyCallback ||
+           iCallback == AppProofOfPurchaseKeyResponse_t::k_iCallback;
+  }
+
+  static bool
+  TryRun (CCallbackBase* pCallback, void* pParam)
+  {
+    __try {
+      pCallback->Run (pParam);
+      return true;
+    }
+    __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                  EXCEPTION_EXECUTE_HANDLER  :
+                  EXCEPTION_CONTINUE_SEARCH ) {
+      return false;
+    }
+  }
+
+#ifdef _M_IX86
+  using RequestAppProofOfPurchaseKey_pfn =
+    void (__fastcall *)(ISteamApps* This, void* /*edx*/, AppId_t nAppID);
+#else
+  using RequestAppProofOfPurchaseKey_pfn =
+    void (*)(ISteamApps* This, AppId_t nAppID);
+#endif
+
+  static RequestAppProofOfPurchaseKey_pfn
+         RequestAppProofOfPurchaseKey_Original = nullptr;
+
+  //
+  // Preferred delivery: inject the response into steamclient's callback queue.
+  //
+  //   steam_api's SteamAPI_RunCallbacks pulls messages with Steam_BGetCallback
+  //     and hands them to every callback registered for that id, including ones
+  //       the game registered before Special K could hook SteamAPI_RegisterCallback
+  //         (Raven's Cry registers right after SteamAPI_Init, at the top of WinMain).
+  //
+  struct SK_CallbackMsg_t
+  {
+    HSteamUser m_hSteamUser;
+    int        m_iCallback;
+    uint8*     m_pubParam;
+    int        m_cubParam;
+  };
+
+  using Steam_BGetCallback_pfn     = bool (S_CALLTYPE *)(HSteamPipe, SK_CallbackMsg_t*);
+  using Steam_FreeLastCallback_pfn = void (S_CALLTYPE *)(HSteamPipe);
+
+  static Steam_BGetCallback_pfn     Steam_BGetCallback_Original     = nullptr;
+  static Steam_FreeLastCallback_pfn Steam_FreeLastCallback_Original = nullptr;
+
+  static volatile LONG              queue_hooked    = FALSE;
+  static std::mutex                 queue_lock;
+  static int                        queued          = 0; // Responses left to inject
+  static DWORD                      outstanding_tid = 0; // Thread holding an injected message
+  static LegacyResponse_t           queued_legacy   = { };
+  static AppProofOfPurchaseKeyResponse_t
+                                    queued_modern   = { };
+
+  static void
+  BuildResponses (AppId_t appid, LegacyResponse_t& legacy, AppProofOfPurchaseKeyResponse_t& modern)
+  {
+    legacy = { };
+    modern = { };
+
+    legacy.m_eResult = k_EResultOK;
+    legacy.m_nAppID  = appid;
+    strncpy_s (legacy.m_rgchKey, key.c_str (), _TRUNCATE);
+
+    modern.m_eResult = k_EResultOK;
+    modern.m_nAppID  = appid;
+    strncpy_s (modern.m_rgchKey, key.c_str (), _TRUNCATE);
+    modern.m_cchKeyLength =
+      static_cast <uint32> (strlen (modern.m_rgchKey));
+  }
+
+  static bool
+  S_CALLTYPE
+  Steam_BGetCallback_Detour (HSteamPipe hSteamPipe, SK_CallbackMsg_t* pCallbackMsg)
+  {
+    if (pCallbackMsg != nullptr)
+    {
+      std::scoped_lock <std::mutex> lock (queue_lock);
+
+      if (queued == 0 && ReadAcquire (&pending_app) != 0)
+      {
+        BuildResponses (
+          static_cast <AppId_t> (InterlockedExchange (&pending_app, 0)),
+            queued_legacy, queued_modern
+        );
+
+        // The game's SDK decides which of these it listens for; the other
+        //   one is simply not dispatched to anyone.
+        queued = 2;
+      }
+
+      const bool client_pipe =
+        SteamAPI_GetHSteamPipe == nullptr ||
+        SteamAPI_GetHSteamPipe () == hSteamPipe;
+
+      if (queued > 0 && outstanding_tid == 0 && client_pipe)
+      {
+        const bool legacy = (queued == 2);
+
+        pCallbackMsg->m_hSteamUser =
+          SteamAPI_GetHSteamUser != nullptr ? SteamAPI_GetHSteamUser () : 0;
+        pCallbackMsg->m_iCallback  = legacy ? k_iLegacyCallback
+                                            : AppProofOfPurchaseKeyResponse_t::k_iCallback;
+        pCallbackMsg->m_pubParam   = legacy ? reinterpret_cast <uint8 *> (&queued_legacy)
+                                            : reinterpret_cast <uint8 *> (&queued_modern);
+        pCallbackMsg->m_cubParam   = legacy ? sizeof (queued_legacy)
+                                            : sizeof (queued_modern);
+
+        outstanding_tid = GetCurrentThreadId ();
+
+        steam_log->Log ( L" * Injected Proof-of-Purchase key response (Id=%li) into Steam's callback queue",
+                           pCallbackMsg->m_iCallback );
+
+        return true;
+      }
+    }
+
+    return
+      Steam_BGetCallback_Original (hSteamPipe, pCallbackMsg);
+  }
+
+  static void
+  S_CALLTYPE
+  Steam_FreeLastCallback_Detour (HSteamPipe hSteamPipe)
+  {
+    {
+      std::scoped_lock <std::mutex> lock (queue_lock);
+
+      if (outstanding_tid != 0 && outstanding_tid == GetCurrentThreadId ())
+      {
+        // This message was ours, steamclient has nothing to free
+        outstanding_tid = 0;
+        --queued;
+        return;
+      }
+    }
+
+    Steam_FreeLastCallback_Original (hSteamPipe);
+  }
+
+  static bool
+  InstallQueueHooks (void)
+  {
+    if (ReadAcquire (&queue_hooked))
+      return true;
+
+#ifdef _M_AMD64
+    const wchar_t* wszSteamClient = L"steamclient64.dll";
+#else
+    const wchar_t* wszSteamClient = L"steamclient.dll";
+#endif
+
+    // Never load it ourselves; SteamAPI_Init has loaded the right one by now
+    HMODULE hSteamClient =
+      SK_GetModuleHandle (wszSteamClient);
+
+    if ( hSteamClient == nullptr                                            ||
+         SK_GetProcAddress (hSteamClient, "Steam_BGetCallback")     == nullptr ||
+         SK_GetProcAddress (hSteamClient, "Steam_FreeLastCallback") == nullptr )
+    {
+      steam_log->Log ( L" * %s does not provide Steam_BGetCallback / Steam_FreeLastCallback",
+                         wszSteamClient );
+      return false;
+    }
+
+    // Free first, so an injected message can never reach the real Free
+    const bool ok =
+      MH_OK == SK_CreateDLLHook ( wszSteamClient, "Steam_FreeLastCallback",
+                                   Steam_FreeLastCallback_Detour,
+          static_cast_p2p <void> (&Steam_FreeLastCallback_Original) ) &&
+      MH_OK == SK_CreateDLLHook ( wszSteamClient, "Steam_BGetCallback",
+                                   Steam_BGetCallback_Detour,
+          static_cast_p2p <void> (&Steam_BGetCallback_Original) );
+
+    if (ok)
+      InterlockedExchange (&queue_hooked, TRUE);
+
+    steam_log->Log ( L" * Hooking %s callback queue for Proof-of-Purchase delivery: %s",
+                       wszSteamClient, ok ? L"OK" : L"FAILED" );
+
+    return ok;
+  }
+
+  static void
+#ifdef _M_IX86
+  __fastcall
+  RequestAppProofOfPurchaseKey_Detour (ISteamApps* This, void*, AppId_t nAppID)
+#else
+  RequestAppProofOfPurchaseKey_Detour (ISteamApps* This, AppId_t nAppID)
+#endif
+  {
+    std::ignore = This;
+
+    steam_log->Log ( L" * Game requested Proof-of-Purchase key for AppID %lu;"
+                     L" answering with the key from [Steam.DRMWorks]", nAppID );
+
+    if (! InstallQueueHooks ())
+      steam_log->Log ( L" * Falling back to calling registered callbacks directly" );
+
+    // Steam will never respond, so don't bother forwarding the request.
+    //   The answer is delivered on the game's next SteamAPI_RunCallbacks.
+    InterlockedExchange (&pending_app, static_cast <LONG> (nAppID));
+  }
+
+  using SteamApps_pfn = ISteamApps* (S_CALLTYPE *)(void);
+  static SteamApps_pfn SteamApps_Original = nullptr;
+
+  static ISteamApps*
+  S_CALLTYPE
+  SteamApps_Detour (void)
+  {
+    ISteamApps* pApps =
+      SteamApps_Original ();
+
+    if (pApps != nullptr && RequestAppProofOfPurchaseKey_Original == nullptr)
+    {
+      static volatile LONG installed = FALSE;
+
+      if (! InterlockedCompareExchange (&installed, TRUE, FALSE))
+      {
+        SK_CreateVFTableHook ( L"ISteamApps::RequestAppProofOfPurchaseKey",
+                                 *(void ***)pApps, kRequestKeyVFTableIdx,
+                                   RequestAppProofOfPurchaseKey_Detour,
+                         (void **)&RequestAppProofOfPurchaseKey_Original );
+      }
+    }
+
+    return pApps;
+  }
+
+  // Called from SK_HookSteamAPI; does nothing unless a key is configured
+  static int
+  Hook (const wchar_t* wszSteamAPI)
+  {
+    if (config.steam.proof_of_purchase_key.empty ())
+      return 0;
+
+    if (! SK_GetProcAddress (wszSteamAPI, "SteamApps"))
+    {
+      steam_log->Log ( L" * [Steam.DRMWorks] ProofOfPurchaseKey is set, but this"
+                       L" SteamAPI DLL does not export SteamApps (...)" );
+      return 0;
+    }
+
+    key =
+      SK_WideCharToUTF8 (config.steam.proof_of_purchase_key);
+
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamApps",
+                        SteamApps_Detour,
+                        static_cast_p2p <void> (&SteamApps_Original) );
+
+    return 1;
+  }
+
+  // Fallback, called after the game's callbacks have run; only used when
+  //   steamclient's callback queue could not be hooked
+  static void
+  Dispatch (void)
+  {
+    if (ReadAcquire (&queue_hooked) || ReadAcquire (&pending_app) == 0)
+      return;
+
+    const AppId_t appid =
+      static_cast <AppId_t> (InterlockedExchange (&pending_app, 0));
+
+    if (appid == 0)
+      return;
+
+    // Copy first, a callback may unregister itself while running
+    std::vector <std::pair <CCallbackBase*, int>> targets;
+
+    if (steam_callback_cs != nullptr)
+        steam_callback_cs->lock ();
+
+    for (const auto& it : callbacks)
+      targets.push_back (it);
+
+    if (steam_callback_cs != nullptr)
+        steam_callback_cs->unlock ();
+
+    if (targets.empty ())
+    {
+      SK_RunOnce (
+        steam_log->Log ( L" * No Proof-of-Purchase callback registered yet,"
+                         L" holding the response..." )
+      );
+
+      // Try again next time callbacks run
+      InterlockedCompareExchange (&pending_app, static_cast <LONG> (appid), 0);
+      return;
+    }
+
+    LegacyResponse_t                legacy;
+    AppProofOfPurchaseKeyResponse_t modern;
+
+    BuildResponses (appid, legacy, modern);
+
+    for ( auto& [pCallback, iCallback] : targets )
+    {
+      void* pParam = (iCallback == k_iLegacyCallback) ?
+        static_cast <void *> (&legacy)                :
+        static_cast <void *> (&modern);
+
+      const bool ok =
+        SK_ValidatePointer (pCallback, true) && TryRun (pCallback, pParam);
+
+      steam_log->Log ( L" * Delivered Proof-of-Purchase key to callback (Id=%li): %s",
+                         iCallback, ok ? L"OK" : L"FAILED" );
+    }
+  }
+}
+
 extern "C"
 void
 S_CALLTYPE
@@ -1567,6 +1919,14 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log->Log ( L" * (%-28s) Installed Callback (Class=%hs, Id=%li)",
                       caller.c_str (), SK_Steam_ClassifyCallback (iCallback), iCallback % 100 );
     } break;
+  }
+
+  if (SK_Steam_ProofOfPurchase::IsCallback (iCallback) && SK_ValidatePointer (pCallback))
+  {
+    steam_log->Log ( L" * (%-28s) Installed Proof-of-Purchase Key Callback (Id=%li)",
+                    caller.c_str (), iCallback );
+
+    SK_Steam_ProofOfPurchase::callbacks [pCallback] = iCallback;
   }
 
   if (SK_ValidatePointer (pCallback))
@@ -1718,6 +2078,8 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
                       caller.c_str (), SK_Steam_ClassifyCallback (iCallback), iCallback % 100 );
     } break;
   }
+
+  SK_Steam_ProofOfPurchase::callbacks.erase (pCallback);
 
   SteamAPI_UnregisterCallback_Original (pCallback);
 
@@ -3335,6 +3697,8 @@ SteamAPI_RunCallbacks_Detour (void)
 
   // No matter what happens, always run the -actual- callbacks
   TryRunCallbacks ();
+
+  SK_Steam_ProofOfPurchase::Dispatch ();
 }
 
 
@@ -4834,6 +5198,9 @@ SK_HookSteamAPI (void)
                         SteamAPI_RunCallbacks_Detour,
                         static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
                         static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
+
+    hooks +=
+      SK_Steam_ProofOfPurchase::Hook (wszSteamAPI);
 
 
     // Older DLLs will not have this, and we should avoid printing an error in the log

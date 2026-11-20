@@ -460,6 +460,8 @@ struct sk_config_t
 
     std::wstring
                 dll_path              = L"";
+    std::wstring                             // Answer for the retired
+                proof_of_purchase_key = L""; //   ISteamApps::RequestAppProofOfPurchaseKey
 
     int64_t     appid                 = 0LL;
     int         online_status         = SK_NoPreference;

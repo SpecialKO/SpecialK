@@ -712,6 +712,7 @@ struct {
 
   struct {
     sk::ParameterBool*    spoof_BLoggedOn         = nullptr;
+    sk::ParameterStringW* proof_of_purchase_key   = nullptr;
   } drm;
 
   struct {
@@ -2457,6 +2458,8 @@ auto DeclKeybind =
     ConfigEntry (platform.log.silent,                    L"Makes steam_api.log go away [DISABLES STEAMAPI FEATURES]",  dll_ini,         L"Steam.Log",             L"Silent"),
     ConfigEntry (steam.cloud.blacklist,                  L"CSV list of files to block from cloud sync.",               dll_ini,         L"Steam.Cloud",           L"FilesNotToSync"),
     ConfigEntry (steam.drm.spoof_BLoggedOn,              L"Fix For Stupid Games That Don't Know How DRM Works",        dll_ini,         L"Steam.DRMWorks",        L"SpoofBLoggedOn"),
+    ConfigEntry (steam.drm.proof_of_purchase_key,        L"CD key handed to games that request it from Steam using the"
+                                                         L" retired ISteamApps::RequestAppProofOfPurchaseKey API",     dll_ini,         L"Steam.DRMWorks",        L"ProofOfPurchaseKey"),
   };
 
 
@@ -6287,6 +6290,10 @@ auto DeclKeybind =
 
   platform.log.silent->load                   (config.platform.silent);
   steam.drm.spoof_BLoggedOn->load             (config.steam.spoof_BLoggedOn);
+
+  // Load-only: never written back, so the key does not end up in every game's INI
+  if (! steam.drm.proof_of_purchase_key->empty ())
+        steam.drm.proof_of_purchase_key->load (config.steam.proof_of_purchase_key);
 
   // We may already know the AppID before loading the game's config.
   if (config.steam.appid == 0)
