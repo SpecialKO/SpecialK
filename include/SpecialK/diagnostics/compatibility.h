@@ -38,6 +38,10 @@ typedef _Return_type_success_(return >= 0) long HRESULT;
 
 HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
+// Keeps the Volatile engine's debug helper (vdebug.dll) from overflowing its
+//   fixed-size module table now that Special K's DLLs are in the process too.
+void    SK_COMPAT_FixVolatileDebugHelper (void);
+
 bool SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally = nullptr);
 
 bool SK_COMPAT_IsFrapsPresent (void);
