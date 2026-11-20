@@ -2339,6 +2339,45 @@ SK_D3D11_CopySubresourceRegion_Impl (
 #pragma endregion CacheStagingMappedResources
 }
 
+// Logs each distinct ResolveSubresource (...) combination once (up to a limit),
+//   and whether SK will leave it alone or deduce its own resolve format.
+static void
+SK_D3D11_LogResolve ( const D3D11_TEXTURE2D_DESC& srcDesc,
+                      const D3D11_TEXTURE2D_DESC& dstDesc,
+                            DXGI_FORMAT           Format,
+                            bool                  bSKManipulated ) noexcept
+{
+  static constexpr size_t _MaxUniqueResolves = 64;
+
+  struct resolve_key_s {
+    DXGI_FORMAT src, dst, requested;
+    UINT        samples;
+    BOOL        manipulated;
+  } const key = { srcDesc.Format, dstDesc.Format, Format,
+                  srcDesc.SampleDesc.Count, bSKManipulated };
+
+  const uint32_t hash =
+    safe_crc32c (0x0, &key, sizeof (key));
+
+  static std::mutex                    lock;
+  static std::unordered_set <uint32_t> seen;
+  {
+    std::scoped_lock <std::mutex> _ (lock);
+
+    if (seen.size () >= _MaxUniqueResolves || (! seen.emplace (hash).second))
+      return;
+  }
+
+  SK_LOGi0 (
+    L"ResolveSubresource: Src=(%ux%u) %hs x%u, Dst=(%ux%u) %hs, Requested=%hs -> %ws",
+      srcDesc.Width, srcDesc.Height, SK_DXGI_FormatToStr (srcDesc.Format).data (),
+      srcDesc.SampleDesc.Count,
+      dstDesc.Width, dstDesc.Height, SK_DXGI_FormatToStr (dstDesc.Format).data (),
+                                     SK_DXGI_FormatToStr (Format).data (),
+      bSKManipulated ? L"SK-manipulated surface, deducing resolve format"
+                     : L"passed through unchanged" );
+}
+
 void
 STDMETHODCALLTYPE
 SK_D3D11_ResolveSubresource_Impl (
@@ -2417,8 +2456,34 @@ SK_D3D11_ResolveSubresource_Impl (
       }
 #endif
 
-      //if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format))
-      //  || FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, texDesc.Format)) )
+      // Only second-guess the game's resolve format if Special K is responsible
+      //   for the surfaces having different formats than the game expects.
+      //
+      //  * Rewriting a valid call (e.g. a Unity MSAA resolve of TYPELESS targets
+      //      using an explicit format) changes the result: Terra Invicta's video
+      //        portraits lost their alpha (SpecialK issue #384).
+      auto _IsSwapChainSurface = [](ID3D11Texture2D* pTex) -> bool
+      {
+        UINT        size            = sizeof (DXGI_FORMAT);
+        DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
+
+        return SUCCEEDED (
+          pTex->GetPrivateData (SKID_DXGI_SwapChainBackbufferFormat, &size, &swapChainFormat)
+        );
+      };
+
+      const bool bSwapChainSurface =
+        _IsSwapChainSurface (pDstTex) || _IsSwapChainSurface (pSrcTex);
+
+      const bool bSKManipulated =
+        bSwapChainSurface                                                            ||
+        FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
+        FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, texDesc.Format)) ||
+        __SK_HDR_16BitSwap || __SK_HDR_10BitSwap;
+
+      SK_D3D11_LogResolve ( texDesc, dstDesc, Format, bSKManipulated );
+
+      if (bSKManipulated)
       {
         // Deduce FP / UNORM Resolve Format when game thinks the resources have a
         //   different format than SK has assigned them...
