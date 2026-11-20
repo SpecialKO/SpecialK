@@ -8251,15 +8251,25 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       if (bUndesirableDriver)
       {
         SK_LOGi0 ( L"==> D3D11CreateDeviceAndSwapChain: Ignoring D3D11 device with an undesirable"
-                   L" driver (WARP, Reference, or Microsoft Basic Render Driver)" );
+                   L" driver (WARP, Reference, or Microsoft Basic Render Driver); DriverType=%d, Adapter=%p",
+                     DriverType, pAdapter );
       }
+
+      // Pass the request through as-is; only a NULL adapter with an UNKNOWN
+      //   driver type (invalid) is turned into a hardware device.
+      //
+      //  * Turning WARP into HARDWARE here silently moved software devices,
+      //      such as the Media Foundation video processor's (msvproc.dll),
+      //        onto the GPU instead of ignoring them.
+      const bool bInvalidDriverType =
+        (pAdapter == nullptr && DriverType == D3D_DRIVER_TYPE_UNKNOWN);
 
       return
         D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
-                                                 pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
-                                                                     : DriverType,
-                                                   pAdapter == nullptr ? nullptr
-                                                                       : Software,
+                                                 bInvalidDriverType ? D3D_DRIVER_TYPE_HARDWARE
+                                                                    : DriverType,
+                                                   bInvalidDriverType ? nullptr
+                                                                      : Software,
                                                      Flags,
                                                        pFeatureLevels,
                                                          FeatureLevels,
