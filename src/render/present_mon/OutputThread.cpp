@@ -33,7 +33,7 @@ extern HANDLE __SK_DLL_TeardownEvent;
 #include <shlwapi.h>
 #include <thread>
 
-static std::thread gOutputThread;
+static SK_PresentMon_Thread gOutputThread;
 static bool        gQuit   =   false;
 
 // When we collect realtime ETW events, we don't receive the events in real

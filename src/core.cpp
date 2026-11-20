@@ -959,16 +959,19 @@ SK_InitFinishCallback (void)
 
     ~MemoryManager (void)
     {
+      // The command processor owns registered variables (std::unique_ptr), and
+      //   RemoveVariable (...) destroys them; deleting them here as well was a
+      //     double-free that crashed some games on exit (0xC0000409 / 0xC0000005).
       if (working_set_var != nullptr)
       {
-        cp->RemoveVariable ("Memory.WorkingSet");
-        delete working_set_var;
+        if (! cp->RemoveVariable ("Memory.WorkingSet"))
+          delete working_set_var;
       }
 
       if (vram_scale_var != nullptr)
       {
-        cp->RemoveVariable ("DXGI.VRAMBudgetScale");
-        delete vram_scale_var;
+        if (! cp->RemoveVariable ("DXGI.VRAMBudgetScale"))
+          delete vram_scale_var;
       }
     }
 
