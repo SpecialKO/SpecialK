@@ -229,19 +229,16 @@ CrashHandler::Reinstall (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
-  static volatile LPVOID              pOldHook  = nullptr;
-  if ((uintptr_t)ReadPointerAcquire (&pOldHook) > 1)
-  {
-    if (MH_OK == SK_RemoveHook (ReadPointerAcquire (&pOldHook)))
-    {
-      InterlockedExchangePointer ((LPVOID *)&pOldHook, nullptr);
-    }
+  // Install the SetUnhandledExceptionFilter hook exactly once.
+  //
+  //   This function is called on every first-chance exception (from
+  //     RaiseException_Detour), so it must stay cheap.  Removing and
+  //       re-creating the hook here freezes every thread in the process
+  //         twice per call, which caused multi-second hitches in games
+  //           that throw many C++ exceptions (e.g. Unity/il2cpp titles).
+  static volatile LONG installed = FALSE;
 
-    InterlockedCompareExchangePointer ((LPVOID *)&pOldHook, nullptr, (PVOID)1);
-  }
-
-
-  if (! InterlockedCompareExchangePointer ((LPVOID *)&pOldHook, (PVOID)1, nullptr))
+  if (! InterlockedCompareExchange (&installed, TRUE, FALSE))
   {
     LPVOID pHook = nullptr;
 
@@ -252,18 +249,14 @@ CrashHandler::Reinstall (void)
                static_cast_p2p <void> (&SetUnhandledExceptionFilter_Original),
                                        &pHook) )
     {
-      if ( MH_OK == MH_EnableHook  ( pHook ) )
-      {
-        InterlockedExchangePointer ((LPVOID *)&pOldHook, pHook);
-      }
+      MH_EnableHook (pHook);
     }
+
+    SetErrorMode (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT);
   }
 
 
-  SetErrorMode (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT);
-
-
-  // Bypass the hook if we have a trampoline
+  // Re-assert our top-level filter (cheap); bypass the hook if we have a trampoline
   //
   if (SetUnhandledExceptionFilter_Original != nullptr)
       SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
