@@ -1944,7 +1944,11 @@ SK_TestRenderImports ( HMODULE hMod,
 
   if (!* dxgi)
   {
-    if (SK_GetModuleHandleW (L"DXCore.dll"))
+    // DXCore.dll is also loaded by Special K's own use of DXGI, and by the
+    //   D3D9 runtime, so on its own it does not mean the game uses DXGI
+    extern bool SK_DXGI_IsLoadedByApplication (void) noexcept;
+
+    if (SK_GetModuleHandleW (L"DXCore.dll") && SK_DXGI_IsLoadedByApplication ())
       *dxgi = true;
   }
 }

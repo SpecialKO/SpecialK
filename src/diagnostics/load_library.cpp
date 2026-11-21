@@ -463,6 +463,24 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     }
   }
 
+  extern bool SK_DXGI_IsLoadedByApplication (void) noexcept;
+  extern void SK_DXGI_NoteApplicationLoad   (void) noexcept;
+
+  // Special K uses DXGI for itself in every game, DXGI then loads DXCore.dll,
+  //   and the D3D9 runtime uses DXCore as well. Only a load of DXGI by some
+  //   other module says something about the game's render API.
+  const bool caller_is_dxgi =
+    StrStrIW (wszCallingMod, L"dxgi.dll")   ||
+    StrStrIW (wszCallingMod, L"dxcore.dll") ||
+    StrStrIW (wszCallingMod, L"d3d9.dll");
+
+  if ( hCallingMod != SK_GetDLL () && (! caller_is_dxgi) &&
+       ( StrStrI (lpFileName, SK_TEXT("dxgi.dll"))   ||
+         StrStrI (lpFileName, SK_TEXT("dxcore.dll")) ) )
+  {
+    SK_DXGI_NoteApplicationLoad ();
+  }
+
   if (hCallingMod != SK_GetDLL ())
   {
     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
@@ -495,7 +513,9 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       SK_RunOnce (SK_BootDXGI   ());
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("dxcore.dll")) || // Unity?! WTF are you doing?
-                StrStrIW (wszCallingMod,     L"dxcore.dll") ))
+                StrStrIW (wszCallingMod,     L"dxcore.dll") ) &&
+                // ... unless it is DXGI doing this for Special K's own use of DXGI
+                SK_DXGI_IsLoadedByApplication () )
       SK_RunOnce (SK_BootDXGI   ());
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||

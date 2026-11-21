@@ -2352,7 +2352,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
             &d3d9, &dxgi, &d3d11, &d3d12,
               &d3d8, &ddraw, &glide );
 
-      dxgi  |=  SK_IsModuleLoaded (L"dxgi.dll");
+      dxgi  |=  SK_IsModuleLoaded (L"dxgi.dll") && SK_DXGI_IsLoadedByApplication ();
       d3d11 |=  SK_IsModuleLoaded (L"d3d11.dll");
       d3d12 |=  SK_IsModuleLoaded (L"d3d12.dll");
       d3d9  |=  SK_IsModuleLoaded (L"d3d9.dll");
@@ -2558,7 +2558,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           &d3d9, &dxgi, &d3d11, &d3d12,
             &d3d8, &ddraw, &glide );
 
-    dxgi  |=  SK_IsModuleLoaded (L"dxgi.dll");
+    dxgi  |=  SK_IsModuleLoaded (L"dxgi.dll") && SK_DXGI_IsLoadedByApplication ();
     d3d11 |=  SK_IsModuleLoaded (L"d3d11.dll");
     d3d12 |=  SK_IsModuleLoaded (L"d3d12.dll");
     d3d9  |=  SK_IsModuleLoaded (L"d3d9.dll");

@@ -22,6 +22,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -375,8 +376,9 @@ UNREFERENCED_PARAMETER (user);
     if (d3d12 || SK_GetModuleHandle (L"d3d12.dll"))
       SK_BootDXGI ();
 
-    // Alternate form (or D3D10, but we don't care about that right now)
-    else if (dxgi || SK_GetModuleHandle (L"dxgi.dll"))
+    // Alternate form (or D3D10, but we don't care about that right now);
+    //   dxgi.dll may only be loaded for Special K's own use of DXGI
+    else if (dxgi || (SK_GetModuleHandle (L"dxgi.dll") && SK_DXGI_IsLoadedByApplication ()))
       SK_BootDXGI ();
 
 
