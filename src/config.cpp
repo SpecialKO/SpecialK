@@ -1094,6 +1094,8 @@ struct {
     sk::ParameterBool*    enable_texture_mods     = nullptr;
     sk::ParameterBool*    enable_flipex           = nullptr;
     sk::ParameterBool*    use_d3d9on12            = nullptr;
+    sk::ParameterFloat*   min_refresh             = nullptr;
+    sk::ParameterFloat*   max_refresh             = nullptr;
   } d3d9;
 
   struct {
@@ -2255,6 +2257,8 @@ auto DeclKeybind =
     ConfigEntry (render.d3d9.enable_texture_mods,        L"Enable Texture Modding Support",                            dll_ini,         L"Render.D3D9",           L"EnableTextureMods"),
     ConfigEntry (render.d3d9.enable_flipex,              L"Enable D3D9Ex FlipEx SwapEffect",                           dll_ini,         L"Render.D3D9",           L"EnableFlipEx"),
     ConfigEntry (render.d3d9.use_d3d9on12,               L"Use D3D9On12 instead of normal driver",                     dll_ini,         L"Render.D3D9",           L"UseD3D9On12"),
+    ConfigEntry (render.d3d9.max_refresh,                L"Maximum Refresh To Report",                                 dll_ini,         L"Render.D3D9",           L"MaxRefresh"),
+    ConfigEntry (render.d3d9.min_refresh,                L"Minimum Refresh To Report",                                 dll_ini,         L"Render.D3D9",           L"MinRefresh"),
 
 
     // D3D10/11/12
@@ -5294,6 +5298,8 @@ auto DeclKeybind =
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
   render.d3d9.enable_flipex->load       (config.render.d3d9.enable_flipex);
   render.d3d9.use_d3d9on12->load        (config.render.d3d9.use_d3d9on12);
+  render.d3d9.max_refresh->load         (config.render.d3d9.refresh.max);
+  render.d3d9.min_refresh->load         (config.render.d3d9.refresh.min);
   render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
   texture.d3d9.clamp_lod_bias->load     (config.textures.clamp_lod_bias);
 
@@ -7814,6 +7820,8 @@ SK_SaveConfig ( std::wstring name,
       render.d3d9.enable_flipex->store        (config.render.d3d9.enable_flipex);
       render.d3d9.enable_texture_mods->store  (config.textures.d3d9_mod);
       render.d3d9.use_d3d9on12->store         (config.render.d3d9.use_d3d9on12);
+      render.d3d9.max_refresh->store          (config.render.d3d9.refresh.max);
+      render.d3d9.min_refresh->store          (config.render.d3d9.refresh.min);
     }
   }
 

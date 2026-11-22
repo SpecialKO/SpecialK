@@ -6540,6 +6540,214 @@ SK::D3D9::getPipelineStatsDesc (void)
   return szDesc;
 }
 
+//
+// Display mode refresh rate filtering ([Render.D3D9] MinRefresh / MaxRefresh)
+//
+//   The D3D9 counterpart of [Render.DXGI] MinRefresh / MaxRefresh: modes whose
+//     refresh rate is outside the range are hidden from the game's mode lists.
+//       If that would hide every mode, the game gets the unfiltered list.
+//
+using IDirect3D9_GetAdapterModeCount_pfn   = UINT    (STDMETHODCALLTYPE *)(
+        IDirect3D9 *This, UINT Adapter, D3DFORMAT Format );
+using IDirect3D9_EnumAdapterModes_pfn      = HRESULT (STDMETHODCALLTYPE *)(
+        IDirect3D9 *This, UINT Adapter, D3DFORMAT Format, UINT Mode,
+        D3DDISPLAYMODE *pMode );
+using IDirect3D9Ex_GetAdapterModeCountEx_pfn = UINT    (STDMETHODCALLTYPE *)(
+        IDirect3D9Ex *This, UINT Adapter, CONST D3DDISPLAYMODEFILTER *pFilter );
+using IDirect3D9Ex_EnumAdapterModesEx_pfn    = HRESULT (STDMETHODCALLTYPE *)(
+        IDirect3D9Ex *This, UINT Adapter, CONST D3DDISPLAYMODEFILTER *pFilter,
+        UINT Mode, D3DDISPLAYMODEEX *pMode );
+
+static IDirect3D9_GetAdapterModeCount_pfn     IDirect3D9_GetAdapterModeCount_Original     = nullptr;
+static IDirect3D9_EnumAdapterModes_pfn        IDirect3D9_EnumAdapterModes_Original        = nullptr;
+static IDirect3D9Ex_GetAdapterModeCountEx_pfn IDirect3D9Ex_GetAdapterModeCountEx_Original = nullptr;
+static IDirect3D9Ex_EnumAdapterModesEx_pfn    IDirect3D9Ex_EnumAdapterModesEx_Original    = nullptr;
+
+static bool
+SK_D3D9_IsRefreshFilterActive (void) noexcept
+{
+  return config.render.d3d9.refresh.min > 0.0f ||
+         config.render.d3d9.refresh.max > 0.0f;
+}
+
+static bool
+SK_D3D9_IsRefreshAllowed (UINT RefreshRate) noexcept
+{
+  const float fMin = config.render.d3d9.refresh.min;
+  const float fMax = config.render.d3d9.refresh.max < 1.0f ?
+                                              1000.0f :
+                     config.render.d3d9.refresh.max;
+
+  // 0 Hz means "adapter default" and is never filtered
+  return RefreshRate == 0 ||
+       ( static_cast <float> (RefreshRate) >= fMin &&
+         static_cast <float> (RefreshRate) <= fMax );
+}
+
+// For each mode list (adapter + format [+ scanline order]), the indices of the
+//   unfiltered list that the game is allowed to see.
+static std::recursive_mutex                                    sk_d3d9_mode_lock;
+static std::unordered_map <uint64_t, std::vector <UINT>>       sk_d3d9_mode_map;
+
+static uint64_t
+SK_D3D9_ModeListKey (bool ex, UINT Adapter, D3DFORMAT Format, UINT ScanLine = 0) noexcept
+{
+  return ( static_cast <uint64_t> (ex)                 << 63 ) |
+         ( static_cast <uint64_t> (Adapter  & 0xFF)    << 48 ) |
+         ( static_cast <uint64_t> (ScanLine & 0xFF)    << 40 ) |
+           static_cast <uint64_t> (static_cast <uint32_t> (Format));
+}
+
+static const std::vector <UINT>&
+SK_D3D9_BuildModeMap (IDirect3D9 *This, UINT Adapter, D3DFORMAT Format)
+{
+  auto& map =
+    sk_d3d9_mode_map [SK_D3D9_ModeListKey (false, Adapter, Format)];
+
+  map.clear ();
+
+  const UINT count =
+    IDirect3D9_GetAdapterModeCount_Original (This, Adapter, Format);
+
+  std::vector <UINT> all;
+
+  for (UINT i = 0; i < count; ++i)
+  {
+    D3DDISPLAYMODE mode = { };
+
+    if (SUCCEEDED (IDirect3D9_EnumAdapterModes_Original (This, Adapter, Format, i, &mode)))
+    {
+      all.push_back (i);
+
+      if (SK_D3D9_IsRefreshAllowed (mode.RefreshRate))
+        map.push_back (i);
+    }
+  }
+
+  if (map.empty ())
+    map = std::move (all);
+
+  SK_RunOnce (
+    SK_LOGi0 ( L"Refresh Rate Filter (%.1f - %.1f Hz): Adapter %u, Format %u"
+               L" -> %u of %u modes reported.",
+                 config.render.d3d9.refresh.min, config.render.d3d9.refresh.max,
+                   Adapter, Format, (UINT)map.size (), count )
+  );
+
+  return map;
+}
+
+static const std::vector <UINT>&
+SK_D3D9_BuildModeMapEx ( IDirect3D9Ex *This, UINT Adapter,
+                   CONST D3DDISPLAYMODEFILTER *pFilter )
+{
+  auto& map =
+    sk_d3d9_mode_map [SK_D3D9_ModeListKey (true, Adapter, pFilter->Format,
+                                                          pFilter->ScanLineOrdering)];
+
+  map.clear ();
+
+  const UINT count =
+    IDirect3D9Ex_GetAdapterModeCountEx_Original (This, Adapter, pFilter);
+
+  std::vector <UINT> all;
+
+  for (UINT i = 0; i < count; ++i)
+  {
+    D3DDISPLAYMODEEX mode = { };
+                     mode.Size = sizeof (D3DDISPLAYMODEEX);
+
+    if (SUCCEEDED (IDirect3D9Ex_EnumAdapterModesEx_Original (This, Adapter, pFilter, i, &mode)))
+    {
+      all.push_back (i);
+
+      if (SK_D3D9_IsRefreshAllowed (mode.RefreshRate))
+        map.push_back (i);
+    }
+  }
+
+  if (map.empty ())
+    map = std::move (all);
+
+  return map;
+}
+
+UINT
+STDMETHODCALLTYPE
+IDirect3D9_GetAdapterModeCount_Override (IDirect3D9 *This, UINT Adapter, D3DFORMAT Format)
+{
+  if (! SK_D3D9_IsRefreshFilterActive ())
+    return IDirect3D9_GetAdapterModeCount_Original (This, Adapter, Format);
+
+  std::scoped_lock <std::recursive_mutex> lock (sk_d3d9_mode_lock);
+
+  return
+    static_cast <UINT> (SK_D3D9_BuildModeMap (This, Adapter, Format).size ());
+}
+
+HRESULT
+STDMETHODCALLTYPE
+IDirect3D9_EnumAdapterModes_Override ( IDirect3D9 *This, UINT Adapter, D3DFORMAT Format,
+                                       UINT        Mode, D3DDISPLAYMODE *pMode )
+{
+  if (! SK_D3D9_IsRefreshFilterActive ())
+    return IDirect3D9_EnumAdapterModes_Original (This, Adapter, Format, Mode, pMode);
+
+  std::scoped_lock <std::recursive_mutex> lock (sk_d3d9_mode_lock);
+
+  const auto it =
+    sk_d3d9_mode_map.find (SK_D3D9_ModeListKey (false, Adapter, Format));
+
+  const auto& map =
+    it != sk_d3d9_mode_map.cend () ? it->second
+                                   : SK_D3D9_BuildModeMap (This, Adapter, Format);
+
+  if (Mode >= map.size ())
+    return D3DERR_INVALIDCALL;
+
+  return
+    IDirect3D9_EnumAdapterModes_Original (This, Adapter, Format, map [Mode], pMode);
+}
+
+UINT
+STDMETHODCALLTYPE
+IDirect3D9Ex_GetAdapterModeCountEx_Override ( IDirect3D9Ex *This, UINT Adapter,
+                                        CONST D3DDISPLAYMODEFILTER *pFilter )
+{
+  if (pFilter == nullptr || (! SK_D3D9_IsRefreshFilterActive ()))
+    return IDirect3D9Ex_GetAdapterModeCountEx_Original (This, Adapter, pFilter);
+
+  std::scoped_lock <std::recursive_mutex> lock (sk_d3d9_mode_lock);
+
+  return
+    static_cast <UINT> (SK_D3D9_BuildModeMapEx (This, Adapter, pFilter).size ());
+}
+
+HRESULT
+STDMETHODCALLTYPE
+IDirect3D9Ex_EnumAdapterModesEx_Override ( IDirect3D9Ex *This, UINT Adapter,
+                                     CONST D3DDISPLAYMODEFILTER *pFilter,
+                                           UINT Mode, D3DDISPLAYMODEEX *pMode )
+{
+  if (pFilter == nullptr || (! SK_D3D9_IsRefreshFilterActive ()))
+    return IDirect3D9Ex_EnumAdapterModesEx_Original (This, Adapter, pFilter, Mode, pMode);
+
+  std::scoped_lock <std::recursive_mutex> lock (sk_d3d9_mode_lock);
+
+  const auto it =
+    sk_d3d9_mode_map.find (SK_D3D9_ModeListKey (true, Adapter, pFilter->Format,
+                                                               pFilter->ScanLineOrdering));
+  const auto& map =
+    it != sk_d3d9_mode_map.cend () ? it->second
+                                   : SK_D3D9_BuildModeMapEx (This, Adapter, pFilter);
+
+  if (Mode >= map.size ())
+    return D3DERR_INVALIDCALL;
+
+  return
+    IDirect3D9Ex_EnumAdapterModesEx_Original (This, Adapter, pFilter, map [Mode], pMode);
+}
+
 unsigned int
 __stdcall
 HookD3D9 (LPVOID user)
@@ -6579,6 +6787,19 @@ HookD3D9 (LPVOID user)
 
       if (pD3D9 != nullptr)
       {
+        // IDirect3D9::GetAdapterModeCount / EnumAdapterModes
+        D3D9_INTERCEPT ( &pD3D9.p, 6,
+                         "IDirect3D9::GetAdapterModeCount",
+                          IDirect3D9_GetAdapterModeCount_Override,
+                          IDirect3D9_GetAdapterModeCount_Original,
+                          IDirect3D9_GetAdapterModeCount_pfn );
+
+        D3D9_INTERCEPT ( &pD3D9.p, 7,
+                         "IDirect3D9::EnumAdapterModes",
+                          IDirect3D9_EnumAdapterModes_Override,
+                          IDirect3D9_EnumAdapterModes_Original,
+                          IDirect3D9_EnumAdapterModes_pfn );
+
         hwnd =
           SK_Win32_CreateDummyWindow ();
 
@@ -6687,6 +6908,19 @@ HookD3D9 (LPVOID user)
         if (SUCCEEDED (hr))
         {
           SK_LOGi0 (L" Hooking D3D9Ex...");
+
+          // IDirect3D9Ex::GetAdapterModeCountEx / EnumAdapterModesEx
+          D3D9_INTERCEPT ( &pD3D9Ex.p, 17,
+                           "IDirect3D9Ex::GetAdapterModeCountEx",
+                            IDirect3D9Ex_GetAdapterModeCountEx_Override,
+                            IDirect3D9Ex_GetAdapterModeCountEx_Original,
+                            IDirect3D9Ex_GetAdapterModeCountEx_pfn );
+
+          D3D9_INTERCEPT ( &pD3D9Ex.p, 18,
+                           "IDirect3D9Ex::EnumAdapterModesEx",
+                            IDirect3D9Ex_EnumAdapterModesEx_Override,
+                            IDirect3D9Ex_EnumAdapterModesEx_Original,
+                            IDirect3D9Ex_EnumAdapterModesEx_pfn );
 
           hwnd    =
             SK_Win32_CreateDummyWindow ();
