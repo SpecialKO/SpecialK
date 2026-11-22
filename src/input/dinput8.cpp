@@ -1644,12 +1644,38 @@ IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
 
 
 
-static SK_LazyGlobal <
-  concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8W>
-> devices8_w;
-static SK_LazyGlobal <
-  concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8A>
-> devices8_a;
+// Every CreateDevice call must hand the game a new device, as DirectInput does.
+//
+//   SK used to cache devices by GUID and return the cached one when the same
+//   GUID was asked for again, even from another IDirectInput8 instance. Games
+//   that set up input twice (e.g. Yomawari: Night Alone) then got back a device
+//   that already had a data format set and was acquired, so SetDataFormat
+//   failed with DIERR_ACQUIRED.
+//
+//   SK holds one reference on the system mouse and keyboard it tracks, because
+//   it calls SetCooperativeLevel on them later. When the game creates a new
+//   one, SK releases the device it tracked before. If the game still uses that
+//   device, its own references keep it alive; if not, it is destroyed (and so
+//   unacquired) as it would have been without SK.
+static void
+SK_DI8_TrackSystemDevice (REFGUID rguid, IUnknown* pDev)
+{
+  LPDIRECTINPUTDEVICE8W* ppTracked =
+    (rguid == GUID_SysMouse)    ? &_dim8->pDev :
+    (rguid == GUID_SysKeyboard) ? &_dik8->pDev : nullptr;
+
+  if (ppTracked == nullptr)
+    return;
+
+  pDev->AddRef ();
+
+  auto pOld = static_cast <IUnknown *> (
+    InterlockedExchangePointer ((PVOID *)ppTracked, pDev)
+  );
+
+  if (pOld != nullptr) // Also balances the AddRef if pDev was already tracked
+    pOld->Release ();
+}
 
 HRESULT
 WINAPI
@@ -1673,23 +1699,10 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
   hookable = true;
 
-  uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
-
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
-
-  static auto& _devices_w =
-               devices8_w.get ();
-
-  if (hookable && _devices_w.count (guid_crc32c) && lplpDirectInputDevice != nullptr)
-  {
-    *lplpDirectInputDevice = _devices_w [guid_crc32c];
-                             _devices_w [guid_crc32c]->AddRef ();
-    return S_OK;
-  }
-
 
   if (config.system.log_level > 1)
   {
@@ -1761,15 +1774,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
               fns_to_hook.push_back (vftable [25]);
       }
 
-      if (rguid == GUID_SysMouse)
-      {
-        _dim8->pDev = *lplpDirectInputDevice;
-      }
-      else if (rguid == GUID_SysKeyboard)
-        _dik8->pDev = *lplpDirectInputDevice;
-
-      devices8_w [guid_crc32c] = *lplpDirectInputDevice;
-      devices8_w [guid_crc32c]->AddRef ();
+      SK_DI8_TrackSystemDevice (rguid, *lplpDirectInputDevice);
     }
   }
 
@@ -1820,22 +1825,10 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
   hookable = true;
 
-  uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
-
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
-
-  static auto& _devices_a =
-               devices8_a.get ();
-
-  if (hookable && _devices_a.count (guid_crc32c) && lplpDirectInputDevice != nullptr)
-  {
-    *lplpDirectInputDevice = _devices_a [guid_crc32c];
-                             _devices_a [guid_crc32c]->AddRef ();
-    return S_OK;
-  }
 
   if (config.system.log_level > 1)
   {
@@ -1907,15 +1900,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
               fns_to_hook.push_back (vftable [25]);
       }
 
-      if (rguid == GUID_SysMouse)
-      {
-        _dim8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
-      }
-      else if (rguid == GUID_SysKeyboard)
-        _dik8->pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
-
-      devices8_a [guid_crc32c] = *lplpDirectInputDevice;
-      devices8_a [guid_crc32c]->AddRef ();
+      SK_DI8_TrackSystemDevice (rguid, *lplpDirectInputDevice);
     }
   }
 
