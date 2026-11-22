@@ -860,6 +860,10 @@ struct sk_config_t
       bool    force_impure         = false;
       bool    enable_flipex        = false;
       bool    use_d3d9on12         = false;
+      struct refresh_s {           // Filters IDirect3D9{Ex}::EnumAdapterModes{Ex}
+        float min = 0.0f;          //   0.0 = No Limit
+        float max = 0.0f;
+      } refresh;
     } d3d9;
     struct dxgi_s {
       int     adapter_override     = SK_NoPreference;
