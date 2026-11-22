@@ -1062,8 +1062,29 @@ IDirectInputDevice7A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE7A This,
 }
 
 
-static SK_LazyGlobal <concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE7W>> devices7_w;
-static SK_LazyGlobal <concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE7A>> devices7_a;
+// Every CreateDevice call must hand the game a new device; see the note on
+//   SK_DI8_TrackSystemDevice in dinput8.cpp. SK holds one reference on the
+//   system mouse and keyboard it tracks and releases the previous one when the
+//   game creates a new one.
+static void
+SK_DI7_TrackSystemDevice (REFGUID rguid, IUnknown* pDev)
+{
+  LPDIRECTINPUTDEVICE7W* ppTracked =
+    (rguid == GUID_SysMouse)    ? &_dim7->pDev :
+    (rguid == GUID_SysKeyboard) ? &_dik7->pDev : nullptr;
+
+  if (ppTracked == nullptr)
+    return;
+
+  pDev->AddRef ();
+
+  auto pOld = static_cast <IUnknown *> (
+    InterlockedExchangePointer ((PVOID *)ppTracked, pDev)
+  );
+
+  if (pOld != nullptr) // Also balances the AddRef if pDev was already tracked
+    pOld->Release ();
+}
 
 HRESULT
 WINAPI
@@ -1072,19 +1093,10 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
                                      LPDIRECTINPUTDEVICE7W *lplpDirectInputDevice,
                                      LPUNKNOWN              pUnkOuter )
 {
-  uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
-
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
-
-  if (devices7_w.get ().count (guid_crc32c))
-  {
-    *lplpDirectInputDevice = devices7_w [guid_crc32c];
-                             devices7_w [guid_crc32c]->AddRef ();
-    return S_OK;
-  }
 
   if (config.system.log_level > 1)
   {
@@ -1132,18 +1144,11 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
       MH_EnableHook (vftable [13]);
     }
 
-    if (rguid == GUID_SysMouse)
-    {
-      _dim7->pDev = *lplpDirectInputDevice;
-    }
-    else if (rguid == GUID_SysKeyboard)
-      _dik7->pDev = *lplpDirectInputDevice;
-
-    devices7_w [guid_crc32c] = *lplpDirectInputDevice;
-    devices7_w [guid_crc32c]->AddRef ();
-
     //SK_ApplyQueuedHooks ();
   }
+
+  if (SUCCEEDED (hr) && lplpDirectInputDevice != nullptr && *lplpDirectInputDevice != nullptr)
+    SK_DI7_TrackSystemDevice (rguid, *lplpDirectInputDevice);
 
 #if 0
   if (SUCCEEDED (hr) && lplpDirectInputDevice != nullptr)
@@ -1167,19 +1172,10 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
                                      LPDIRECTINPUTDEVICE7A *lplpDirectInputDevice,
                                      LPUNKNOWN              pUnkOuter )
 {
-  uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
-
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
-
-  if (devices7_a.get ().count (guid_crc32c))
-  {
-    *lplpDirectInputDevice = devices7_a [guid_crc32c];
-                             devices7_a [guid_crc32c]->AddRef ();
-    return S_OK;
-  }
 
 
   if (config.system.log_level > 1)
@@ -1229,18 +1225,11 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
       MH_EnableHook (vftable [13]);
     }
 
-    if (rguid == GUID_SysMouse)
-    {
-      _dim7->pDev = *(LPDIRECTINPUTDEVICE7W *)lplpDirectInputDevice;
-    }
-    else if (rguid == GUID_SysKeyboard)
-      _dik7->pDev = *(LPDIRECTINPUTDEVICE7W *)lplpDirectInputDevice;
-
-    devices7_a [guid_crc32c] = *lplpDirectInputDevice;
-    devices7_a [guid_crc32c]->AddRef ();
-
     ////SK_ApplyQueuedHooks ();
   }
+
+  if (SUCCEEDED (hr) && lplpDirectInputDevice != nullptr && *lplpDirectInputDevice != nullptr)
+    SK_DI7_TrackSystemDevice (rguid, *lplpDirectInputDevice);
 
 #if 0
   if (SUCCEEDED (hr) && lplpDirectInputDevice != nullptr)
