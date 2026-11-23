@@ -1176,7 +1176,7 @@ SK_Input_ClearKeyboardState (void)
         if (game_window.WndProc_Original != nullptr)
         {
           if (game_window.active || config.window.background_render)
-            game_window.WndProc_Original (game_window.hWnd, WM_SETFOCUS, 0, 0);
+            game_window.CallProc (game_window.hWnd, WM_SETFOCUS, 0, 0);
         }
 
         SK_SendInput (num_inputs, inputs, sizeof (INPUT));
@@ -1209,8 +1209,8 @@ SK_Input_ClearKeyboardState (void)
                                                    (1LL << 30) |
                                                    (1LL << 31));
 
-            game_window.WndProc_Original (game_window.hWnd, WM_KEYUP,    i, lParam);
-            game_window.WndProc_Original (game_window.hWnd, WM_SYSKEYUP, i, lParam);
+            game_window.CallProc (game_window.hWnd, WM_KEYUP,    i, lParam);
+            game_window.CallProc (game_window.hWnd, WM_SYSKEYUP, i, lParam);
           }
 
           if (i == VK_CANCEL)
@@ -8769,6 +8769,40 @@ sk_window_s::DefProc (
     DefWindowProc (hWnd, Msg, wParam, lParam);
 }
 
+#ifndef _M_AMD64
+// Some 32-bit games (i.e. Dragon Blaze) declare their window procedure __cdecl
+//   instead of __stdcall, so it returns without popping its 4 arguments.
+//
+//   user32 tolerates this when it dispatches messages, but a direct call from
+//     C++ leaves ESP 16 bytes short, and the caller's epilogue then pops the
+//       arguments into EDI / ESI / EBX instead of their saved values.
+//
+//  This thunk restores ESP from EBP after the call, so it works for both.
+static __declspec (naked)
+LRESULT
+WINAPI
+SK_Win32_CallWndProc_AnyABI ( WNDPROC /*lpfnWndProc*/,
+                              HWND    /*hWnd*/,
+                              UINT    /*Msg*/,
+                              WPARAM  /*wParam*/,
+                              LPARAM  /*lParam*/ )
+{
+  __asm
+  {
+    push ebp
+    mov  ebp, esp
+    push dword ptr [ebp + 18h] // lParam
+    push dword ptr [ebp + 14h] // wParam
+    push dword ptr [ebp + 10h] // Msg
+    push dword ptr [ebp + 0Ch] // hWnd
+    call dword ptr [ebp + 08h] // lpfnWndProc
+    mov  esp, ebp              // Discard args if the callee did not
+    pop  ebp
+    ret  14h
+  }
+}
+#endif
+
 LRESULT
 WINAPI
 sk_window_s::CallProc (
@@ -8781,7 +8815,11 @@ sk_window_s::CallProc (
   if (! hooked)
     return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
   else
+#ifdef _M_AMD64
     return WndProc_Original (hWnd_, Msg, wParam, lParam);
+#else
+    return SK_Win32_CallWndProc_AnyABI (WndProc_Original, hWnd_, Msg, wParam, lParam);
+#endif
 }
 
 
