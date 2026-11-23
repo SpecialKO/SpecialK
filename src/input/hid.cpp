@@ -119,8 +119,10 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
     SK_RunOnce (SK_Input_PreHookHID ());
   }
 
+  // Intentionally never destroyed (see SK_HID_DeviceFiles below).
   static
-    concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> known_paths;
+    concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile>& known_paths =
+   *new concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> ();
 
   // This stuff can be REALLY slow when games are constantly enumerating devices,
   //   so keep a cache handy.
@@ -380,13 +382,22 @@ SK_HID_DeviceFile::isInputAllowed (void) const
   return true;
 }
 
-       concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     SK_HID_PlayStationControllers;
-       concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>    SK_HID_DeviceFiles;
-static concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile> SK_NVIDIA_DeviceFiles;
+// Intentionally never destroyed: the file I/O detours below (WriteFile, ReadFile,
+//   CreateFile, ...) stay reachable during process exit through other software's
+//     hooks (e.g. the Steam overlay) after SK's own static destructors have run.
+//       FFVII (2020) calls WriteFile at that point, and the lookup crashed in
+//         an already destroyed map.
+       concurrency::concurrent_vector        <SK_HID_PlayStationDevice>&     SK_HID_PlayStationControllers =
+*new concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     ();
+       concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>&    SK_HID_DeviceFiles =
+*new concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>    ();
+static concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile>& SK_NVIDIA_DeviceFiles =
+*new concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile> ();
 
 // Faster check for known device files, the type can be checked after determining whether SK
 //   knows about this device...
-static concurrency::concurrent_unordered_set <HANDLE>                      SK_Input_DeviceFiles;
+static concurrency::concurrent_unordered_set <HANDLE>&                      SK_Input_DeviceFiles =
+*new concurrency::concurrent_unordered_set <HANDLE>                      ();
 
 std::tuple <SK_Input_DeviceFileType, void*, bool>
 SK_Input_GetDeviceFileAndState (HANDLE hFile)

@@ -1267,8 +1267,8 @@ struct SK_HID_DeviceFile {
   concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _blockedInputReportsBySize;
 };
 
-extern concurrency::concurrent_vector        <SK_HID_PlayStationDevice>  SK_HID_PlayStationControllers;
-extern concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile> SK_HID_DeviceFiles;
+extern concurrency::concurrent_vector        <SK_HID_PlayStationDevice>& SK_HID_PlayStationControllers;
+extern concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>& SK_HID_DeviceFiles;
 
 bool SK_ImGui_HasXboxController          (void);
 bool SK_ImGui_HasPlayStationController   (void);
