@@ -108,6 +108,23 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
 
   int                       VertexBufferSize        = 5000,
                             IndexBufferSize         = 10000;
+
+  // _Frame is a static, destroyed by the CRT during DLL_PROCESS_DETACH. By then
+  //   d3d11.dll and the display driver have already run their own detach, so
+  //     releasing the last reference to a view here crashes (FFVII 2020 exits
+  //       without releasing its SwapChain, leaving SK holding the last ref).
+  ~SK_ImGui_D3D11_BackbufferResourceIsolation (void) noexcept
+  {
+    if (ReadAcquire (&__SK_DLL_Ending))
+    {
+      std::ignore = pBackBuffer.Detach            ();
+      std::ignore = pRenderTargetView.Detach      ();
+      std::ignore = pRenderTargetView_sRGB.Detach ();
+      std::ignore = pUnorderedAccessView.Detach   ();
+      std::ignore = snipping.pScreenCopy.Detach   ();
+      std::ignore = snipping.pScreenView.Detach   ();
+    }
+  }
 } _Frame [_MAX_BACKBUFFERS];
 
 SK_LazyGlobal <SK_ImGui_D3D11Ctx>  _imgui_d3d11;

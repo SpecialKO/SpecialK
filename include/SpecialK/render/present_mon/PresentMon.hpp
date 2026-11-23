@@ -49,6 +49,24 @@ which is controlled from MainThread based on user input or timer.
 #include <SpecialK/render/present_mon/PresentMonTraceConsumer.hpp>
 
 #include <unordered_map>
+#include <thread>
+
+// PresentMon's worker threads are globals that are never joined. A std::thread
+//   that is still joinable when its static destructor runs (process exit) calls
+//     std::terminate, which crashed every game using SK's PresentMon worker on
+//       exit with 0xC0000409. Detach instead; the process is ending anyway.
+struct SK_PresentMon_Thread : std::thread
+{
+  using std::thread::thread;
+  using std::thread::operator=;
+
+  SK_PresentMon_Thread (void) = default;
+ ~SK_PresentMon_Thread (void)
+  {
+    if (joinable ())
+        detach   ();
+  }
+};
 
 enum class ConsoleOutput {
     None,

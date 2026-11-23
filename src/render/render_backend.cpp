@@ -71,9 +71,14 @@ SK_RenderBackend&
 __stdcall
 SK_WarmupRenderBackends (void) noexcept
 {
-  static SK_RenderBackend __SK_RBkEnd;
-  g_pRenderBackend     = &__SK_RBkEnd;
-  return                  __SK_RBkEnd;
+  // Intentionally never destroyed: its destructor releases the game's device,
+  //   SwapChain and DirectComposition device, but as a static that would run
+  //     during DLL_PROCESS_DETACH, after d3d11.dll / dxgi.dll / the display
+  //       driver have already detached, and could crash or hang on exit.
+  static SK_RenderBackend* __SK_RBkEnd =
+    new SK_RenderBackend ();
+  g_pRenderBackend     =  __SK_RBkEnd;
+  return                 *__SK_RBkEnd;
 }
 
 void

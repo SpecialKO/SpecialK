@@ -26,7 +26,7 @@ SOFTWARE.
 #include <SpecialK/utility/lazy_global.h>
 #include <SpecialK/thread.h>
 
-static std::thread gConsumerThread;
+static SK_PresentMon_Thread gConsumerThread;
 
 void
 Consume (TRACEHANDLE traceHandle)
