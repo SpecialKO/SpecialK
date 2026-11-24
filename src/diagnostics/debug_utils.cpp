@@ -2894,8 +2894,9 @@ SK_Exception_HandleThreadName (
       SK_TLS* pTLS =
         SK_TLS_BottomEx (dwTid);
 
+      // Debuggers interpret szName using the active code page, not UTF-8
       std::wstring wide_name (
-        SK_UTF8ToWideChar (info->szName).c_str ()
+        SK_ANSIToWideChar (info->szName).c_str ()
       );
 
       if (pTLS != nullptr)
