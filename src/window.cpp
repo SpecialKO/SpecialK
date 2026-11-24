@@ -4316,6 +4316,12 @@ SK_AdjustWindow (void)
     SK_LOG4 ( (L" > SK_AdjustWindow (Windowed)"),
              L"Window Mgr" );
 
+    // Aspect Ratio Stretch covers the entire monitor (taskbar included) with
+    //   its background window, so the taskbar must not shrink the work area;
+    //     otherwise centering places the window too high on the screen.
+    if (config.display.aspect_ratio_stretch && (! bMultiMonitorMode))
+      mi.rcWork = mi.rcMonitor;
+
     // Adjust the desktop resolution to make room for window decorations
     //   if the game window were maximized.
     if ((! borderless) && (! SK_GetCurrentRenderBackend ().isTrueFullscreen ()))
