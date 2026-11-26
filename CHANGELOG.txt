@@ -1,4 +1,9 @@
-﻿26.11.4.1
+﻿26.11.26
+========
+ + Merged pull request #404 from Aemony:fix/crash-stutters
+    * Fixes stutters when exceptions are thrown, e.g. in Unity/il2cpp games.
+
+26.11.4.1
 =========
  + Validate the correct memory address (vtable 0) for exec privs when detouring
      SteamAPI_RegisterCallback (...) rather than the base address of the class;
