@@ -11149,6 +11149,38 @@ struct budget_thread_params_t
 
 SK_LazyGlobal <budget_thread_params_t> budget_thread;
 
+// Special K itself loads dxgi.dll (and, through it, DXCore.dll) early on in
+//   every game: VRAM budget tracking, display / HDR enumeration and so on.
+//   Their presence therefore only says something about the game's render API
+//   if they were loaded before Special K attached, or were loaded later by a
+//   module other than Special K and DXGI's own components.
+//
+//   Evaluated during CRT initialization of Special K's DLL, before any of its
+//     own code runs. DXCore.dll is not considered: on current Windows the D3D9
+//       runtime loads it too.
+static volatile LONG SK_DXGI_AppLoadedDXGI =
+  ( GetModuleHandleW (L"dxgi.dll")   != nullptr ||
+    GetModuleHandleW (L"d3d11.dll")  != nullptr ||
+    GetModuleHandleW (L"d3d12.dll")  != nullptr ) ? TRUE : FALSE;
+
+bool
+SK_DXGI_IsLoadedByApplication (void) noexcept
+{
+  if (ReadAcquire (&SK_DXGI_AppLoadedDXGI) == FALSE)
+    return false;
+
+  return
+    SK_GetModuleHandleW (L"dxgi.dll")   != nullptr ||
+    SK_GetModuleHandleW (L"DXCore.dll") != nullptr;
+}
+
+void
+SK_DXGI_NoteApplicationLoad (void) noexcept
+{
+  if (InterlockedExchange (&SK_DXGI_AppLoadedDXGI, TRUE) == FALSE)
+    SK_LOGi0 (L"DXGI was loaded by the application; treating it as a render API candidate.");
+}
+
 void
 SK_DXGI_SignalBudgetThread (void) noexcept
 {

@@ -125,6 +125,12 @@ SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
 void        SK_DXGI_SignalBudgetThread (void) noexcept;
 bool WINAPI SK_DXGI_IsTrackingBudget   (void) noexcept;
 
+// Special K loads dxgi.dll (and through it DXCore.dll) for its own use, also in
+//   games that render with another API. Render API detection uses these so it
+//   does not mistake Special K's own DXGI for the game's.
+bool SK_DXGI_IsLoadedByApplication (void) noexcept; // dxgi.dll / DXCore.dll loaded, not only by SK
+void SK_DXGI_NoteApplicationLoad   (void) noexcept; // a module other than SK / DXGI loaded DXGI
+
 DXGI_COLOR_SPACE_TYPE
 SK_DXGI_GetColorSpace1  (IDXGISwapChain *pSwapChain) noexcept;
 bool SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept;
