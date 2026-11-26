@@ -179,15 +179,17 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::Columns    ( 2 );
 
       static bool has_dgvoodoo2 =
-        GetFileAttributesA (
-          SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                              SK_GetInstallPath ()
-                          ).c_str ()
+        GetFileAttributesW (
+          SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+                               SK_GetInstallPath ()
+                           ).c_str ()
         ) != INVALID_FILE_ATTRIBUTES;
 
+      // UTF-8 for ImGui
       static std::string dgvoodoo2_install_path =
-          SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo)",
-                              SK_GetInstallPath () );
+        SK_WideCharToUTF8 (
+          SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo)",
+                               SK_GetInstallPath () ) );
 
       auto Tooltip_dgVoodoo2 = []
       {

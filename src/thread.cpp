@@ -211,8 +211,9 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
 
     if (hThread.m_h != 0)
     {
+      // Debuggers interpret szName using the active code page, not UTF-8
       std::wstring wideDesc =
-        SK_UTF8ToWideChar (pTni->szName);
+        SK_ANSIToWideChar (pTni->szName);
 
       bRet =
         SUCCEEDED (
@@ -311,8 +312,8 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       );
     }
 
-    char      szDesc                      [SK_MAX_THREAD_NAME_LEN] = { };
-    wcstombs (szDesc, lpThreadDescription, SK_MAX_THREAD_NAME_LEN-1);
+    char       szDesc                      [SK_MAX_THREAD_NAME_LEN] = { };
+    strncpy_s (szDesc, SK_WideCharToANSI (lpThreadDescription).c_str (), _TRUNCATE);
 
     THREADNAME_INFO info = {       };
     info.dwType          =      4096;
@@ -436,8 +437,8 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
          SK_ValidatePointer ((void *)lpThreadDescription, true)
        )
     {
-      char      szDesc                      [SK_MAX_THREAD_NAME_LEN] = { };
-      wcstombs (szDesc, lpThreadDescription, SK_MAX_THREAD_NAME_LEN-1);
+      char       szDesc                      [SK_MAX_THREAD_NAME_LEN] = { };
+      strncpy_s (szDesc, SK_WideCharToANSI (lpThreadDescription).c_str (), _TRUNCATE);
 
       THREADNAME_INFO info = {       };
       info.dwType          =      4096;

@@ -324,10 +324,10 @@ SK_Bypass_CRT (LPVOID)
     bool
     {
       return
-        GetFileAttributesA (
-          SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                              SK_GetInstallPath ()
-                          ).c_str ()
+        GetFileAttributesW (
+          SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+                               SK_GetInstallPath ()
+                           ).c_str ()
         ) != INVALID_FILE_ATTRIBUTES;
     };
 
@@ -569,8 +569,8 @@ SK_Bypass_CRT (LPVOID)
           {
             SK_Inject_SwitchToGlobalInjector ();
 
-            temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+            temp_dll = std::wstring      (
+                         SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                            SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
@@ -606,8 +606,8 @@ SK_Bypass_CRT (LPVOID)
           {
             SK_Inject_SwitchToGlobalInjector ();
 
-            temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+            temp_dll = std::wstring      (
+                         SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                            SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
@@ -634,8 +634,8 @@ SK_Bypass_CRT (LPVOID)
 
           else
           {
-            temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+            temp_dll = std::wstring      (
+                         SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                            SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
@@ -663,8 +663,8 @@ SK_Bypass_CRT (LPVOID)
           else
           {
             SK_Inject_SwitchToGlobalInjector ();
-            temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+            temp_dll = std::wstring      (
+                         SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                            SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
@@ -691,8 +691,8 @@ SK_Bypass_CRT (LPVOID)
           else
           {
             SK_Inject_SwitchToGlobalInjector ();
-            temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+            temp_dll = std::wstring      (
+                         SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                            SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
@@ -719,8 +719,8 @@ SK_Bypass_CRT (LPVOID)
           else
           {
             SK_Inject_SwitchToGlobalInjector ();
-            temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+            temp_dll = std::wstring      (
+                         SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                            SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
@@ -757,8 +757,8 @@ SK_Bypass_CRT (LPVOID)
             else
             {
               SK_Inject_SwitchToGlobalInjector ();
-              temp_dll = SK_UTF8ToWideChar (
-                           SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+              temp_dll = std::wstring      (
+                           SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                              SK_GetInstallPath (),
 #ifdef _M_IX86
                                32
@@ -787,8 +787,8 @@ SK_Bypass_CRT (LPVOID)
             {
               SK_Inject_SwitchToGlobalInjector ();
 
-              temp_dll = SK_UTF8ToWideChar (
-                           SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+              temp_dll = std::wstring      (
+                           SK_FormatStringW ( LR"(%ws\SpecialK%lu.dll)",
                              SK_GetInstallPath (),
 #ifdef _M_IX86
                                32
