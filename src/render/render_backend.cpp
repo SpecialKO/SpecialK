@@ -173,6 +173,7 @@ SK_DXVK_CheckForInterop (void)
                sk::NVAPI::nv_hardware )
           {
             config.apis.NvAPI.vulkan_bridge            = 1;
+            SK_SaveConfig               (    );
             SK_NvAPI_EnableVulkanBridge (TRUE);
           }
 
@@ -1329,9 +1330,12 @@ SK_VK_CreateInstance (
           L"Game is Using Native Vulkan", MB_YESNOCANCEL | MB_ICONQUESTION
         );
 
+      // Save the choice now; the INI write at shutdown is skipped when no
+      //   frames have been drawn yet, which is always the case here.
       if (ret == IDYES)
       {
         config.apis.NvAPI.vulkan_bridge = 1;
+        SK_SaveConfig                (    );
         SK_NvAPI_EnableVulkanBridge  (TRUE);
         SK_RestartGame               (    );
       }
@@ -1339,6 +1343,7 @@ SK_VK_CreateInstance (
       else if (ret == IDNO)
       {
         config.apis.NvAPI.vulkan_bridge = 0;
+        SK_SaveConfig                (    );
         SK_RestartGame               (    );
       }
     }
