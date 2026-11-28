@@ -4959,6 +4959,14 @@ wglCreateContext (HDC hDC)
 {
   WaitForInit_GL ();
 
+  // Intel's ICD (igxelpicd64.dll) has been seen calling opengl32!wglCreateContext
+  //   from inside the wglCreateContextAttribsARB call made below (3.2 compatibility
+  //     attribs), which lands back here and recursed until the stack overflowed (#419).
+  static thread_local bool in_create_context = false;
+
+  if (in_create_context)
+    return wgl_create_context (hDC);
+
   SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglCreateContext "
               L"(hDC=%x)\t[%ws]",
               SK_TLS_Bottom ()->render->gl->current_hwnd,
@@ -4968,6 +4976,7 @@ wglCreateContext (HDC hDC)
   HGLRC  hglrc = nullptr;
 
   if (wgl_create_context_attribs != nullptr) {
+    in_create_context = true;
     static const int                                debug_attribs [] = { WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
                                                                          WGL_CONTEXT_MINOR_VERSION_ARB, 2,
                                                                          WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
@@ -4978,7 +4987,18 @@ wglCreateContext (HDC hDC)
                                                                            WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
                                                                            0, 0 };
          hglrc = wgl_create_context_attribs ( hDC, 0, config.render.gl.debug.enable ? debug_attribs : default_attribs );
-  } else hglrc =         wgl_create_context ( hDC );
+    in_create_context = false;
+
+    if (hglrc == nullptr)
+    {
+      SK_LOG0 ( ( L" >> wglCreateContextAttribsARB failed (GetLastError=%x), "
+                  L"falling back to wglCreateContext", GetLastError () ),
+                  L" OpenGL32 " );
+    }
+  }
+
+  if (hglrc == nullptr)
+    hglrc = wgl_create_context ( hDC );
 
   if (config.render.gl.debug.enable && glDebugMessageCallbackARB != nullptr)
   {
