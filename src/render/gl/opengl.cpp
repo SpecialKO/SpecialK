@@ -2115,6 +2115,125 @@ SK_GL_InteropDebugOutput (GLenum source, GLenum type, GLuint id, GLenum severity
   std::ignore = userParam;
 }
 
+// Finds the DXGI adapter that the current GL context runs on. The interop D3D11
+//   device has to live on that same GPU; DXGI's default adapter follows the
+//     per-app GPU preference in Windows, which OpenGL does not necessarily honor
+//       (e.g. GL on NVIDIA while DXGI's default is an Intel iGPU), and handing
+//         another GPU's D3D11 device to wglDXOpenDeviceNV crashes the GL driver.
+static SK_ComPtr <IDXGIAdapter>
+SK_GL_FindAdapterForCurrentContext (IDXGIFactory7 *pFactory7)
+{
+  if (pFactory7 == nullptr)
+    return nullptr;
+
+  // GL_EXT_memory_object_win32 / GL_EXT_semaphore_win32
+  static constexpr GLenum GL_DEVICE_LUID_EXT_SK = 0x9599;
+  static constexpr int    GL_LUID_SIZE_EXT_SK   = 8;
+
+  using glGetUnsignedBytevEXT_pfn = void (WINAPI *)(GLenum pname, GLubyte *data);
+
+  bool has_luid_ext = false;
+
+  if (glGetStringi != nullptr)
+  {
+    GLint num_exts = 0;
+    glGetIntegerv (GL_NUM_EXTENSIONS, &num_exts);
+
+    for (GLint i = 0; i < num_exts && (! has_luid_ext); ++i)
+    {
+      const char* ext =
+        (const char *)glGetStringi (GL_EXTENSIONS, i);
+
+      has_luid_ext = ext != nullptr &&
+        ( 0 == strcmp (ext, "GL_EXT_memory_object_win32") ||
+          0 == strcmp (ext, "GL_EXT_semaphore_win32") );
+    }
+  }
+
+  auto glGetUnsignedBytevEXT_SK =
+    ( has_luid_ext && wgl_get_proc_address != nullptr ) ?
+      (glGetUnsignedBytevEXT_pfn)wgl_get_proc_address ("glGetUnsignedBytevEXT")
+                                                      : nullptr;
+
+  if (glGetUnsignedBytevEXT_SK != nullptr)
+  {
+    GLubyte luid_bytes [GL_LUID_SIZE_EXT_SK] = { };
+
+    while (glGetError () != GL_NO_ERROR)
+      ;
+
+    glGetUnsignedBytevEXT_SK (GL_DEVICE_LUID_EXT_SK, luid_bytes);
+
+    if (glGetError () == GL_NO_ERROR)
+    {
+      LUID luid = { };
+      static_assert (sizeof (luid) == sizeof (luid_bytes));
+      memcpy (&luid, luid_bytes, sizeof (luid));
+
+      SK_ComPtr <IDXGIAdapter> pAdapter;
+
+      if ( SUCCEEDED (
+             pFactory7->EnumAdapterByLuid ( luid,
+                          __uuidof (IDXGIAdapter),
+                              (void **)&pAdapter.p ) ) )
+      {
+        DXGI_ADAPTER_DESC  adapter_desc = { };
+        pAdapter->GetDesc (&adapter_desc);
+
+        SK_LOG0 ( ( L" GL context runs on '%ws' (LUID: %08x:%08x)",
+                      adapter_desc.Description, luid.HighPart, luid.LowPart ),
+                    L"  GLDX11  " );
+
+        return pAdapter;
+      }
+    }
+  }
+
+  // No LUID available, match the GL vendor string against the adapters' vendor id
+  const char* vendor =
+    (const char *)glGetString (GL_VENDOR);
+
+  UINT vendor_id = 0;
+
+  if (vendor != nullptr)
+  {
+    if (     StrStrIA (vendor, "NVIDIA")) vendor_id = 0x10DE;
+    else if (StrStrIA (vendor, "Intel"))  vendor_id = 0x8086;
+    else if (StrStrIA (vendor, "ATI") ||
+             StrStrIA (vendor, "AMD"))    vendor_id = 0x1002;
+  }
+
+  if (vendor_id != 0)
+  {
+    SK_ComPtr <IDXGIAdapter> pAdapter;
+
+    for ( UINT idx = 0 ;
+            SUCCEEDED ( pFactory7->EnumAdapterByGpuPreference ( idx,
+                          DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+                                       __uuidof (IDXGIAdapter),
+                                           (void **)&pAdapter.p ) ) ;
+          ++idx, pAdapter.Release () )
+    {
+      DXGI_ADAPTER_DESC  adapter_desc = { };
+      pAdapter->GetDesc (&adapter_desc);
+
+      if (adapter_desc.VendorId == vendor_id)
+      {
+        SK_LOG0 ( ( L" GL vendor '%hs' matches '%ws'",
+                      vendor, adapter_desc.Description ),
+                    L"  GLDX11  " );
+
+        return pAdapter;
+      }
+    }
+  }
+
+  SK_LOG0 ( ( L" Could not tell which adapter the GL context runs on, "
+              L"using the default adapter" ), L"  GLDX11  " );
+
+  return nullptr;
+}
+
 HRESULT
 SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
                                ID3D11Device          *pDevice, HWND               hWnd,
@@ -2362,6 +2481,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
             }
           }
 
+          SK_ComPtr <IDXGIAdapter> pGLAdapter =
+            SK_GL_FindAdapterForCurrentContext (pFactory7);
+
+          if (pGLAdapter != nullptr)
+            pAdapter [0] = pGLAdapter;
+
           D3D_FEATURE_LEVEL        levels [] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0,
                                                  D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0 };
           D3D_FEATURE_LEVEL featureLevel;
@@ -2371,8 +2496,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
           hr =
             D3D11CreateDevice_Import (
-              nullptr,//pAdapter [0].p,
-                D3D_DRIVER_TYPE_HARDWARE,
+              pGLAdapter.p,
+                pGLAdapter != nullptr ? D3D_DRIVER_TYPE_UNKNOWN
+                                      : D3D_DRIVER_TYPE_HARDWARE,
                   nullptr,
                     D3D11_CREATE_DEVICE_SINGLETHREADED |
                     D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS,
