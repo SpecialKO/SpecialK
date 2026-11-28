@@ -1975,6 +1975,7 @@ enum class SK_GAME_ID
   Timberborn,                   // Timberborn.exe
   CONTROL_Resonant,             // CONTROLResonant.exe
   Helldivers2,                  // Helldivers2.exe
+  CallOfDuty_InfiniteWarfare,   // iw7_ship.exe
 
   UNKNOWN_GAME               = 0xffff
 };

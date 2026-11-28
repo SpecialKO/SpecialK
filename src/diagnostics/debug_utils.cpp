@@ -3904,7 +3904,8 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       SK_GAME_ID::FEAR_Perseus_Mandate,
       SK_GAME_ID::AgeOfEmpires4,
       SK_GAME_ID::ArknightsEndfield,
-      SK_GAME_ID::NevernessToEverness
+      SK_GAME_ID::NevernessToEverness,
+      SK_GAME_ID::CallOfDuty_InfiniteWarfare
     };
 
   // TODO: Less stupid way of this; hash table or something.
