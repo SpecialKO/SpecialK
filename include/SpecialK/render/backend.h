@@ -618,6 +618,10 @@ public:
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
     SK_ComPtr <IDCompositionDevice> composition   = nullptr;
 
+    // Device is DXVK's D3D11-on-Vulkan; NVIDIA's D3D driver does not own
+    //   it, so NvAPI D3D calls (Reflex, G-Sync) cannot work on it.
+    bool                            dxvk          = false;
+
     // Call to forcefully unbind Flip Model resources, as required
     // during SwapChain cleanup.
     void clearState (void) noexcept;

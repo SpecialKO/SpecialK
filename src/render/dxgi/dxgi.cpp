@@ -1956,7 +1956,9 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 
     if (__WantGSyncUpdate)
     {
-      if (sk::NVAPI::nv_hardware)
+      // NvAPI cannot get a handle for DXVK's backbuffer, and would retry
+      //   every frame
+      if (sk::NVAPI::nv_hardware && (! rb.d3d11.dxvk))
       {
         rb.surface.dxgi = nullptr;
         if ( SUCCEEDED ( pSwap->GetBuffer (
