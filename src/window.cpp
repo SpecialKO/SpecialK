@@ -3191,7 +3191,13 @@ SK_SetWindowLongPtrA (
   auto dwOldLong =
     SK_GetWindowLongPtrA (hWnd, nIndex);
 
-  if (nIndex == GWLP_WNDPROC)
+  // Only style changes send messages (WM_STYLECHANGING / WM_STYLECHANGED) to the
+  //   window's thread, and only they can deadlock when made from another thread.
+  //     Everything else (GWLP_WNDPROC, GWLP_USERDATA, extra window bytes, ...) has
+  //       to be in place before we return; games subclass a window and then store
+  //         the object their new WndProc reads back with GWLP_USERDATA, and the
+  //           window thread can deliver messages to that WndProc right away.
+  if (nIndex != GWL_STYLE && nIndex != GWL_EXSTYLE)
   {
     if (SetWindowLongPtrA_Original != nullptr)
       return SetWindowLongPtrA_Original (hWnd, nIndex, dwNewLong);
@@ -3310,7 +3316,8 @@ SK_SetWindowLongPtrW (
   auto dwOldLong =
     SK_GetWindowLongPtrW (hWnd, nIndex);
 
-  if (nIndex == GWLP_WNDPROC)
+  // See SK_SetWindowLongPtrA: only style changes are deferred
+  if (nIndex != GWL_STYLE && nIndex != GWL_EXSTYLE)
   {
     if (SetWindowLongPtrW_Original != nullptr)
       return SetWindowLongPtrW_Original (hWnd, nIndex, dwNewLong);
