@@ -2239,7 +2239,31 @@ D3D9TestCooperativeLevel_Override (IDirect3DDevice9 *This)
     return D3DERR_DEVICENOTRESET;
   }
 
-  return D3D9Device_TestCooperativeLevel_Original (This);
+  HRESULT hr =
+    D3D9Device_TestCooperativeLevel_Original (This);
+
+  // Prince of Persia (2008) checks the device once right after creating it,
+  //   while still setting up its window. If that check sees
+  //     D3DERR_DEVICENOTRESET, the game runs its device-reset handler before its
+  //       render command queue exists and dereferences a null pointer.
+  //
+  //  On HDR displays, Windows loses a fullscreen exclusive D3D9 device roughly
+  //    80-160 ms after creation, with or without Special K. The game's early
+  //      check normally runs at ~70 ms and wins that race; with Special K the
+  //        check runs later and loses it. Until the first frame, report D3D_OK;
+  //          the game's later device check then handles the loss and resets.
+  if ( hr == D3DERR_DEVICENOTRESET && SK_GetFramesDrawn () == 0 &&
+       SK_GetCurrentGameID () == SK_GAME_ID::PrinceOfPersia_2008 )
+  {
+    SK_RunOnce (
+      SK_LOGi0 ( L"Reporting D3D_OK instead of D3DERR_DEVICENOTRESET before"
+                 L" the first frame to avoid a crash in the game's init." )
+    );
+
+    return D3D_OK;
+  }
+
+  return hr;
 }
 
 __declspec (noinline)
