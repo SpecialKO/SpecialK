@@ -6368,6 +6368,10 @@ SK_DXVK_VulkanBridgeOptInForFactory (IDXGIFactory* pFactory)
   if (! sk::NVAPI::nv_hardware)
     return;
 
+  // The user explicitly turned the Vulkan Bridge off; do not override that
+  if (config.apis.NvAPI.vulkan_bridge == 0)
+    return;
+
   SK_ComPtr <IUnknown>
              pDXVKFactory;
   if (           pFactory != nullptr &&

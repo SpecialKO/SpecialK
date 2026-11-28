@@ -1332,6 +1332,7 @@ SK_VK_CreateInstance (
       if (ret == IDYES)
       {
         config.apis.NvAPI.vulkan_bridge = 1;
+        SK_SaveConfig                (    );
         SK_NvAPI_EnableVulkanBridge  (TRUE);
         SK_RestartGame               (    );
       }
@@ -1339,6 +1340,7 @@ SK_VK_CreateInstance (
       else if (ret == IDNO)
       {
         config.apis.NvAPI.vulkan_bridge = 0;
+        SK_SaveConfig                (    );
         SK_RestartGame               (    );
       }
     }
