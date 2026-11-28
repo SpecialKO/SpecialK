@@ -35,6 +35,7 @@
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <SpecialK/render/dxgi/dxgi_interfaces.h>
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
@@ -2429,6 +2430,7 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
     d3d11.clearState ();
     d3d11.composition   = nullptr;
+    d3d11.dxvk          = false;
     d3d11.immediate_ctx = nullptr;
     d3d12.command_queue = nullptr;
 
@@ -3714,7 +3716,29 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
 
           SK_ComQIPtr <IDXGIDevice>
                        pDXGIDevice (pDevice);
-          if (         pDXGIDevice != nullptr)
+
+          // DXVK's IDXGIDevice is not a real DXGI device, and dcomp.dll
+          //   crashes when handed one (e.g. Mirror's Edge Catalyst + DXVK)
+          bool bDXVK = false;
+
+          if (pDXGIDevice != nullptr)
+          {
+            SK_ComPtr <IDXGIAdapter> pAdapter;
+            SK_ComPtr <IDXGIFactory> pFactory;
+            SK_ComPtr <IUnknown>     pDXVKFactory;
+
+            if ( SUCCEEDED (pDXGIDevice->GetAdapter (&pAdapter.p)) &&
+                 SUCCEEDED (pAdapter->GetParent (IID_PPV_ARGS (&pFactory.p))) &&
+                 SUCCEEDED (pFactory->QueryInterface (SKID_DXVK_InteropFactory,
+                                              (void **)&pDXVKFactory.p)) )
+            {
+              bDXVK = true;
+            }
+          }
+
+          d3d11.dxvk = bDXVK;
+
+          if (pDXGIDevice != nullptr && (! bDXVK))
           {
             static HMODULE dcomp_dll =
               SK_LoadLibraryW (L"dcomp.dll");

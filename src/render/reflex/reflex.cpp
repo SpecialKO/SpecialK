@@ -877,6 +877,10 @@ SK_RenderBackend_V2::isReflexSupported (void) const noexcept
 {
   // Interop and HW vendor never change...
   //   api -might-, but we'll just ignore that for perf.
+  // NVIDIA's driver rejects DXVK's D3D11 device; only Vulkan Reflex can work
+  if (d3d11.dxvk)
+    return config.nvidia.reflex.vulkan;
+
   static BOOL _supported  = -1;
   if (        _supported != -1) {
       return (_supported != 0 || config.nvidia.reflex.vulkan);
@@ -1093,6 +1097,9 @@ SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyPa
     return true;
   }
 
+  if (d3d11.dxvk)
+    return false;
+
   NvAPI_Status ret =
     NvAPI_D3D_GetLatency (device.p, pGetLatencyParams);
 
@@ -1105,6 +1112,10 @@ void
 SK_RenderBackend_V2::driverSleepNV (int site) const noexcept
 {
   if (! device.p)
+    return;
+
+  // NvAPI_D3D_Sleep and friends fail on DXVK's device, every frame
+  if (d3d11.dxvk)
     return;
 
   if (! isReflexSupported ())
