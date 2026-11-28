@@ -1274,6 +1274,8 @@ void BasicInit (void)
   if (SK_COMPAT_IsFrapsPresent ())
       SK_COMPAT_UnloadFraps ();
 
+  SK_COMPAT_FixVolatileDebugHelper ();
+
   //bool bEnable = SK_EnableApplyQueuedHooks  ();
   //{
   //  SK_ApplyQueuedHooks ();

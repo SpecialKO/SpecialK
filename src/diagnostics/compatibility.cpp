@@ -1090,6 +1090,86 @@ SK_COMPAT_FixNahimicDeadlock (void)
 }
 
 
+//
+// Volatile engine (vdebug.dll)
+//
+//   The engine's debug helper remembers the name of every module it has ever
+//   seen in a fixed-size table (128 entries of MAX_PATH characters) at the end
+//   of its .data section, and adds to it without checking for room. The game
+//   refreshes that table each time it loads a DLL.
+//
+//   On its own the game stays under the limit. Special K brings a few dozen
+//   system DLLs into the process with it, and once the 131st module is seen
+//   the helper writes past the end of the page and the game crashes (usually
+//   at a loading screen, where the game loads more of its own modules).
+//
+//   The table is only used to print symbol names when the game reports an
+//   error of its own, so it is safe to stop updating it when it is nearly full.
+//
+using VDBG_UpdateLoadedModules_pfn = bool (__cdecl *)(void);
+static VDBG_UpdateLoadedModules_pfn
+       VDBG_UpdateLoadedModules_Original = nullptr;
+
+static bool
+__cdecl
+VDBG_UpdateLoadedModules_Detour (void)
+{
+  // Modules that were unloaded are never removed from the table, so
+  //   leave some room between this and the table's capacity of 128.
+  static constexpr DWORD _MaxSafeModules = 112;
+
+  HMODULE hModUnused = nullptr;
+  DWORD   cbNeeded   = 0;
+
+  // A buffer that is too small is not an error; the size needed for
+  //   every module in the process is still reported.
+  if ( EnumProcessModules ( GetCurrentProcess (), &hModUnused,
+                                          sizeof (hModUnused), &cbNeeded ) &&
+                           ( cbNeeded / sizeof (HMODULE) ) >= _MaxSafeModules )
+  {
+    SK_RunOnce (
+      SK_LOGi0 ( L"vdebug.dll: %lu modules are loaded, and the game's debug helper only"
+                 L" has room to track 128; it will not be told about any more.",
+                   static_cast <ULONG> (cbNeeded / sizeof (HMODULE)) )
+    );
+
+    // What the helper returns when it succeeds
+    return true;
+  }
+
+  return
+    VDBG_UpdateLoadedModules_Original ();
+}
+
+void
+SK_COMPAT_FixVolatileDebugHelper (void)
+{
+  if (SK_GetModuleHandleW (L"vdebug.dll") == nullptr)
+    return;
+
+  // Other software may use the same name for an unrelated DLL
+  if ( SK_GetProcAddress (L"vdebug.dll", "VDBG_UpdateLoadedModules") == nullptr ||
+       SK_GetProcAddress (L"vdebug.dll", "VDBG_ShowCallstack")       == nullptr )
+  {
+    return;
+  }
+
+  void* pTarget = nullptr;
+
+  if ( MH_OK ==
+         SK_CreateDLLHook2 (      L"vdebug.dll",
+                                   "VDBG_UpdateLoadedModules",
+                                    VDBG_UpdateLoadedModules_Detour,
+           static_cast_p2p <void> (&VDBG_UpdateLoadedModules_Original),
+                                 &pTarget ) && pTarget != nullptr )
+  {
+    SK_EnableHook (pTarget);
+
+    SK_LOGi0 (L"vdebug.dll: Limiting the number of modules the game's debug helper tracks.");
+  }
+}
+
+
 bool
 SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally)
 {
