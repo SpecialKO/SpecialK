@@ -2152,28 +2152,45 @@ SK_D3D11_TexMgr::reset (void)
     }
 
 
-    constexpr float overfill_factor = 1.05f;
+    // Allow the cache to overfill by 5% before doing anything
+    constexpr uint64_t overfill_percent = 105ULL;
 
     bool no_work = true;
 
 
-    if ( (uint32_t)AggregateSize_2D >> 20ULL > ( (uint32_t)       cache_opts.max_size +
-                                                ((uint32_t)(float)cache_opts.max_size * overfill_factor)) )
+    if ( AggregateSize_2D.load () >
+           (((uint64_t)cache_opts.max_size << 20ULL) * overfill_percent) / 100ULL )
       no_work = false;
 
-    if ( SK_D3D11_Textures->Entries_2D > (LONG)       cache_opts.max_entries +
-                                         (LONG)(float)cache_opts.max_entries * overfill_factor )
+    if ( Entries_2D.load () >
+           ((uint64_t)cache_opts.max_entries         * overfill_percent) / 100ULL )
       no_work = false;
 
     if ( SK_D3D11_amount_to_purge > 0 )
       no_work = false;
 
     if (no_work) return;
+
+
+    // If the game is actively using more than the limit, there may be nothing to
+    //   evict, so do not walk the entire cache any more than once per-second.
+    static uint64_t
+        last_attempt = 0ULL;
+    if (last_attempt != 0ULL && time_now < last_attempt + SK_PerfFreq)
+      return;
+
+    last_attempt = time_now;
   }
 
 
   std::set    <ID3D11Texture2D *>                     cleared;// (cache_opts.max_evict);
-  std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s *> textures;
+  std::vector <ID3D11Texture2D *>                     evicted;
+
+  // Scores are copied because other threads update the fields they are
+  //   computed from, and that must not happen in the middle of a sort.
+  std::vector <
+    std::pair <uint64_t, SK_D3D11_TexMgr::tex2D_descriptor_s *>
+  > textures;
 
   int potential = 0;
   {
@@ -2194,7 +2211,11 @@ SK_D3D11_TexMgr::reset (void)
         if (can_free)
         {
           ++potential;
-            textures.emplace_back (&desc.second);
+            textures.emplace_back (
+              desc.second.load_time * 10ULL + desc.second.last_used / 10ULL +
+              static_cast <uint64_t> (desc.second.hits) * 100ULL,
+             &desc.second
+            );
         }
 
         if (! must_free)
@@ -2204,16 +2225,14 @@ SK_D3D11_TexMgr::reset (void)
 
     if (potential > 0)
     {
+      // Evict the least valuable textures first
       std::sort ( std::execution::par,
                     textures.begin (),
                     textures.end   (),
-         [&]( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
-              const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
+         []( const auto& a,
+             const auto& b )
         {
-          return ( b->load_time * 10ULL  +  b->last_used / 10ULL  +
-                    static_cast <uint64_t> (b->hits)     * 100ULL   )   <
-                 ( a->load_time * 10ULL  +  a->last_used / 10ULL  +
-                    static_cast <uint64_t> (a->hits)     * 100ULL   );
+          return a.first < b.first;
         }
       );
     }
@@ -2227,11 +2246,24 @@ SK_D3D11_TexMgr::reset (void)
   const uint32_t max_count =
    cache_opts.max_evict;
 
-  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
-
-  for ( const auto& desc : textures )
+  // Stop as soon as the cache is back within its limits
+  auto within_limits = [&](void)
   {
-    if (desc == nullptr)
+    return (AggregateSize_2D >> 20ULL) <= (uint64_t)cache_opts.max_size &&
+            Entries_2D                 <=           cache_opts.max_entries;
+  };
+
+  const uint64_t floor_size =
+    std::min (cache_opts.min_size, cache_opts.max_size);
+
+  for ( const auto& [score, desc] : textures )
+  {
+    // Not held for the entire purge, so that game threads
+    //   are able to continue creating textures.
+    std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
+
+    // Removed by another thread since the list was made
+    if (desc->crc32c == 0x00)
       continue;
 
     const auto mem_size =
@@ -2264,24 +2296,23 @@ SK_D3D11_TexMgr::reset (void)
                     L"DX11TexMgr" );
        }
 
-       SK_D3D11_RemoveTexFromCache (desc->texture);
-         IUnknown_Release_Original (desc->texture);
+       // Our reference belongs to the cache entry; it is
+       //   only ours to release if there was one to remove.
+       if (! SK_D3D11_RemoveTexFromCache (desc->texture))
+         continue;
+
+       evicted.emplace_back (desc->texture);
 
        count++;
        purged += mem_size;
 
        if ( ! must_free )
        {
-         if ((// Have we over-freed? If so, stop when the minimum number of
-              // evicted textures is reached
-              (AggregateSize_2D >> 20ULL) <= (uint32_t)cache_opts.min_size &&
-                                    count >=           cache_opts.min_evict )
-
-              // An arbitrary purge request was issued
-                                                                  ||
-             (SK_D3D11_amount_to_purge     >  0                   &&
-              SK_D3D11_amount_to_purge     <= purged              &&
-                                     count >= cache_opts.min_evict ) ||
+         if (( count >= cache_opts.min_evict &&
+              // There is nothing worthwhile left to free
+             ((AggregateSize_2D >> 20ULL) <= floor_size ||
+              // Back within limits, and any arbitrary purge request is satisfied
+              (within_limits () && SK_D3D11_amount_to_purge <= purged)) ) ||
 
               // Have we evicted as many textures as we can in one pass?
                                      count >= max_count )
@@ -2296,6 +2327,10 @@ SK_D3D11_TexMgr::reset (void)
    }
  }
 
+ // Nothing can find these textures anymore, release them without the lock held
+ for ( auto* texture : evicted )
+   IUnknown_Release_Original (texture);
+
  LastPurge_2D.store (time_now);
 
  if (count > 0)
@@ -2309,7 +2344,7 @@ SK_D3D11_TexMgr::reset (void)
                                       cache_opts.max_evict ),
                L"DX11TexMgr" );
 
-   if ((AggregateSize_2D >> 20ULL) >= static_cast <uint64_t> (cache_opts.max_size))
+   if ((AggregateSize_2D >> 20ULL) >  static_cast <uint64_t> (cache_opts.max_size))
    {
      SK_LOG0 ( ( L" >> Texture cache remains %.2f MiB over-budget; will "
                  L"schedule future passes until resolved.",
@@ -2320,7 +2355,7 @@ SK_D3D11_TexMgr::reset (void)
      SK_D3D11_try_tex_reset = true;
    }
 
-   if (Entries_2D >= cache_opts.max_entries)
+   if (Entries_2D >  cache_opts.max_entries)
    {
      SK_LOG0 ( ( L" >> Texture cache remains %lu entries over-filled; will"
                  L" schedule future passes until resolved.",
@@ -2376,6 +2411,9 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
 {
   ID3D11Texture2D* pTex2D =
     nullptr;
+
+  // The texture must not be evicted between finding it and adding a reference
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
 
   if (isTexture2D (tag, pDesc))
   {
@@ -2702,8 +2740,14 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
 
   if (pTex != nullptr)
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
+
     SK_D3D11_TexMgr::tex2D_descriptor_s& it =
       textures->Textures_2D [pTex];
+
+    // Already removed, do not subtract its size or release our reference twice
+    if (it.crc32c == 0x00)
+      return false;
 
           uint32_t              tag  = it.tag;
     const D3D11_TEXTURE2D_DESC& desc = it.orig_desc;
@@ -2732,6 +2776,18 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
         textures->HashMap_Fmt [desc.Format].map [desc.MipLevels].erase (pTex);
       } else {             textures->HashMap_2D [desc.MipLevels].erase ( tag);
                            textures->HashMap_2D [desc.MipLevels].erase (pTex);
+      }
+
+      // Modified textures are also listed under their modified description
+      if ( it.desc.MipLevels != desc.MipLevels )
+      {
+        if (config.textures.d3d11.use_l3_hash)
+        {
+          textures->HashMap_Fmt [it.desc.Format].map [it.desc.MipLevels].erase ( tag);
+          textures->HashMap_Fmt [it.desc.Format].map [it.desc.MipLevels].erase (pTex);
+        } else {             textures->HashMap_2D [it.desc.MipLevels].erase ( tag);
+                             textures->HashMap_2D [it.desc.MipLevels].erase (pTex);
+        }
       }
     }
 
@@ -2910,6 +2966,15 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   }
 
 
+  std::scoped_lock <SK_Thread_HybridSpinlock> critical (*cache_cs);
+
+  // We already hold a reference to this texture and have counted its size
+  if ( const auto it  = Textures_2D.find (pTex);
+                  it != Textures_2D.end  () && it->second.crc32c != 0x00 )
+  {
+    return;
+  }
+
   AggregateSize_2D += mem_size;
 
   tex2D_descriptor_s desc2d
@@ -2985,7 +3050,9 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
     }
   }
 
-  Textures_2D.insert            (std::make_pair (pTex, desc2d));
+  // Evicted textures leave a descriptor behind, and D3D11 is free to allocate a new
+  //   texture at the same address; insert (...) would keep the old descriptor.
+  Textures_2D [pTex] = desc2d;
   TexRefs_2D.insert             (                pTex);
 
   Entries_2D++;
