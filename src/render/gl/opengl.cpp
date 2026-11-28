@@ -179,7 +179,25 @@ SK_LoadRealGL (void)
 
 
   if (local_gl == nullptr)
+  {
     local_gl = SK_Modules->LoadLibrary (wszBackendDLL);
+
+    // As the game's OpenGL32.dll, SK pre-loads the system copy at startup, but
+    //   loading it again here has been seen to fail while the game is starting
+    //     up at the same time; without it every wgl* pointer ends up null.
+    if (local_gl == nullptr)
+    {
+      const DWORD dwLoadErr = GetLastError ();
+
+      GetModuleHandleExW (0x0, wszBackendDLL, &local_gl);
+
+      SK_LOG0 ( ( L"Could not load %ws (GetLastError=%u); %ws",
+                    wszBackendDLL, dwLoadErr, local_gl != nullptr ?
+                                L"using the copy already in memory" :
+                                L"it is not loaded either!" ),
+                  L" OpenGL32 " );
+    }
+  }
   else {
     HMODULE hMod;
     GetModuleHandleExW (0x00, wszBackendDLL, &hMod);
@@ -4198,7 +4216,19 @@ SK_HookGL (LPVOID)
         wgl_swap_multiple_buffers =
       (wglSwapMultipleBuffers_pfn)SK_GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
-    HWND hWndDummy =
+    const bool bHaveWGL =
+      wgl_choose_pixel_format != nullptr && wgl_create_context != nullptr &&
+      wgl_make_current        != nullptr && wgl_delete_context != nullptr &&
+      wgl_get_proc_address    != nullptr;
+
+    if (! bHaveWGL)
+    {
+      SK_LOG0 ( ( L"Real OpenGL32.dll functions are missing, skipping "
+                  L"the dummy context (no extension hooks)" ),
+                  L" OpenGL32 " );
+    }
+
+    HWND hWndDummy = (! bHaveWGL) ? nullptr :
       CreateWindowW ( L"STATIC", nullptr, 0, 0, 0, 0, 0,
                         nullptr, nullptr, nullptr, 0 );
 

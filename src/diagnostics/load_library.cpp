@@ -1501,6 +1501,10 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
       SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
   }
 
+  // Callers (e.g. the delay-load helper) read this right after we return
+  const DWORD dwLoadErr =
+    GetLastError ();
+
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
   {
@@ -1510,6 +1514,17 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   }
 
   SK_UnlockDllLoader ();
+
+  if (hMod == nullptr)
+  {
+    SK_LOG0 ( ( L"%ws (%ws, flags=%x) failed: GetLastError=%u -- caller: %ws",
+                  wszSourceFunc, compliant_path, dwFlags, dwLoadErr,
+                    SK_GetCallerName (lpRet).c_str () ),
+                L"DLL Loader" );
+
+    SK_SetLastError (dwLoadErr);
+  }
+
   return hMod;
 }
 
