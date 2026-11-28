@@ -5205,15 +5205,24 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
       break;
   }
 
-  if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
+  // SK is shutting down, usually because another thread called ExitProcess.
+  //   Returning -1 would tell the game that GetMessage failed, and some games
+  //     (Call of Duty: Infinite Warfare) show a fatal error for that. Wait in
+  //       the real GetMessage instead, as the game would without SK.
+  if (dwWait == WAIT_OBJECT_0)
+  {
+    if (GetMessageA_Original != nullptr)
+      return
+        GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+
     msg.message = WM_NULL;
+  }
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
 
   return
-    ( dwWait == WAIT_OBJECT_0 ) ? -1
-                                : ( msg.message != WM_QUIT );
+    ( msg.message != WM_QUIT );
 }
 
 BOOL
@@ -5284,15 +5293,24 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
       break;
   }
 
-  if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
+  // SK is shutting down, usually because another thread called ExitProcess.
+  //   Returning -1 would tell the game that GetMessage failed, and some games
+  //     (Call of Duty: Infinite Warfare) show a fatal error for that. Wait in
+  //       the real GetMessage instead, as the game would without SK.
+  if (dwWait == WAIT_OBJECT_0)
+  {
+    if (GetMessageW_Original != nullptr)
+      return
+        GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+
     msg.message = WM_NULL;
+  }
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
 
   return
-    ( dwWait == WAIT_OBJECT_0 ) ? -1
-                                : ( msg.message != WM_QUIT );
+    ( msg.message != WM_QUIT );
 }
 
 
